@@ -2584,10 +2584,8 @@ input.bitmask {
 }
 
 #info-area .message {
-	min-width: 240px;
-	min-height: 28px;
 	text-align: left;
-	padding: 14px 4px 6px 40px;
+	padding: 14px 4px 14px 40px;
 	font-size: 10pt;
 	clear: both;
 	overflow: auto;
@@ -2599,8 +2597,15 @@ input.bitmask {
 	margin-bottom: 5px;
 }
 
+#info-area .message .furtherText {
+	display: block;
+	padding-top: 10px;
+}
+
 #info-area .message button {
-	float: right;
+	position: absolute;
+	right: 5px;
+	margin-top: -18px;
 }
 
 #info-area b.uniqueCount {

@@ -973,6 +973,9 @@ var Structr = {
 			if (additionalParameters.title) {
 				message.title(additionalParameters.title);
 			}
+			if (additionalParameters.furtherText) {
+				message.furtherText(additionalParameters.furtherText);
+			}
 		}
 
 		message.show();
@@ -1709,6 +1712,7 @@ function MessageBuilder () {
 	this.params = {
 		// defaults
 		text: 'Default message',
+		furtherText: undefined,
 		delayDuration: 3000,
 		fadeDuration: 1000,
 		confirmButtonText: 'Confirm',
@@ -1736,6 +1740,11 @@ function MessageBuilder () {
 
 	this.text = function (text) {
 		this.params.text = text;
+		return this;
+	};
+
+	this.furtherText = function (furtherText) {
+		this.params.furtherText = furtherText;
 		return this;
 	};
 
@@ -1809,7 +1818,8 @@ function MessageBuilder () {
 			$('#info-area').append(
 				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
 					(this.params.title ? '<h3>' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
-					'<span class="text">' + this.params.text + '</span>' +
+					'<div class="text">' + this.params.text + '</div>' +
+					(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
 					(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
 					(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
 				'</div>'
@@ -1821,6 +1831,7 @@ function MessageBuilder () {
 			if (this.params.requiresConfirmation === true) {
 
 				$('#' + this.params.msgId).find('button.confirm').click(function () {
+					$(this).remove();
 					msgBuilder.hide();
 				});
 

@@ -1690,17 +1690,11 @@ var _Schema = {
 		var indexed = $('.' + rowClass + ' .indexed', el).is(':checked');
 		var defaultValue = $('.' + rowClass + ' .property-default', el).val();
 
-		if (name.length === 0) {
-
-			blinkRed($('.' + rowClass + ' .property-name', el).closest('td'));
-
-		} else if (type.length === 0) {
+		if (name.length === 0 || type.length === 0) {
 
 			blinkRed($('.' + rowClass + ' .property-type', el).closest('td'));
 
 		} else {
-
-			button.data('save-pending', true);
 
 			var obj = {};
 			obj.schemaNode   =  { id: entity.id };
@@ -1712,6 +1706,13 @@ var _Schema = {
 			if (unique)       { obj.unique = unique; }
 			if (indexed)      { obj.indexed = indexed; }
 			if (defaultValue) { obj.defaultValue = defaultValue; }
+
+			if (!_Schema.validatePropertyDefinition(obj)) {
+				blinkRed($('.' + rowClass + ' .property-type', el).closest('td'));
+				return;
+			}
+
+			button.data('save-pending', true);
 
 			// store property definition with an empty property object
 			_Schema.storeSchemaEntity('schema_properties', {}, JSON.stringify(obj), function(result) {
@@ -1744,9 +1745,8 @@ var _Schema = {
 
 								$('.create-property', row).remove();
 								$('.remove-property', row)
-										.off('click')
-										.attr('src', _Icons.delete_icon)
-										.on('click', function() {
+										.removeClass(_Icons.getSpriteClassOnly(_Icons.cross_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.delete_icon))
+										.off('click').on('click', function() {
 									_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 								});
 
@@ -1767,6 +1767,24 @@ var _Schema = {
 				button.data('save-pending', false);
 			});
 		}
+	},
+	validatePropertyDefinition: function (propertyDefinition) {
+
+		if (propertyDefinition.propertyType === 'Enum') {
+
+			var containsSpace = propertyDefinition.format.split(',').some(function (enumVal) {
+				return enumVal.trim().indexOf(' ') !== -1;
+			});
+
+			if (containsSpace) {
+				new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for more information.').requiresConfirmation().show();
+				return false;
+			}
+
+		}
+
+		return true;
+
 	},
 	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
 
@@ -2173,36 +2191,30 @@ var _Schema = {
 	},
 	savePropertyDefinition: function(property) {
 
-		var key = property.name;
+		var obj = {
+			name:         $('.' + property.name + ' .property-name').val(),
+			dbName:       $('.' + property.name + ' .property-dbname').val(),
+			propertyType: $('.' + property.name + ' .property-type').val(),
+			contentType:  $('.' + property.name + ' .content-type').val(),
+			format:       $('.' + property.name + ' .property-format').val(),
+			notNull:      $('.' + property.name + ' .not-null').is(':checked'),
+			unique:       $('.' + property.name + ' .unique').is(':checked'),
+			indexed:      $('.' + property.name + ' .indexed').is(':checked'),
+			defaultValue: $('.' + property.name + ' .property-default').val()
+		};
 
-		_Schema.unbindEvents(key);
+		if (obj.name && obj.name.length && obj.propertyType) {
 
-		var name = $('.' + key + ' .property-name').val();
-		var dbName = $('.' + key + ' .property-dbname').val();
-		var type = $('.' + key + ' .property-type').val();
-		var contentType = $('.' + key + ' .content-type').val();
-		var format = $('.' + key + ' .property-format').val();
-		var notNull = $('.' + key + ' .not-null').is(':checked');
-		var unique = $('.' + key + ' .unique').is(':checked');
-		var indexed = $('.' + key + ' .indexed').is(':checked');
-		var defaultValue = $('.' + key + ' .property-default').val();
+			if (!_Schema.validatePropertyDefinition(obj)) {
+				blinkRed($('.local .' + property.name));
+				return;
+			}
 
-		if (name && name.length && type) {
-
-			var obj = {};
-			obj.name = name;
-			obj.dbName = dbName;
-			obj.propertyType = type;
-			obj.contentType = contentType;
-			obj.format = format;
-			obj.notNull = notNull;
-			obj.unique = unique;
-			obj.indexed = indexed;
-			obj.defaultValue = defaultValue;
+			_Schema.unbindEvents(property.name);
 
 			_Schema.storeSchemaEntity('schema_properties', property, JSON.stringify(obj), function() {
 
-				blinkGreen($('.local .' + key));
+				blinkGreen($('.local .' + property.name));
 
 				// accept values into property object
 				property.name = obj.name;
@@ -2215,15 +2227,20 @@ var _Schema = {
 				property.indexed = obj.indexed;
 				property.defaultValue = obj.defaultValue;
 
-				// update row class so that consequent changes can be applied
-				$('.' + key).removeClass(key).addClass(property.name);
 				_Schema.bindEvents(property);
 
 			}, function(data) {
 
-				Structr.errorFromResponse(data.responseJSON);
+				var additionalInformation = {};
 
-				blinkRed($('.local .' + key));
+				if (obj.propertyType === 'Enum') {
+					additionalInformation.requiresConfirmation = true;
+					additionalInformation.furtherText = 'This error happened while changing an Enum type<br>See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
+				}
+
+				Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+
+				blinkRed($('.local .' + property.name));
 				_Schema.bindEvents(property);
 
 			}, function() {
