@@ -26,3 +26,4 @@ docs/screenshots
 *.DS_Store
 **nbactions.xml
 import-*.log
+license.key
