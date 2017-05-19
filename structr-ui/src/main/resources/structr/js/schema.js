@@ -1940,7 +1940,7 @@ var _Schema = {
 			if (!$('input.content-type', typeField.parent()).length) {
 				typeField.after('<input type="text" size="5" class="content-type">');
 			}
-			$('.' + key + ' .content-type', el).on('blur', function() {
+			$('.' + key + ' .content-type', el).on('change', function() {
 				_Schema.savePropertyDefinition(property);
 			}).prop('disabled', null).val(property.contentType);
 		}
@@ -1949,9 +1949,6 @@ var _Schema = {
 			if (!$('button.edit-read-function', typeField.parent()).length) {
 				$('.' + key + ' .property-format', el).replaceWith('<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button>');
 			}
-			$('.' + key + ' .content-type', el).on('blur', function() {
-				_Schema.savePropertyDefinition(property);
-			}).prop('disabled', null).val(property.contentType);
 		}
 
 		if (property.propertyType && property.propertyType !== '') {
@@ -1967,7 +1964,7 @@ var _Schema = {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.propertyType);
 
-		$('.' + key + ' .property-format', el).on('blur', function() {
+		$('.' + key + ' .property-format', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.format);
 
@@ -2006,7 +2003,7 @@ var _Schema = {
 
 		$('.' + key + ' .property-type', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .content-type', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .property-format', el).off('blur').prop('disabled', 'disabled');
+		$('.' + key + ' .property-format', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .not-null', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .unique', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .indexed', el).off('change').prop('disabled', 'disabled');
@@ -2187,9 +2184,9 @@ var _Schema = {
 		});
 
 
-		$('.' + key + ' .property-name', el).on('blur', function() {
+		$('.' + key + ' .property-name', el).on('change', function() {
 
-			var newName = $(this).val();
+			var newName = $(this).val().trim();
 
 			if (newName === '') {
 				newName = undefined;
