@@ -84,7 +84,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		if (applyConverter) {
 
 			// apply property converters
-			PropertyConverter converter = databaseConverter(securityContext, obj);
+			PropertyConverter converter = databaseConverter(securityContext, PropertyMap.unwrap(obj));
 			if (converter != null) {
 
 				try {
@@ -114,7 +114,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	@Override
 	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
 
-		final PropertyConverter converter = databaseConverter(securityContext, obj);
+		final PropertyConverter converter = databaseConverter(securityContext, PropertyMap.unwrap(obj));
 		final Object convertedValue;
 
 		if (converter != null) {

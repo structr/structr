@@ -197,7 +197,6 @@ public class FileHelper {
 
 		Base64URIData uriData = new Base64URIData(rawData);
 		setFileData(file, uriData.getBinaryData(), uriData.getContentType());
-
 	}
 
 	/**
