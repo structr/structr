@@ -712,7 +712,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		final Page _ownerDocument       = (Page)getOwnerDocument();
 
-		logger.warn("DOMNode {} has no owner document!", getUuid());
+		if(_ownerDocument == null) {
+
+			logger.warn("DOMNode {} has no owner document!", getUuid());
+		}
 
 		final boolean pagePublic        = _ownerDocument != null ? _ownerDocument.isVisibleToPublicUsers() : false;
 		final boolean pageProtected     = _ownerDocument != null ? _ownerDocument.isVisibleToAuthenticatedUsers() : false;

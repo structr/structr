@@ -220,7 +220,7 @@ public class HttpService implements RunnableService {
 		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
 		if (Settings.ConfigServletEnabled.getValue()) {
-			
+
 			// configuration wizard entry point
 			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
 		}

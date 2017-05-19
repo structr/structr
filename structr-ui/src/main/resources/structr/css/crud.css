@@ -219,7 +219,7 @@
 		position: -o-sticky;
 		position: sticky;
 		top: 0;
-		z-index: 10000;
+		z-index: 99;
 	}
 
 	/* adds an outline to the table head elements because when using position:sticky the regular border is not rendered */

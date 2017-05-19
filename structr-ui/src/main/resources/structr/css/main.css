@@ -1682,13 +1682,13 @@ button.add_property {
 	vertical-align: top;
 }
 
-.schema-props, .schemaprop-localizations {
+.schema-props {
 	background-color: #f9f9f9;
 	width: 100%;
 	border-collapse: collapse;
 }
 
-.schema-props th, .schema-props td, .schemaprop-localizations th, .schemaprop-localizations td {
+.schema-props th, .schema-props td {
 	border: 1px solid #ccc;
 }
 
@@ -1751,12 +1751,24 @@ button.add_property {
 	min-width: 0px;
 }
 
-.schema-props td, .schemaprop-localizations td {
+.related-attrs.schema-props th:first-of-type {
+	width: 50%;
+}
+
+.related-attrs.schema-props th:last-of-type {
+	width: 8%;
+}
+
+.related-attrs.schema-props th {
+	width: 42%;
+}
+
+.schema-props td {
 	border: 1px solid #ccc;
 	padding: 2px 4px;
 }
 
-.schema-props tr:nth-child(even), .schemaprop-localizations tr:nth-child(even) {
+.schema-props tr:nth-child(even) {
 	background-color: #fff;
 }
 
@@ -2584,10 +2596,8 @@ input.bitmask {
 }
 
 #info-area .message {
-	min-width: 240px;
-	min-height: 28px;
 	text-align: left;
-	padding: 14px 4px 6px 40px;
+	padding: 14px 4px 14px 40px;
 	font-size: 10pt;
 	clear: both;
 	overflow: auto;
@@ -2599,8 +2609,15 @@ input.bitmask {
 	margin-bottom: 5px;
 }
 
+#info-area .message .furtherText {
+	display: block;
+	padding-top: 10px;
+}
+
 #info-area .message button {
-	float: right;
+	position: absolute;
+	right: 5px;
+	margin-top: -18px;
 }
 
 #info-area b.uniqueCount {
