@@ -36,6 +36,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.CreationContainer;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
@@ -185,9 +186,11 @@ public class PropertyMap {
 	}
 
 	// ----- static methods -----
-	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap javaTypeToDatabaseType(SecurityContext securityContext, GraphObject wrapped, Map<String, Object> source) throws FrameworkException {
 
-		PropertyMap resultMap = new PropertyMap();
+		final PropertyMap resultMap = new PropertyMap();
+		final GraphObject entity    = unwrap(wrapped);
+
 		if (source != null) {
 
 			for (Entry<String, Object> entry : source.entrySet()) {
@@ -197,8 +200,8 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entity.getClass(), key);
-					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
+					final PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entity.getClass(), key);
+					final PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
 
@@ -222,10 +225,11 @@ public class PropertyMap {
 		return resultMap;
 	}
 
-	public static PropertyMap databaseTypeToJavaType(SecurityContext securityContext, GraphObject entity, Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap databaseTypeToJavaType(final SecurityContext securityContext, final GraphObject wrapped, final Map<String, Object> source) throws FrameworkException {
 
-		PropertyMap resultMap = new PropertyMap();
-		Class entityType      = entity.getClass();
+		final PropertyMap resultMap = new PropertyMap();
+		final GraphObject entity    = unwrap(wrapped);
+		final Class entityType      = entity.getClass();
 
 		if (source != null) {
 
@@ -236,8 +240,8 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
-					PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
+					final PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(entityType, key);
+					final PropertyConverter converter = propertyKey.databaseConverter(securityContext, entity);
 
 					if (converter != null) {
 
@@ -495,5 +499,17 @@ public class PropertyMap {
 		public int compare(PropertyKey o1, PropertyKey o2) {
 			return o1.jsonName().compareTo(o2.jsonName());
 		}
+	}
+
+	public static GraphObject unwrap(final GraphObject source) {
+
+		if (source instanceof CreationContainer) {
+
+			final CreationContainer container = (CreationContainer)source;
+
+			return container.getWrappedObject();
+		}
+
+		return source;
 	}
 }

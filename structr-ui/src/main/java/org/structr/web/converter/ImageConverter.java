@@ -111,6 +111,7 @@ public class ImageConverter extends PropertyConverter {
 						} else {
 
 							ImageHelper.decodeAndSetFileData((Image) currentObject, sourceString);
+							ImageHelper.updateMetadata((Image)currentObject);
 
 						}
 					}

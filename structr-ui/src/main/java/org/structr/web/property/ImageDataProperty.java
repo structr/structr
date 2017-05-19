@@ -28,7 +28,7 @@ import org.structr.web.entity.Image;
 
 /**
  * A property that tries to create an {@link Image} from BASE64 encoded data.
- * 
+ *
  * This class has two constructors:
  * The default constructor will store the image data as the image itself,
  * the other one (with a {@link KeyAndClass} argumnents stores the data with
@@ -38,9 +38,9 @@ import org.structr.web.entity.Image;
  *
  */
 public class ImageDataProperty<T> extends StringProperty {
-	
+
 	private KeyAndClass keyAndClass = null;
-	
+
 	public ImageDataProperty(String name) {
 		super(name);
 		this.unvalidated = true;
@@ -51,12 +51,12 @@ public class ImageDataProperty<T> extends StringProperty {
 		this.unvalidated = true;
 		this.keyAndClass = keyAndClass;
 	}
-	
+
 	@Override
 	public String typeName() {
 		return "String";
 	}
-	
+
 	@Override
 	public PropertyConverter<String, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new ImageConverter(securityContext, entity, keyAndClass);

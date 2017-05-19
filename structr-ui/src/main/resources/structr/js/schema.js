@@ -1056,6 +1056,12 @@ var _Schema = {
 
 		saveButton.on('click', function(e) {
 
+			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+
+			editButton.show();
+			saveButton.hide();
+			cancelButton.hide();
+
 			var newData = {
 				sourceMultiplicity: $('#source-multiplicity-selector').val(),
 				relationshipType: $('#relationship-type-name').val(),
@@ -1089,18 +1095,27 @@ var _Schema = {
 						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
 						entity[attribute] = newData[attribute];
 					});
-				}, function() {
+				}, function(data) {
+					var additionalInformation = {};
+					var causedByIdenticalRelName = data.responseJSON.errors.some(function (e) {
+						return (e.detail.indexOf('duplicate class') !== -1);
+					});
+					if (causedByIdenticalRelName) {
+						additionalInformation.requiresConfirmation = true;
+						additionalInformation.title = 'Error';
+						additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + newData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+					}
+
+					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+
+					editButton.click();
+
 					Object.keys(newData).forEach(function(attribute) {
 						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
 					});
+
 				});
 			}
-
-			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
-
-			editButton.show();
-			saveButton.hide();
-			cancelButton.hide();
 		});
 
 		cancelButton.on('click', function(e) {
@@ -1634,14 +1649,14 @@ var _Schema = {
 	},
 	appendRemoteProperties: function(el, entity) {
 
-		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th></thead></table>');
+		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th><th class="actions-col">Action</th></thead></table>');
 
 		entity.relatedTo.forEach(function(target) {
-			_Schema.appendRelatedProperty($('.related-attrs', el), target, target.targetJsonName ? target.targetJsonName : target.oldTargetJsonName, true);
+			_Schema.appendRelatedProperty($('.related-attrs', el), target, true);
 		});
 
 		entity.relatedFrom.forEach(function(source) {
-			_Schema.appendRelatedProperty($('.related-attrs', el), source, source.sourceJsonName ? source.sourceJsonName : source.oldSourceJsonName, false);
+			_Schema.appendRelatedProperty($('.related-attrs', el), source, false);
 		});
 
 	},
@@ -1690,17 +1705,11 @@ var _Schema = {
 		var indexed = $('.' + rowClass + ' .indexed', el).is(':checked');
 		var defaultValue = $('.' + rowClass + ' .property-default', el).val();
 
-		if (name.length === 0) {
-
-			blinkRed($('.' + rowClass + ' .property-name', el).closest('td'));
-
-		} else if (type.length === 0) {
+		if (name.length === 0 || type.length === 0) {
 
 			blinkRed($('.' + rowClass + ' .property-type', el).closest('td'));
 
 		} else {
-
-			button.data('save-pending', true);
 
 			var obj = {};
 			obj.schemaNode   =  { id: entity.id };
@@ -1712,6 +1721,13 @@ var _Schema = {
 			if (unique)       { obj.unique = unique; }
 			if (indexed)      { obj.indexed = indexed; }
 			if (defaultValue) { obj.defaultValue = defaultValue; }
+
+			if (!_Schema.validatePropertyDefinition(obj)) {
+				blinkRed($('.' + rowClass + ' .property-type', el).closest('td'));
+				return;
+			}
+
+			button.data('save-pending', true);
 
 			// store property definition with an empty property object
 			_Schema.storeSchemaEntity('schema_properties', {}, JSON.stringify(obj), function(result) {
@@ -1744,9 +1760,8 @@ var _Schema = {
 
 								$('.create-property', row).remove();
 								$('.remove-property', row)
-										.off('click')
-										.attr('src', _Icons.delete_icon)
-										.on('click', function() {
+										.removeClass(_Icons.getSpriteClassOnly(_Icons.cross_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.delete_icon))
+										.off('click').on('click', function() {
 									_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 								});
 
@@ -1767,6 +1782,24 @@ var _Schema = {
 				button.data('save-pending', false);
 			});
 		}
+	},
+	validatePropertyDefinition: function (propertyDefinition) {
+
+		if (propertyDefinition.propertyType === 'Enum') {
+
+			var containsSpace = propertyDefinition.format.split(',').some(function (enumVal) {
+				return enumVal.trim().indexOf(' ') !== -1;
+			});
+
+			if (containsSpace) {
+				new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for more information.').requiresConfirmation().show();
+				return false;
+			}
+
+		}
+
+		return true;
+
 	},
 	confirmRemoveSchemaEntity: function(entity, title, callback, hint) {
 
@@ -1907,7 +1940,7 @@ var _Schema = {
 			if (!$('input.content-type', typeField.parent()).length) {
 				typeField.after('<input type="text" size="5" class="content-type">');
 			}
-			$('.' + key + ' .content-type', el).on('blur', function() {
+			$('.' + key + ' .content-type', el).on('change', function() {
 				_Schema.savePropertyDefinition(property);
 			}).prop('disabled', null).val(property.contentType);
 		}
@@ -1916,9 +1949,6 @@ var _Schema = {
 			if (!$('button.edit-read-function', typeField.parent()).length) {
 				$('.' + key + ' .property-format', el).replaceWith('<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button>');
 			}
-			$('.' + key + ' .content-type', el).on('blur', function() {
-				_Schema.savePropertyDefinition(property);
-			}).prop('disabled', null).val(property.contentType);
 		}
 
 		if (property.propertyType && property.propertyType !== '') {
@@ -1934,7 +1964,7 @@ var _Schema = {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.propertyType);
 
-		$('.' + key + ' .property-format', el).on('blur', function() {
+		$('.' + key + ' .property-format', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.format);
 
@@ -1973,7 +2003,7 @@ var _Schema = {
 
 		$('.' + key + ' .property-type', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .content-type', el).off('change').prop('disabled', 'disabled');
-		$('.' + key + ' .property-format', el).off('blur').prop('disabled', 'disabled');
+		$('.' + key + ' .property-format', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .not-null', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .unique', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .indexed', el).off('change').prop('disabled', 'disabled');
@@ -2140,69 +2170,97 @@ var _Schema = {
 		editor.focus();
 
 	},
-	appendRelatedProperty: function(el, rel, key, out) {
+	appendRelatedProperty: function(el, rel, out) {
 		var relType = (rel.relationshipType === undefinedRelType) ? '' : rel.relationshipType;
 		var relatedNodeId = (out ? rel.targetId : rel.sourceId);
+		var attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
-		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
-				+ (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + ' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ nodes[relatedNodeId].name + '</span></td></tr>');
+		var row = $(
+			'<tr>' +
+				'<td><input size="15" type="text" class="property-name related" value="' + attributeName + '"></td>' +
+				'<td>' + (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + ' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ nodes[relatedNodeId].name + '</span></td>' +
+				'<td><i title="Reset name to default" class="remove-icon reset-action ' + _Icons.getFullSpriteClass(_Icons.arrow_undo_icon) + '" /></td>' +
+			'</tr>');
+		el.append(row);
 
-		$('#relId_' + rel.id, el).on('click', function(e) {
+		$('#relId_' + rel.id, row).on('click', function(e) {
 			e.stopPropagation();
 			_Schema.openEditDialog(relatedNodeId);
 			return false;
 		});
 
+		var resetNameToDefault = function () {
 
-		$('.' + key + ' .property-name', el).on('blur', function() {
+			var updateAttributeName = function (blink) {
+				Command.get(rel.id, function (data) {
+					$('.property-name', row).val(data[(out ? 'oldTargetJsonName' : 'oldSourceJsonName')]);
+					if (blink) {
+						blinkGreen(row);
+					}
+				});
+			};
 
-			var newName = $(this).val();
+			_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), null, function() {
+				updateAttributeName(true);
+			}, function(data) {
+				blinkRed(row);
+				Structr.errorFromResponse(data.responseJSON);
+			}, function () {
+				updateAttributeName(false);
+			});
+
+		};
+
+		$('.reset-action', row).on('click', function () {
+			resetNameToDefault();
+		});
+
+		$('.property-name', row).on('change', function() {
+
+			var newName = $(this).val().trim();
 
 			if (newName === '') {
-				newName = undefined;
-			}
+				resetNameToDefault();
+			} else {
 
-			_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), newName, function() {
-				blinkGreen($('.' + key, el));
-			}, function() {
-				blinkRed($('.' + key, el));
-			});
+				_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), newName, function() {
+					blinkGreen(row);
+				}, function(data) {
+					blinkRed(row);
+					Structr.errorFromResponse(data.responseJSON);
+				});
+
+			}
 
 		});
 
 	},
 	savePropertyDefinition: function(property) {
 
-		var key = property.name;
+		var obj = {
+			name:         $('.' + property.name + ' .property-name').val(),
+			dbName:       $('.' + property.name + ' .property-dbname').val(),
+			propertyType: $('.' + property.name + ' .property-type').val(),
+			contentType:  $('.' + property.name + ' .content-type').val(),
+			format:       $('.' + property.name + ' .property-format').val(),
+			notNull:      $('.' + property.name + ' .not-null').is(':checked'),
+			unique:       $('.' + property.name + ' .unique').is(':checked'),
+			indexed:      $('.' + property.name + ' .indexed').is(':checked'),
+			defaultValue: $('.' + property.name + ' .property-default').val()
+		};
 
-		_Schema.unbindEvents(key);
+		if (obj.name && obj.name.length && obj.propertyType) {
 
-		var name = $('.' + key + ' .property-name').val();
-		var dbName = $('.' + key + ' .property-dbname').val();
-		var type = $('.' + key + ' .property-type').val();
-		var contentType = $('.' + key + ' .content-type').val();
-		var format = $('.' + key + ' .property-format').val();
-		var notNull = $('.' + key + ' .not-null').is(':checked');
-		var unique = $('.' + key + ' .unique').is(':checked');
-		var indexed = $('.' + key + ' .indexed').is(':checked');
-		var defaultValue = $('.' + key + ' .property-default').val();
+			if (!_Schema.validatePropertyDefinition(obj)) {
+				blinkRed($('.local .' + property.name));
+				return;
+			}
 
-		if (name && name.length && type) {
-
-			var obj = {};
-			obj.name = name;
-			obj.dbName = dbName;
-			obj.propertyType = type;
-			obj.contentType = contentType;
-			obj.format = format;
-			obj.notNull = notNull;
-			obj.unique = unique;
-			obj.indexed = indexed;
-			obj.defaultValue = defaultValue;
+			_Schema.unbindEvents(property.name);
 
 			_Schema.storeSchemaEntity('schema_properties', property, JSON.stringify(obj), function() {
 
-				blinkGreen($('.local .' + key));
+				blinkGreen($('.local .' + property.name));
 
 				// accept values into property object
 				property.name = obj.name;
@@ -2215,15 +2273,21 @@ var _Schema = {
 				property.indexed = obj.indexed;
 				property.defaultValue = obj.defaultValue;
 
-				// update row class so that consequent changes can be applied
-				$('.' + key).removeClass(key).addClass(property.name);
 				_Schema.bindEvents(property);
 
 			}, function(data) {
 
-				Structr.errorFromResponse(data.responseJSON);
+				var additionalInformation = {};
 
-				blinkRed($('.local .' + key));
+				if (obj.propertyType === 'Enum') {
+					additionalInformation.requiresConfirmation = true;
+					additionalInformation.title = 'Schema compilation failed';
+					additionalInformation.overrideText = 'Error while making changes to an Enum property. See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
+				}
+
+				Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+
+				blinkRed($('.local .' + property.name));
 				_Schema.bindEvents(property);
 
 			}, function() {
@@ -2448,7 +2512,20 @@ var _Schema = {
 					_Schema.reload();
 				},
 				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON);
+
+					var additionalInformation = {};
+					var causedByUndefinedRelName = data.responseJSON.errors.some(function (e) {
+						return (e.type.indexOf(undefinedRelType) !== -1);
+					});
+					if (causedByUndefinedRelName) {
+						additionalInformation.requiresConfirmation = true;
+						additionalInformation.title = 'Duplicate unnamed relationship';
+						additionalInformation.overrideText = 'You are trying to create a second <strong>unnamed</strong> relationship between these types.<br>Please rename the existing unnamed relationship first before creating another relationship.';
+					}
+
+					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
+
+					_Schema.reload();
 				}
 			}
 		});
@@ -2469,12 +2546,12 @@ var _Schema = {
 			}
 		});
 	},
-	setRelationshipProperty: function(entity, key, value, onSuccess, onError) {
+	setRelationshipProperty: function(entity, key, value, onSuccess, onError, onNoChange) {
 		var data = {};
 		data[key] = cleanText(value);
-		_Schema.editRelationship(entity, data, onSuccess, onError);
+		_Schema.editRelationship(entity, data, onSuccess, onError, onNoChange);
 	},
-	editRelationship: function(entity, newData, onSuccess, onError) {
+	editRelationship: function(entity, newData, onSuccess, onError, onNoChange) {
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 			type: 'GET',
@@ -2495,7 +2572,7 @@ var _Schema = {
 							contentType: 'application/json; charset=utf-8',
 							data: JSON.stringify(newData),
 							statusCode: {
-								200: function(data, textStatus, jqXHR) {
+								200: function() {
 									if (onSuccess) {
 										onSuccess();
 									}
@@ -2511,6 +2588,9 @@ var _Schema = {
 
 					} else {
 						// force a schema-reload so that we dont break the relationships
+						if (onNoChange) {
+							onNoChange();
+						}
 						_Schema.reload();
 					}
 				}
