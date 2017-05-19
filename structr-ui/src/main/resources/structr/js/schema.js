@@ -1649,14 +1649,14 @@ var _Schema = {
 	},
 	appendRemoteProperties: function(el, entity) {
 
-		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th></thead></table>');
+		el.append('<table class="related-attrs schema-props"><thead><th>JSON Name</th><th>Type, Direction and Remote type</th><th class="actions-col">Action</th></thead></table>');
 
 		entity.relatedTo.forEach(function(target) {
-			_Schema.appendRelatedProperty($('.related-attrs', el), target, target.targetJsonName ? target.targetJsonName : target.oldTargetJsonName, true);
+			_Schema.appendRelatedProperty($('.related-attrs', el), target, true);
 		});
 
 		entity.relatedFrom.forEach(function(source) {
-			_Schema.appendRelatedProperty($('.related-attrs', el), source, source.sourceJsonName ? source.sourceJsonName : source.oldSourceJsonName, false);
+			_Schema.appendRelatedProperty($('.related-attrs', el), source, false);
 		});
 
 	},
@@ -2170,34 +2170,67 @@ var _Schema = {
 		editor.focus();
 
 	},
-	appendRelatedProperty: function(el, rel, key, out) {
+	appendRelatedProperty: function(el, rel, out) {
 		var relType = (rel.relationshipType === undefinedRelType) ? '' : rel.relationshipType;
 		var relatedNodeId = (out ? rel.targetId : rel.sourceId);
+		var attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
-		el.append('<tr class="' + key + '"><td><input size="15" type="text" class="property-name related" value="' + key + '"></td><td>'
-				+ (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + ' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ nodes[relatedNodeId].name + '</span></td></tr>');
+		var row = $(
+			'<tr>' +
+				'<td><input size="15" type="text" class="property-name related" value="' + attributeName + '"></td>' +
+				'<td>' + (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + ' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ nodes[relatedNodeId].name + '</span></td>' +
+				'<td><i title="Reset name to default" class="remove-icon reset-action ' + _Icons.getFullSpriteClass(_Icons.arrow_undo_icon) + '" /></td>' +
+			'</tr>');
+		el.append(row);
 
-		$('#relId_' + rel.id, el).on('click', function(e) {
+		$('#relId_' + rel.id, row).on('click', function(e) {
 			e.stopPropagation();
 			_Schema.openEditDialog(relatedNodeId);
 			return false;
 		});
 
+		var resetNameToDefault = function () {
 
-		$('.' + key + ' .property-name', el).on('change', function() {
+			var updateAttributeName = function (blink) {
+				Command.get(rel.id, function (data) {
+					$('.property-name', row).val(data[(out ? 'oldTargetJsonName' : 'oldSourceJsonName')]);
+					if (blink) {
+						blinkGreen(row);
+					}
+				});
+			};
+
+			_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), null, function() {
+				updateAttributeName(true);
+			}, function(data) {
+				blinkRed(row);
+				Structr.errorFromResponse(data.responseJSON);
+			}, function () {
+				updateAttributeName(false);
+			});
+
+		};
+
+		$('.reset-action', row).on('click', function () {
+			resetNameToDefault();
+		});
+
+		$('.property-name', row).on('change', function() {
 
 			var newName = $(this).val().trim();
 
 			if (newName === '') {
-				newName = undefined;
-			}
+				resetNameToDefault();
+			} else {
 
-			_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), newName, function() {
-				blinkGreen($('.' + key, el));
-			}, function(data) {
-				blinkRed($('.' + key, el));
-				Structr.errorFromResponse(data.responseJSON);
-			});
+				_Schema.setRelationshipProperty(rel, (out ? 'targetJsonName' : 'sourceJsonName'), newName, function() {
+					blinkGreen(row);
+				}, function(data) {
+					blinkRed(row);
+					Structr.errorFromResponse(data.responseJSON);
+				});
+
+			}
 
 		});
 
@@ -2513,12 +2546,12 @@ var _Schema = {
 			}
 		});
 	},
-	setRelationshipProperty: function(entity, key, value, onSuccess, onError) {
+	setRelationshipProperty: function(entity, key, value, onSuccess, onError, onNoChange) {
 		var data = {};
 		data[key] = cleanText(value);
-		_Schema.editRelationship(entity, data, onSuccess, onError);
+		_Schema.editRelationship(entity, data, onSuccess, onError, onNoChange);
 	},
-	editRelationship: function(entity, newData, onSuccess, onError) {
+	editRelationship: function(entity, newData, onSuccess, onError, onNoChange) {
 		$.ajax({
 			url: rootUrl + 'schema_relationship_nodes/' + entity.id,
 			type: 'GET',
@@ -2539,7 +2572,7 @@ var _Schema = {
 							contentType: 'application/json; charset=utf-8',
 							data: JSON.stringify(newData),
 							statusCode: {
-								200: function(data, textStatus, jqXHR) {
+								200: function() {
 									if (onSuccess) {
 										onSuccess();
 									}
@@ -2555,6 +2588,9 @@ var _Schema = {
 
 					} else {
 						// force a schema-reload so that we dont break the relationships
+						if (onNoChange) {
+							onNoChange();
+						}
 						_Schema.reload();
 					}
 				}
