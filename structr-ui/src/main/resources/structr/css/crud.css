@@ -223,10 +223,11 @@
 	}
 
 	/* adds an outline to the table head elements because when using position:sticky the regular border is not rendered */
-	.resourceBox th {
+	.crud-table th {
 		outline: 1px solid #b5b5b5;
 		outline-offset: -1px;
 	}
+
 }
 
 .resourceBox th i {
