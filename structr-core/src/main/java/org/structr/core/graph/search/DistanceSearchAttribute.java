@@ -31,14 +31,24 @@ import org.structr.core.GraphObject;
  */
 public class DistanceSearchAttribute extends SearchAttribute implements SpatialQuery {
 
-	private Double[] coords   = null;
-	private Double distance   = null;
- 	private String street     = null;
- 	private String house      = null;
-	private String postalCode = null;
-	private String city       = null;
-	private String state      = null;
-	private String country    = null;
+	private boolean needsGeocoding = true;
+	private Double[] coords     = null;
+	private Double distance     = null;
+ 	private String street       = null;
+ 	private String house        = null;
+	private String postalCode   = null;
+	private String city         = null;
+	private String state        = null;
+	private String country      = null;
+
+	public DistanceSearchAttribute(final Double latitude, final Double longitude, final Double distance, final Occurrence occur) {
+
+		super(occur);
+
+		this.coords         = new Double[] { latitude, longitude };
+		this.distance       = distance;
+		this.needsGeocoding = false;
+	}
 
 	public DistanceSearchAttribute(final String street, final String house, final String postalCode, final String city, final String state, final String country, final Double distance, final Occurrence occur) {
 
@@ -114,6 +124,10 @@ public class DistanceSearchAttribute extends SearchAttribute implements SpatialQ
 
 	public void setCountry(String country) {
 		this.country = country;
+	}
+
+	public boolean needsGeocding() {
+		return needsGeocoding;
 	}
 
 	@Override

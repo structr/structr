@@ -265,38 +265,59 @@ public abstract class Resource {
 
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-				final Double dist = Double.parseDouble(distance);
-				final String location = request.getParameter(SearchCommand.LOCATION_SEARCH_KEYWORD);
+				final String latlon   = request.getParameter(SearchCommand.LAT_LON_SEARCH_KEYWORD);
+				if (latlon != null) {
 
-				String street = request.getParameter(SearchCommand.STREET_SEARCH_KEYWORD);
-				String house = request.getParameter(SearchCommand.HOUSE_SEARCH_KEYWORD);
-				String postalCode = request.getParameter(SearchCommand.POSTAL_CODE_SEARCH_KEYWORD);
-				String city = request.getParameter(SearchCommand.CITY_SEARCH_KEYWORD);
-				String state = request.getParameter(SearchCommand.STATE_SEARCH_KEYWORD);
-				String country = request.getParameter(SearchCommand.COUNTRY_SEARCH_KEYWORD);
+					final String[] parts = latlon.split("[,]+");
+					if (parts.length == 2) {
 
-				// if location, use city and street, else use all fields that are there!
-				if (location != null) {
+						try {
+							final Double dist      = Double.parseDouble(distance);
+							final Double latitude  = Double.parseDouble(parts[0]);
+							final Double longitude = Double.parseDouble(parts[1]);
 
-					String[] parts = location.split("[,]+");
-					switch (parts.length) {
+							query.location(latitude, longitude, dist);
 
-						case 3:
-							country = parts[2];	// no break here intentionally
-
-						case 2:
-							city = parts[1];	// no break here intentionally
-
-						case 1:
-							street = parts[0];
-							break;
-
-						default:
-							break;
+						} catch (NumberFormatException nex) {
+							logger.warn("Unable to parse latitude, longitude or distance for search query {}", latlon);
+						}
 					}
-				}
 
-				query.location(street, house, postalCode, city, state, country, dist);
+				} else {
+
+					final Double dist = Double.parseDouble(distance);
+					final String location = request.getParameter(SearchCommand.LOCATION_SEARCH_KEYWORD);
+
+					String street = request.getParameter(SearchCommand.STREET_SEARCH_KEYWORD);
+					String house = request.getParameter(SearchCommand.HOUSE_SEARCH_KEYWORD);
+					String postalCode = request.getParameter(SearchCommand.POSTAL_CODE_SEARCH_KEYWORD);
+					String city = request.getParameter(SearchCommand.CITY_SEARCH_KEYWORD);
+					String state = request.getParameter(SearchCommand.STATE_SEARCH_KEYWORD);
+					String country = request.getParameter(SearchCommand.COUNTRY_SEARCH_KEYWORD);
+
+					// if location, use city and street, else use all fields that are there!
+					if (location != null) {
+
+						String[] parts = location.split("[,]+");
+						switch (parts.length) {
+
+							case 3:
+								country = parts[2];	// no break here intentionally
+
+							case 2:
+								city = parts[1];	// no break here intentionally
+
+							case 1:
+								street = parts[0];
+								break;
+
+							default:
+								break;
+						}
+					}
+
+					query.location(street, house, postalCode, city, state, country, dist);
+				}
 			}
 		}
 	}
