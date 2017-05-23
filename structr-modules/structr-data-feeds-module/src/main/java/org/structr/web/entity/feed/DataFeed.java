@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.feed;
 
+
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEnclosure;
 import com.rometools.rome.feed.synd.SyndEntry;

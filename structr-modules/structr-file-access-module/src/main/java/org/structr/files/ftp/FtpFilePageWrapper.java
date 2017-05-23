@@ -255,9 +255,14 @@ public class FtpFilePageWrapper implements FtpFile {
 
 	@Override
 	public boolean mkdir() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+	@Override
+	public Object getPhysicalFile() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+	
 	@Override
 	public boolean delete() {
 		final App app = StructrApp.getInstance();
@@ -308,7 +313,7 @@ public class FtpFilePageWrapper implements FtpFile {
 
 	@Override
 	public List<FtpFile> listFiles() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

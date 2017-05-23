@@ -18,10 +18,10 @@
  */
 package org.structr.web.entity;
 
-import groovyjarjarantlr.StringUtils;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -424,6 +424,6 @@ public class Image extends org.structr.dynamic.File {
 		final Integer tnWidth =  getWidth();
 		final Integer tnHeight = getHeight();
 
-		return StringUtils.stripBack(getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
+		return StringUtils.stripEnd(getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
 	}
 }

@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.odftoolkit.odfdom.doc.OdfTextDocument;
+import org.odftoolkit.simple.TextDocument;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
@@ -68,7 +68,7 @@ public class ODTExporter extends ODFExporter {
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);
 
-			OdfTextDocument text = OdfTextDocument.loadDocument(output.getFileOnDisk().getAbsolutePath());
+			TextDocument text = TextDocument.loadDocument(output.getFileOnDisk().getAbsolutePath());
 
 			NodeList nodes = text.getContentRoot().getElementsByTagName(ODT_FIELD_TAG_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {

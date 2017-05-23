@@ -18,9 +18,9 @@
  */
 package org.structr.rest.servlet;
 
-import au.com.bytecode.opencsv.CSVParser;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+import com.opencsv.CSVParser;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
