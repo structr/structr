@@ -76,8 +76,6 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	private static final String APPEND_UUID_ON_REDIRECT            = "appendUuidOnRedirect";
 	private static final int MEGABYTE                              = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD                      = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
-	private static final String MAX_FILE_SIZE                      = "1000"; // unit is MB
-	private static final String MAX_REQUEST_SIZE                   = "1000"; // unit is MB
 
 	// non-static fields
 	private ServletFileUpload uploader = null;
@@ -91,6 +89,11 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
+	}
+
+	@Override
+	public String getModuleName() {
+		return "ui";
 	}
 
 	@Override

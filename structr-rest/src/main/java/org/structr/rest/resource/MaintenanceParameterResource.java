@@ -46,7 +46,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
-import org.structr.util.LicenseManager;
+import org.structr.util.StructrLicenseManager;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -75,7 +75,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("setRelationshipProperties", BulkSetRelationshipPropertiesCommand.class);
 		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
 		maintenanceCommandMap.put("deleteSoftDeletedNodes", BulkDeleteSoftDeletedNodesCommand.class);
-		maintenanceCommandMap.put("createLicense", LicenseManager.CreateLicenseCommand.class);
+		maintenanceCommandMap.put("createLicense", StructrLicenseManager.CreateLicenseCommand.class);
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync", SyncCommand.class);
 		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);

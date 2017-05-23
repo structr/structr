@@ -129,12 +129,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 	private boolean isAsync = false;
 
-
-	@Override
-	public StructrHttpServiceConfig getConfig() {
-		return config;
-	}
-
 	public HtmlServlet() {
 
 		final String customResponseHeadersString = Settings.HtmlCustomResponseHeaders.getValue();
@@ -155,6 +149,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		this.isAsync = Settings.Async.getValue();
+	}
+
+	@Override
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+
+	@Override
+	public String getModuleName() {
+		return "ui";
 	}
 
 	@Override

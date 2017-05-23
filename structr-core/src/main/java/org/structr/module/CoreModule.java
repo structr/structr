@@ -19,6 +19,7 @@
 package org.structr.module;
 
 import java.util.Set;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.AbbrFunction;
 import org.structr.core.function.AddFunction;
@@ -147,7 +148,6 @@ import org.structr.core.function.WriteFunction;
 import org.structr.core.function.XPathFunction;
 import org.structr.core.function.XmlFunction;
 import org.structr.schema.action.Actions;
-import org.structr.util.LicenseManager;
 
 /**
  *
@@ -160,6 +160,7 @@ public class CoreModule implements StructrModule {
 
 		if (licenseManager == null || licenseManager.isEdition(LicenseManager.Basic)) {
 
+			Functions.functions.put("error", new ErrorFunction());
 			Functions.functions.put("config", new ConfigFunction());
 			Functions.functions.put("changelog", new ChangelogFunction());
 			Functions.functions.put("serverlog", new ServerLogFunction());
@@ -174,9 +175,35 @@ public class CoreModule implements StructrModule {
 			Functions.functions.put("call_privileged", new CallPrivilegedFunction());
 			Functions.functions.put("exec", new ExecFunction());
 			Functions.functions.put("exec_binary", new ExecBinaryFunction());
+
+			Functions.functions.put("unlock_readonly_properties_once", new UnlockReadonlyPropertiesFunction());
+			Functions.functions.put("unlock_system_properties_once", new UnlockSystemPropertiesFunction());
+			Functions.functions.put("set_privileged", new SetPrivilegedFunction());
+			Functions.functions.put("find_privileged", new PrivilegedFindFunction());
+
+			Functions.functions.put("read", new ReadFunction());
+			Functions.functions.put("write", new WriteFunction());
+			Functions.functions.put("append", new AppendFunction());
+			Functions.functions.put("xml", new XmlFunction());
+			Functions.functions.put("xpath", new XPathFunction());
+			Functions.functions.put("geocode", new GeocodeFunction());
+
+			Functions.functions.put("instantiate", new InstantiateFunction());
+
+			Functions.functions.put("cypher", new CypherFunction());
+			Functions.functions.put("property_info", new PropertyInfoFunction());
+			Functions.functions.put("type_info", new TypeInfoFunction());
+			Functions.functions.put("enum_info", new EnumInfoFunction());
+			Functions.functions.put("disable_notifications", new DisableNotificationsFunction());
+			Functions.functions.put("enable_notifications", new EnableNotificationsFunction());
+			Functions.functions.put("r", new RInterpreterFunction());
+			Functions.functions.put("evaluate_script", new EvaluateScriptFunction());
+			Functions.functions.put("ancestor_types", new AncestorTypesFunction());
+			Functions.functions.put("inheriting_types", new InheritingTypesFunction());
+
+			Functions.functions.put("template", new TemplateFunction());
 		}
 
-		Functions.functions.put("error", new ErrorFunction());
 		Functions.functions.put("md5", new MD5Function());
 		Functions.functions.put("upper", new UpperFunction());
 		Functions.functions.put("lower", new LowerFunction());
@@ -233,7 +260,6 @@ public class CoreModule implements StructrModule {
 		Functions.functions.put("parse_date", new ParseDateFunction());
 		Functions.functions.put("to_date", new ToDateFunction());
 		Functions.functions.put("number_format", new NumberFormatFunction());
-		Functions.functions.put("template", new TemplateFunction());
 		Functions.functions.put("not", new NotFunction());
 		Functions.functions.put("and", new AndFunction());
 		Functions.functions.put("or", new OrFunction());
@@ -251,27 +277,8 @@ public class CoreModule implements StructrModule {
 		Functions.functions.put("values", new ValuesFunction());
 		Functions.functions.put("timer", new TimerFunction());
 		Functions.functions.put("str_replace", new StrReplaceFunction());
-		Functions.functions.put("find_privileged", new PrivilegedFindFunction());
-
-		// ----- BEGIN functions with side effects -----
-		Functions.functions.put("retrieve", new RetrieveFunction());
-		Functions.functions.put("store", new StoreFunction());
-		Functions.functions.put("print", new PrintFunction());
-		Functions.functions.put("log", new LogFunction());
-		Functions.functions.put("read", new ReadFunction());
-		Functions.functions.put("write", new WriteFunction());
-		Functions.functions.put("append", new AppendFunction());
-		Functions.functions.put("xml", new XmlFunction());
-		Functions.functions.put("xpath", new XPathFunction());
-		Functions.functions.put("set", new SetFunction());
-		Functions.functions.put("geocode", new GeocodeFunction());
-		Functions.functions.put("find", new FindFunction());
-		Functions.functions.put("find_relationship", new FindRelationshipFunction());
 		Functions.functions.put("search", new SearchFunction());
-		Functions.functions.put("create", new CreateFunction());
-		Functions.functions.put("delete", new DeleteFunction());
 		Functions.functions.put("incoming", new IncomingFunction());
-		Functions.functions.put("instantiate", new InstantiateFunction());
 		Functions.functions.put("outgoing", new OutgoingFunction());
 		Functions.functions.put("has_relationship", new HasRelationshipFunction());
 		Functions.functions.put("has_outgoing_relationship", new HasOutgoingRelationshipFunction());
@@ -279,21 +286,18 @@ public class CoreModule implements StructrModule {
 		Functions.functions.put("get_relationships", new GetRelationshipsFunction());
 		Functions.functions.put("get_outgoing_relationships", new GetOutgoingRelationshipsFunction());
 		Functions.functions.put("get_incoming_relationships", new GetIncomingRelationshipsFunction());
-		Functions.functions.put("create_relationship", new CreateRelationshipFunction());
+		Functions.functions.put("retrieve", new RetrieveFunction());
+		Functions.functions.put("store", new StoreFunction());
+		Functions.functions.put("print", new PrintFunction());
+		Functions.functions.put("log", new LogFunction());
+		Functions.functions.put("find", new FindFunction());
+		Functions.functions.put("find_relationship", new FindRelationshipFunction());
 
-		Functions.functions.put("unlock_readonly_properties_once", new UnlockReadonlyPropertiesFunction());
-		Functions.functions.put("unlock_system_properties_once", new UnlockSystemPropertiesFunction());
-		Functions.functions.put("set_privileged", new SetPrivilegedFunction());
-		Functions.functions.put("cypher", new CypherFunction());
-		Functions.functions.put("property_info", new PropertyInfoFunction());
-		Functions.functions.put("type_info", new TypeInfoFunction());
-		Functions.functions.put("enum_info", new EnumInfoFunction());
-		Functions.functions.put("disable_notifications", new DisableNotificationsFunction());
-		Functions.functions.put("enable_notifications", new EnableNotificationsFunction());
-		Functions.functions.put("r", new RInterpreterFunction());
-		Functions.functions.put("evaluate_script", new EvaluateScriptFunction());
-		Functions.functions.put("ancestor_types", new AncestorTypesFunction());
-		Functions.functions.put("inheriting_types", new InheritingTypesFunction());
+		// ----- BEGIN functions with side effects -----
+		Functions.functions.put("set", new SetFunction());
+		Functions.functions.put("create", new CreateFunction());
+		Functions.functions.put("delete", new DeleteFunction());
+		Functions.functions.put("create_relationship", new CreateRelationshipFunction());
 	}
 
 	@Override

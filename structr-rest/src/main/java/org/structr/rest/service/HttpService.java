@@ -65,6 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
@@ -150,8 +151,9 @@ public class HttpService implements RunnableService {
 	@Override
 	public void initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
-		String sourceJarName = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
-		final boolean isTest = Services.isTesting();
+		final LicenseManager licenseManager = services.getLicenseManager();
+		final boolean isTest                = Services.isTesting();
+		String sourceJarName                = getClass().getProtectionDomain().getCodeSource().getLocation().toString();
 
 		if (!isTest && StringUtils.stripEnd(sourceJarName, System.getProperty("file.separator")).endsWith("classes")) {
 
@@ -226,7 +228,7 @@ public class HttpService implements RunnableService {
 		}
 
 		// CMIS setup
-		if (Settings.CmisEnabled.getValue()) {
+		if (Settings.CmisEnabled.getValue() && (licenseManager == null || licenseManager.isModuleLicensed("cmis"))) {
 
 			try {
 
@@ -355,7 +357,7 @@ public class HttpService implements RunnableService {
 			contexts.addHandler(contextHandler);
 		}
 
-		final Map<String, ServletHolder> servlets = collectServlets();
+		final Map<String, ServletHolder> servlets = collectServlets(licenseManager);
 
 		// add servlet elements
 		int position = 1;
@@ -542,7 +544,7 @@ public class HttpService implements RunnableService {
 		return resourceHandlers;
 	}
 
-	private Map<String, ServletHolder> collectServlets() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private Map<String, ServletHolder> collectServlets(final LicenseManager licenseManager) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
 		String servletNameList                    = Settings.Servlets.getValue();
@@ -564,16 +566,22 @@ public class HttpService implements RunnableService {
 								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
 								if (servlet instanceof HttpServiceServlet) {
 
-									((HttpServiceServlet)servlet).getConfig().initializeFromSettings(servletName, resourceProviders);
-								}
+									final HttpServiceServlet httpServiceServlet = (HttpServiceServlet)servlet;
 
-								if (servletPath.endsWith("*")) {
+									// check license for servlet
+									if (licenseManager == null || licenseManager.isValid(httpServiceServlet)) {
 
-									servlets.put(servletPath, new ServletHolder(servlet));
+										httpServiceServlet.getConfig().initializeFromSettings(servletName, resourceProviders);
 
-								} else {
+										if (servletPath.endsWith("*")) {
 
-									servlets.put(servletPath + "/*", new ServletHolder(servlet));
+											servlets.put(servletPath, new ServletHolder(servlet));
+
+										} else {
+
+											servlets.put(servletPath + "/*", new ServletHolder(servlet));
+										}
+									}
 								}
 
 							} catch (ClassNotFoundException nfex) {

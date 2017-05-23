@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 import org.structr.agent.Agent;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -33,7 +34,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.module.StructrModule;
-import org.structr.util.LicenseManager;
 
 /**
  *

@@ -63,13 +63,14 @@ import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Feature;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 
 /**
  */
-public class LicenseManager {
+public class StructrLicenseManager implements LicenseManager {
 
 	private static final Logger logger      = LoggerFactory.getLogger(LicenseManager.class);
 	private static final String Certificate =
@@ -113,11 +114,6 @@ public class LicenseManager {
 	private static final int SmallBusinessMask     = 0x07; // 0111
 	private static final int EnterpriseMask        = 0x0f; // 1111
 
-	public static final int Community              = 0x01; // 0001
-	public static final int Basic                  = 0x02; // 0010
-	public static final int SmallBusiness          = 0x04; // 0100
-	public static final int Enterprise             = 0x08; // 1000
-
 	private final Set<String> modules            = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
 	private final SimpleDateFormat format        = new SimpleDateFormat(DatePattern);
 	private Certificate certificate              = null;
@@ -128,7 +124,7 @@ public class LicenseManager {
 	private String licensee                      = null;
 	private int editionMask                      = CommunityMask;
 
-	public LicenseManager(final String licenseFileName) {
+	public StructrLicenseManager(final String licenseFileName) {
 
 		logger.info("Host ID is {}.", createHash());
 		logger.info("Checking Structr license..");
@@ -200,26 +196,32 @@ public class LicenseManager {
 		}
 	}
 
+	@Override
 	public boolean isModuleLicensed(final String module) {
 		return allModulesLicensed || modules.contains(module);
 	}
 
+	@Override
 	public boolean isEdition(final int bitmask) {
 		return (editionMask & bitmask) > 0;
 	}
 
+	@Override
 	public String getEdition() {
 		return edition;
 	}
 
+	@Override
 	public String getLicensee() {
 		return licensee;
 	}
 
+	@Override
 	public String getHardwareFingerprint() {
 		return createHash();
 	}
 
+	@Override
 	public boolean isValid(final Feature feature) {
 
 		if (feature != null) {
@@ -661,7 +663,7 @@ public class LicenseManager {
 
 			} else {
 
-				LicenseManager.create(name, start, end, edition, modules, hostId, keystore, password, outFile);
+				StructrLicenseManager.create(name, start, end, edition, modules, hostId, keystore, password, outFile);
 				logger.info("Successfully created license file {}.", outFile);
 			}
 		}

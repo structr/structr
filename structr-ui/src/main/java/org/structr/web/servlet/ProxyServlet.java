@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -49,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
@@ -92,18 +89,17 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 				+ "X-XSS-Protection:1;mode=block";
 	private static List<String> customResponseHeaders = Collections.EMPTY_LIST;
 
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
-	private static final ExecutorService threadPool = Executors.newCachedThreadPool();
-
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving   = new LinkedHashSet<>();
-
-	private boolean isAsync = false;
-
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
+	}
+
+	@Override
+	public String getModuleName() {
+		return "proxy";
 	}
 
 	public ProxyServlet() {
@@ -129,8 +125,6 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 				possiblePropertyNamesForEntityResolving.add(name);
 			}
 		}
-
-		this.isAsync = Settings.Async.getValue();
 	}
 
 	@Override

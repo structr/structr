@@ -24,10 +24,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
-import org.structr.util.LicenseManager;
 
 
 public class StructrPaymentsModule implements StructrModule {

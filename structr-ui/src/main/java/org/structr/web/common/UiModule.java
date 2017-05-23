@@ -19,11 +19,11 @@
 package org.structr.web.common;
 
 import java.util.Set;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
-import org.structr.util.LicenseManager;
 import org.structr.web.function.AddHeaderFunction;
 import org.structr.web.function.CopyFileContentsFunction;
 import org.structr.web.function.EscapeHtmlFunction;

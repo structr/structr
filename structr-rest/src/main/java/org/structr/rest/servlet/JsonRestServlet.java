@@ -142,6 +142,13 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		this.gson         = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
 	}
 
+	// ----- interface Feature -----
+	@Override
+	public String getModuleName() {
+		return "core";
+	}
+
+
 	// <editor-fold defaultstate="collapsed" desc="DELETE">
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -944,7 +951,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			throw new FrameworkException(503, "System is not initialized yet.");
 		}
 	}
-
 	// </editor-fold>
 
 	// <editor-fold defaultstate="collapsed" desc="nested classes">

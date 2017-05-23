@@ -554,6 +554,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
+	// ---- interface Featuer -----
+	@Override
+	public String getModuleName() {
+		return "csv";
+	}
+	
 	private void handleCsvPropertySet (final List<RestMethodResult> results, final Resource resource, final JsonInput propertySet) throws FrameworkException {
 
 		try {
@@ -824,6 +830,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 		return new LinkedHashMap<>();
 	}
+
 	// <editor-fold defaultstate="collapsed" desc="nested classes">
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
 

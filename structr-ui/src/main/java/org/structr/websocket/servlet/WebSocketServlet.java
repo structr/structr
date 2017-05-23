@@ -50,6 +50,11 @@ public class WebSocketServlet extends org.eclipse.jetty.websocket.servlet.WebSoc
 	}
 
 	@Override
+	public String getModuleName() {
+		return "ui";
+	}
+	
+	@Override
 	public void configure(final WebSocketServletFactory factory) {
 
 		// create GSON serializer

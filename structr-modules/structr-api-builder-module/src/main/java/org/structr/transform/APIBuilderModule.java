@@ -19,10 +19,10 @@
 package org.structr.transform;
 
 import java.util.Set;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
-import org.structr.util.LicenseManager;
 
 /**
  *

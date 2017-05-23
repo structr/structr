@@ -41,6 +41,7 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.InitializationCallback;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.Service;
 import org.structr.api.service.StructrServices;
@@ -50,7 +51,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.util.LicenseManager;
+import org.structr.util.StructrLicenseManager;
 
 public class Services implements StructrServices {
 
@@ -178,7 +179,7 @@ public class Services implements StructrServices {
 		if (!isTesting()) {
 
 			// read license
-			licenseManager = new LicenseManager(Settings.getBasePath() + "license.key");
+			licenseManager = new StructrLicenseManager(Settings.getBasePath() + "license.key");
 		}
 
 		// if configuration is not yet established, instantiate it

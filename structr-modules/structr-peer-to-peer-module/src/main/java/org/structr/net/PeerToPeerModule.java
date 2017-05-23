@@ -21,11 +21,11 @@ package org.structr.net;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
-import org.structr.util.LicenseManager;
 
 
 public class PeerToPeerModule implements StructrModule {

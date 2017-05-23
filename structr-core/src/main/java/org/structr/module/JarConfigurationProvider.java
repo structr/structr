@@ -52,6 +52,7 @@ import org.apache.cxf.helpers.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.common.DefaultFactoryDefinition;
 import org.structr.common.FactoryDefinition;
@@ -69,7 +70,6 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
-import org.structr.util.LicenseManager;
 
 //~--- classes ----------------------------------------------------------------
 /**

@@ -21,6 +21,7 @@ package org.structr.text;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
@@ -30,7 +31,6 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
-import org.structr.util.LicenseManager;
 
 /**
  *

@@ -83,6 +83,11 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 	}
 
 	@Override
+	public String getModuleName() {
+		return "ui";
+	}
+
+	@Override
 	public void init() {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {

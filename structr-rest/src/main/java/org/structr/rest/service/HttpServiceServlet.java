@@ -19,14 +19,15 @@
 package org.structr.rest.service;
 
 import javax.servlet.Servlet;
+import org.structr.api.service.Feature;
 
 /**
  *
  *
  *
  */
-public interface HttpServiceServlet extends Servlet {
+public interface HttpServiceServlet extends Servlet, Feature {
 
 	public StructrHttpServiceConfig getConfig();
-	
+
 }

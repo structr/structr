@@ -18,15 +18,25 @@
  */
 package org.structr.api.service;
 
-import org.structr.api.DatabaseService;
+import java.security.CodeSigner;
 
 /**
- *
  */
-public interface StructrServices {
+public interface LicenseManager {
 
-	void registerInitializationCallback(final InitializationCallback callback);
-	<T extends Service> T getService(final Class<T> serviceClass);
-	DatabaseService getDatabaseService();
-	LicenseManager getLicenseManager();
+	public static final int Community              = 0x01; // 0001
+	public static final int Basic                  = 0x02; // 0010
+	public static final int SmallBusiness          = 0x04; // 0100
+	public static final int Enterprise             = 0x08; // 1000
+
+	String getEdition();
+	boolean isEdition(final int bitmask);
+
+	String getLicensee();
+	String getHardwareFingerprint();
+
+	boolean isValid(final Feature feature);
+	boolean isValid(final CodeSigner[] codeSigners);
+
+	boolean isModuleLicensed(final String module);
 }
