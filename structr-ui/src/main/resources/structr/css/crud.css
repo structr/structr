@@ -208,26 +208,27 @@
 	min-width: 60px;
 }
 
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-	/* Targets WebKit based browsers (tested with Safari / Chrome) */
+/* allows table headers to be sticky */
+.crud-table thead th {
+	position: -webkit-sticky;
+	position: -moz-sticky;
+	position: -ms-sticky;
+	position: -o-sticky;
+	position: sticky;
+	top: 0;
+	z-index: 99;
+}
 
-	/* allows table headers to be sticky */
-	.crud-table thead {
-		position: -webkit-sticky;
-		position: -moz-sticky;
-		position: -ms-sticky;
-		position: -o-sticky;
-		position: sticky;
-		top: 0;
-		z-index: 99;
-	}
+/* adds an outline to the table head elements because when using position:sticky the regular border is not rendered */
+.crud-table th {
+	outline: 1px solid #b5b5b5;
+	outline-offset: -1px;
+	border-top: none;
+	border-bottom: none;
+}
 
-	/* adds an outline to the table head elements because when using position:sticky the regular border is not rendered */
-	.crud-table th {
-		outline: 1px solid #b5b5b5;
-		outline-offset: -1px;
-	}
-
+.crud-table tbody tr:first-child td {
+	border-top: none;
 }
 
 .resourceBox th i {

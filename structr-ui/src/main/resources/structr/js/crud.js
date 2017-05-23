@@ -925,16 +925,11 @@ var _Crud = {
 
 				_Crud.crudCache.clear();
 
-				var tbl = $('.crud-table').removeClass('crud-table');
-
 				data.result.forEach(function(item) {
 					_Crud.appendRow(type, properties, item);
 				});
 				_Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
 				_Crud.replaceSortHeader(type);
-
-
-				tbl.addClass('crud-table');
 
 			},
 			error: function(a, b, c) {
