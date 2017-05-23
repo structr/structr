@@ -21,7 +21,7 @@ package org.structr.ldap.api;
 
 import java.util.List;
 import java.util.Set;
-import org.apache.directory.shared.ldap.model.entry.Value;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 

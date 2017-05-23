@@ -33,7 +33,6 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.20</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -41,20 +40,39 @@
 			<artifactId>gt-opengis</artifactId>
 			<version>13.2</version>
 			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-pool</groupId>
+					<artifactId>commons-pool</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>net.java.dev.jsr-275</groupId>
+					<artifactId>jsr-275</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-epsg-hsql</artifactId>
 			<version>13.2</version>
 			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-pool</groupId>
+					<artifactId>commons-pool</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
 			<type>jar</type>
 			<scope>test</scope>
 			<optional>false</optional>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
 		</dependency>
 	</dependencies>
 

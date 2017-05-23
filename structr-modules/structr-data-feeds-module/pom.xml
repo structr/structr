@@ -19,6 +19,12 @@
 			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
 			<optional>true</optional>
+		 <exclusions>
+		  <exclusion>
+		   <groupId>org.bouncycastle</groupId>
+		   <artifactId>bcpkix-jdk15on</artifactId>
+		  </exclusion>
+		 </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.structr</groupId>
@@ -27,27 +33,24 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<version>1.7.0</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome-utils	</artifactId>
-			<version>1.7.0</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.jdom</groupId>
 			<artifactId>jdom2</artifactId>
 			<version>2.0.6</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.16</version>
 			<optional>true</optional>
 		</dependency>
 	</dependencies>

@@ -210,4 +210,9 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
+	@Override
+	public Object getPhysicalFile() {
+		throw new UnsupportedOperationException("Not supported yet."); 
+	}
+
 }

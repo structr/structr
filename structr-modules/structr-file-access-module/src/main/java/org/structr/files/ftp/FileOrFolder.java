@@ -59,19 +59,30 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 	@Override
 	public boolean isDirectory() {
 		logger.error("isDirectory()");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public boolean isFile() {
 		logger.error("isFile()");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public long getSize() {
 		logger.error("getSize()");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+	
+	@Override
+	public InputStream createInputStream(long l) throws IOException {
+		logger.error("createInputStream()");
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Object getPhysicalFile() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -119,7 +130,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 	@Override
 	public List<FtpFile> listFiles() {
 		logger.error("listFiles()");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -155,12 +166,6 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 		}
 
 		return null;
-	}
-
-	@Override
-	public InputStream createInputStream(long l) throws IOException {
-		logger.error("createInputStream()");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 }

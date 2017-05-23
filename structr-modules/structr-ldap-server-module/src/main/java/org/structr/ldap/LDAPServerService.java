@@ -29,25 +29,25 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import org.apache.commons.lang.StringUtils;
-import org.apache.directory.server.core.CoreSession;
+import org.apache.directory.api.ldap.model.entry.DefaultEntry;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.ldif.LdifEntry;
+import org.apache.directory.api.ldap.model.ldif.LdifReader;
+import org.apache.directory.api.ldap.model.name.Dn;
+import org.apache.directory.api.ldap.model.schema.SchemaManager;
+import org.apache.directory.api.ldap.schema.loader.SchemaEntityFactory;
+import org.apache.directory.api.ldap.schema.manager.impl.DefaultSchemaManager;
 import org.apache.directory.server.core.DefaultDirectoryService;
-import org.apache.directory.server.core.DirectoryService;
-import org.apache.directory.server.core.InstanceLayout;
-import org.apache.directory.server.core.interceptor.context.AddOperationContext;
-import org.apache.directory.server.core.interceptor.context.EntryOperationContext;
-import org.apache.directory.server.core.partition.Partition;
-import org.apache.directory.server.core.schema.SchemaPartition;
+import org.apache.directory.server.core.api.CoreSession;
+import org.apache.directory.server.core.api.DirectoryService;
+import org.apache.directory.server.core.api.InstanceLayout;
+import org.apache.directory.server.core.api.interceptor.context.AddOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.HasEntryOperationContext;
+import org.apache.directory.server.core.api.partition.Partition;
+import org.apache.directory.server.core.api.schema.SchemaPartition;
 import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.server.protocol.shared.transport.TcpTransport;
-import org.apache.directory.shared.ldap.model.entry.DefaultEntry;
-import org.apache.directory.shared.ldap.model.entry.Entry;
-import org.apache.directory.shared.ldap.model.exception.LdapException;
-import org.apache.directory.shared.ldap.model.ldif.LdifEntry;
-import org.apache.directory.shared.ldap.model.ldif.LdifReader;
-import org.apache.directory.shared.ldap.model.name.Dn;
-import org.apache.directory.shared.ldap.model.schema.SchemaManager;
-import org.apache.directory.shared.ldap.schemaloader.SchemaEntityFactory;
-import org.apache.directory.shared.ldap.schemamanager.impl.DefaultSchemaManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
@@ -228,7 +228,7 @@ public class LDAPServerService implements SingletonService {
 					final Entry schemaEntry  = new DefaultEntry(schemaManager, entry.getEntry());
 					final Dn dn              = schemaEntry.getDn();
 
-					if (!partition.hasEntry(new EntryOperationContext(adminSession, dn))) {
+					if (!partition.hasEntry(new HasEntryOperationContext(adminSession, dn))) {
 
 						logger.info("Importing {}...", name);
 						partition.add(new AddOperationContext(adminSession, schemaEntry));

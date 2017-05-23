@@ -21,31 +21,31 @@ package org.structr.ldap;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import org.apache.directory.server.core.LdapPrincipal;
-import org.apache.directory.server.core.filtering.BaseEntryFilteringCursor;
-import org.apache.directory.server.core.filtering.EntryFilteringCursor;
-import org.apache.directory.server.core.interceptor.context.AddOperationContext;
-import org.apache.directory.server.core.interceptor.context.BindOperationContext;
-import org.apache.directory.server.core.interceptor.context.DeleteOperationContext;
-import org.apache.directory.server.core.interceptor.context.EntryOperationContext;
-import org.apache.directory.server.core.interceptor.context.ListOperationContext;
-import org.apache.directory.server.core.interceptor.context.LookupOperationContext;
-import org.apache.directory.server.core.interceptor.context.ModifyOperationContext;
-import org.apache.directory.server.core.interceptor.context.MoveAndRenameOperationContext;
-import org.apache.directory.server.core.interceptor.context.MoveOperationContext;
-import org.apache.directory.server.core.interceptor.context.RenameOperationContext;
-import org.apache.directory.server.core.interceptor.context.SearchOperationContext;
-import org.apache.directory.server.core.interceptor.context.UnbindOperationContext;
-import org.apache.directory.server.core.partition.Partition;
-import org.apache.directory.shared.ldap.model.cursor.Cursor;
-import org.apache.directory.shared.ldap.model.cursor.ListCursor;
-import org.apache.directory.shared.ldap.model.entry.Entry;
-import org.apache.directory.shared.ldap.model.exception.LdapException;
-import org.apache.directory.shared.ldap.model.exception.LdapInvalidDnException;
-import org.apache.directory.shared.ldap.model.filter.ExprNode;
-import org.apache.directory.shared.ldap.model.message.SearchScope;
-import org.apache.directory.shared.ldap.model.name.Dn;
-import org.apache.directory.shared.ldap.model.schema.SchemaManager;
+import org.apache.directory.api.ldap.model.cursor.Cursor;
+import org.apache.directory.api.ldap.model.cursor.ListCursor;
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.apache.directory.api.ldap.model.exception.LdapInvalidDnException;
+import org.apache.directory.api.ldap.model.filter.ExprNode;
+import org.apache.directory.api.ldap.model.message.SearchScope;
+import org.apache.directory.api.ldap.model.name.Dn;
+import org.apache.directory.api.ldap.model.schema.SchemaManager;
+import org.apache.directory.server.core.api.CacheService;
+import org.apache.directory.server.core.api.LdapPrincipal;
+import org.apache.directory.server.core.api.filtering.EntryFilteringCursor;
+import org.apache.directory.server.core.api.filtering.EntryFilteringCursorImpl;
+import org.apache.directory.server.core.api.interceptor.context.AddOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.DeleteOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.HasEntryOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.LookupOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.ModifyOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.MoveAndRenameOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.MoveOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.RenameOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.SearchOperationContext;
+import org.apache.directory.server.core.api.interceptor.context.UnbindOperationContext;
+import org.apache.directory.server.core.api.partition.Partition;
+import org.apache.directory.server.core.api.partition.Subordinates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -122,12 +122,15 @@ class StructrPartition implements Partition {
 	}
 
 	@Override
-	public void delete(DeleteOperationContext deleteContext) throws LdapException {
+	public Entry delete(DeleteOperationContext deleteContext) throws LdapException {
 
 		final LdapPrincipal principal = deleteContext.getEffectivePrincipal();
 		final Dn dn                   = deleteContext.getDn();
+		final Entry entry             = deleteContext.getEntry();
 
 		getWrapper(principal).delete(dn);
+		
+		return entry;
 	}
 
 	@Override
@@ -144,11 +147,6 @@ class StructrPartition implements Partition {
 	}
 
 	@Override
-	public EntryFilteringCursor list(ListOperationContext listContext) throws LdapException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public EntryFilteringCursor search(SearchOperationContext searchContext) throws LdapException {
 
 		logger.info("{}", searchContext);
@@ -159,8 +157,9 @@ class StructrPartition implements Partition {
 		final SearchScope scope       = searchContext.getScope();
 		final List<Entry> list        = getWrapper(principal).filter(dn, filter, scope);
 		final Cursor<Entry> cursor    = new ListCursor<>(list);
+		final SchemaManager manager   = getSchemaManager();
 
-		return new BaseEntryFilteringCursor(cursor, searchContext);
+		return new EntryFilteringCursorImpl(cursor, searchContext, manager);
 	}
 
 	@Override
@@ -179,7 +178,7 @@ class StructrPartition implements Partition {
 	}
 
 	@Override
-	public boolean hasEntry(EntryOperationContext hasEntryContext) throws LdapException {
+	public boolean hasEntry(HasEntryOperationContext hasEntryContext) throws LdapException {
 
 		final LdapPrincipal principal = hasEntryContext.getEffectivePrincipal();
 		final Dn dn                   = hasEntryContext.getDn();
@@ -189,34 +188,54 @@ class StructrPartition implements Partition {
 
 	@Override
 	public void rename(RenameOperationContext renameContext) throws LdapException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void move(MoveOperationContext moveContext) throws LdapException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void moveAndRename(MoveAndRenameOperationContext moveAndRenameContext) throws LdapException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void bind(BindOperationContext bindContext) throws LdapException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void unbind(UnbindOperationContext unbindContext) throws LdapException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public void dumpIndex(OutputStream stream, String name) throws IOException {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+	@Override
+	public void repair() throws Exception {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void setCacheService(CacheService cs) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getContextCsn() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void saveContextCsn() throws Exception {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Subordinates getSubordinates(Entry entry) throws LdapException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+	
 	// ----- private methods -----
 	private StructrLDAPWrapper getWrapper(final LdapPrincipal principal) {
 
@@ -264,4 +283,5 @@ class StructrPartition implements Partition {
 
 		return rootType;
 	}
+
 }

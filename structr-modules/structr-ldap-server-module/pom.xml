@@ -24,8 +24,19 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.directory.server</groupId>
-			<artifactId>apacheds-protocol-ldap</artifactId>
-			<version>2.0.0-M3</version>
+			<artifactId>apacheds-core-api</artifactId>
+			<version>2.0.0-M23</version>
+		 <exclusions>
+		  <exclusion>
+		   <groupId>org.apache.mina</groupId>
+		   <artifactId>mina-core</artifactId>
+		  </exclusion>
+		 </exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.directory.server</groupId>
+			<artifactId>apacheds-all</artifactId>
+			<version>2.0.0-M23</version>
 			<optional>true</optional>
 			<exclusions>
 				<exclusion>
@@ -36,14 +47,24 @@
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>commons-pool</groupId>
+					<artifactId>commons-pool</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
-		<dependency>
+<!--		<dependency>
 			<groupId>org.apache.directory.server</groupId>
 			<artifactId>apacheds-ldif-partition</artifactId>
-			<version>2.0.0-M21</version>
+			<version>2.0.0-M23</version>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.directory.shared</groupId>
+			<artifactId>shared-ldap-model</artifactId>
+			<version>1.0.0-M13</version>
+			<optional>true</optional>
+		</dependency>-->
 	</dependencies>
 
 	<build>

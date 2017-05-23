@@ -117,4 +117,9 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 		return null;
 	}
 
+	@Override
+	public Object getPhysicalFile() {
+		throw new UnsupportedOperationException("Not supported yet."); 
+	}
+
 }
