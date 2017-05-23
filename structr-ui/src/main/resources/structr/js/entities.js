@@ -779,9 +779,14 @@ var _Entities = {
 						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
 						$('._' + node.id, box).on('click', function() {
 
+							var el = $(this);
+
 							if (isCollection) {
 
 								_Entities.addToCollection(id, node.id, key, function() {
+
+									blinkGreen(el);
+
 									if (Structr.isModuleActive(_Contents)) {
 										_Contents.refreshTree();
 									}
