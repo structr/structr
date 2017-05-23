@@ -58,11 +58,12 @@ public class SearchCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final String searchString = (String) webSocketData.getNodeData().get("searchString");
-		final String restQuery    = (String) webSocketData.getNodeData().get("restQuery");
-		final String cypherQuery  = (String) webSocketData.getNodeData().get("cypherQuery");
-		final String paramString  = (String) webSocketData.getNodeData().get("cypherParams");
-		final String typeString   = (String) webSocketData.getNodeData().get("type");
+		final String searchString = (String)  webSocketData.getNodeData().get("searchString");
+		final Boolean exactSearch = (Boolean) webSocketData.getNodeData().get("exact");
+		final String restQuery    = (String)  webSocketData.getNodeData().get("restQuery");
+		final String cypherQuery  = (String)  webSocketData.getNodeData().get("cypherQuery");
+		final String paramString  = (String)  webSocketData.getNodeData().get("cypherParams");
+		final String typeString   = (String)  webSocketData.getNodeData().get("type");
 
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
@@ -135,7 +136,7 @@ public class SearchCommand extends AbstractCommand {
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, sortKey);
 		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
 
-		query.andName(searchString);
+		query.and(AbstractNode.name, searchString, exactSearch);
 
 		if (type != null) {
 			query.andType(type);
