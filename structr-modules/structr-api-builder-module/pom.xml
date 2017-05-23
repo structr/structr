@@ -21,16 +21,16 @@
 			<artifactId>structr-rest</artifactId>
 			<version>${project.version}</version>
 			<optional>true</optional>
-		 <exclusions>
-		  <exclusion>
-		   <groupId>org.ow2.asm</groupId>
-		   <artifactId>asm-tree</artifactId>
-		  </exclusion>
-		  <exclusion>
-		   <groupId>org.bouncycastle</groupId>
-		   <artifactId>bcpkix-jdk15on</artifactId>
-		  </exclusion>
-		 </exclusions>
+			<exclusions>
+				<exclusion>
+					<groupId>org.ow2.asm</groupId>
+					<artifactId>asm-tree</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 

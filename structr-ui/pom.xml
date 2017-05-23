@@ -32,7 +32,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -154,7 +154,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<type>jar</type>
 			<scope>test</scope>
 			<optional>false</optional>
 		</dependency>
