@@ -274,7 +274,7 @@ var _Crud = {
 	},
 	onload: function() {
 
-		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Data');
+		Structr.updateMainHelpLink('https://support.structr.com/article/210');
 
 		if (!_Crud.type) {
 			_Crud.restoreType();
