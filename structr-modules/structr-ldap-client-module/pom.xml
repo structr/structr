@@ -27,16 +27,6 @@
 			<artifactId>api-all</artifactId>
 			<version>1.0.0-RC2</version>
 			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			 <exclusion>
-			  <groupId>xml-apis</groupId>
-			  <artifactId>xml-apis</artifactId>
-			 </exclusion>
-			</exclusions>
 		</dependency>
 	</dependencies>
 

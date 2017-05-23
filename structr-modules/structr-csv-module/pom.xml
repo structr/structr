@@ -27,12 +27,6 @@
 			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
 			<optional>true</optional>
-		 <exclusions>
-		  <exclusion>
-		   <groupId>org.bouncycastle</groupId>
-		   <artifactId>bcpkix-jdk15on</artifactId>
-		  </exclusion>
-		 </exclusions>
 		</dependency>
 	</dependencies>
 

@@ -40,28 +40,12 @@
 			<artifactId>gt-opengis</artifactId>
 			<version>13.2</version>
 			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-pool</groupId>
-					<artifactId>commons-pool</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>net.java.dev.jsr-275</groupId>
-					<artifactId>jsr-275</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-epsg-hsql</artifactId>
 			<version>13.2</version>
 			<optional>true</optional>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-pool</groupId>
-					<artifactId>commons-pool</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
