@@ -56,9 +56,9 @@ function resize() {
 	});
 }
 
-function appendHelpTextToElement (text, el, css) {
+function appendInfoTextToElement (text, el, css) {
 
-	var toggleElement = $('<span><i class="sprite sprite-information"></span>');
+	var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
 	if (css) {
 		toggleElement.css(css);
 	}
@@ -89,25 +89,25 @@ $(function () {
 		},
 
 		create: function (event, ui) {
-			
+
 			if (ui && ui.panel)  {
 				$('#active_section').val(ui.panel.attr('id'));
 			}
 		}
 	});
-	
+
 	$(window).resize(function() {
 		resize();
 	});
-	
+
 	resize();
 
 	$('label.has-comment').each(function(idx, label) {
-		appendHelpTextToElement($(label).data("comment"), $(label), {
+		appendInfoTextToElement($(label).data("comment"), $(label), {
 			marginLeft: '4px',
 			marginRight: '4px'
-		});		
+		});
 	});
-	
+
 });
 

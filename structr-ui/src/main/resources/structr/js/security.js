@@ -37,7 +37,7 @@ var _Security = {
 	onload: function() {
 		_Security.init();
 
-		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Users and Groups');
+		Structr.updateMainHelpLink('https://support.structr.com/article/207');
 		_Logger.log(_LogType.SECURTIY, 'onload');
 
 		main.append(

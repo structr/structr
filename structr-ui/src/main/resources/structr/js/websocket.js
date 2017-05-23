@@ -18,7 +18,7 @@
  */
 var ws;
 var loggedIn = false, isAdmin = false;
-var user, me;
+var user, me, userId;
 var reconn, ping;
 
 var rawResultCount = [];
@@ -137,6 +137,13 @@ function wsConnect() {
 
 			if (command === 'LOGIN' || code === 100) {
 
+				if (command === 'LOGIN' || !userId) {
+					Command.rest("/me", function (result) {
+						var me = result[0];
+						userId = me.id;
+					});
+				}
+
 				me = data.data;
 				_Dashboard.checkAdmin();
 				isAdmin = data.data.isAdmin;
@@ -175,9 +182,11 @@ function wsConnect() {
 
 				if (code === 403) {
 					user = null;
+					userId = null;
 					Structr.login('Wrong username or password!');
 				} else if (code === 401) {
 					user = null;
+					userId = null;
 					Structr.login('');
 				} else {
 
@@ -441,10 +450,12 @@ function wsConnect() {
 					}
 
 					if (command === 'CREATE' && entity.isPage) {
-						var tab = $('#show_' + entity.id, previews);
-						setTimeout(function () {
-							_Pages.activateTab(tab);
-						}, 2000);
+						if (entity.createdBy === userId) {
+							var tab = $('#show_' + entity.id, previews);
+							setTimeout(function () {
+								_Pages.activateTab(tab);
+							}, 1000);
+						}
 					} else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
 						_Files.uploadFile(entity);
 					}
@@ -514,6 +525,7 @@ function wsConnect() {
 				if (sessionValid === false) {
 					_Logger.log(_LogType.WS[command], 'invalid session');
 					user = null;
+					userId = null;
 					clearMain();
 
 					Structr.login();

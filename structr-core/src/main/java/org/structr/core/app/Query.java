@@ -60,6 +60,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> andName(final String name);
 	public Query<T> orName(final String name);
 
+	public Query<T> location(final double latitude, final double longitude, final double distance);
 	public Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance);
 	public Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance);
 	public Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance);

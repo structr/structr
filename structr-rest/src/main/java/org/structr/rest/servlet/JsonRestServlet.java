@@ -96,6 +96,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		// cross reference here, but these need to be added as well..
 		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
+		commonRequestParameters.add(SearchCommand.LAT_LON_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.LOCATION_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.STREET_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.HOUSE_SEARCH_KEYWORD);

@@ -218,6 +218,7 @@ var _Icons = {
 	exec_rest_icon: 'icon/control_play.png',
 	arrow_undo_icon: 'icon/arrow_undo.png',
 	information_icon: 'icon/information.png',
+	help_icon: 'icon/help.png',
 	refresh_icon: 'icon/arrow_refresh.png',
 	error_icon: 'icon/error.png',
 	pull_page_icon: 'icon/pull_page.png',
@@ -1626,7 +1627,7 @@ var Structr = {
 		});
 
 	},
-	appendHelpTextToElement: function (helpText, el, css) {
+	appendInfoTextToElement: function (helpText, el, css) {
 
 		var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
 		if (css) {

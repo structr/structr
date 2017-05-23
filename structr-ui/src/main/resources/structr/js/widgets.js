@@ -657,7 +657,7 @@ var _Widgets = {
 					}
 
 					if (fieldConfig.help) {
-						Structr.appendHelpTextToElement(fieldConfig.help, $('#label-' + cleanedLabel));
+						Structr.appendInfoTextToElement(fieldConfig.help, $('#label-' + cleanedLabel));
 					}
 
 				});

@@ -274,7 +274,7 @@ var _Crud = {
 	},
 	onload: function() {
 
-		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Data');
+		Structr.updateMainHelpLink('https://support.structr.com/article/210');
 
 		if (!_Crud.type) {
 			_Crud.restoreType();
@@ -930,13 +930,10 @@ var _Crud = {
 				});
 				_Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
 				_Crud.replaceSortHeader(type);
+
 			},
 			error: function(a, b, c) {
 				console.log(a, b, c, type, url);
-				// something went really wrong, probably a network issue, so reload the whole page
-//				window.setTimeout(function() {
-//					location.reload();
-//				}, 1000);
 			}
 		});
 	},

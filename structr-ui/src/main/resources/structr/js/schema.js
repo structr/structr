@@ -398,7 +398,7 @@ var _Schema = {
 		});
 
 		_Schema.init();
-		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Schema');
+		Structr.updateMainHelpLink('https://support.structr.com/article/193');
 
 		$(window).off('resize');
 		$(window).on('resize', function() {

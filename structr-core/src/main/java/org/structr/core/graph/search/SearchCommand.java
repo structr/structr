@@ -65,6 +65,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private static final Map<String, Set<String>> subtypeMapForType = new LinkedHashMap<>();
 	private static final Set<String> baseTypes                      = new LinkedHashSet<>();
 
+	public static final String LAT_LON_SEARCH_KEYWORD     = "latlon";
 	public static final String LOCATION_SEARCH_KEYWORD    = "location";
 	public static final String STATE_SEARCH_KEYWORD       = "state";
 	public static final String HOUSE_SEARCH_KEYWORD       = "house";
@@ -159,11 +160,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			if (attr instanceof DistanceSearchAttribute) {
 
 				final DistanceSearchAttribute distanceSearch = (DistanceSearchAttribute) attr;
-				final GeoCodingResult coords                 = GeoHelper.geocode(distanceSearch);
+				if (distanceSearch.needsGeocding()) {
 
-				if (coords != null) {
+					final GeoCodingResult coords = GeoHelper.geocode(distanceSearch);
+					if (coords != null) {
 
-					distanceSearch.setCoords(coords.toArray());
+						distanceSearch.setCoords(coords.toArray());
+					}
 				}
 
 				hasSpatialSource = true;
@@ -460,6 +463,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> orName(final String name) {
 		return or(AbstractNode.name, name);
+	}
+
+	@Override
+	public org.structr.core.app.Query<T> location(final double latitude, final double longitude, final double distance) {
+		currentGroup.getSearchAttributes().add(new DistanceSearchAttribute(latitude, longitude, distance, Occurrence.REQUIRED));
+		return this;
 	}
 
 	@Override

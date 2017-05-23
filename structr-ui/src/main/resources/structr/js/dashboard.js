@@ -30,7 +30,7 @@ var _Dashboard = {
 	unload: function() {},
 	onload: function() {
 		_Dashboard.init();
-		Structr.updateMainHelpLink('http://docs.structr.org/frontend-user-guide#Dashboard');
+		Structr.updateMainHelpLink('https://support.structr.com/article/202');
 
 		main.append('<div id="dashboard"></div>');
 		_Dashboard.dashboard = $('#dashboard', main);
