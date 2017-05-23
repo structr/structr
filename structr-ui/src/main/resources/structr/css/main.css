@@ -149,8 +149,9 @@ input[type="checkbox"] {
 
 #main-help {
 	position: absolute;
-	top: 67px;
+	top: 64px;
 	right: 8px;
+	z-index: 1;
 }
 
 #main-help:hover {
