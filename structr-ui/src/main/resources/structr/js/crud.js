@@ -931,6 +931,14 @@ var _Crud = {
 				_Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
 				_Crud.replaceSortHeader(type);
 
+				if (_Crud.types[type].isRel && !_Crud.relInfo[type]) {
+
+					var button = $('#crud-buttons #create' + type);
+					button.attr('disabled', 'disabled').addClass('disabled');
+					Structr.appendInfoTextToElement('Action not supported for built-in relationship types', $('#crud-buttons #create' + type), { 'marginRight': '10px' }, true);
+
+				}
+
 			},
 			error: function(a, b, c) {
 				console.log(a, b, c, type, url);
@@ -1781,7 +1789,7 @@ var _Crud = {
 
 			simpleType = lastPart(relatedType, '.');
 
-			if (isRel) {
+			if (isRel && _Crud.relInfo[type]) {
 
 				if (key === 'sourceId') {
 					simpleType = _Crud.relInfo[type].source;
@@ -1797,23 +1805,28 @@ var _Crud = {
 
 			} else {
 
-				cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
-				$('.add', cell).on('click', function() {
-					if (!dialogBox.is(':visible')) {
-						_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
-						_Crud.displaySearch(type, id, key, simpleType, dialogText);
-					} else {
-						var btn = $(this);
-						$('#entityForm').hide();
-						_Crud.displaySearch(type, id, key, simpleType, dialogText, function (n) {
-							$('.searchBox', dialogText).remove();
-							btn.remove();
-							_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
-							_Crud.clearSearchResults(dialogText);
-							$('#entityForm').show();
-						});
-					}
-				});
+				if (simpleType) {
+
+					cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
+					$('.add', cell).on('click', function() {
+						if (!dialogBox.is(':visible')) {
+							_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
+							_Crud.displaySearch(type, id, key, simpleType, dialogText);
+						} else {
+							var btn = $(this);
+							$('#entityForm').hide();
+							_Crud.displaySearch(type, id, key, simpleType, dialogText, function (n) {
+								$('.searchBox', dialogText).remove();
+								btn.remove();
+								_Crud.getAndAppendNode(type, id, key, n, cell, n, true);
+								_Crud.clearSearchResults(dialogText);
+								$('#entityForm').show();
+							});
+						}
+					});
+
+				}
+
 			}
 
 		}
