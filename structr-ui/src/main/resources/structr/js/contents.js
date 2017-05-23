@@ -120,7 +120,7 @@ var _Contents = {
 			});
 
 			if (schemaNodes.length === 0) {
-				Structr.appendHelpTextToElement("You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers", containerTypesWrapper, {
+				Structr.appendInfoTextToElement("You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers", containerTypesWrapper, {
 					marginLeft: '4px',
 					marginRight: '4px'
 				});
@@ -152,7 +152,7 @@ var _Contents = {
 			});
 
 			if (schemaNodes.length === 0) {
-				Structr.appendHelpTextToElement("You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItem", itemTypesWrapper, {
+				Structr.appendInfoTextToElement("You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItem", itemTypesWrapper, {
 					marginLeft: '4px',
 					marginRight: '4px'
 				});
