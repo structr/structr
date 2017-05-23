@@ -218,10 +218,8 @@ var _Pages = {
 			});
 		});
 
-		$('#controls', main).remove();
-
-		previews.append('<ul id="previewTabs"></ul>');
-		previewTabs = $('#previewTabs', previews);
+		previewTabs = $('<ul id="previewTabs"></ul>');
+		previews.append(previewTabs);
 
 		_Pages.refresh();
 
@@ -528,6 +526,8 @@ var _Pages = {
 		}
 	},
 	activateTab: function(element) {
+
+		console.warn(element);
 
 		var name = $.trim(element.children('b.name_').attr('title'));
 		_Logger.log(_LogType.PAGES, 'activateTab', element, name);
