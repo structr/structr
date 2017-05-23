@@ -4142,130 +4142,134 @@ span.context-help-text {
 	background-position: -100px -100px;
 }
 
+.sprite-help {
+	background-position: -124px -100px;
+}
+
 .sprite-icon_microphone {
 	width: 20px;
 	height: 20px;
-	background-position: -125px -101px;
+	background-position: -148px -100px;
 }
 
 .sprite-image {
-	background-position: -154px -100px;
+	background-position: -176px -100px;
 }
 
 .sprite-information {
-	background-position: -178px -100px;
+	background-position: -200px -100px;
 }
 
 .sprite-key {
-	background-position: -202px -100px;
+	background-position: -224px -100px;
 }
 
 .sprite-key_add {
-	background-position: -226px -100px;
+	background-position: -248px -100px;
 }
 
 .sprite-layout {
-	background-position: -250px -100px;
+	background-position: -272px -100px;
 }
 
 .sprite-layout_add {
-	background-position: -274px -100px;
-}
-
-.sprite-layout_content {
 	background-position: -4px -124px;
 }
 
-.sprite-layout_delete {
+.sprite-layout_content {
 	background-position: -28px -124px;
 }
 
-.sprite-layout_edit {
+.sprite-layout_delete {
 	background-position: -52px -124px;
 }
 
-.sprite-layout_yellow {
+.sprite-layout_edit {
 	background-position: -76px -124px;
 }
 
-.sprite-link {
+.sprite-layout_yellow {
 	background-position: -100px -124px;
 }
 
+.sprite-link {
+	background-position: -124px -124px;
+}
+
 .sprite-package {
-	background-position: -154px -124px;
+	background-position: -176px -124px;
 }
 
 .sprite-package_add {
-	background-position: -178px -124px;
+	background-position: -200px -124px;
 }
 
 .sprite-package_delete {
-	background-position: -202px -124px;
+	background-position: -224px -124px;
 }
 
 .sprite-package_green {
-	background-position: -226px -124px;
+	background-position: -248px -124px;
 }
 
 .sprite-page {
-	background-position: -250px -124px;
+	background-position: -272px -124px;
 }
 
 .sprite-page_add {
-	background-position: -274px -124px;
-}
-
-.sprite-page_copy {
 	background-position: -4px -148px;
 }
 
-.sprite-page_delete {
+.sprite-page_copy {
 	background-position: -28px -148px;
 }
 
-.sprite-page_white {
+.sprite-page_delete {
 	background-position: -52px -148px;
 }
 
-.sprite-page_white_acrobat {
+.sprite-page_white {
 	background-position: -76px -148px;
 }
 
-.sprite-page_white_add {
+.sprite-page_white_acrobat {
 	background-position: -100px -148px;
 }
 
-.sprite-page_white_code {
+.sprite-page_white_add {
 	background-position: -124px -148px;
 }
 
-.sprite-page_white_delete {
+.sprite-page_white_code {
 	background-position: -148px -148px;
 }
 
-.sprite-page_white_get {
+.sprite-page_white_delete {
 	background-position: -172px -148px;
 }
 
-.sprite-page_white_put {
+.sprite-page_white_get {
 	background-position: -196px -148px;
 }
 
-.sprite-page_white_stack {
+.sprite-page_white_put {
 	background-position: -220px -148px;
 }
 
-.sprite-page_white_text {
+.sprite-page_white_stack {
 	background-position: -244px -148px;
 }
 
-.sprite-page_yellow {
+.sprite-page_white_text {
 	background-position: -268px -148px;
 }
 
-.sprite-pencil {
+.sprite-page_yellow {
 	background-position: -4px -172px;
+}
+
+.sprite-pencil {
+	background-position: -28px -172px;
 }
 
 .sprite-pencil_small_grey {
@@ -4275,29 +4279,29 @@ span.context-help-text {
 }
 
 .sprite-pull_page {
-	background-position: -28px -172px;
-}
-
-.sprite-script_lightning {
 	background-position: -52px -172px;
 }
 
-.sprite-script_palette {
+.sprite-script_lightning {
 	background-position: -76px -172px;
 }
 
-.sprite-star {
+.sprite-script_palette {
 	background-position: -100px -172px;
 }
 
-.sprite-star_delete {
+.sprite-star {
 	background-position: -124px -172px;
+}
+
+.sprite-star_delete {
+	background-position: -148px -172px;
 }
 
 .sprite-structr-logo {
 	width: 86px;
 	height: 23px;
-	background-position: -148px -172px;
+	background-position: -172px -172px;
 }
 
 .sprite-structr-logo_92x60 {
@@ -4309,7 +4313,7 @@ span.context-help-text {
 .sprite-structr_gray_100x27 {
 	width: 100px;
 	height: 27px;
-	background-position: -105px -204px;
+	background-position: -104px -203px;
 }
 
 .sprite-structr_gray_200x54 {
@@ -4357,39 +4361,39 @@ span.context-help-text {
 .sprite-tree_arrow_down {
 	width: 8px;
 	height: 8px;
-	background-position: -298px -90px;
+	background-position: -296px -90px;
 }
 
 .sprite-tree_arrow_right {
 	width: 8px;
 	height: 8px;
-	background-position: -314px -90px;
+	background-position: -312px -90px;
 }
 
 .sprite-user {
-	background-position: -330px -90px;
+	background-position: -328px -90px;
 }
 
 .sprite-user_add {
-	background-position: -354px -90px;
+	background-position: -352px -90px;
 }
 
 .sprite-user_delete {
-	background-position: -378px -90px;
+	background-position: -376px -90px;
 }
 
 .sprite-wand {
-	background-position: -402px -90px;
+	background-position: -400px -90px;
 }
 
 .sprite-wrench {
-	background-position: -426px -90px;
+	background-position: -424px -90px;
 }
 
 .sprite-xhtml_add {
-	background-position: -450px -90px;
+	background-position: -448px -90px;
 }
 
 .sprite-zoom {
-	background-position: -474px -90px;
+	background-position: -472px -90px;
 }
