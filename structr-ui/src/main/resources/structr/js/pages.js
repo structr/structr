@@ -527,8 +527,6 @@ var _Pages = {
 	},
 	activateTab: function(element) {
 
-		console.warn(element);
-
 		var name = $.trim(element.children('b.name_').attr('title'));
 		_Logger.log(_LogType.PAGES, 'activateTab', element, name);
 
