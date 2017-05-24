@@ -1,20 +1,20 @@
 #!/bin/bash
 
-PID_FILE='/var/run/structr-ui.pid'
+PID_FILE='/var/run/structr.pid'
 
 if [ ! -e $PID_FILE ]; then
 
 	echo
 	echo "        No server running."
 	echo
-	
+
 	exit 0
-	
+
 fi
 
 SERVER_PID=`cat $PID_FILE`
 
-echo 
+echo
 echo -n "        Stopping structr server $DISPLAY_NAME: "
 
 kill $SERVER_PID

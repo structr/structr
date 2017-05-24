@@ -1023,11 +1023,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				logger.warn("Module was null!");
 			}
 
-		} catch (IOException ioex) {
-
-			logger.warn("Error loading module {}: {}", new Object[]{resourceName, ioex.getMessage()});
-
-		}
+		} catch (IOException ignore) {}
 
 	}
 

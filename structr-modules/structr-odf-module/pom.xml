@@ -72,6 +72,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
+					<outputDirectory>${project.parent.parent.basedir}/structr-ui/target/lib</outputDirectory>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd /usr/lib/structr-ui
+cd /usr/lib/structr
 
 . bin/config
 

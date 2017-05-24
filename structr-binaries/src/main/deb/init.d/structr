@@ -10,13 +10,13 @@
 # Description:       Start Structr UI (see http://structr.org).
 ### END INIT INFO
 
-cd /usr/lib/structr-ui/
+cd /usr/lib/structr/
 
-PID_FILE="/var/run/structr-ui.pid"
+PID_FILE="/var/run/structr.pid"
 
 case "$1" in
   start)
-        /usr/lib/structr-ui/bin/start
+        /usr/lib/structr/bin/start
         exit 0
         ;;
   status)
@@ -35,7 +35,7 @@ case "$1" in
         fi
   ;;
   stop)
-        /usr/lib/structr-ui/bin/stop
+        /usr/lib/structr/bin/stop
         ;;
   *)
         echo "Usage: structr {start|stop|status}" >&2

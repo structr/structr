@@ -48,11 +48,7 @@
 			<outputDirectory>/</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/stop</source>
+			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/add_mail_templates.sh</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
@@ -69,19 +65,11 @@
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/su</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
 			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/env</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
 			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/get</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/make_key.sh</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
@@ -93,15 +81,15 @@
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/seed-ssh.sh</source>
+			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/seed.sh</source>
+			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/stop</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/add_grants.sh</source>
+			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/su</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 	</files>
