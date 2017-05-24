@@ -82,12 +82,32 @@
 								</data>
 
 								<data>
+									<src>${project.parent.basedir}/structr-ui/src/main/resources/urlrewrite.xml</src>
+									<type>file</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}</prefix>
+										<filemode>644</filemode>
+									</mapper>
+								</data>
+
+								<data>
+									<src>${project.parent.basedir}/structr-ui/src/main/resources/structr</src>
+									<type>directory</type>
+									<mapper>
+										<type>perm</type>
+										<prefix>/usr/lib/${project.parent.artifactId}/structr</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+
+								<data>
 									<src>${project.parent.basedir}/structr-ui/seed.zip</src>
 									<type>file</type>
 									<mapper>
 										<type>perm</type>
 										<prefix>/usr/lib/${project.parent.artifactId}/</prefix>
-										<filemode>755</filemode>
+										<filemode>644</filemode>
 									</mapper>
 								</data>
 

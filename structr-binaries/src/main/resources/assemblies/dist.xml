@@ -33,6 +33,15 @@
 			</includes>
 		</fileSet>
 		<fileSet>
+			<directory>${project.parent.basedir}/structr-ui/src/main/resources/structr</directory>
+			<outputDirectory>/structr</outputDirectory>
+			<directoryMode>0755</directoryMode>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>**</include>
+			</includes>
+		</fileSet>
+		<fileSet>
 			<directory>src/main/resources/logs</directory>
 			<outputDirectory>/logs</outputDirectory>
 			<directoryMode>0755</directoryMode>
@@ -91,6 +100,10 @@
 		<file>
 			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/su</source>
 			<outputDirectory>/bin</outputDirectory>
+		</file>
+		<file>
+			<source>${project.parent.basedir}/structr-ui/src/main/resources/urlrewrite.xml</source>
+			<outputDirectory>/</outputDirectory>
 		</file>
 	</files>
 </assembly>
