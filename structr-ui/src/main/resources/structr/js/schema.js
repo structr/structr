@@ -860,7 +860,7 @@ var _Schema = {
 
 				var typeName = $('.extends-class-select', headContentDiv).val().split('.').pop();
 
-				Command.search(typeName, 'SchemaNode', function(results) {
+				Command.search(typeName, 'SchemaNode', true, function(results) {
 					if (results.length === 1) {
 
 						_Schema.openEditDialog(results[0].id, undefined, function() {

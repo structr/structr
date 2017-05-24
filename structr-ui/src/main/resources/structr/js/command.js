@@ -278,12 +278,13 @@ var Command = {
 	 * of that type.
 	 *
 	 */
-	search: function(searchString, type, callback) {
+	search: function(searchString, type, exact, callback) {
 		var obj = {
 			command: 'SEARCH',
 			data: {
 				searchString: searchString,
-				type: type
+				type: type,
+				exact: exact
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'search()', obj);

@@ -755,6 +755,7 @@ var _Entities = {
 		window.setTimeout(function() {
 			search.focus();
 		}, 250);
+
 		search.keyup(function(e) {
 			e.preventDefault();
 
@@ -769,19 +770,25 @@ var _Entities = {
 					}
 				});
 
-				el.append('<div class="result-box"></div>');
+				$('.result-box', el).remove();
+				var box = $('<div class="result-box"></div>');
+				el.append(box);
 
-				var box = $('.result-box', el);
+				var resultHandler = function(nodes) {
 
-				Command.getByType(type, 1000, 1, 'name', 'asc', null, false, function(nodes) {
 					nodes.forEach(function(node) {
 						var displayName = node.title || node.name || node.id;
 						box.append('<div title="' + displayName + '" " class="_' + node.id + ' node element">' + fitStringToWidth(displayName, 120) + '</div>');
 						$('._' + node.id, box).on('click', function() {
 
+							var nodeEl = $(this);
+
 							if (isCollection) {
 
 								_Entities.addToCollection(id, node.id, key, function() {
+
+									blinkGreen(nodeEl);
+
 									if (Structr.isModuleActive(_Contents)) {
 										_Contents.refreshTree();
 									}
@@ -798,7 +805,15 @@ var _Entities = {
 
 						});
 					});
-				});
+
+				};
+
+				if (searchString.trim() === '*') {
+					Command.getByType(type, 1000, 1, 'name', 'asc', null, false, resultHandler);
+				} else {
+					Command.search(searchString, type, false, resultHandler);
+				}
+
 
 			} else if (e.keyCode === 27) {
 

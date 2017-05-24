@@ -1627,7 +1627,7 @@ var Structr = {
 		});
 
 	},
-	appendInfoTextToElement: function (helpText, el, css) {
+	appendInfoTextToElement: function (helpText, el, css, after) {
 
 		var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
 		if (css) {
@@ -1646,6 +1646,10 @@ var Structr = {
 		toggleElement.on("mouseout", function(e) {
 			helpElement.hide();
 		});
+
+		if (after) {
+			return el.after(toggleElement).after(helpElement);
+		}
 
 		return el.append(toggleElement).append(helpElement);
 	}
