@@ -126,7 +126,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 	public StructrLicenseManager(final String licenseFileName) {
 
-		logger.info("Host ID is {}.", createHash());
+		logger.info("Host ID is {}", createHash());
 		logger.info("Checking Structr license..");
 
 		// initialize certificate from static data above
