@@ -3,9 +3,6 @@
 # determine latest Structr version
 LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 
-# copy modules
-./copy-modules.sh
-
 BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 LOGS_DIR=$BASE_DIR/logs
 

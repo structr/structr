@@ -1,5 +1,5 @@
 #!/bin/bash
-./copy-modules.sh
+
 NAME=$1
 HEAPSIZE=$2
 
