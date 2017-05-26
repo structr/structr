@@ -38,22 +38,22 @@ public class StructrModuleInfo {
 	}
 
 	public String getModulePath() {
-		return(modulePath);
+		return modulePath ;
 	}
 
 	public Set<String> getClasses() {
-		return(rawClasses);
+		return rawClasses;
 	}
 
 	public Set<String> getProperties() {
-		return(properties);
+		return properties;
 	}
 
 	public Set<String> getResources() {
-		return(resources);
+		return resources;
 	}
 
 	public Set<String> getLibraries() {
-		return(libraries);
+		return libraries;
 	}
 }
