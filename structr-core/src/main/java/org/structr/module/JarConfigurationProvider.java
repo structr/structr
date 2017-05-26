@@ -1237,7 +1237,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private Set<String> getResourcesToScan() {
 
 		final String classPath    = System.getProperty("java.class.path");
-		final Set<String> modules = new LinkedHashSet<>();
+		final Set<String> modules = new TreeSet<>();
 		final Pattern pattern     = Pattern.compile(".*(structr).*(war|jar)");
 		final Matcher matcher     = pattern.matcher("");
 
