@@ -103,19 +103,20 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		server.setShellFactory(this);
 		server.setCommandFactory(this);
 
-		logger.info("Starting SSH server..");
+		logger.info("Starting SSH server on port {}", server.getPort());
 
 		try {
 
 			server.start();
 			running = true;
+			logger.info("Initialization complete.");
 
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			//logger.error("", ex);
+			logger.info("Initialization failed.");
 		}
 
-		logger.info("Initialization complete.");
 	}
 
 	@Override
