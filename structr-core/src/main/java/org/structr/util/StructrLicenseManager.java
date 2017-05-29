@@ -527,7 +527,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 		try (final InputStream is = new FileInputStream(name)) {
 
-			return IOUtils.toString(is);
+			return IOUtils.toString(is, "utf-8");
 
 		} catch (IOException ioex) {
 			logger.warn("Unable to read file.", ioex);

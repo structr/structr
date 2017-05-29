@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +51,7 @@ public class ServerLogFunction extends Function<Object, Object> {
 
 		}
 
-		try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(getServerlogFile())) {
+		try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(getServerlogFile(), Charset.forName("utf-8"))) {
 
 			final StringBuilder sb = new StringBuilder();
 

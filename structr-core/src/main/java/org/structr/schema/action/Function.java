@@ -529,7 +529,7 @@ public abstract class Function<S, T> extends Hint {
 				return false;
 			}
 
-			if (NumberUtils.isNumber(value)) {
+			if (NumberUtils.isCreatable(value)) {
 				return NumberUtils.createNumber(value);
 			}
 		}
