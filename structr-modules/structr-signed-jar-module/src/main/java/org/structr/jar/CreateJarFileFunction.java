@@ -380,7 +380,7 @@ public class CreateJarFileFunction extends UiFunction {
 				certGen.setPublicKey(keyPair.getPublic());
 				certGen.setSignatureAlgorithm(signAlgorithm);
 
-				final X509Certificate cert = certGen.generate(keyPair.getPrivate(), "BC");
+				final X509Certificate cert = certGen.generate(keyPair.getPrivate());
 
 				keystore.setCertificateEntry("cert", cert);
 				keystore.setKeyEntry("priv", keyPair.getPrivate(), keystorePass.toCharArray(), new Certificate[] { cert } );
