@@ -209,7 +209,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			final String nodeName = node.getName();
 			if (nodeName == null) {
-				
+
 				return -1;
 			}
 

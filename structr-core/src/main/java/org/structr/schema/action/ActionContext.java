@@ -325,10 +325,11 @@ public class ActionContext {
 
 					case "locale":
 						return locale != null ? locale.toString() : null;
+
+					case "depth":
+						return securityContext.getSerializationDepth() - 1;
 				}
-
 			}
-
 		}
 
 		if (value == null && defaultValue != null) {

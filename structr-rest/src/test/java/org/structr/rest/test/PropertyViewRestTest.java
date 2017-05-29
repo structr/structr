@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.fail;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,8 +59,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.StringProperty;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.entity.TestTwo;
@@ -73,9 +78,9 @@ import org.structr.rest.entity.TestTwo;
  *
  *
  */
-public class PropertyViewNewDateFormatTest {
+public class PropertyViewRestTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(PropertyViewNewDateFormatTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(PropertyViewRestTest.class.getName());
 	protected static final Map<String, Object> staticConfig = new HashMap<>();
 
 	//~--- fields ---------------------------------------------------------
@@ -210,6 +215,106 @@ public class PropertyViewNewDateFormatTest {
 				.get(concat(resource, "/all"));
 
 
+
+	}
+
+	@Test
+	public void testOutputDepthScriptingProperty() {
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode node = app.create(SchemaNode.class,
+				new NodeAttribute<>(AbstractNode.name, "ScriptTest"),
+				new NodeAttribute<>(new StringProperty("_depth"), "Function(depth)"),
+				new NodeAttribute<>(new StringProperty("__public"), "name, depth, children, parents")
+			);
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, node),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, node),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "test"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "parents"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "children")
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			fail("Unexpected exception.");
+		}
+
+
+		// the new test setup method requires a whole new test class for
+		// configuration changes, so this test class is a duplicate of
+		// the existing StructrRestTest.. :(
+
+		String resource = "/ScriptTest";
+
+		// create entity
+		final String uuid = getUuidFromLocation(RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.body(" { 'name' : 'ScriptTest1' } ")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post(resource).getHeader("Location")
+		);
+
+		// create second entity
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.body(" { 'name' : 'ScriptTest2', 'parents': [{ 'id': '" + uuid + "' }] } ")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post(resource).getHeader("Location");
+
+		// test default view with properties in it
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.expect()
+				.statusCode(200)
+				.body("query_time",                                         notNullValue())
+				.body("serialization_time",                                 notNullValue())
+				.body("result_count",                                       equalTo(2))
+				.body("result",                                             hasSize(2))
+
+				.body("result[0].type",	                                    equalTo("ScriptTest"))
+				.body("result[0].depth",                                    equalTo(0))
+				.body("result[0].name",                                     equalTo("ScriptTest1"))
+				.body("result[0].children[0].type",                         equalTo("ScriptTest"))
+				.body("result[0].children[0].depth",                        equalTo(1))
+				.body("result[0].children[0].name",                         equalTo("ScriptTest2"))
+				.body("result[0].children[0].parents[0].type",              equalTo("ScriptTest"))
+				.body("result[0].children[0].parents[0].depth",             equalTo(2))
+				.body("result[0].children[0].parents[0].name",              equalTo("ScriptTest1"))
+				.body("result[0].children[0].parents[0].children[0].type",  equalTo("ScriptTest"))
+				.body("result[0].children[0].parents[0].children[0].depth", equalTo(3))
+				.body("result[0].children[0].parents[0].children[0].name",  equalTo("ScriptTest2"))
+ 				.body("result[1].type",	                                    equalTo("ScriptTest"))
+				.body("result[1].depth",                                    equalTo(0))
+				.body("result[1].name",                                     equalTo("ScriptTest2"))
+ 				.body("result[1].parents[0].type",	                    equalTo("ScriptTest"))
+				.body("result[1].parents[0].depth",                         equalTo(1))
+				.body("result[1].parents[0].name",                          equalTo("ScriptTest1"))
+
+			.when()
+				.get(resource);
 
 	}
 

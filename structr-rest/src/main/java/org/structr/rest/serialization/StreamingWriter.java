@@ -195,16 +195,16 @@ public abstract class StreamingWriter {
 						if (object instanceof GraphObject) {
 
 							// keep track of serialization time
-							long startTime            = System.currentTimeMillis();
-							String localPropertyView  = propertyView.get(null);
-
-							GraphObject obj = (GraphObject)object;
-							Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
+							final long startTime              = System.currentTimeMillis();
+							final String localPropertyView    = propertyView.get(null);
+							final GraphObject obj             = (GraphObject)object;
+							final Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
 
 							while (keyIt.hasNext()) {
 
 								PropertyKey k = keyIt.next();
-								Object value = obj.getProperty(k);
+								Object value  = obj.getProperty(k);
+
 								root.serializeProperty(writer, k, value, localPropertyView, 0);
 
 							}
@@ -411,9 +411,12 @@ public abstract class StreamingWriter {
 
 		public void serializeProperty(RestWriter writer, PropertyKey key, Object value, String localPropertyView, int depth) {
 
-			try {
-				PropertyConverter converter = key.inputConverter(writer.getSecurityContext());
+			final SecurityContext securityContext = writer.getSecurityContext();
 
+			securityContext.setSerializationDepth(depth);
+
+			try {
+				final PropertyConverter converter = key.inputConverter(securityContext);
 				if (converter != null) {
 
 					Object convertedValue = null;

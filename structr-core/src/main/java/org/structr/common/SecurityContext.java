@@ -61,6 +61,7 @@ public class SecurityContext {
 	private boolean doTransactionNotifications           = true;
 	private boolean dontModifyAccessTime                 = false;
 	private boolean ignoreResultCount                    = false;
+	private int serializationDepth                       = -1;
 
 	//~--- fields ---------------------------------------------------------
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -798,6 +799,14 @@ public class SecurityContext {
 
 	public void setSessionId(String sessionId) {
 		this.sessionId = sessionId;
+	}
+
+	public void setSerializationDepth(final int depth) {
+		this.serializationDepth = depth;
+	}
+
+	public int getSerializationDepth() {
+		return serializationDepth;
 	}
 
 	// ----- nested classes -----
