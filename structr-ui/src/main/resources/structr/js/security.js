@@ -139,33 +139,81 @@ var _UsersAndGroups = {
 		_Entities.appendEditPropertiesIcon(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
 	},
-	appendUserToGroup: function (user, group, groupEl) {
-
+	appendMemberToGroup: function (member, group, groupEl) {
 		var groupId = group.id;
+		var prefix = (member.type === 'User') ? '.userid_' : '.groupid_';
 
 		var isExpanded = Structr.isExpanded(groupId);
-		_Entities.appendExpandIcon(groupEl, group, true, isExpanded);
+
+		groupEl.each(function (idx, grp) {
+			_Entities.appendExpandIcon($(grp), group, true, isExpanded);
+		});
 
 		if (!isExpanded) {
 			return;
 		}
 
-		var userDiv = _UsersAndGroups.createUserElement(user, group);
+		if (member.type === 'User') {
 
-		groupEl.append(userDiv.css({
-			top: 0,
-			left: 0
-		}));
-		userDiv.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+			var userDiv = _UsersAndGroups.createUserElement(member, group);
 
-		_Entities.appendEditPropertiesIcon(userDiv, user);
-		_UsersAndGroups.setMouseOver(userDiv, user.id, '.userid_');
+			groupEl.append(userDiv.css({
+				top: 0,
+				left: 0
+			}));
+			userDiv.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+
+			_Entities.appendEditPropertiesIcon(userDiv, member);
+			_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
+
+		} else {
+
+			groupEl.each(function (idx, grpEl) {
+
+				var groupDiv = _UsersAndGroups.createGroupElement(member);
+
+				$('.delete_icon', groupDiv).remove();
+
+				groupDiv.append('<i title="Remove \'' + member.name + '\' from group \'' + group.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.user_delete_icon) + '" />');
+
+				$('.delete_icon', groupDiv).on('click', function(e) {
+					e.stopPropagation();
+					Command.removeFromCollection(group.id, 'members', member.id, function () {
+						_UsersAndGroups.deactivateNodeHover(member.id, prefix);
+					});
+				});
+
+
+				$(grpEl).append(groupDiv.css({
+					top: 0,
+					left: 0
+				}));
+
+				groupDiv.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+
+				_Entities.appendEditPropertiesIcon(groupDiv, member);
+				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
+
+				if (member.members === null) {
+					Command.get(member.id, function (fetchedGroup) {
+						fetchedGroup.members.forEach(function(subMember) {
+							_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
+						});
+					});
+				} else if (member.members && member.members.length) {
+					member.members.forEach(function(subMember) {
+						_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
+					});
+				}
+			});
+
+		}
+
 	},
 	deleteUser: function(button, user) {
 		_Logger.log(_LogType.SECURTIY, 'deleteUser ' + user);
 		_Entities.deleteNode(button, user);
 	},
-
 	refreshGroups: function() {
 		_Security.groups.empty();
 		_Security.groups.append('<button class="add_group_icon button"><i title="Add Group" class="' + _Icons.getFullSpriteClass(_Icons.group_add_icon) + '" /> Add Group</button>');
@@ -193,37 +241,52 @@ var _UsersAndGroups = {
 
 		return groupElement;
 	},
-	appendGroupElement: function(group) {
-
-		if (!_Security.groups || !_Security.groups.is(':visible')) {
-			return;
-		}
+	appendGroupElement: function(element, group) {
 
 		var hasChildren = group.members && group.members.length;
 
 		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
 
 		var groupDiv = _UsersAndGroups.createGroupElement(group);
-		_Security.groups.append(groupDiv);
+		element.append(groupDiv);
 
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
 		_Entities.appendEditPropertiesIcon(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.groupid_');
 
 		groupDiv.droppable({
-			accept: '.user',
+			accept: '.user, .group',
 			greedy: true,
 			hoverClass: 'nodeHover',
 			tolerance: 'pointer',
 			drop: function(event, ui) {
-				var userId = Structr.getUserId(ui.draggable);
-				Command.appendUser(userId, group.id);
+				var nodeId;
+
+				if (ui.draggable.hasClass('user')) {
+					nodeId = Structr.getUserId(ui.draggable);
+				} else if (ui.draggable.hasClass('group')) {
+					nodeId = Structr.getGroupId(ui.draggable);
+				}
+
+				if (nodeId) {
+					Command.appendUser(nodeId, group.id);
+				} else {
+					_Logger.log(_LogType.SECURTIY, 'drop on group -> could not identify node/user', ui.draggable);
+				}
 			}
 		});
 
+		groupDiv.draggable({
+			revert: 'invalid',
+			helper: 'clone',
+			stack: '.node',
+			appendTo: '#main',
+			zIndex: 99
+		});
+
 		if (hasChildren) {
-			group.members.forEach(function(user) {
-				_UsersAndGroups.appendUserToGroup(user, group, groupDiv);
+			group.members.forEach(function(member) {
+				_UsersAndGroups.appendMemberToGroup(member, group, groupDiv);
 			});
 		}
 
