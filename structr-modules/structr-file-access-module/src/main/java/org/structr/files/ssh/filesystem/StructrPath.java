@@ -267,7 +267,8 @@ public abstract class StructrPath implements Path {
 
 		logger.info("{}", new Object[] { other });
 
-		return null;
+		// fallback
+		return fs.getPath("/", other);
 	}
 
 	@Override
