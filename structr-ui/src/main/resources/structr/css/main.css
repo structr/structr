@@ -839,7 +839,7 @@ span.id {
 	margin-left: 16px ! important;
 }
 
-.group .user, .folder .file, .folder .folder, .container .item {
+.group .node, .folder .file, .folder .folder, .container .item {
 	margin: 4px 0 4px 11px;
 }
 
@@ -2391,7 +2391,7 @@ table.push {
 	background: none;
 }
 
-#securityTabs li, #configTabs li {
+#securityTabsMenu li, #configTabsMenu li {
 	font-size: 1.2em;
 	height: 22px;
 	margin: 0 4px 0 0;

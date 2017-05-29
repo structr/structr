@@ -97,11 +97,11 @@ var StructrModel = {
 
 		} else if (data.isGroup) {
 
-			obj = new StructrGroup(data);
+			obj = new StructrGroup(data, refId);
 
 		} else if (data.isUser) {
 
-			obj = new StructrUser(data);
+			obj = new StructrUser(data, refId);
 
 		} else if (data.isImage) {
 
@@ -629,7 +629,7 @@ StructrImage.prototype.append = function() {
  * Structr User
  **************************************/
 
-function StructrUser(data) {
+function StructrUser(data, refId) {
 	StructrModel.copyDataToObject(data, this);
 }
 
@@ -658,10 +658,11 @@ StructrUser.prototype.remove = function(groupId) {
 };
 
 StructrUser.prototype.append = function(groupId) {
-
 	if (Structr.isModuleActive(_Security)) {
 		if (groupId) {
-			_UsersAndGroups.appendUserToGroup(this, StructrModel.obj(groupId), Structr.node(groupId, '.groupid_'));
+			var grpContainer = $('.groupid_' + groupId, _Security.groups);
+			$('.userid_' + this.id, grpContainer).remove();
+			_UsersAndGroups.appendMemberToGroup(this, StructrModel.obj(groupId), grpContainer);
 		} else {
 			_UsersAndGroups.appendUserToUserList(this);
 		}
@@ -672,7 +673,7 @@ StructrUser.prototype.append = function(groupId) {
  * Structr Group
  **************************************/
 
-function StructrGroup(data) {
+function StructrGroup(data, refId) {
 	StructrModel.copyDataToObject(data, this);
 }
 
@@ -686,8 +687,15 @@ StructrGroup.prototype.setProperty = function(key, value, recursive, callback) {
 
 StructrGroup.prototype.append = function(refId) {
 	if (Structr.isModuleActive(_Security)) {
-		var refNode = refId ? Structr.node(refId) : undefined;
-		StructrModel.expand(_UsersAndGroups.appendGroupElement(this, refNode), this);
+		var container = _Security.groups;
+		if (refId) {
+			var grpContainer = $('.groupid_' + refId, container);
+			if (grpContainer.length) {
+				container = grpContainer;
+				$('.groupid_' + this.id, container).remove();
+			}
+		}
+		StructrModel.expand(_UsersAndGroups.appendGroupElement(container, this), this);
 	}
 };
 
