@@ -44,6 +44,7 @@ import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.function.Functions;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -368,7 +369,7 @@ public abstract class StreamingWriter {
 
 	private void serializePrimitive(RestWriter writer, final Object value) throws IOException {
 
-		if (value != null) {
+		if (value != null && !Functions.NULL_STRING.equals(value)) {
 
 			if (value instanceof Number) {
 
