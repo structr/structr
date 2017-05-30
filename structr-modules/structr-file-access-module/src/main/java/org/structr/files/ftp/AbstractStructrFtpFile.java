@@ -62,7 +62,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		this.newPath = path;
 		this.owner   = user;
 		this.securityContext = user.getStructrUser().getSecurityContext();
-		
+
 	}
 
 	@Override
@@ -71,15 +71,15 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		if (structrFile == null) {
 			return newPath;
 		}
-		
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-		
+
 			String path = FileHelper.getFolderPath(structrFile);
-			
+
 			tx.success();
-			
+
 			return path;
-			
+
 		} catch (FrameworkException fex) {
 			logger.error("Error in getName() of abstract ftp file", fex);
 		}
@@ -93,21 +93,27 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			String name = null;
-			
+
 			if (!("/").equals(newPath)) {
-			
+
 				name = newPath.contains("/") ? StringUtils.substringAfterLast(newPath, "/") : newPath;
-			
+
 			} else {
-			
+
 				if (structrFile != null) {
 					name = structrFile.getProperty(FileBase.name);
 				}
 			}
 
 			tx.success();
-			
-			return name == null ? structrFile.getUuid() : name;
+
+			if (name != null) {
+				return name;
+			}
+
+			if (structrFile != null) {
+				return structrFile.getUuid();
+			}
 
 		} catch (FrameworkException fex) {
 			logger.error("Error in getName() of abstract ftp file", fex);

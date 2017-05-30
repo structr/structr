@@ -27,8 +27,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A CRON entry.
  *
@@ -38,8 +36,6 @@ public class CronEntry implements Delayed {
 
 	private static final Logger logger = LoggerFactory.getLogger(CronService.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	private CronField days    = null;
 	private CronField dow     = null;
 	private CronField hours   = null;
@@ -48,13 +44,9 @@ public class CronEntry implements Delayed {
 	private CronField seconds = null;
 	private String name       = null;
 
-	//~--- constructors ---------------------------------------------------
-
 	private CronEntry(String name) {
 		this.name = name;
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public String toString() {
@@ -256,45 +248,6 @@ public class CronEntry implements Delayed {
 		if (field.matches("[0-9]{1,2}-[0-9]{1,2}/[0-9]{1,2}")) {
 
 			throw new UnsupportedOperationException("Steps are not supported yet.");
-
-			/*
-			 * String[] rangeValues = field.split("[-]{1}");
-			 * if(rangeValues.length == 2) {
-			 *
-			 *       int start = Integer.parseInt(rangeValues[0]);
-			 *       String[] stepValues = rangeValues[1].split("[/]{1}");
-			 *
-			 *       if(stepValues.length == 2) {
-			 *
-			 *               int end = Integer.parseInt(stepValues[0]);
-			 *               int step = Integer.parseInt(stepValues[1]);
-			 *
-			 *               if(step > 0 && step <= maxValue) {
-			 *                       if(start >= minValue && start <= maxValue && end >= minValue && end <= maxValue) {
-			 *
-			 *
-			 *                               return new CronField(start, end, step);
-			 *
-			 *                       } else {
-			 *
-			 *                               throw new IllegalArgumentException("Parameters not within range: '" + field + "'");
-			 *                       }
-			 *
-			 *               } else {
-			 *
-			 *                       throw new IllegalArgumentException("Illegal step: '" + step + "'");
-			 *               }
-			 *
-			 *       } else {
-			 *
-			 *               throw new IllegalArgumentException("Invalid step: '" + field + "'");
-			 *       }
-			 * } else {
-			 *
-			 *       throw new IllegalArgumentException("Invalid range: '" + field + "'");
-			 * }
-			 */
-
 		}
 
 		throw new IllegalArgumentException("Invalid field: '" + field + "'");
@@ -308,8 +261,6 @@ public class CronEntry implements Delayed {
 
 		return myDelay.compareTo(oDelay);
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	public long getDelayToNextExecutionInMillis() {
 
@@ -424,8 +375,6 @@ public class CronEntry implements Delayed {
 
 		return next;
 	}
-
-	//~--- set methods ----------------------------------------------------
 
 	public void setSeconds(CronField seconds) {
 		this.seconds = seconds;

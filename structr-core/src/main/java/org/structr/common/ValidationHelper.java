@@ -502,7 +502,6 @@ public class ValidationHelper {
 			if (value != null) {
 
 				// validation will only be executed for non-null values
-
 				List<GraphObject> result = null;
 
 				// use declaring class for inheritance-aware uniqueness
@@ -548,18 +547,21 @@ public class ValidationHelper {
 				 * violating nodes that are older than the first node.
 				 */
 
-				for (final GraphObject foundNode : result) {
+				if (result != null) {
 
-					if (foundNode.getId() != object.getId()) {
+					for (final GraphObject foundNode : result) {
 
-						// validation is aborted when the first validation failure occurs, so
-						// we can assume that the object currently exmained is the first
-						// existing object, hence all others get the error message with the
-						// UUID of the first one.
-						errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid()));
+						if (foundNode.getId() != object.getId()) {
 
-						// error!
-						return false;
+							// validation is aborted when the first validation failure occurs, so
+							// we can assume that the object currently exmained is the first
+							// existing object, hence all others get the error message with the
+							// UUID of the first one.
+							errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid()));
+
+							// error!
+							return false;
+						}
 					}
 				}
 			}
@@ -573,8 +575,8 @@ public class ValidationHelper {
 
 		if (key != null) {
 
-			List<? extends GraphObject> result = null;
 			final Object value                 = object.getProperty(key);
+			List<? extends GraphObject> result = null;
 
 			try {
 
@@ -607,18 +609,21 @@ public class ValidationHelper {
 				// handle error
 			}
 
-			for (final GraphObject foundNode : result) {
+			if (result != null) {
 
-				if (foundNode.getId() != object.getId()) {
+				for (final GraphObject foundNode : result) {
 
-					// validation is aborted when the first validation failure occurs, so
-					// we can assume that the object currently exmained is the first
-					// existing object, hence all others get the error message with the
-					// UUID of the first one.
-					errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid()));
+					if (foundNode.getId() != object.getId()) {
 
-					// error!
-					return false;
+						// validation is aborted when the first validation failure occurs, so
+						// we can assume that the object currently exmained is the first
+						// existing object, hence all others get the error message with the
+						// UUID of the first one.
+						errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid()));
+
+						// error!
+						return false;
+					}
 				}
 			}
 		}

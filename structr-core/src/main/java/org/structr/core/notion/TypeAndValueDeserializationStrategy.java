@@ -67,12 +67,13 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 	@Override
 	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
 
-		// TODO: check why this doesn't work for setProperty with plain uuid..
-
-		final App app = StructrApp.getInstance(securityContext);
-
+		final App app    = StructrApp.getInstance(securityContext);
 		Result<T> result = Result.EMPTY_RESULT;
 
+		// default to UUID
+		if (propertyKey == null) {
+			propertyKey = GraphObject.id;
+		}
 
 		// create and fill input map with source object
 		Map<String, Object> sourceMap = new LinkedHashMap<>();
@@ -95,25 +96,14 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 
 			} else if (convertedSource instanceof GraphObject) {
 
-				GraphObject obj = (GraphObject)convertedSource;
-				if (propertyKey != null) {
-
-					result = app.nodeQuery(type).and(propertyKey, obj.getProperty(propertyKey)).getResult();
-
-				} else {
-
-					// fetch property key for "id", may be different for AbstractNode and AbstractRelationship!
-					PropertyKey<String> idProperty = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(obj.getClass(), GraphObject.id.dbName());
-					result = new Result(app.getNodeById(obj.getProperty(idProperty)), false);
-				}
+				final GraphObject obj = (GraphObject)convertedSource;
+				result                = app.nodeQuery(type).and(propertyKey, obj.getProperty(propertyKey)).getResult();
 
 			} else {
 
 				result = app.nodeQuery(type).and(propertyKey, convertedSource).getResult();
-
 			}
 		}
-
 
 		// just check for existance
 		int resultCount = result.size();
@@ -148,7 +138,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> imp
 				}
 
 				if (!convertedSourceMap.isEmpty()) {
-					
+
 					// set properties on related node?
 					setProperties(securityContext, obj, convertedSourceMap);
 				}

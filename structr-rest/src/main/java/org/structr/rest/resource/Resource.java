@@ -272,9 +272,9 @@ public abstract class Resource {
 					if (parts.length == 2) {
 
 						try {
-							final Double dist      = Double.parseDouble(distance);
-							final Double latitude  = Double.parseDouble(parts[0]);
-							final Double longitude = Double.parseDouble(parts[1]);
+							final double dist      = Double.parseDouble(distance);
+							final double latitude  = Double.parseDouble(parts[0]);
+							final double longitude = Double.parseDouble(parts[1]);
 
 							query.location(latitude, longitude, dist);
 
@@ -285,15 +285,15 @@ public abstract class Resource {
 
 				} else {
 
-					final Double dist = Double.parseDouble(distance);
+					final double dist     = Double.parseDouble(distance);
 					final String location = request.getParameter(SearchCommand.LOCATION_SEARCH_KEYWORD);
 
-					String street = request.getParameter(SearchCommand.STREET_SEARCH_KEYWORD);
-					String house = request.getParameter(SearchCommand.HOUSE_SEARCH_KEYWORD);
+					String street     = request.getParameter(SearchCommand.STREET_SEARCH_KEYWORD);
+					String house      = request.getParameter(SearchCommand.HOUSE_SEARCH_KEYWORD);
 					String postalCode = request.getParameter(SearchCommand.POSTAL_CODE_SEARCH_KEYWORD);
-					String city = request.getParameter(SearchCommand.CITY_SEARCH_KEYWORD);
-					String state = request.getParameter(SearchCommand.STATE_SEARCH_KEYWORD);
-					String country = request.getParameter(SearchCommand.COUNTRY_SEARCH_KEYWORD);
+					String city       = request.getParameter(SearchCommand.CITY_SEARCH_KEYWORD);
+					String state      = request.getParameter(SearchCommand.STATE_SEARCH_KEYWORD);
+					String country    = request.getParameter(SearchCommand.COUNTRY_SEARCH_KEYWORD);
 
 					// if location, use city and street, else use all fields that are there!
 					if (location != null) {
@@ -324,10 +324,9 @@ public abstract class Resource {
 
 	protected void extractSearchableAttributes(final SecurityContext securityContext, final Class type, final HttpServletRequest request, final Query query) throws FrameworkException {
 
-		final boolean exactSearch = !(parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1);
-
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
+			final boolean exactSearch          = !(parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1);
 			final ConfigurationProvider conf   = Services.getInstance().getConfigurationProvider();
 			final List<PropertyKey> searchKeys = new LinkedList<>();
 
@@ -363,8 +362,8 @@ public abstract class Resource {
 
 		try {
 			return Integer.parseInt(source.toString());
-		} catch (final Throwable t) {
-		}
+
+		} catch (final Throwable t) {}
 
 		return -1;
 	}

@@ -58,10 +58,10 @@ public class PatchCommand extends AbstractCommand {
 
 		if (node != null) {
 
-			DiffMatchPatch dmp      = new DiffMatchPatch();
-			String oldText            = node.getProperty(Content.content);
-			LinkedList<Patch> patches = (LinkedList<Patch>) dmp.patchFromText(patch);
-			final Object[] results    = dmp.patchApply(patches, oldText);
+			final DiffMatchPatch dmp        = new DiffMatchPatch();
+			final String oldText            = node.getProperty(Content.content);
+			final LinkedList<Patch> patches = new LinkedList<>(dmp.patchFromText(patch));
+			final Object[] results          = dmp.patchApply(patches, oldText);
 
 			try {
 				node.setProperties(node.getSecurityContext(), new PropertyMap(Content.content, results[0].toString()));

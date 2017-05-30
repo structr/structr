@@ -20,6 +20,7 @@ package org.structr.web.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -280,17 +281,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					// store remaining path parts in request
-					final Matcher matcher = threadLocalUUIDMatcher.get();
+					if (uriParts != null) {
 
-					for (int i = 0; i < uriParts.length; i++) {
+						// store remaining path parts in request
+						final Matcher matcher = threadLocalUUIDMatcher.get();
 
-						request.setAttribute(uriParts[i], i);
-						matcher.reset(uriParts[i]);
+						for (int i = 0; i < uriParts.length; i++) {
 
-						// set to "true" if part matches UUID pattern
-						requestUriContainsUuids |= matcher.matches();
+							request.setAttribute(uriParts[i], i);
+							matcher.reset(uriParts[i]);
 
+							// set to "true" if part matches UUID pattern
+							requestUriContainsUuids |= matcher.matches();
+						}
 					}
 
 					if (!requestUriContainsUuids) {
@@ -662,17 +665,20 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					// store remaining path parts in request
-					Matcher matcher = threadLocalUUIDMatcher.get();
+					if (uriParts != null) {
 
-					for (int i = 0; i < uriParts.length; i++) {
+						// store remaining path parts in request
+						Matcher matcher = threadLocalUUIDMatcher.get();
 
-						request.setAttribute(uriParts[i], i);
-						matcher.reset(uriParts[i]);
+						for (int i = 0; i < uriParts.length; i++) {
 
-						// set to "true" if part matches UUID pattern
-						requestUriContainsUuids |= matcher.matches();
+							request.setAttribute(uriParts[i], i);
+							matcher.reset(uriParts[i]);
 
+							// set to "true" if part matches UUID pattern
+							requestUriContainsUuids |= matcher.matches();
+
+						}
 					}
 
 					if (!requestUriContainsUuids) {
@@ -1009,13 +1015,16 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private Page findPage(final SecurityContext securityContext, List<Page> pages, final String path, final EditMode edit) throws FrameworkException {
 
 		if (pages == null) {
+
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
 			Collections.sort(pages, new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 		}
 
 		for (final Page page : pages) {
+
 			final String pagePath = page.getPath();
 			if (pagePath != null && pagePath.equals(path) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+
 				return page;
 			}
 		}
@@ -1023,15 +1032,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		final String name     = PathHelper.getName(path);
 
 		for (final Page page : pages) {
+
 			final String pageName = page.getName();
 			if (pageName != null && pageName.equals(name) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+
 				return page;
 			}
 		}
 
 		for (final Page page : pages) {
+
 			final String pageUuid = page.getUuid();
 			if (pageUuid != null && pageUuid.equals(name) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
+
 				return page;
 			}
 		}
@@ -1052,6 +1065,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private Page findIndexPage(final SecurityContext securityContext, List<Page> pages, final EditMode edit) throws FrameworkException {
 
 		if (pages == null) {
+
 			pages = StructrApp.getInstance(securityContext).nodeQuery(Page.class).getAsList();
 			Collections.sort(pages, new GraphObjectComparator(Page.position, GraphObjectComparator.ASCENDING));
 		}
@@ -1089,8 +1103,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		final String targetPage = request.getParameter(TARGET_PAGE_KEY);
-		final String errorPage = request.getParameter(ERROR_PAGE_KEY);
+		final String targetPage = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
+		final String errorPage  = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1161,7 +1175,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		final String targetPage = request.getParameter(TARGET_PAGE_KEY);
+		final String targetPage = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 
@@ -1311,9 +1325,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			response.setHeader(keyValuePair[0], keyValuePair[1]);
 
 			logger.debug("Set custom response header: {} {}", new Object[]{keyValuePair[0], keyValuePair[1]});
-
 		}
-
 	}
 
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final AbstractNode node, final boolean dontCache) {
@@ -1368,15 +1380,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
 						response.setHeader("Vary", "Accept-Encoding");
-
 					}
 
 				} catch (ParseException ex) {
 					logger.warn("Could not parse If-Modified-Since header", ex);
 				}
-
 			}
-
 		}
 
 		return notModified;
@@ -1388,7 +1397,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
-
 		}
 
 		final ServletOutputStream out         = response.getOutputStream();
@@ -1397,7 +1405,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		// make edit mode available in callback method
 		callbackMap.put("editMode", edit);
-
 
 		if (downloadAsFilename != null) {
 			// remove any CR LF characters from the filename to prevent Header Splitting attacks
@@ -1426,7 +1433,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			final String downloadAsDataUrl = request.getParameter(DOWNLOAD_AS_DATA_URL_KEY);
 			if (downloadAsDataUrl != null) {
 
-				IOUtils.write(FileHelper.getBase64String(file), out);
+				IOUtils.write(FileHelper.getBase64String(file), out, "utf-8");
 				response.setContentType("text/plain");
 				response.setStatus(HttpServletResponse.SC_OK);
 
@@ -1491,9 +1498,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						callbackMap.put("statusCode", HttpServletResponse.SC_OK);
 
 						IOUtils.copyLarge(in, out);
-
 					}
-
 
 				} catch (Throwable t) {
 
@@ -1744,6 +1749,34 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
+	private String filterMaliciousRedirects(final String source) {
+
+		if (source != null) {
+
+			try {
+
+				final URI uri = URI.create(source).normalize();
+				if (uri.isAbsolute()) {
+
+					// relativize URI with itself (removes scheme, host and path)
+					final URI rel = uri.relativize(uri);
+
+					// concatenate path and query part
+					return URI.create(uri.getPath() + rel.toString()).toString();
+
+				} else {
+
+					return uri.toString();
+				}
+
+			} catch (Throwable ex) {
+
+				ex.printStackTrace();
+			}
+		}
+
+		return null;
+	}
 	// ----- nested classes -----
 	private enum AuthState {
 		NoBasicAuth, MustAuthenticate, Authenticated

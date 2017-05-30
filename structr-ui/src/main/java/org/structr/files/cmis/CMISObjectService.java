@@ -103,38 +103,41 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 				if (baseTypeId != null && BaseTypeId.CMIS_DOCUMENT.equals(baseTypeId)) {
 
 					final String mimeType = contentStream != null ? contentStream.getMimeType() : null;
+
 					// create file
 					newFile = FileHelper.createFile(securityContext, new byte[0], mimeType, type, fileName);
+					if (newFile != null) {
 
-					// find and set parent if it exists
-					if (!CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
+						// find and set parent if it exists
+						if (!CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
 
-						final Folder parent = app.get(Folder.class, folderId);
-						if (parent != null) {
+							final Folder parent = app.get(Folder.class, folderId);
+							if (parent != null) {
 
-							newFile.setProperties(securityContext, new PropertyMap(Folder.parent, parent));
+								newFile.setProperties(securityContext, new PropertyMap(Folder.parent, parent));
 
-						} else {
+							} else {
 
-							throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
-						}
-					}
-
-					uuid = newFile.getUuid();
-
-					if (contentStream != null) {
-
-						final InputStream inputStream = contentStream.getStream();
-						if (inputStream != null) {
-
-							// copy file and update metadata
-							try (final OutputStream outputStream = newFile.getOutputStream(false, false)) {
-								IOUtils.copy(inputStream, outputStream);
+								throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
 							}
+						}
 
-							inputStream.close();
+						uuid = newFile.getUuid();
 
-							FileHelper.updateMetadata(newFile);
+						if (contentStream != null) {
+
+							final InputStream inputStream = contentStream.getStream();
+							if (inputStream != null) {
+
+								// copy file and update metadata
+								try (final OutputStream outputStream = newFile.getOutputStream(false, false)) {
+									IOUtils.copy(inputStream, outputStream);
+								}
+
+								inputStream.close();
+
+								FileHelper.updateMetadata(newFile);
+							}
 						}
 					}
 

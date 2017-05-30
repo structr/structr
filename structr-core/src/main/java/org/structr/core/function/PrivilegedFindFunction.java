@@ -104,14 +104,14 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
 			} else {
 
-				final Integer parameter_count = sources.length;
+				final int parameter_count = sources.length;
 
 				if (parameter_count % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_PRIVILEGEDFIND);
 				}
 
-				for (Integer c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameter_count; c += 2) {
 
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 

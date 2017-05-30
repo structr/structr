@@ -191,48 +191,21 @@ public class StructrComponentsPath extends StructrPath {
 	private String createComponentName(final DOMNode node, final int pos) {
 
 		final StringBuilder buf = new StringBuilder();
+		String name             = "unnamed" + pos;
 
 		if (node != null) {
 
 			buf.append(node.getType().toLowerCase());
-		}
-
-		buf.append("-");
-
-		String name = node.getProperty(AbstractNode.name);
-		if (name != null) {
-
-			buf.append(name);
+			name = node.getProperty(AbstractNode.name);
 
 		} else {
 
-			buf.append("unnamed");
-			buf.append(pos);
+			buf.append("none");
 		}
+
+		buf.append("-");
+		buf.append(name);
 
 		return buf.toString();
-	}
-
-	private DOMNode getActualComponent(final String componentName) throws FrameworkException {
-
-		int pos = 0;
-
-		// resolve node by path component
-		final ShadowDocument doc = StructrApp.getInstance(fs.getSecurityContext()).nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getFirst();
-		if (doc != null) {
-
-			for (final DOMNode child : doc.getProperty(Page.elements)) {
-
-				if (!child.hasIncomingRelationships(DOMChildren.class)) {
-
-					if (componentName.equals(createComponentName(child, pos++))) {
-
-						return child;
-					}
-				}
-			}
-		}
-
-		return null;
 	}
 }

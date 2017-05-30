@@ -20,6 +20,7 @@ package org.structr.schema.importer;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
@@ -71,11 +72,17 @@ public class SchemaJsonImporter extends SchemaImporter implements MaintenanceCom
 
 			if (fileName != null) {
 
-				SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(new FileInputStream(fileName)));
+				try (final InputStream is = new FileInputStream(fileName)) {
+
+					SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(is));
+				}
 
 			} else if (url != null) {
 
-				SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(new URL(url).openStream()));
+				try (final InputStream is = new URL(url).openStream()) {
+
+					SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(is));
+				}
 
 			} else if (source != null) {
 

@@ -88,7 +88,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
 
-		final Boolean fixedValue;
+		final boolean fixedValue;
 
 		if (value != null) {
 

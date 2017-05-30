@@ -70,11 +70,6 @@ public class ResetPasswordResource extends Resource {
 		RESET_PASSWORD_ERROR_PAGE_KEY
 	}
 
-	private static String localeString;
-	private static String confKey;
-
-	//~--- methods --------------------------------------------------------
-
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
@@ -97,11 +92,7 @@ public class ResetPasswordResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		boolean existingUser = false;
-
 		if (propertySet.containsKey(User.eMail.jsonName())) {
-
-			final Principal user;
 
 			final String emailString  = (String) propertySet.get(User.eMail.jsonName());
 
@@ -109,19 +100,24 @@ public class ResetPasswordResource extends Resource {
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 			}
 
-			localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
-			confKey = UUID.randomUUID().toString();
+			final String localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
+			final String confKey      = UUID.randomUUID().toString();
+			final Principal user      = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getFirst();
 
-			Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
-			if (!result.isEmpty()) {
+			if (user != null) {
 
-				user = (Principal) result.get(0);
-
-				// For existing users, update confirmation key
+				// update confirmation key
 				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(User.confirmationKey, confKey));
 
-				existingUser = true;
+				if (!sendResetPasswordLink(user, propertySet, localeString, confKey)) {
 
+					// return 400 Bad request
+					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
+
+				}
+
+				// return 200 OK
+				return new RestMethodResult(HttpServletResponse.SC_OK);
 
 			} else {
 
@@ -129,37 +125,6 @@ public class ResetPasswordResource extends Resource {
 				// so we're failing silently here
 				return new RestMethodResult(HttpServletResponse.SC_OK);
 			}
-
-			if (user != null) {
-
-				if (!sendResetPasswordLink(user, propertySet)) {
-
-					// return 400 Bad request
-					return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-
-				}
-
-				// If we have just updated the confirmation key for an existing user,
-				// return 200 to distinguish from new users
-				if (existingUser) {
-
-					// return 200 OK
-					return new RestMethodResult(HttpServletResponse.SC_OK);
-
-				} else {
-
-					// return 201 Created
-					return new RestMethodResult(HttpServletResponse.SC_CREATED);
-
-				}
-
-			} else {
-
-				// return 400 Bad request
-				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
-
-			}
-
 
 		} else {
 
@@ -182,9 +147,9 @@ public class ResetPasswordResource extends Resource {
 
 	}
 
-	private boolean sendResetPasswordLink(final Principal user, final Map<String, Object> propertySetFromUserPOST) {
+	private boolean sendResetPasswordLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) {
 
-		Map<String, String> replacementMap = new HashMap();
+		final Map<String, String> replacementMap = new HashMap();
 
 		// Populate the replacement map with all POSTed values
 		// WARNING! This is unchecked user input!!
@@ -196,24 +161,24 @@ public class ResetPasswordResource extends Resource {
 
 		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
 		replacementMap.put(toPlaceholder("link"),
-			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, "http://" + appHost + ":" + httpPort)
-			      + getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE)
-			+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY) + "=" + confKey
-			+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, HtmlServlet.RESET_PASSWORD_PAGE)
+			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, "http://" + appHost + ":" + httpPort, localeString, confKey)
+			      + getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
+			+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRM_KEY_KEY, HtmlServlet.CONFIRM_KEY_KEY, localeString, confKey) + "=" + confKey
+			+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PAGE_KEY, localeString, confKey) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
 		);
 
-		String textMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.");
-		String htmlMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_HTML_BODY, "<div>Click <a href='${link}'>here</a> to reset your password.</div>");
+		String textMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.", localeString, confKey);
+		String htmlMailTemplate = getTemplateText(TemplateKey.RESET_PASSWORD_HTML_BODY, "<div>Click <a href='${link}'>here</a> to reset your password.</div>", localeString, confKey);
 		String textMailContent  = MailHelper.replacePlaceHoldersInTemplate(textMailTemplate, replacementMap);
 		String htmlMailContent  = MailHelper.replacePlaceHoldersInTemplate(htmlMailTemplate, replacementMap);
 
 		try {
 
 			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_ADDRESS, "structr-mail-daemon@localhost"),
-				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_NAME, "Structr Mail Daemon"),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString, confKey),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_NAME, "Structr Mail Daemon", localeString, confKey),
 				userEmail, "", null, null, null,
-				getTemplateText(TemplateKey.RESET_PASSWORD_SUBJECT, "Request to reset your Structr password"),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SUBJECT, "Request to reset your Structr password", localeString, confKey),
 				htmlMailContent, textMailContent);
 
 		} catch (Exception e) {
@@ -226,7 +191,7 @@ public class ResetPasswordResource extends Resource {
 
 	}
 
-	private String getTemplateText(final TemplateKey key, final String defaultValue) {
+	private String getTemplateText(final TemplateKey key, final String defaultValue, final String localeString, final String confKey) {
 
 		try {
 

@@ -37,17 +37,17 @@ public class MultFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Double result = 1.0d;
+		double result = 1.0d;
 
 		if (sources != null) {
 
 			for (Object i : sources) {
-				
+
 				// Multiply with null results in null
 				if (i == null) {
-					
+
 					return null;
-					
+
 				}
 
 				try {

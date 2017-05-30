@@ -1751,8 +1751,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		}
 
-		secRel.addPermission(permission);
+		// only access rel if it existss or was created successfully
+		if (secRel != null) {
 
+			secRel.addPermission(permission);
+		}
 	}
 
 	@Override

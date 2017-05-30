@@ -89,29 +89,6 @@ public class ActionContext {
 		this.locale          = other.locale;
 	}
 
-////	public ActionContext(final ActionContext other, final Object data) {
-////
-////		this(other);
-////
-////		init(data);
-////	}
-////
-////	public ActionContext(final SecurityContext securityContext, final Object data) {
-////
-////		this.securityContext = securityContext;
-////
-////		this.locale = securityContext.getEffectiveLocale();
-////
-////		init(data);
-////	}
-//
-//	private void init(final Object data) {
-//
-//		constants.put("data", data);
-//		constants.put("true", true);
-//		constants.put("false", false);
-//	}
-
 	public SecurityContext getSecurityContext() {
 		return securityContext;
 	}
@@ -267,36 +244,38 @@ public class ActionContext {
 
 			} else {
 
-				// "data-less" keywords to start the evaluation chain
-				switch (key) {
+				// keywords that need an existing security context
+				if (securityContext != null) {
 
-					case "request":
-						return securityContext.getRequest();
+					// "data-less" keywords to start the evaluation chain
+					switch (key) {
 
-					case "host":
-						return securityContext.getRequest().getServerName();
+						case "request":
+							return securityContext.getRequest();
 
-					case "port":
-						return securityContext.getRequest().getServerPort();
+						case "host":
+							return securityContext.getRequest().getServerName();
 
-					case "pathInfo":
-					case "path_info":
-						return securityContext.getRequest().getPathInfo();
+						case "port":
+							return securityContext.getRequest().getServerPort();
 
-					case "parameterMap":
-					case "parameter_map":
-						return securityContext.getRequest().getParameterMap();
+						case "pathInfo":
+						case "path_info":
+							return securityContext.getRequest().getPathInfo();
 
-					case "remoteAddress":
-					case "remote_address":
-						final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
-						if (remoteAddress == null) {
-							return securityContext.getRequest().getRemoteAddr();
-						}
-						return remoteAddress;
+						case "parameterMap":
+						case "parameter_map":
+							return securityContext.getRequest().getParameterMap();
 
-					case "response":
-						if (securityContext != null) {
+						case "remoteAddress":
+						case "remote_address":
+							final String remoteAddress = securityContext.getRequest().getHeader("X-FORWARDED-FOR");
+							if (remoteAddress == null) {
+								return securityContext.getRequest().getRemoteAddr();
+							}
+							return remoteAddress;
+
+						case "response":
 							final HttpServletResponse response = securityContext.getResponse();
 							if (response != null) {
 
@@ -308,14 +287,22 @@ public class ActionContext {
 									logger.warn("", ioex);
 								}
 							}
-						}
-						return null;
+							return null;
+
+						case "me":
+							return securityContext.getUser(false);
+
+						case "depth":
+							return securityContext.getSerializationDepth() - 1;
+					}
+
+				}
+
+				// keywords that do not need a security context
+				switch (key) {
 
 					case "now":
 						return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
-
-					case "me":
-						return securityContext.getUser(false);
 
 					case "element":
 						logger.warn("The \"element\" keyword is deprecated! Please use \"this\" instead. Used in {}", entity.getProperty(GraphObject.id));
@@ -325,9 +312,6 @@ public class ActionContext {
 
 					case "locale":
 						return locale != null ? locale.toString() : null;
-
-					case "depth":
-						return securityContext.getSerializationDepth() - 1;
 				}
 			}
 		}

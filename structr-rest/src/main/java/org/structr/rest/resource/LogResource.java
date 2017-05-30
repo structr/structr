@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -776,13 +775,14 @@ public class LogResource extends Resource {
 
 	private int getMultiplier(final String message, final LogState state) {
 
-		Integer multiplier = 1;
+		int multiplier = 1;
 
 		if (state.multiplier != null) {
 
 			final Matcher matcher = Pattern.compile(state.multiplier).matcher(message);
 
 			if (matcher.matches()) {
+
 				final String g = matcher.group(1);
 				multiplier = Integer.parseInt(g);
 			}
@@ -838,48 +838,28 @@ public class LogResource extends Resource {
 		return result;
 	}
 
-	private <T> Set<T> toSet(final T element) {
-
-		final Set<T> set = new HashSet<>();
-		set.add(element);
-
-		return set;
-	}
-
-	private <T> Set<T> toSet(final Iterable<T> iterable) {
-
-		final Set<T> set = new HashSet<>();
-		for (final T path : iterable) {
-
-			set.add(path);
-		}
-
-		return set;
-	}
-
 	private static class LogState {
 
-		private final Map<String, Pattern> aggregationPatterns = new HashMap<>();
-		private final List<Map<String, Object>> entries        = new LinkedList<>();
-		private final Map<String, LinkedList<LogEvent>> correlations         = new ConcurrentHashMap<>();
-		private final Map<String, Integer> actions             = new HashMap<>();
-
-		private long beginTimestamp                            = Long.MAX_VALUE;
-		private long endTimestamp                              = 0L;
-		private String logAction                               = null;
-		private String aggregate                               = null;
-		private String histogram                               = null;
-		private String multiplier                              = null;
-		private String correlate                               = null;
-		private String correlationAction                       = null;
-		private String correlationOp                           = null;
-		private Pattern correlationPattern                     = null;
-		private String[] filters                               = null;
-		private boolean inverse                                = false;
-		private boolean overview                               = false;
-		private Range range                                    = null;
-		private int actionCount                                = 0;
-		private boolean doCorrelate                            = false;
+		private final Map<String, Pattern> aggregationPatterns       = new HashMap<>();
+		private final List<Map<String, Object>> entries              = new LinkedList<>();
+		private final Map<String, LinkedList<LogEvent>> correlations = new ConcurrentHashMap<>();
+		private final Map<String, Integer> actions                   = new HashMap<>();
+		private long beginTimestamp                                  = Long.MAX_VALUE;
+		private long endTimestamp                                    = 0L;
+		private String logAction                                     = null;
+		private String aggregate                                     = null;
+		private String histogram                                     = null;
+		private String multiplier                                    = null;
+		private String correlate                                     = null;
+		private String correlationAction                             = null;
+		private String correlationOp                                 = null;
+		private Pattern correlationPattern                           = null;
+		private String[] filters                                     = null;
+		private boolean inverse                                      = false;
+		private boolean overview                                     = false;
+		private Range range                                          = null;
+		private int actionCount                                      = 0;
+		private boolean doCorrelate                                  = false;
 
 		public LogState(final HttpServletRequest request) {
 
@@ -1046,9 +1026,7 @@ public class LogResource extends Resource {
 
 			if (correlations.isEmpty()) {
 
-				// TODO: why would this be true? wouldnt it be false?
 				return true;
-
 			}
 
 			LinkedList<LogEvent> correlationEntries;

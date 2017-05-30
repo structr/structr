@@ -41,7 +41,7 @@ public class SubtFunction extends Function<Object, Object> {
 
 			try {
 
-				Double result = Double.parseDouble(sources[0].toString());
+				double result = Double.parseDouble(sources[0].toString());
 
 				for (int i = 1; i < sources.length; i++) {
 

@@ -249,16 +249,20 @@ public class InitConsoleCommand extends AdminConsoleCommand {
 					final Map<String, Object> data = toMap("mode", mode, typeKey, type);
 
 					if (type == null) {
-						
+
 						data.put("allNodes", allNodes);
 						data.put("allRels", allRels);
 					}
 
 					((MaintenanceCommand)command).execute(data);
 
-				} else {
+				} else if (command != null) {
 
 					writable.println("Cannot execute command '" + command.getClass().getSimpleName() + "', wrong type.");
+
+				} else {
+
+					writable.println("Cannot execute null command.");
 				}
 			}
 

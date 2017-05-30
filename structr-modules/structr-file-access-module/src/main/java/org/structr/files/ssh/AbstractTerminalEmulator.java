@@ -286,21 +286,16 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 
 			} catch (Throwable t) {
 
-				logger.warn("", t);
+				logger.warn("Exception", t);
 
-				if (writer != null) {
+				try {
 
-					try {
+					writer.write('\n');
+					writer.write(t.getMessage());
+					writer.write('\n');
 
-						writer.write('\n');
-						writer.write(t.getMessage());
-						writer.write('\n');
-
-					} catch (Throwable t2) {
-						logger.warn("", t);
-					}
-
-
+				} catch (Throwable t2) {
+					logger.warn("", t);
 				}
 			}
 		}

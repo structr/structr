@@ -48,7 +48,6 @@ public class FindRelationshipFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-
 		try {
 
 			if (sources == null) {
@@ -76,12 +75,12 @@ public class FindRelationshipFunction extends Function<Object, Object> {
 
 					logger.warn("Error in find_relationship(): type \"{}\" not found.", typeString);
 					return ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND + typeString;
-
 				}
 			}
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
+
 				logger.warn("Error in find_relationship(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED;
 			}
@@ -108,17 +107,17 @@ public class FindRelationshipFunction extends Function<Object, Object> {
 				query.and(key, sources[1].toString());
 
 				return query.getFirst();
-				
+
 			} else {
 
-				final Integer parameter_count = sources.length;
+				final int parameter_count = sources.length;
 
 				if (parameter_count % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND_RELATIONSHIP);
 				}
 
-				for (Integer c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameter_count; c += 2) {
 
 					if (sources[c] == null) {
 						throw new IllegalArgumentException();
@@ -148,7 +147,6 @@ public class FindRelationshipFunction extends Function<Object, Object> {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 

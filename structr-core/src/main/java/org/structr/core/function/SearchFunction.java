@@ -49,8 +49,9 @@ public class SearchFunction extends Function<Object, Object> {
 		if (sources != null) {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
+			final ConfigurationProvider config    = StructrApp.getConfiguration();
+			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
+
 			Class type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
@@ -66,12 +67,12 @@ public class SearchFunction extends Function<Object, Object> {
 
 					logger.warn("Error in search(): type {} not found.", typeString);
 					return "Error in search(): type " + typeString + " not found.";
-
 				}
 			}
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
+
 				logger.warn("Error in search(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return "Error in search(): no type specified.";
 			}
@@ -91,14 +92,14 @@ public class SearchFunction extends Function<Object, Object> {
 
 			} else {
 
-				final Integer parameter_count = sources.length;
+				final int parameter_count = sources.length;
 
 				if (parameter_count % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_SEARCH);
 				}
 
-				for (Integer c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameter_count; c += 2) {
 
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 

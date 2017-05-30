@@ -111,14 +111,14 @@ public class FindFunction extends Function<Object, Object> {
 
 			} else {
 
-				final Integer parameter_count = sources.length;
+				final int parameter_count = sources.length;
 
 				if (parameter_count % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
 				}
 
-				for (Integer c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameter_count; c += 2) {
 
 					if (sources[c] == null) {
 						throw new IllegalArgumentException();

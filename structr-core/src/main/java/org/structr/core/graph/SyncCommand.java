@@ -245,7 +245,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			try (final FileOutputStream fos = new FileOutputStream(fileName)) {
 
-				exportToStream(new FileOutputStream(fileName), nodes, relationships, filePaths, includeFiles);
+				exportToStream(fos, nodes, relationships, filePaths, includeFiles);
 			}
 
 			tx.success();

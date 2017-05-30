@@ -39,18 +39,18 @@ public class AbbrFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			
+
 			if (sources == null || sources.length != 2 || sources[1] == null) {
-	
+
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 				return usage(ctx.isJavaScriptContext());
-			}			
+			}
 
 			if (sources[0] == null) {
-				
+
 				return "";
 			}
-			
+
 			int maxLength = Double.valueOf(sources[1].toString()).intValue();
 
 			if (sources[0].toString().length() > maxLength) {

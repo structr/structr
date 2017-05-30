@@ -37,7 +37,7 @@ public class AddFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Double result = 0.0;
+		double result = 0.0;
 
 		if (sources != null) {
 

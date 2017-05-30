@@ -293,20 +293,20 @@ public class StructrDOMNodePath extends StructrPath {
 			return null;
 		}
 
-		if ("name".equals(pathComponent)) {
-
-			// pages don't have a settable name property
-			if (domNode instanceof Page) {
-				return null;
-			}
-
-			// shared components have their names set using the directory name
-			if (domNode.getOwnerDocument() instanceof ShadowDocument) {
-				return null;
-			}
-		}
-
 		if (domNode != null) {
+
+			if ("name".equals(pathComponent)) {
+
+				// pages don't have a settable name property
+				if (domNode instanceof Page) {
+					return null;
+				}
+
+				// shared components have their names set using the directory name
+				if (domNode.getOwnerDocument() instanceof ShadowDocument) {
+					return null;
+				}
+			}
 
 			// special handling for data-* attributes because there are no property keys
 			// stored in the configuration provider

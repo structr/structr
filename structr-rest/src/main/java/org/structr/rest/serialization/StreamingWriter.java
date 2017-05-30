@@ -458,65 +458,65 @@ public abstract class StreamingWriter {
 
 				hashCode = source.hashCode();
 				visitedObjects.add(hashCode);
-			}
 
-			writer.beginObject(source);
+				writer.beginObject(source);
 
-			// prevent endless recursion by pruning at depth n
-			if (depth <= outputNestingDepth) {
+				// prevent endless recursion by pruning at depth n
+				if (depth <= outputNestingDepth) {
 
-				// property keys
-				Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
-				if (keys != null) {
+					// property keys
+					Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
+					if (keys != null) {
 
-					// speciality for the Ui view: limit recursive rendering to (id, name)
-					if (compactNestedProperties && depth > 0 && PropertyView.Ui.equals(localPropertyView)) {
-						keys = idNameOnly;
-					}
-
-					for (final PropertyKey key : keys) {
-
-						final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
-						if (range != null) {
-							// Reset count for each key
-							range.resetCount();
+						// speciality for the Ui view: limit recursive rendering to (id, name)
+						if (compactNestedProperties && depth > 0 && PropertyView.Ui.equals(localPropertyView)) {
+							keys = idNameOnly;
 						}
 
-						// special handling for the internal _graph view: replace name with
-						// the name property from the ui view, in case it was overwritten
-						PropertyKey localKey = key;
+						for (final PropertyKey key : keys) {
 
-						if (View.INTERNAL_GRAPH_VIEW.equals(localPropertyView)) {
-
-							if (AbstractNode.name.equals(localKey)) {
-
-								// replace key
-								localKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(source.getClass(), AbstractNode.name.jsonName(), false);
-							}
-						}
-
-
-						final Object value = source.getProperty(localKey, range);
-						if (value != null) {
-
-							if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
-
-								writer.name(key.jsonName());
-								serializeProperty(writer, localKey, value, localPropertyView, depth+1);
+							final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
+							if (range != null) {
+								// Reset count for each key
+								range.resetCount();
 							}
 
-						} else {
+							// special handling for the internal _graph view: replace name with
+							// the name property from the ui view, in case it was overwritten
+							PropertyKey localKey = key;
 
-							writer.name(localKey.jsonName()).nullValue();
+							if (View.INTERNAL_GRAPH_VIEW.equals(localPropertyView)) {
+
+								if (AbstractNode.name.equals(localKey)) {
+
+									// replace key
+									localKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(source.getClass(), AbstractNode.name.jsonName(), false);
+								}
+							}
+
+
+							final Object value = source.getProperty(localKey, range);
+							if (value != null) {
+
+								if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
+
+									writer.name(key.jsonName());
+									serializeProperty(writer, localKey, value, localPropertyView, depth+1);
+								}
+
+							} else {
+
+								writer.name(localKey.jsonName()).nullValue();
+							}
 						}
 					}
 				}
+
+				writer.endObject(source);
+
+				// unmark (visiting only counts for children)
+				visitedObjects.remove(hashCode);
 			}
-
-			writer.endObject(source);
-
-			// unmark (visiting only counts for children)
-			visitedObjects.remove(hashCode);
 		}
 	}
 

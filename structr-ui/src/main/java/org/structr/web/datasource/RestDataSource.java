@@ -230,9 +230,7 @@ public class RestDataSource implements GraphDataSource<List<GraphObject>> {
 
 		List<GraphObject> res = result.getResults();
 
-		if (renderContext != null) {
-			renderContext.setResult(result);
-		}
+		renderContext.setResult(result);
 
 		return res != null ? res : Collections.EMPTY_LIST;
 

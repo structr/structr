@@ -56,7 +56,6 @@ public class CreateFunction extends Function<Object, Object> {
 			if (sources.length >= 1 && sources[0] != null) {
 
 				type = config.getNodeEntityClass(sources[0].toString());
-
 			}
 
 			if (type == null) {
@@ -75,16 +74,15 @@ public class CreateFunction extends Function<Object, Object> {
 
 			} else {
 
-				propertyMap = new PropertyMap();
-				final Integer parameter_count = sources.length;
+				propertyMap               = new PropertyMap();
+				final int parameter_count = sources.length;
 
 				if (parameter_count % 2 == 0) {
 
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + (ctx.isJavaScriptContext() ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE));
-
 				}
 
-				for (Integer c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameter_count; c += 2) {
 
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
 
@@ -99,7 +97,6 @@ public class CreateFunction extends Function<Object, Object> {
 						}
 
 						propertyMap.put(key, value);
-
 					}
 
 				}
@@ -112,9 +109,7 @@ public class CreateFunction extends Function<Object, Object> {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
 
 	@Override

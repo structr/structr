@@ -62,7 +62,7 @@ public class ChunkCommand extends AbstractCommand {
 			Object rawData     = webSocketData.getNodeData().get("chunk");
 			int chunks         = ((Long) webSocketData.getNodeData().get("chunks")).intValue();
 			String uuid        = webSocketData.getId();
-			byte[] data        = null;
+			byte[] data        = new byte[0];
 
 			if (rawData != null) {
 

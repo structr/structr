@@ -1151,12 +1151,17 @@ public class SchemaHelper {
 		map.put("className", property.getClass().getName());
 
 		final Class declaringClass = property.getDeclaringClass();
+		if (declaringClass != null) {
 
-		map.put("declaringClass", declaringClass.getSimpleName());
+			map.put("declaringClass", declaringClass.getSimpleName());
+		}
+
 		map.put("defaultValue", property.defaultValue());
+
 		if (property instanceof StringProperty) {
 			map.put("contentType", ((StringProperty) property).contentType());
 		}
+
 		map.put("format", property.format());
 		map.put("readOnly", property.isReadOnly());
 		map.put("system", property.isSystemInternal());

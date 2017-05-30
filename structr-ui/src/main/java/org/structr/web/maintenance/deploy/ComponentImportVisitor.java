@@ -168,7 +168,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			}
 		}
 
-		return null;
+		return new PropertyMap();
 	}
 
 	private <T> T get(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
@@ -243,9 +243,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 					}
 
 					// store properties from pages.json if present
-					if (properties != null) {
-						rootElement.setProperties(securityContext, properties);
-					}
+					rootElement.setProperties(securityContext, properties);
 				}
 			}
 

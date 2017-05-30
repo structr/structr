@@ -78,11 +78,12 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	@Override
 	public Object set(final SecurityContext securityContext, final NodeInterface sourceNode, final Iterable<T> collection) throws FrameworkException {
 
-		final App app                = StructrApp.getInstance(securityContext);
-		final PropertyMap properties = new PropertyMap();
-		final T actualSourceNode     = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
-		final Set<T> toBeDeleted     = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualSourceNode, null)));
-		final Set<T> toBeCreated     = new LinkedHashSet<>();
+		final App app                             = StructrApp.getInstance(securityContext);
+		final List<Relation> createdRelationships = new LinkedList<>();
+		final PropertyMap properties              = new PropertyMap();
+		final T actualSourceNode                  = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
+		final Set<T> toBeDeleted                  = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualSourceNode, null)));
+		final Set<T> toBeCreated                  = new LinkedHashSet<>();
 
 		if (collection != null) {
 			Iterables.addAll(toBeCreated, collection);
@@ -96,49 +97,50 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 		toBeCreated.removeAll(intersection);
 		toBeDeleted.removeAll(intersection);
 
-		// remove existing relationships
-		for (T targetNode : toBeDeleted) {
+		if (actualSourceNode != null) {
 
-			for (AbstractRelationship rel : actualSourceNode.getOutgoingRelationships()) {
+			// remove existing relationships
+			for (T targetNode : toBeDeleted) {
 
-				final String relTypeName    = rel.getRelType().name();
-				final String desiredRelType = relation.name();
+				for (AbstractRelationship rel : actualSourceNode.getOutgoingRelationships()) {
 
-				if (actualSourceNode.equals(targetNode)) {
+					final String relTypeName    = rel.getRelType().name();
+					final String desiredRelType = relation.name();
 
-					logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", new Object[] { actualSourceNode, rel.getRelType(), targetNode } );
+					if (actualSourceNode.equals(targetNode)) {
 
-					// skip self relationships
-					continue;
-				}
+						logger.warn("Preventing deletion of self relationship {}-[{}]->{}. If you experience issue with this, please report to team@structr.com.", new Object[] { actualSourceNode, rel.getRelType(), targetNode } );
 
-				if (relTypeName.equals(desiredRelType) && rel.getTargetNode().equals(targetNode)) {
-					app.delete(rel);
+						// skip self relationships
+						continue;
+					}
+
+					if (relTypeName.equals(desiredRelType) && rel.getTargetNode().equals(targetNode)) {
+						app.delete(rel);
+					}
 				}
 			}
-		}
 
-		final List<Relation> createdRelationships = new LinkedList<>();
+			// test: obtain properties from notion
+			// create new relationships
+			for (T targetNode : toBeCreated) {
 
-		// test: obtain properties from notion
-		// create new relationships
-		for (T targetNode : toBeCreated) {
+				if (targetNode != null) {
 
-			if (actualSourceNode != null && targetNode != null) {
+					properties.clear();
 
-				properties.clear();
+					final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
 
-				final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
+					relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
-				relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
+					final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
+					if (notionProperties != null) {
 
-				final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
-				if (notionProperties != null) {
+						properties.putAll(notionProperties);
+					}
 
-					properties.putAll(notionProperties);
+					createdRelationships.add(app.create(actualSourceNode, actualTargetNode, relation.getClass(), properties));
 				}
-
-				createdRelationships.add(app.create(actualSourceNode, actualTargetNode, relation.getClass(), properties));
 			}
 		}
 

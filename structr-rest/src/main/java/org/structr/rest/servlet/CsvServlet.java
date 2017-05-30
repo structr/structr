@@ -100,7 +100,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	private static final String REMOVE_LINE_BREAK_PARAM = "nolinebreaks";
 	private static final String WRITE_BOM = "bom";
 
-	//~--- fields ---------------------------------------------------------
 	private SecurityContext securityContext;
 	private final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	private Value<String> propertyView = null;
@@ -111,9 +110,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	private String defaultPropertyView;
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 	private ThreadLocalGson gson                  = null;
-
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -150,7 +146,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			}
 			final App app = StructrApp.getInstance(securityContext);
 
-//                      logRequest("GET", request);
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
@@ -205,19 +200,15 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 				// do action
 				result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
-
-				result.setIsCollection(resource.isCollectionResource());
-				result.setIsPrimitiveArray(resource.isPrimitiveArray());
-
-				// Integer rawResultCount = (Integer) Services.getAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
-				PagingHelper.addPagingParameter(result, pageSize, page);
-
-			// Services.removeAttribute(NodeFactory.RAW_RESULT_COUNT + Thread.currentThread().getId());
-				// timing..
-				double queryTimeEnd = System.nanoTime();
-
-				// commit response
 				if (result != null) {
+
+					result.setIsCollection(resource.isCollectionResource());
+					result.setIsPrimitiveArray(resource.isPrimitiveArray());
+
+					PagingHelper.addPagingParameter(result, pageSize, page);
+
+					// timing..
+					final double queryTimeEnd = System.nanoTime();
 
 					// store property view that will be used to render the results
 					result.setPropertyView(propertyView.get(securityContext));
@@ -240,6 +231,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 					response.setStatus(HttpServletResponse.SC_OK);
 					writer.flush();
 					writer.close();
+
 				} else {
 
 					logger.warn("Result was null!");
@@ -250,22 +242,19 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 					Writer writer = response.getWriter();
 
-					// writer.append(jsonError(code, "Result was null!"));
 					writer.flush();
 					writer.close();
 
 				}
+
 				tx.success();
 			}
+
 		} catch (FrameworkException frameworkException) {
 
 			// set status
 			response.setStatus(frameworkException.getStatus());
 
-			// gson.toJson(frameworkException, response.getWriter());
-//                      response.getWriter().println();
-//                      response.getWriter().flush();
-//                      response.getWriter().close();
 		} catch (JsonSyntaxException jsex) {
 
 			logger.warn("JsonSyntaxException in GET", jsex);
@@ -274,7 +263,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 
-			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jsex.getMessage()));
 		} catch (JsonParseException jpex) {
 
 			logger.warn("JsonParseException in GET", jpex);
@@ -283,7 +271,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 			response.setStatus(code);
 
-			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + jpex.getMessage()));
 		} catch (Throwable t) {
 
 			logger.warn("Exception in GET", t);
@@ -291,28 +278,22 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
-
-			// response.getWriter().append(jsonError(code, "JsonSyntaxException in GET: " + t.getMessage()));
 		}
-
 	}
 
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		final String fieldSeparatorHeader = request.getHeader(DEFAULT_FIELD_SEPARATOR_HEADER_NAME);
-		final char fieldSeparator = (fieldSeparatorHeader == null) ? DEFAULT_FIELD_SEPARATOR : fieldSeparatorHeader.charAt(0);
-
-		final String quoteCharacterHeader = request.getHeader(DEFAULT_QUOTE_CHARACTER_HEADER_NAME);
-		final char quoteCharacter = (quoteCharacterHeader == null) ? DEFAULT_QUOTE_CHARACTER : quoteCharacterHeader.charAt(0);
-
-		final String doPeridicCommitHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_HEADER_NAME);
-		final boolean doPeriodicCommit = (doPeridicCommitHeader == null) ? DEFAULT_PERIODIC_COMMIT : Boolean.parseBoolean(doPeridicCommitHeader);
-
+		final String fieldSeparatorHeader         = request.getHeader(DEFAULT_FIELD_SEPARATOR_HEADER_NAME);
+		final char fieldSeparator                 = (fieldSeparatorHeader == null) ? DEFAULT_FIELD_SEPARATOR : fieldSeparatorHeader.charAt(0);
+		final String quoteCharacterHeader         = request.getHeader(DEFAULT_QUOTE_CHARACTER_HEADER_NAME);
+		final char quoteCharacter                 = (quoteCharacterHeader == null) ? DEFAULT_QUOTE_CHARACTER : quoteCharacterHeader.charAt(0);
+		final String doPeridicCommitHeader        = request.getHeader(DEFAULT_PERIODIC_COMMIT_HEADER_NAME);
+		final boolean doPeriodicCommit            = (doPeridicCommitHeader == null) ? DEFAULT_PERIODIC_COMMIT : Boolean.parseBoolean(doPeridicCommitHeader);
 		final String periodicCommitIntervalHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME);
-		final Integer periodicCommitInterval = (periodicCommitIntervalHeader == null) ? DEFAULT_PERIODIC_COMMIT_INTERVAL : Integer.parseInt(periodicCommitIntervalHeader);
-
-		final List<RestMethodResult> results = new LinkedList<>();
+		final int periodicCommitInterval          = (periodicCommitIntervalHeader == null) ? DEFAULT_PERIODIC_COMMIT_INTERVAL : Integer.parseInt(periodicCommitIntervalHeader);
+		final List<RestMethodResult> results      = new LinkedList<>();
+		
 		final Authenticator authenticator;
 		final Resource resource;
 
@@ -559,7 +540,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	public String getModuleName() {
 		return "csv";
 	}
-	
+
 	private void handleCsvPropertySet (final List<RestMethodResult> results, final Resource resource, final JsonInput propertySet) throws FrameworkException {
 
 		try {

@@ -71,10 +71,10 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	@Override
 	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> pred) {
 
-		Integer intSum    = 0;
-		Long    longSum   = 0L;
-		Double  doubleSum = 0.0d;
-		Float   floatSum  = 0.0f;
+		int     intSum    = 0;
+		long    longSum   = 0L;
+		double  doubleSum = 0.0d;
+		float   floatSum  = 0.0f;
 
 		Class cls = Integer.class;
 
@@ -87,27 +87,35 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 			S value = collectionObj.getProperty(valueKey);
 
 			if (value instanceof Integer) {
+
 				intSum += (Integer) value;
+
 			} else if (value instanceof Long) {
+
 				longSum += (Long) value;
 				cls = Long.class;
+
 			} else if (value instanceof Double) {
+
 				doubleSum += (Double) value;
 				cls = Double.class;
+
 			} else if (value instanceof Float) {
+
 				floatSum += (Float) value;
 				cls = Float.class;
 			}
 		}
 
 		switch (cls.getSimpleName()) {
-			case "Integer": return (S) intSum;
-			case "Long":    return (S) longSum;
-			case "Double":  return (S) doubleSum;
-			case "Float":   return (S) floatSum;
+
+			case "Integer": return (S) Integer.valueOf(intSum);
+			case "Long":    return (S) Long.valueOf(longSum);
+			case "Double":  return (S) Double.valueOf(doubleSum);
+			case "Float":   return (S) Float.valueOf(floatSum);
 		}
 
-		return (S) intSum;
+		return (S) Integer.valueOf(intSum);
 	}
 
 	@Override

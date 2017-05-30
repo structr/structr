@@ -36,12 +36,12 @@ public abstract class Tag {
 
 	private final List<Attr> attrs   = new LinkedList<>();
 	private final List<Tag> children = new LinkedList<>();
-	private boolean empty      = false;
-	private boolean newline    = false;
-	private String text        = null;
-	private String tag         = null;
-	private String indent      = "";
-	private Tag parent         = null;
+	private boolean empty            = false;
+	private boolean newline          = false;
+	private String text              = null;
+	private String tag               = null;
+	private String indent            = "";
+	private Tag parent               = null;
 
 	Tag(final Tag parent, final String tagName) {
 		this(parent, tagName, false);
@@ -129,12 +129,12 @@ public abstract class Tag {
 
 	public void appendComma () {
 
-		if (this.children.size() > 0) {
+		if (!this.children.isEmpty()) {
 
-			((LinkedList<Tag>)getChildren()).getLast().appendComma();
+			this.children.listIterator().previous().appendComma();
 
 		} else if (this.text != null) {
-			
+
 			this.text = this.text.concat(",");
 		}
 	}

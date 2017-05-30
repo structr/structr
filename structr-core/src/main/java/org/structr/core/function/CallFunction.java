@@ -60,7 +60,7 @@ public class CallFunction extends Function<Object, Object> {
 
 			} else {
 
-				final Integer parameter_count = sources.length;
+				final int parameter_count = sources.length;
 
 				if (parameter_count % 2 == 0) {
 					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
@@ -68,7 +68,7 @@ public class CallFunction extends Function<Object, Object> {
 
 				final Map<String, Object> newMap = new LinkedHashMap<>();
 
-				for (Integer c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameter_count; c += 2) {
 					newMap.put(sources[c].toString(), sources[c + 1]);
 				}
 

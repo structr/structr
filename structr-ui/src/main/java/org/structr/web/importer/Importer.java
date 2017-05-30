@@ -660,15 +660,18 @@ public class Importer {
 			// create node
 			if (StringUtils.isBlank(tag)) {
 
-				// create comment or content node
-				if (!StringUtils.isBlank(comment)) {
+				if (page != null) {
 
-					newNode = (DOMNode) page.createComment(comment);
-					newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
+					// create comment or content node
+					if (!StringUtils.isBlank(comment)) {
 
-				} else {
+						newNode = (DOMNode) page.createComment(comment);
+						newNode.setProperty(org.structr.web.entity.dom.Comment.contentType, "text/html");
 
-					newNode = (Content) page.createTextNode(content);
+					} else {
+
+						newNode = (Content) page.createTextNode(content);
+					}
 				}
 
 			} else if ("structr:template".equals(tag)) {
@@ -769,12 +772,15 @@ public class Importer {
 
 			} else {
 
-				newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag, true);
+				if (page != null) {
+
+					newNode = (org.structr.web.entity.dom.DOMElement) page.createElement(tag, true);
+				}
 
 				if (newNode == null) {
+
 					newNode = createNewHTMLTemplateNodeForUnsupportedTag(parent, node);
 					isNewTemplateOrComponent = true;
-
 				}
 			}
 

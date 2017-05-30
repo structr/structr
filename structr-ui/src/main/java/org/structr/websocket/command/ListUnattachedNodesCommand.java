@@ -115,31 +115,35 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		query.orType(Template.class);
 
 		// do search
-		List<AbstractNode> filteredResults = new LinkedList();
-		List<? extends GraphObject> resultList = null;
+		final List<AbstractNode> filteredResults = new LinkedList();
+		List<? extends GraphObject> resultList   = null;
 
 		try (final Tx tx = app.tx()) {
 
 			resultList = query.getAsList();
+			tx.success();
 
 		} catch (FrameworkException fex) {
 			logger.warn("Exception occured", fex);
 		}
 
-		// determine which of the nodes have no incoming CONTAINS relationships and no page id
-		for (GraphObject obj : resultList) {
+		if (resultList != null) {
 
-			if (obj instanceof AbstractNode) {
+			// determine which of the nodes have no incoming CONTAINS relationships and no page id
+			for (GraphObject obj : resultList) {
 
-				AbstractNode node = (AbstractNode) obj;
+				if (obj instanceof AbstractNode) {
 
-				if (!node.hasIncomingRelationships(DOMChildren.class) && node.getProperty(DOMNode.ownerDocument) == null && !(node instanceof ShadowDocument)) {
+					AbstractNode node = (AbstractNode) obj;
 
-					filteredResults.add(node);
+					if (!node.hasIncomingRelationships(DOMChildren.class) && node.getProperty(DOMNode.ownerDocument) == null && !(node instanceof ShadowDocument)) {
+
+						filteredResults.add(node);
+					}
+
 				}
 
 			}
-
 		}
 
 		return filteredResults;

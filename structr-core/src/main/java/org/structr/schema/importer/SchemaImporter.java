@@ -543,11 +543,14 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 				}
 			}
 
-			// firstTypeInfo now contains the intersection of all type infos of a given type
-			reducedTypeInfos.add(firstTypeInfo);
+			if (firstTypeInfo != null) {
 
-			// set hierarchy level
-			firstTypeInfo.setHierarchyLevel(listOfTypeInfosWithSamePrimaryType.size());
+				// firstTypeInfo now contains the intersection of all type infos of a given type
+				reducedTypeInfos.add(firstTypeInfo);
+
+				// set hierarchy level
+				firstTypeInfo.setHierarchyLevel(listOfTypeInfosWithSamePrimaryType.size());
+			}
 		}
 
 	}
