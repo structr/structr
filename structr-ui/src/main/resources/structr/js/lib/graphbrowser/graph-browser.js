@@ -2548,7 +2548,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				settings.onDeleteRelation !== undefined ? _onDeleteRelation = settings.onDeleteRelation : _onDeleteRelation = undefined;
 				settings.maxDistance !== undefined ? _maxDistance = settings.maxDistance : _maxDistance = 200;
 
-				if(typeof this.getRelationshipEditorWorker === undefined)
+				if(typeof this.getRelationshipEditorWorker === "undefined")
 					throw new Error("Graph-Browser-RelationshipEditor: Worker not found.");
 
 				var workerString = this.getRelationshipEditorWorker();
@@ -2563,14 +2563,14 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					console.log("Graph-Browser-RelationshipEditor: It seems that your browser does not support webworkers.");
 				}
 
-				_pressedKeys = {shiftKey: false, ctrlKey: false, altKey: false, noKey: true}
+				_pressedKeys = {shiftKey: false, ctrlKey: false, altKey: false, noKey: true};
 				_bound = false;
 
 				_active = true;
 				bindEvents();
 			}
 			else
-				_active = false
+				_active = false;
 		};
 
 		function bindEvents(){
@@ -2971,13 +2971,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				if(related !== undefined){
 					if((related[allTypesPossible] === true || related[possibleTypes].split(',').indexOf(_nodes[counter].nodeType) > -1)){
 						var add = true;
-						var same = false;
 						if(related.sourceMultiplicity === '1') {
 							for(var c1 = 0; c1 < _edges.length; c1++){
 								if(_edges[c1].target === compareTarget && _edges[c1].relType === related.type) {
 									if(_edges[c1].source === compareSource){
 										add = false;
-										same = true;
 									}
 									else
 										add = checkRelation(_edges[c1], newEdgeId);
@@ -2991,7 +2989,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 								if(_edges[c2].source === compareSource && _edges[c2].relType === related.type) {
 									if(_edges[c2].target === compareTarget){
 										add = false;
-										same = true;
 									}
 									else
 										add = checkRelation(_edges[c2], newEdgeId);
@@ -3006,7 +3003,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 						if(_previousEdges[_nodes[counter].id].id !== newEdgeId && add){
 
-							var source, target
+							var source, target;
 							switch(relatedToOrFrom){
 								case "to":
 									source = dragedNode.id;
@@ -3321,19 +3318,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			if(!_active)
 				return;
 
-			_active = false;
-
-			if(_callbacks.sigmaPlugins.lasso.isActive){
-				activateSelectionLasso(false);
-			}
-
-			_s.renderers[0].unbind('render');
-			_callbacks.sigmaPlugins.activeState.dropNodes();
-			_callbacks.refreshSigma(true);
-		};
-		addToApi('deactivateSelectionTools', deactivateSelectionTools);
-
-		function deactivateSelectionTools(status){
 			_active = false;
 
 			if(_callbacks.sigmaPlugins.lasso.isActive){

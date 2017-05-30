@@ -355,7 +355,7 @@ var _Localization = {
 
 		$('td:eq(0)', $row).text(localization.id);
 
-		$localeField = $('.___locale', $row);
+		var $localeField = $('.___locale', $row);
 		$localeField.val(localization.locale)
 			.data('oldValue', localization.locale)
 			.on('blur', function (event) {

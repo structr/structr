@@ -356,7 +356,6 @@ var _Entities = {
 		Command.get(obj.id, function (entity) {
 
 			var views, activeView = 'ui';
-			var isRelationship = false;
 			var tabTexts = [];
 
 			if (activeViewOverride) {
@@ -365,15 +364,13 @@ var _Entities = {
 
 			if (entity.hasOwnProperty('relType')) {
 
-				isRelationship = true;
-
 				views = ['ui'];//, 'sourceNode', 'targetNode'];
 
 				tabTexts.ui = 'Relationship Properties';
 				tabTexts.sourceNode = 'Source Node Properties';
 				tabTexts.targetNode = 'Target Node Properties';
 
-				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + (isRelationship ? ' relationship ' : ' node ') + (entity.name ? entity.name : entity.id), function() {
+				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id), function() {
 					return true;
 				}, function() {
 					return true;
@@ -403,7 +400,7 @@ var _Entities = {
 				tabTexts['in'] = 'Incoming Relationships';
 				tabTexts.out = 'Outgoing Relationships';
 
-				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + (isRelationship ? ' relationship ' : ' node ') + (entity.name ? entity.name : entity.id), function() {
+				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id), function() {
 					return true;
 				}, function() {
 					return true;

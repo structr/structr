@@ -108,7 +108,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 	// Parameters
 	this.el = el;
-	this.filterEl; // if set, use this as container for filters
+	this.filterEl = undefined; // if set, use this as container for filters
 	this.rootOnly = rootOnly;
 	this.id = id;
 	this.type = type;
