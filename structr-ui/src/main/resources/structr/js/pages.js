@@ -1075,11 +1075,13 @@ var _Pages = {
 			var typeKey = sourceSchemaNode.name.toLowerCase();
 			LSWrapper.setItem(_Pages.selectedTypeKey, id);
 
-			$('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page.'
-					+ 'The type will be bound to the block which will loop over the result set.</p>');
+			$('#data-wizard-attributes')
+					.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
+					.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
+					.append('<h3>Properties</h3><div class="properties"></div>')
+					.append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
 
-			$('#data-wizard-attributes').append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>');
-			$('.data-binding-type').draggable({
+			var draggableSettings = {
 				iframeFix: true,
 				revert: 'invalid',
 				containment: 'body',
@@ -1087,36 +1089,23 @@ var _Pages = {
 				appendTo: '#main',
 				stack: '.node',
 				zIndex: 99
-			});
+			};
 
-			$('#data-wizard-attributes').append('<h3>Properties</h3><div class="properties"></div>');
+			$('.data-binding-type').draggable(draggableSettings);
 
 			Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
+
+				var el = $('#data-wizard-attributes .properties');
 
 				properties.reverse().forEach(function(property) {
 
 					var subkey = property.relatedType ? 'name' : '';
 
-					$('#data-wizard-attributes .properties').append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
-					$('#data-wizard-attributes .properties').children('.' + property.jsonName).draggable({
-						iframeFix: true,
-						revert: 'invalid',
-						containment: 'body',
-						helper: 'clone',
-						appendTo: '#main',
-						stack: '.node',
-						zIndex: 99
-					}).on('click', function() {
-						//console.log('expand')
-					});
-
+					el.append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
+					el.children('.' + property.jsonName).draggable(draggableSettings);
 				});
 			});
-
-			$('#data-wizard-attributes').append('<div class="clear">&nbsp;</div><p>Drag and drop these elements onto the page for data binding.</p>');
-
 		});
-
 	},
 	expandTreeNode: function(id, stack, lastId) {
 		if (!id) {

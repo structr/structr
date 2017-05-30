@@ -322,7 +322,7 @@ var _Schema = {
 		_Schema.selectedNodes = [];
 		var canvasOffset = canvas.offset();
 		$('.node.selected', canvas).each(function(idx, el) {
-			$el = $(el);
+			var $el = $(el);
 			var elementOffset = $el.offset();
 			_Schema.selectedNodes.push({
 				nodeId: $el.attr('id'),
@@ -593,20 +593,20 @@ var _Schema = {
 							return (y * 150) + 50;
 						};
 						var calculatePosition = function() {
-							var calculatedX = getX(x);
+							var calculatedX = getX();
 							if (calculatedX > 1500) {
 								y++;
 								x = 0;
-								calculatedX = getX(x);
+								calculatedX = getX();
 							}
-							var calculatedY = getY(y);
+							var calculatedY = getY();
 							return { left: calculatedX, top: calculatedY };
 						};
 
 						var storedPosition = _Schema.nodePositions[entity.name];
 						if (!storedPosition) {
 
-							var calculatedPosition = calculatePosition(x, y);
+							var calculatedPosition = calculatePosition();
 							var count = 0; // prevent endless looping
 
 							while (_Schema.overlapsExistingNodes(calculatedPosition) && count++ < 1000) {
@@ -1832,7 +1832,7 @@ var _Schema = {
 			};
 
 			$('.node').each(function(i, elem) {
-				$elem = $(elem);
+				var $elem = $(elem);
 				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left - canvasPosition.left) / zoom + $elem.width()) + padding);
 				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top - canvasPosition.top)  / zoom + $elem.height()) + padding);
 			});
@@ -2748,7 +2748,7 @@ var _Schema = {
 				});
 
 				$('.label.rel-type', canvas).each(function(idx, el) {
-					$el = $(el);
+					var $el = $(el);
 
 					var sourceType = $el.children('div').attr('data-source-type');
 					var targetType = $el.children('div').attr('data-target-type');

@@ -955,7 +955,6 @@ var _Files = {
 				delIcon.replaceWith(newDelIcon);
 			} else {
 				div.append(newDelIcon);
-				delIcon = div.children('.delete_icon');
 			}
 			div.children('.delete_icon').on('click', function(e) {
 				e.stopPropagation();

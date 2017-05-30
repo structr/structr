@@ -529,7 +529,7 @@ var _Widgets = {
 
 			$(el).on('click', expandClickHandler);
 
-			button = $(el.children('.expand_icon').first());
+			var button = $(el.children('.expand_icon').first());
 
 			if (button) {
 

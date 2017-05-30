@@ -748,7 +748,6 @@ var _Crawler = {
 				delIcon.replaceWith(newDelIcon);
 			} else {
 				div.append(newDelIcon);
-				delIcon = div.children('.delete_icon');
 			}
 			div.children('.delete_icon').on('click', function(e) {
 				e.stopPropagation();
@@ -844,25 +843,21 @@ var _Crawler = {
 				url: url,
 				method: 'POST',
 				statusCode: {
-					200: function(data) {
+					200: function() {
 						var btn = $('.extract', row);
 						btn.removeClass('disabled').attr('disabled', null);
 						btn.html(text + ' <i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
 					},
 					400: function(data) {
-						console.log(data);
 						Structr.errorFromResponse(data.responseJSON, url);
 					},
 					401: function(data) {
-						console.log(data);
 						Structr.errorFromResponse(data.responseJSON, url);
 					},
 					403: function(data) {
-						console.log(data);
 						Structr.errorFromResponse(data.responseJSON, url);
 					},
 					404: function(data) {
-						console.log(data);
 						Structr.errorFromResponse(data.responseJSON, url);
 					},
 					422: function(data) {
@@ -922,7 +917,7 @@ var _Crawler = {
 
 			elements.on('mouseover', function(e) {
 
-				e.preventDefault;
+				e.preventDefault();
 				var el = $(this);
 
 				var isLink = el.closest('a').length;
@@ -949,7 +944,7 @@ var _Crawler = {
 
 			elements.on('mouseout', function(e) {
 
-				e.preventDefault;
+				e.preventDefault();
 				var el = $(this);
 				el.off('click');
 				_Crawler.unhighlight(el);
@@ -958,7 +953,7 @@ var _Crawler = {
 
 			elements.on('click', function(e) {
 
-				e.preventDefault;
+				e.preventDefault();
 				e.stopPropagation();
 
 				var el = $(this);
