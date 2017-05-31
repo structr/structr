@@ -770,11 +770,10 @@ var _Schema = {
 					}
 
 					existingRels[relIndex] = true;
-					if (existingRels[res.targetId + '-' + res.sourceId]) {
+					if (res.targetId !== res.sourceId && existingRels[res.targetId + '-' + res.sourceId]) {
 						relCnt[relIndex] += existingRels[res.targetId + '-' + res.sourceId];
 					}
 
-					var radius = 20 + 10 * relCnt[relIndex];
 					var stub   = 30 + 80 * relCnt[relIndex];
 					var offset =     0.2 * relCnt[relIndex];
 
@@ -783,13 +782,13 @@ var _Schema = {
 						target: nodes[res.targetId + '_top'],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
-						connector: [_Schema.connectorStyle, {curviness: 200, cornerRadius: radius, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
+						connector: [_Schema.connectorStyle, {curviness: 200, cornerRadius: 25, stub: [stub, 30], gap: 6, alwaysRespectStubs: true }],
 						paintStyle: { lineWidth: 5, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
 						overlays: [
 							["Label", {
 									cssClass: "label multiplicity",
 									label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
-									location: .2 + offset,
+									location: Math.min(.2 + offset, .4),
 									id: "sourceMultiplicity"
 								}
 							],
@@ -798,14 +797,14 @@ var _Schema = {
 									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
 											+ ' <i title="Edit schema relationship" class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i>'
 											+ ' <i title="Remove schema relationship" class="remove icon ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '"></i></div>',
-									location: .5 + offset,
+									location: .5,
 									id: "label"
 								}
 							],
 							["Label", {
 									cssClass: "label multiplicity",
 									label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-									location: .8 - offset,
+									location: Math.max(.8 - offset, .6),
 									id: "targetMultiplicity"
 								}
 							]

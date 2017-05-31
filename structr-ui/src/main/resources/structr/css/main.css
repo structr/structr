@@ -1079,11 +1079,6 @@ i.button {
 	margin: 4px 0 4px 0;
 }
 
-#schema-graph .node {
-	padding: 6px;
-	margin: 0 ! important;
-}
-
 #schema-graph.noselect, .graphNoSelect {
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -1790,11 +1785,17 @@ button.add_property {
 }
 
 #schema-graph .node {
+	padding: 6px;
+	margin: 0 ! important;
 	opacity: .9;
 }
 
 #schema-graph .node h2 {
 	margin: 6px 0;
+}
+
+#schema-graph ._jsPlumb_endpoint_anchor {
+	z-index: 9999;
 }
 
 .property-name,
