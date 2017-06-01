@@ -2522,6 +2522,14 @@ input.bitmask {
 	top: -1px;
 }
 
+#about-structr .props {
+	margin-top: 10px;
+}
+
+#about-structr .props i {
+	cursor: default;
+}
+
 #my-workset {
 	width: 75%;
 	margin: 12px;

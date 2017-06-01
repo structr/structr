@@ -48,13 +48,27 @@ var _Dashboard = {
 			t.append('<tr><td class="key">Working Directory</td><td>' + (_Dashboard.meObj.workingDirectory ? _Dashboard.meObj.workingDirectory.name : '') + '</td></tr>');
 			t.append('<tr><td class="key">Session ID(s)</td><td>' + _Dashboard.meObj.sessionIds.join('<br>') + '</td></tr>');
 			t.append('<tr><td class="key">Groups</td><td>' + _Dashboard.meObj.groups.map(function(g) { return g.name; }).join(', ') + '</td></tr>');
-
 		});
 		_Dashboard.checkAdmin();
 
 		_Dashboard.aboutMe.append('<button id="clear-local-storage-on-server">Reset stored UI settings</button>');
 		$('#clear-local-storage-on-server').on('click', function() {
 			_Dashboard.clearLocalStorageOnServer();
+		});
+
+		var aboutStructrBox = _Dashboard.appendBox('About Structr', 'about-structr');
+		var aboutStructrTable = $('<table class="props"></table>').appendTo(aboutStructrBox);
+
+		$.get(rootUrl + '/_env', function(data) {
+			var envInfo = data.result;
+
+			if (envInfo.edition) {
+				var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
+				var versionInfo = '<i title="' + tooltipText + '" class="' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i> (' + tooltipText + ')';
+
+				aboutStructrTable.append('<tr><td class="key">Edition</td><td>' + versionInfo + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">Licensee</td><td>' + (envInfo.licensee || '') + '</td></tr>');
+			}
 		});
 
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
