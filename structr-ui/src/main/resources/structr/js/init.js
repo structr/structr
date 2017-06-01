@@ -256,6 +256,10 @@ var _Icons = {
 	arrow_up_down: 'icon/arrow_up_down.png',
 	floppy_icon: 'icon/disk.png',
 	book_icon: 'icon/book_open.png',
+	edition_community_icon: 'icon/tux.png',
+	edition_basic_icon: 'icon/medal_bronze_2.png',
+	edition_small_business_icon: 'icon/medal_silver_2.png',
+	edition_enterprise_icon: 'icon/medal_gold_2.png',
 
 
 	getFullSpriteClass: function (key) {
@@ -348,6 +352,10 @@ var _Icons = {
 			case _Icons.arrow_up_down:                return 'sprite-arrow_up_down';
 			case _Icons.floppy_icon:                  return 'sprite-disk';
 			case _Icons.book_icon:                    return 'sprite-book_open';
+			case _Icons.edition_community_icon:       return 'sprite-tux';
+			case _Icons.edition_basic_icon:           return 'sprite-medal_bronze_2';
+			case _Icons.edition_small_business_icon:  return 'sprite-medal_silver_2';
+			case _Icons.edition_enterprise_icon:      return 'sprite-medal_gold_2';
 
 			default:                                  return 'sprite-error';
 		}
@@ -1449,13 +1457,15 @@ var Structr = {
 		});
 	},
 	updateVersionInfo: function() {
-		$.get(rootUrl + '_env', function(envInfo) {
-			if (envInfo && envInfo.result) {
+		$.get(rootUrl + '_env', function(data) {
+			if (data && data.result) {
 
-				$('#header .structr-instance-name').text(envInfo.result.instanceName);
-				$('#header .structr-instance-stage').text(envInfo.result.instanceStage);
+				var envInfo = data.result;
 
-				var ui = envInfo.result.components['structr-ui'];
+				$('#header .structr-instance-name').text(envInfo.instanceName);
+				$('#header .structr-instance-stage').text(envInfo.instanceStage);
+
+				var ui = envInfo.components['structr-ui'];
 				if (ui !== null) {
 
 					var version = ui.version;
@@ -1469,13 +1479,40 @@ var Structr = {
 					}
 					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
 					if (build && date) {
-						versionInfo += ' build <a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a> (' + date + ')';
+						versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
+					}
+
+					if (envInfo.edition) {
+						var icon;
+						switch (envInfo.edition) {
+							case 'Enterprise':
+								icon = _Icons.edition_enterprise_icon;
+								break;
+							case 'Small Business':
+								icon = _Icons.edition_small_business_icon;
+								break;
+							case 'Basic':
+								icon = _Icons.edition_basic_icon;
+								break;
+
+							case 'Community':
+							default:
+								icon = _Icons.edition_community_icon;
+								break;
+						}
+
+						var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
+						if (envInfo.licensee) {
+							tooltipText += '\nLicensed to: ' + envInfo.licensee;
+						}
+
+						versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(icon) + '"></i>';
 					}
 
 					$('.structr-version').html(versionInfo);
 				}
 
-				Structr.activeModules = envInfo.result.modules;
+				Structr.activeModules = envInfo.modules;
 				Structr.adaptUiToPresentModules();
 			}
 		});

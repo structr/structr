@@ -436,7 +436,7 @@ table.props td.__value {
 .searchBox {
 	 position: absolute;
 	 right: 12px;
-	 top: 15px;
+	 top: 14px;
 	 z-index: 5;
 	 line-height: 1em;
 }
@@ -449,7 +449,7 @@ table.props td.__value {
 	border: 1px solid #a5a5a5;
 	border-radius: 3px;
 	width: 260px;
-	height: 24px;
+	height: 22px;
 	padding: 2px 4px;
 }
 
