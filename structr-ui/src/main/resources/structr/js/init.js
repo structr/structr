@@ -615,6 +615,7 @@ var Structr = {
 			LSWrapper.clear();
 			Structr.renewSessionId();
 			Structr.clearMain();
+			Structr.clearVersionInfo();
 			Structr.login(text);
 			return true;
 		}
@@ -1516,6 +1517,9 @@ var Structr = {
 				Structr.adaptUiToPresentModules();
 			}
 		});
+	},
+	clearVersionInfo: function() {
+		$('.structr-version').html('');
 	},
 	getId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || undefined;

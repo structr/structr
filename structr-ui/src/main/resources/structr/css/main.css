@@ -140,6 +140,10 @@ input[type="checkbox"] {
 	margin-top: 1em;
 }
 
+#header .structr-version:empty:before {
+    content: "No version info available.";
+}
+
 #header .structr-version a,
 #header .structr-version a:visited,
 #header .structr-version a:hover {
