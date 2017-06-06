@@ -1761,7 +1761,7 @@ button.add_property {
 }
 
 .related-attrs.schema-props th:first-of-type {
-	width: 50%;
+	min-width: 30%;
 }
 
 .related-attrs.schema-props th:last-of-type {
@@ -1769,7 +1769,7 @@ button.add_property {
 }
 
 .related-attrs.schema-props th {
-	width: 42%;
+	min-width: 30%;
 }
 
 .schema-props td {
