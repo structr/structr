@@ -69,8 +69,11 @@ public class EnvResource extends Resource {
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 		if (licenseManager != null) {
 
-			info.setProperty(new StringProperty("edition"),  licenseManager.getEdition());
-			info.setProperty(new StringProperty("licensee"), licenseManager.getLicensee());
+			info.setProperty(new StringProperty("edition"),   licenseManager.getEdition());
+			info.setProperty(new StringProperty("licensee"),  licenseManager.getLicensee());
+			info.setProperty(new StringProperty("hostId"),    licenseManager.getHardwareFingerprint());
+			info.setProperty(new StringProperty("startDate"), licenseManager.getStartDate());
+			info.setProperty(new StringProperty("endDate"),   licenseManager.getEndDate());
 
 		} else {
 

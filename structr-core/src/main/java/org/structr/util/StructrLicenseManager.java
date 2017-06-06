@@ -122,6 +122,8 @@ public class StructrLicenseManager implements LicenseManager {
 	private boolean licensePresent               = false;
 	private String edition                       = "Community";
 	private String licensee                      = null;
+	private String startDateString               = null;
+	private String endDateString                 = null;
 	private int editionMask                      = CommunityMask;
 
 	public StructrLicenseManager(final String licenseFileName) {
@@ -160,7 +162,9 @@ public class StructrLicenseManager implements LicenseManager {
 					}
 				}
 
-				licensee = properties.get(NameKey);
+				licensee        = properties.get(NameKey);
+				startDateString = properties.get(StartKey);
+				endDateString   = properties.get(EndKey);
 
 				// init modules
 				final String licensedModules = properties.get(ModulesKey);
@@ -219,6 +223,16 @@ public class StructrLicenseManager implements LicenseManager {
 	@Override
 	public String getHardwareFingerprint() {
 		return createHash();
+	}
+
+	@Override
+	public String getStartDate() {
+		return startDateString;
+	}
+
+	@Override
+	public String getEndDate() {
+		return endDateString;
 	}
 
 	@Override

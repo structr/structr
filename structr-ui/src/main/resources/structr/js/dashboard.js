@@ -67,7 +67,10 @@ var _Dashboard = {
 				var versionInfo = '<i title="' + tooltipText + '" class="' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i> (' + tooltipText + ')';
 
 				aboutStructrTable.append('<tr><td class="key">Edition</td><td>' + versionInfo + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">Licensee</td><td>' + (envInfo.licensee || '') + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">Licensee</td><td>' + (envInfo.licensee || 'Unlicensed') + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">Host ID</td><td>' + (envInfo.hostId || '') + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">License Start Date</td><td>' + (envInfo.startDate || '-') + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">License End Date</td><td>' + (envInfo.endDate || '-') + '</td></tr>');
 			}
 		});
 

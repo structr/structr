@@ -971,6 +971,12 @@ var _Crud = {
 		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/ui' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
+
+		if (!Structr.activeModules.csv) {
+			dialogText.append('CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
+			return;
+		}
+
 		var exportArea = $('<textarea class="exportArea"></textarea>');
 		dialogText.append(exportArea);
 
@@ -1000,6 +1006,12 @@ var _Crud = {
 		var url = csvRootUrl + $('#crud-right').data('url');
 
 		_Crud.dialog('Import CSV data for type ' + type + '', function() {}, function() {});
+
+		if (!Structr.activeModules.csv) {
+			dialogText.append('CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
+			return;
+		}
+
 		var importArea = $('<textarea class="importArea"></textarea>');
 		dialogText.append(importArea);
 
