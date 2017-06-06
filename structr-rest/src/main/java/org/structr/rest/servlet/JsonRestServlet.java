@@ -863,11 +863,10 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 						response.setContentType("text/html; charset=utf-8");
 
-						try (final Writer writer = response.getWriter()) {
+						final Writer writer = response.getWriter();
 
-							htmlStreamer.stream(securityContext, writer, result, baseUrl);
-							writer.append("\n");    // useful newline
-						}
+						htmlStreamer.stream(securityContext, writer, result, baseUrl);
+						writer.append("\n");    // useful newline
 
 						tx.success();
 					}
@@ -882,12 +881,10 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 						response.setContentType("application/json; charset=utf-8");
 
+						final Writer writer = response.getWriter();
 
-						try (final Writer writer = response.getWriter()) {
-
-							jsonStreamer.stream(securityContext, writer, result, baseUrl);
-							writer.append("\n");    // useful newline
-						}
+						jsonStreamer.stream(securityContext, writer, result, baseUrl);
+						writer.append("\n");    // useful newline
 
 						tx.success();
 					}

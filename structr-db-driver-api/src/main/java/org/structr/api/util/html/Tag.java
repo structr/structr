@@ -131,7 +131,7 @@ public abstract class Tag {
 
 		if (!this.children.isEmpty()) {
 
-			this.children.listIterator().previous().appendComma();
+			this.children.get(this.children.size() - 1).appendComma();
 
 		} else if (this.text != null) {
 
