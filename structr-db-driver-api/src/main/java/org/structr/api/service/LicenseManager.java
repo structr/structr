@@ -35,6 +35,9 @@ public interface LicenseManager {
 	String getLicensee();
 	String getHardwareFingerprint();
 
+	String getStartDate();
+	String getEndDate();
+
 	boolean isValid(final Feature feature);
 	boolean isValid(final CodeSigner[] codeSigners);
 

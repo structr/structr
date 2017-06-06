@@ -1505,6 +1505,8 @@ var Structr = {
 						var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
 						if (envInfo.licensee) {
 							tooltipText += '\nLicensed to: ' + envInfo.licensee;
+						} else {
+							tooltipText += '\nUnlicensed';
 						}
 
 						versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
