@@ -238,7 +238,7 @@
 				</executions>
 			</plugin>
 		</plugins>
-		<finalName>${project.parent.artifactId}-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
+		<finalName>${project.parent.artifactId}-${project.version}</finalName>
 		<!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
 		<pluginManagement>
 			<plugins>

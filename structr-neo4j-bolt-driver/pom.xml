@@ -50,7 +50,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-db-driver-api</artifactId>
-			<version>2.1.0</version>
+			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-logging</groupId>
