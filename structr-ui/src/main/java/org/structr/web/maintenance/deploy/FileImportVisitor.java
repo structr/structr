@@ -182,7 +182,17 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			}
 
 			// set properties from files.json
-			file.setProperties(securityContext, getPropertiesForFileOrFolder(file.getPath()));
+			final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getPath());
+			if (fileProperties != null) {
+
+				file.setProperties(securityContext, fileProperties);
+
+			} else {
+
+				logger.info(" -> No corresponding entry in files.json, ignoring {}", fileName);
+				return;
+
+			}
 
 			tx.success();
 
