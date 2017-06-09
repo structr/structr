@@ -49,8 +49,10 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -358,10 +360,27 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		// verify host ID
-		if (!thisHostId.equals(hostId)) {
+		if (!thisHostId.equals(hostId) && !"*".equals(hostId)) {
 
 			logger.error("Host ID found in license file does not match current host ID.");
 			return false;
+		}
+
+		if ("*".equals(hostId)) {
+
+			final Calendar issuedAtPlusOneMonth = GregorianCalendar.getInstance();
+			final Calendar cal                  = GregorianCalendar.getInstance();
+
+			// set issuedAt to license date plus one month
+			issuedAtPlusOneMonth.setTime(parseDate(dateString));
+			issuedAtPlusOneMonth.add(Calendar.MONTH, 1);
+
+			// check that the license file was issued not more than one month ago
+			if (cal.after(issuedAtPlusOneMonth)) {
+
+				logger.error("Development license found in license file is not valid any more, license period ended {}.", format.format(issuedAtPlusOneMonth.getTime()));
+				return false;
+			}
 		}
 
 		// verify that the license is valid for the current date

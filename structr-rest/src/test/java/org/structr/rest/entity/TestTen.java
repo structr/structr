@@ -23,6 +23,7 @@ import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.Property;
 
 /**
@@ -32,9 +33,10 @@ import org.structr.core.property.Property;
 public class TestTen extends AbstractNode {
 
 	public static final Property<TestSeven> testSeven = new EndNode<>("testSeven", TenSevenOneToOne.class, new PropertySetNotion(true, TestSeven.id, TestSeven.aString));
-	
+	public static final Property<Object> functionTest = new FunctionProperty<>("functionTest").readFunction("{ return { name: 'test', value: 123, me: Structr.this }; }");
+
 	public static final View defaultView = new View(TestTen.class, PropertyView.Public,
-		name, testSeven
+		name, testSeven, functionTest
 	);
-	
+
 }

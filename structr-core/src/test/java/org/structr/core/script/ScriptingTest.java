@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
@@ -54,6 +55,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestOne.Status;
@@ -68,6 +70,7 @@ import org.structr.core.function.ParseDateFunction;
 import org.structr.core.function.RoundFunction;
 import org.structr.core.function.ToDateFunction;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
@@ -2207,5 +2210,73 @@ public class ScriptingTest extends StructrTest {
 			fail(fex.getMessage());
 		}
 
+	}
+
+	@Test
+	public void testNonPrimitiveReturnValue() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,   "testReturnValueOfGlobalSchemaMethod"),
+				new NodeAttribute<>(SchemaMethod.source, "{ return { name: 'test', value: 123, me: Structr.me }; }")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode,   app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "Test"))),
+				new NodeAttribute<>(SchemaProperty.name,         "returnTest"),
+				new NodeAttribute<>(SchemaProperty.propertyType, "Function"),
+				new NodeAttribute<>(SchemaProperty.readFunction, "{ return { name: 'test', value: 123, me: Structr.this }; }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			final Map map           = (Map)Scripting.evaluate(ctx, null, "${{return Structr.call('testReturnValueOfGlobalSchemaMethod')}}", "test");
+
+			final Object name       = map.get("name");
+			final Object value      = map.get("value");
+			final Object me         = map.get("me");
+
+			assertEquals("Invalid non-primitive scripting return value result, name should be of type string.",  "test", name);
+			assertEquals("Invalid non-primitive scripting return value result, value should be of type integer", Integer.valueOf(123), value);
+			assertTrue("Invalid non-primitive scripting return value result,   me should be of type SuperUser",    me instanceof SuperUser);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Test");
+			final NodeInterface obj = app.create(type, "test");
+			final Map map           = (Map)obj.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "returnTest"));
+			final Object name       = map.get("name");
+			final Object value      = map.get("value");
+			final Object me         = map.get("me");
+
+			assertEquals("Invalid non-primitive scripting return value result, name should be of type string.",  "test", name);
+			assertEquals("Invalid non-primitive scripting return value result, value should be of type integer", Integer.valueOf(123), value);
+			assertEquals("Invalid non-primitive scripting return value result, me should be the entity",         obj, me);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }

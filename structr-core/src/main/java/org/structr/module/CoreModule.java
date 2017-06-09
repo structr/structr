@@ -190,7 +190,6 @@ public class CoreModule implements StructrModule {
 
 			Functions.functions.put("instantiate", new InstantiateFunction());
 
-			Functions.functions.put("cypher", new CypherFunction());
 			Functions.functions.put("property_info", new PropertyInfoFunction());
 			Functions.functions.put("type_info", new TypeInfoFunction());
 			Functions.functions.put("enum_info", new EnumInfoFunction());
@@ -204,6 +203,7 @@ public class CoreModule implements StructrModule {
 			Functions.functions.put("template", new TemplateFunction());
 		}
 
+		Functions.functions.put("cypher", new CypherFunction());
 		Functions.functions.put("md5", new MD5Function());
 		Functions.functions.put("upper", new UpperFunction());
 		Functions.functions.put("lower", new LowerFunction());
