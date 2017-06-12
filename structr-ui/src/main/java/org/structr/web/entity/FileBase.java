@@ -24,9 +24,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Level;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
@@ -60,6 +62,7 @@ import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -67,7 +70,9 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.files.cmis.config.StructrFileActions;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -94,13 +99,14 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<Boolean> isFile                                 = new ConstantBooleanProperty("isFile", true);
 	public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
 	public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
+	public static final Property<Boolean> isTemplate                             = new BooleanProperty("isTemplate");
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
-		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable
+		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable, isTemplate
 	);
 
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
-		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable
+		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
 	);
 
 	@Override
@@ -390,6 +396,22 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 				// Return file input stream
 				fis = new FileInputStream(fileOnDisk);
+				
+				if (getProperty(isTemplate)) {
+					
+					final String content = IOUtils.toString(fis, "UTF-8");
+
+					try {
+
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), this, content);
+						return IOUtils.toInputStream(result, "UTF-8");
+						
+					} catch (Throwable t) {
+
+						logger.warn("Scripting error in {}:\n{}", getUuid(), content, t);
+					}
+
+				}
 
 				return fis;
 
@@ -405,6 +427,8 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 					} catch (IOException ignore) {}
 
 				}
+			} catch (IOException ex) {
+				java.util.logging.Logger.getLogger(FileBase.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
 
@@ -689,7 +713,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try (final OutputStream os = getOutputStream(true, false)) {
 
-			IOUtils.write(content, os);
+			IOUtils.write(content, os, Charset.defaultCharset());
 			os.flush();
 
 		} catch (IOException ioex) {

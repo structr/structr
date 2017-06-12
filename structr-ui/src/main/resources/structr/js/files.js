@@ -1335,7 +1335,10 @@ var _Files = {
 				dialogBtn.children('#saveFile').remove();
 				dialogBtn.children('#saveAndClose').remove();
 
-				dialogMeta.html('<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '></span>');
+				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '>&nbsp;&nbsp;'
+				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
+				dialogMeta.html(h);
+				
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {
@@ -1346,6 +1349,23 @@ var _Files = {
 						editor.setOption('lineWrapping', false);
 					}
 					editor.refresh();
+				});
+
+				$('#isTemplate').on('change', function() {
+					var inp = $(this);
+					_Entities.setProperty(file.id, 'isTemplate', inp.is(':checked'), false, function() {
+						$.ajax({
+							url: url,
+							//async: false,
+							dataType: dataType,
+							contentType: contentType,
+							success: function(data) {
+								fileContents[file.id] = data;
+								editor.getDoc().setValue(data);
+								editor.refresh();
+							}
+						});
+					});
 				});
 
 				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
