@@ -59,9 +59,14 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
 		final String parentId                = (String) nodeData.get("parentId");
 		final String childContent            = (String) nodeData.get("childContent");
-		final Boolean inheritVisibilityFlags = (Boolean) nodeData.get("inheritVisibilityFlags");
 		final String pageId                  = webSocketData.getPageId();
 
+		Boolean inheritVisibilityFlags = (Boolean) nodeData.get("inheritVisibilityFlags");
+		
+		if (inheritVisibilityFlags == null) {
+			inheritVisibilityFlags = false;
+		}
+		
 		// remove configuration elements from the nodeData so we don't set it on the node
 		nodeData.remove("parentId");
 		nodeData.remove("inheritVisibilityFlags");
