@@ -38,7 +38,7 @@ public class TitleizeFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources.length == 0 || (sources.length == 1 && sources[0] == null) || StringUtils.isBlank(sources[0].toString())) {
+		if (sources == null || sources.length == 0 || (sources.length > 0 && sources[0] == null) || (sources.length > 0 && sources[0] != null && StringUtils.isBlank(sources[0].toString()))) {
 			return "";
 		}
 		
