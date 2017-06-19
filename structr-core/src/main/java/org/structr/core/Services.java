@@ -65,6 +65,7 @@ public class Services implements StructrServices {
 	// singleton instance
 	private static int globalSessionTimeout            = -1;
 	private static Services singletonInstance          = null;
+	private static boolean testingModeDisabled         = false;
 
 	// non-static members
 	private final List<InitializationCallback> callbacks       = new LinkedList<>();
@@ -279,6 +280,11 @@ public class Services implements StructrServices {
 
 		// callbacks need to be sorted by priority
 		Collections.sort(callbacks, (o1, o2) -> { return Integer.valueOf(o1.priority()).compareTo(o2.priority()); });
+	}
+
+	@Override
+	public LicenseManager getLicenseManager() {
+		return licenseManager;
 	}
 
 	public boolean isInitialized() {
@@ -638,12 +644,16 @@ public class Services implements StructrServices {
 		return "Community";
 	}
 
-	public LicenseManager getLicenseManager() {
-		return licenseManager;
+	public static void disableTestingMode() {
+		testingModeDisabled = true;
 	}
 
 	// ----- private methods -----
 	public static boolean isTesting() {
+
+		if (testingModeDisabled) {
+			return false;
+		}
 
 		for (final StackTraceElement[] stackTraces : Thread.getAllStackTraces().values()) {
 

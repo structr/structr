@@ -27,8 +27,10 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.console.rest.RestCommand;
 import org.structr.console.shell.AdminConsoleCommand;
 import org.structr.console.tabcompletion.AdminTabCompletionProvider;
@@ -271,8 +273,9 @@ public class Console {
 
 			tx.success();
 
+		} catch (UnlicensedException ex) {
+			ex.log(LoggerFactory.getLogger(Console.class));
 		}
-
 	}
 
 	private void runJavascript(final String line, final Writable writable) throws FrameworkException {

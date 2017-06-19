@@ -42,4 +42,27 @@ public interface LicenseManager {
 	boolean isValid(final CodeSigner[] codeSigners);
 
 	boolean isModuleLicensed(final String module);
+
+	/**
+	 * Returns the highest edition represented by this bitmask.
+	 *
+	 * @param bitmask
+	 * @return the name of the highest edition indicated by the given bitmask
+	 */
+	public static String getEdition(final int bitmask) {
+
+		if ((bitmask & Enterprise) == Enterprise) {
+			return "Enterprise";
+		}
+
+		if ((bitmask & SmallBusiness) == SmallBusiness) {
+			return "Small Business";
+		}
+
+		if ((bitmask & Basic) == Basic) {
+			return "Basic";
+		}
+
+		return "Community";
+	}
 }

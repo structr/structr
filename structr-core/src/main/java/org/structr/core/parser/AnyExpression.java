@@ -20,6 +20,7 @@ package org.structr.core.parser;
 
 import java.util.List;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
@@ -76,14 +77,14 @@ public class AnyExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedException {
 
 		if (listExpression == null) {
 			return ERROR_MESSAGE_ANY;
 		}
 
 		final Object listSource = listExpression.evaluate(ctx, entity);
-	
+
 		if (listSource != null && listSource instanceof List) {
 
 			final List source         = (List)listSource;
@@ -118,7 +119,7 @@ public class AnyExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedException {
 		return source;
 	}
 }

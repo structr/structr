@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractUser;
@@ -194,7 +195,13 @@ public class AuthHelper {
 			SessionHelper.clearSession(session.getId());
 			user.addSessionId(session.getId());
 
-			Actions.call(Actions.NOTIFICATION_LOGIN, user);
+			try {
+
+				Actions.call(Actions.NOTIFICATION_LOGIN, user);
+
+			} catch (UnlicensedException ex) {
+				ex.log(logger);
+			}
 		}
 	}
 
@@ -212,8 +219,13 @@ public class AuthHelper {
 
 	public static void sendLogoutNotification (final Principal user) throws FrameworkException {
 
-		Actions.call(Actions.NOTIFICATION_LOGOUT, user);
+		try {
+			
+			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 
+		} catch (UnlicensedException ex) {
+				ex.log(logger);
+		}
 	}
 
 }

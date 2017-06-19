@@ -34,8 +34,8 @@ public class SignedJarModule implements StructrModule {
 	public void onLoad(final LicenseManager licenseManager) {
 
 		// extend set of builtin functions
-		Functions.functions.put("create_jar_file", new CreateJarFileFunction());
-		Functions.functions.put("jar_entry", new JarEntryFunction());
+		Functions.put(true, LicenseManager.Community, "create_jar_file", new CreateJarFileFunction());
+		Functions.put(true, LicenseManager.Community, "jar_entry",       new JarEntryFunction());
 	}
 
 	@Override

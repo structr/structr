@@ -57,54 +57,42 @@ public class UiModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		// extend set of builtin functions
-		Functions.functions.put("escape_html",              new EscapeHtmlFunction());
-		Functions.functions.put("strip_html",               new StripHtmlFunction());
-		Functions.functions.put("from_json",                new FromJsonFunction());
-		Functions.functions.put("to_json",                  new ToJsonFunction());
-		Functions.functions.put("to_graph_object",          new ToGraphObjectFunction());
+		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
+		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
+		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-		Functions.functions.put("include",                  new IncludeFunction());
-		Functions.functions.put("render",                   new RenderFunction());
-
-		Functions.functions.put("set_details_object",       new SetDetailsObjectFunction());
+		// Community Edition
+		Functions.put(true, LicenseManager.Community, "escape_html",              new EscapeHtmlFunction());
+		Functions.put(true, LicenseManager.Community, "strip_html",               new StripHtmlFunction());
+		Functions.put(true, LicenseManager.Community, "from_json",                new FromJsonFunction());
+		Functions.put(true, LicenseManager.Community, "to_json",                  new ToJsonFunction());
+		Functions.put(true, LicenseManager.Community, "to_graph_object",          new ToGraphObjectFunction());
+		Functions.put(true, LicenseManager.Community, "include",                  new IncludeFunction());
+		Functions.put(true, LicenseManager.Community, "render",                   new RenderFunction());
+		Functions.put(true, LicenseManager.Community, "set_details_object",       new SetDetailsObjectFunction());
 
 		// Basic Edition and up
-		if (licenseManager == null || licenseManager.isEdition(LicenseManager.Basic)) {
-
-			Functions.functions.put("send_html_mail",           new SendHtmlMailFunction());
-			Functions.functions.put("send_plaintext_mail",      new SendPlaintextMailFunction());
-
-			Functions.functions.put("get_content",              new GetContentFunction());
-			Functions.functions.put("copy_file_contents",       new CopyFileContentsFunction());
-
-			Functions.functions.put("set_session_attribute",    new SetSessionAttributeFunction());
-			Functions.functions.put("get_session_attribute",    new GetSessionAttributeFunction());
-			Functions.functions.put("remove_session_attribute", new RemoveSessionAttributeFunction());
-
-			Functions.functions.put("is_locale",                new IsLocaleFunction());
-		}
+		Functions.put(basicEdition, LicenseManager.Basic, "send_html_mail",           new SendHtmlMailFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "send_plaintext_mail",      new SendPlaintextMailFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "get_content",              new GetContentFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "copy_file_contents",       new CopyFileContentsFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "set_session_attribute",    new SetSessionAttributeFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "get_session_attribute",    new GetSessionAttributeFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "remove_session_attribute", new RemoveSessionAttributeFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "is_locale",                new IsLocaleFunction());
 
 		// Small Business and up
-		if (licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness)) {
-
-			Functions.functions.put("log_event",                new LogEventFunction());
-		}
+		Functions.put(smallBusinessEdition, LicenseManager.SmallBusiness, "log_event",                new LogEventFunction());
 
 		// Enterprise only
-		if (licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise)) {
-
-			Functions.functions.put("GET",                      new HttpGetFunction());
-			Functions.functions.put("HEAD",                     new HttpHeadFunction());
-			Functions.functions.put("POST",                     new HttpPostFunction());
-
-			Functions.functions.put("add_header",               new AddHeaderFunction());
-			Functions.functions.put("set_response_header",      new SetResponseHeaderFunction());
-			Functions.functions.put("get_request_header",       new GetRequestHeaderFunction());
-
-			Functions.functions.put("from_xml",                 new FromXmlFunction());
-			Functions.functions.put("parse",                    new ParseFunction());
-		}
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "GET",                      new HttpGetFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "HEAD",                     new HttpHeadFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "POST",                     new HttpPostFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "add_header",               new AddHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "set_response_header",      new SetResponseHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "get_request_header",       new GetRequestHeaderFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "from_xml",                 new FromXmlFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse",                    new ParseFunction());
 	}
 
 	@Override

@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.entity.Localization;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -97,7 +98,7 @@ public class LocalizationTest extends StructrTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (UnlicensedException|FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
 
@@ -125,7 +126,7 @@ public class LocalizationTest extends StructrTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (UnlicensedException|FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
 

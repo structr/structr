@@ -35,7 +35,7 @@ public class CSVModule implements StructrModule {
 
 		if (licenseManager != null && licenseManager.isEdition(LicenseManager.Basic)) {
 
-			Functions.functions.put("from_csv", new FromCsvFunction());
+			Functions.put(true, LicenseManager.Basic, "from_csv", new FromCsvFunction());
 		}
 	}
 

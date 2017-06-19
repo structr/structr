@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
@@ -70,12 +71,17 @@ public class LoginCommand extends AbstractCommand {
 
 						logger.info("Unable to login {}: No sessionId found", new Object[]{ username, password });
 						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
-						
+
 						return;
 
 					}
 
-					Actions.call(Actions.NOTIFICATION_LOGIN, user);
+					try {
+						Actions.call(Actions.NOTIFICATION_LOGIN, user);
+
+					} catch (UnlicensedException ex) {
+						ex.log(logger);
+					}
 
 					// Clear possible existing sessions
 					SessionHelper.clearSession(sessionId);

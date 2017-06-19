@@ -103,7 +103,7 @@ public class StructrScriptable extends ScriptableObject {
 					} else if (parameters.length > 1) {
 
 						// execute builtin get function
-						final Function<Object, Object> function = Functions.functions.get("get");
+						final Function<Object, Object> function = Functions.get("get");
 						try {
 
 							final Object[] unwrappedParameters = new Object[parameters.length];
@@ -175,7 +175,7 @@ public class StructrScriptable extends ScriptableObject {
 
 						try {
 
-							final Function func = Functions.functions.get(name);
+							final Function func = Functions.get(name);
 
 							if (func != null) {
 
@@ -221,7 +221,7 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		// execute builtin function?
-		final Function<Object, Object> function = Functions.functions.get(CaseHelper.toUnderscore(name, false));
+		final Function<Object, Object> function = Functions.get(CaseHelper.toUnderscore(name, false));
 		if (function != null) {
 
 			return new IdFunctionObject(new FunctionWrapper(function), null, 0, 0);

@@ -110,7 +110,7 @@ public class FunctionsCompiler {
 		buf.append("		this.entity          = entity;\n");
 		buf.append("	}\n\n");
 
-		for (final String name : Functions.functions.keySet()) {
+		for (final String name : Functions.getNames()) {
 
 			if (!"if".equals(name)) {
 

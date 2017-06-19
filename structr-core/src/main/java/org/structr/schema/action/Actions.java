@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -83,11 +84,11 @@ public class Actions {
 	}
 
 	// ----- public static methods -----
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName) throws FrameworkException {
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName) throws FrameworkException, UnlicensedException {
 		return execute(securityContext, entity, source, Collections.EMPTY_MAP, methodName);
 	}
 
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName) throws FrameworkException {
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName) throws FrameworkException, UnlicensedException {
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
 		final Object result         = Scripting.evaluate(context, entity, source, methodName);
@@ -111,7 +112,7 @@ public class Actions {
 	 *
 	 * @throws FrameworkException
 	 */
-	public static Object call(final String key, final Principal user) throws FrameworkException {
+	public static Object call(final String key, final Principal user) throws FrameworkException, UnlicensedException {
 
 		final Map<String, Object> params = new HashMap<>();
 		params.put("user", user);
@@ -119,7 +120,7 @@ public class Actions {
 		return callAsSuperUser(key, params);
 	}
 
-	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException {
+	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException, UnlicensedException {
 
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 
@@ -127,7 +128,7 @@ public class Actions {
 
 	}
 
-	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
+	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedException {
 
 		final App app = StructrApp.getInstance(securityContext);
 

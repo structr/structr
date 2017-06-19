@@ -56,6 +56,7 @@ import org.structr.common.PathHelper;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -945,7 +946,13 @@ public class Importer {
 
 							final String source = scriptContentNode.toString();
 
-							Actions.execute(securityContext, null, source, null);
+							try {
+
+								Actions.execute(securityContext, null, source, null);
+
+							} catch (UnlicensedException ex) {
+								ex.log(logger);
+							}
 
 						}
 
@@ -957,8 +964,13 @@ public class Importer {
 
 							final String source = scriptContentNode.toString();
 
-							Actions.execute(securityContext, null, source, null);
+							try {
 
+								Actions.execute(securityContext, null, source, null);
+
+							} catch (UnlicensedException ex) {
+								ex.log(logger);
+							}
 						}
 
 						continue;

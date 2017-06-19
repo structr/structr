@@ -20,6 +20,7 @@ package org.structr.core.parser;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
@@ -52,7 +53,7 @@ public class ValueExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedException {
 
 		Object value = ctx.getReferencedProperty(entity, keyword, null, 0);
 
@@ -66,7 +67,7 @@ public class ValueExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException, UnlicensedException {
 
 		// evaluate dot syntax
 		if (keyword.startsWith(".")) {

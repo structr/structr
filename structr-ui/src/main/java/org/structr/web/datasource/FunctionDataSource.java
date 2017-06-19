@@ -19,7 +19,9 @@
 package org.structr.web.datasource;
 
 import java.util.List;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
@@ -41,10 +43,16 @@ public class FunctionDataSource implements GraphDataSource<List<GraphObject>> {
 			return null;
 		}
 
-		final Object result = Functions.evaluate(renderContext, referenceNode, functionQuery);
-		if (result instanceof List) {
+		try {
 
-			return (List<GraphObject>)result;
+			final Object result = Functions.evaluate(renderContext, referenceNode, functionQuery);
+			if (result instanceof List) {
+
+				return (List<GraphObject>)result;
+			}
+
+		} catch (UnlicensedException ex) {
+			ex.log(LoggerFactory.getLogger(FunctionDataSource.class));
 		}
 
 		return null;

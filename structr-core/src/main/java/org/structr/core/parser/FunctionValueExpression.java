@@ -19,6 +19,7 @@
 package org.structr.core.parser;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 
@@ -35,25 +36,25 @@ public class FunctionValueExpression extends Expression {
 		this.functionExpression = functionExpression;
 		this.valueExpression    = valueExpression;
 	}
-	
-	
+
+
 	@Override
 	public String toString() {
 
 		final StringBuilder buf = new StringBuilder();
-		
+
 		buf.append(functionExpression.toString()).append(valueExpression.toString());
 
 		return buf.toString();
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedException {
 
 		Object value = functionExpression.evaluate(ctx, entity);
 
 		value = valueExpression.transform(ctx, entity, value);
-		
+
 		for (final Expression expression : valueExpression.expressions) {
 
 			// evaluate expressions from left to right
@@ -61,12 +62,12 @@ public class FunctionValueExpression extends Expression {
 		}
 
 		return value;
-		
+
 	}
 
 	@Override
-	public Object transform(ActionContext ctx, GraphObject entity, Object source) throws FrameworkException {
+	public Object transform(ActionContext ctx, GraphObject entity, Object source) throws FrameworkException, UnlicensedException {
 		return source;
 	}
-	
+
 }

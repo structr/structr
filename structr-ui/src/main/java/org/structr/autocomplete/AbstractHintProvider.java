@@ -311,7 +311,7 @@ public abstract class AbstractHintProvider {
 
 			if (!isAssignment) {
 
-				for (final Function<Object, Object> func : Functions.functions.values()) {
+				for (final Function<Object, Object> func : Functions.getFunctions()) {
 					hints.add(func);
 				}
 			}

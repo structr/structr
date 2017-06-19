@@ -21,6 +21,7 @@ package org.structr.core.parser;
 import java.util.Random;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
@@ -68,7 +69,7 @@ public class CacheExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedException {
 
 		if (keyExpression == null) {
 			return "Error: cache(): key expression may not be empty.";

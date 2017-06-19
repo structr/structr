@@ -34,9 +34,9 @@ public class GeoTransformationsModule implements StructrModule {
 	public void onLoad(final LicenseManager licenseManager) {
 
 		// extend set of builtin functions
-		Functions.functions.put("lat_lon_to_utm", new LatLonToUTMFunction());
-		Functions.functions.put("utm_to_lat_lon", new UTMToLatLonFunction());
-		Functions.functions.put("import_gpx",     new ImportGPXFunction());
+		Functions.put(true, LicenseManager.Community, "lat_lon_to_utm", new LatLonToUTMFunction());
+		Functions.put(true, LicenseManager.Community, "utm_to_lat_lon", new UTMToLatLonFunction());
+		Functions.put(true, LicenseManager.Community, "import_gpx",     new ImportGPXFunction());
 	}
 
 	@Override

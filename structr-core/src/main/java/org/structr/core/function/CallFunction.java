@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -44,36 +45,43 @@ public class CallFunction extends Function<Object, Object> {
 
 		if (sources != null && sources.length >= 1 && sources[0] != null) {
 
-			final String methodName = sources[0].toString();
+			try {
 
-			if (sources.length == 1) {
+				final String methodName = sources[0].toString();
 
-				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), Collections.EMPTY_MAP);
+				if (sources.length == 1) {
 
-			} else if (sources.length == 2 && sources[1] instanceof Map) {
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), Collections.EMPTY_MAP);
 
-				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((Map)sources[1]));
+				} else if (sources.length == 2 && sources[1] instanceof Map) {
 
-			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((Map)sources[1]));
 
-				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((GraphObjectMap)sources[1]).toMap());
+				} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-			} else {
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((GraphObjectMap)sources[1]).toMap());
 
-				final int parameter_count = sources.length;
+				} else {
 
-				if (parameter_count % 2 == 0) {
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					final int parameter_count = sources.length;
+
+					if (parameter_count % 2 == 0) {
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					}
+
+					final Map<String, Object> newMap = new LinkedHashMap<>();
+
+					for (int c = 1; c < parameter_count; c += 2) {
+						newMap.put(sources[c].toString(), sources[c + 1]);
+					}
+
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), newMap);
+
 				}
 
-				final Map<String, Object> newMap = new LinkedHashMap<>();
+			} catch (UnlicensedException ex) {
 
-				for (int c = 1; c < parameter_count; c += 2) {
-					newMap.put(sources[c].toString(), sources[c + 1]);
-				}
-
-				return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), newMap);
-
+				ex.printStackTrace();
 			}
 
 		} else {

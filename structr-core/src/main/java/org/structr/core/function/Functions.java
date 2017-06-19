@@ -22,10 +22,15 @@ import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.text.Normalizer;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.parser.AllExpression;
 import org.structr.core.parser.AnyExpression;
@@ -52,14 +57,34 @@ import org.structr.schema.action.Function;
  */
 public class Functions {
 
-	public static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
-	public static final String NULL_STRING                              = "___NULL___";
+	private static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
+	public static final String NULL_STRING                               = "___NULL___";
+
+	public static void put(final boolean licensed, final int edition, final String name, final Function<Object, Object> function) {
+
+		if (licensed) {
+
+			functions.put(name, function);
+
+		} else {
+
+			functions.put(name, new UnlicensedFunction(name, edition));
+		}
+	}
+
+	public static Set<String> getNames() {
+		return new LinkedHashSet<>(functions.keySet());
+	}
 
 	public static Function<Object, Object> get(final String name) {
 		return functions.get(name);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException {
+	public static Collection<Function<Object, Object>> getFunctions() {
+		return new LinkedList<>(functions.values());
+	}
+
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedException {
 
 		final String expressionWithoutNewlines = expression.replace('\n', ' ');
 		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
@@ -189,6 +214,46 @@ public class Functions {
 		return root.evaluate(actionContext, entity);
 	}
 
+	public static String cleanString(final Object input) {
+
+		if (input == null) {
+
+			return "";
+		}
+
+		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
+			.replaceAll("\\<", "")
+			.replaceAll("\\>", "")
+			.replaceAll("\\.", "")
+			.replaceAll("\\'", "-")
+			.replaceAll("\\?", "")
+			.replaceAll("\\(", "")
+			.replaceAll("\\)", "")
+			.replaceAll("\\{", "")
+			.replaceAll("\\}", "")
+			.replaceAll("\\[", "")
+			.replaceAll("\\]", "")
+			.replaceAll("\\+", "-")
+			.replaceAll("/", "-")
+			.replaceAll("–", "-")
+			.replaceAll("\\\\", "-")
+			.replaceAll("\\|", "-")
+			.replaceAll("'", "-")
+			.replaceAll("!", "")
+			.replaceAll(",", "")
+			.replaceAll("-", " ")
+			.replaceAll("_", " ")
+			.replaceAll("`", "-");
+
+		String result = normalized.replaceAll("-", " ");
+		result = StringUtils.normalizeSpace(result.toLowerCase());
+		result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
+		result = result.replaceAll(" ", "-");
+
+		return result;
+	}
+
+	// ----- private methods -----
 	private static Expression checkReservedWords(final String word) throws FrameworkException {
 
 		if (word == null) {
@@ -243,7 +308,7 @@ public class Functions {
 		}
 	}
 
-	public static int nextToken(final StreamTokenizer tokenizer) {
+	private static int nextToken(final StreamTokenizer tokenizer) {
 
 		try {
 
@@ -253,44 +318,5 @@ public class Functions {
 		}
 
 		return StreamTokenizer.TT_EOF;
-	}
-
-	public static String cleanString(final Object input) {
-
-		if (input == null) {
-
-			return "";
-		}
-
-		String normalized = Normalizer.normalize(input.toString(), Normalizer.Form.NFD)
-			.replaceAll("\\<", "")
-			.replaceAll("\\>", "")
-			.replaceAll("\\.", "")
-			.replaceAll("\\'", "-")
-			.replaceAll("\\?", "")
-			.replaceAll("\\(", "")
-			.replaceAll("\\)", "")
-			.replaceAll("\\{", "")
-			.replaceAll("\\}", "")
-			.replaceAll("\\[", "")
-			.replaceAll("\\]", "")
-			.replaceAll("\\+", "-")
-			.replaceAll("/", "-")
-			.replaceAll("–", "-")
-			.replaceAll("\\\\", "-")
-			.replaceAll("\\|", "-")
-			.replaceAll("'", "-")
-			.replaceAll("!", "")
-			.replaceAll(",", "")
-			.replaceAll("-", " ")
-			.replaceAll("_", " ")
-			.replaceAll("`", "-");
-
-		String result = normalized.replaceAll("-", " ");
-		result = StringUtils.normalizeSpace(result.toLowerCase());
-		result = result.replaceAll("[^\\p{ASCII}]", "").replaceAll("\\p{P}", "-").replaceAll("\\-(\\s+\\-)+", "-");
-		result = result.replaceAll(" ", "-");
-
-		return result;
 	}
 }

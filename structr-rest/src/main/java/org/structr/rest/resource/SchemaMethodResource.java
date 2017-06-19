@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
@@ -105,7 +106,16 @@ public class SchemaMethodResource extends SortableResource {
 
 	// ----- private methods -----
 	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName) throws FrameworkException {
-		return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName));
+
+		try {
+
+			return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName));
+
+		} catch (UnlicensedException ex) {
+			ex.log(logger);
+		}
+
+		return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 	}
 
 	public static RestMethodResult wrapInResult(final Object obj) {

@@ -20,6 +20,7 @@ package org.structr.core.parser;
 
 import java.util.ArrayList;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -55,7 +56,7 @@ public class FunctionExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedException {
 
 		final ArrayList<Object> results = new ArrayList<>();
 		for (Expression expr : expressions) {
@@ -72,7 +73,7 @@ public class FunctionExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedException {
 		return source;
 	}
 }

@@ -38,6 +38,7 @@ import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
@@ -73,22 +74,28 @@ public class Scripting {
 
 				for (final String expression : extractScripts(value)) {
 
-					final Object extractedValue = evaluate(actionContext, entity, expression, "script source");
-					String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
+					try {
 
-					if (partValue != null) {
+						final Object extractedValue = evaluate(actionContext, entity, expression, "script source");
+						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
-						replacements.add(new Tuple(expression, partValue));
+						if (partValue != null) {
 
-					} else {
+							replacements.add(new Tuple(expression, partValue));
 
-						// If the whole expression should be replaced, and partValue is null
-						// replace it by null to make it possible for HTML attributes to not be rendered
-						// and avoid something like ... selected="" ... which is interpreted as selected==true by
-						// all browsers
-						if (!value.equals(expression)) {
-							replacements.add(new Tuple(expression, ""));
+						} else {
+
+							// If the whole expression should be replaced, and partValue is null
+							// replace it by null to make it possible for HTML attributes to not be rendered
+							// and avoid something like ... selected="" ... which is interpreted as selected==true by
+							// all browsers
+							if (!value.equals(expression)) {
+								replacements.add(new Tuple(expression, ""));
+							}
 						}
+
+					} catch (UnlicensedException ex) {
+						ex.log(logger);
 					}
 				}
 
@@ -129,8 +136,9 @@ public class Scripting {
 	 *
 	 * @return
 	 * @throws FrameworkException
+	 * @throws UnlicensedException
 	 */
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression, final String methodName) throws FrameworkException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression, final String methodName) throws FrameworkException, UnlicensedException {
 
 		boolean isJavascript   = expression.startsWith("${{") && expression.endsWith("}}");
 		final int prefixOffset = isJavascript ? 1 : 0;
