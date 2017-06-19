@@ -160,7 +160,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ----- -----
 	@Override
 	public FileSystem createFileSystem(final Session session) throws IOException {
-		//return new StructrSSHFileSystem(securityContext, session);
 		return new StructrFilesystem(securityContext);
 	}
 
@@ -436,25 +435,5 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		factory.addSftpEventListener(this);
 
 		return list;
-	}
-
-	// ----- nested classes -----
-	private class ConsoleCommandFactory implements NamedFactory<org.apache.sshd.server.Command> {
-
-		private ConsoleMode mode = null;
-
-		public ConsoleCommandFactory(final ConsoleMode mode) {
-			this.mode = mode;
-		}
-
-		@Override
-		public org.apache.sshd.server.Command create() {
-			return new StructrConsoleCommand(securityContext);
-		}
-
-		@Override
-		public String getName() {
-			return mode.name();
-		}
 	}
 }

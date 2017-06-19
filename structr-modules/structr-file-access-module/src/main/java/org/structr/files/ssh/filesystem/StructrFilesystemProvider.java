@@ -49,25 +49,25 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized String getScheme() {
-		logger.info("getScheme");
+		logger.warn("NOT SUPPORTED: getScheme");
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized FileSystem newFileSystem(final URI uri, final Map<String, ?> env) throws IOException {
-		logger.info("{}, {}", new Object[] { uri, env } );
+		logger.warn("NOT SUPPORTED: newFileSystem {}, {}", uri, env );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized FileSystem getFileSystem(final URI uri) {
-		logger.info("{}", new Object[] { uri } );
+		logger.warn("NOT SUPPORTED: getFileSystem {}", new Object[] { uri } );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized Path getPath(URI uri) {
-		logger.info("{}", new Object[] { uri } );
+		logger.warn("NOT SUPPORTED: getPath {}", uri );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
@@ -78,8 +78,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-		logger.info("{}, {}, {}", new Object[] { path, options, attrs } );
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return newFileChannel(path, options, attrs);
 	}
 
 	@Override
@@ -114,13 +113,13 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized boolean isHidden(Path path) throws IOException {
-		logger.info("{}", new Object[] { path } );
+		logger.warn("NOT SUPPORTED: isHidden {}", path );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public synchronized FileStore getFileStore(Path path) throws IOException {
-		logger.info("{}", new Object[] { path } );
+		logger.warn("NOT SUPPORTED: getFileStore {}", path );
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

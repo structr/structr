@@ -268,7 +268,7 @@ public abstract class StructrPath implements Path {
 		logger.info("{}", new Object[] { other });
 
 		// fallback
-		return fs.getPath("/", other);
+		return fs.getPath(toString(), other);
 	}
 
 	@Override
@@ -305,8 +305,7 @@ public abstract class StructrPath implements Path {
 			return this;
 		}
 
-		logger.info("x");
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		return fs.getPath(toString(), this.name);
 	}
 
 	@Override
