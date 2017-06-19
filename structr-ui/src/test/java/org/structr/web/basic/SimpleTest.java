@@ -1035,7 +1035,5 @@ public class SimpleTest extends StructrUiTest {
 		}
 
 		return null;
-
-
 	}
 }
