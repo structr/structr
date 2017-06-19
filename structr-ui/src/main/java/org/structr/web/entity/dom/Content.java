@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.dom;
 
+import com.github.rjeschke.txtmark.Processor;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,8 +30,6 @@ import net.java.textilej.parser.markup.trac.TracWikiDialect;
 import org.apache.commons.lang3.StringUtils;
 import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Asciidoctor.Factory;
-import org.pegdown.Parser;
-import org.pegdown.PegDownProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -81,7 +80,6 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 	private static final ThreadLocalAsciiDocProcessor asciiDocProcessor                  = new ThreadLocalAsciiDocProcessor();
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalTextileProcessor textileProcessor                    = new ThreadLocalTextileProcessor();
-	private static final ThreadLocalPegDownProcessor pegDownProcessor                    = new ThreadLocalPegDownProcessor();
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
@@ -104,7 +102,7 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 			public String adapt(String s) throws FrameworkException {
 
 				if (s != null) {
-					return pegDownProcessor.get().markdownToHtml(s);
+					return Processor.process(s);
 				}
 
 				return "";
@@ -750,18 +748,6 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 		}
 
 	}
-
-	private static class ThreadLocalPegDownProcessor extends ThreadLocal<PegDownProcessor> {
-
-		@Override
-		protected PegDownProcessor initialValue() {
-
-			return new PegDownProcessor(Parser.ALL);
-
-		}
-
-	}
-
 
 	private static class ThreadLocalTextileProcessor extends ThreadLocal<MarkupParser> {
 
