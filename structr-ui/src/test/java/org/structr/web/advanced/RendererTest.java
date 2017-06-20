@@ -93,11 +93,11 @@ public class RendererTest extends StructrUiTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
-			.body("html.head.title",    Matchers.equalTo("Page1"))
-			.body("html.body.h1",       Matchers.equalTo("Page1"))
-			.body("html.body.div.h1.a", Matchers.equalTo("Title"))
-			.body("html.body.div.p",    Matchers.equalTo("This is a test"))
-			.body("html.body.div.h2.a", Matchers.equalTo("Another title"))
+			.body("html.head.title",  Matchers.equalTo("Page1"))
+			.body("html.body.h1",     Matchers.equalTo("Page1"))
+			.body("html.body.div.h1", Matchers.equalTo("Title"))
+			.body("html.body.div.p",  Matchers.equalTo("This is a test"))
+			.body("html.body.div.h2", Matchers.equalTo("Another title"))
 			.when()
 			.get("/html/page1");
 	}

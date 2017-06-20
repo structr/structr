@@ -1,0 +1,1 @@
+java -cp lib/*; org.structr.Server
