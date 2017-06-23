@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -71,6 +72,10 @@ import org.structr.schema.parser.Validator;
 public class SchemaNode extends AbstractSchemaNode {
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaNode.class.getName());
+
+	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
+		"Relation"
+	}));
 
 	public static final Property<List<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
 	public static final Property<List<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
@@ -578,12 +583,16 @@ public class SchemaNode extends AbstractSchemaNode {
 
 			final String typeName = getProperty(name);
 
+			// add type names to list of forbidden entity names
 			if (StructrApp.getConfiguration().getNodeEntities().containsKey(typeName)) {
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
 			}
 
+			// add interfaces to list of forbidden entity names
+			if (StructrApp.getConfiguration().getInterfaces().containsKey(typeName)) {
+				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
+			}
 		}
-
 	}
 
 	// ----- interface GraphObject -----
