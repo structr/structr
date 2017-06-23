@@ -126,6 +126,7 @@ import org.structr.core.function.ServerLogFunction;
 import org.structr.core.function.SetFunction;
 import org.structr.core.function.SetPrivilegedFunction;
 import org.structr.core.function.SizeFunction;
+import org.structr.core.function.SliceFunction;
 import org.structr.core.function.SortFunction;
 import org.structr.core.function.SplitFunction;
 import org.structr.core.function.SplitRegexFunction;
@@ -243,6 +244,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "complement", new ComplementFunction());
 		Functions.put(true, LicenseManager.Community, "unwind", new UnwindFunction());
 		Functions.put(true, LicenseManager.Community, "sort", new SortFunction());
+		Functions.put(true, LicenseManager.Community, "slice", new SliceFunction());
 		Functions.put(true, LicenseManager.Community, "lt", new LtFunction());
 		Functions.put(true, LicenseManager.Community, "gt", new GtFunction());
 		Functions.put(true, LicenseManager.Community, "lte", new LteFunction());

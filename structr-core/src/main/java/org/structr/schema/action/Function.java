@@ -183,6 +183,14 @@ public abstract class Function<S, T> extends Hint {
 		return true;
 	}
 
+	protected boolean isArray(final Object obj) {
+		return obj != null && obj.getClass().isArray();
+	}
+
+	protected List toList(final Object[] obj) {
+		return Arrays.asList(obj);
+	}
+
 	protected Double getDoubleOrNull(final Object obj) {
 
 		try {
