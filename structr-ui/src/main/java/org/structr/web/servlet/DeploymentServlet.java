@@ -84,7 +84,7 @@ public class DeploymentServlet extends HttpServlet implements HttpServiceServlet
 
 	@Override
 	public String getModuleName() {
-		return "ui";
+		return "deployment";
 	}
 
 	@Override
