@@ -34,11 +34,14 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class FindFunction extends Function<Object, Object> {
+public class FindFunction extends Function<Object, Object> implements QueryFunction {
 
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
 	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND = "Error in find(): type not found: ";
+
+	private int start = -1;
+	private int end   = -1;
 
 	@Override
 	public String getName() {
@@ -59,6 +62,16 @@ public class FindFunction extends Function<Object, Object> {
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
+
+			// paging applied by surrounding slice() function
+			if (start >= 0 && end >= 0) {
+
+				final int pageSize = end - start;
+				final int page     = start % pageSize;
+
+				query.pageSize(pageSize);
+				query.page(page);
+			}
 
 			// the type to query for
 			Class type = null;
@@ -162,4 +175,14 @@ public class FindFunction extends Function<Object, Object> {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs";
 	}
 
+	// ----- interface QueryFunction -----
+	@Override
+	public void setRangeStart(final int start) {
+		this.start = start;
+	}
+
+	@Override
+	public void setRangeEnd(final int end) {
+		this.end = end;
+	}
 }

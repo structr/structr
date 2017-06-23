@@ -47,6 +47,7 @@ import org.structr.core.parser.IfExpression;
 import org.structr.core.parser.NoneExpression;
 import org.structr.core.parser.NullExpression;
 import org.structr.core.parser.RootExpression;
+import org.structr.core.parser.SliceExpression;
 import org.structr.core.parser.ValueExpression;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -279,6 +280,9 @@ public class Functions {
 
 			case "filter":
 				return new FilterExpression();
+
+			case "slice":
+				return new SliceExpression();
 
 			case "data":
 				return new ValueExpression("data");

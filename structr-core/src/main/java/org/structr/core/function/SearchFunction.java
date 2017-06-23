@@ -33,10 +33,13 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class SearchFunction extends Function<Object, Object> {
+public class SearchFunction extends Function<Object, Object> implements QueryFunction {
 
 	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
 	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";
+
+	private int start = -1;
+	private int end   = -1;
 
 	@Override
 	public String getName() {
@@ -51,6 +54,16 @@ public class SearchFunction extends Function<Object, Object> {
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
+
+			// paging applied by surrounding slice() function
+			if (start >= 0 && end >= 0) {
+
+				final int pageSize = end - start;
+				final int page     = start % pageSize;
+
+				query.pageSize(pageSize);
+				query.page(page);
+			}
 
 			Class type = null;
 
@@ -139,5 +152,16 @@ public class SearchFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
+	}
+
+	// ----- interface QueryFunction -----
+	@Override
+	public void setRangeStart(final int start) {
+		this.start = start;
+	}
+
+	@Override
+	public void setRangeEnd(final int end) {
+		this.end = end;
 	}
 }

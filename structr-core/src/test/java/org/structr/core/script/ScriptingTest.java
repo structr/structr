@@ -1534,6 +1534,37 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 2, 1)}"));
 			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}"));
 
+			// slice with find
+			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  0,  5)}", "slice test");
+			final List sliceResult3 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  5, 10)}", "slice test");
+			final List sliceResult4 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 10, 15)}", "slice test");
+			final List sliceResult5 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 15, 20)}", "slice test");
+			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult2.size());
+			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult3.size());
+			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult4.size());
+			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult5.size());
+			assertEquals("Invalid slice() result", testSixs.get( 0), sliceResult2.get(0));
+			assertEquals("Invalid slice() result", testSixs.get( 1), sliceResult2.get(1));
+			assertEquals("Invalid slice() result", testSixs.get( 2), sliceResult2.get(2));
+			assertEquals("Invalid slice() result", testSixs.get( 3), sliceResult2.get(3));
+			assertEquals("Invalid slice() result", testSixs.get( 4), sliceResult2.get(4));
+			assertEquals("Invalid slice() result", testSixs.get( 5), sliceResult3.get(0));
+			assertEquals("Invalid slice() result", testSixs.get( 6), sliceResult3.get(1));
+			assertEquals("Invalid slice() result", testSixs.get( 7), sliceResult3.get(2));
+			assertEquals("Invalid slice() result", testSixs.get( 8), sliceResult3.get(3));
+			assertEquals("Invalid slice() result", testSixs.get( 9), sliceResult3.get(4));
+			assertEquals("Invalid slice() result", testSixs.get(10), sliceResult4.get(0));
+			assertEquals("Invalid slice() result", testSixs.get(11), sliceResult4.get(1));
+			assertEquals("Invalid slice() result", testSixs.get(12), sliceResult4.get(2));
+			assertEquals("Invalid slice() result", testSixs.get(13), sliceResult4.get(3));
+			assertEquals("Invalid slice() result", testSixs.get(14), sliceResult4.get(4));
+			assertEquals("Invalid slice() result", testSixs.get(15), sliceResult5.get(0));
+			assertEquals("Invalid slice() result", testSixs.get(16), sliceResult5.get(1));
+			assertEquals("Invalid slice() result", testSixs.get(17), sliceResult5.get(2));
+			assertEquals("Invalid slice() result", testSixs.get(18), sliceResult5.get(3));
+			assertEquals("Invalid slice() result", testSixs.get(19), sliceResult5.get(4));
+
+
 
 			// first / last / nth with null
 			assertEquals("Invalid first() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${first(this.alwaysNull)}"));
