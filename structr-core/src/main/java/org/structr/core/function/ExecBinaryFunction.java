@@ -23,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -48,13 +49,14 @@ public class ExecBinaryFunction extends Function<Object, Object> {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
-			final String scriptKey = sources[1].toString();
-			final String script    = Settings.getStringSetting(scriptKey).getValue();
-			final OutputStream out = (OutputStream)sources[0];
+			final String scriptKey              = sources[1].toString();
+			final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);
+			final OutputStream out              = (OutputStream)sources[0];
 
-			if (StringUtils.isNotBlank(script)) {
+			if (scriptSetting != null) {
 
-				final StringBuilder scriptBuilder = new StringBuilder(script);
+
+				final StringBuilder scriptBuilder = new StringBuilder(scriptSetting.getValue());
 				if (sources.length > 2) {
 
 					for (int i = 2; i < sources.length; i++) {

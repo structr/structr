@@ -499,16 +499,16 @@ public class HttpService implements RunnableService {
 
 				if (StringUtils.isNotBlank(resourceHandlerName)) {
 
-					final String contextPath = Settings.getStringSetting(resourceHandlerName, "contextPath").getValue();
+					final String contextPath = Settings.getOrCreateStringSetting(resourceHandlerName, "contextPath").getValue();
 					if (contextPath != null) {
 
-						final String resourceBase = Settings.getStringSetting(resourceHandlerName, "resourceBase").getValue();
+						final String resourceBase = Settings.getOrCreateStringSetting(resourceHandlerName, "resourceBase").getValue();
 						if (resourceBase != null) {
 
 							final ResourceHandler resourceHandler = new ResourceHandler();
 							resourceHandler.setDirectoriesListed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
 
-							final String welcomeFiles = Settings.getStringSetting(resourceHandlerName, "welcomeFiles").getValue();
+							final String welcomeFiles = Settings.getOrCreateStringSetting(resourceHandlerName, "welcomeFiles").getValue();
 							if (welcomeFiles != null) {
 
 								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
@@ -555,10 +555,10 @@ public class HttpService implements RunnableService {
 
 				if (StringUtils.isNotBlank(servletName)) {
 
-					final String servletClassName = Settings.getStringSetting(servletName, "class").getValue();
+					final String servletClassName = Settings.getOrCreateStringSetting(servletName, "class").getValue();
 					if (servletClassName != null) {
 
-						final String servletPath = Settings.getStringSetting(servletName, "path").getValue();
+						final String servletPath = Settings.getOrCreateStringSetting(servletName, "path").getValue();
 						if (servletPath != null) {
 
 							try {

@@ -316,17 +316,17 @@ public class LDAPService extends Thread implements RunnableService {
 	@Override
 	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		this.updateInterval = Settings.getIntegerSetting(CONFIG_KEY_UPDATE_INTERVAL, Long.toString(TimeUnit.HOURS.toMillis(2))).getValue();
+		this.updateInterval = Settings.getOrCreateIntegerSetting(CONFIG_KEY_UPDATE_INTERVAL, Long.toString(TimeUnit.HOURS.toMillis(2))).getValue();
 
-		this.binddn         = Settings.getStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue();
-		this.secret         = Settings.getStringSetting(CONFIG_KEY_LDAP_SECRET).getValue();
+		this.binddn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue();
+		this.secret         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SECRET).getValue();
 
-		this.host           = Settings.getStringSetting(CONFIG_KEY_LDAP_HOST, "localhost").getValue();
-		this.baseDn         = Settings.getStringSetting(CONFIG_KEY_LDAP_BASEDN, "ou=system").getValue();
-		this.filter         = Settings.getStringSetting(CONFIG_KEY_LDAP_FILTER, "(objectclass=*)").getValue();
-		this.scope          = Settings.getStringSetting(CONFIG_KEY_LDAP_SCOPE, "SUBTREE").getValue();
+		this.host           = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST, "localhost").getValue();
+		this.baseDn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN, "ou=system").getValue();
+		this.filter         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_FILTER, "(objectclass=*)").getValue();
+		this.scope          = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE, "SUBTREE").getValue();
 
-		this.port           = Settings.getIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(339);
+		this.port           = Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(339);
 		this.useSsl         = Settings.getBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(true);
 	}
 

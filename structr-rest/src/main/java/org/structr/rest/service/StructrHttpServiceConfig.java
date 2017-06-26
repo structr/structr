@@ -68,8 +68,8 @@ public class StructrHttpServiceConfig {
 		final String defaultPropertyKeyName  = "defaultview";
 		final String nestingDepthKeyName     = "outputdepth";
 
-		final String resourceProviderValue   = Settings.getStringSetting(servletName, resourceProviderKeyName).getValue();
-		final String authenticatorValue      = Settings.getStringSetting(servletName, authenticatorKeyName).getValue();
+		final String resourceProviderValue   = Settings.getOrCreateStringSetting(servletName, resourceProviderKeyName).getValue();
+		final String authenticatorValue      = Settings.getOrCreateStringSetting(servletName, authenticatorKeyName).getValue();
 
 		if (StringUtils.isBlank(resourceProviderValue)) {
 
@@ -107,8 +107,8 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		this.defaultPropertyView = Settings.getStringSetting(servletName, defaultPropertyKeyName).getValue();
-		this.outputNestingDepth  = Settings.getIntegerSetting(servletName, nestingDepthKeyName).getValue();
+		this.defaultPropertyView = Settings.getOrCreateStringSetting(servletName, defaultPropertyKeyName).getValue();
+		this.outputNestingDepth  = Settings.getOrCreateIntegerSetting(servletName, nestingDepthKeyName).getValue();
 	}
 
 	public Authenticator getAuthenticator() {

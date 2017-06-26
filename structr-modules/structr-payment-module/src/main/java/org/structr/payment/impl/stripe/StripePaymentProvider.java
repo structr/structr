@@ -56,7 +56,7 @@ public class StripePaymentProvider implements PaymentProvider {
 	@Override
 	public ConfirmCheckoutResponse confirmCheckout(final Payment payment, final String notifyUrl, final String token, final String payerId) throws FrameworkException {
 
-		Stripe.apiKey = Settings.getStringSetting("stripe", "apikey").getValue();
+		Stripe.apiKey = Settings.getOrCreateStringSetting("stripe", "apikey").getValue();
 
 		// Create the charge on Stripe's servers - this will charge the user's card
 		try {

@@ -253,7 +253,7 @@ class StructrPartition implements Partition {
 			keyBuilder.append(this.id);
 			keyBuilder.append(LDAPServerService.LDAP_PARTITION_ROOT_TYPE_SUFFIX);
 
-			final String rootTypeName = Settings.getStringSetting(keyBuilder.toString()).getValue();
+			final String rootTypeName = Settings.getOrCreateStringSetting(keyBuilder.toString()).getValue();
 			if (rootTypeName == null) {
 
 				logger.info("No LDAP root node type specified for partition {}, using default (LDAPNodeImpl). This default can be changed by setting a value for {} in structr.conf",

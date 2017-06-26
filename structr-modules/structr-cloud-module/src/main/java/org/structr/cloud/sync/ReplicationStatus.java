@@ -93,7 +93,7 @@ public class ReplicationStatus extends Message<ReplicationStatus> {
 			// this is not an error, we want the sync time for the
 			// given MASTER, since a slave can have multiple masters
 			this.lastSync = app.getGlobalSetting(masterId, 0L);
-			this.role     = Settings.getStringSetting("sync", "role").getValue("slave");
+			this.role     = Settings.getOrCreateStringSetting("sync", "role").getValue("slave");
 		}
 
 		serverConnection.send(this);

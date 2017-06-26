@@ -43,7 +43,6 @@ import org.structr.api.util.html.attr.Rel;
 
 /**
  *
- * @author Christian Morgner
  */
 public class ConfigServlet extends HttpServlet {
 
@@ -52,6 +51,8 @@ public class ConfigServlet extends HttpServlet {
 	private static final String ConfigUrl                  = "/structr/config";
 	private static final String ConfigName                 = "structr.conf";
 
+	private static final String TITLE						= "Structr Configuration Editor";
+	
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
@@ -347,7 +348,7 @@ public class ConfigServlet extends HttpServlet {
 		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Style("display: block; margin: auto; margin-top: 200px;"));
 
 		loginBox.block("i").attr(new Attr("title", "Structr Logo")).css("logo-login sprite sprite-structr_gray_100x27");
-		loginBox.block("p").text("Welcome to the Structr Configuration Editor. Please log in with the <b>super- user</b> password which can be found in your structr.conf.");
+		loginBox.block("p").text("Welcome to the " + TITLE + ". Please log in with the <b>super- user</b> password which can be found in your structr.conf.");
 
 		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
 		final Tag table    = form.block("table");
@@ -373,7 +374,7 @@ public class ConfigServlet extends HttpServlet {
 
 		final Tag head = doc.block("head");
 
-		head.block("title").text("Welcome to Structr 2.1");
+		head.block("title").text(TITLE);
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));
 		head.empty("meta").attr(new Name("viewport"), new Attr("content", "width=1024, user-scalable=yes"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));

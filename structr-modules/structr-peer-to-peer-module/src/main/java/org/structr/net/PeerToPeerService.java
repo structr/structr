@@ -116,15 +116,15 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 			final KeyPair keyPair = getOrCreateKeyPair();
 			if (keyPair != null) {
 
-				final String initialPeer = Settings.getStringSetting(INITIAL_PEER_KEY, "255.255.255.255").getValue();
-				final String bindAddress = Settings.getStringSetting(BIND_ADDRESS_KEY, "0.0.0.0").getValue();
-				final String peerId      = Settings.getStringSetting(PEER_UUID_KEY, StructrApp.getInstance().getInstanceId()).getValue();
+				final String initialPeer = Settings.getOrCreateStringSetting(INITIAL_PEER_KEY, "255.255.255.255").getValue();
+				final String bindAddress = Settings.getOrCreateStringSetting(BIND_ADDRESS_KEY, "0.0.0.0").getValue();
+				final String peerId      = Settings.getOrCreateStringSetting(PEER_UUID_KEY, StructrApp.getInstance().getInstanceId()).getValue();
 				final boolean verbose    = Settings.getBooleanSetting(VERBOSE_KEY).getValue();
 
 				logger.info("{}: {}", new Object[] { BIND_ADDRESS_KEY, bindAddress });
 				logger.info("{}: {}", new Object[] { INITIAL_PEER_KEY, initialPeer });
-				logger.info("{}: {}", new Object[] { PRIVATE_KEY_CONFIG_KEY, Settings.getStringSetting(PRIVATE_KEY_CONFIG_KEY).getValue() });
-				logger.info("{}: {}", new Object[] { PUBLIC_KEY_CONFIG_KEY, Settings.getStringSetting(PUBLIC_KEY_CONFIG_KEY).getValue() });
+				logger.info("{}: {}", new Object[] { PRIVATE_KEY_CONFIG_KEY, Settings.getOrCreateStringSetting(PRIVATE_KEY_CONFIG_KEY).getValue() });
+				logger.info("{}: {}", new Object[] { PUBLIC_KEY_CONFIG_KEY, Settings.getOrCreateStringSetting(PUBLIC_KEY_CONFIG_KEY).getValue() });
 				logger.info("{}: {}", new Object[] { PEER_UUID_KEY, peerId });
 				logger.info("{}: {}", new Object[] { VERBOSE_KEY, verbose });
 
@@ -403,8 +403,8 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 
 	private KeyPair getOrCreateKeyPair() {
 
-		final String privateKeyFileName = Settings.getStringSetting(PRIVATE_KEY_CONFIG_KEY).getValue();
-		final String publicKeyFileName  = Settings.getStringSetting(PUBLIC_KEY_CONFIG_KEY).getValue();
+		final String privateKeyFileName = Settings.getOrCreateStringSetting(PRIVATE_KEY_CONFIG_KEY).getValue();
+		final String publicKeyFileName  = Settings.getOrCreateStringSetting(PUBLIC_KEY_CONFIG_KEY).getValue();
 
 		if (privateKeyFileName == null) {
 			logger.warn("No private key file name set for PeerToPeerService, aborting. Please set a value for {} in structr.conf.", PRIVATE_KEY_CONFIG_KEY);

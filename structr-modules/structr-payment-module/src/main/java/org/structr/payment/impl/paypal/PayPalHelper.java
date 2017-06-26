@@ -128,10 +128,10 @@ public class PayPalHelper {
 
 		final Map<String, String> config = new LinkedHashMap<>();
 
-		config.put("mode",            Settings.getStringSetting("paypal", "mode").getValue());
-		config.put("acct1.UserName",  Settings.getStringSetting("paypal", "username").getValue());
-		config.put("acct1.Password",  Settings.getStringSetting("paypal", "password").getValue());
-		config.put("acct1.Signature", Settings.getStringSetting("paypal", "signature").getValue());
+		config.put("mode",            Settings.getOrCreateStringSetting("paypal", "mode").getValue());
+		config.put("acct1.UserName",  Settings.getOrCreateStringSetting("paypal", "username").getValue());
+		config.put("acct1.Password",  Settings.getOrCreateStringSetting("paypal", "password").getValue());
+		config.put("acct1.Signature", Settings.getOrCreateStringSetting("paypal", "signature").getValue());
 
 		return config;
 

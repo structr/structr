@@ -312,6 +312,14 @@ public class Settings {
 		final String key        = StringUtils.join(keys, ".");
 		Setting<String> setting = settings.get(key);
 
+		return setting;
+	}
+
+	public static Setting<String> getOrCreateStringSetting(final String... keys) {
+
+		final String key        = StringUtils.join(keys, ".");
+		Setting<String> setting = settings.get(key);
+
 		if (setting == null) {
 
 			setting = new StringSetting(miscGroup, key, "");
@@ -325,6 +333,14 @@ public class Settings {
 		final String key        = StringUtils.join(keys, ".");
 		Setting<Integer> setting = settings.get(key);
 
+		return setting;
+	}
+
+	public static Setting<Integer> getOrCreateIntegerSetting(final String... keys) {
+
+		final String key        = StringUtils.join(keys, ".");
+		Setting<Integer> setting = settings.get(key);
+
 		if (setting == null) {
 
 			setting = new IntegerSetting(miscGroup, key, 0);
@@ -334,6 +350,14 @@ public class Settings {
 	}
 
 	public static Setting<Boolean> getBooleanSetting(final String... keys) {
+
+		final String key         = StringUtils.join(keys, ".");
+		Setting<Boolean> setting = settings.get(key);
+
+		return setting;
+	}
+
+	public static Setting<Boolean> getOrCreateBooleanSetting(final String... keys) {
 
 		final String key         = StringUtils.join(keys, ".");
 		Setting<Boolean> setting = settings.get(key);

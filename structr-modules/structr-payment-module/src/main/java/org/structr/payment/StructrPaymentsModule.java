@@ -40,12 +40,12 @@ public class StructrPaymentsModule implements StructrModule {
 		logger.info("Checking payment provider configuration..");
 
 		// check and read configuration..
-		checkString("paypal.mode",      Settings.getStringSetting("paypal", "mode").getValue(),      "paypal.mode not set, please set to either sandbox or live.");
-		checkString("paypal.username",  Settings.getStringSetting("paypal", "username").getValue(),  "paypal.username not set in structr.conf.");
-		checkString("paypal.password",  Settings.getStringSetting("paypal", "password").getValue(),  "paypal.password not set in structr.conf.");
-		checkString("paypal.signature", Settings.getStringSetting("paypal", "signature").getValue(), "paypal.signature not set in structr.conf.");
-		checkString("paypal.redirect",  Settings.getStringSetting("paypal", "redirect").getValue(),  "paypal.redirect not set in structr.conf.");
-		checkString("stripe.apikey",    Settings.getStringSetting("stripe", "apikey").getValue(),    "stripe.apikey not set in structr.conf.");
+		checkString("paypal.mode",      Settings.getOrCreateStringSetting("paypal", "mode").getValue(),      "paypal.mode not set, please set to either sandbox or live.");
+		checkString("paypal.username",  Settings.getOrCreateStringSetting("paypal", "username").getValue(),  "paypal.username not set in structr.conf.");
+		checkString("paypal.password",  Settings.getOrCreateStringSetting("paypal", "password").getValue(),  "paypal.password not set in structr.conf.");
+		checkString("paypal.signature", Settings.getOrCreateStringSetting("paypal", "signature").getValue(), "paypal.signature not set in structr.conf.");
+		checkString("paypal.redirect",  Settings.getOrCreateStringSetting("paypal", "redirect").getValue(),  "paypal.redirect not set in structr.conf.");
+		checkString("stripe.apikey",    Settings.getOrCreateStringSetting("stripe", "apikey").getValue(),    "stripe.apikey not set in structr.conf.");
 	}
 
 	@Override

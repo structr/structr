@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -47,12 +48,12 @@ public class ExecFunction extends Function<Object, Object> {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-			final String scriptKey = sources[0].toString();
-			final String script    = Settings.getStringSetting(scriptKey).getValue();
+			final String scriptKey              = sources[0].toString();
+			final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);
 
-			if (StringUtils.isNotBlank(script)) {
+			if (scriptSetting != null) {
 
-				final StringBuilder scriptBuilder = new StringBuilder(script);
+				final StringBuilder scriptBuilder = new StringBuilder(scriptSetting.getValue());
 				if (sources.length > 1) {
 
 					for (int i = 1; i < sources.length; i++) {

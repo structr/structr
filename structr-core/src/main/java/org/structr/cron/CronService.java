@@ -146,7 +146,7 @@ public class CronService extends Thread implements RunnableService {
 
 				if (StringUtils.isNotBlank(task)) {
 
-					String expression = Settings.getStringSetting(task, EXPRESSION_SUFFIX).getValue();
+					String expression = Settings.getOrCreateStringSetting(task, EXPRESSION_SUFFIX).getValue();
 					if(StringUtils.isNotBlank(expression)) {
 
 						CronEntry entry = CronEntry.parse(task, expression);

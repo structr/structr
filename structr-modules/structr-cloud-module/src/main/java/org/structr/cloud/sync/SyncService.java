@@ -87,19 +87,19 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		if (active) {
 
 			// initialize role and master
-			role          = SyncRole.valueOf(Settings.getStringSetting("sync", "role").getValue("master"));
-			allowedMaster = Settings.getStringSetting("sync", "master").getValue();
+			role          = SyncRole.valueOf(Settings.getOrCreateStringSetting("sync", "role").getValue("master"));
+			allowedMaster = Settings.getOrCreateStringSetting("sync", "master").getValue();
 
 			if (allowedMaster == null && SyncRole.slave.equals(role)) {
 				throw new IllegalStateException("no master address set for this slave, please set sync.master in structr.conf.");
 			}
 
-			final String minimum = Settings.getStringSetting("sync.minimum").getValue("1");
-			final String retry   = Settings.getStringSetting("sync.retry").getValue("60");
-			final String hosts   = Settings.getStringSetting("sync.hosts").getValue();
-			final String users   = Settings.getStringSetting("sync.users").getValue();
-			final String pwds    = Settings.getStringSetting("sync.passwords").getValue();
-			final String ports   = Settings.getStringSetting("sync.ports").getValue();
+			final String minimum = Settings.getOrCreateStringSetting("sync.minimum").getValue("1");
+			final String retry   = Settings.getOrCreateStringSetting("sync.retry").getValue("60");
+			final String hosts   = Settings.getOrCreateStringSetting("sync.hosts").getValue();
+			final String users   = Settings.getOrCreateStringSetting("sync.users").getValue();
+			final String pwds    = Settings.getOrCreateStringSetting("sync.passwords").getValue();
+			final String ports   = Settings.getOrCreateStringSetting("sync.ports").getValue();
 
 			// check only if we are a replication master
 			if (SyncRole.master.equals(role)) {

@@ -90,7 +90,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 	@Override
 	public StringBuilder getCommandLine() {
 
-		final String scriptNameFromConfig = Settings.getStringSetting("VideoFile", scriptName).getValue();
+		final String scriptNameFromConfig = Settings.getOrCreateStringSetting("VideoFile", scriptName).getValue();
 		if (StringUtils.isNotBlank(scriptNameFromConfig)) {
 
 			final StringBuilder commandLine = new StringBuilder(scriptNameFromConfig);
