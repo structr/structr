@@ -55,9 +55,9 @@ public class UnlicensedException extends RuntimeException {
 
 		buf.append("Call to unlicensed StructrScript function ");
 		buf.append(name);
-		buf.append("(). This function is only available in the Structr ");
+		buf.append("(). This function is only available in the ");
 		buf.append(edition);
-		buf.append(" Edition. Please contact licensing@structr.com with this error message for more information.");
+		buf.append(" Edition and higher. Please contact licensing@structr.com with this error message for more information.");
 
 		return buf.toString();
 	}
