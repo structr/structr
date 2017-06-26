@@ -499,7 +499,7 @@ public class StructrScriptable extends ScriptableObject {
 
 			// default: direct evaluation of object
 			try {
-				return wrap(context, this, null, obj.evaluate(actionContext.getSecurityContext(), name, null));
+				return wrap(context, this, null, obj.evaluate(actionContext, name, null));
 
 			} catch (FrameworkException fex) {
 				exception = fex;

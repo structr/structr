@@ -63,12 +63,16 @@ public class FunctionProperty<T> extends Property<T> {
 	@Override
 	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-
 		try {
 
 			if (obj != null && readFunction != null) {
 
-				return (T)Scripting.evaluate(new ActionContext(securityContext), obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
+				final ActionContext actionContext = new ActionContext(securityContext);
+
+				// don't ignore predicate 
+				actionContext.setPredicate(predicate);
+
+				return (T)Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
 
 			} else {
 

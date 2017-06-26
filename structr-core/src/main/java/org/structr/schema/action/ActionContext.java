@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -51,6 +52,7 @@ public class ActionContext {
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 
 	protected SecurityContext securityContext = null;
+	protected Predicate predicate             = null;
 	protected Map<String, String> headers     = new HashMap<>();
 	protected Map<String, Object> constants   = new HashMap<>();
 	protected Map<String, Object> tmpStore    = new HashMap<>();
@@ -224,7 +226,7 @@ public class ActionContext {
 
 				if (data instanceof GraphObject) {
 
-					value = ((GraphObject)data).evaluate(securityContext, key, defaultValue);
+					value = ((GraphObject)data).evaluate(this, key, defaultValue);
 
 				} else {
 
@@ -408,5 +410,13 @@ public class ActionContext {
 		}
 
 		return buf.toString();
+	}
+
+	public void setPredicate(final Predicate predicate) {
+		this.predicate = predicate;
+	}
+
+	public Predicate getPredicate() {
+		return predicate;
 	}
 }

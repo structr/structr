@@ -229,7 +229,7 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public Object evaluate(SecurityContext securityContext, String key, String defaultValue) throws FrameworkException {
+	public Object evaluate(ActionContext actionContext, String key, String defaultValue) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

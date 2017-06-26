@@ -1562,7 +1562,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public final Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
 
 		switch (key) {
 
@@ -1572,7 +1572,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			case "_path":
 				if (rawPathSegment != null) {
 
-					return new RelationshipFactory<>(securityContext).adapt(rawPathSegment);
+					return new RelationshipFactory<>(actionContext.getSecurityContext()).adapt(rawPathSegment);
 
 				} else {
 
@@ -1582,7 +1582,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			default:
 
 				// evaluate object value or return default
-				Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
+				Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
 
 				if (value != null) {
 					return value;

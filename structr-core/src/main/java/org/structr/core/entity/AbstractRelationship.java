@@ -700,7 +700,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	}
 
 	@Override
-	public final Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+	public final Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
 
 		switch (key) {
 
@@ -713,7 +713,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			default:
 
 				// evaluate object value or return default
-				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key));
+				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
 				if (value == null) {
 
 					return Function.numberOrString(defaultValue);

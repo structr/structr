@@ -422,7 +422,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
 		return null;
 	}
 

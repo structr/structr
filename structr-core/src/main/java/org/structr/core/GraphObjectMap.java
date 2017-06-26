@@ -252,7 +252,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Object evaluate(final SecurityContext securityContext, final String key, final String defaultValue) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
 
 		for (final PropertyKey propertyKey : properties.keySet()) {
 

@@ -18,6 +18,8 @@
  */
 package org.structr.web.basic;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.web.StructrUiTest;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -29,6 +31,8 @@ import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Queue;
@@ -50,16 +54,23 @@ import javax.servlet.http.Part;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang.StringUtils;
+import org.hamcrest.Matchers;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.TestOne;
+import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -163,6 +174,71 @@ public class UiScriptingTest extends StructrUiTest {
 
 	}
 
+	@Test
+	public void testSpecialHeaders() {
+
+		String uuid = null;
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			// create list of 100 folders
+			final List<Folder> folders = new LinkedList<>();
+			for (int i=0; i<100; i++) {
+
+				folders.add(createTestNode(Folder.class, new NodeAttribute<>(AbstractNode.name, "Folder" + i)));
+			}
+
+			// create parent folder
+			final Folder parent = createTestNode(Folder.class,
+				new NodeAttribute<>(AbstractNode.name, "Parent"),
+				new NodeAttribute<>(Folder.folders, folders)
+			);
+
+			uuid = parent.getUuid();
+
+			// create function property that returns folder children
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
+			schemaNode.setProperty(new StringProperty("_testFunction"), "Function(this.folders)");
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(User.name, "admin"),
+				new NodeAttribute<>(User.password, "admin"),
+				new NodeAttribute<>(User.isAdmin, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.accept("application/json; properties=id,type,name,folders,testFunction")
+				.header("Range", "folders=0-10;testFunction=0-10")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "admin" , "X-Password", "admin")
+			.expect()
+				.statusCode(200)
+				.body("result.folders",      Matchers.hasSize(10))
+				.body("result.testFunction", Matchers.hasSize(10))
+			.when()
+				.get("/Folder/" + uuid + "/ui");
+	}
+
+	// ----- private methods -----
 	private String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());
 		return writer.getEncoding();
