@@ -58,26 +58,28 @@ var _Files = {
 
 		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
-		searchField = $('.search', main);
-		searchField.focus();
+		if (searchField && searchField.length > 0) {
+			
+			searchField.focus();
 
-		searchField.keyup(function(e) {
+			searchField.keyup(function(e) {
 
-			var searchString = $(this).val();
-			if (searchString && searchString.length && e.keyCode === 13) {
+				var searchString = $(this).val();
+				if (searchString && searchString.length && e.keyCode === 13) {
 
-				$('.clearSearchIcon').show().on('click', function() {
+					$('.clearSearchIcon').show().on('click', function() {
+						_Files.clearSearch();
+					});
+
+					_Files.fulltextSearch(searchString);
+
+				} else if (e.keyCode === 27 || searchString === '') {
 					_Files.clearSearch();
-				});
+				}
 
-				_Files.fulltextSearch(searchString);
-
-			} else if (e.keyCode === 27 || searchString === '') {
-				_Files.clearSearch();
-			}
-
-		});
-
+			});
+		}
+		
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToPresentModules();
 
@@ -208,7 +210,7 @@ var _Files = {
 
 				if (lastOpenFolder === 'favorites') {
 
-					fileTree.jstree('select_node', 'favorites');
+					$('#favorites_anchor').click();
 
 				} else if (currentWorkingDir) {
 
@@ -216,8 +218,7 @@ var _Files = {
 
 				} else {
 
-					fileTree.jstree('select_node', 'root');
-
+					$('#root_anchor').click();
 				}
 
 			});
