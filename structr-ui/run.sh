@@ -33,6 +33,14 @@ if [ -f $PIDFILE ]; then
 	exit 0
 fi
 
+if [ -f $SERVER_LOG ]; then
+        NOW=$(date +%Y%m%d-%H%M%S)
+        SERVER_LOG_BACKUP=$SERVER_LOG-$NOW
+	echo "Rotating existing logfile $SERVER_LOG to $SERVER_LOG_BACKUP"
+        mv $SERVER_LOG $SERVER_LOG_BACKUP
+        touch $SERVER_LOG
+fi
+
 STRUCTR_CONF=`find $BASE_DIR -name structr.conf`
 echo "Starting Structr instance '$NAME' with config file $STRUCTR_CONF"
 
