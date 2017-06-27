@@ -467,7 +467,7 @@ public abstract class Function<S, T> extends Hint {
 		}.getType());
 	}
 
-	protected void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
+	protected static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
 
 		if (depth > 20) {
 			return;
@@ -475,9 +475,9 @@ public abstract class Function<S, T> extends Hint {
 
 		for (final Map.Entry<String, Object> entry : source.entrySet()) {
 
-			ConfigurationProvider provider = StructrApp.getConfiguration();
-			final String key = entry.getKey();
-			final Object value = entry.getValue();
+			final ConfigurationProvider provider = StructrApp.getConfiguration();
+			final String key                     = entry.getKey();
+			final Object value                   = entry.getValue();
 
 			if (value instanceof Map) {
 
@@ -515,6 +515,15 @@ public abstract class Function<S, T> extends Hint {
 				destination.put(value != null ? provider.getPropertyKeyForJSONName(value.getClass(), key) : new StringProperty(key), value);
 			}
 		}
+	}
+
+	public static GraphObjectMap toGraphObjectMap(final Map<String, Object> src) {
+
+		final GraphObjectMap dest = new GraphObjectMap();
+
+		recursivelyConvertMapToGraphObjectMap(dest, src, 0);
+
+		return dest;
 	}
 
 	public static Object numberOrString(final String value) {

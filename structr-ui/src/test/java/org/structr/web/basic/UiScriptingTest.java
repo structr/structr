@@ -71,9 +71,11 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.TestOne;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.html.Div;
 
 /**
  *
@@ -216,6 +218,7 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
+		RestAssured.basePath = "/structr/rest";
 		RestAssured
 
 			.given()
@@ -236,6 +239,57 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("result.testFunction", Matchers.hasSize(10))
 			.when()
 				.get("/Folder/" + uuid + "/ui");
+	}
+
+	@Test
+	public void testFunctionQueryWithJavaScriptAndRepeater() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createSimplePage(securityContext, "test");
+			final Div div         = (Div)page.getElementsByTagName("div").item(0);
+			final Content content = (Content)div.getFirstChild();
+
+			// setup repeater
+			content.setProperty(DOMNode.functionQuery, "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; return arr; }");
+			content.setProperty(DOMNode.dataKey, "test");
+			content.setProperty(Content.content, "${test.name}");
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(User.name, "admin"),
+				new NodeAttribute<>(User.password, "admin"),
+				new NodeAttribute<>(User.isAdmin, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("html.head.title", Matchers.equalTo("Test"))
+				.body("html.body.h1", Matchers.equalTo("Test"))
+				.body("html.body.div", Matchers.equalTo("test0test1test2test3test4test5test6test7test8test9"))
+			.when()
+			.get("/html/test");
 	}
 
 	// ----- private methods -----

@@ -98,9 +98,7 @@ public class IncludeFunction extends Function<Object, Object> {
 						return "Ambiguous node name \"" + ((String)sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")";
 
 					}
-
 				}
-
 			}
 
 			if (node != null) {

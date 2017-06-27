@@ -32,7 +32,7 @@ import org.structr.web.common.RenderContext;
  *
  *
  */
-public class IdRequestParameterGraphDataSource implements GraphDataSource<List<GraphObject>> {
+public class IdRequestParameterGraphDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	private String parameterName = null;
 
@@ -41,7 +41,7 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<List<G
 	}
 
 	@Override
-	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		if (securityContext != null && securityContext.getRequest() != null) {

@@ -60,12 +60,12 @@ import org.structr.web.entity.dom.DOMNode;
  * encapsulated and re-used here
  *
  */
-public class RestDataSource implements GraphDataSource<List<GraphObject>> {
+public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(RestDataSource.class.getName());
 
 	@Override
-	public List<GraphObject> getData(final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
 
 		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, DOMNode.restQuery);
 		if (restQuery == null || restQuery.isEmpty()) {

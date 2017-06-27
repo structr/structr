@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
+import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.Filter;
 import org.structr.common.Permission;
@@ -123,7 +124,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC     = "Document nodes cannot be adopted by another document.";
 	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
-	private static final List<GraphDataSource<List<GraphObject>>> listSources = new LinkedList<>();
+	private static final List<GraphDataSource<Iterable<GraphObject>>> listSources = new LinkedList<>();
 	private Page cachedOwnerDocument;
 
 	static {
@@ -335,7 +336,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 				final GraphObject currentDataNode = renderContext.getDataObject();
 
 				// fetch (optional) list of external data elements
-				final List<GraphObject> listData = checkListSources(securityContext, renderContext);
+				final Iterable<GraphObject> listData = checkListSources(securityContext, renderContext);
 
 				final PropertyKey propertyKey;
 
@@ -347,7 +348,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				} else {
 
-					if (listData.isEmpty() && currentDataNode != null) {
+					if (Iterables.isEmpty(listData) && currentDataNode != null) {
 
 						// There are two alternative ways of retrieving sub elements:
 						// First try to get generic properties,
@@ -870,31 +871,32 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 	}
 
-	protected void renderNodeList(SecurityContext securityContext, RenderContext renderContext, int depth, String dataKey) throws FrameworkException {
+	protected void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException {
 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
-			for (GraphObject dataObject : listSource) {
+
+			for (final GraphObject dataObject : listSource) {
 
 				// make current data object available in renderContext
 				renderContext.putDataObject(dataKey, dataObject);
-
 				renderContent(renderContext, depth + 1);
 
 			}
+
 			renderContext.clearDataObject(dataKey);
 		}
 	}
 
-	protected List<GraphObject> checkListSources(final SecurityContext securityContext, final RenderContext renderContext) {
+	protected Iterable<GraphObject> checkListSources(final SecurityContext securityContext, final RenderContext renderContext) {
 
 		// try registered data sources first
-		for (GraphDataSource<List<GraphObject>> source : listSources) {
+		for (GraphDataSource<Iterable<GraphObject>> source : listSources) {
 
 			try {
 
-				List<GraphObject> graphData = source.getData(renderContext, this);
-				if (graphData != null && !graphData.isEmpty()) {
+				Iterable<GraphObject> graphData = source.getData(renderContext, this);
+				if (graphData != null && !Iterables.isEmpty(graphData)) {
 					return graphData;
 				}
 

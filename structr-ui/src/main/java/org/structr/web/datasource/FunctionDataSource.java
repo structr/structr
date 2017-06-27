@@ -18,13 +18,15 @@
  */
 package org.structr.web.datasource;
 
-import java.util.List;
+import java.util.Map;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.function.Functions;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.Function;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -33,10 +35,10 @@ import org.structr.web.entity.dom.DOMNode;
  *
  *
  */
-public class FunctionDataSource implements GraphDataSource<List<GraphObject>> {
+public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	@Override
-	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
 		final String functionQuery = referenceNode.getProperty(DOMNode.functionQuery);
 		if (functionQuery == null || functionQuery.isEmpty()) {
@@ -45,10 +47,10 @@ public class FunctionDataSource implements GraphDataSource<List<GraphObject>> {
 
 		try {
 
-			final Object result = Functions.evaluate(renderContext, referenceNode, functionQuery);
-			if (result instanceof List) {
+			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery + "}", "function query");
+			if (result instanceof Iterable) {
 
-				return (List<GraphObject>)result;
+				return map((Iterable)result);
 			}
 
 		} catch (UnlicensedException ex) {
@@ -56,5 +58,25 @@ public class FunctionDataSource implements GraphDataSource<List<GraphObject>> {
 		}
 
 		return null;
+	}
+
+	// ----- private methods -----
+	private Iterable<GraphObject> map(final Iterable<Object> src) {
+
+		return Iterables.map((Object t) -> {
+
+			if (t instanceof GraphObject) {
+				return (GraphObject)t;
+			}
+
+			if (t instanceof Map) {
+
+				return Function.toGraphObjectMap((Map)t);
+			}
+
+			throw new ClassCastException(t.getClass() + " cannot be cast to " + GraphObject.class.getName());
+
+		}, src);
+
 	}
 }

@@ -41,12 +41,12 @@ import org.w3c.dom.NodeList;
  *
  *
  */
-public class XPathGraphDataSource implements GraphDataSource<List<GraphObject>> {
+public class XPathGraphDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(XPathGraphDataSource.class.getName());
 
 	@Override
-	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
 		final String xpathQuery = referenceNode.getProperty(DOMNode.xpathQuery);
 

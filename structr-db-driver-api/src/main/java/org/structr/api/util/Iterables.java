@@ -76,6 +76,10 @@ public class Iterables {
 		return c;
 	}
 
+	public static boolean isEmpty(final Iterable<?> iterable) {
+		return !iterable.iterator().hasNext();
+	}
+
 	public static <X> Iterable<X> filter(Predicate<? super X> specification, Iterable<X> i) {
 		return new FilterIterable<>(i, specification);
 	}

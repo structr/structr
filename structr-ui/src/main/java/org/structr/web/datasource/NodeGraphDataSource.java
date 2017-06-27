@@ -31,10 +31,10 @@ import org.structr.web.entity.relation.RenderNode;
  *
  *
  */
-public class NodeGraphDataSource implements GraphDataSource<List<GraphObject>> {
+public class NodeGraphDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	@Override
-	public List<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
 
 		List<GraphObject> data = new LinkedList<>();
 
