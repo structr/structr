@@ -948,7 +948,7 @@ var _Elements = {
 
 			if (_Elements.suggestedElements[entity.tag]) {
 				elements.push({
-					name: 'Suggested element',
+					name: 'Suggested HTML element',
 					elements: _Elements.suggestedElements[entity.tag],
 					forcedClickHandler: handleInsertHTMLAction
 				});

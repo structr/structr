@@ -608,6 +608,9 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrImage.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_DuplicateFinder.reactToDeleteNotification(this.id);
+	}
 };
 
 StructrImage.prototype.append = function() {
