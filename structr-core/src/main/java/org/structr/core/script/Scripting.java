@@ -19,9 +19,11 @@
 package org.structr.core.script;
 
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.script.Bindings;
@@ -29,9 +31,11 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.Undefined;
 import org.renjin.script.RenjinScriptEngine;
@@ -52,8 +56,9 @@ import org.structr.schema.parser.DatePropertyParser;
  */
 public class Scripting {
 
-	private static final Logger logger                  = LoggerFactory.getLogger(Scripting.class.getName());
-	private static final Pattern ScriptEngineExpression = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
+	private static final Logger logger                       = LoggerFactory.getLogger(Scripting.class.getName());
+	private static final Pattern ScriptEngineExpression      = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
+	private static final Map<String, Script> compiledScripts = Collections.synchronizedMap(new LRUMap<>(10000));
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 
@@ -230,19 +235,16 @@ public class Scripting {
 
 		try {
 
-			// Set version to JavaScript1.2 so that we get object-literal style
-			// printing instead of "[object Object]"
-			scriptingContext.setLanguageVersion(Context.VERSION_1_2);
+			// enable some optimizations..
+			scriptingContext.setLanguageVersion(Context.VERSION_1_8);
+			scriptingContext.setOptimizationLevel(9);
+			scriptingContext.setInstructionObserverThreshold(0);
+			scriptingContext.setGenerateObserverCount(false);
+			scriptingContext.setGeneratingDebug(false);
 
-			// Initialize the standard objects (Object, Function, etc.)
-			// This must be done before scripts can be executed.
-			Scriptable scope = scriptingContext.initStandardObjects();
-
-			// set optimization level to interpreter mode to avoid
-			// class loading / PermGen space bug in Rhino
-			//scriptingContext.setOptimizationLevel(-1);
-
+			final Scriptable scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
+
 			scriptable.setParentScope(scope);
 
 			// register Structr scriptable
@@ -251,9 +253,11 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			final String sourceLocation = methodName + " [" + entityDescription + "], line ";
+			final String sourceLocation     = methodName + " [" + entityDescription + "], line ";
+			final String embeddedSourceCode = embedInFunction(actionContext, script);
+			final Script compiledScript     = compileOrGetCached(scriptingContext, embeddedSourceCode, sourceLocation, 1);
 
-			Object extractedValue = scriptingContext.evaluateString(scope, embedInFunction(actionContext, script), sourceLocation, 1, null);
+			Object extractedValue = compiledScript.exec(scriptingContext, scope);
 
 			if (scriptable.hasException()) {
 				throw scriptable.getException();
@@ -303,6 +307,21 @@ public class Scripting {
 		buf.append("\n\nvar _structrMainResult = main();");
 
 		return buf.toString();
+	}
+
+	private static Script compileOrGetCached(final Context context, final String source, final String sourceName, final int lineNo) {
+
+		synchronized (compiledScripts) {
+
+			Script script = compiledScripts.get(source);
+			if (script == null) {
+
+				script = context.compileString(source, sourceName, lineNo, null);
+				compiledScripts.put(source, script);
+			}
+
+			return script;
+		}
 	}
 
 	// this is only public to be testable :(
@@ -389,7 +408,6 @@ public class Scripting {
 			return value.toString();
 
 		}
-
 	}
 
 	// ----- nested classes -----
