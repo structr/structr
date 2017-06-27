@@ -50,7 +50,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery + "}", "function query");
 			if (result instanceof Iterable) {
 
-				return map((Iterable)result);
+				return FunctionDataSource.map((Iterable)result);
 			}
 
 		} catch (UnlicensedException ex) {
@@ -60,8 +60,8 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 		return null;
 	}
 
-	// ----- private methods -----
-	private Iterable<GraphObject> map(final Iterable<Object> src) {
+	// ----- public static methods -----
+	public static Iterable<GraphObject> map(final Iterable<Object> src) {
 
 		return Iterables.map((Object t) -> {
 

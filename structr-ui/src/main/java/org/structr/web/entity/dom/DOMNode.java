@@ -871,7 +871,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 	}
 
-	protected void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException {
+	public void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException {
 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {

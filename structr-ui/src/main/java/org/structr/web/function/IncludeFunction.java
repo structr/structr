@@ -25,12 +25,14 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -53,7 +55,7 @@ public class IncludeFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
+			if (!(arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
 
 				return null;
 			}
@@ -103,7 +105,18 @@ public class IncludeFunction extends Function<Object, Object> {
 
 			if (node != null) {
 
-				node.render(innerCtx, 0);
+				if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
+
+					final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);
+					final String dataKey                 = (String)sources[2];
+
+					innerCtx.setListSource(iterable);
+					node.renderNodeList(securityContext, innerCtx, 0, dataKey);
+
+				} else {
+
+					node.render(innerCtx, 0);
+				}
 
 			} else {
 
