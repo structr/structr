@@ -242,6 +242,16 @@ var _Elements = {
 			elements: ['u', 'ul', '|', 'var', 'video', '|', 'wbr']
 		}
 	],
+	suggestedElements: {
+		"table" : [ "thead", "tbody", "tr", "tfoot" ],
+		"thead" : [ "tr" ],
+		"tbody" : [ "tr" ],
+		"tfoot" : [ "tr" ],
+		"tr" : ["th", "td" ],
+		"ul" : [ "li" ],
+		"ol" : [ "li" ],
+		"dl" : [ "dt", "dd" ]
+	},
 	reloadPalette: function() {
 
 		paletteSlideout.find(':not(.compTab)').remove();
@@ -935,6 +945,14 @@ var _Elements = {
 				elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
 				forcedClickHandler: handleInsertHTMLAction
 			});
+
+			if (_Elements.suggestedElements[entity.tag]) {
+				elements.push({
+					name: 'Suggested element',
+					elements: _Elements.suggestedElements[entity.tag],
+					forcedClickHandler: handleInsertHTMLAction
+				});
+			}
 		}
 
 		if (entity.type !== 'Content' && entity.type !== 'Page') {
