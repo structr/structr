@@ -296,75 +296,6 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testIncludeWithRepeaterInStructrScript() {
-
-		try (final Tx tx = app.tx()) {
-
-			Page.createNewPage(securityContext, "dummy1");
-			Page.createNewPage(securityContext, "dummy2");
-			Page.createNewPage(securityContext, "dummy3");
-			Page.createNewPage(securityContext, "dummy4");
-
-			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div)page.getElementsByTagName("div").item(0);
-			final Content content = (Content)div.getFirstChild();
-
-			// setup scripting repeater
-			content.setProperty(Content.content, "${include('item', sort(find('Page'), 'name'), 'test')}");
-			content.setProperty(Content.contentType, "text/html");
-
-			// setup shared component with name "table" to include
-			final ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
-
-			final Div item    = (Div)shadowDoc.createElement("div");
-			final Content txt = (Content)shadowDoc.createTextNode("${test.name}");
-
-			item.setProperty(Table.name, "item");
-			item.appendChild(txt);
-
-			// create admin user
-			createTestNode(User.class,
-				new NodeAttribute<>(User.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		RestAssured.basePath = "/";
-
-		// test successful basic auth
-		RestAssured
-			.given()
-				.headers("X-User", "admin" , "X-Password", "admin")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
-				.statusCode(200)
-				.body("html.head.title",      Matchers.equalTo("Test"))
-				.body("html.body.h1",         Matchers.equalTo("Test"))
-				.body("html.body.div.div[0]", Matchers.equalTo("__ShadowDocument__"))
-				.body("html.body.div.div[1]", Matchers.equalTo("dummy1"))
-				.body("html.body.div.div[2]", Matchers.equalTo("dummy2"))
-				.body("html.body.div.div[3]", Matchers.equalTo("dummy3"))
-				.body("html.body.div.div[4]", Matchers.equalTo("dummy4"))
-				.body("html.body.div.div[5]", Matchers.equalTo("test"))
-			.when()
-			.get("/html/test");
-	}
-
-	@Test
 	public void testIncludeWithRepeaterInJavaScript() {
 
 		try (final Tx tx = app.tx()) {
@@ -430,6 +361,62 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.body.div.div[9]", Matchers.equalTo("test9"))
 			.when()
 			.get("/html/test");
+	}
+
+	@Test
+	public void testRestQueryRepeater() {
+
+		String uuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createSimplePage(securityContext, "test");
+			final Div div         = (Div)page.getElementsByTagName("div").item(0);
+			final Content content = (Content)div.getFirstChild();
+
+			// setup scripting repeater
+			content.setProperty(Content.restQuery, "/Page/${current.id}");
+			content.setProperty(Content.dataKey, "test");
+			content.setProperty(Content.content, "${test.id}");
+
+			// store UUID for later use
+			uuid = page.getUuid();
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(User.name, "admin"),
+				new NodeAttribute<>(User.password, "admin"),
+				new NodeAttribute<>(User.isAdmin, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("html.head.title", Matchers.equalTo("Test"))
+				.body("html.body.h1",    Matchers.equalTo("Test"))
+				.body("html.body.div",   Matchers.equalTo(uuid))
+			.when()
+			.get("/html/test/" + uuid);
 	}
 
 	// ----- private methods -----
