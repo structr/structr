@@ -73,7 +73,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
-	private static final String APPEND_UUID_ON_REDIRECT            = "appendUuidOnRedirect";
+	private static final String APPEND_UUID_ON_REDIRECT_PARAMETER  = "appendUuidOnRedirect";
+	private static final String UPLOAD_FOLDER_PATH_PARAMETER       = "uploadFolderPath";
 	private static final int MEGABYTE                              = 1024 * 1024;
 	private static final int MEMORY_THRESHOLD                      = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
@@ -142,6 +143,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 		SecurityContext securityContext = null;
 		String redirectUrl              = null;
 		boolean appendUuidOnRedirect    = false;
+		String path                     = null;
 
 		// isolate request authentication in a transaction
 		try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -224,10 +226,14 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 						redirectUrl = item.getString();
 
-					} else if (APPEND_UUID_ON_REDIRECT.equals(fieldName)) {
+					} else if (APPEND_UUID_ON_REDIRECT_PARAMETER.equals(fieldName)) {
 
 						appendUuidOnRedirect = "true".equalsIgnoreCase(item.getString());
 
+					} else if (UPLOAD_FOLDER_PATH_PARAMETER.equals(fieldName)) {
+
+						path = item.getString();
+						
 					} else {
 
 						params.put(item.getFieldName(), item.getString());
@@ -251,7 +257,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							cls = SchemaHelper.getEntityClassForRawType(type);
 
-						} else {
+						}
+						
+						if (cls == null) {
 
 							if (isImage) {
 
@@ -269,6 +277,10 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 								cls = org.structr.dynamic.File.class;
 							}
+						}
+						
+						if (cls != null) {
+							type = cls.getSimpleName();
 						}
 
 						final String name = item.getName().replaceAll("\\\\", "/");
@@ -288,18 +300,29 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 								changedProperties.put(AbstractNode.name, PathHelper.getName(name));
 								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+								
+								// Update type as it could have changed
+								changedProperties.put(AbstractNode.type, type);
 
+								Folder uploadFolder = null;
 								final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
-								if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
+								
+								// If a path attribute was sent, create all folders on the fly
+								if (path != null) {
+									
+									uploadFolder = FileHelper.createFolderPath(securityContext, path);
+								
+								} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
 
-									final Folder defaultUploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+									uploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
 
-									// can only happen if the configuration value is invalid or maps to the root folder
-									if (defaultUploadFolder != null) {
+								}
+								
+// can only happen if the configuration value is invalid or maps to the root folder
+								if (uploadFolder != null) {
 
-										changedProperties.put(FileBase.hasParent, true);
-										changedProperties.put(FileBase.parent, defaultUploadFolder);
-									}
+									changedProperties.put(FileBase.hasParent, true);
+									changedProperties.put(FileBase.parent, uploadFolder);
 								}
 
 								newFile.setProperties(securityContext, changedProperties);
