@@ -37,16 +37,17 @@ import org.structr.core.property.StringProperty;
 public class Localization extends AbstractNode {
 
 	public static final Property<String>  localizedName = new StringProperty("localizedName").cmis().indexed();
+        public static final Property<String>  description   = new StringProperty("description");
 	public static final Property<String>  domain        = new StringProperty("domain").cmis().indexed();
 	public static final Property<String>  locale        = new StringProperty("locale").notNull().cmis().indexed();
 	public static final Property<Boolean> imported      = new BooleanProperty("imported").cmis().indexed();
 
 	public static final View defaultView = new View(Localization.class, PropertyView.Public,
-		domain, name, locale, localizedName, imported
+		domain, name, locale, localizedName, description, imported
 	);
 
 	public static final View uiView = new View(Localization.class, PropertyView.Ui,
-		domain, name, locale, localizedName, imported
+		domain, name, locale, localizedName, description, imported
 	);
 
 	@Override

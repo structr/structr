@@ -72,6 +72,7 @@ var _Localization = {
 							'<th>ID</th>' +
 							'<th>Locale</th>' +
 							'<th>Localized Value</th>' +
+							'<th>Description</th>' +
 							'<th>visibleToPublicUsers</th>' +
 							'<th>visibleToAuthenticatedUsers</th>' +
 							'<th>Imported</th>' +
@@ -335,6 +336,7 @@ var _Localization = {
 				'<td><span class="placeholderText"> - not saved yet - </span></td>' +
 				'<td><input class="___locale"></td>' +
 				'<td><textarea class="___localizedName" cols="40"></textarea></td>' +
+                                '<td><textarea class="___description" cols="40"></textarea></td>' +
 				'<td><input class="___visibleToPublicUsers" type="checkbox" checked></td>' +
 				'<td><input class="___visibleToAuthenticatedUsers" type="checkbox" checked></td>' +
 				'<td><input class="___imported" type="checkbox"></td>' +
@@ -370,7 +372,14 @@ var _Localization = {
 				_Localization.textfieldChangeAction($(event.target), localization.id, 'localizedName');
 			});
 
-		$('.___visibleToPublicUsers', $row)
+		$('.___description', $row)
+			.val(localization.description)
+			.data('oldValue', localization.description)
+			.on('blur', function (event) {
+				_Localization.textfieldChangeAction($(event.target), localization.id, 'description');
+			});
+
+                $('.___visibleToPublicUsers', $row)
 			.prop('checked', (localization.visibleToPublicUsers === true))
 			.attr('disabled', null)
 			.data('oldValue', localization.visibleToPublicUsers)
@@ -469,6 +478,7 @@ var _Localization = {
 					name: _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
 					locale: $('.___locale', $tr).val().trim(),
 					localizedName: $('.___localizedName', $tr).val(),
+                                        description: $('.___description', $tr).val(),
 					visibleToPublicUsers: $('.___visibleToPublicUsers', $tr).prop('checked'),
 					visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked'),
 					imported: $('.___imported', $tr).prop('checked')
