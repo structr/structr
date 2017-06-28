@@ -236,7 +236,8 @@ public class Scripting {
 		try {
 
 			// enable some optimizations..
-			scriptingContext.setLanguageVersion(Context.VERSION_1_8);
+			//scriptingContext.setLanguageVersion(Context.VERSION_1_8);
+			scriptingContext.setLanguageVersion(Context.VERSION_1_2);
 			scriptingContext.setOptimizationLevel(9);
 			scriptingContext.setInstructionObserverThreshold(0);
 			scriptingContext.setGenerateObserverCount(false);
