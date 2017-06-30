@@ -1776,6 +1776,40 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test37SharedComponentTemplate() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createSimplePage(securityContext, "page1");
+			final Div div   = (Div)page.getElementsByTagName("div").item(0);
+
+			try {
+
+				final DOMNode newNode = (DOMNode) page.createTextNode("#template");
+				newNode.unlockSystemPropertiesOnce();
+				newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
+
+				// append template
+				div.appendChild(newNode);
+
+				// create component from div
+				createComponent(div);
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+	}
 
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {

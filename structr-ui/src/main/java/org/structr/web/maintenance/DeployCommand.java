@@ -845,7 +845,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (node instanceof Template) {
 
 			// mark this template as being shared
-			putIf(config, "shared", Boolean.toString(node.isSharedComponent()));
+			putIf(config, "shared", Boolean.toString(node.isSharedComponent() && node.getProperty(DOMNode.parent) == null));
 		}
 
 		if (node instanceof Page) {
