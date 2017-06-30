@@ -1941,6 +1941,16 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return cachedPagePath;
 	}
 
+	public void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
+
+		final PropertyMap map = new PropertyMap();
+
+		map.put(NodeInterface.visibleToPublicUsers, publicUsers);
+		map.put(NodeInterface.visibleToAuthenticatedUsers, authenticatedUsers);
+
+		setProperties(securityContext, map);
+	}
+
 	// ----- private methods -----
 	private void getMostUsedElementNames(final Map<String, Integer> mostUsedElements, final DOMNode parent, final int depth) {
 

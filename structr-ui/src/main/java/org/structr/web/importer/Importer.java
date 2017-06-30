@@ -793,24 +793,26 @@ public class Importer {
 					rootElement = newNode;
 				}
 
-				newNode.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
-				newNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
-
+				// set linkable
 				if (res != null) {
-
 					newNode.setProperty(LinkSource.linkable, res);
-
 				}
+
+
+				final PropertyMap newNodeProperties = new PropertyMap();
+
+				newNodeProperties.put(AbstractNode.visibleToPublicUsers, publicVisible);
+				newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
 
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
 
-					newNode.setProperty(DOMElement._id, id);
+					newNodeProperties.put(DOMElement._id, id);
 				}
 
 				if (StringUtils.isNotBlank(classString.toString())) {
 
-					newNode.setProperty(DOMElement._class, StringUtils.trim(classString.toString()));
+					newNodeProperties.put(DOMElement._class, StringUtils.trim(classString.toString()));
 				}
 
 				for (Attribute nodeAttr : node.attributes()) {
@@ -840,11 +842,11 @@ public class Importer {
 										if (converter != null) {
 
 											final Object convertedValue = converter.convert(value);
-											newNode.setProperty(actualKey, convertedValue);
+											newNodeProperties.put(actualKey, convertedValue);
 
 										} else {
 
-											newNode.setProperty(actualKey, value);
+											newNodeProperties.put(actualKey, value);
 										}
 
 									} else {
@@ -861,10 +863,10 @@ public class Importer {
 									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
 									if (value != null && inputConverter != null) {
 
-										newNode.setProperty(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
+										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
 									} else {
 
-										newNode.setProperty(propertyKey, value);
+										newNodeProperties.put(propertyKey, value);
 									}
 								}
 
@@ -874,7 +876,7 @@ public class Importer {
 								final PropertyKey propertyKey = new StringProperty(key);
 								if (value != null) {
 
-									newNode.setProperty(propertyKey, value);
+									newNodeProperties.put(propertyKey, value);
 								}
 							}
 
@@ -888,21 +890,24 @@ public class Importer {
 
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive && !isDeployment) {
 
-								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
+								newNodeProperties.put(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
 
 							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib && !isDeployment) {
 
-								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
+								newNodeProperties.put(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
 
 							} else {
 
-								newNode.setProperty(new StringProperty(PropertyView.Html.concat(key)), value);
+								newNodeProperties.put(new StringProperty(PropertyView.Html.concat(key)), value);
 							}
 
 						}
 					}
 
 				}
+
+				// bulk set properties on new node
+				newNode.setProperties(securityContext, newNodeProperties);
 
 				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
 
@@ -1344,8 +1349,7 @@ public class Importer {
 
 		final Content contentNode = (Content)page.createTextNode("");
 
-		contentNode.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
-		contentNode.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		contentNode.setVisibility(publicVisible, authVisible);
 
 		if(parent != null){
 
@@ -1368,27 +1372,23 @@ public class Importer {
 			sb.append(nodeToString(c));
 		}
 
-		return createNewTemplateNode(parent, sb.toString());
+		return createNewTemplateNode(parent, sb.toString(), null);
 	}
 
 	private Template createNewHTMLTemplateNodeForUnsupportedTag(final DOMNode parent, final Node nodeOfUnsupportedTag) throws FrameworkException {
-
-		final Template htmlTemplate = createNewTemplateNode(parent, nodeToString(nodeOfUnsupportedTag));
-
-		htmlTemplate.setProperty(Template.contentType, "text/html");
-
-		return htmlTemplate;
-
+		return createNewTemplateNode(parent, nodeToString(nodeOfUnsupportedTag), "text/html");
 	}
 
-	private Template createNewTemplateNode(final DOMNode parent, final String content) throws FrameworkException {
+	private Template createNewTemplateNode(final DOMNode parent, final String content, final String contentType) throws FrameworkException {
 
-		Template newTemplate = StructrApp.getInstance(securityContext).create(Template.class);
+		final PropertyMap map = new PropertyMap();
 
-		newTemplate.setProperty(AbstractNode.visibleToPublicUsers, publicVisible);
-		newTemplate.setProperty(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		map.put(AbstractNode.visibleToPublicUsers, publicVisible);
+		map.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
+		map.put(Content.contentType, contentType);
+		map.put(Content.content, content);
 
-		newTemplate.setProperty(new StringProperty("content"), content);
+		final Template newTemplate = StructrApp.getInstance(securityContext).create(Template.class, map);
 
 		if (parent != null) {
 			parent.appendChild(newTemplate);
