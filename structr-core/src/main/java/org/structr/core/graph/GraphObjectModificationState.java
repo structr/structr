@@ -58,7 +58,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
-	private final boolean changeLogEnabled       = Settings.ChangelogEnabled.getValue();
 	private final PropertyMap modifiedProperties = new PropertyMap();
 	private final PropertyMap removedProperties  = new PropertyMap();
 	private final PropertyMap newProperties      = new PropertyMap();
@@ -96,7 +95,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		// store uuid for later use
 		this.uuid = object.getUuid();
 
-		if (changeLogEnabled) {
+		if (Settings.ChangelogEnabled.getValue()) {
 
 			// create on demand
 			changeLog = new StringBuilder();
@@ -110,7 +109,12 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public String getChangeLog() {
-		return changeLog.toString();
+
+		if (changeLog != null) {
+			return changeLog.toString();
+		}
+
+		return null;
 	}
 
 	public void propagatedModification() {
@@ -441,7 +445,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	public void updateChangeLog(final Principal user, final Verb verb, final PropertyKey key, final Object previousValue, final Object newValue) {
 
-		if (changeLogEnabled && changeLog != null && key != null) {
+		if (Settings.ChangelogEnabled.getValue() && changeLog != null && key != null) {
 
 			final String name = key.jsonName();
 
@@ -465,7 +469,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String object) {
 
-		if (changeLogEnabled && changeLog != null) {
+		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
 
 			final JsonObject obj = new JsonObject();
 
@@ -483,7 +487,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	public void updateChangeLog(final Principal user, final Verb verb, final String object) {
 
-		if (changeLogEnabled && changeLog != null) {
+		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
 
 			final JsonObject obj = new JsonObject();
 
