@@ -51,7 +51,6 @@ public class ModificationQueue {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModificationQueue.class.getName());
 
-	private final boolean auditLogEnabled                                                   = Settings.ChangelogEnabled.getValue();
 	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
 	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
@@ -150,7 +149,7 @@ public class ModificationQueue {
 
 	public void updateAuditLog() {
 
-		if (auditLogEnabled && !modificationEvents.isEmpty()) {
+		if (Settings.ChangelogEnabled.getValue() && !modificationEvents.isEmpty()) {
 
 			for (final ModificationEvent ev: modificationEvents) {
 
@@ -188,7 +187,7 @@ public class ModificationQueue {
 
 		getState(node).create();
 
-		if (auditLogEnabled) {
+		if (Settings.ChangelogEnabled.getValue()) {
 
 			// record deletion of objects in audit log of the creating user, if enabled
 			if (user != null) {
@@ -262,7 +261,7 @@ public class ModificationQueue {
 
 		getState(node).delete(false);
 
-		if (auditLogEnabled) {
+		if (Settings.ChangelogEnabled.getValue()) {
 
 			// record deletion of objects in audit log of the delting user, if enabled
 			final SecurityContext securityContext = node.getSecurityContext();

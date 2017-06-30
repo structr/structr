@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -209,6 +210,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.warn("", t);
 			}
 		}
+
+		// backup previous value of change log setting
+		// temporary disable creation of change log
+		final boolean changeLogEnabled = Settings.ChangelogEnabled.getValue();
+		Settings.ChangelogEnabled.setValue(false);
 
 		// read grants.json
 		final Path grantsConf = source.resolve("security/grants.json");
@@ -381,6 +387,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.warn("", t);
 			}
 		}
+
+		// restore saved value
+		Settings.ChangelogEnabled.setValue(changeLogEnabled);
 
 		info("Import from {} done.", source.toString());
 	}
