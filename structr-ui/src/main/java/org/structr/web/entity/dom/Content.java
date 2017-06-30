@@ -18,7 +18,11 @@
  */
 package org.structr.web.entity.dom;
 
-import com.github.rjeschke.txtmark.Processor;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.profiles.pegdown.Extensions;
+import com.vladsch.flexmark.profiles.pegdown.PegdownOptionsAdapter;
+import com.vladsch.flexmark.util.options.DataHolder;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -80,6 +84,7 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 	private static final ThreadLocalAsciiDocProcessor asciiDocProcessor                  = new ThreadLocalAsciiDocProcessor();
 	private static final ThreadLocalTracWikiProcessor tracWikiProcessor                  = new ThreadLocalTracWikiProcessor();
 	private static final ThreadLocalTextileProcessor textileProcessor                    = new ThreadLocalTextileProcessor();
+	private static final ThreadLocalFlexMarkProcessor flexMarkProcessor                  = new ThreadLocalFlexMarkProcessor();
 	private static final ThreadLocalMediaWikiProcessor mediaWikiProcessor                = new ThreadLocalMediaWikiProcessor();
 	private static final ThreadLocalConfluenceProcessor confluenceProcessor              = new ThreadLocalConfluenceProcessor();
 
@@ -102,7 +107,8 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 			public String adapt(String s) throws FrameworkException {
 
 				if (s != null) {
-					return Processor.process(s);
+					com.vladsch.flexmark.ast.Node document = flexMarkProcessor.get().parser.parse(s);
+					return flexMarkProcessor.get().renderer.render(document);
 				}
 
 				return "";
@@ -242,7 +248,7 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 		if (otherNode instanceof Content) {
 
 			final String content1 = getTextContent();
-			final String content2 = ((Content)otherNode).getTextContent();
+			final String content2 = ((Content) otherNode).getTextContent();
 
 			if (content1 == null && content2 == null) {
 				return true;
@@ -749,6 +755,22 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 
 	}
 
+	private static class ThreadLocalFlexMarkProcessor extends ThreadLocal<FlexMarkProcessor> {
+
+		@Override
+		protected FlexMarkProcessor initialValue() {
+
+			final DataHolder options = PegdownOptionsAdapter.flexmarkOptions(Extensions.ALL);
+
+			Parser parser = Parser.builder(options).build();
+			HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+
+			return new FlexMarkProcessor(parser, renderer);
+		}
+
+	}
+
+
 	private static class ThreadLocalTextileProcessor extends ThreadLocal<MarkupParser> {
 
 		@Override
@@ -776,6 +798,17 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 		protected Asciidoctor initialValue() {
 
 			return Factory.create();
+		}
+	}
+
+	private static class FlexMarkProcessor {
+
+		Parser parser;
+		HtmlRenderer renderer;
+
+		public FlexMarkProcessor(final Parser parser, final HtmlRenderer renderer) {
+			this.parser = parser;
+			this.renderer = renderer;
 		}
 	}
 }
