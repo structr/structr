@@ -777,6 +777,10 @@ public class SecurityContext {
 		dontModifyAccessTime = true;
 	}
 
+	public void enableModificationOfAccessTime() {
+		dontModifyAccessTime = false;
+	}
+
 	public void ignoreResultCount(final boolean doIgnore) {
 		this.ignoreResultCount = doIgnore;
 	}

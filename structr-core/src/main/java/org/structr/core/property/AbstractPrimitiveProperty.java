@@ -232,25 +232,25 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 		try {
 
-			final Principal user = securityContext.getUser(false);
-			String modifiedById  = null;
-
-			if (user != null) {
-
-				if (user instanceof SuperUser) {
-
-					// "virtual" UUID of superuser
-					modifiedById = Principal.SUPERUSER_ID;
-
-				} else {
-
-					modifiedById = user.getUuid();
-				}
-
-				propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(),   modifiedById);
-			}
-
 			if (!securityContext.dontModifyAccessTime()) {
+
+				final Principal user = securityContext.getUser(false);
+				String modifiedById  = null;
+
+				if (user != null) {
+
+					if (user instanceof SuperUser) {
+
+						// "virtual" UUID of superuser
+						modifiedById = Principal.SUPERUSER_ID;
+
+					} else {
+
+						modifiedById = user.getUuid();
+					}
+
+					propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(), modifiedById);
+				}
 
 				propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
 			}

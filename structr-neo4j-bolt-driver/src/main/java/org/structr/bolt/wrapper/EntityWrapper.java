@@ -117,19 +117,25 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		final SessionTransaction tx   = db.getCurrentTransaction();
-		final Map<String, Object> map = new HashMap<>();
-		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value}";
+		final SessionTransaction tx = db.getCurrentTransaction();
 
-		map.put("id", id);
-		map.put("value", value);
+		// only update values if actually different from what is stored
+		if (differentValue(key, value)) {
 
-		// update entity handle
-		tx.set(query, map);
+			final Map<String, Object> map = new HashMap<>();
+			final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value}";
 
-		// update data
-		update(key, value);
+			map.put("id", id);
+			map.put("value", value);
 
+			// update entity handle
+			tx.set(query, map);
+
+			// update data
+			update(key, value);
+		}
+
+		// mark node as modified
 		tx.modified(this);
 	}
 
@@ -263,5 +269,18 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 			data.remove(key);
 		}
+	}
+
+	private boolean differentValue(final String key, final Object value) {
+
+		if (value == null && !data.containsKey(key)) {
+			return false;
+		}
+
+		if (value != null && value.equals(data.get(key))) {
+			return false;
+		}
+
+		return true;
 	}
 }

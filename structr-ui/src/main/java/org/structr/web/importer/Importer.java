@@ -24,10 +24,12 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +39,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
@@ -108,9 +109,9 @@ public class Importer {
 
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class.getName());
 
-	private static final String[] hrefElements       = new String[]{"link"};
-	private static final String[] ignoreElementNames = new String[]{"#declaration", "#doctype"};
-	private static final String[] srcElements        = new String[]{"img", "script", "audio", "video", "input", "source", "track"};
+	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList(new String[]{"link"}));
+	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList(new String[]{"#declaration", "#doctype"}));
+	private static final Set<String> srcElements        = new LinkedHashSet<>(Arrays.asList(new String[]{"img", "script", "audio", "video", "input", "source", "track"}));
 
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
@@ -554,15 +555,15 @@ public class Importer {
 			StringBuilder classString = new StringBuilder();
 			boolean isNewTemplateOrComponent = false;
 
-			if (ArrayUtils.contains(ignoreElementNames, type)) {
+			if (ignoreElementNames.contains(type)) {
 
 				continue;
 			}
 
 			if (node instanceof Element) {
 
-				Element el = ((Element) node);
-				Set<String> classes = el.classNames();
+				final Element el          = ((Element) node);
+				final Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
 
@@ -574,9 +575,9 @@ public class Importer {
 				// do not download files when called from DeployCommand!
 				if (!isDeployment) {
 
-					String downloadAddressAttr = (ArrayUtils.contains(srcElements, tag)
-						? "src" : ArrayUtils.contains(hrefElements, tag)
-						? "href" : null);
+					String downloadAddressAttr = srcElements.contains(tag)
+						? "src" : hrefElements.contains(tag)
+						? "href" : null;
 
 					if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 

@@ -139,6 +139,8 @@ public class PerformanceTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
+			ex.printStackTrace();
+
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 

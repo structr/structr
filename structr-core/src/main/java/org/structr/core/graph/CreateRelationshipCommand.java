@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.util.Date;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
@@ -30,7 +29,6 @@ import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,57 +53,32 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	private synchronized <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
+	private synchronized <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap attributes) throws FrameworkException {
+
+		// disable updating access time when creating relationships
+		securityContext.preventModificationOfAccessTime();
 
 		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
+		final PropertyMap properties         = new PropertyMap(attributes);
 		final R template                     = instantiate(relType);
 		final Node startNode                 = fromNode.getNode();
 		final Node endNode                   = toNode.getNode();
 		final Relationship rel               = startNode.createRelationshipTo(endNode, template);
-		final R newRel                       = factory.instantiate(rel);
+		final R newRel                       = factory.instantiateWithType(rel, relType, null, true);
 		final Date now                       = new Date();
-
-		// logger.info("CREATING relationship {}-[{}]->{}", new Object[] {  fromNode.getType(), newRel.getRelType(), toNode.getType() } );
 
 		if (newRel != null) {
 
-			newRel.unlockSystemPropertiesOnce();
-			newRel.setProperty(GraphObject.type, relType.getSimpleName());
+			properties.put(GraphObject.id, getNextUuid());
+			properties.put(AbstractRelationship.createdDate, now);
+			properties.put(AbstractRelationship.lastModifiedDate, now);
+			properties.put(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
 
-			// set UUID
 			newRel.unlockSystemPropertiesOnce();
-			newRel.setProperty(GraphObject.id, getNextUuid());
-
-			// set created date
-			newRel.unlockSystemPropertiesOnce();
-			newRel.setProperty(AbstractRelationship.createdDate, now);
-
-			// set last modified date
-			newRel.unlockSystemPropertiesOnce();
-			newRel.setProperty(AbstractRelationship.lastModifiedDate, now);
-
-			// Try to get the cascading delete flag from the domain specific relationship type
-			newRel.unlockSystemPropertiesOnce();
-			newRel.setProperty(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
+			newRel.setProperties(securityContext, properties);
 
 			// notify transaction handler
 			TransactionCommand.relationshipCreated(securityContext.getCachedUser(), newRel);
-
-			if (properties != null) {
-
-				for (Entry<PropertyKey, Object> entry : properties.entrySet()) {
-
-					PropertyKey key = entry.getKey();
-
-					// on creation, writing of read-only properties should be possible
-					if (key.isReadOnly() || key.isWriteOnce() || key.isSystemInternal()) {
-						newRel.unlockSystemPropertiesOnce();
-					}
-
-					newRel.setProperty(entry.getKey(), entry.getValue());
-				}
-
-			}
 
 			// notify relationship of its creation
 			newRel.onRelationshipCreation();
@@ -114,10 +87,11 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
 
 				transformation.apply(securityContext, newRel);
-
 			}
-
 		}
+
+		// enable access time update again for subsequent calls
+		securityContext.enableModificationOfAccessTime();
 
 		return newRel;
 	}
