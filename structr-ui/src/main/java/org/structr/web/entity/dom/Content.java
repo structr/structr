@@ -22,7 +22,7 @@ import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.profiles.pegdown.Extensions;
 import com.vladsch.flexmark.profiles.pegdown.PegdownOptionsAdapter;
-import com.vladsch.flexmark.util.options.DataHolder;
+import com.vladsch.flexmark.util.options.MutableDataSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -760,7 +760,10 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 		@Override
 		protected FlexMarkProcessor initialValue() {
 
-			final DataHolder options = PegdownOptionsAdapter.flexmarkOptions(Extensions.ALL);
+			final MutableDataSet options = new MutableDataSet();
+
+                        options.setAll(PegdownOptionsAdapter.flexmarkOptions(Extensions.ALL));
+//			options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
 
 			Parser parser = Parser.builder(options).build();
 			HtmlRenderer renderer = HtmlRenderer.builder(options).build();
