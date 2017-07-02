@@ -499,4 +499,9 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
 		return null;
 	}
+
+	@Override
+	public Class getEntityType() {
+		return SuperUser.class;
+	}
 }

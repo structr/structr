@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +33,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
+import org.structr.bolt.index.AbstractCypherIndex;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -443,6 +445,37 @@ public abstract class Property<T> implements PropertyKey<T> {
 				}
 			}
 		}
+	}
+
+	@Override
+	public boolean indexable(final Object value) {
+
+		if (value != null) {
+
+			final Class valueType = valueType();
+			if (valueType != null) {
+
+				// indexable indicated by value type
+				if (AbstractCypherIndex.INDEXABLE.contains(valueType)) {
+
+					return true;
+				}
+
+				if (valueType.equals(Date.class)) {
+					return true;
+				}
+
+				if (valueType.isEnum()) {
+					return true;
+				}
+
+				if (valueType.isArray()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	@Override

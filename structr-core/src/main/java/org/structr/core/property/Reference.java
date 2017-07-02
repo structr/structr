@@ -350,4 +350,9 @@ public class Reference<T> implements PropertyKey<T> {
 	public int compareTo(PropertyKey o) {
 		return propertyKey.compareTo(o);
 	}
+
+	@Override
+	public boolean indexable(Object value) {
+		return propertyKey.indexable(value);
+	}
 }

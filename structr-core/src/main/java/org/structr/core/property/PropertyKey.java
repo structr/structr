@@ -275,6 +275,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public SortType getSortType();
 
 	public void index(final GraphObject entity, final Object value);
+	public boolean indexable(final Object value);
 
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
 	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;

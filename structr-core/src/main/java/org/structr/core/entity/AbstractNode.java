@@ -157,6 +157,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
+	public Class getEntityType() {
+		return entityType;
+	}
+
+	@Override
 	public final void setSecurityContext(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
@@ -1466,19 +1471,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 	}
-
-	@Override
-	public final void addToIndex() {
-
-		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-
-			if (key.isIndexed()) {
-
-				key.index(this, this.getProperty(key));
-			}
-		}
-	}
-
 
 	@Override
 	public final void updateInIndex() {

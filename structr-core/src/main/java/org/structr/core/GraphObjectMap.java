@@ -180,6 +180,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 		return newMap;
 	}
 
+	@Override
+	public Class getEntityType() {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
 	// ----- interface map -----
 	@Override
 	public int size() {

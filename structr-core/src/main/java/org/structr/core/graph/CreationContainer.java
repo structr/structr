@@ -320,4 +320,9 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	public boolean isSpatialEntity() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
+
+	@Override
+	public Class getEntityType() {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
 }

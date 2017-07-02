@@ -22,14 +22,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.bolt.index.AbstractCypherIndex;
 import org.structr.cmis.CMISInfo;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.CreationContainer;
@@ -54,6 +57,8 @@ import org.structr.schema.action.ActionContext;
  *
  */
 public interface GraphObject {
+
+	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
 	public static final Property<String>  base                        = new StringProperty("base");
 	public static final Property<String>  type                        = new TypeProperty();
@@ -149,10 +154,9 @@ public interface GraphObject {
 		for (final Entry<PropertyKey, Object> attr : properties.entrySet()) {
 
 			final PropertyKey key = attr.getKey();
-			final Class valueType = key.valueType();
 			final Object value    = attr.getValue();
 
-			if (value != null && AbstractCypherIndex.INDEXABLE.contains(valueType)) {
+			if (key.indexable(value)) {
 
 				final Object oldValue = getProperty(key);
 				if ( !value.equals(oldValue) ) {
@@ -214,6 +218,36 @@ public interface GraphObject {
 			getPropertyContainer().setProperties(container.getData());
 		}
 	}
+
+	default void addToIndex() {
+
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(getEntityType(), PropertyView.All)) {
+
+			if (key.isIndexed()) {
+
+				final PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
+				if (converter != null) {
+
+					try {
+
+						// index converted value
+						key.index(this, converter.convert(this.getProperty(key)));
+
+					} catch (FrameworkException ex) {
+
+						logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
+						logger.warn("Exception", ex);
+					}
+
+				} else {
+
+					// index unconverted value
+					key.index(this, this.getProperty(key));
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given
@@ -383,7 +417,6 @@ public interface GraphObject {
 	 */
 	public void propagatedModification(final SecurityContext securityContext);
 
-	public void addToIndex();
 	public void updateInIndex();
 	public void removeFromIndex();
 	public void indexPassiveProperties();
@@ -391,6 +424,8 @@ public interface GraphObject {
 	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException;
 	public Object invokeMethod(final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods) throws FrameworkException;
+
+	Class getEntityType();
 
 	// ----- Cloud synchronization and replication -----
 	/**

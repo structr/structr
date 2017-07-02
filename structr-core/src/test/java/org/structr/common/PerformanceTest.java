@@ -31,7 +31,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
@@ -73,8 +72,6 @@ public class PerformanceTest extends StructrTest {
 
 				final long t1 = System.currentTimeMillis();
 
-				Settings.CypherDebugLogging.setValue(true);
-
 				for (int i=0; i<number; i++) {
 
 					nodes.add(app.create(TestOne.class,
@@ -87,9 +84,6 @@ public class PerformanceTest extends StructrTest {
 						new NodeAttribute(TestOne.anInt, 123)
 					));
 				}
-
-				Settings.CypherDebugLogging.setValue(false);
-
 
 				final long t2 = System.currentTimeMillis();
 				System.out.println((t2 - t1) + " ms");

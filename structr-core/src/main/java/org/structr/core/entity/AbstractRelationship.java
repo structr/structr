@@ -140,6 +140,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public void onRelationshipCreation() {
 	}
 
+	@Override
+	public Class getEntityType() {
+		return entityType;
+	}
+
 	/**
 	 * Called when a relationship of this combinedType is instantiated. Please note that
 	 * a relationship can (and will) be instantiated several times during a
@@ -593,18 +598,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			internalSystemPropertiesUnlocked = false;
 			readOnlyPropertiesUnlocked       = false;
 
-		}
-	}
-
-	@Override
-	public final void addToIndex() {
-
-		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-
-			if (key.isIndexed()) {
-
-				key.index(this, this.getProperty(key));
-			}
 		}
 	}
 
