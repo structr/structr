@@ -68,7 +68,6 @@ import org.structr.bolt.index.factory.UuidQueryFactory;
  */
 public abstract class AbstractCypherIndex<T extends PropertyContainer> implements Index<T>, QueryFactory {
 
-
 	private static final Logger logger                       = LoggerFactory.getLogger(AbstractCypherIndex.class.getName());
 	public static final TypeConverter DEFAULT_CONVERTER      = new StringTypeConverter();
 	public static final Map<Class, TypeConverter> CONVERTERS = new HashMap<>();
@@ -118,11 +117,13 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		Object indexValue = value;
 		if (value != null) {
 
-			if (value.getClass().isEnum()) {
+			final Class type = value.getClass();
+
+			if (type.isEnum()) {
 				indexValue = indexValue.toString();
 			}
 
-			if (!INDEXABLE.contains(value.getClass())) {
+			if (!INDEXABLE.contains(type)) {
 				return;
 			}
 		}

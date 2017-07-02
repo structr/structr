@@ -25,5 +25,5 @@ package org.structr.api.util;
  */
 public interface Cachable {
 
-	void invalidate();
+	void onRemoveFromCache();
 }

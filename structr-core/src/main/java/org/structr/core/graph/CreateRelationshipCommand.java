@@ -60,21 +60,32 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
 		final PropertyMap properties         = new PropertyMap(attributes);
+		final CreationContainer tmp          = new CreationContainer();
 		final R template                     = instantiate(relType);
 		final Node startNode                 = fromNode.getNode();
 		final Node endNode                   = toNode.getNode();
-		final Relationship rel               = startNode.createRelationshipTo(endNode, template);
-		final R newRel                       = factory.instantiateWithType(rel, relType, null, true);
 		final Date now                       = new Date();
 
+		// date properties need converter
+		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
+		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
+		AbstractRelationship.lastModifiedDate.setProperty(securityContext, tmp, now);
+
+		// set initial properties manually (caution, this can only be used for primitive properties!)
+		tmp.getData().put(GraphObject.id.jsonName(), getNextUuid());
+		tmp.getData().put(GraphObject.type.jsonName(), relType.getSimpleName());
+		tmp.getData().put(AbstractRelationship.relType.jsonName(), template.name());
+		tmp.getData().put(AbstractRelationship.sourceId.jsonName(), fromNode.getUuid());
+		tmp.getData().put(AbstractRelationship.targetId.jsonName(), toNode.getUuid());
+		tmp.getData().put(AbstractRelationship.visibleToPublicUsers.jsonName(), false);
+		tmp.getData().put(AbstractRelationship.visibleToAuthenticatedUsers.jsonName(), false);
+		tmp.getData().put(AbstractRelationship.cascadeDelete.jsonName(), template.getCascadingDeleteFlag());
+
+		// create relationship including initial properties
+		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
+		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
 		if (newRel != null) {
 
-			properties.put(GraphObject.id, getNextUuid());
-			properties.put(AbstractRelationship.createdDate, now);
-			properties.put(AbstractRelationship.lastModifiedDate, now);
-			properties.put(AbstractRelationship.cascadeDelete, template.getCascadingDeleteFlag());
-
-			newRel.unlockSystemPropertiesOnce();
 			newRel.setProperties(securityContext, properties);
 
 			// notify transaction handler

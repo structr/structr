@@ -1426,6 +1426,48 @@ public class BasicTest extends StructrTest {
 	}
 
 	@Test
+	public void testNodeCacheInvalidationWithLongLivedReferences() {
+
+		TestOne longLivedReference = null;
+
+		try (final Tx tx = app.tx()) {
+
+			longLivedReference = createTestNode(TestOne.class, "test1");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// fill cache with other nodes
+		try {
+
+			createTestNodes(TestSix.class, 1000);
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final TestOne freshReference = app.nodeQuery(TestOne.class).getFirst();
+
+			freshReference.setProperty(AbstractNode.name, "test2");
+
+			assertEquals("Cache invalidation failure!", "test2", longLivedReference.getProperty(AbstractNode.name));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testRelationshipEndNodeTypeRestriction() {
 
 		// this test makes sure that relationships with identical relationship

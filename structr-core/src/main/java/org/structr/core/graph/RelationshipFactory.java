@@ -103,7 +103,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		newRel.init(securityContext, relationship, relClass);
 
-		if (!TransactionCommand.isDeleted(relationship)) {
+		if (!isCreation && !TransactionCommand.isDeleted(relationship)) {
 
 			// try to set correct type property on relationship entity
 			final String type = newRel.getProperty(GraphObject.type);

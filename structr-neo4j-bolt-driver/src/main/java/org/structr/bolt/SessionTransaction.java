@@ -96,10 +96,10 @@ public class SessionTransaction implements org.structr.api.Transaction {
 				db.invalidateQueryCache();
 			}
 
-			// Invalidate all nodes that are modified in this transaction
+			// Notify all nodes that are modified in this transaction
 			// so that the relationship caches are rebuilt.
 			for (final EntityWrapper entity : modifiedEntities) {
-				entity.invalidate();
+				entity.clearCaches();
 			}
 		}
 

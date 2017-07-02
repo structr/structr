@@ -189,12 +189,17 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 */
 	public static Page createNewPage(final SecurityContext securityContext, final String uuid, final String name) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app                = StructrApp.getInstance(securityContext);
 		final PropertyMap properties = new PropertyMap();
 
+		// set default values for properties on creation to avoid them
+		// being set separately when indexing later
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
 		properties.put(Page.contentType, "text/html");
+		properties.put(Page.hideOnDetail, false);
+		properties.put(Page.hideOnIndex, false);
+		properties.put(Page.enableBasicAuth, false);
 
 		if (id != null) {
 			properties.put(Page.id, uuid);
@@ -341,7 +346,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			final Class entityClass = Class.forName("org.structr.web.entity.html." + elementType);
 			if (entityClass != null) {
 
-				element = (DOMElement) app.create(entityClass, new NodeAttribute(DOMElement.tag, tag));
+				element = (DOMElement) app.create(entityClass,
+					new NodeAttribute(DOMElement.tag, tag),
+					new NodeAttribute(DOMElement.hideOnDetail, false),
+					new NodeAttribute(DOMElement.hideOnIndex, false)
+				);
 				element.doAdopt(_page);
 
 				return element;
@@ -408,6 +417,8 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 			// create new content element
 			Content content = (Content) StructrApp.getInstance(securityContext).command(CreateNodeCommand.class).execute(
 				new NodeAttribute(AbstractNode.type, Content.class.getSimpleName()),
+				new NodeAttribute(Content.hideOnDetail, false),
+				new NodeAttribute(Content.hideOnIndex, false),
 				new NodeAttribute(Content.content, text)
 			);
 

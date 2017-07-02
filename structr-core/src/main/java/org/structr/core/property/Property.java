@@ -394,15 +394,15 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void index(final GraphObject entity, Object value) {
+	public void index(final GraphObject entity, final Object value) {
 
 		if (entity instanceof AbstractNode) {
 
-			NodeService nodeService = Services.getInstance().getService(NodeService.class);
-			AbstractNode node       = (AbstractNode)entity;
-			Node dbNode             = node.getNode();
+			final NodeService nodeService = Services.getInstance().getService(NodeService.class);
+			final AbstractNode node       = (AbstractNode)entity;
+			final Node dbNode             = node.getNode();
+			final Index<Node> index       = nodeService.getNodeIndex();
 
-			Index<Node> index = nodeService.getNodeIndex();
 			if (index != null) {
 
 				try {
@@ -422,11 +422,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		} else if (entity instanceof AbstractRelationship) {
 
-			NodeService nodeService  = Services.getInstance().getService(NodeService.class);
-			AbstractRelationship rel = (AbstractRelationship)entity;
-			Relationship dbRel       = rel.getRelationship();
+			final NodeService nodeService   = Services.getInstance().getService(NodeService.class);
+			final AbstractRelationship rel  = (AbstractRelationship)entity;
+			final Relationship dbRel        = rel.getRelationship();
+			final Index<Relationship> index = nodeService.getRelationshipIndex();
 
-			Index<Relationship> index = nodeService.getRelationshipIndex();
 			if (index != null) {
 
 				try {

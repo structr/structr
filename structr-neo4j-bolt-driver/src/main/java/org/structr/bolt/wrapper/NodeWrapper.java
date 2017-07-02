@@ -18,6 +18,7 @@
  */
 package org.structr.bolt.wrapper;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,13 +56,23 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
-	public void invalidate() {
+	public void onRemoveFromCache() {
 		relationshipCache.clear();
 		this.stale = true;
 	}
 
 	@Override
+	public void clearCaches() {
+		relationshipCache.clear();
+	}
+
+	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
+		return createRelationshipTo(endNode, relationshipType, Collections.EMPTY_MAP);
+	}
+
+	@Override
+	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
 		assertNotStale();
 
@@ -69,29 +80,18 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final Map<String, Object> map = new HashMap<>();
 		final NodeWrapper otherNode   = (NodeWrapper)endNode;
 
-		tx.modified(this);
-		tx.modified(otherNode);
-
-		assertNotStale();
-
 		map.put("id1", id);
 		map.put("id2", endNode.getId());
-
-		/**
-		 * Neo4j does not seem to lock source and target node when
-		 * creating a relationship between the two, so we need to set
-		 * a temporary property to enforce locking on the two nodes
-		 * for the duration of the transaction.
-		 */
+		map.put("relProperties", properties);
 
 		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(
 			"MATCH (n), (m) WHERE ID(n) = {id1} AND ID(m) = {id2} "
-				+ "SET n.locked = true, m.locked = true "
 				+ "MERGE (n)-[r:" + relationshipType.name() + "]->(m) "
-				+ "SET n.locked = Null, m.locked = Null RETURN r",
+				+ "SET r += {relProperties} RETURN r",
 			map);
 
 		tx.modified(this);
+		tx.modified(otherNode);
 
 		// clear caches
 		((NodeWrapper)endNode).relationshipCache.clear();

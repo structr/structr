@@ -53,6 +53,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	protected abstract String getQueryPrefix();
+	public abstract void clearCaches();
 
 	@Override
 	public long getId() {
@@ -202,7 +203,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		tx.set(getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
 		tx.modified(this);
 
-		invalidate();
+		onRemoveFromCache();
 
 		stale = true;
 	}
@@ -226,7 +227,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		if (stale) {
 
 			// invalidate caches
-			invalidate();
+			onRemoveFromCache();
 
 			// if a node/rel was deleted in a previous transaction but the caller keeps a
 			// reference to this entity, we need to make sure that the reference is fresh.

@@ -95,6 +95,7 @@ import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
+import org.structr.web.entity.html.Input;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
@@ -548,11 +549,11 @@ public class Importer {
 				tag = tag.replaceAll("[^a-zA-Z0-9#:.-_]+", "");
 			}
 
-			String type = CaseHelper.toUpperCamelCase(tag);
-			String comment = null;
-			String content = null;
-			String id = null;
-			StringBuilder classString = new StringBuilder();
+			final StringBuilder classString  = new StringBuilder();
+			final String type                = CaseHelper.toUpperCamelCase(tag);
+			String comment                   = null;
+			String content                   = null;
+			String id                        = null;
 			boolean isNewTemplateOrComponent = false;
 
 			if (ignoreElementNames.contains(type)) {
@@ -798,8 +799,9 @@ public class Importer {
 					newNode.setProperty(LinkSource.linkable, res);
 				}
 
-
+				// container for bulk setProperties()
 				final PropertyMap newNodeProperties = new PropertyMap();
+				final Class newNodeType             = newNode.getClass();
 
 				newNodeProperties.put(AbstractNode.visibleToPublicUsers, publicVisible);
 				newNodeProperties.put(AbstractNode.visibleToAuthenticatedUsers, authVisible);
@@ -835,7 +837,7 @@ public class Importer {
 								if (value != null) {
 
 									// store value using actual input converter
-									final PropertyKey actualKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNode.getClass(), camelCaseKey, false);
+									final PropertyKey actualKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, camelCaseKey, false);
 									if (actualKey != null) {
 
 										final PropertyConverter converter = actualKey.inputConverter(securityContext);
@@ -857,7 +859,7 @@ public class Importer {
 
 							} else if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
 
-								final PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNode.getClass(), key);
+								final PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNodeType, key);
 								if (propertyKey != null) {
 
 									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
@@ -909,16 +911,14 @@ public class Importer {
 				// bulk set properties on new node
 				newNode.setProperties(securityContext, newNodeProperties);
 
-				final StringProperty typeKey = new StringProperty(PropertyView.Html.concat("type"));
-
 				if ("script".equals(tag)) {
 
-					final String contentType = newNode.getProperty(typeKey);
+					final String contentType = newNode.getProperty(Input._type);
 
 					if (contentType == null) {
 
 						// Set default type of script tag to "text/javascript" to ensure inline JS gets imported properly
-						newNode.setProperty(typeKey, "text/javascript");
+						newNode.setProperty(Input._type, "text/javascript");
 
 					} else if (contentType.equals("application/schema+json")) {
 
@@ -929,6 +929,7 @@ public class Importer {
 							// Import schema JSON
 							SchemaJsonImporter.importSchemaJson(source);
 						}
+
 					} else if (contentType.equals("application/x-cypher")) {
 
 						for (final Node scriptContentNode : node.childNodes()) {
@@ -941,7 +942,6 @@ public class Importer {
 							sources.add(source);
 
 							importer.importCypher(sources);
-
 						}
 
 						continue;
@@ -959,7 +959,6 @@ public class Importer {
 							} catch (UnlicensedException ex) {
 								ex.log(logger);
 							}
-
 						}
 
 						continue;

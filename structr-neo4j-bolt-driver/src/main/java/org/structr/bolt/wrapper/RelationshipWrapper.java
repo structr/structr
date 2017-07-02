@@ -58,25 +58,29 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	@Override
-	public void invalidate() {
+	public void onRemoveFromCache() {
 
 		try {
 
 			final NodeWrapper startNode = (NodeWrapper)getStartNode();
 			if (startNode != null) {
 
-				startNode.invalidate();
+				startNode.onRemoveFromCache();
 			}
 
 			final NodeWrapper endNode = (NodeWrapper)getEndNode();
 			if (endNode != null) {
 
-				endNode.invalidate();
+				endNode.onRemoveFromCache();
 			}
 
 		} catch (Throwable t) {}
 
 		stale = true;
+	}
+
+	@Override
+	public void clearCaches() {
 	}
 
 	@Override

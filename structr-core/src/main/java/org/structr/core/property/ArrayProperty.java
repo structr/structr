@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -156,7 +157,15 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				}
 			}
 
-			return (T[])new Object[] { ArrayProperty.this.fromString(source.toString()) };
+			// create array of componentTypes
+			final T[] result = (T[])Array.newInstance(componentType, 1);
+			final T value    = ArrayProperty.this.fromString(source.toString());
+
+			if (value != null) {
+				result[0] = value;
+			}
+
+			return result;
 		}
 
 	}
@@ -206,7 +215,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			}
 		}
 
-		return (T[])result.toArray();
+		return (T[])result.toArray((Object[])Array.newInstance(componentType, 0));
 	}
 
 	private T fromString(final String source) {
@@ -216,7 +225,9 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 			try {
 				return (T)valueOfMethod.invoke(null, source);
 
-			} catch (Throwable t) {}
+			} catch (Throwable t) {
+				return null;
+			}
 		}
 
 		return (T)source;

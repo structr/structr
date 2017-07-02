@@ -75,7 +75,7 @@ public class FixedSizeCache<K, V> {
 			final V value = entry.getValue();
 			if (value != null && value instanceof Cachable) {
 
-				((Cachable)value).invalidate();
+				((Cachable)value).onRemoveFromCache();
 			}
 
 			return true;

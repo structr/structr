@@ -212,11 +212,17 @@ public class StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<T> nodes = new LinkedList<>();
+			final PropertyMap properties = new PropertyMap();
+			final List<T> nodes          = new LinkedList<>();
+
+			properties.put(NodeInterface.visibleToAuthenticatedUsers, false);
+			properties.put(NodeInterface.visibleToPublicUsers, false);
+			properties.put(NodeInterface.deleted, false);
+			properties.put(NodeInterface.hidden, false);
 
 			for (int i = 0; i < number; i++) {
 
-				nodes.add(app.create(type));
+				nodes.add(app.create(type, properties));
 
 				try {
 					Thread.sleep(delay);

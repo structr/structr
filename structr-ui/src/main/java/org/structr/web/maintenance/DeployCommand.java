@@ -252,8 +252,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path localizationsConf = source.resolve("localizations.json");
 		if (Files.exists(localizationsConf)) {
 
+			final PropertyMap additionalData = new PropertyMap();
+
+			// Question: shouldn't this be true?
+			additionalData.put(Localization.imported, false);
+
 			info("Reading {}..", localizationsConf);
-			importListData(Localization.class, readConfigList(localizationsConf));
+			importListData(Localization.class, readConfigList(localizationsConf), additionalData);
 		}
 
 		// read files.conf
@@ -1122,7 +1127,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data) throws FrameworkException {
+	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
 		final App app                 = StructrApp.getInstance();
@@ -1134,7 +1139,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			for (final Map<String, Object> entry : data) {
-				app.create(type, PropertyMap.inputTypeToJavaType(context, type, entry));
+
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, type, entry);
+
+				// allow caller to insert additional data for better creation performance
+				for (final PropertyMap add : additionalData) {
+					map.putAll(add);
+				}
+
+				app.create(type, map);
 			}
 
 			tx.success();

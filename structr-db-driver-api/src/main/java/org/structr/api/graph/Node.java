@@ -18,12 +18,15 @@
  */
 package org.structr.api.graph;
 
+import java.util.Map;
+
 /**
  *
  */
 public interface Node extends PropertyContainer {
 
 	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType);
+	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties);
 
 	void addLabel(final Label label);
 	void removeLabel(final Label label);

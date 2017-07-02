@@ -97,10 +97,15 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			}
 
 			// use property keys to set property values on creation dummy
+			// set default values for common properties in creation query
 			GraphObject.id.setProperty(securityContext, tmp, uuid);
 			GraphObject.type.setProperty(securityContext, tmp, nodeType.getSimpleName());
 			AbstractNode.createdDate.setProperty(securityContext, tmp, now);
 			AbstractNode.lastModifiedDate.setProperty(securityContext, tmp, now);
+			AbstractNode.visibleToPublicUsers.setProperty(securityContext, tmp, false);
+			AbstractNode.visibleToAuthenticatedUsers.setProperty(securityContext, tmp, false);
+			AbstractNode.hidden.setProperty(securityContext, tmp, false);
+			AbstractNode.deleted.setProperty(securityContext, tmp, false);
 
 			if (user != null) {
 

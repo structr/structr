@@ -20,17 +20,21 @@ package org.structr.common;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
@@ -69,6 +73,8 @@ public class PerformanceTest extends StructrTest {
 
 				final long t1 = System.currentTimeMillis();
 
+				Settings.CypherDebugLogging.setValue(true);
+
 				for (int i=0; i<number; i++) {
 
 					nodes.add(app.create(TestOne.class,
@@ -81,6 +87,9 @@ public class PerformanceTest extends StructrTest {
 						new NodeAttribute(TestOne.anInt, 123)
 					));
 				}
+
+				Settings.CypherDebugLogging.setValue(false);
+
 
 				final long t2 = System.currentTimeMillis();
 				System.out.println((t2 - t1) + " ms");
@@ -123,18 +132,33 @@ public class PerformanceTest extends StructrTest {
 
 		try {
 
-			int number                 = 1000;
-			long t0                    = System.nanoTime();
-			List<NodeHasLocation> rels = createTestRelationships(NodeHasLocation.class, number);
-			long t1                    = System.nanoTime();
+			int expected                  = 1000;
+			final List<GenericNode> nodes = new ArrayList<>(createTestNodes(GenericNode.class, expected + 1));
+			List<NodeHasLocation> rels    = new LinkedList<>();
+			long t0                       = System.nanoTime();
 
-			assertTrue(rels.size() == number);
+ 			try (final Tx tx = app.tx()) {
+
+				for (int i=0 ;i<expected; i++) {
+
+					final GenericNode n1 = nodes.get(i);
+					final GenericNode n2 = nodes.get(i+1);
+
+					rels.add(app.create(n1, n2, NodeHasLocation.class));
+				}
+
+				tx.success();
+			}
+
+			long t1                       = System.nanoTime();
+
+			assertEquals("Invalid relationship creation result", expected, rels.size());
 
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 			Double time                 = (t1 - t0) / 1000000000.0;
-			Double rate                 = number / ((t1 - t0) / 1000000000.0);
+			Double rate                 = expected / ((t1 - t0) / 1000000000.0);
 
-			logger.info("Created {} relationships in {} seconds ({} per s)", new Object[] { number, decimalFormat.format(time), decimalFormat.format(rate) });
+			logger.info("Created {} relationships in {} seconds ({} per s)", new Object[] { expected, decimalFormat.format(time), decimalFormat.format(rate) });
 			assertTrue(rate > 50);
 
 		} catch (FrameworkException ex) {
