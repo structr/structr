@@ -66,6 +66,8 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final Node endNode                   = toNode.getNode();
 		final Date now                       = new Date();
 
+		template.ensureCardinality(securityContext, fromNode, toNode);
+
 		// date properties need converter
 		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
 		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);

@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
@@ -61,21 +60,19 @@ public class CreateRelationshipCommand extends AbstractCommand {
 			final App app                         = StructrApp.getInstance(securityContext);
 
 			try {
-				
+
 				final Class relationClass       = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
-				
-				getRelationshipTemplate(relationClass).ensureCardinality(securityContext, sourceNode, targetNode);
-				
+
 				final RelationshipInterface rel = app.create(sourceNode, targetNode, relationClass);
-				
+
 				TransactionCommand.registerRelCallback(rel, callback);
-				
+
 				if (rel != null) {
-					
+
 					webSocketData.setResult(Arrays.asList(rel));
-					
+
 					getWebSocket().send(webSocketData, true);
-					
+
 				}
 
 			} catch (FrameworkException t) {
@@ -97,19 +94,6 @@ public class CreateRelationshipCommand extends AbstractCommand {
 
 		return "CREATE_RELATIONSHIP";
 
-	}
-	// ----- private methods -----
-	private Relation getRelationshipTemplate(final Class entityClass) {
-
-		try {
-
-			return (Relation) entityClass.newInstance();
-
-		} catch (Throwable t) {
-
-		}
-
-		return null;
 	}
 
 }
