@@ -60,6 +60,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 	private static final Property<AbstractNode> changelog_targetObj              = new EndNodeProperty<>("targetObj");
 	private static final Property<String>  changelog_rel                         = new StringProperty("rel");
 	private static final Property<String>  changelog_relId                       = new StringProperty("relId");
+	private static final Property<String>  changelog_relDir                      = new StringProperty("relDir");
 	private static final Property<String>  changelog_key                         = new StringProperty("key");
 	private static final Property<String>  changelog_prev                        = new StringProperty("prev");
 	private static final Property<String>  changelog_val                         = new StringProperty("val");
@@ -150,14 +151,15 @@ public class ChangelogFunction extends Function<Object, Object> {
 		private final Gson _gson = new GsonBuilder().disableHtmlEscaping().create();
 		private final App _app = StructrApp.getInstance();
 
-		private final ArrayList<String> _filterVerbs = new ArrayList();
-		private Long _filterTimeFrom = null;
-		private Long _filterTimeTo = null;
-		private final ArrayList<String> _filterUserId = new ArrayList();
+		private final ArrayList<String> _filterVerbs    = new ArrayList();
+		private Long _filterTimeFrom                    = null;
+		private Long _filterTimeTo                      = null;
+		private final ArrayList<String> _filterUserId   = new ArrayList();
 		private final ArrayList<String> _filterUserName = new ArrayList();
-		private final ArrayList<String> _filterRelType = new ArrayList();
-		private final ArrayList<String> _filterTarget = new ArrayList();
-		private final ArrayList<String> _filterKey = new ArrayList();
+		private final ArrayList<String> _filterRelType  = new ArrayList();
+		private String _filterRelDir                    = null;
+		private final ArrayList<String> _filterTarget   = new ArrayList();
+		private final ArrayList<String> _filterKey      = new ArrayList();
 
 		private boolean _resolveTargets = false;
 		private boolean _noFilterConfig = true;
@@ -189,6 +191,10 @@ public class ChangelogFunction extends Function<Object, Object> {
 					_filterRelType.add(filterValue.toString());
 					break;
 
+				case "relDir":
+					_filterRelDir = filterValue.toString();
+					break;
+
 				case "target":
 					_filterTarget.add(filterValue.toString());
 					break;
@@ -212,6 +218,11 @@ public class ChangelogFunction extends Function<Object, Object> {
 			assignStringsIfPresent(javascriptConfigObject.get("userId"), _filterUserId);
 			assignStringsIfPresent(javascriptConfigObject.get("userName"), _filterUserName);
 			assignStringsIfPresent(javascriptConfigObject.get("relType"), _filterRelType);
+
+			if (javascriptConfigObject.get("relDir") != null) {
+				_filterRelDir = javascriptConfigObject.get("relDir").toString();
+			}
+
 			assignStringsIfPresent(javascriptConfigObject.get("target"), _filterTarget);
 			assignStringsIfPresent(javascriptConfigObject.get("key"), _filterKey);
 
@@ -245,7 +256,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 
 			_noFilterConfig = (
 					_filterVerbs.isEmpty() && _filterTimeFrom == null && _filterTimeTo == null && _filterUserId.isEmpty() &&
-					_filterUserName.isEmpty() && _filterRelType.isEmpty() && _filterTarget.isEmpty() && _filterKey.isEmpty()
+					_filterUserName.isEmpty() && _filterRelType.isEmpty() && _filterRelDir == null && _filterTarget.isEmpty() && _filterKey.isEmpty()
 			);
 
 			for (final String entry : changelog.split("\n")) {
@@ -257,10 +268,11 @@ public class ChangelogFunction extends Function<Object, Object> {
 				final String userName = jsonObj.get("userName").getAsString();
 				final String relType = (jsonObj.has("rel") ? jsonObj.get("rel").getAsString() : null);
 				final String relId = (jsonObj.has("relId") ? jsonObj.get("relId").getAsString() : null);
+				final String relDir = (jsonObj.has("relDir") ? jsonObj.get("relDir").getAsString() : null);
 				final String target = (jsonObj.has("target") ? jsonObj.get("target").getAsString() : null);
 				final String key = (jsonObj.has("key") ? jsonObj.get("key").getAsString() : null);
 
-				if (doesFilterApply(verb, time, userId, userName, relType, target, key)) {
+				if (doesFilterApply(verb, time, userId, userName, relType, relDir, target, key)) {
 
 					final GraphObjectMap obj = new GraphObjectMap();
 
@@ -283,6 +295,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 						case "unlink":
 							obj.put(changelog_rel, relType);
 							obj.put(changelog_relId, relId);
+							obj.put(changelog_relDir, relDir);
 							obj.put(changelog_target, target);
 							if (_resolveTargets) {
 								obj.put(changelog_targetObj, _app.getNodeById(target));
@@ -309,7 +322,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 			return list;
 		}
 
-		public boolean doesFilterApply (final String verb, final long time, final String userId, final String userName, final String relType, final String target, final String key) {
+		public boolean doesFilterApply (final String verb, final long time, final String userId, final String userName, final String relType, final String relDir, final String target, final String key) {
 
 			return (
 				(_noFilterConfig == true) ||
@@ -320,6 +333,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 					(_filterUserId.isEmpty()   || _filterUserId.contains(userId)    ) &&
 					(_filterUserName.isEmpty() || _filterUserName.contains(userName)) &&
 					(_filterRelType.isEmpty()  || _filterRelType.contains(relType)  ) &&
+					(_filterRelDir == null     || _filterRelDir.equals(relDir)      ) &&
 					(_filterTarget.isEmpty()   || _filterTarget.contains(target)    ) &&
 					(_filterKey.isEmpty()      || _filterKey.contains(key)          )
 				)
