@@ -105,9 +105,5 @@
 			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/su</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/urlrewrite.xml</source>
-			<outputDirectory>/</outputDirectory>
-		</file>
 	</files>
 </assembly>

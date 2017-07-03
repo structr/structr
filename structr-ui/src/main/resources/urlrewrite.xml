@@ -4,18 +4,25 @@
         "http://www.tuckey.org/res/dtds/urlrewrite3.2.dtd">
 <urlrewrite>
 
-<!--    <rule match-type="regex">
-        <name>RedirectToConsole</name>
-        <condition type="request-uri" operator="equal">^/structr</condition>
-        <from>^/structr$</from>
-        <to type="redirect" last="true">/structr/</to>
-    </rule>-->
+	<!-- execute a method in Structr context to access the "force http" setting -->
+	<class-rule class="org.structr.web.common.RewriteRule" method="checkConfig" />
 
-    <rule match-type="regex">
-        <name>RedirectToHtmlServlet</name>
-        <condition type="request-uri" operator="notequal">^/structr/</condition>
-        <from>^/(.*)$</from>
-        <to type="forward" last="true">/structr/html/$1</to>
-    </rule>
+	<!-- the default rule to allow access to Structr pages -->
+	<rule match-type="regex">
+		<name>RedirectToHtmlServlet</name>
+		<condition type="request-uri" operator="notequal">^/structr/</condition>
+		<from>^/(.*)$</from>
+		<to type="forward" last="true">/structr/html/$1</to>
+	</rule>
+
+	<!--check for the presence of the structr.force.https request attribute that
+	    is set by the custom rewrite rule defined by the class-rule above -->
+	<rule>
+		<condition type="attribute" name="structr.force.https" operator="equal">true</condition>
+		<condition type="scheme" operator="notequal">https</condition>
+		<from>^/(.*)</from>
+		<to type="permanent-redirect" last="true">https://%{server-name}/</to>
+	</rule>
+
 
 </urlrewrite>
