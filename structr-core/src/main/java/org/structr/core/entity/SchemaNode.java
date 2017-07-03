@@ -584,6 +584,11 @@ public class SchemaNode extends AbstractSchemaNode {
 			final String typeName = getProperty(name);
 
 			// add type names to list of forbidden entity names
+			if (EntityNameBlacklist.contains(typeName)) {
+				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
+			}
+
+			// add type names to list of forbidden entity names
 			if (StructrApp.getConfiguration().getNodeEntities().containsKey(typeName)) {
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
 			}
