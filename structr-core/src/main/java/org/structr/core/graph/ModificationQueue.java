@@ -147,7 +147,7 @@ public class ModificationQueue {
 		}
 	}
 
-	public void updateAuditLog() {
+	public void updateChangelog() {
 
 		if (Settings.ChangelogEnabled.getValue() && !modificationEvents.isEmpty()) {
 
@@ -209,8 +209,8 @@ public class ModificationQueue {
 
 			modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
 
-			getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), targetNode.getUuid());
-			getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), sourceNode.getUuid());
+			getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), relationship.getUuid(), targetNode.getUuid());
+			getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), relationship.getUuid(), sourceNode.getUuid());
 		}
 	}
 
@@ -285,8 +285,8 @@ public class ModificationQueue {
 
 		modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
 
-		getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), targetNode.getUuid());
-		getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), sourceNode.getUuid());
+		getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), targetNode.getUuid());
+		getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), sourceNode.getUuid());
 
 	}
 

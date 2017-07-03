@@ -100,7 +100,7 @@ public class Tx implements AutoCloseable {
 							}
 						}
 
-						modificationQueue.updateAuditLog();
+						modificationQueue.updateChangelog();
 						modificationQueue.clear();
 					}
 

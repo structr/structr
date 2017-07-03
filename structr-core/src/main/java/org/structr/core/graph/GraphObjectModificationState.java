@@ -467,7 +467,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 	}
 
-	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String object) {
+	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String linkId, final String object) {
 
 		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
 
@@ -478,6 +478,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("userName", toElement(user.getName()));
 			obj.add("verb", toElement(verb));
 			obj.add("rel", toElement(linkType));
+			obj.add("relId", toElement(linkId));
 			obj.add("target", toElement(object));
 
 			changeLog.append(obj.toString());
