@@ -59,6 +59,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 	private static final Property<String>  changelog_target                      = new StringProperty("target");
 	private static final Property<AbstractNode> changelog_targetObj              = new EndNodeProperty<>("targetObj");
 	private static final Property<String>  changelog_rel                         = new StringProperty("rel");
+	private static final Property<String>  changelog_relId                       = new StringProperty("relId");
 	private static final Property<String>  changelog_key                         = new StringProperty("key");
 	private static final Property<String>  changelog_prev                        = new StringProperty("prev");
 	private static final Property<String>  changelog_val                         = new StringProperty("val");
@@ -255,6 +256,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 				final String userId = jsonObj.get("userId").getAsString();
 				final String userName = jsonObj.get("userName").getAsString();
 				final String relType = (jsonObj.has("rel") ? jsonObj.get("rel").getAsString() : null);
+				final String relId = (jsonObj.has("relId") ? jsonObj.get("relId").getAsString() : null);
 				final String target = (jsonObj.has("target") ? jsonObj.get("target").getAsString() : null);
 				final String key = (jsonObj.has("key") ? jsonObj.get("key").getAsString() : null);
 
@@ -280,6 +282,7 @@ public class ChangelogFunction extends Function<Object, Object> {
 						case "link":
 						case "unlink":
 							obj.put(changelog_rel, relType);
+							obj.put(changelog_relId, relId);
 							obj.put(changelog_target, target);
 							if (_resolveTargets) {
 								obj.put(changelog_targetObj, _app.getNodeById(target));
