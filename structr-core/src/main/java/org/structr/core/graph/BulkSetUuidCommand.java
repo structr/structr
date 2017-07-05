@@ -74,7 +74,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				} else {
 
-					nodeIterator = Iterables.filter(new TypePredicate<>(nodeType), Iterables.map(nodeFactory, graphDb.getAllNodes())).iterator();
+					nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(nodeType)).iterator();
 
 					info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
 				}
@@ -142,7 +142,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				} else {
 
-					relIterator = Iterables.filter(new TypePredicate<>(relType), Iterables.map(relFactory, graphDb.getAllRelationships())).iterator();
+					relIterator = Iterables.map(relFactory, graphDb.getRelationshipsByType(relType)).iterator();
 
 					info("Start setting UUID on rels of type {}", new Object[] { relType });
 				}
@@ -174,12 +174,12 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-					logger.warn("Unable to set UUID of relationship {}: {}", new Object[] { rel, t.getMessage() });
+					logger.warn("Unable to set UUID of relationship {}: {}", rel, t.getMessage());
 				}
 
 				@Override
 				public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
-					logger.warn("Unable to set UUID on relationship: {}", t.getMessage());
+					logger.warn("Unable to set UUID on relationships {}", t.toString());
 				}
 
 				@Override

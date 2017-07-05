@@ -20,25 +20,32 @@ package org.structr.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.LinkedList;
+import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
 import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
 
 
 
-public class SchemaAttributesInheritanceTest extends FrontendTest {
+public class AdvancedSchemaTest extends FrontendTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(SchemaAttributesInheritanceTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(AdvancedSchemaTest.class.getName());
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
@@ -323,6 +330,97 @@ public class SchemaAttributesInheritanceTest extends FrontendTest {
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void test04SchemaPropertyOrder() {
+
+		SchemaView testView = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create test type
+			final SchemaNode test = app.create(SchemaNode.class, "Test");
+
+			// create view with sort order
+			testView = app.create(SchemaView.class,
+				new NodeAttribute<>(SchemaView.name, "test"),
+				new NodeAttribute<>(SchemaView.schemaNode, test),
+				new NodeAttribute<>(SchemaView.sortOrder, "one, two, three, four, id, type, name"),
+				new NodeAttribute<>(SchemaView.nonGraphProperties, "id, type, name")
+			);
+
+			final List<SchemaView> list = new LinkedList<>();
+			list.add(testView);
+
+			// create properties
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "one")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "two")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "three")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "four")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+
+		Assert.assertEquals("Invalid number of properties in sorted view", 7, list.size());
+		Assert.assertEquals("one",   list.get(0).dbName());
+		Assert.assertEquals("two",   list.get(1).dbName());
+		Assert.assertEquals("three", list.get(2).dbName());
+		Assert.assertEquals("four",  list.get(3).dbName());
+		Assert.assertEquals("id",    list.get(4).dbName());
+		Assert.assertEquals("type",  list.get(5).dbName());
+		Assert.assertEquals("name",  list.get(6).dbName());
+
+		try (final Tx tx = app.tx()) {
+
+			// modify sort order
+			testView.setProperty(SchemaView.sortOrder, "type, one, id, two, three, four, name");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+
+		Assert.assertEquals("Invalid number of properties in sorted view", 7, list2.size());
+		Assert.assertEquals("type",  list2.get(0).dbName());
+		Assert.assertEquals("one",   list2.get(1).dbName());
+		Assert.assertEquals("id",    list2.get(2).dbName());
+		Assert.assertEquals("two",   list2.get(3).dbName());
+		Assert.assertEquals("three", list2.get(4).dbName());
+		Assert.assertEquals("four",  list2.get(5).dbName());
+		Assert.assertEquals("name",  list2.get(6).dbName());
 
 	}
 }

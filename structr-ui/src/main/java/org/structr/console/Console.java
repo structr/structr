@@ -285,6 +285,7 @@ public class Console {
 		init(scriptingContext);
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
+
 			Object extractedValue = scriptingContext.evaluateString(scope, line, "interactive script, line ", 1, null);
 
 			if (scriptable.hasException()) {

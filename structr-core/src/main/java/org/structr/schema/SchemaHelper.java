@@ -687,6 +687,12 @@ public class SchemaHelper {
 						view.add(extendedPropertyName);
 					}
 				}
+
+				final String order = schemaView.getProperty(SchemaView.sortOrder);
+				if (order != null) {
+
+					applySortOrder(view, order, viewName, entity.getClassName());
+				}
 			}
 		}
 	}
@@ -1291,6 +1297,54 @@ public class SchemaHelper {
 
 	private static String uiViewResourceSignature(final String signature) {
 		return signature + "/_Ui";
+	}
+
+	private static void applySortOrder(final Set<String> view, final String orderString, final String viewName, final String typeName) {
+
+		final List<String> list = new LinkedList<>();
+
+		if ("alphabetic".equals(orderString)) {
+
+			// copy elements to list for sorting
+			list.addAll(view);
+
+			// sort alphabetically
+			Collections.sort(list);
+
+		} else {
+
+			// sort according to comma-separated list of property names
+			final String[] order = orderString.split("[, ]+");
+			for (final String property : order) {
+
+				if (StringUtils.isNotEmpty(property.trim())) {
+
+					// SchemaProperty instances are suffixed with "Property"
+					final String suffixedProperty = property + "Property";
+
+					if (view.contains(property)) {
+
+						// move property from view to list
+						list.add(property);
+						view.remove(property);
+
+					} else if (view.contains(suffixedProperty)) {
+
+						// move property from view to list
+						list.add(suffixedProperty);
+						view.remove(suffixedProperty);
+					}
+
+				}
+			}
+
+			// append the rest
+			list.addAll(view);
+		}
+
+		// clear source view, add sorted list contents
+		view.clear();
+		view.addAll(list);
 	}
 
 }

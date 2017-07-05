@@ -49,7 +49,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			nodeIterator = Iterables.filter(new TypePredicate<>(entityType), Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes()))).iterator();
+			nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
 			tx.success();
 
 		} catch (FrameworkException fex) {

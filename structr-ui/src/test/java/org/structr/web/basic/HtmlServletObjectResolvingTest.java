@@ -234,7 +234,6 @@ public class HtmlServletObjectResolvingTest {
 		Settings.BasePath.setValue(basePath);
 		Settings.DatabasePath.setValue(basePath + "/db");
 		Settings.FilesPath.setValue(basePath + "/files");
-		Settings.LogDatabasePath.setValue(basePath + "/logDb.dat");
 
 		Settings.RelationshipCacheSize.setValue(1000);
 		Settings.NodeCacheSize.setValue(1000);

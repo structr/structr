@@ -41,20 +41,21 @@ public class SchemaView extends SchemaReloadingNode {
 	public static final Property<List<SchemaProperty>> schemaProperties   = new EndNodes<>("schemaProperties", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaProperty.isBuiltinProperty));
 	public static final Property<Boolean>              isBuiltinView      = new BooleanProperty("isBuiltinView");
 	public static final Property<String>               nonGraphProperties = new StringProperty("nonGraphProperties");
+	public static final Property<String>               sortOrder          = new StringProperty("sortOrder");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
 		name, schemaNode, schemaProperties, nonGraphProperties
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView
+		name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView, sortOrder
 	);
 
 	public static final View schemaView = new View(SchemaView.class, "schema",
-		name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView
+		name, schemaNode, schemaProperties, nonGraphProperties, isBuiltinView, sortOrder
 	);
 
 	public static final View exportView = new View(SchemaView.class, "export",
-		id, type, name, schemaNode, nonGraphProperties, isBuiltinView
+		id, type, name, schemaNode, nonGraphProperties, isBuiltinView, sortOrder
 	);
 }

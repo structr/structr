@@ -191,6 +191,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			while (retry) {
 
 				try (final Tx tx = app.tx()) {
+
 					result = resource.doDelete();
 					tx.success();
 					retry = false;

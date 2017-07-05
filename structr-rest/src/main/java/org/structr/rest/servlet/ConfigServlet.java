@@ -52,7 +52,7 @@ public class ConfigServlet extends HttpServlet {
 	private static final String ConfigName                 = "structr.conf";
 
 	private static final String TITLE						= "Structr Configuration Editor";
-	
+
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
@@ -332,7 +332,7 @@ public class ConfigServlet extends HttpServlet {
 		final Tag buttons = form.block("div").css("buttons");
 
 		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?reload';")).text("Reload configuration");
+		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?reload';")).text("Reload configuration file");
 		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
 
 		body.block("script").text("$('#new-entry-button').on('click', createNewEntry);");

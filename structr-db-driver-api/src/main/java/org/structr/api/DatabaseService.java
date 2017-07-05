@@ -45,7 +45,11 @@ public interface DatabaseService {
 	Relationship getRelationshipById(final long id);
 
 	Iterable<Node> getAllNodes();
+	Iterable<Node> getNodesByLabel(final String label);
+	Iterable<Node> getNodesByTypeProperty(final String type);
+
 	Iterable<Relationship> getAllRelationships();
+	Iterable<Relationship> getRelationshipsByType(final String type);
 
 	GraphProperties getGlobalProperties();
 

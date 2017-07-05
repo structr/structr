@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -233,7 +234,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		map.put("id", id);
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("CYPHER planner=rule MATCH ()-[r]-() WHERE ID(r) = {id} RETURN r", map);
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("MATCH ()-[r]->() WHERE ID(r) = {id} RETURN r", map);
 
 		return RelationshipWrapper.newInstance(this, rel);
 
@@ -249,12 +250,42 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
+	public Iterable<Node> getNodesByLabel(final String type) {
+
+		final SessionTransaction tx = getCurrentTransaction();
+		final NodeNodeMapper mapper = new NodeNodeMapper(this);
+
+		return Iterables.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
+	}
+
+	@Override
+	public Iterable<Node> getNodesByTypeProperty(final String type) {
+
+		final SessionTransaction tx   = getCurrentTransaction();
+		final NodeNodeMapper mapper   = new NodeNodeMapper(this);
+		final Map<String, Object> map = new LinkedHashMap<>();
+
+		map.put("type", type);
+
+		return Iterables.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
+	}
+
+	@Override
 	public Iterable<Relationship> getAllRelationships() {
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
 		final SessionTransaction tx                 = getCurrentTransaction();
 
-		return Iterables.map(mapper, tx.getRelationships("MATCH ()-[r]-() RETURN r", Collections.emptyMap()));
+		return Iterables.map(mapper, tx.getRelationships("MATCH ()-[r]->() RETURN r", Collections.emptyMap()));
+	}
+
+	@Override
+	public Iterable<Relationship> getRelationshipsByType(final String type) {
+
+		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
+		final SessionTransaction tx                 = getCurrentTransaction();
+
+		return Iterables.map(mapper, tx.getRelationships("MATCH ()-[r:" + type + "]->() RETURN r", Collections.emptyMap()));
 	}
 
 	@Override
