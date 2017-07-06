@@ -913,11 +913,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				if (value) {
 
-					System.out.print("granted: ");
+					System.out.print(permission.name() + ": granted: ");
 
 				} else {
 
-					System.out.print("denied:  ");
+					System.out.print(permission.name() + ": denied: ");
 				}
 			}
 

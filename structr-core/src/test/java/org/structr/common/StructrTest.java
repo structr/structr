@@ -94,7 +94,12 @@ public class StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
+			final List<? extends NodeInterface> nodes = app.nodeQuery().getAsList();
+
+			logger.info("Cleaning database: {} nodes", nodes.size());
+
+
+			for (final NodeInterface node : nodes) {
 				app.delete(node);
 			}
 

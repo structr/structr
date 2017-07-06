@@ -46,17 +46,7 @@ public class DeleteFunction extends Function<Object, Object> {
 			final App app = StructrApp.getInstance(ctx.getSecurityContext());
 			for (final Object obj : sources) {
 
-				if (obj instanceof NodeInterface) {
-
-					app.delete((NodeInterface)obj);
-					continue;
-				}
-
-				if (obj instanceof RelationshipInterface) {
-
-					app.delete((RelationshipInterface)obj);
-					continue;
-				}
+				deleteObject(app, obj);
 			}
 		}
 
@@ -71,5 +61,27 @@ public class DeleteFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Deletes the given entity from the database";
+	}
+
+	// ----- private methods -----
+	private void deleteObject(final App app, final Object obj) throws FrameworkException {
+
+		if (obj instanceof NodeInterface) {
+
+			app.delete((NodeInterface)obj);
+		}
+
+		if (obj instanceof RelationshipInterface) {
+
+			app.delete((RelationshipInterface)obj);
+		}
+
+		if (obj instanceof Iterable) {
+
+			for (final Object o : (Iterable)obj) {
+
+				deleteObject(app, o);
+			}
+		}
 	}
 }

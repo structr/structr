@@ -33,7 +33,7 @@ import org.structr.core.app.StructrApp;
  */
 public class Tx implements AutoCloseable {
 
-	private AtomicBoolean guard             = new AtomicBoolean(false);
+	private final AtomicBoolean guard       = new AtomicBoolean(false);
 	private SecurityContext securityContext = null;
 	private boolean success                 = false;
 	private boolean doValidation            = true;

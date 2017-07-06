@@ -67,6 +67,10 @@ public class ModificationQueue {
 		return synchronizationKeys;
 	}
 
+	public int getSize() {
+		return modifications.size();
+	}
+
 	public boolean doInnerCallbacks(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		long t0                  = System.currentTimeMillis();
