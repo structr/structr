@@ -40,16 +40,14 @@ import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.BulkDeleteCommand;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NoResultsException;
-import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.ConfigurationProvider;
 
@@ -102,41 +100,23 @@ public abstract class Resource {
 
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		Iterable<? extends GraphObject> results = null;
+		final App app                 = StructrApp.getInstance(securityContext);
+		Iterable<GraphObject> results = null;
 
 		// catch 204, DELETE must return 200 if resource is empty
-		try {
+		try (final Tx tx = app.tx(false, false, false)) {
+
 			results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
-		} catch (final NoResultsException nre) {
+
+			tx.success();
+
+		} catch (final FrameworkException nre) {
 			results = null;
 		}
 
 		if (results != null) {
 
-			final Iterable<? extends GraphObject> finalResults = results;
-			final App app                                      = StructrApp.getInstance(securityContext);
-
-			for (final GraphObject obj : finalResults) {
-
-				if (obj instanceof AbstractRelationship) {
-
-					app.delete((AbstractRelationship)obj);
-
-				} else if (obj instanceof AbstractNode) {
-
-					final AbstractNode node = (AbstractNode)obj;
-
-					if (!node.isGranted(Permission.delete, securityContext)) {
-
-						logger.warn("Could not delete {} because {} has no delete permission", new Object[]{obj, securityContext.getUser(false)});
-						throw new NotAllowedException("Could not delete " + obj + " because " + securityContext.getUser(false) + " has no delete permission");
-					}
-
-					// delete cascading
-					app.delete(node);
-				}
-
-			}
+			app.command(BulkDeleteCommand.class).bulkDelete(results.iterator());
 		}
 
 		return new RestMethodResult(HttpServletResponse.SC_OK);
