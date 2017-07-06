@@ -255,7 +255,12 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final SessionTransaction tx = getCurrentTransaction();
 		final NodeNodeMapper mapper = new NodeNodeMapper(this);
 
-		return Iterables.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
+		if (type != null) {
+
+			return Iterables.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
+		}
+
+		return Iterables.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
 	}
 
 	@Override
@@ -263,11 +268,17 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final SessionTransaction tx   = getCurrentTransaction();
 		final NodeNodeMapper mapper   = new NodeNodeMapper(this);
-		final Map<String, Object> map = new LinkedHashMap<>();
 
-		map.put("type", type);
+		if (type != null) {
 
-		return Iterables.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
+			final Map<String, Object> map = new LinkedHashMap<>();
+
+			map.put("type", type);
+
+			return Iterables.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
+		}
+
+		return Iterables.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
 	}
 
 	@Override
