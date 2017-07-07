@@ -35,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.parser.AllExpression;
 import org.structr.core.parser.AnyExpression;
 import org.structr.core.parser.ArrayExpression;
+import org.structr.core.parser.BatchExpression;
 import org.structr.core.parser.CacheExpression;
 import org.structr.core.parser.ConstantExpression;
 import org.structr.core.parser.EachExpression;
@@ -283,6 +284,9 @@ public class Functions {
 
 			case "slice":
 				return new SliceExpression();
+
+			case "batch":
+				return new BatchExpression();
 
 			case "data":
 				return new ValueExpression("data");

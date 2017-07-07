@@ -81,6 +81,19 @@ public abstract class Expression {
 		return !expressions.isEmpty();
 	}
 
+	public boolean isBatched() {
+		return parent != null && parent.isBatched();
+	}
+
+	public int getBatchSize() {
+
+		if (parent != null) {
+			return parent.getBatchSize();
+		}
+
+		return -1;
+	}
+
 	public abstract Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedException;
 	public abstract Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedException;
 }

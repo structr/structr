@@ -2327,4 +2327,121 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+
+	@Test
+	public void testJavascriptBatchFunction() {
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNodes(TestOne.class, 1000);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+			final StringBuilder func = new StringBuilder();
+
+			func.append("${{\n");
+			func.append("    Structr.batch(function() {\n");
+			func.append("        var toDelete = Structr.find('TestOne').slice(0, 100);\n");
+			func.append("        if (toDelete && toDelete.length) {\n");
+			func.append("            Structr.log('Deleting ' + toDelete.length + ' nodes..');\n");
+			func.append("            Structr.delete(toDelete);\n");
+			func.append("            return true;\n");
+			func.append("        } else {\n");
+			func.append("            Structr.log('Finished');\n");
+			func.append("            return false;\n");
+			func.append("        }\n");
+			func.append("    });\n");
+			func.append("}}");
+
+
+			final Object result = Scripting.evaluate(ctx, null, func.toString(), "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testStructrScriptBatchFunction() {
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNodes(TestOne.class, 1000);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+			Scripting.evaluate(ctx, null, "${batch(each(find('TestOne'), set(data, 'name', 'test')), 100)}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+			Scripting.evaluate(ctx, null, "${batch(delete(find('TestOne')), 100)}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testBulkDeleteWithoutBatching() {
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNodes(TestOne.class, 1000);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+			Scripting.evaluate(ctx, null, "${delete(find('TestOne'))}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
 }

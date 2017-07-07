@@ -16,32 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core;
-
-import org.structr.common.SecurityContext;
+package org.structr.core.function;
 
 /**
- * A generic value parameter for functional evaluation, with a static value
- * assigned to it. This value object will return the exact given value on
- * every evaluation.
- *
- *
+ * Interface to identify functions that support batching.
  */
-public class StaticValue<T> implements Value<T> {
+public interface BatchableFunction {
 
-	private T value = null;
-
-	public StaticValue(T value) {
-		this.value = value;
-	}
-	
-	@Override
-	public void set(SecurityContext securityContext, T value) {
-		this.value = value;
-	}
-
-	@Override
-	public T get(SecurityContext securityContext) {
-		return value;
-	}
+	void setBatched(final boolean isBatched);
+	void setBatchSize(final int batchSize);
 }

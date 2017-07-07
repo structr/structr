@@ -220,6 +220,11 @@ public class StructrScriptable extends ScriptableObject {
 
 		}
 
+		if ("batch".equals(name)) {
+
+			return new IdFunctionObject(new BatchFunctionCall(actionContext, this), null, 0, 0);
+		}
+
 		// execute builtin function?
 		final Function<Object, Object> function = Functions.get(CaseHelper.toUnderscore(name, false));
 		if (function != null) {

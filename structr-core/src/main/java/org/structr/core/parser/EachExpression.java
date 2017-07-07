@@ -18,10 +18,15 @@
  */
 package org.structr.core.parser;
 
-import java.util.List;
+import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -30,6 +35,8 @@ import org.structr.schema.action.ActionContext;
  */
 
 public class EachExpression extends Expression {
+
+	private static final Logger logger = LoggerFactory.getLogger(EachExpression.class);
 
 	public static final String ERROR_MESSAGE_EACH = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
 
@@ -84,17 +91,50 @@ public class EachExpression extends Expression {
 		}
 
 		final Object listSource = listExpression.evaluate(ctx, entity);
-		if (listSource != null && listSource instanceof List) {
+		if (listSource != null && listSource instanceof Iterable) {
 
-			final List source         = (List)listSource;
+			final Iterable source     = (Iterable)listSource;
 			final Object oldDataValue = ctx.getConstant("data");
 
-			for (Object obj : source) {
+			if (isBatched()) {
 
-				ctx.setConstant("data", obj);
-				eachExpression.evaluate(ctx, entity);
+				final App app           = StructrApp.getInstance(ctx.getSecurityContext());
+				final Iterator iterator = source.iterator();
+				int count               = 0;
+
+				while (iterator.hasNext()) {
+
+					try (final Tx tx = app.tx()) {
+
+						while (iterator.hasNext()) {
+
+							ctx.setConstant("data", iterator.next());
+							eachExpression.evaluate(ctx, entity);
+
+							if ((++count % getBatchSize()) == 0) {
+								break;
+							}
+						}
+
+						tx.success();
+					}
+
+					logger.info("Commiting batch after {} objects", count);
+
+					// reset count
+					count = 0;
+				}
+
+			} else {
+
+				for (Object obj : source) {
+
+					ctx.setConstant("data", obj);
+					eachExpression.evaluate(ctx, entity);
+				}
 			}
 
+			// restore previous value of data keyword
 			ctx.setConstant("data", oldDataValue);
 		}
 

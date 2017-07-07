@@ -36,6 +36,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.DeleteNodeCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 
@@ -220,5 +221,63 @@ public class PerformanceTest extends StructrTest {
 
 		}
 
+	}
+	@Test
+	public void testPerformanceOfNodeDeletion() {
+
+		final List<TestOne> nodes = new LinkedList<>();
+		final int number          = 1000;
+
+		try {
+
+			try (final Tx tx = app.tx()) {
+
+				nodes.addAll(createTestNodes(TestOne.class, number));
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+
+
+		todo: check node creation performance
+
+			commit changes
+				
+
+		// start measuring
+		final long t0 = System.currentTimeMillis();
+
+		try {
+
+			final DeleteNodeCommand cmd = app.command(DeleteNodeCommand.class);
+
+			try (final Tx tx = app.tx()) {
+
+				for (final TestOne node : nodes) {
+					cmd.execute(node);
+				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		final long t1 = System.currentTimeMillis();
+
+		DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+		Double time                 = (t1 - t0) / 1000.0;
+		Double rate                 = number / ((t1 - t0) / 1000.0);
+
+		logger.info("Deleted {} nodes in {} seconds ({} per s)", number, decimalFormat.format(time), decimalFormat.format(rate) );
+		assertTrue("Deletion rate of nodes too low, expected > 100, was " + rate, rate > 50);
 	}
 }

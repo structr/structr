@@ -231,19 +231,11 @@ public class Scripting {
 
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
-		final Context scriptingContext = new ContextFactory().enterContext();
+		final Context scriptingContext = Scripting.setupJavascriptContext();
 
 		try {
 
-			// enable some optimizations..
-			//scriptingContext.setLanguageVersion(Context.VERSION_1_8);
-			scriptingContext.setLanguageVersion(Context.VERSION_1_2);
-			scriptingContext.setOptimizationLevel(9);
-			scriptingContext.setInstructionObserverThreshold(0);
-			scriptingContext.setGenerateObserverCount(false);
-			scriptingContext.setGeneratingDebug(false);
-
-			final Scriptable scope = scriptingContext.initStandardObjects();
+			final Scriptable scope             = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
 
 			scriptable.setParentScope(scope);
@@ -293,9 +285,25 @@ public class Scripting {
 
 		} finally {
 
-			Context.exit();
+			Scripting.destroyJavascriptContext();
 		}
+	}
 
+	public static Context setupJavascriptContext() {
+
+		final Context scriptingContext = new ContextFactory().enterContext();
+
+		// enable some optimizations..
+		scriptingContext.setLanguageVersion(Context.VERSION_1_2);
+		scriptingContext.setOptimizationLevel(9);
+		scriptingContext.setInstructionObserverThreshold(0);
+		scriptingContext.setGenerateObserverCount(false);
+
+		return scriptingContext;
+	}
+
+	public static void destroyJavascriptContext() {
+		Context.exit();
 	}
 
 	private static String embedInFunction(final ActionContext actionContext, final String source) {

@@ -18,20 +18,29 @@
  */
 package org.structr.core.function;
 
+import java.util.Iterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class DeleteFunction extends Function<Object, Object> {
+public class DeleteFunction extends Function<Object, Object> implements BatchableFunction {
 
-	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entity)}. Example: ${delete(this)}";
+	private static final Logger logger = LoggerFactory.getLogger(DeleteFunction.class);
+
+	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(entityOrCollection)}. Example: ${delete(this)}";
+
+	private boolean batched = false;
+	private int batchSize   = -1;
 
 	@Override
 	public String getName() {
@@ -63,6 +72,17 @@ public class DeleteFunction extends Function<Object, Object> {
 		return "Deletes the given entity from the database";
 	}
 
+	// ----- interface BatchableFunction -----
+	@Override
+	public void setBatched(boolean isBatched) {
+		this.batched = isBatched;
+	}
+
+	@Override
+	public void setBatchSize(int batchSize) {
+		this.batchSize = batchSize;
+	}
+
 	// ----- private methods -----
 	private void deleteObject(final App app, final Object obj) throws FrameworkException {
 
@@ -78,9 +98,41 @@ public class DeleteFunction extends Function<Object, Object> {
 
 		if (obj instanceof Iterable) {
 
-			for (final Object o : (Iterable)obj) {
+			if (batched) {
 
-				deleteObject(app, o);
+				final Iterable iterable = (Iterable)obj;
+				final Iterator iterator = iterable.iterator();
+				int count               = 0;
+
+				while (iterator.hasNext()) {
+
+					try (final Tx tx = app.tx()) {
+
+						while (iterator.hasNext()) {
+
+							deleteObject(app, iterator.next());
+
+							if ((++count % batchSize) == 0) {
+								break;
+							}
+						}
+
+						tx.success();
+					}
+
+					logger.info("Commiting batch after {} objects", count);
+
+					// reset count
+					count = 0;
+				}
+
+
+			} else {
+
+				for (final Object o : (Iterable)obj) {
+
+					deleteObject(app, o);
+				}
 			}
 		}
 	}

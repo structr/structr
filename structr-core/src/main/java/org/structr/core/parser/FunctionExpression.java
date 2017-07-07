@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.function.BatchableFunction;
+import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -69,7 +72,33 @@ public class FunctionExpression extends Expression {
 			return function.usage(ctx.isJavaScriptContext());
 		}
 
-		return function.apply(ctx, entity, results.toArray());
+		if (function instanceof BatchableFunction) {
+
+			// enable batching if batchable function is found
+			((BatchableFunction)function).setBatchSize(getBatchSize());
+			((BatchableFunction)function).setBatched(isBatched());
+
+			// batchable functions must create their own transaction when in batched mode
+			return function.apply(ctx, entity, results.toArray());
+
+		} else if (isBatched()) {
+
+			// when in batched mode,
+			try (final Tx tx = StructrApp.getInstance(ctx.getSecurityContext()).tx()) {
+
+				final Object result = function.apply(ctx, entity, results.toArray());
+
+				tx.success();
+
+				return result;
+			}
+
+		} else {
+
+			// default execution path: enclosing transaction exists, no batching
+			return function.apply(ctx, entity, results.toArray());
+		}
+
 	}
 
 	@Override

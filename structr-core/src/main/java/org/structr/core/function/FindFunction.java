@@ -22,9 +22,11 @@ import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -40,8 +42,10 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
 	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND = "Error in find(): type not found: ";
 
-	private int start = -1;
-	private int end   = -1;
+	private boolean batched = false;
+	private int batchSize   = -1;
+	private int start       = -1;
+	private int end         = -1;
 
 	@Override
 	public String getName() {
@@ -60,8 +64,9 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery().sort(GraphObject.createdDate).order(false);
+			final ConfigurationProvider config    = StructrApp.getConfiguration();
+			final App app                         = StructrApp.getInstance(securityContext);
+			final Query query                     = app.nodeQuery().sort(GraphObject.createdDate).order(false);
 
 			// paging applied by surrounding slice() function
 			if (start >= 0 && end >= 0) {
@@ -154,7 +159,18 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 				}
 			}
 
-			return query.getAsList();
+			if (batched) {
+
+				// when in batch mode, there is no enclosing transaction
+				// so we need to create our own transaction here.
+				try (final Tx tx = app.tx()) {
+					return query.getAsList();
+				}
+
+			} else {
+
+				return query.getAsList();
+			}
 
 		} catch (final IllegalArgumentException e) {
 
