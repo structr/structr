@@ -19,8 +19,10 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
@@ -46,10 +48,18 @@ public class GetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
+		final String properties                = (String) webSocketData.getNodeData().get("properties");
+
+		if (properties != null) {
+			securityContext.setCustomView(StringUtils.split(properties, ","));
+		}
+
 		final GraphObject graphObject = getGraphObject(webSocketData.getId());
 
+
 		if (graphObject != null) {
-			
+
 			webSocketData.setResult(Arrays.asList(graphObject));
 
 			// send only over local connection (no broadcast)
