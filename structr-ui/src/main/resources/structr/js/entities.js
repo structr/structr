@@ -1004,9 +1004,11 @@ var _Entities = {
 
 		Structr.dialog('Access Control and Visibility', function() {
 		}, function() {
-			Command.get(id, function(entity) {
-				_Crud.refreshRow(id, entity, entity.type);
-			});
+			if (Structr.isModuleActive(_Crud)) {
+				Command.get(id, function(entity) {
+					_Crud.refreshRow(id, entity, entity.type);
+				});
+			}
 		});
 
 		Command.get(id, function(entity) {
