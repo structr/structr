@@ -243,14 +243,29 @@ var _Elements = {
 		}
 	],
 	suggestedElements: {
-		"table" : [ "thead", "tbody", "tr", "tfoot" ],
+		"html": [ "head", "body" ],
+		"head": [ "title", "style", "base", "link", "meta", "script", "noscript" ],
+		"table" : [ "thead", "tbody", "tr", "tfoot", "caption", "colgroup" ],
+		"colgroup" : [ "col" ],
 		"thead" : [ "tr" ],
 		"tbody" : [ "tr" ],
 		"tfoot" : [ "tr" ],
 		"tr" : ["th", "td" ],
 		"ul" : [ "li" ],
 		"ol" : [ "li" ],
-		"dl" : [ "dt", "dd" ]
+		"dir" : [ "li" ],
+		"dl" : [ "dt", "dd" ],
+		"select" : [ "option", "optgroup" ],
+		"form" : [ "input", "textarea", "select", "button", "label", "fieldset" ],
+		"fieldset": [ "legend", "input", "textarea", "select", "button", "label", "fieldset" ],
+		"figure": [ "img", "figcaption" ],
+		"frameset": [ "frame" , "noframes" ],
+		"map": [ "area" ],
+		"nav": [ "a" ],
+		"object": [ "param" ],
+		"details": [ "summary" ],
+		"video" : [ "source", "track" ],
+		"audio" : [ "source" ]
 	},
 	reloadPalette: function() {
 
