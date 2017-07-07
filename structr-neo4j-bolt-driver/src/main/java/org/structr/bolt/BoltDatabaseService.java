@@ -252,33 +252,30 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public Iterable<Node> getNodesByLabel(final String type) {
 
+		if (type == null) {
+			return getAllNodes();
+		}
+
 		final SessionTransaction tx = getCurrentTransaction();
 		final NodeNodeMapper mapper = new NodeNodeMapper(this);
 
-		if (type != null) {
-
-			return Iterables.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
-		}
-
-		return Iterables.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
+		return Iterables.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
 	}
 
 	@Override
 	public Iterable<Node> getNodesByTypeProperty(final String type) {
 
-		final SessionTransaction tx   = getCurrentTransaction();
-		final NodeNodeMapper mapper   = new NodeNodeMapper(this);
-
-		if (type != null) {
-
-			final Map<String, Object> map = new LinkedHashMap<>();
-
-			map.put("type", type);
-
-			return Iterables.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
+		if (type == null) {
+			return getAllNodes();
 		}
 
-		return Iterables.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
+		final SessionTransaction tx   = getCurrentTransaction();
+		final NodeNodeMapper mapper   = new NodeNodeMapper(this);
+		final Map<String, Object> map = new LinkedHashMap<>();
+
+		map.put("type", type);
+
+		return Iterables.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
 	}
 
 	@Override
@@ -292,6 +289,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public Iterable<Relationship> getRelationshipsByType(final String type) {
+
+		if (type == null) {
+			return getAllRelationships();
+		}
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
 		final SessionTransaction tx                 = getCurrentTransaction();

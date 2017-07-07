@@ -48,6 +48,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.ConfigurationProvider;
 
@@ -110,7 +111,7 @@ public abstract class Resource {
 
 			tx.success();
 
-		} catch (final FrameworkException nre) {
+		} catch (final NoResultsException nre) {
 			results = null;
 		}
 
