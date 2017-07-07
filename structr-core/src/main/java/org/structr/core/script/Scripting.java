@@ -235,7 +235,14 @@ public class Scripting {
 
 		try {
 
-			final Scriptable scope             = scriptingContext.initStandardObjects();
+			// enable some optimizations..
+			scriptingContext.setLanguageVersion(Context.VERSION_1_2);
+			scriptingContext.setOptimizationLevel(9);
+			scriptingContext.setInstructionObserverThreshold(0);
+			scriptingContext.setGenerateObserverCount(false);
+			scriptingContext.setGeneratingDebug(true);
+
+			final Scriptable scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
 
 			scriptable.setParentScope(scope);
