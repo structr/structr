@@ -241,7 +241,7 @@ public class Scripting {
 			scriptingContext.setOptimizationLevel(9);
 			scriptingContext.setInstructionObserverThreshold(0);
 			scriptingContext.setGenerateObserverCount(false);
-			scriptingContext.setGeneratingDebug(false);
+			scriptingContext.setGeneratingDebug(true);
 
 			final Scriptable scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
