@@ -1002,16 +1002,30 @@ var _Entities = {
 	},
 	showAccessControlDialog: function(id) {
 
+		var initialObj;
+
 		Structr.dialog('Access Control and Visibility', function() {
 		}, function() {
 			if (Structr.isModuleActive(_Crud)) {
-				Command.get(id, null, function(entity) {
-					_Crud.refreshRow(id, entity, entity.type);
+				Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) {
+					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
+						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
+					}
+
+					_Crud.refreshCell(id, "visibleToPublicUsers", entity.visibleToPublicUsers, entity.type, initialObj.visibleToPublicUsers);
+					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
 				});
 			}
 		});
 
 		Command.get(id, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) {
+
+			initialObj = {
+				ownerId: entity.owner ? entity.owner.id : null,
+				visibleToPublicUsers: entity.visibleToPublicUsers,
+				visibleToAuthenticatedUsers: entity.visibleToAuthenticatedUsers
+			};
+
 			var owner_select_id = 'owner_select_' + id;
 			dialogText.append('<span id="' + owner_select_id + '"></span>');
 			var owner_select = $('#' + owner_select_id, dialogText);
