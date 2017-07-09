@@ -1180,7 +1180,11 @@ var _Entities = {
 
 			var value = selectElement.val();
 			if (subKey) {
+				if (!entity[key]) {
+					entity[key] = {};
+				}
 				entity[key][subKey] = value;
+
 			}
 
 			Command.setProperty(entity.id, key, value, false, function() {
