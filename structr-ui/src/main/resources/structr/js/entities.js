@@ -353,7 +353,7 @@ var _Entities = {
 	},
 	showProperties: function(obj, activeViewOverride) {
 
-		Command.get(obj.id, function (entity) {
+		Command.get(obj.id, null, function (entity) {
 
 			var views, activeView = 'ui';
 			var tabTexts = [];
@@ -860,7 +860,7 @@ var _Entities = {
 	},
 	extendCollection: function(itemId, newItemId, key, callback) {
 		var collectionIds = [];
-		Command.get(itemId, function(obj) {
+		Command.get(itemId, key, function(obj) {
 				//var keyInfo = typeInfo.filter(function(item) { return item.jsonName === key; })[0];
 			var collection = obj[key];
 			if (collection && collection.length) {
@@ -1005,13 +1005,13 @@ var _Entities = {
 		Structr.dialog('Access Control and Visibility', function() {
 		}, function() {
 			if (Structr.isModuleActive(_Crud)) {
-				Command.get(id, function(entity) {
+				Command.get(id, null, function(entity) {
 					_Crud.refreshRow(id, entity, entity.type);
 				});
 			}
 		});
 
-		Command.get(id, function(entity) {
+		Command.get(id, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) {
 			var owner_select_id = 'owner_select_' + id;
 			dialogText.append('<span id="' + owner_select_id + '"></span>');
 			var owner_select = $('#' + owner_select_id, dialogText);
@@ -1048,12 +1048,10 @@ var _Entities = {
 
 						var principalId = result.principalId;
 						if (principalId) {
-							Command.get(principalId, function(p) {
+							Command.get(principalId, "id,name,isGroup", function(p) {
 								addPrincipal(entity, p, permissions);
 							});
-
 						}
-
 					});
 				}
 			});
@@ -1086,7 +1084,7 @@ var _Entities = {
 				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 				$('#new', tb).selectedIndex = 0;
 
-				Command.get(pId, function(p) {
+				Command.get(pId, "id,name,isGroup", function(p) {
 					addPrincipal(entity, p, {'read': true});
 				});
 			});
@@ -1141,7 +1139,6 @@ var _Entities = {
 		});
 	},
 	appendSimpleSelection: function(el, entity, type, title, key, prefetchedData) {
-
 		var subKey;
 		if (key.contains('.')) {
 			subKey = key.substring(key.indexOf('.') + 1, key.length);
@@ -1184,11 +1181,10 @@ var _Entities = {
 					entity[key] = {};
 				}
 				entity[key][subKey] = value;
-
 			}
 
 			Command.setProperty(entity.id, key, value, false, function() {
-				blinkGreen($('.' + key + 'Select_chosen .chosen-single'));
+				blinkGreen(el);
 			});
 		});
 	},
@@ -1698,7 +1694,7 @@ var _Entities = {
 		}
 	},
 	openQueryDialog: function(id) {
-		Command.get(id, function(obj) {
+		Command.get(id, null, function(obj) {
 
 			var entity = StructrModel.create(obj);
 
@@ -1724,7 +1720,7 @@ var _Entities = {
 		});
 	},
 	openEditModeBindingDialog: function(id) {
-		Command.get(id, function(obj) {
+		Command.get(id, null, function(obj) {
 
 			var entity = StructrModel.create(obj);
 

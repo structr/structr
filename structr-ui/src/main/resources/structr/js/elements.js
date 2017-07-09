@@ -697,7 +697,7 @@ var _Elements = {
 			subDiv.on('click', function(e) {
 				if (!subDiv.children('.node').length) {
 					e.stopPropagation();
-					Command.get(subFolder.id, function(node) {
+					Command.get(subFolder.id, "id,files,folders", function(node) {
 						_Elements.expandFolder(e, entity, node, callback);
 					});
 				} else {
@@ -716,7 +716,7 @@ var _Elements = {
 
 		$.each(folder.files, function(i, f) {
 
-			Command.get(f.id, function(file) {
+			Command.get(f.id, "id,name,contentType,linkingElements", function(file) {
 
 				$('.' + folder.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
 						+ '<b title="' + file.name + '" class="name_">' + file.name + '</b></div>');

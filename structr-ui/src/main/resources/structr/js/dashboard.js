@@ -93,7 +93,7 @@ var _Dashboard = {
 				e.preventDefault();
 				var id = $(this).prop('id').slice(5);
 				window.setTimeout(function() {
-					Command.get(id, function(entity) {
+					Command.get(id, "id,name", function(entity) {
 						_Contents.editItem(entity);
 					});
 				}, 250);

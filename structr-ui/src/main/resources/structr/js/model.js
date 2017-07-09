@@ -63,7 +63,7 @@ var StructrModel = {
 		var keys = Object.keys(data);
 
 		if (keys.length === 1 && keys[0] === 'id') {
-			Command.get(data.id, function(data) {
+			Command.get(data.id, null, function(data) {
 				return StructrModel.createFromData(data, refId, append);
 			});
 		} else {

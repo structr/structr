@@ -1957,7 +1957,7 @@ var _Crud = {
 
 			$('.remove', nodeEl).on('click', function(e) {
 				e.preventDefault();
-				Command.get(parentId, function(parentObj) {
+				Command.get(parentId, "id,type", function(parentObj) {
 					_Crud.removeRelatedObject(parentObj, key, obj);
 				});
 				return false;

@@ -1718,7 +1718,7 @@ var _TreeHelper = {
 			parentElements = parentElements || [];
 			parentElements.unshift(element);
 
-			Command.get(element.id, function(loadedElement) {
+			Command.get(element.id, parentKey, function(loadedElement) {
 				if (loadedElement && loadedElement[parentKey]) {
 					_TreeHelper.deepOpen(tree, loadedElement[parentKey], parentElements, selectedNode);
 				} else {

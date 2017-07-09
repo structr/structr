@@ -587,7 +587,7 @@ var _Contents = {
 			_Logger.log(_LogType.CONTENTS, 'cancelled');
 		});
 
-		Command.get(item.id, function(entity) {
+		Command.get(item.id, null, function(entity) {
 
 			dialogBtn.append('<button id="saveItem" disabled="disabled" class="disabled"> Save </button>');
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
@@ -648,7 +648,7 @@ var _Contents = {
 							var valueInput = $('.value-container input', div);
 							valueInput.on('change', function(e) {
 								if (e.keyCode !== 27) {
-									Command.get(entity.id, function(newEntity) {
+									Command.get(entity.id, prop.name, function(newEntity) {
 										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 									});
 								}
@@ -664,11 +664,11 @@ var _Contents = {
 								//btns: ['strong', 'em', '|', 'insertImage'],
 								//autogrow: true
 							}).on('tbwchange', function() {
-								Command.get(entity.id, function(newEntity) {
+								Command.get(entity.id, prop.name, function(newEntity) {
 									_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 								});
 							}).on('tbwpaste', function() {
-								Command.get(entity.id, function(newEntity) {
+								Command.get(entity.id, prop.name, function(newEntity) {
 									_Contents.checkValueHasChanged(newEntity[prop.name], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 								});
 							});
@@ -679,7 +679,7 @@ var _Contents = {
 							valueInput.on('keyup', function(e) {
 
 								if (e.keyCode !== 27) {
-									Command.get(entity.id, function(newEntity) {
+									Command.get(entity.id, prop.name, function(newEntity) {
 										_Contents.checkValueHasChanged(newEntity[prop.name], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 									});
 								}
@@ -724,7 +724,7 @@ var _Contents = {
 
 								var nodeId = entity[key].id || entity[key];
 
-								Command.get(nodeId, function(node) {
+								Command.get(nodeId, "id,type,tag,isContent,content,name", function(node) {
 
 									_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
 
@@ -752,7 +752,7 @@ var _Contents = {
 
 									var nodeId = obj.id || obj;
 
-									Command.get(nodeId, function(node) {
+									Command.get(nodeId, "id,type,tag,isContent,content,name", function(node) {
 
 										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
 											$('.remove', nodeEl).on('click', function(e) {

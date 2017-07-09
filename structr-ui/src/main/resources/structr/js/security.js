@@ -195,7 +195,7 @@ var _UsersAndGroups = {
 				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
 
 				if (member.members === null) {
-					Command.get(member.id, function (fetchedGroup) {
+					Command.get(member.id, null, function (fetchedGroup) {
 						fetchedGroup.members.forEach(function(subMember) {
 							_UsersAndGroups.appendMemberToGroup(subMember, member, groupDiv);
 						});
@@ -467,7 +467,7 @@ var _ResourceAccessGrants = {
 	updateResourceAccessFlags: function (id, newFlags) {
 
 		Command.setProperty(id, 'flags', newFlags, false, function() {
-			Command.get(id, function(obj) {
+			Command.get(id, "id,flags,name,signature", function(obj) {
 				_ResourceAccessGrants.appendResourceAccessElement(obj);
 			});
 		});
