@@ -35,6 +35,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 import org.structr.schema.SchemaHelper;
@@ -179,11 +180,13 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			buf.append(" RETURN n");
 
 			// configure OWNS relationship
-			ownsProperties.put(GraphObject.id.dbName(), getNextUuid());
+			ownsProperties.put(GraphObject.id.dbName(),   getNextUuid());
+			ownsProperties.put(GraphObject.type.dbName(), PrincipalOwnsNode.class.getSimpleName());
 
 			// configure SECURITY relationship
 			securityProperties.put(Security.allowed.dbName(), new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
-			securityProperties.put(GraphObject.id.dbName(), getNextUuid());
+			securityProperties.put(GraphObject.id.dbName(),   getNextUuid());
+			securityProperties.put(GraphObject.type.dbName(), Security.class.getSimpleName());
 
 			// store properties in statement
 			parameters.put("userId",             user.getId());

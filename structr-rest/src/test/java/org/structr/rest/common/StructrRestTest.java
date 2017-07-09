@@ -330,6 +330,8 @@ public class StructrRestTest {
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface node : app.nodeQuery().getAsList()) {
+
+				//System.out.println("Deleting node " + node.getType() + " with name " + node.getName() + " and ID " + node.getUuid());
 				app.delete(node);
 			}
 

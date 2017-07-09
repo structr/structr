@@ -123,6 +123,18 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 		super.delete();
 		relationshipCache.remove(id);
+
+		final NodeWrapper startNode = (NodeWrapper)getStartNode();
+		if (startNode != null) {
+
+			startNode.clearCaches();
+		}
+
+		final NodeWrapper endNode = (NodeWrapper)getEndNode();
+		if (endNode != null) {
+
+			endNode.clearCaches();
+		}
 	}
 
 	public static void clearCache() {

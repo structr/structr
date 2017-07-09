@@ -203,8 +203,6 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		tx.set(getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
 		tx.modified(this);
 
-		onRemoveFromCache();
-
 		stale = true;
 	}
 

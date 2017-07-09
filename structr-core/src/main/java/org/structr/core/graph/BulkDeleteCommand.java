@@ -57,7 +57,7 @@ public class BulkDeleteCommand extends NodeServiceCommand {
 						if (!node.isGranted(Permission.delete, securityContext)) {
 
 							logger.warn("Could not delete {} because {} has no delete permission", obj.getUuid(), securityContext.getUser(false));
-							
+
 						} else {
 
 							app.delete((NodeInterface)obj);
@@ -81,11 +81,6 @@ public class BulkDeleteCommand extends NodeServiceCommand {
 			@Override
 			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
 				logger.warn("Unable to delete nodes {}", t.toString());
-			}
-
-			@Override
-			public boolean doValidation() {
-				return false;
 			}
 		});
 

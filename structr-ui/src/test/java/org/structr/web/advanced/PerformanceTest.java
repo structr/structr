@@ -4,24 +4,25 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
+ * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.web.advanced;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -31,19 +32,27 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.TestOne;
 import org.structr.core.entity.relationship.NodeHasLocation;
-import org.structr.core.graph.DeleteNodeCommand;
+import org.structr.core.graph.BulkDeleteCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.web.StructrUiTest;
+import org.structr.web.entity.TestOne;
+import org.structr.web.entity.User;
 
 /**
  *
  */
-public class PerformanceTest extends StructrTest {
+public class PerformanceTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class);
 
@@ -66,6 +75,7 @@ public class PerformanceTest extends StructrTest {
 
 		// start measuring
 		final long t0 = System.currentTimeMillis();
+		final App app = StructrApp.getInstance(setup());
 
 		try {
 
@@ -77,11 +87,9 @@ public class PerformanceTest extends StructrTest {
 
 					nodes.add(app.create(TestOne.class,
 						new NodeAttribute(TestOne.name, "TestOne" + i),
-						new NodeAttribute(TestOne.aBoolean, true),
 						new NodeAttribute(TestOne.aDate, new Date()),
 						new NodeAttribute(TestOne.aDouble, 1.234),
 						new NodeAttribute(TestOne.aLong, 12345L),
-						new NodeAttribute(TestOne.anEnum, TestOne.Status.One),
 						new NodeAttribute(TestOne.anInt, 123)
 					));
 				}
@@ -128,7 +136,8 @@ public class PerformanceTest extends StructrTest {
 		try {
 
 			int expected                  = 1000;
-			final List<GenericNode> nodes = new ArrayList<>(createTestNodes(GenericNode.class, expected + 1));
+			final App app                 = StructrApp.getInstance(setup());
+			final List<GenericNode> nodes = new ArrayList<>(createNodes(app, GenericNode.class, expected + 1));
 			List<NodeHasLocation> rels    = new LinkedList<>();
 			long t0                       = System.nanoTime();
 
@@ -183,9 +192,11 @@ public class PerformanceTest extends StructrTest {
 
 		try {
 
-			int number = 1000;
-			int loop   = 1000;
-			createTestNodes(TestOne.class, number);
+			final App app = StructrApp.getInstance(setup());
+			int number    = 1000;
+			int loop      = 1000;
+
+			createNodes(app, TestOne.class, number);
 
 			long t0                   = System.nanoTime();
 
@@ -220,11 +231,12 @@ public class PerformanceTest extends StructrTest {
 			fail("Unexpected exception");
 
 		}
-
 	}
+
 	@Test
 	public void testPerformanceOfNodeDeletion() {
 
+		final App app             = StructrApp.getInstance(setup());
 		final List<TestOne> nodes = new LinkedList<>();
 		final int number          = 1000;
 
@@ -232,7 +244,7 @@ public class PerformanceTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				nodes.addAll(createTestNodes(TestOne.class, number));
+				nodes.addAll(createNodes(app, TestOne.class, number));
 				tx.success();
 			}
 
@@ -243,24 +255,18 @@ public class PerformanceTest extends StructrTest {
 
 		}
 
-
-		todo: check node creation performance
-
-			commit changes
-				
-
 		// start measuring
 		final long t0 = System.currentTimeMillis();
 
 		try {
 
-			final DeleteNodeCommand cmd = app.command(DeleteNodeCommand.class);
+			final BulkDeleteCommand cmd = app.command(BulkDeleteCommand.class);
 
 			try (final Tx tx = app.tx()) {
 
-				for (final TestOne node : nodes) {
-					cmd.execute(node);
-				}
+				final Iterator<GraphObject> iterator = (Iterator)nodes.iterator();
+
+				cmd.bulkDelete(iterator);
 
 				tx.success();
 			}
@@ -279,5 +285,48 @@ public class PerformanceTest extends StructrTest {
 
 		logger.info("Deleted {} nodes in {} seconds ({} per s)", number, decimalFormat.format(time), decimalFormat.format(rate) );
 		assertTrue("Deletion rate of nodes too low, expected > 100, was " + rate, rate > 50);
+	}
+
+	// ----- private methods -----
+	private SecurityContext setup() {
+
+		final App app = StructrApp.getInstance();
+		User user     = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(User.class,
+				new NodeAttribute<>(AbstractNode.name, "admin"),
+				new NodeAttribute<>(User.password, "admin"),
+				new NodeAttribute<>(User.isAdmin, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+		}
+
+		return SecurityContext.getInstance(user, AccessMode.Backend);
+	}
+
+	private <T extends NodeInterface> List<T> createNodes(final App app, final Class<T> type, final int number) throws FrameworkException {
+
+		final List<T> nodes = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			for (int i = 0; i < number; i++) {
+
+				nodes.add(app.create(type));
+			}
+
+			tx.success();
+		}
+
+		return nodes;
+
 	}
 }
