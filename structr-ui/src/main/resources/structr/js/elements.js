@@ -239,8 +239,10 @@ var _Elements = {
 		},
 		{
 			name: 'u-w',
-			elements: ['u', 'ul', '|', 'var', 'video', '|', 'wbr']
-		}
+			elements: ['u', 'ul', '|', 'var', 'video', '|', 'wbr'],
+			separatorAfter: true
+		},
+		'custom'
 	],
 	suggestedElements: {
 		"html": [ "head", "body" ],
