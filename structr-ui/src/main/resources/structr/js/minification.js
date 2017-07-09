@@ -92,7 +92,7 @@ var _Minification = {
 	},
 
 	reloadHeadAndFiles: function (fileId) {
-		Command.get(fileId, function (f) {
+		Command.get(fileId, "id,type,path,size,name,minificationSources,lineBreak,optimizationLevel,errors,warnings", function (f) {
 			_Minification.updateHead(f);
 
 			$('#minification-files tbody', dialogText).empty();

@@ -59,7 +59,7 @@ var _Files = {
 		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
 		if (searchField && searchField.length > 0) {
-			
+
 			searchField.focus();
 
 			searchField.keyup(function(e) {
@@ -79,7 +79,7 @@ var _Files = {
 
 			});
 		}
-		
+
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToPresentModules();
 
@@ -1104,8 +1104,7 @@ var _Files = {
 
 				if (!_Files.isMinificationTarget(StructrModel.obj(Structr.getId(el)))) {
 
-					Command.get(Structr.getId(el), function(entity) {
-
+					Command.get(Structr.getId(el), "id,name,contentType,isTemplate", function(entity) {
 						$('#files-tabs ul').append('<li id="tab-' + entity.id + '">' + entity.name + '</li>');
 						$('#files-tabs').append('<div id="content-tab-' + entity.id + '"></div>');
 
@@ -1339,7 +1338,7 @@ var _Files = {
 				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '>&nbsp;&nbsp;'
 				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
 				dialogMeta.html(h);
-				
+
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {

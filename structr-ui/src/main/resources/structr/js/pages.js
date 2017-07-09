@@ -576,7 +576,7 @@ var _Pages = {
 		}
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
-		Command.get(id, function(obj) {
+		Command.get(id, "id,name,version", function(obj) {
 			pageVersion[id] = obj.version;
 			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
 			iframe.prop('src', url);
@@ -596,7 +596,7 @@ var _Pages = {
 		}
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
 		if (!autoRefreshDisabled && id) {
-			Command.get(id, function(obj) {
+			Command.get(id, "id,name,version", function(obj) {
 				_Logger.log(_LogType.PAGES, 'reloading preview iframe', id, obj.name);
 				var v = obj.version || 0;
 				var s = pageVersion[id] || 0;
@@ -1070,7 +1070,7 @@ var _Pages = {
 		if (!id) {
 			return;
 		}
-		Command.get(id, function(sourceSchemaNode) {
+		Command.get(id, "id,name", function(sourceSchemaNode) {
 
 			var typeKey = sourceSchemaNode.name.toLowerCase();
 			LSWrapper.setItem(_Pages.selectedTypeKey, id);
@@ -1114,7 +1114,7 @@ var _Pages = {
 		lastId = lastId || id;
 		stack = stack || [];
 		stack.push(id);
-		Command.get(id, function(obj) {
+		Command.get(id, "id,parent", function(obj) {
 			if (obj.parent) {
 				_Pages.expandTreeNode(obj.parent.id, stack, lastId);
 			} else {

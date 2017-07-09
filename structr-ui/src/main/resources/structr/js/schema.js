@@ -717,7 +717,7 @@ var _Schema = {
 
 		dialogMeta.hide();
 
-		Command.get(id, function(entity) {
+		Command.get(id, null, function(entity) {
 
 			var title = 'Edit schema node';
 			var method = _Schema.loadNode;
@@ -2015,7 +2015,7 @@ var _Schema = {
 
 		dialogMeta.show();
 
-		Command.get(id, function(entity) {
+		Command.get(id, 'id,name,contentType,' + key, function(entity) {
 
 			var title = 'Edit ' + key + ' of ' + entity.name;
 
@@ -2191,7 +2191,7 @@ var _Schema = {
 		var resetNameToDefault = function () {
 
 			var updateAttributeName = function (blink) {
-				Command.get(rel.id, function (data) {
+				Command.get(rel.id, (out ? 'oldTargetJsonName' : 'oldSourceJsonName'), function (data) {
 					$('.property-name', row).val(data[(out ? 'oldTargetJsonName' : 'oldSourceJsonName')]);
 					if (blink) {
 						blinkGreen(row);
@@ -2633,7 +2633,7 @@ var _Schema = {
 			if (!id) {
 				return false;
 			}
-			Command.get(id, function(entity) {
+			Command.get(id, 'id', function(entity) {
 				_Schema.changeAttr(entity, element, input, key, oldVal, isRel);
 			});
 			return false;
@@ -2645,7 +2645,7 @@ var _Schema = {
 				if (!id) {
 					return false;
 				}
-				Command.get(id, function(entity) {
+				Command.get(id, 'id', function(entity) {
 					_Schema.changeAttr(entity, element, input, key, oldVal, isRel);
 				});
 				return false;

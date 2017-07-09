@@ -305,7 +305,7 @@ var _Crawler = {
 
 		fastRemoveAllChildren(crawlerList[0]);
 
-		Command.get(id, function(site) {
+		Command.get(id, "id,type,name", function(site) {
 
 			var name = (site.name || '[unnamed]');
 			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Site" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
@@ -459,7 +459,7 @@ var _Crawler = {
 	},
 	displayPatterns: function(pageId) {
 
-		Command.get(pageId, function(sourcePage) {
+		Command.get(pageId, "id,url,name,isLoginPage,site,proxyUrl,proxyUsername,proxyPassword,authUsername,authPassword,cookie", function(sourcePage) {
 
 			fastRemoveAllChildren(crawlerList[0]);
 
@@ -712,7 +712,7 @@ var _Crawler = {
 			var row = $('tr#row' + subPattern.id);
 
 			if (subPattern.subPage) {
-				Command.get(subPattern.subPage.id, function(subPage) {
+				Command.get(subPattern.subPage.id, "name", function(subPage) {
 					$('tr#row' + subPattern.id + ' .subPage_').text(subPage.name);
 				});
 			}

@@ -66,14 +66,20 @@ var Command = {
 	/**
 	 * Send a single GET command to the server.
 	 *
-	 * The server will return a list containing a single node with all properties
-	 * of the node with the given id to the sending client (no broadcast).
+	 * The server will return a list containing a single node with the given id to the sending client (no broadcast).
+	 * The returned properties can be customized vai the `properties` paramter. A comma-separated list of propertynames can be supplied.
+	 * If null is provided, all properties are returned.
 	 */
-	get: function(id, callback) {
+	get: function(id, properties, callback) {
 		var obj = {
 			command: 'GET',
 			id: id
 		};
+		if (properties !== null) {
+			obj.data = {
+				properties: properties
+			};
+		}
 		_Logger.log(_LogType.WS[obj.command], 'get()', obj, callback);
 		return sendObj(obj, callback);
 	},

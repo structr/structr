@@ -247,7 +247,7 @@ var _AppBuilder = {
 									related.isCollection = (d.attr('collection') === 'true');
 								}
 
-								Command.get(targetId, function(target) {
+								Command.get(targetId, "id,type,isContent", function(target) {
 									_Dragndrop.htmlElementFromPaletteDropped(tag, target, page.id, function() {
 										_AppBuilder.refresh(currentPage);
 									});
@@ -261,7 +261,7 @@ var _AppBuilder = {
 							//console.log(source, target);
 
 							if (!target && source) {
-								Command.get(targetId, function(target) {
+								Command.get(targetId, "id", function(target) {
 									_Dragndrop.widgetDropped(source, target, page.id, function() {
 										_AppBuilder.refresh(currentPage);
 									});
@@ -276,8 +276,8 @@ var _AppBuilder = {
 							} else {
 
 								// try to get objects from server
-								Command.get(sourceId, function(source) {
-									Command.get(targetId, function(target) {
+								Command.get(sourceId, "id,type,source,description,configuration", function(source) {
+									Command.get(targetId, "id", function(target) {
 										_Dragndrop.widgetDropped(source, target, page.id, function() {
 											_AppBuilder.refresh(currentPage);
 										});
@@ -353,9 +353,7 @@ var _AppBuilder = {
 			editButton.on('click', function(e) {
 				e.stopPropagation();
 				var id = c.attr('data-structr-id');
-				Command.get(id, function(entity) {
-					_Entities.showProperties(entity);
-				});
+				_Entities.showProperties({id: id});
 				return false;
 			});
 

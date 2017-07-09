@@ -290,7 +290,7 @@ var _Widgets = {
 			$('.edit_icon', div).on('click', function(e) {
 				e.stopPropagation();
 
-				Command.get(widget.id, function(entity) {
+				Command.get(widget.id, 'id,name,source,configuration,description', function(entity) {
 					_Widgets.editWidget(entity, true);
 				});
 

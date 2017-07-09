@@ -274,7 +274,7 @@ var _Dragndrop = {
 
 				_Logger.log(_LogType.DND, tag, source, target, related);
 
-				Command.get(target.id, function(target) {
+				Command.get(target.id, "id,children", function(target) {
 					var firstContentId = target.children[0].id;
 					if (related) {
 						var key = tag.substring(tag.indexOf('.') + 1);
