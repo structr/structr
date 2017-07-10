@@ -166,6 +166,10 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	public static final Property<String> _title = new HtmlProperty("title").indexed();
 	public static final Property<String> _translate = new HtmlProperty("translate");
 
+	// new properties for Polymer support
+	public static final Property<String> _is         = new HtmlProperty("is");
+	public static final Property<String> _properties = new HtmlProperty("properties");
+
 	// The role attribute, see http://www.w3.org/TR/role-attribute/
 	public static final Property<String> _role = new HtmlProperty("role");
 
@@ -201,7 +205,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		final String _name = getProperty(DOMElement.name);
 		if (_name != null) {
-			
+
 			return _name;
 		}
 

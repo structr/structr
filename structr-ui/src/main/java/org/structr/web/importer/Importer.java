@@ -782,8 +782,21 @@ public class Importer {
 
 				if (newNode == null) {
 
+					// experimental: create DOM element with literal tag
+					newNode = (DOMElement) app.create(DOMElement.class,
+						new NodeAttribute(DOMElement.tag, node.nodeName()),
+						new NodeAttribute(DOMElement.hideOnDetail, false),
+						new NodeAttribute(DOMElement.hideOnIndex, false)
+					);
+
+					if (newNode != null && page != null) {
+						newNode.doAdopt(page);
+					}
+
+					/* disabled / replaced by implementation above
 					newNode = createNewHTMLTemplateNodeForUnsupportedTag(parent, node);
 					isNewTemplateOrComponent = true;
+					*/
 				}
 			}
 

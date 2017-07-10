@@ -27,10 +27,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -62,11 +65,11 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		final String pageId                  = webSocketData.getPageId();
 
 		Boolean inheritVisibilityFlags = (Boolean) nodeData.get("inheritVisibilityFlags");
-		
+
 		if (inheritVisibilityFlags == null) {
 			inheritVisibilityFlags = false;
 		}
-		
+
 		// remove configuration elements from the nodeData so we don't set it on the node
 		nodeData.remove("parentId");
 		nodeData.remove("inheritVisibilityFlags");
@@ -121,7 +124,32 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					} else if (tagName != null && !tagName.isEmpty()) {
 
-						newNode = (DOMNode) document.createElement(tagName);
+						if ("custom".equals(tagName)) {
+
+							try {
+
+								// experimental: create DOM element with literal tag
+								newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create(DOMElement.class,
+									new NodeAttribute(DOMElement.tag, "custom"),
+									new NodeAttribute(DOMElement.hideOnDetail, false),
+									new NodeAttribute(DOMElement.hideOnIndex, false)
+								);
+
+								if (newNode != null && document != null) {
+									newNode.doAdopt((Page)document);
+								}
+
+							} catch (FrameworkException fex) {
+
+								// abort
+								getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
+								return;
+							}
+
+						} else {
+
+							newNode = (DOMNode) document.createElement(tagName);
+						}
 
 					} else {
 
