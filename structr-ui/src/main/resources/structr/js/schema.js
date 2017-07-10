@@ -1890,9 +1890,9 @@ var _Schema = {
 				+ '<td>' + escapeForHtmlAttributes(property.declaringClass) + '</td>'
 				+ '<td>' + escapeForHtmlAttributes(property.name) + '</td>'
 				+ '<td>' + property.propertyType + '</td>'
-				+ '<td>' + '<input class="not-null" type="checkbox" readonly="readonly"' + (property.notNull ? ' checked="checked"' : '') + '></td>'
-				+ '<td>' + '<input class="unique" type="checkbox" readonly="readonly"' + (property.unique ? ' checked="checked"' : '') + '</td>'
-				+ '<td>' + '<input class="indexed" type="checkbox" readonly="readonly"' + (property.indexed ? ' checked="checked"' : '')+ '</td>'
+				+ '<td>' + '<input class="not-null" type="checkbox" disabled="disabled"' + (property.notNull ? ' checked="checked"' : '') + '></td>'
+				+ '<td>' + '<input class="unique" type="checkbox" disabled="disabled"' + (property.unique ? ' checked="checked"' : '') + '</td>'
+				+ '<td>' + '<input class="indexed" type="checkbox" disabled="disabled"' + (property.indexed ? ' checked="checked"' : '')+ '</td>'
 				+ '</tr>');
 
 	},
