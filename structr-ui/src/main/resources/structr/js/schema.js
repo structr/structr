@@ -2259,6 +2259,10 @@ var _Schema = {
 
 			_Schema.storeSchemaEntity('schema_properties', property, JSON.stringify(obj), function() {
 
+				if (property.name !== obj.name) {
+					$('.local .' + property.name).removeClass(property.name).addClass(obj.name);
+				}
+
 				blinkGreen($('.local .' + property.name));
 
 				// accept values into property object
