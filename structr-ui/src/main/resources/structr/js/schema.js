@@ -1895,12 +1895,6 @@ var _Schema = {
 				+ '<td>' + '<input class="indexed" type="checkbox" readonly="readonly"' + (property.indexed ? ' checked="checked"' : '')+ '</td>'
 				+ '</tr>');
 
-		_Schema.bindEvents(property);
-
-		if (property.isBuiltinProperty) {
-			_Schema.disable(property);
-		}
-
 	},
 	disable: function(property) {
 
