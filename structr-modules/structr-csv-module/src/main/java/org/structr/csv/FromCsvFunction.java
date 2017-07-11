@@ -34,8 +34,8 @@ import org.structr.web.function.UiFunction;
  */
 public class FromCsvFunction extends UiFunction {
 
-	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source [, delimiter, quoteChar, recordSeparator])}. Example: ${from_csv('one;two;three')}";
-	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(src [, delimiter, quoteChar, recordSeparator])}}. Example: ${{Structr.from_csv('one;two;three')}}";
+	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiter[, quoteChar[, recordSeparator]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
+	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiter[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
 
 	@Override
 	public String getName() {
