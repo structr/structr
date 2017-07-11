@@ -201,7 +201,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		properties.put(Page.hideOnIndex, false);
 		properties.put(Page.enableBasicAuth, false);
 
-		if (id != null) {
+		if (uuid != null) {
 			properties.put(Page.id, uuid);
 		}
 

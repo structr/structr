@@ -26,8 +26,18 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
+import org.structr.core.graph.attribute.Name;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
+import org.structr.rest.entity.TestUser;
 
 /**
  *
@@ -398,4 +408,97 @@ public class PagingAndSortingTest extends StructrRestTest {
 
 	}
 
+	@Test
+	public void testRelationshipResourcePagingOnCollectionResource() {
+
+		TestUser tester = null;
+
+		try (final Tx tx = app.tx()) {
+
+			tester = app.create(TestUser.class, new Name("tester"), new NodeAttribute<>(Principal.password, "test"));
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final App app = StructrApp.getInstance(SecurityContext.getInstance(tester, AccessMode.Backend));
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, "TestOne1");
+			app.create(TestOne.class, "TestOne2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.expect()
+				.statusCode(200)
+				.body("result_count",       equalTo(4))
+				.body("page_size",          equalTo(2))
+				.body("page_count",         equalTo(2))
+				.body("result",             hasSize(2))
+				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
+				.body("result[1].type",     equalTo("Security"))
+			.when()
+				.get("/TestOne/in?pageSize=2");
+
+
+	}
+
+	@Test
+	public void testRelationshipResourcePagingOnEntityResource() {
+
+		TestUser tester = null;
+
+		try (final Tx tx = app.tx()) {
+
+			tester = app.create(TestUser.class, new Name("tester"), new NodeAttribute<>(Principal.password, "test"));
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final App app = StructrApp.getInstance(SecurityContext.getInstance(tester, AccessMode.Backend));
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(TestOne.class, "TestOne1");
+			app.create(TestOne.class, "TestOne2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.expect()
+				.statusCode(200)
+				.body("result_count",       equalTo(4))
+				.body("page_size",          equalTo(2))
+				.body("page_count",         equalTo(2))
+				.body("result",             hasSize(2))
+				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
+				.body("result[1].type",     equalTo("Security"))
+			.when()
+				.get("/TestUser/" + tester.getUuid() + "/out?pageSize=2");
+
+
+	}
 }

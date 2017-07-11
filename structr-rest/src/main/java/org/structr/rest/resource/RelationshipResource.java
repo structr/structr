@@ -24,6 +24,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
+import org.structr.api.util.Iterables;
+import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -31,7 +33,7 @@ import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.exception.IllegalPathException;
@@ -69,29 +71,23 @@ public class RelationshipResource extends WrappingResource {
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
 
-		final App app = StructrApp.getInstance();
+		// fetch all results, paging is applied later
+		final List<? extends GraphObject> results = wrappedResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
+		final App app                             = StructrApp.getInstance();
 
-		List<? extends GraphObject> results = wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId).getResults();
 		if (results != null && !results.isEmpty()) {
 
 			try {
-				List<GraphObject> resultList = new LinkedList<>();
+
+				final List<GraphObject> resultList = new LinkedList<>();
 				for (GraphObject obj : results) {
 
 					if (obj instanceof AbstractNode) {
 
 						final List<? extends RelationshipInterface> relationships = Direction.INCOMING.equals(direction) ?
 
-							//Iterables.toList(((AbstractNode) obj).getIncomingRelationships()) :
-							//Iterables.toList(((AbstractNode) obj).getOutgoingRelationships());
-							(sortDescending ?
-								app.relationshipQuery().and(AbstractRelationship.targetId, obj.getUuid()).sortDescending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList()
-							:
-								app.relationshipQuery().and(AbstractRelationship.targetId, obj.getUuid()).sortAscending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList()) :
-							(sortDescending ?
-								app.relationshipQuery().and(AbstractRelationship.sourceId, obj.getUuid()).sortDescending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList()
-							:
-								app.relationshipQuery().and(AbstractRelationship.sourceId, obj.getUuid()).sortAscending(sortKey).pageSize(pageSize).page(page).offsetId(offsetId).getAsList());
+							Iterables.toList(((AbstractNode) obj).getIncomingRelationships()) :
+							Iterables.toList(((AbstractNode) obj).getOutgoingRelationships());
 
 						if (relationships != null) {
 
@@ -125,7 +121,9 @@ public class RelationshipResource extends WrappingResource {
 					}
 				}
 
-				return new Result(resultList, null, isCollectionResource(), isPrimitiveArray());
+				final int rawResultCount = resultList.size();
+
+				return new Result(PagingHelper.subList(resultList, pageSize, page, offsetId), rawResultCount, true, false);
 
 			} catch (Throwable t) {
 

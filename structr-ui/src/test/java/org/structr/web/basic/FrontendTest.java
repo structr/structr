@@ -83,7 +83,7 @@ public abstract class FrontendTest extends StructrUiTest {
 				}
 
 				exitValue = proc.exitValue();
-				makeVideo(testName);
+				//makeVideo(testName);
 
 				return exitValue;
 

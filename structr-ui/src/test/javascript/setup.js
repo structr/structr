@@ -468,7 +468,7 @@ exports.startRecording = function(window, casper, testName) {
 	/**
 	 * Set global timeout for all 'waitFor' functions
 	 */
-	casper.options.waitTimeout = 30000;
+	casper.options.waitTimeout = 10000;
 
 	casper.options.viewportSize = {
 		width: w,
@@ -480,12 +480,13 @@ exports.startRecording = function(window, casper, testName) {
 	// Remove old screenshots
 	fs.removeTree(exports.docsDir + '/screenshots/' + testName);
 
+/*
 	window.setInterval(function() {
 		casper.capture(exports.docsDir + '/screenshots/' + testName + '/' + exports.pad(i++) + '.' + exports.imageType);
 		if (exports.debug)
 			console.log('screenshot ' + i + ' created');
 	}, recordingInterval);
-
+*/
 };
 
 /**

@@ -34,9 +34,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.DynamicResourceAccess;
@@ -53,6 +56,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.entity.Security;
 import org.structr.core.entity.SixOneOneToOne;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestNine;
@@ -64,8 +68,11 @@ import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -1505,6 +1512,144 @@ public class BasicTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testRelationshipsOnNodeCreation() {
+
+		TestUser user = null;
+		TestOne test  = null;
+
+		// create user
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(TestUser.class, "tester");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext ctx = SecurityContext.getInstance(user, AccessMode.Backend);
+		final App app             = StructrApp.getInstance(ctx);
+
+		// create object with user context
+		try (final Tx tx = app.tx()) {
+
+			test = app.create(TestOne.class);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// query for relationships
+		try (final Tx tx = app.tx()) {
+
+			final List<? extends RelationshipInterface> rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
+			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
+			assertEquals("Invalid relationship type after object creation", Security.class, rels1.get(0).getClass());
+			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels1.get(1).getClass());
+
+			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
+			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
+			assertEquals("Invalid relationship type after object creation", Security.class, rels2.get(0).getClass());
+			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels2.get(1).getClass());
+
+			final List<? extends RelationshipInterface> rels3 = Iterables.toList(test.getIncomingRelationships());
+			assertEquals("Invalid number of relationships after object creation", 2, rels3.size());
+			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels3.get(0).getClass());
+			assertEquals("Invalid relationship type after object creation", Security.class, rels3.get(1).getClass());
+
+			final Security sec = app.relationshipQuery(Security.class).getFirst();
+			assertNotNull("Relationship caching on node creation is broken", sec);
+
+			final PrincipalOwnsNode owns = app.relationshipQuery(PrincipalOwnsNode.class).getFirst();
+			assertNotNull("Relationship caching on node creation is broken", owns);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testNodeCreationWithForcedUuid() {
+
+		final String uuid = NodeServiceCommand.getNextUuid();
+		TestOne test      = null;
+
+		// create object with user context
+		try (final Tx tx = app.tx()) {
+
+			test = app.create(TestOne.class,
+				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(GraphObject.id, uuid)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String uuid1 = test.getProperty(GraphObject.id);
+			final String uuid2 = test.getUuid();
+
+			assertEquals("Object creation does not accept provided UUID", uuid, uuid1);
+			assertEquals("UUID mismatch in getProperty() and getUuid()", uuid1, uuid2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testNodeCreationWithForcedInvalidUuid() {
+
+		TestOne test = null;
+
+		// create object with user context
+		try (final Tx tx = app.tx()) {
+
+			test = app.create(TestOne.class,
+				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(GraphObject.id, null)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String uuid1 = test.getProperty(GraphObject.id);
+			final String uuid2 = test.getUuid();
+
+			assertEquals("UUID mismatch in getProperty() and getUuid()", uuid1, uuid2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	// ----- private methods -----

@@ -32,6 +32,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.SuperUser;
@@ -95,6 +96,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 				// no, create new one
 				uuid = getNextUuid();
+
+				properties.put(GraphObject.id, uuid);
 			}
 
 			// use property keys to set property values on creation dummy
@@ -117,7 +120,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			}
 
 			// prevent double setting of properties
-			properties.remove(GraphObject.id);
+			properties.remove(AbstractNode.id);
 			properties.remove(AbstractNode.type);
 			properties.remove(AbstractNode.lastModifiedDate);
 			properties.remove(AbstractNode.lastModifiedBy);
@@ -164,6 +167,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		final Map<String, Object> ownsProperties     = new HashMap<>();
 		final Map<String, Object> securityProperties = new HashMap<>();
 		final StringBuilder buf                      = new StringBuilder();
+		final String newUuid                         = (String)properties.get("id");
 
 		if (user != null && !(user instanceof SuperUser)) {
 
@@ -180,13 +184,17 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			buf.append(" RETURN n");
 
 			// configure OWNS relationship
-			ownsProperties.put(GraphObject.id.dbName(),   getNextUuid());
-			ownsProperties.put(GraphObject.type.dbName(), PrincipalOwnsNode.class.getSimpleName());
+			ownsProperties.put(GraphObject.id.dbName(),                getNextUuid());
+			ownsProperties.put(GraphObject.type.dbName(),              PrincipalOwnsNode.class.getSimpleName());
+			ownsProperties.put(AbstractRelationship.sourceId.dbName(), user.getUuid());
+			ownsProperties.put(AbstractRelationship.targetId.dbName(), newUuid);
 
 			// configure SECURITY relationship
-			securityProperties.put(Security.allowed.dbName(), new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
-			securityProperties.put(GraphObject.id.dbName(),   getNextUuid());
-			securityProperties.put(GraphObject.type.dbName(), Security.class.getSimpleName());
+			securityProperties.put(Security.allowed.dbName(),              new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
+			securityProperties.put(GraphObject.id.dbName(),                getNextUuid());
+			securityProperties.put(GraphObject.type.dbName(),              Security.class.getSimpleName());
+			securityProperties.put(AbstractRelationship.sourceId.dbName(), user.getUuid());
+			securityProperties.put(AbstractRelationship.targetId.dbName(), newUuid);
 
 			// store properties in statement
 			parameters.put("userId",             user.getId());
@@ -209,7 +217,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		// make properties available to Cypher statement
 		parameters.put("nodeProperties", properties);
-
 
 		final NativeResult result = graphDb.execute(buf.toString(), parameters);
 		if (result.hasNext()) {
