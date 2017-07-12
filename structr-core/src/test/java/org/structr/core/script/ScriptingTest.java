@@ -1952,6 +1952,12 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid number of TestOne's", "0", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '255'))}"));
 			assertEquals("Invalid number of TestOne's", "1", Scripting.replaceVariables(ctx, testOne, "${size(find('TestOne', 'name', 'createTestOne2', 'aCreateInt', '256'))}"));
 
+			// test parser with different quote leves etc.
+			assertEquals("Parser does not handle quotes correctly,", "test\"test", Scripting.replaceVariables(ctx, testOne, "${join(merge('test', 'test'), '\"')}"));
+			assertEquals("Parser does not handle quotes correctly,", "test\'test", Scripting.replaceVariables(ctx, testOne, "${join(merge('test', 'test'), '\\'')}"));
+			assertEquals("Parser does not handle quotes correctly,", "test\"test", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"test\", \"test\"), \"\\\"\")}"));
+			assertEquals("Parser does not handle quotes correctly,", "test\'test", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"test\", \"test\"), \"\\'\")}"));
+
 			tx.success();
 
 		} catch (FrameworkException fex) {

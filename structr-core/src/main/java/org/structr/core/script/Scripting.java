@@ -348,6 +348,7 @@ public class Scripting {
 		boolean inSingleQuotes         = false;
 		boolean inDoubleQuotes         = false;
 		boolean inTemplate             = false;
+		boolean hasBackslash           = false;
 		boolean hasDollar              = false;
 		int level                      = 0;
 		int start                      = 0;
@@ -359,22 +360,29 @@ public class Scripting {
 
 			switch (c) {
 
+				case '\\':
+					hasBackslash = true;
+					break;
+
 				case '\'':
-					if (inTemplate) {
+					if (inTemplate && !inDoubleQuotes && !hasBackslash) {
 						inSingleQuotes = !inSingleQuotes;
 					}
 					hasDollar = false;
+					hasBackslash = false;
 					break;
 
 				case '\"':
-					if (inTemplate) {
+					if (inTemplate && !inSingleQuotes && !hasBackslash) {
 						inDoubleQuotes = !inDoubleQuotes;
 					}
 					hasDollar = false;
+					hasBackslash = false;
 					break;
 
 				case '$':
 					hasDollar = true;
+					hasBackslash = false;
 					break;
 
 				case '{':
@@ -388,6 +396,7 @@ public class Scripting {
 					}
 
 					hasDollar = false;
+					hasBackslash = false;
 					break;
 
 				case '}':
@@ -402,10 +411,12 @@ public class Scripting {
 						level = 0;
 					}
 					hasDollar = false;
+					hasBackslash = false;
 					break;
 
 				default:
 					hasDollar = false;
+					hasBackslash = false;
 					break;
 			}
 		}
