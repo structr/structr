@@ -321,20 +321,33 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		// remove all DOMNodes from the database (clean webapp for import)
-		try (final Tx tx = app.tx(true, true, false)) {
+		// construct paths
+		final Path templates = source.resolve("templates");
+		final Path components = source.resolve("components");
+		final Path pages = source.resolve("pages");
 
-			info("Removing pages, templates and components..");
-			for (final DOMNode node : app.nodeQuery(DOMNode.class)) {
+		// remove all DOMNodes from the database (clean webapp for import, but only
+		// if the actual import directories exist, don't delete web components if
+		// an empty directory was specified accidentially).
+		if (Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
 
-				app.delete(node);
+			try (final Tx tx = app.tx(true, true, false)) {
+
+				info("Removing pages, templates and components..");
+				for (final DOMNode node : app.nodeQuery(DOMNode.class)) {
+
+					app.delete(node);
+				}
+
+				tx.success();
 			}
 
-			tx.success();
+		} else {
+
+			logger.info("Import directory does not seem to contain pages, templates or components, NOT removing any data.");
 		}
 
 		// import templates, must be done before pages so the templates exist
-		final Path templates = source.resolve("templates");
 		if (Files.exists(templates)) {
 
 			try {
@@ -348,7 +361,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		// import components, must be done before pages so the shared components exist
-		final Path components = source.resolve("components");
 		if (Files.exists(components)) {
 
 			try {
@@ -362,7 +374,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		// import pages
-		final Path pages = source.resolve("pages");
 		if (Files.exists(pages)) {
 
 			try {
