@@ -1821,7 +1821,7 @@ var _Crud = {
 
 					cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
 					$('.add', cell).on('click', function() {
-						if (!dialogBox.is(':visible')) {
+						if (!dialogBox.is(':visible') || !isRel) {
 							_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
 							_Crud.displaySearch(type, id, key, simpleType, dialogText);
 						} else {
