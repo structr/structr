@@ -44,8 +44,8 @@ import org.structr.web.function.UiFunction;
  *
  */
 public class ToCsvFunction extends UiFunction {
-	public static final String ERROR_MESSAGE_TO_CSV    = "Usage: ${to_csv(nodes, properties[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${}";
-	public static final String ERROR_MESSAGE_TO_CSV_JS = "";
+	public static final String ERROR_MESSAGE_TO_CSV    = "Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}";
+	public static final String ERROR_MESSAGE_TO_CSV_JS = "Usage: ${{Structr.to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}";
 
 	@Override
 	public String getName() {
@@ -60,7 +60,7 @@ public class ToCsvFunction extends UiFunction {
 
 				if ( !(sources[0] instanceof List) ) {
 					logParameterError(caller, sources, ctx.isJavaScriptContext());
-					return "ERROR: First parameter must be a collection of graphobjects!".concat(usage(ctx.isJavaScriptContext()));
+					return "ERROR: First parameter must be a collection!".concat(usage(ctx.isJavaScriptContext()));
 				}
 
 				final List<GraphObject> nodes           = (List)sources[0];
