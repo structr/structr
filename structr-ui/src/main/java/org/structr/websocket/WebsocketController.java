@@ -22,6 +22,8 @@ import com.google.gson.Gson;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
@@ -260,6 +263,30 @@ public class WebsocketController implements StructrTransactionListener {
 
 				final WebSocketMessage message = createMessage("UPDATE", callbackId);
 
+				// at login the securityContext is still null
+				if (securityContext != null) {
+
+					// only include changed properties (+ id and type)
+					LinkedHashSet<String> propertySet = new LinkedHashSet();
+					propertySet.add("id");
+					propertySet.add("type");
+					for (Iterator<PropertyKey> it = modificationEvent.getModifiedProperties().keySet().iterator(); it.hasNext(); ) {
+						final String jsonName = ((PropertyKey)it.next()).jsonName();
+						if (!propertySet.contains(jsonName)) {
+							propertySet.add(jsonName);
+						}
+					}
+					for (Iterator<PropertyKey> it = modificationEvent.getRemovedProperties().keySet().iterator(); it.hasNext(); ) {
+						final String jsonName = ((PropertyKey)it.next()).jsonName();
+						if (!propertySet.contains(jsonName)) {
+							propertySet.add(jsonName);
+						}
+					}
+					if (propertySet.size() > 2) {
+						securityContext.setCustomView(propertySet);
+					}
+				}
+
 				message.setGraphObject(node);
 				message.setResult(Arrays.asList(new GraphObject[]{node}));
 				message.setId(node.getUuid());
@@ -267,6 +294,11 @@ public class WebsocketController implements StructrTransactionListener {
 				message.getRemovedProperties().addAll(modificationEvent.getRemovedProperties().keySet());
 				message.setNodeData(modificationEvent.getData(securityContext));
 				message.setCode(200);
+
+				if (securityContext != null) {
+					// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
+					securityContext.clearCustomView();
+				}
 
 				return message;
 			}
