@@ -1514,7 +1514,11 @@ var Structr = {
 
 		targetTypeSelector.on('change', function(e) {
 
-			var blacklist = ['id', 'owner', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate', 'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate'];
+			var blacklist = [
+				'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
+				'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
+				'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+			];
 			var type      = $(this).val();
 
 			propertySelector.empty();
@@ -1534,13 +1538,13 @@ var Structr = {
 
 					var names = [];
 
-					$.get(rootUrl + '_schema/' + type + '/ui', function(typeInfo) {
+					$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 						if (typeInfo && typeInfo.result) {
 
 							// sort by name
 							typeInfo.result.sort(function(a, b) {
-								return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
+								return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
 							});
 
 							csvHeaders.result.headers.forEach(function(p, i) {
