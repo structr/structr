@@ -27,11 +27,7 @@ import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 
-//~--- interfaces -------------------------------------------------------------
-
 /**
- *
- *
  */
 public interface Indexable extends NodeInterface {
 

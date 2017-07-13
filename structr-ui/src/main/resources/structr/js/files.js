@@ -888,6 +888,14 @@ var _Files = {
 	},
 	handleFile: function(div, d) {
 
+		if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
+			div.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + ' hidden" title="Import this CSV file" />');
+			div.children('.import_icon').on('click', function() {
+				Structr.importCSVDialog(d, false);
+				return false;
+			});
+		}
+
 		if (_Files.isArchive(d)) {
 			div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
 			div.children('.unarchive_icon').on('click', function() {
@@ -936,6 +944,7 @@ var _Files = {
 			});
 		}
 
+		/* SYNC is disabled
 		if (Structr.isModulePresent('cloud') && !_Files.isViewModeActive('img')) {
 			div.append('<i title="Sync file \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
 			div.children('.push_icon').on('click', function() {
@@ -943,6 +952,7 @@ var _Files = {
 				return false;
 			});
 		}
+		*/
 
 		if (displayingFavorites === true) {
 

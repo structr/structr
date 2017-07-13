@@ -18,16 +18,23 @@
  */
 package org.structr.web.entity;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -50,14 +57,18 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import static org.structr.common.fulltext.Indexable.extractedContent;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.JsonInput;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -72,7 +83,14 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.files.cmis.config.StructrFileActions;
+import org.structr.module.StructrModule;
+import org.structr.module.api.APIBuilder;
+import org.structr.rest.common.CsvHelper;
+import org.structr.common.ResultTransformer;
+import org.structr.core.StructrTransactionListener;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -396,16 +414,16 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 				// Return file input stream
 				fis = new FileInputStream(fileOnDisk);
-				
+
 				if (getProperty(isTemplate)) {
-					
+
 					final String content = IOUtils.toString(fis, "UTF-8");
 
 					try {
 
 						final String result = Scripting.replaceVariables(new ActionContext(securityContext), this, content);
 						return IOUtils.toInputStream(result, "UTF-8");
-						
+
 					} catch (Throwable t) {
 
 						logger.warn("Scripting error in {}:\n{}", getUuid(), content, t);
@@ -534,6 +552,195 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		return null;
 	}
 
+	@Export
+	public Map<String, Object> getFirstLines(final Map<String, Object> parameters) {
+
+		final Map<String, Object> result = new LinkedHashMap<>();
+		final LineAndSeparator ls        = getFirstLines(getNumberOrDefault(parameters, "num", 3));
+		final String separator           = ls.getSeparator();
+
+		switch (separator) {
+
+			case "\n":
+				result.put("separator", "LF");
+				break;
+
+			case "\r":
+				result.put("separator", "CR");
+				break;
+
+			case "\r\n":
+				result.put("separator", "CR+LF");
+				break;
+		}
+
+		result.put("lines", ls.getLine());
+
+		return result;
+	}
+
+	@Export
+	public Map<String, Object> getCSVHeaders(final Map<String, Object> parameters) throws FrameworkException {
+
+		if ("text/csv".equals(getProperty(FileBase.contentType))) {
+
+			final Map<String, Object> map       = new LinkedHashMap<>();
+			final Function<Object, Object> func = Functions.get("get_csv_headers");
+
+			if (func != null) {
+
+				try {
+
+					final Object[] sources = new Object[4];
+					String delimiter       = ";";
+					String quoteChar       = "\"";
+					String recordSeparator = "\n";
+
+					if (parameters != null) {
+
+						if (parameters.containsKey("delimiter"))       { delimiter       = parameters.get("delimiter").toString(); }
+						if (parameters.containsKey("quoteChar"))       { quoteChar       = parameters.get("quoteChar").toString(); }
+						if (parameters.containsKey("recordSeparator")) { recordSeparator = parameters.get("recordSeparator").toString(); }
+					}
+
+					// allow web-friendly specification of line endings
+					switch (recordSeparator) {
+
+						case "CR+LF":
+							recordSeparator = "\r\n";
+							break;
+
+						case "CR":
+							recordSeparator = "\r";
+							break;
+
+						case "LF":
+							recordSeparator = "\n";
+							break;
+
+						case "TAB":
+							recordSeparator = "\t";
+							break;
+					}
+
+					sources[0] = getFirstLines(1).getLine();
+					sources[1] = delimiter;
+					sources[2] = quoteChar;
+					sources[3] = recordSeparator;
+
+					map.put("headers", func.apply(new ActionContext(securityContext), null, sources));
+
+				} catch (UnlicensedException ex) {
+
+					logger.warn("CSV module is not available.");
+				}
+			}
+
+			return map;
+
+		} else {
+
+			throw new FrameworkException(400, "File format is not CSV");
+		}
+	}
+
+	@Export
+	public void doCSVImport(final Map<String, Object> parameters) throws FrameworkException {
+
+		final Map<String, String> importMappings = (Map<String, String>)parameters.get("mappings");
+		final Map<String, String> transforms     = (Map<String, String>)parameters.get("transforms");
+		final App app                            = StructrApp.getInstance(securityContext);
+		final String targetType                  = (String)parameters.get("targetType");
+		final String delimiter                   = (String)parameters.get("delimiter");
+		final String quoteChar                   = (String)parameters.get("quoteChar");
+
+		if (targetType != null && delimiter != null && quoteChar != null) {
+
+			logger.info("Importing from {} to {} using {}", this.getUuid(), targetType, parameters);
+
+			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
+			if (module != null && module instanceof APIBuilder) {
+
+				final APIBuilder builder       = (APIBuilder)module;
+				final SimpleDateFormat df      = new SimpleDateFormat("yyyyMMddHHMM");
+				final String importTypeName    = "ImportFromCsv" + df.format(System.currentTimeMillis());
+
+				// do import using periodic commit
+				startNewThread(() -> {
+
+					try (final InputStream is = getInputStream()) {
+
+						final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
+						final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
+						final char fieldSeparator          = delimiter.charAt(0);
+						final char quoteCharacter          = quoteChar.charAt(0);
+						final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(securityContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, reverse(importMappings));
+						final Iterator<JsonInput> iterator = iterable.iterator();
+						final int batchSize                = 1000;
+						int chunks                         = 0;
+
+						while (iterator.hasNext()) {
+
+							int count = 0;
+
+							try (final Tx tx = app.tx()) {
+
+								while (iterator.hasNext() && count++ < batchSize) {
+
+									final JsonInput input = iterator.next();
+
+									mapper.transformInput(securityContext, targetEntityType, input);
+
+									app.create(targetEntityType, PropertyMap.inputTypeToJavaType(securityContext, targetEntityType, input));
+								}
+
+								tx.success();
+
+								for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+									final Map<String, Object> data = new LinkedHashMap();
+									data.put("type", "CSV_IMPORT_STATUS");
+									data.put("title", "CSV Import Status");
+									data.put("text", "Finished importing chunk " + ++chunks);
+									data.put("username", securityContext.getUser(false).getName());
+									listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
+								}
+							}
+						}
+
+						builder.removeMapping(app, targetType, importTypeName);
+
+						logger.info("CSV: Finished importing csv data.");
+
+						for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+							final Map<String, Object> data = new LinkedHashMap();
+							data.put("type", "CSV_IMPORT_STATUS");
+							data.put("title", "CSV Import Done");
+							data.put("text", "Finished importing csv data.");
+							data.put("username", securityContext.getUser(false).getName());
+							listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
+						}
+
+					} catch (IOException | FrameworkException fex) {
+						fex.printStackTrace();
+					}
+
+				}, false);
+
+			} else {
+
+				logger.warn("API builder module is not available.");
+			}
+
+		} else {
+
+			throw new FrameworkException(400, "Cannot import CSV, please specify target type.");
+		}
+	}
+
 	// ----- private methods -----
 	/**
 	 * Returns the Folder entity for the current working directory,
@@ -557,32 +764,91 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		return workingOrHomeDir;
 	}
 
-	private int flushWordBuffer(final StringBuilder lineBuffer, final StringBuilder wordBuffer, final boolean prepend) {
+	private int getNumberOrDefault(final Map<String, Object> data, final String key, final int defaultValue) {
 
-		int wordCount = 0;
+		final Object value = data.get(key);
 
-		if (wordBuffer.length() > 0) {
+		if (value != null) {
 
-			final String word = wordBuffer.toString().replaceAll("[\\n\\t]+", " ");
-			if (StringUtils.isNotBlank(word)) {
-
-				if (prepend) {
-
-					lineBuffer.insert(0, word);
-
-				} else {
-
-					lineBuffer.append(word);
-				}
-
-				// increase word count
-				wordCount = 1;
+			// try number
+			if (value instanceof Number) {
+				return ((Number)value).intValue();
 			}
 
-			wordBuffer.setLength(0);
+			// try string
+			if (value instanceof String) {
+				try { return Integer.valueOf((String)value); } catch (NumberFormatException nex) {}
+			}
 		}
 
-		return wordCount;
+		return defaultValue;
+	}
+
+	private LineAndSeparator getFirstLines(final int num) {
+
+		final StringBuilder lines = new StringBuilder();
+		int separator[]           = new int[10];
+		int separatorLength       = 0;
+
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
+
+			for (int count=0; count<num; count++) {
+
+				final int[] buf = new int[10010];
+				int ch          = reader.read();
+				int i           = 0;
+
+				// restart separator detection for each line
+				separatorLength = 0;
+
+				while (ch != 10 && ch != 13 && i < 10000) {
+
+					buf[i++] = ch;
+					ch = reader.read();
+				}
+
+				// consume line ending (CR, LF or CR+LF)
+				while (separatorLength < 2 && (ch == 10 || ch == 13)) {
+
+					separator[separatorLength++] = ch;
+					ch = reader.read();
+				}
+
+				// append correct line ending for display purposes
+				buf[i++] = '\n';
+
+				// store line in buffer
+				lines.append(new String(buf, 0, i));
+			}
+
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+
+		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
+	}
+
+	private void startNewThread(final Runnable runnable, final boolean wait) {
+
+		final Thread worker = new Thread(runnable);
+
+		worker.start();
+
+		if (wait) {
+			try { worker.join(); } catch (InterruptedException ex) {}
+		}
+	}
+
+	private Map<String, String> reverse(final Map<String, String> input) {
+
+		final Map<String, String> output = new LinkedHashMap<>();
+
+		// reverse map
+		for (final Entry<String, String> entry : input.entrySet()) {
+			output.put(entry.getValue(), entry.getKey());
+		}
+
+		return output;
 	}
 
 	// ----- interface Syncable -----
@@ -718,6 +984,26 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
+		}
+	}
+
+	// ----- nested classes -----
+	private class LineAndSeparator {
+
+		private String line      = null;
+		private String separator = null;
+
+		public LineAndSeparator(final String line, final String separator) {
+			this.line      = line;
+			this.separator = separator;
+		}
+
+		public String getLine() {
+			return line;
+		}
+
+		public String getSeparator() {
+			return separator;
 		}
 	}
 }

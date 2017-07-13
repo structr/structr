@@ -19,12 +19,8 @@
 package org.structr.csv;
 
 import java.io.StringReader;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
@@ -32,14 +28,14 @@ import org.structr.web.function.UiFunction;
 /**
  *
  */
-public class FromCsvFunction extends UiFunction {
+public class GetCsvHeadersFunction extends UiFunction {
 
-	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiter[, quoteChar[, recordSeparator]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
-	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiter[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
+	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${get_csv_headers(source[, delimiter[, quoteChar[, recordSeparator]]])}. Example: ${get_csv_headers('COL1;COL2;COL3\none;two;three')}";
+	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.getCsvHeaders(source[, delimiter[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}";
 
 	@Override
 	public String getName() {
-		return "from_csv()";
+		return "get_csv_headers()";
 	}
 
 	@Override
@@ -49,11 +45,10 @@ public class FromCsvFunction extends UiFunction {
 
 			try {
 
-				final List<Map<String, String>> objects = new LinkedList<>();
-				final String source                     = sources[0].toString();
-				String delimiter                        = ";";
-				String quoteChar                        = "\"";
-				String recordSeparator                  = "\n";
+				final String source    = sources[0].toString();
+				String delimiter       = ";";
+				String quoteChar       = "\"";
+				String recordSeparator = "\n";
 
 				switch (sources.length) {
 
@@ -68,16 +63,12 @@ public class FromCsvFunction extends UiFunction {
 				format = format.withRecordSeparator(recordSeparator);
 				format = format.withIgnoreEmptyLines(true);
 				format = format.withIgnoreSurroundingSpaces(true);
-				format = format.withSkipHeaderRecord(true);
 				format = format.withQuoteMode(QuoteMode.ALL);
 
-				CSVParser parser = new CSVParser(new StringReader(source), format);
-				for (final CSVRecord record : parser.getRecords()) {
+				try (final CSVParser parser = new CSVParser(new StringReader(source), format)) {
 
-					objects.add(record.toMap());
+					return parser.getHeaderMap().keySet();
 				}
-
-				return objects;
 
 			} catch (Throwable t) {
 
@@ -103,6 +94,6 @@ public class FromCsvFunction extends UiFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given CSV string and returns a list objects";
+		return "Parses the given CSV string and returns a list of column headers";
 	}
 }

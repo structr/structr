@@ -1462,6 +1462,175 @@ var Structr = {
 
 		return false;
 	},
+	importCSVDialog: function(file) {
+
+		Structr.dialog('Import CSV from ' + file.name, function() {}, function() {});
+
+		dialog.append('<div id="csv-import"><div id="sample"></div></div>');
+
+		var container       = $('#csv-import');
+		var sample          = $('#sample');
+
+		// load first lines to display a sample of the data
+		$.post(rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
+
+			if (data && data.result) {
+
+				sample.append('<h3>Data Sample</h3>');
+				sample.append('<pre class="csv-preview">' + data.result.lines + '</pre>');
+
+				$('#record-separator').append(
+					'<option ' + (data.result.separator ===    'LF' ? 'selected="selected"' : '') + '>LF</option>' +
+					'<option ' + (data.result.separator ===    'CR' ? 'selected="selected"' : '') + '>CR</option>' +
+					'<option ' + (data.result.separator === 'CR+LF' ? 'selected="selected"' : '') + '>CR+LF</option>'
+				);
+			}
+		});
+
+		// import options
+		container.append('<h3>Import Options</h3>');
+		container.append('<label>Delimiter: <select id="delimiter"><option>,</option><option>;</option><option>|</option></select></label>');
+		container.append('<label>Quote character: <select id="quote-char"><option>&quot;</option></select></label>');
+		container.append('<label>Record separator: <select id="record-separator"></select></label>');
+
+		// target selection
+		container.append('<h3>Select target type</h3>');
+		container.append('<select id="target-type-select" name="targetType"><option value="">Select target type..</option></select>');
+		container.append('<div id="property-select"></div>');
+
+		var targetTypeSelector = $('#target-type-select');
+		var propertySelector   = $('#property-select');
+
+		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+
+			if (data && data.result) {
+
+				data.result.forEach(function(r) {
+
+					targetTypeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
+				});
+			}
+		});
+
+		targetTypeSelector.on('change', function(e) {
+
+			var blacklist = ['id', 'owner', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate', 'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate'];
+			var type      = $(this).val();
+
+			propertySelector.empty();
+
+			$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
+				delimiter: $('#delimiter').val(),
+				quoteChar: $('#quote-char').val(),
+				recordSeparator: $('#record-separator').val()
+			}), function(csvHeaders) {
+
+				propertySelector.append('<h3>Select Mapping</h3>');
+				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transform Expression (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+
+				var rowContainer = $('#row-container');
+
+				if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
+
+					var names = [];
+
+					$.get(rootUrl + '_schema/' + type + '/ui', function(typeInfo) {
+
+						if (typeInfo && typeInfo.result) {
+
+							// sort by name
+							typeInfo.result.sort(function(a, b) {
+								return a.name > b.name ? 1 : a.name < b.name ? -1 : 0;
+							});
+
+							csvHeaders.result.headers.forEach(function(p, i) {
+
+								rowContainer.append(
+									'<tr>' +
+									'<td class="key">' + p + '</td>' +
+									'<td class="transform"><input type="text" id="transform' + i + '" title="' +
+									'Specify optional StructrScript expression here to\n' +
+									'transform the input value. The data key is &quot;input&quot;\n' +
+									'and the return value of the expression will be\nimported.' +
+									'" /></td>' +
+									'<td>' +
+									'<select class="csv" id="key' + i + '">' +
+									'<option value="">--- do not import ---</option>' +
+									'</select>' +
+									'</td>' +
+									'</tr>'
+								);
+
+								var selectedString = '';
+								var select         = $('select#key' + i);
+								var longestMatch   = 0;
+								names[i]           = p;
+
+								// create drop-down list with pre-selected options
+								typeInfo.result.forEach(function(info) {
+
+									if (blacklist.indexOf(info.jsonName) === -1) {
+
+										// match with longest target property wins
+										if (checkSelection(p, info.jsonName) && info.jsonName.length > longestMatch) {
+											selectedString = ' selected="selected"';
+											longestMatch = info.jsonName.length;
+										} else {
+											selectedString = '';
+										}
+
+										select.append('<option' + selectedString + '>' + info.jsonName + '</option>');
+									}
+								});
+							});
+
+							propertySelector.append('<div style="text-align: center"><button id="start-import">Start import</button></div>');
+							$('#start-import').on('click', function() {
+
+								var mappings = {};
+								var transforms = {};
+
+								$('select.csv').each(function(i, elem) {
+
+									var e     = $(elem);
+									var name  = names[i];
+									var value = e.val();
+
+									// property mappings need to be from source type to target type
+									if (value && value.length) {
+										mappings[value] = name;
+									}
+
+									var transform = $('input#transform' + i).val();
+									if (transform && transform.length) {
+										transforms[value] = transform;
+									}
+								});
+
+								$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
+									targetType: type,
+									delimiter: $('#delimiter').val(),
+									quoteChar: $('#quote-char').val(),
+									mappings: mappings,
+									transforms: transforms
+								}), function(data) {
+									$.unblockUI({
+										fadeOut: 25
+									});
+								});
+							});
+						}
+					});
+				}
+			});
+		});
+
+		function checkSelection(sourceName, targetName) {
+			var src     = sourceName.toLowerCase().replace(/\W/g, '');
+			var tgt     = targetName.toLowerCase().replace(/\W/g, '');
+			return src == tgt || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
+		}
+	},
 	ensureIsAdmin: function(el, callback) {
 		Structr.ping(function() {
 			if (!isAdmin) {

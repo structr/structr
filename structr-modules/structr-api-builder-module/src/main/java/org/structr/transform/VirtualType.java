@@ -43,7 +43,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
-import org.structr.rest.common.ResultTransformer;
+import org.structr.common.ResultTransformer;
 import org.structr.schema.action.ActionContext;
 
 /**

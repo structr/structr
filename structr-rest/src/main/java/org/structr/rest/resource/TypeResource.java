@@ -49,7 +49,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.common.ResultTransformer;
+import org.structr.common.ResultTransformer;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.schema.SchemaHelper;

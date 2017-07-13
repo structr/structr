@@ -942,7 +942,8 @@ span.id {
 }
 
 .edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .minify_file_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .minify_file_icon, .remove_favorite_icon,
-i.edit_ui_properties_icon, i.edit_icon, i.add_icon, i.delete_icon, i.close_icon, i.key_icon, i.edit_props_icon, i.edit_file_icon, i.clone_icon, i.view_icon, i.minify_file_icon, i.link_icon, i.add_form_icon, i.data_icon, i.unarchive_icon, i.push_icon, i.show_active_icon, i.collapse_children_icon, i.add_child_icon, i.minify_file_icon, i.remove_favorite_icon {
+i.edit_ui_properties_icon, i.edit_icon, i.add_icon, i.delete_icon, i.close_icon, i.key_icon, i.edit_props_icon, i.edit_file_icon, i.clone_icon, i.view_icon, i.minify_file_icon, i.link_icon, i.add_form_icon, i.data_icon, i.unarchive_icon, i.push_icon, i.show_active_icon, i.collapse_children_icon, i.add_child_icon, i.minify_file_icon,
+i.remove_favorite_icon, i.import_icon {
 	display: none;
 	cursor: pointer;
 	height: 16px;
@@ -4435,4 +4436,35 @@ span.context-help-text {
 
 .sprite-zoom {
 	background-position: -296px -114px;
+}
+
+pre.csv-preview {
+	overflow: auto;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	height: 100px;
+}
+
+div.csv-mapping table {
+	width: 100%;
+	margin-bottom: 24px;
+}
+
+div.csv-mapping td {
+	background-color: #fff;
+	border: 1px solid #ddd;
+}
+
+div.csv-mapping td.key {
+	padding: 0 8px 0 8px;
+	width: 55%;
+}
+
+div.csv-mapping td.transform {
+	padding: 2;
+	width: 40%;
+}
+
+div.csv-mapping td.transform input {
+	width: 99%;
 }

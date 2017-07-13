@@ -20,10 +20,8 @@ package org.structr.rest.servlet;
 
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import com.opencsv.CSVParser;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.text.DecimalFormat;
@@ -32,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,7 +41,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +63,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.common.CsvHelper;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -293,7 +290,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		final String periodicCommitIntervalHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME);
 		final int periodicCommitInterval          = (periodicCommitIntervalHeader == null) ? DEFAULT_PERIODIC_COMMIT_INTERVAL : Integer.parseInt(periodicCommitIntervalHeader);
 		final List<RestMethodResult> results      = new LinkedList<>();
-		
+
 		final Authenticator authenticator;
 		final Resource resource;
 
@@ -305,7 +302,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			response.setContentType("application/json; charset=utf-8");
 
 			// get reader before initalizing security context
-			final String input = IOUtils.toString(request.getReader());
+			final Reader input = request.getReader();
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -335,7 +332,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 					retry = false;
 
-					final Iterable<JsonInput> csv = cleanAndParseCSV(input, resource, fieldSeparator, quoteCharacter);
+					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, resource.getEntityClass(), fieldSeparator, quoteCharacter);
 
 					if (resource.createPostTransaction()) {
 
@@ -682,126 +679,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 	}
 
-	private Iterable<JsonInput> cleanAndParseCSV(final String input, final Resource resource, final char fieldSeparator, final char quoteCharacter) throws FrameworkException, IOException {
-
-		final BufferedReader reader  = new BufferedReader(new StringReader(input));
-		final String headerLine      = reader.readLine();
-		final CSVParser parser       = new CSVParser(fieldSeparator, quoteCharacter);
-		final String[] propertyNames = parser.parseLine(headerLine);
-
-		return new Iterable<JsonInput>() {
-
-			@Override
-			public Iterator<JsonInput> iterator() {
-
-				return new Iterator<JsonInput>() {
-
-					String line = null;
-
-					@Override
-					public boolean hasNext() {
-
-						try {
-
-							line = reader.readLine();
-
-							return StringUtils.isNotBlank(line);
-
-						} catch (IOException ioex) {
-							logger.warn("", ioex);
-						}
-
-						return false;
-					}
-
-					@Override
-					public JsonInput next() {
-
-						try {
-
-							if (StringUtils.isNotBlank(line)) {
-
-								final JsonInput jsonInput = new JsonInput();
-								final String[] columns    = parser.parseLine(line);
-								final int len             = columns.length;
-
-								for (int i=0; i<len; i++) {
-
-									final String key = propertyNames[i];
-
-									if (StructrApp.getConfiguration().getPropertyKeyForJSONName(resource.getEntityClass(), key).isCollection()) {
-
-										// if the current property is a collection, split it into its parts
-										jsonInput.add(key, extractArrayContentsFromArray(columns[i], key));
-
-									} else {
-										jsonInput.add(key, columns[i]);
-									}
-								}
-
-								return jsonInput;
-							}
-
-						} catch (IOException ioex) {
-							logger.warn("Exception in CSV line: {}", line);
-							logger.warn("", ioex);
-
-							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-								final Map<String, Object> data = new LinkedHashMap();
-								data.put("type", "CSV_IMPORT_ERROR");
-								data.put("title", "CSV Import Error");
-								data.put("text", "Error occured with dataset: " + line);
-								data.put("username", securityContext.getUser(false).getName());
-								listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-							}
-
-						}
-
-						return null;
-					}
-
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException("Removal not supported.");
-					}
-
-				};
-			}
-		};
-	}
-
-	private ArrayList<String> extractArrayContentsFromArray (final String value, final String propertyName) throws IOException {
-
-		final CSVParser arrayParser              = new CSVParser(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS, DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS);
-		final ArrayList<String> extractedStrings = new ArrayList();
-
-		extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(stripArrayBracketsFromString(value, propertyName))));
-
-		return extractedStrings;
-	}
-
-	private String stripArrayBracketsFromString (final String value, final String propertyName) {
-
-		if (value.length() > 0) {
-
-			if (value.charAt(0) != '[' || value.charAt(value.length() - 1) != ']') {
-
-				logger.warn("Missing opening/closing brackets for array {}: {} ", propertyName, value);
-				return value;
-
-			} else {
-
-				return value.substring(1, value.length() - 1);
-
-			}
-
-		} else {
-			return "";
-		}
-
-	}
 
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
 

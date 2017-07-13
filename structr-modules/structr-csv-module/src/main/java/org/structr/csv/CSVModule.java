@@ -18,6 +18,8 @@
  */
 package org.structr.csv;
 
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -33,10 +35,10 @@ public class CSVModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		if (licenseManager != null && licenseManager.isEdition(LicenseManager.Basic)) {
+		final boolean isBasicEdition = (licenseManager != null && licenseManager.isEdition(LicenseManager.Basic));
 
-			Functions.put(true, LicenseManager.Basic, "from_csv", new FromCsvFunction());
-		}
+		Functions.put(isBasicEdition, LicenseManager.Basic, "from_csv",        new FromCsvFunction());
+		Functions.put(isBasicEdition, LicenseManager.Basic, "get_csv_headers", new GetCsvHeadersFunction());
 	}
 
 	@Override
@@ -46,7 +48,8 @@ public class CSVModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		// CSV import depends on the API builder now
+		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
 	}
 
 	@Override
