@@ -197,6 +197,8 @@ public class CsvFunctionsTest extends StructrCsvModuleTest {
 					+ "\"abcd0001\";\"extra1\";\"my 1st custom object\"\n"
 					+ "\"bcde0002\";\"extra2\";\"my 2nd custom object\"\n"
 					+ "\"cdef0003\";\"extra3\";\"my 3rd custom object\"\n";
+			final String expectedCsvForObjectsWithNewlineCharacters = "\"multi\"\n"
+					+ "\"Multi\\nLine\\nTest\"\n";
 
 			/**
 			 * First everything in StructrScript
@@ -354,6 +356,12 @@ public class CsvFunctionsTest extends StructrCsvModuleTest {
 					"Invalid result of Structr.to_csv() call for a collection of custom objects (JavaScript)",
 					expectedCsvForCustomJavaScriptObjects,
 					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv([{id: 'abcd0001', name: 'my 1st custom object', customField: 'extra1'}, {id: 'bcde0002', name: 'my 2nd custom object', customField: 'extra2'}, {id: 'cdef0003', name: 'my 3rd custom object', customField: 'extra3'}], ['id', 'customField', 'name']))}}")
+			);
+
+			assertEquals(
+					"Invalid result of Structr.to_csv() call for source objects with newlines (JavaScript)",
+					expectedCsvForObjectsWithNewlineCharacters,
+					Scripting.replaceVariables(ctx, csvTestTwo, "${{Structr.print(Structr.to_csv([{multi:'Multi\\nLine\\nTest'}], ['multi']))}}")
 			);
 
 			tx.success();

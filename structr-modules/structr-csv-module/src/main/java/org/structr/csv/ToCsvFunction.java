@@ -270,9 +270,10 @@ public class ToCsvFunction extends UiFunction {
 				}
 			}
 
+			// Replace \r and \n so we dont get multi-line CSV (needs to be four backslashes because regex)
+			final String rowWithoutRecordSeparator = row.toString().replaceAll("\n", "\\\\n").replaceAll("\r", "\\\\r");
 
-
-			out.append(row).append(recordSeparator).flush();
+			out.append(rowWithoutRecordSeparator).append(recordSeparator).flush();
 		}
 
 	}
