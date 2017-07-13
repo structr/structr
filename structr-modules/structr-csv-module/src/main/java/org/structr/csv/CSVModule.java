@@ -33,10 +33,12 @@ public class CSVModule implements StructrModule {
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
-		if (licenseManager != null && licenseManager.isEdition(LicenseManager.Basic)) {
+		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
+//		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
+//		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
 
-			Functions.put(true, LicenseManager.Basic, "from_csv", new FromCsvFunction());
-		}
+		Functions.put(basicEdition, LicenseManager.Basic, "from_csv", new FromCsvFunction());
+		Functions.put(basicEdition, LicenseManager.Basic, "to_csv", new ToCsvFunction());
 	}
 
 	@Override

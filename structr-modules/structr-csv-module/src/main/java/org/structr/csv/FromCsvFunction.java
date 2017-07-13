@@ -19,6 +19,7 @@
 package org.structr.csv;
 
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +35,8 @@ import org.structr.web.function.UiFunction;
  */
 public class FromCsvFunction extends UiFunction {
 
-	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiter[, quoteChar[, recordSeparator]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
-	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiter[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
+	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
+	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
 
 	@Override
 	public String getName() {
@@ -45,7 +46,7 @@ public class FromCsvFunction extends UiFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4)) {
+		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 5)) {
 
 			try {
 
@@ -54,21 +55,29 @@ public class FromCsvFunction extends UiFunction {
 				String delimiter                        = ";";
 				String quoteChar                        = "\"";
 				String recordSeparator                  = "\n";
+				boolean customColumnNamesSupplied       = false;
 
 				switch (sources.length) {
 
+					case 5: customColumnNamesSupplied = (sources[4] instanceof Collection);
 					case 4: recordSeparator = (String)sources[3];
 					case 3: quoteChar = (String)sources[2];
 					case 2: delimiter = (String)sources[1];
 						break;
 				}
 
-				CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0)).withHeader();
+				CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0));
+
+				if (customColumnNamesSupplied) {
+					format = format.withHeader(((Collection<String>)sources[4]).toArray(new String[]{ })).withSkipHeaderRecord(false);
+				} else {
+					format = format.withHeader().withSkipHeaderRecord(true);
+				}
+
 				format = format.withQuote(quoteChar.charAt(0));
 				format = format.withRecordSeparator(recordSeparator);
 				format = format.withIgnoreEmptyLines(true);
 				format = format.withIgnoreSurroundingSpaces(true);
-				format = format.withSkipHeaderRecord(true);
 				format = format.withQuoteMode(QuoteMode.ALL);
 
 				CSVParser parser = new CSVParser(new StringReader(source), format);
