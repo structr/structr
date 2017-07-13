@@ -641,6 +641,10 @@ public class SecurityContext {
 
 	}
 
+	public void setCustomView(final Set<String> properties) {
+		customView = properties;
+	}
+
 	public Authenticator getAuthenticator() {
 		return authenticator;
 	}
