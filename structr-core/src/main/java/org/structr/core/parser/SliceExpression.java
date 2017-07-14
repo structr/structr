@@ -94,7 +94,7 @@ public class SliceExpression extends Expression {
 		}
 
 		final Integer start = toNumber(startObject);
-		final Integer end   = toNumber(endObject);
+		Integer end         = toNumber(endObject);
 		boolean valid       = true;
 
 		// null => number format parsing error or invalid source data
@@ -143,7 +143,7 @@ public class SliceExpression extends Expression {
 				}
 
 				if (start > list.size())   { valid = false; logger.warn("Error in slice(): start index is out of range."); }
-				if (end > list.size() + 1) { valid = false; logger.warn("Error in slice(): end index is out of range."); }
+				if (end > list.size())     { end = list.size(); }
 
 				if (valid) {
 
