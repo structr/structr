@@ -51,6 +51,7 @@ import org.structr.cmis.info.CMISItemInfo;
 import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
+import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -649,7 +650,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		final Map<String, String> importMappings = (Map<String, String>)parameters.get("mappings");
 		final Map<String, String> transforms     = (Map<String, String>)parameters.get("transforms");
-		final App app                            = StructrApp.getInstance(securityContext);
 		final String targetType                  = (String)parameters.get("targetType");
 		final String delimiter                   = (String)parameters.get("delimiter");
 		final String quoteChar                   = (String)parameters.get("quoteChar");
@@ -668,13 +668,16 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				// do import using periodic commit
 				startNewThread(() -> {
 
+					final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
+					final App app                       = StructrApp.getInstance(threadContext);
+
 					try (final InputStream is = getInputStream()) {
 
 						final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
 						final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
 						final char fieldSeparator          = delimiter.charAt(0);
 						final char quoteCharacter          = quoteChar.charAt(0);
-						final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(securityContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, reverse(importMappings));
+						final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, reverse(importMappings));
 						final Iterator<JsonInput> iterator = iterable.iterator();
 						final int batchSize                = 1000;
 						int chunks                         = 0;
@@ -689,9 +692,9 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 									final JsonInput input = iterator.next();
 
-									mapper.transformInput(securityContext, targetEntityType, input);
+									mapper.transformInput(threadContext, targetEntityType, input);
 
-									app.create(targetEntityType, PropertyMap.inputTypeToJavaType(securityContext, targetEntityType, input));
+									app.create(targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
 								}
 
 								tx.success();
@@ -702,7 +705,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 									data.put("type", "CSV_IMPORT_STATUS");
 									data.put("title", "CSV Import Status");
 									data.put("text", "Finished importing chunk " + ++chunks);
-									data.put("username", securityContext.getUser(false).getName());
+									data.put("username", threadContext.getUser(false).getName());
 									listener.simpleBroadcast("GENERIC_MESSAGE", data);
 
 								}
@@ -719,7 +722,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 							data.put("type", "CSV_IMPORT_STATUS");
 							data.put("title", "CSV Import Done");
 							data.put("text", "Finished importing csv data.");
-							data.put("username", securityContext.getUser(false).getName());
+							data.put("username", threadContext.getUser(false).getName());
 							listener.simpleBroadcast("GENERIC_MESSAGE", data);
 
 						}

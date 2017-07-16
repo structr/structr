@@ -1998,7 +1998,7 @@ var _Crud = {
 	 *
 	 * If an optional type is given, restrict search to this type.
 	 */
-	search: function(searchString, el, type, onClickCallback) {
+	search: function(searchString, el, type, onClickCallback, optionalPageSize) {
 
 		_Crud.clearSearchResults(el);
 
@@ -2039,7 +2039,7 @@ var _Crud = {
 				url = rootUrl + type + '/' + searchString;
 			} else {
 				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&loose=1';
-				url = rootUrl + type + '/ui' + _Crud.sortAndPagingParameters(type, 'name', 'asc', 1000, 1) + searchPart;
+				url = rootUrl + type + '/ui' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
 			searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="' + _Icons.getSpinnerImageAsData() + '">Searching for "' + searchString + '" in ' + type + '</div>');
@@ -2142,7 +2142,7 @@ var _Crud = {
 			e.preventDefault();
 
 			var searchString = $(this).val();
-			if (searchString && searchString.length && e.keyCode === 13) {
+			if (e.keyCode === 13) {
 
 				$('.clearSearchIcon', searchBox).show().on('click', function() {
 					if (_Crud.clearSearchResults(el)) {
@@ -2157,9 +2157,7 @@ var _Crud = {
 					if (typeof callbackOverride === "function") {
 						callbackOverride(node);
 					} else {
-						_Crud.addRelatedObject(parentType, id, key, node, function() {
-							//document.location.reload();
-						});
+						_Crud.addRelatedObject(parentType, id, key, node, function() {});
 					}
 					return false;
 				});
@@ -2177,12 +2175,26 @@ var _Crud = {
 				} else {
 					search.val('');
 				}
-
 			}
 
 			return false;
 
 		});
+
+		_Crud.populateSearchDialogWithInitialResult(parentType, id, key, type, el, callbackOverride, "*");
+	},
+	populateSearchDialogWithInitialResult: function(parentType, id, key, type, el, callbackOverride, initialSearchText) {
+
+		// display initial result list
+		_Crud.search(initialSearchText, el, type, function(e, node) {
+			e.preventDefault();
+			if (typeof callbackOverride === "function") {
+				callbackOverride(node);
+			} else {
+				_Crud.addRelatedObject(parentType, id, key, node, function() {});
+			}
+			return false;
+		}, 100);
 	},
 	removeRelatedObject: function(obj, key, relatedObj, callback) {
 		var type = obj.type;
