@@ -1532,7 +1532,12 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.alwaysNull, 1, 2)}"));
 			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, -1, 1)}"));
 			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 2, 1)}"));
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}"));
+
+			// test with interval larger than number of elements
+			assertEquals("Invalid slice() result for invalid inputs",
+				testOne.getProperty(TestOne.manyToManyTestSixs).toString(),
+				Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
+			);
 
 			// slice with find
 			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  0,  5)}", "slice test");
