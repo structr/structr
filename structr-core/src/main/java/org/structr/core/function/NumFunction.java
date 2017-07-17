@@ -69,7 +69,7 @@ public class NumFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Converts the given string to a flaoting-point number";
+		return "Converts the given string to a floating-point number";
 	}
 
 }

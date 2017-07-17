@@ -108,6 +108,7 @@ import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.function.OrFunction;
 import org.structr.core.function.OutgoingFunction;
 import org.structr.core.function.ParseDateFunction;
+import org.structr.core.function.ParseNumberFunction;
 import org.structr.core.function.PrintFunction;
 import org.structr.core.function.PrivilegedFindFunction;
 import org.structr.core.function.PropertyInfoFunction;
@@ -261,6 +262,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "parse_date", new ParseDateFunction());
 		Functions.put(true, LicenseManager.Community, "to_date", new ToDateFunction());
 		Functions.put(true, LicenseManager.Community, "number_format", new NumberFormatFunction());
+		Functions.put(true, LicenseManager.Community, "parse_number", new ParseNumberFunction());
 		Functions.put(true, LicenseManager.Community, "not", new NotFunction());
 		Functions.put(true, LicenseManager.Community, "and", new AndFunction());
 		Functions.put(true, LicenseManager.Community, "or", new OrFunction());
