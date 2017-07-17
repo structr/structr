@@ -26,7 +26,7 @@ import org.structr.schema.action.ActionContext;
 
 public class IsExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_IS = "Usage: ${is(condition, trueValue)}. Example: ${if(equal(this.name, request.name), 'selected')}";
+	public static final String ERROR_MESSAGE_IS = "Usage: ${is(condition, trueValue)}. Example: ${is(equal(this.name, request.name), 'selected')}";
 
 	public IsExpression() {
 		super("is");
