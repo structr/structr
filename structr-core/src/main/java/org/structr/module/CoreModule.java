@@ -32,6 +32,7 @@ import org.structr.core.function.CapitalizeFunction;
 import org.structr.core.function.CeilFunction;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.core.function.CleanFunction;
+import org.structr.core.function.CoalesceFunction;
 import org.structr.core.function.ComplementFunction;
 import org.structr.core.function.ConcatFunction;
 import org.structr.core.function.ConfigFunction;
@@ -227,6 +228,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "length", new LengthFunction());
 		Functions.put(true, LicenseManager.Community, "replace", new ReplaceFunction());
 		Functions.put(true, LicenseManager.Community, "clean", new CleanFunction());
+		Functions.put(true, LicenseManager.Community, "coalesce", new CoalesceFunction());
 		Functions.put(true, LicenseManager.Community, "urlencode", new UrlEncodeFunction());
 		Functions.put(true, LicenseManager.Community, "escape_javascript", new EscapeJavascriptFunction());
 		Functions.put(true, LicenseManager.Community, "escape_json", new EscapeJsonFunction());
