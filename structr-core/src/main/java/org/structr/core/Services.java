@@ -63,7 +63,6 @@ public class Services implements StructrServices {
 	public static final String WS_INDENTATION                            = "ws.indentation";
 
 	// singleton instance
-	private static int globalSessionTimeout            = -1;
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
 
@@ -623,12 +622,7 @@ public class Services implements StructrServices {
 
 	public static int getGlobalSessionTimeout() {
 
-		if (globalSessionTimeout == -1) {
-
-			globalSessionTimeout = Settings.SessionTimeout.getValue();
-		}
-
-		return globalSessionTimeout;
+		return Settings.SessionTimeout.getValue();
 	}
 
 	public static Set<Permission> getPermissionsForOwnerlessNodes() {
