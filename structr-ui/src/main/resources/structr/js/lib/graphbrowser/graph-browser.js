@@ -1976,7 +1976,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			var preResult = result;
 			result = _callbacks.filterNodes(result, 'out');
 			$.each(result, function(i, result){
-				if (!_s.graph.nodes(result.targetNode.id) && !_hoverMapPreventDuplicates[result.targetNode.id]) {
+				if (!_s.graph.nodes(result.targetNode.id) && result.targetNode &&!_hoverMapPreventDuplicates[result.targetNode.id]) {
 					_hoverMapPreventDuplicates[result.targetNode.id] = true;
 					if (_hoverMap[result.targetNode.type]) {
 						_hoverMap[result.targetNode.type]++;
@@ -1998,7 +1998,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			var preResult = result;
 			result = _callbacks.filterNodes(result, 'in');
 			$.each(result, function(i, result){
-				if(!_s.graph.nodes(result.sourceNode.id) && !_hoverMapPreventDuplicates[result.sourceNode.id]){
+				if(!_s.graph.nodes(result.sourceNode.id) && result.sourceNode && !_hoverMapPreventDuplicates[result.sourceNode.id]){
 					_hoverMapPreventDuplicates[result.sourceNode.id] = true;
 					if (_hoverMap[result.sourceNode.type]){
 						_hoverMap[result.sourceNode.type]++;

@@ -244,6 +244,10 @@ var _Graph = {
 				'<div id="graphLayouts">' +
 					'<h3>Layouts</h3>' +
 					'<button id="fruchterman-controlElement">Fruchterman Layout</button>' +
+                                        '<button id="dagre-controlElement">Dagre Layout</button>' +
+                                        '<h4 style="margin-bottom: -8px;">Force Atlas 2<h4/>' +
+                                        '<button id="start-forceAtlas-controlElement">Start ForceAtlas2</button>' +
+                                        '<button id="stop-forceAtlas-controlElement">Stop ForceAtlas2</button>' +
 				'</div>' +
 				'<div id="graphSelectionTools">' +
 					'<h3>Selection Tools</h3>' +
@@ -267,6 +271,18 @@ var _Graph = {
 
 		$('#fruchterman-controlElement').on('click', function() {
 			graphBrowser.doLayout('fruchtermanReingold');
+		});
+
+                $('#dagre-controlElement').on('click', function() {
+			graphBrowser.doLayout('dagre');
+		});
+
+                $('#start-forceAtlas-controlElement').on('click', function() {
+			graphBrowser.startForceAtlas2();
+		});
+
+                $('#stop-forceAtlas-controlElement').on('click', function() {
+			graphBrowser.stopForceAtlas2();
 		});
 
 		$('#toggleNodeLabels').on('click', function() {
