@@ -49,6 +49,7 @@ var _Widgets = {
 
 						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
 							_Logger.log(_LogType.WIDGETS, 'Copied remote widget successfully', entity);
+							dropBlocked = false;
 						});
 					}
 				} else {
@@ -59,6 +60,7 @@ var _Widgets = {
 							200: function(data) {
 								Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
 									_Logger.log(_LogType.WIDGETS, 'Created widget successfully', entity);
+									dropBlocked = false;
 								});
 							}
 						}
