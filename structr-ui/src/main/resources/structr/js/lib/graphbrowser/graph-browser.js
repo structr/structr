@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010-2017 Structr GmbH
+* Copyright (C) 2010-2016 Structr GmbH
 *
 * This file is part of Structr <http://structr.org>.
 *
@@ -24,9 +24,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 	'use strict';
 
 	Graphbrowser.Control.SigmaControl = function(callbacks, conf){
-		var self = this,
-			name = 'SigmaControl',
-			_s,
+		var _s,
 			_callbacks,
 			_apiMethods,
 			_sigmaSettings,
@@ -253,8 +251,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		function addNode(node) {
 			if(typeof node === 'string'){
 				_s.graph.addNode({id: node, label: "", color: _s.settings('defaultNodeColor'), size: _s.settings('defaultNodeSize')});
-			}
-			else{
+			} else{
 
 				for(var defaultProp in _defaultNodeTypeProperties[node.nodeType]){
 					node[defaultProp] = _defaultNodeTypeProperties[node.nodeType][defaultProp];
@@ -262,7 +259,6 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 
 				_s.graph.addNode(node);
 			}
-			_s.refresh();
 		};
 		addApiMethod('addNode', addNode);
 
@@ -276,8 +272,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		function addEdge(edge, source, target) {
 			if(source !== undefined && target !== undefined && (typeof edge === "string")){
 				_s.graph.addEdge({id: edge, source: source, target: target, color: _s.settings('defaultEdgeColor'), size: _s.settings('defaultEdgeSize')})
-			}
-			else if(typeof edge === 'object'){
+			} else if(typeof edge === 'object'){
 
 				for(var defaultProp in _defaultEdgeTypeProperties[edge.relType]){
 					edge[defaultProp] = _defaultEdgeTypeProperties[edge.relType][defaultProp];
@@ -285,8 +280,6 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 
 				_s.graph.addEdge(edge);
 			}
-			_s.refresh();
-
 		};
 		addApiMethod('addEdge', addEdge);
 
@@ -306,7 +299,6 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 					_s.graph.dropNode(node.id);
 				}
 			}
-
 			_s.refresh();
 		};
 		addApiMethod('dropNode', dropNode);
@@ -521,6 +513,23 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		addApiMethod('getNode', getNode);
 
 		/**
+		* Function that returns a node whos property matches the given value
+		*
+		* @param	{string}	prop 	the property to search
+		* @param	{string}	value 	the value to match
+		* @returns 	{object}   	the node that matches the given id
+		*/
+		function getNodeByProperty(prop, value) {
+			var match = null;
+			_s.graph.nodes().forEach(function(node){
+				if(node[prop] === value)
+					match = node;
+			});
+			return match;
+		};
+		addApiMethod('getNodeByProperty', getNodeByProperty);
+
+		/**
 		* Function that returns a edge
 		*
 		* @param	{string}	edge 	the id of the edge
@@ -588,13 +597,14 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		/**
 		* Function to add or change the value of a property of a node
 		*
-		* @param 	{string}			nodeId 		id of the node to change
-		* @param 	{string}			property  	the property to add or change
-		* @param 	{string}			value		the value for the property
+		* @param 	{string}	node 		the node to change
+		* @param 	{string}	property  	the property to add or change
+		* @param 	{string}	value		the value for the property
 		* @returns  {object}   	the node that was changed
 		*/
-		function setNodeProperty(nodeId, property, value) {
-			var node = _s.graph.nodes(nodeId);
+		function setNodeProperty(node, property, value) {
+			if(typeof node === 'string')
+				node = _s.graph.nodes(node);
 			node[property] = value;
 			_s.refresh({skipIndexation: true});
 			return node;
@@ -604,13 +614,14 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		/**
 		* Function to add or change the value of a property of a edge
 		*
-		* @param 	{string}			nodeId 		id of the edge to change
-		* @param 	{string}			property  	the property to add or change
-		* @param 	{string}			value		the value for the property
+		* @param 	{string}	edge 		id of the edge to change
+		* @param 	{string}	property  	the property to add or change
+		* @param 	{string}	value		the value for the property
 		* @returns  {object}   	the edge that was changed
 		*/
-		function setEdgeProperty(edgeId, property, value) {
-			var edge = _s.graph.edges(edgeId);
+		function setEdgeProperty(edge, property, value) {
+			if(typeof edge === 'string')
+				edge = _s.graph.edges(edge);
 			edge[property] = value;
 			_s.refresh({skipIndexation: true});
 			return edge;
@@ -663,8 +674,78 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		};
 		addApiMethod('setDefaultEdgeTypeProperty', setDefaultEdgeTypeProperty);
 
-		self.init = init;
-		self.kill = kill;
+		/**
+		* Function that moves the camera to the given node
+		*
+		* @param 	{string}	node 		the node to go to
+		* @param 	{number}	ratio		the new camera ratio
+		* @param 	{boolean}	anim  		if true the camera is animated on the way to the node
+		*/
+		function goToNode(node, ratio, anim) {
+			if(typeof node === 'string')
+				node = _s.graph.nodes(node);
+
+			if(!node)
+				return;
+
+			if(!ratio)
+				ratio = getCameraRatio();
+
+			if(!anim){
+				sigma.misc.animation.camera(
+					_s.camera,
+				  	{
+				    	x: node[_s.camera.readPrefix + 'x'],
+				    	y: node[_s.camera.readPrefix + 'y'],
+				    	ratio: ratio
+				  	}
+				);
+			}
+
+			else{
+				sigma.misc.animation.camera(
+				  	_s.camera,
+				  	{
+				    	x: node[_s.camera.readPrefix + 'x'],
+				    	y: node[_s.camera.readPrefix + 'y'],
+				    	ratio: ratio
+				  	},
+				  	{
+				  		duration: _s.settings('animationsTime')
+				  	}
+				);
+			}
+		};
+		addApiMethod('goToNode', goToNode);
+
+		/**
+		* Function that will set the active state of a given node.
+		*
+		* @param 	{string|object}	node 		the node to change
+		* @param 	{boolean}		status		the new status for the node
+		*/
+		function setNodeStatus(node, status){
+			if(typeof node === 'string')
+				node = _s.graph.nodes(node);
+			_activeState.addNodes(node.id);
+		};
+		addApiMethod('setNodeStatus', setNodeStatus);
+
+		/**
+		* Function that will set the active state of a given node.
+		*
+		* @param 	{string|object}	edge 		the node to go to
+		* @param 	{boolean}		status		the new camera ratio
+		*/
+		function setEdgeStatus(edge, status){
+			if(typeof edge === 'string')
+				edge = _s.graph.edges(edge);
+			_activeState.addEdges(edge.id);
+		};
+		addApiMethod('setEdgeStatus', setEdgeStatus);
+
+		this.init = init;
+		this.kill = kill;
 	};
 })();
 
@@ -834,15 +915,16 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		_callbacks.eventEmitter = _eventEmitter;
 
 		_eventEmitter[_s.id].bind('dataChanged', refreshSigma);
+		_eventEmitter[_s.id].bind('doLayout', doLayout);
 		_eventEmitter[_s.id].bind('prepareSaveGraph', onSave);
 		_eventEmitter[_s.id].bind('restoreGraph', onRestore);
 		_eventEmitter[_s.id].bind('pickNodes', onPickNodes);
+		_eventEmitter[_s.id].bind('layoutStart', onLayoutStart);
 
 		_callbacks.bindBrowserEvent 	= bindBrowserEvent;
 		_callbacks.refreshSigma 		= refreshSigma;
 		_callbacks.filterNodes 			= onFilterNodes;
 		_callbacks.undo					= onUndo;
-		_callbacks.doLayout				= doLayout;
 
 		_callbacks.api.dataChanged 		= onDataChanged;
 		_callbacks.api.doLayout 		= doLayout;
@@ -891,10 +973,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		};
 
 		function refreshSigma(){
-			window.clearTimeout(_refreshTimeout);
-			_refreshTimeout = window.setTimeout(function(){
-				_s.refresh({skipIndexation: false});
-			}, 50);
+			_s.refresh({skipIndexation: false});
 		};
 
 		function onPickNodes(event){
@@ -936,14 +1015,23 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 			});
 		};
 
-		function doLayout(layout, options){
+		function doLayout(layout, conf){
 			var eventhandlers = _browserEventHandlers['doLayout'];
 
-			if(!(typeof layout === 'string') || !eventhandlers)
-				return;
+			if(!eventhandlers) return;
 
 			$.each(eventhandlers, function(i, func){
-				func(layout, options);
+				func(layout, conf);
+			});
+		};
+
+		function onLayoutStart(){
+			var eventhandlers = _browserEventHandlers['layoutStart'];
+
+			if(!eventhandlers) return;
+
+			$.each(eventhandlers, function(i, func){
+				func();
 			});
 		};
 
@@ -1079,15 +1167,15 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				settings.container !== undefined ? createView(settings.container) :  _noView = true;
 				settings.classes !== undefined ? _classes = settings.classes : _classes = '';
 
-				for(var m in _apiMethods){
-					_callbacks.api[m] = _apiMethods[m];
-				}
-
 				_callbacks.eventEmitter[_s.id].bind('dataChanged', onDataChanged);
 				_callbacks.eventEmitter[_s.id].bind('start', start);
 			}
 			else{
 				_noView = true;
+			}
+
+			for(var m in _apiMethods){
+				_callbacks.api[m] = _apiMethods[m];
 			}
 		};
 
@@ -1372,38 +1460,27 @@ var animating = animating || undefined;
 (function() {
 	'use strict';
 
-	Graphbrowser.Modules.fruchtermanReingold = function(sigmaInstance, callbacks){
-		var _name = 'fruchtermanReingold',
+	Graphbrowser.Modules.layouts = function(sigmaInstance, callbacks){
+		var _name = 'layouts',
 			_callbacks = callbacks,
 			_s = sigmaInstance,
-			_count = 0,
-			_timeout = 0;
+			_FRtimeout = 0,
+
+			_FRConfig = undefined,
+			_FA2Config = undefined,
+			_dagreConfig = undefined,
+
+			_FRListener = undefined,
+			_dagreListener = undefined;
 
 		function init(){
+			_callbacks.eventEmitter[_s.id].bind('kill', onKill);
 			_callbacks.bindBrowserEvent('doLayout', doLayout);
-			$(document).on('click', '#fruchtermanReingold-controlElement',  function() {
-				doLayout(_name, 1);
-			});
-		};
 
-		function start(){
-			doLayout(1);
-		};
+			_callbacks.api.stopForceAtlas2 = stopFA2;
+			_callbacks.api.startForceAtlas2 = startFA2;
 
-		function doLayout(layout, num){
-			if(layout !== _name)
-				return;
-
-			if(num){
-				restartLayout(num);
-			}
-			else{
-				restartLayout(20);
-			}
-		};
-
-		function restartLayout(num){
-			var config = {
+			_FRConfig = {
 				autoArea: false,
 				area: 1000000000,
 				gravity: 0,
@@ -1413,28 +1490,105 @@ var animating = animating || undefined;
 				duration: 800
 			};
 
-			var listener = sigma.layouts.fruchtermanReingold.configure(_s, config);
+			_FA2Config = {
+				linLogMode: false,
+				worker: true,
+				outboundAttractionDistribution: false,
+				adjustSizes: true,
+				edgeWeightInfluence: 0,
+				scalingRatio: 1,
+				strongGravityMode: false,
+				gravity: 1,
+				barnesHutOptimize: true,
+				barnesHutTheta: 0.5,
+				slowDown: 1,
+				startingIterations: 1,
+				iterationsPerRender: 1
+			};
 
-			listener.bind('stop', function(event) {
-				window.clearTimeout(_timeout);
-				_timeout = window.setTimeout(function() {
-					if (_timeout) {
-						_timeout = 0;
+			_dagreConfig = {
+				directed: true,
+				multigraph: true,
+				compound: true,
+				rankDir: 'TB',
+				easing: _s.settings('animationsTime'),
+				duration: _s.settings('animationsTime')
+			}
+		};
+
+		function onKill(){
+			if(_FRListener)
+				_FRListener.unbind('stop');
+			if(_dagreListener)
+				_dagreListener.unbind('stop');
+
+			_s.killForceAtlas2();
+		}
+
+		function doLayout(layout, config){
+			if(animating === true)
+				return;
+			switch(layout){
+				case 'fruchtermanReingold':
+					startFR(config);
+					break;
+				case 'forceAtlas2':
+					startFA2(config);
+					break;
+				case 'dagre':
+					startDagre(config);
+					break;
+			}
+		};
+
+		function startFR(conf){
+			var config = conf || _FRConfig;
+			var _FRListener = sigma.layouts.fruchtermanReingold.configure(_s, config);
+
+			_FRListener.bind('stop', function(event) {
+				window.clearTimeout(_FRtimeout);
+				_FRtimeout = window.setTimeout(function() {
+					if (_FRtimeout) {
+						_FRtimeout = 0;
 						_callbacks.eventEmitter[_s.id].dispatchEvent('dataChanged');
+						animating = false;
 					}
 				}, 50);
 			});
 
-			window.setTimeout(function() {
-				animating = true;
-				sigma.layouts.fruchtermanReingold.start(_s);
+			animating = true;
+			_callbacks.eventEmitter[_s.id].dispatchEvent('layoutStart');
+			sigma.layouts.fruchtermanReingold.start(_s);
+		};
+
+		function startFA2(conf){
+			animating = true;
+			if(_s.isForceAtlas2Running()){
+				stopFA2();
+				return;
+			}
+			var config = conf || _FA2Config;
+			_callbacks.eventEmitter[_s.id].dispatchEvent('layoutStart');
+			_s.startForceAtlas2(config);
+		};
+
+		function stopFA2(){
+			_s.stopForceAtlas2();
+			animating = false;
+		};
+
+		function startDagre(config){
+			animating = true;
+			var conf = config || _dagreConfig;
+			_dagreListener = sigma.layouts.dagre.configure(_s, conf);
+
+			_dagreListener.bind('stop', function(event) {
+				_callbacks.eventEmitter[_s.id].dispatchEvent('dataChanged');
 				animating = false;
-				if (_count++ < num) {
-					restartLayout(num);
-				} else {
-					_count = 0;
-				}
-			}, 40);
+			});
+
+			_callbacks.eventEmitter[_s.id].dispatchEvent('layoutStart');
+			sigma.layouts.dagre.start(_s);
 		};
 
 		this.name = _name;
@@ -1678,8 +1832,11 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			_onNodesRemoved,
 			_currentEvent,
 			_timeout,
+			_view,
 			_newNodeSize,
+			_newNodeLabelProperty,
 			_edgeType,
+			_newEdgeLabelProperty,
 			_newEdgeSize,
 			_defaultInfoButtonColor,
 			_expandButtonsTimeout,
@@ -1717,9 +1874,12 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				settings.onNodesAdded !== undefined ? _onNodesAdded = settings.onNodesAdded : _onNodesAdded = undefined;
 				settings.onNodesRemoved !== undefined ? _onNodesRemoved = settings.onNodesRemoved : _onNodesRemoved = undefined;
 				settings.newNodeSize !== undefined ? _newNodeSize = settings.newNodeSize : _newNodeSize = 10;
+				settings.newNodeLabelProperty !== undefined ? _newNodeLabelProperty = settings.newNodeLabelProperty : _newNodeLabelProperty = "name";
 				settings.newEdgeSize !== undefined ? _newEdgeSize = settings.newEdgeSize : _newEdgeSize = 10;
+				settings.newEdgeLabelProperty !== undefined ? _newEdgeLabelProperty = settings.newEdgeLabelProperty : _newEdgeLabelProperty = "relType";
 				settings.edgeType !== undefined ? _edgeType = settings.edgeType : _edgeType = "arrow";
 				settings.expandButtonsTimeout !== undefined ? _expandButtonsTimeout = settings.expandButtonsTimeout : _expandButtonsTimeout = 1000;
+				settings.restView !== undefined ? _view = settings.restView : _view = "_graph";
 
 				bindEvents();
 
@@ -1764,8 +1924,8 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				collapseNode(node);
 				_callbacks.eventEmitter[_s.id].dispatchEvent('dataChanged', {source: _name});
 
-				if(_onNodesRemoved !== undefined && typeof _inNodesRemoved === 'function')
-					_inNodesRemoved();
+				if(_onNodesRemoved !== undefined && typeof _onNodesRemoved === 'function')
+					_onNodesRemoved();
 			} else {
 				onExpandNode(node);
 			}
@@ -1795,8 +1955,8 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			}
 
 			$(_infoContainer).append('<span>Loading...</span>');
-			var inNodes = _callbacks.conn.getNodes(node, 'in', onNewInNodesLoaded);
-			var outNodes = _callbacks.conn.getNodes(node, 'out', onNewOutNodesLoaded);
+			var inNodes = _callbacks.conn.getNodes(node, 'in', onNewInNodesLoaded, _view);
+			var outNodes = _callbacks.conn.getNodes(node, 'out', onNewOutNodesLoaded, _view);
 		};
 
 		function handleOutNodeEvent(node){
@@ -1950,6 +2110,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					addOutNode(sigmaNodes, sigmaEdges, result, x, y);
 				}
 			});
+
 			$.each(_newNodes['inNodes'], function(i, result) {
 				//if ((!type || result.sourceNode.type === type) && !_s.graph.nodes(result.sourceNode.id)) {
 				if ((!type || result.sourceNode.type === type)) {
@@ -2010,7 +2171,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 			nodes.push({
 				id: targetNode.id,
-				label: targetNode.name,
+				label: targetNode[_newNodeLabelProperty],
 				size: size,
 				x: newX,
 				y: newY,
@@ -2024,7 +2185,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				target: targetNode.id,
 				size: _newEdgeSize,
 				relType: result.type,
-				label: result.relType,
+				label: result[_newEdgeLabelProperty],
 				type: _edgeType,
 				color: _s.settings('defaultEdgeColor')
 			});
@@ -2050,7 +2211,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			var size = _newNodeSize;
 
 			nodes.push({id: sourceNode.id,
-				label: sourceNode.name,
+				label: sourceNode[_newNodeLabelProperty],
 				size: size,
 				x: newX,
 				y: newY,
@@ -2064,7 +2225,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				target: targetNode.id,
 				size: _newEdgeSize,
 				relType: result.type,
-				label: result.relType,
+				label: result[_newEdgeLabelProperty],
 				type: _edgeType,
 				color: _s.settings('defaultEdgeColor')
 			});
@@ -2088,9 +2249,14 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 		function addNodesToGraph(current, nodes, edges){
 			var added = 0;
+			var add = true;
 
-			if(_onAddNodes !== undefined && typeof _onAddNodes === 'function')
-				_onAddNodes(current);
+			if(_onAddNodes !== undefined && typeof _onAddNodes === 'function') {
+				add = _onAddNodes(current, nodes, edges);
+				if(!add) {
+					return;
+				}
+			}
 
 			$.each(nodes, function(i, node){
 				try {
@@ -2186,16 +2352,18 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			);
 		};
 
-		function expandNode(id){
+		//expands node. Delay is for waiting for the loading of the nodes... This has to be done with promises soon!
+		function expandNode(id, delay){
 			var self = this;
+			delay = delay || 20;
 			var node = _s.graph.nodes(id);
 			_showHoverInfo = false;
 
-			var inNodes = _callbacks.conn.getNodes(node, 'in', onNewInNodesLoaded);
-			var outNodes = _callbacks.conn.getNodes(node, 'out', onNewOutNodesLoaded);
+			var inNodes = _callbacks.conn.getNodes(node, 'in', onNewInNodesLoaded, _view);
+			var outNodes = _callbacks.conn.getNodes(node, 'out', onNewOutNodesLoaded, _view);
 			window.setTimeout(function(){
 				onExpandNode(node);
-			}, 20);
+			}, delay);
 		};
 		addToApi('expandNode', expandNode);
 
@@ -2548,7 +2716,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				settings.onDeleteRelation !== undefined ? _onDeleteRelation = settings.onDeleteRelation : _onDeleteRelation = undefined;
 				settings.maxDistance !== undefined ? _maxDistance = settings.maxDistance : _maxDistance = 200;
 
-				if(typeof this.getRelationshipEditorWorker === "undefined")
+				if(typeof this.getRelationshipEditorWorker === undefined)
 					throw new Error("Graph-Browser-RelationshipEditor: Worker not found.");
 
 				var workerString = this.getRelationshipEditorWorker();
@@ -2563,14 +2731,14 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					console.log("Graph-Browser-RelationshipEditor: It seems that your browser does not support webworkers.");
 				}
 
-				_pressedKeys = {shiftKey: false, ctrlKey: false, altKey: false, noKey: true};
+				_pressedKeys = {shiftKey: false, ctrlKey: false, altKey: false, noKey: true}
 				_bound = false;
 
 				_active = true;
 				bindEvents();
 			}
 			else
-				_active = false;
+				_active = false
 		};
 
 		function bindEvents(){
@@ -2969,13 +3137,16 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				}
 
 				if(related !== undefined){
+					related[possibleTypes] = related[possibleTypes] || "";
 					if((related[allTypesPossible] === true || related[possibleTypes].split(',').indexOf(_nodes[counter].nodeType) > -1)){
 						var add = true;
+						var same = false;
 						if(related.sourceMultiplicity === '1') {
 							for(var c1 = 0; c1 < _edges.length; c1++){
 								if(_edges[c1].target === compareTarget && _edges[c1].relType === related.type) {
 									if(_edges[c1].source === compareSource){
 										add = false;
+										same = true;
 									}
 									else
 										add = checkRelation(_edges[c1], newEdgeId);
@@ -2989,6 +3160,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 								if(_edges[c2].source === compareSource && _edges[c2].relType === related.type) {
 									if(_edges[c2].target === compareTarget){
 										add = false;
+										same = true;
 									}
 									else
 										add = checkRelation(_edges[c2], newEdgeId);
@@ -3003,7 +3175,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 						if(_previousEdges[_nodes[counter].id].id !== newEdgeId && add){
 
-							var source, target;
+							var source, target
 							switch(relatedToOrFrom){
 								case "to":
 									source = dragedNode.id;
@@ -3315,9 +3487,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		addToApi('activateSelectionLasso', activateSelectionLasso);
 
 		function deactivateSelectionTools(status){
-			if(!_active)
-				return;
-
 			_active = false;
 
 			if(_callbacks.sigmaPlugins.lasso.isActive){
@@ -3583,6 +3752,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			_callbacks.bindBrowserEvent('reset', reset);
 			_callbacks.bindBrowserEvent('undo', undo);
 			_callbacks.bindBrowserEvent('doLayout', doLayout);
+			_callbacks.bindBrowserEvent('layoutStart', kill);
 			_callbacks.eventEmitter[_s.id].bind('dataChanged', onDataChanged);
 		};
 
@@ -3624,48 +3794,36 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 							var u = _critYDbName || _critY;
 							switch(_critXType){
 								case 'string':
-									if(data[t] !== undefined)
-										node[_critX] = data[t];
-									else{
-										node[_critX] = '';
-									}
+									data[t] !== undefined ?
+										node[_critX] = data[t] :
+											node[_critX] = '';
 									break;
 								case 'date':
-									if(data[t] !== undefined)
-										node[_critX] =  Date.parse(data[t]);
-									else{
-										node[_critX] = 14400000;
-									}
+									data[t] !== undefined ?
+										node[_critX] =  Date.parse(data[t]) :
+											node[_critX] = 14400000;
 									break;
 								default:
-									if(data[t] !== undefined)
-										node[_critX] = data[t];
-									else{
-										node[_critX] = 0;
-									}
+									data[t] !== undefined ?
+										node[_critX] = data[t] :
+											node[_critX] = 0;
 									break;
 							}
 							switch(_critYType){
 								case 'string':
-									if(data[u] !== undefined)
-										node[_critY] = data[u];
-									else{
-										node[_critY] = '';
-									}
+									data[u] !== undefined ?
+										node[_critY] = data[u] :
+											node[_critY] = '';
 									break;
 								case 'date':
-									if(data[u] !== undefined)
-										node[_critY] =  Date.parse(data[u]);
-									else{
-										node[_critY] = 14400000;
-									}
+									data[u] !== undefined ?
+										node[_critY] =  Date.parse(data[u]) :
+											node[_critY] = 14400000;
 									break;
 								default:
-									if(data[u] !== undefined)
-										node[_critY] = data[u];
-									else{
-										node[_critY] = 0;
-									}
+									data[u] !== undefined ?
+										node[_critY] = data[u] :
+											node[_critY] = 0;
 									break;
 							}
 							return false;
@@ -3805,6 +3963,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			_page,
 			_onShow,
 			_onError,
+			_config = {},
 			_nodesEnabled = false,
 			_nodeShowOn,
 			_nodeHideOn,
@@ -3843,10 +4002,8 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				(settings.onShow !== undefined && typeof settings.onShow === 'function') ? _onShow = settings.onShow : _onShow  = undefined;
 				(settings.onError !== undefined && typeof settings.onError === 'function') ? _onError = settings.onError : _onError = undefined;
 
-				var config = {};
-
 				if(_nodesEnabled){
-					config.node = {
+					_config.node = {
 						show: _nodeShowOn,
 						hide: _nodeHideOn,
 						position: _nodePosition,
@@ -3863,7 +4020,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				}
 
 				if(_edgesEnabled){
-					config.edge = {
+					_config.edge = {
 						show: _edgeShowOn,
 						hide: _edgeHideOn,
 						position: _edgePosition,
@@ -3879,14 +4036,26 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					}
 				}
 
-				_tooltip = sigma.plugins.tooltips(_s, _s.renderers[0], config);
+				_tooltip = sigma.plugins.tooltips(_s, _s.renderers[0], _config);
 			}
 
 			_callbacks.api.closeTooltip = closeTooltip;
+			_callbacks.api.openTooltip = openTooltip;
 		};
 
 		function closeTooltip(){
 			_tooltip.close();
+		};
+
+		function openTooltip(node){
+			if(typeof node === 'string')
+				node = _s.graph.nodes(node);
+
+			var prefix = "read_" + _s.renderers[0].camera.prefix;
+
+			if(node){
+				_tooltip.open(node, _config.node, node[_s.camera.readPrefix + 'x'], node[_s.camera.readPrefix + 'y']);
+			}
 		};
 
 		function loadStructrPageContent(element){

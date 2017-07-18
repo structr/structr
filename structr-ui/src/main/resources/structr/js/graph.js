@@ -104,7 +104,7 @@ var _Graph = {
 		var canvasWidth = $('#graph-canvas').width();
 		var canvasHeight = canvasWidth / (16 / 9);
 
-		var editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.1;
+		var editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.2;
 		var graphBrowserSettings = {
 			graphContainer: 'graph-canvas',
 			moduleSettings: {
@@ -266,7 +266,7 @@ var _Graph = {
 		);
 
 		$('#fruchterman-controlElement').on('click', function() {
-			graphBrowser.doLayout('fruchtermanReingold', 1);
+			graphBrowser.doLayout('fruchtermanReingold');
 		});
 
 		$('#toggleNodeLabels').on('click', function() {
@@ -391,9 +391,11 @@ var _Graph = {
 				Command.create({
 					type: nodeType
 				}, function(obj) {
+                                    if(obj != null) {
 					Command.get(obj.id, "id,type,name,color,tag", function(node) {
 						_Graph.drawNode(node);
 					});
+                                    }
 				});
 			}
 		});
