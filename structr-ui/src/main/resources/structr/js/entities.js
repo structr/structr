@@ -104,21 +104,21 @@ var _Entities = {
 		var t = $('.props', el);
 
 		// General
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-id', 'Element ID (set to ${this.id})');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr', 'Attribute Key (if set, render input field in auto-edit mode)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-type', 'Data type (e.g. Date, Boolean; default: String)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder', 'Placeholder text in edit mode');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-id',                   'Element ID (set to ${this.id})');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr',                 'Attribute Key (if set, render input field in auto-edit mode)');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-type',                 'Data type (e.g. Date, Boolean; default: String)');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder',          'Placeholder text in edit mode');
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query for value options');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key', 'Attribute key used to display option labels (default: name)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value', 'Raw value (unformatted value for Date or Number fields)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide', 'Hide [edit|non-edit|edit,non-edit]');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class', 'Custom CSS class in edit mode');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Attribute key used to display option labels (default: name)');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value',            'Raw value (unformatted value for Date or Number fields)');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide',                 'Hide [edit|non-edit|edit,non-edit]');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class',           'Custom CSS class in edit mode');
 
 		if (entity.type === 'Button' || entity.type === 'A') {
 
 			// Buttons
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-action', 'Action [create:&lt;Type&gt;|delete:&lt;Type&gt;|edit|login|logout]');
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes', 'Attributes (for create, edit/save, login or registration actions)');
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-action',           'Action [create:&lt;Type&gt;|delete:&lt;Type&gt;|edit|login|logout]');
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes',       'Attributes (for create, edit/save, login or registration actions)');
 
 			t.append('<tr><td class="key">Reload</td><td class="value" id="reload"></td><td></td></tr>');
 			_Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
@@ -127,7 +127,7 @@ var _Entities = {
 			t.append('<tr><td class="key">Confirm action?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
 			_Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the action.');
 
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-return', 'Return URI after successful action');
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-return',            'Return URI after successful action');
 
 			t.append('<tr><td class="key">Append ID on create</td><td class="value" id="append-id"></td><td></td></tr>');
 			_Entities.appendBooleanSwitch($('#append-id', t), entity, 'data-structr-append-id', '', 'On create, append ID of first created object to the return URI.');
@@ -135,7 +135,7 @@ var _Entities = {
 
 		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
 			// Input fields
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-name', 'Field name (for create/save actions with custom form)');
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-name',              'Field name (for create/save actions with custom form)');
 
 		}
 
@@ -1063,7 +1063,7 @@ var _Entities = {
 						var principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, "id,name,isGroup", function(p) {
-								addPrincipal(entity, p, permissions);
+								_Entities.addPrincipal(entity, p, permissions);
 							});
 						}
 					});
@@ -1099,7 +1099,47 @@ var _Entities = {
 				$('#new', tb).selectedIndex = 0;
 
 				Command.get(pId, "id,name,isGroup", function(p) {
-					addPrincipal(entity, p, {'read': true});
+					_Entities.addPrincipal(entity, p, {'read': true});
+				});
+			});
+		});
+	},
+	addPrincipal: function (entity, principal, permissions) {
+		$('#newPrincipal option[value="' + principal.id + '"]').remove();
+		$('#newPrincipal').trigger('chosen:updated');
+		$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
+
+		var row = $('._' + principal.id, dialogText);
+
+		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
+
+			row.append('<td><input class="' + perm + '" type="checkbox"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
+
+			$('.' + perm, row).on('dblclick', function() {
+				return false;
+			});
+
+			$('.' + perm, row).on('click', function(e) {
+				e.preventDefault();
+
+				var checkbox = $(this);
+				checkbox.prop('disabled', true);
+
+				if (!$('input:checked', row).length) {
+					$('#newPrincipal').append('<option value="' + row.attr('class').substring(1) + '">' + $('.name', row).text() + '</option>').trigger('chosen:updated');
+					row.remove();
+				}
+				var recursive = $('#recursive', dialogText).is(':checked');
+
+				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, function() {
+					permissions[perm] = !permissions[perm];
+					checkbox.prop('checked', permissions[perm]);
+					_Logger.log(_LogType.ENTITIES, 'Permission successfully updated!');
+
+					disabled = false;
+					checkbox.prop('disabled', false);
+
+					blinkGreen(checkbox.parent());
 				});
 			});
 		});
@@ -1667,13 +1707,13 @@ var _Entities = {
 
 					switch (entity.state) {
 						case 'Query':
-							_Entities.openQueryDialog(entity.id);
+							_Entities.showProperties(entity, 'query');
 							break;
 						case 'Content':
 							_Elements.openEditContentDialog(this, entity);
 							break;
 						case 'Button':
-							_Entities.openEditModeBindingDialog(entity.id);
+							_Entities.showProperties(entity, 'editBinding');
 							break;
 						case 'Link':
 							_Entities.showProperties(entity);
@@ -1685,15 +1725,15 @@ var _Entities = {
 				});
 
 				$('b[title]', div).on('click', function() {
-					_Entities.openQueryDialog(entity.id);
+					_Entities.showProperties(entity, 'query');
 				});
 
 				$('.content_', div).on('click', function() {
-					_Contents.openEditContentDialog(this, entity);
+					_Elements.openEditContentDialog(this, entity);
 				});
 
 				$('.action', div).on('click', function() {
-					_Entities.openEditModeBindingDialog(entity.id);
+					_Entities.showProperties(entity, 'editBinding');
 				});
 
 				var typeIcon = $(div.children('.typeIcon').first());
@@ -1706,96 +1746,8 @@ var _Entities = {
 				}
 			}
 		}
-	},
-	openQueryDialog: function(id) {
-		Command.get(id, null, function(obj) {
-
-			var entity = StructrModel.create(obj);
-
-			Structr.dialog('Query and Data Binding of ' + (entity.name ? entity.name : entity.id), function() {
-				return true;
-			}, function() {
-				return true;
-			});
-
-			dialogText.append('<p></p>');
-
-			_Entities.queryDialog(entity, dialogText);
-
-			if (entity.restQuery) {
-				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
-			} else if (entity.cypherQuery) {
-				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-cypher');
-			} else if (entity.xpathQuery) {
-				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-xpath');
-			} else {
-				_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
-			}
-		});
-	},
-	openEditModeBindingDialog: function(id) {
-		Command.get(id, null, function(obj) {
-
-			var entity = StructrModel.create(obj);
-
-			Structr.dialog('Edit mode binding for ' + (entity.name ? entity.name : entity.id), function() {
-				return true;
-			}, function() {
-				return true;
-			});
-
-			dialogText.append('<p></p>');
-
-			_Entities.dataBindingDialog(entity, dialogText);
-
-		});
 	}
 };
-
-function addPrincipal(entity, principal, permissions) {
-	$('#newPrincipal option[value="' + principal.id + '"]').remove();
-	$('#newPrincipal').trigger('chosen:updated');
-	$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
-
-	var row = $('._' + principal.id, dialogText);
-
-	['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
-
-		row.append('<td><input class="' + perm + '" type="checkbox"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
-		var disabled = false;
-
-		$('.' + perm, row).on('dblclick', function() {
-			return false;
-		});
-
-		$('.' + perm, row).on('click', function(e) {
-			e.preventDefault();
-			if (disabled)
-				return false;
-			var sw = $(this);
-			disabled = true;
-			sw.prop('disabled', 'disabled');
-			window.setTimeout(function() {
-				disabled = false;
-				sw.prop('disabled', null);
-			}, 200);
-			if (!$('input:checked', row).length) {
-				$('#newPrincipal').append('<option value="' + row.attr('class').substring(1) + '">' + $('.name', row).text() + '</option>').trigger('chosen:updated');
-				row.remove();
-			}
-			var rec = $('#recursive', dialogText).is(':checked');
-
-			Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, rec, function() {
-				permissions[perm] = !permissions[perm];
-				sw.prop('checked', permissions[perm]);
-				_Logger.log(_LogType.ENTITIES, 'Permission successfully updated!');
-				blinkGreen(sw.parent());
-
-
-			});
-		});
-	});
-}
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	if (obj === null) {
