@@ -1574,6 +1574,7 @@ var animating = animating || undefined;
 
 		function stopFA2(){
 			_s.stopForceAtlas2();
+			_s.killForceAtlas2();
 			animating = false;
 		};
 
