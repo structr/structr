@@ -317,18 +317,21 @@ var _Elements = {
 				e.preventDefault();
 				e.stopPropagation();
 
-				if (!shadowPage) {
-					// Create shadow page if not existing
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-						shadowPage = entities[0];
-						_Elements.createComponent(ui);
-					});
+				if (ui.draggable.hasClass('widget')) {
+					// special treatment for widgets dragged to the shared components area
+
 				} else {
-					_Elements.createComponent(ui);
+					if (!shadowPage) {
+						// Create shadow page if not existing
+						Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
+							shadowPage = entities[0];
+							_Elements.createComponent(ui);
+						});
+					} else {
+						_Elements.createComponent(ui);
+					}
 				}
-
 			}
-
 		});
 
 		_Dragndrop.makeSortable(components);
