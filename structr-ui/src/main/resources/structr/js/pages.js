@@ -256,7 +256,7 @@ var _Pages = {
 	},
 	refresh: function() {
 
-		pagesSlideout.find(':not(.compTab)').remove();
+		Structr.removeSlideOutContents(pagesSlideout);
 		previewTabs.empty();
 
 		pagesSlideout.append('<div class="ver-scrollable" id="pagesTree"></div>');

@@ -1265,19 +1265,23 @@ var Structr = {
 	},
 	closeSlideOuts: function(slideouts, activeTabKey) {
 		var wasOpen = false;
-		slideouts.forEach(function(w) {
-			var s = $(w);
-			var l = s.position().left;
+		slideouts.forEach(function(slideout) {
+			var l = slideout.position().left;
 			if (Math.abs(l - $(window).width()) >= 3) {
 				wasOpen = true;
-				s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
-				$('.compTab.active', s).removeClass('active');
+				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
+				$('.compTab.active', slideout).removeClass('active');
+				Structr.removeSlideOutContents(slideout);
 			}
 		});
 		if (wasOpen) {
 			_Pages.resize(0, -rsw);
 		}
+
 		LSWrapper.removeItem(activeTabKey);
+	},
+	removeSlideOutContents: function (slideout) {
+		$(':not(.compTab)', slideout).remove();
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);

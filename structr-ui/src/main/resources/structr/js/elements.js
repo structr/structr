@@ -271,7 +271,6 @@ var _Elements = {
 	},
 	reloadPalette: function() {
 
-		paletteSlideout.find(':not(.compTab)').remove();
 		paletteSlideout.append('<div class="ver-scrollable" id="paletteArea"></div>');
 		palette = $('#paletteArea', paletteSlideout);
 
@@ -308,7 +307,6 @@ var _Elements = {
 	reloadComponents: function() {
 
 		if (!componentsSlideout) return;
-		componentsSlideout.find(':not(.compTab)').remove();
 		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
 		components = $('#componentsArea', componentsSlideout);
 
@@ -357,7 +355,6 @@ var _Elements = {
 	},
 	reloadUnattachedNodes: function() {
 
-		elementsSlideout.find(':not(.compTab)').remove();
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
