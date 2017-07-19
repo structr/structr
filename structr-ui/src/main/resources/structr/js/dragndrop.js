@@ -167,7 +167,7 @@ var _Dragndrop = {
 				helperEl.css({height: '17px'});
 				var hlp = helperEl.clone();
 				hlp.find('.node').remove();
-				hlp.find('.expand_icon').attr('src', _Icons.collapsed_icon);
+				hlp.find('.expand_icon').removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
 				return hlp;
 			},
 			zIndex: 99,
