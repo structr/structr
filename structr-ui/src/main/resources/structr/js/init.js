@@ -499,6 +499,7 @@ var Structr = {
 	classes: [],
 	expanded: {},
 	msgCount: 0,
+	currentlyActiveSortable: undefined,
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -1868,6 +1869,17 @@ var Structr = {
 		}
 
 		return el.append(toggleElement).append(helpElement);
+	},
+	refreshPositionsForCurrentlyActiveSortable: function () {
+
+		if (Structr.currentlyActiveSortable) {
+
+			Structr.currentlyActiveSortable.sortable({ refreshPositions: true });
+
+			window.setTimeout(function () {
+				Structr.currentlyActiveSortable.sortable({ refreshPositions: false });
+			}, 500);
+		}
 	}
 };
 
