@@ -137,6 +137,7 @@ import org.structr.core.function.TemplateFunction;
 import org.structr.core.function.TimerFunction;
 import org.structr.core.function.TitleizeFunction;
 import org.structr.core.function.ToDateFunction;
+import org.structr.core.function.TrimFunction;
 import org.structr.core.function.TypeInfoFunction;
 import org.structr.core.function.UnlockReadonlyPropertiesFunction;
 import org.structr.core.function.UnlockSystemPropertiesFunction;
@@ -225,6 +226,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "substring", new SubstringFunction());
 		Functions.put(true, LicenseManager.Community, "length", new LengthFunction());
 		Functions.put(true, LicenseManager.Community, "replace", new ReplaceFunction());
+		Functions.put(true, LicenseManager.Community, "trim", new TrimFunction());
 		Functions.put(true, LicenseManager.Community, "clean", new CleanFunction());
 		Functions.put(true, LicenseManager.Community, "urlencode", new UrlEncodeFunction());
 		Functions.put(true, LicenseManager.Community, "escape_javascript", new EscapeJavascriptFunction());

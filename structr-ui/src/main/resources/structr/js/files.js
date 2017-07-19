@@ -896,6 +896,14 @@ var _Files = {
 			});
 		}
 
+		if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
+			div.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + ' hidden" title="Import this XML file" />');
+			div.children('.import_icon').on('click', function() {
+				Structr.importXMLDialog(d, false);
+				return false;
+			});
+		}
+
 		if (_Files.isArchive(d)) {
 			div.append('<i class="unarchive_icon button ' + _Icons.getFullSpriteClass(_Icons.compress_icon) + '" />');
 			div.children('.unarchive_icon').on('click', function() {

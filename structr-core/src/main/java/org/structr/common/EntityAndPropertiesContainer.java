@@ -69,6 +69,17 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 		return properties;
 	}
 
+	// ----- implement hashCode contract to make this class comparable to GraphObject -----
+	@Override
+	public int hashCode() {
+		return entity.hashCode();
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		return other.hashCode() == hashCode();
+	}
+
 	// dummy implementation of NodeInterface
 	@Override
 	public void init(SecurityContext securityContext, Node dbNode, Class type, boolean isCreation) {

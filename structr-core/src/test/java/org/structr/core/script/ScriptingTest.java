@@ -1032,6 +1032,14 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid clean() result", "abcd-efghijkl-m-n-o-p-q-r-stu-v-w-x-y-zoauabcdefgh", Scripting.replaceVariables(ctx, testOne, "${clean(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid clean() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${clean(this.alwaysNull)}"));
 
+			// trim
+			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('   \t\t\t\r\r\r\n\n\ntest')}"));
+			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('test   \t\t\t\r\r\r\n\n\n')}"));
+			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('   \t\t\t\r\r\r\n\n\ntest   \t\t\t\r\r\r\n\n\n')}"));
+			assertEquals("Invalid trim() result", "test", Scripting.replaceVariables(ctx, testOne, "${trim('   test   ')}"));
+			assertEquals("Invalid trim() result with null value", null, Scripting.replaceVariables(ctx, testOne, "${trim(null)}"));
+			assertEquals("Invalid trim() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${trim(this.alwaysNull)}"));
+
 			// urlencode
 			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", Scripting.replaceVariables(ctx, testOne, "${urlencode(this.cleanTestString)}"));
 			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", Scripting.replaceVariables(ctx, testOne, "${urlencode(get(this, \"cleanTestString\"))}"));

@@ -1530,7 +1530,7 @@ var Structr = {
 			}), function(csvHeaders) {
 
 				propertySelector.append('<h3>Select Mapping</h3>');
-				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transform Expression (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
 				var rowContainer = $('#row-container');
 
@@ -1634,6 +1634,24 @@ var Structr = {
 			var tgt     = targetName.toLowerCase().replace(/\W/g, '');
 			return src == tgt || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
 		}
+	},
+	importXMLDialog: function(file) {
+
+		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
+		dialog.append('<div id="xml-import"></div>');
+
+		var container = $('#xml-import');
+
+		container.append('<div><h3>Import configuration</h3><textarea id="config" rows="20"></textarea></div>');
+		container.append('<div style="text-align: center; margin-top: 8px;"><button id="start-import">Start import</button></div>');
+		$('#start-import').on('click', function() {
+
+			$.post(rootUrl + 'File/' + file.id + '/doXMLImport', $('#config').val(), function(data) {
+				$.unblockUI({
+					fadeOut: 25
+				});
+			});
+		});
 	},
 	ensureIsAdmin: function(el, callback) {
 		Structr.ping(function() {

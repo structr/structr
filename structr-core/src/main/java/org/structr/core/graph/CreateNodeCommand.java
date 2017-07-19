@@ -230,17 +230,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		throw new RuntimeException("Unable to create new node.");
 	}
 
-	private NodeInterface getTemplate(final Class nodeType) {
-
-		try {
-
-			return (NodeInterface)nodeType.newInstance();
-
-		} catch (Throwable ignore) {}
-
-		return null;
-	}
-
 	private Class getTypeOrGeneric(final Object typeObject) {
 
 		if (typeObject != null) {

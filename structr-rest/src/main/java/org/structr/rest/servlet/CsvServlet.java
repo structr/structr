@@ -532,7 +532,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	// ---- interface Featuer -----
+	// ---- interface Feature -----
 	@Override
 	public String getModuleName() {
 		return "csv";

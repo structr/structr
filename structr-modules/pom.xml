@@ -19,7 +19,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
-	
+
 	<modules>
 		<module>structr-xmpp-module</module>
 		<module>structr-media-module</module>
@@ -38,6 +38,7 @@
 		<module>structr-peer-to-peer-module</module>
 		<module>structr-payment-module</module>
 		<module>structr-crawler-module</module>
+	 <module>structr-xml-module</module>
 	</modules>
 
 	<profiles>

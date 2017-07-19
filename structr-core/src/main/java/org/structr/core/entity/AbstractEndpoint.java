@@ -127,14 +127,20 @@ public abstract class AbstractEndpoint {
 		return eagerList;
 	}
 
+	protected GraphObject unwrap(final GraphObject node) throws FrameworkException {
+		return unwrap(null, null, node, null);
+	}
+
 	protected GraphObject unwrap(final SecurityContext securityContext, final Class actualType, final GraphObject node, final PropertyMap properties) throws FrameworkException {
 
 		if (node != null && node instanceof EntityAndPropertiesContainer) {
 
 			final EntityAndPropertiesContainer container = (EntityAndPropertiesContainer)node;
-			final Map<String, Object> sourceProperties   = container.getProperties();
 
-			properties.putAll(PropertyMap.inputTypeToJavaType(securityContext, actualType, sourceProperties));
+			if (securityContext != null && actualType != null && properties != null) {
+
+				properties.putAll(PropertyMap.inputTypeToJavaType(securityContext, actualType, container.getProperties()));
+			}
 
 			return container.getEntity();
 		}

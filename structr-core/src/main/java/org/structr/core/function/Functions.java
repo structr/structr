@@ -88,7 +88,7 @@ public class Functions {
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedException {
 
-		final String expressionWithoutNewlines = expression.replace('\n', ' ');
+		final String expressionWithoutNewlines = expression.replace('\n', ' ').replace('\r', ' ');
 		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
 		tokenizer.eolIsSignificant(true);
 		tokenizer.ordinaryChar('.');

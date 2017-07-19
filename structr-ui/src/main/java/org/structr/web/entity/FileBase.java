@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
+import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
@@ -89,7 +91,9 @@ import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
 import org.structr.common.ResultTransformer;
 import org.structr.core.StructrTransactionListener;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.rest.common.XMLHandler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
@@ -656,7 +660,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		if (targetType != null && delimiter != null && quoteChar != null) {
 
-			logger.info("Importing from {} to {} using {}", this.getUuid(), targetType, parameters);
+			logger.info("Importing CSV from {} to {} using {}", this.getUuid(), targetType, parameters);
 
 			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
 			if (module != null && module instanceof APIBuilder) {
@@ -741,6 +745,84 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		} else {
 
 			throw new FrameworkException(400, "Cannot import CSV, please specify target type.");
+		}
+	}
+
+	@Export
+	public void doXMLImport(final Map<String, Object> config) throws FrameworkException {
+
+		final String contentType = getProperty(FileBase.contentType);
+
+		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
+
+			logger.info("Importing XML from {}..", this.getUuid());
+
+			// do import using periodic commit
+			startNewThread(() -> {
+
+				final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
+				final App app                       = StructrApp.getInstance(threadContext);
+
+				try (final Reader reader = new InputStreamReader(getInputStream())) {
+
+					final Iterator<Map<String, Object>> iterator = new XMLHandler(config, reader);
+					final int batchSize                          = 100;
+					int chunks                                   = 0;
+
+					while (iterator.hasNext()) {
+
+						int count = 0;
+
+						try (final Tx tx = app.tx()) {
+
+							while (iterator.hasNext() && count++ < batchSize) {
+
+								final PropertyMap map = PropertyMap.inputTypeToJavaType(threadContext, iterator.next());
+
+								app.create(AbstractNode.class, map);
+							}
+
+							tx.success();
+
+							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+								final Map<String, Object> data = new LinkedHashMap();
+								data.put("type", "XML_IMPORT_STATUS");
+								data.put("title", "XML Import Status");
+								data.put("text", "Finished importing chunk " + ++chunks);
+								data.put("username", threadContext.getUser(false).getName());
+								listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
+							}
+
+							logger.info("XML: Imported {} objects, commiting batch.", batchSize);
+						}
+					}
+
+					logger.info("XML: Finished importing XML data.");
+
+					for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+
+						final Map<String, Object> data = new LinkedHashMap();
+						data.put("type", "XML_IMPORT_STATUS");
+						data.put("title", "XML Import Done");
+						data.put("text", "Finished importing XML data.");
+						data.put("username", threadContext.getUser(false).getName());
+						listener.simpleBroadcast("GENERIC_MESSAGE", data);
+
+					}
+
+				} catch (XMLStreamException | IOException | FrameworkException fex) {
+					System.out.println(fex.toString());
+					System.out.println(fex.getMessage());
+					fex.printStackTrace();
+				}
+
+			}, false);
+
+		} else {
+
+			logger.warn("Cannot import XML from file with content type {}", contentType);
 		}
 	}
 
