@@ -355,6 +355,7 @@ var _Elements = {
 	},
 	reloadUnattachedNodes: function() {
 
+		Structr.removeSlideOutContents(elementsSlideout);
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
