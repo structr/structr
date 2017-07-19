@@ -24,7 +24,7 @@ var _Widgets = {
 	localWidgetsEl: undefined,
 
 	reloadWidgets: function() {
-		Structr.removeSlideOutContents(widgetsSlideout);
+		widgetsSlideout.find(':not(.compTab)').remove();
 		widgetsSlideout.append(
 			'<div class="ver-scrollable"><h2>Local Widgets</h2><button class="add_widgets_icon button"><i title="Add Widget" class="' + _Icons.getFullSpriteClass(_Icons.add_widget_icon) + '" /> Add Widget</button>' +
 			'<div id="widgets"></div><h2>Remote Widgets</h2><input placeholder="Filter..." id="remoteWidgetsFilter"><div id="remoteWidgets"></div></div>');

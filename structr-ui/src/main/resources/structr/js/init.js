@@ -1271,7 +1271,6 @@ var Structr = {
 				wasOpen = true;
 				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active');
-				Structr.removeSlideOutContents(slideout);
 			}
 		});
 		if (wasOpen) {
@@ -1279,9 +1278,6 @@ var Structr = {
 		}
 
 		LSWrapper.removeItem(activeTabKey);
-	},
-	removeSlideOutContents: function (slideout) {
-		$(':not(.compTab)', slideout).remove();
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
 		var storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.leftSlideoutWidthKey);
