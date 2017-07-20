@@ -39,7 +39,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -172,7 +171,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final String path                        = (String) attributes.get("source");
+
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+		ctx.setDoTransactionNotifications(false);
 		final App app                            = StructrApp.getInstance();
+
 		final Map<String, Object> componentsConf = new HashMap<>();
 		final Map<String, Object> templatesConf  = new HashMap<>();
 		final Map<String, Object> pagesConf      = new HashMap<>();
@@ -203,7 +206,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				info("Applying pre-deployment configuration from {}..", preDeployConf);
 
 				final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8"));
-				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim(), "pre-deploy.conf");
+				Scripting.evaluate(new ActionContext(ctx), null, confSource.trim(), "pre-deploy.conf");
 
 				tx.success();
 
@@ -395,7 +398,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				info("Applying post-deployment configuration from {}..", postDeployConf);
 
 				final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8"));
-				Scripting.evaluate(new ActionContext(SecurityContext.getSuperUserInstance()), null, confSource.trim(), "post-deploy.conf");
+				Scripting.evaluate(new ActionContext(ctx), null, confSource.trim(), "post-deploy.conf");
 
 				tx.success();
 
@@ -1107,41 +1110,42 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return Collections.emptyList();
 	}
 
-	private <T extends NodeInterface> void importMapData(final Class<T> type, final Map<String, Object> data) throws FrameworkException {
-
-		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		final App app                 = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final T toDelete : app.nodeQuery(type).getAsList()) {
-				app.delete(toDelete);
-			}
-
-			for (final Entry<String, Object> entry : data.entrySet()) {
-
-				final String key = entry.getKey();
-				final Object val = entry.getValue();
-
-				if (val instanceof Map) {
-
-					final Map<String, Object> values = (Map<String, Object>)val;
-					final PropertyMap properties     = PropertyMap.inputTypeToJavaType(context, type, values);
-
-					properties.put(AbstractNode.name, key);
-
-					app.create(type, properties);
-				}
-			}
-
-			tx.success();
-		}
-	}
+//	private <T extends NodeInterface> void importMapData(final Class<T> type, final Map<String, Object> data) throws FrameworkException {
+//
+//		final SecurityContext context = SecurityContext.getSuperUserInstance();
+//		final App app                 = StructrApp.getInstance();
+//
+//		try (final Tx tx = app.tx()) {
+//
+//			for (final T toDelete : app.nodeQuery(type).getAsList()) {
+//				app.delete(toDelete);
+//			}
+//
+//			for (final Entry<String, Object> entry : data.entrySet()) {
+//
+//				final String key = entry.getKey();
+//				final Object val = entry.getValue();
+//
+//				if (val instanceof Map) {
+//
+//					final Map<String, Object> values = (Map<String, Object>)val;
+//					final PropertyMap properties     = PropertyMap.inputTypeToJavaType(context, type, values);
+//
+//					properties.put(AbstractNode.name, key);
+//
+//					app.create(type, properties);
+//				}
+//			}
+//
+//			tx.success();
+//		}
+//	}
 
 	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		final App app                 = StructrApp.getInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
 
 		try (final Tx tx = app.tx()) {
 

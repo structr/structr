@@ -62,8 +62,9 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 		this.pagesConfiguration = pagesConfiguration;
 		this.securityContext    = SecurityContext.getSuperUserInstance();
+		this.securityContext.setDoTransactionNotifications(false);
 		this.basePath           = basePath;
-		this.app                = StructrApp.getInstance();
+		this.app                = StructrApp.getInstance(this.securityContext);
 	}
 
 	@Override
@@ -197,7 +198,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 			boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 			boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-			
+
 			final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
 
 			// enable literal import of href attributes

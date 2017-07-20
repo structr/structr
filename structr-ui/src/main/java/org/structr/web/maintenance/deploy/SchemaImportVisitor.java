@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.export.StructrSchema;
@@ -55,7 +56,10 @@ public class SchemaImportVisitor implements FileVisitor<Path> {
 			final String fileName = file.getFileName().toString();
 			if (fileName.endsWith(".json")) {
 
-				final App app = StructrApp.getInstance();
+				final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+				ctx.setDoTransactionNotifications(false);
+
+				final App app = StructrApp.getInstance(ctx);
 
 				try (final FileReader reader = new FileReader(file.toFile())) {
 

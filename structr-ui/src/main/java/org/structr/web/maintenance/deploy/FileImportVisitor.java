@@ -62,9 +62,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	public FileImportVisitor(final Path basePath, final Map<String, Object> config) {
 
 		this.securityContext = SecurityContext.getSuperUserInstance();
+		this.securityContext.setDoTransactionNotifications(false);
 		this.basePath        = basePath;
 		this.config          = config;
-		this.app             = StructrApp.getInstance();
+		this.app             = StructrApp.getInstance(this.securityContext);
 	}
 
 	@Override

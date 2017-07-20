@@ -242,7 +242,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 						rootElement.setProperty(AbstractNode.name, name);
 					}
 
-					// store properties from pages.json if present
+					// store properties from components.json if present
 					rootElement.setProperties(securityContext, properties);
 				}
 			}

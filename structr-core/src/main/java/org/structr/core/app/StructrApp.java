@@ -425,8 +425,7 @@ public class StructrApp implements App {
 
 	// ----- public static methods ----
 	/**
-	 * Constructs a new stateful App instance, initialized with the given
-	 * security context.
+	 * Constructs a new stateful App instance, initialized with a superuser security context
 	 *
 	 * @return superuser app instance
 	 */

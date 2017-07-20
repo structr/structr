@@ -61,7 +61,8 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 		this.configuration   = pagesConfiguration;
 		this.securityContext = SecurityContext.getSuperUserInstance();
-		this.app             = StructrApp.getInstance();
+		this.securityContext.setDoTransactionNotifications(false);
+		this.app             = StructrApp.getInstance(this.securityContext);
 	}
 
 	@Override
@@ -109,7 +110,6 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 	// ----- private methods -----
 	private DOMNode getExistingTemplate(final String name) {
 
-		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
 			return Importer.findSharedComponentByName(name);
