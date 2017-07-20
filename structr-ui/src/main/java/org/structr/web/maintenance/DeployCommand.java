@@ -65,6 +65,7 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -169,6 +170,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
+
+		final Map<String, Object> broadcastData = new TreeMap();
+		broadcastData.put("start", System.currentTimeMillis());
+		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_STARTED", broadcastData);
 
 		final String path                        = (String) attributes.get("source");
 
@@ -411,6 +416,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Settings.ChangelogEnabled.setValue(changeLogEnabled);
 
 		info("Import from {} done.", source.toString());
+
+		broadcastData.put("end", System.currentTimeMillis());
+		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_FINISHED", broadcastData);
+
 	}
 
 	private void doExport(final Map<String, Object> attributes) throws FrameworkException {

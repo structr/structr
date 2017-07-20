@@ -492,6 +492,14 @@ function wsConnect() {
 
 				_Schema.processSchemaRecompileNotification();
 
+			} else if (command === 'DEPLOYMENT_IMPORT_STARTED') {
+
+				Structr.handleDeploymentStarted(data.data);
+
+			} else if (command === 'DEPLOYMENT_IMPORT_FINISHED') {
+
+				Structr.handleDeploymentFinished(data.data);
+
 			} else if (command === 'GENERIC_MESSAGE') {
 
 				switch (data.data.type) {

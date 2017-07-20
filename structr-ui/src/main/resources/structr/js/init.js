@@ -1898,6 +1898,33 @@ var Structr = {
 				Structr.currentlyActiveSortable.sortable({ refreshPositions: false });
 			}, 500);
 		}
+	},
+	handleDeploymentStarted: function (info) {
+
+		var text = "A deployment import process has begun. Any changes made during a deployment might get lost or conflict with the deployment!<br>"
+				+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment is finished.<br><br>"
+				+ "Deployment started : " + new Date(info.start);
+
+		new MessageBuilder()
+				.title("Deployment started")
+				.info(text)
+				.requiresConfirmation("Understood")
+				.show();
+
+	},
+	handleDeploymentFinished: function (info) {
+
+		var text = "The current deployment has finished. You should reload structr-ui to see the new data.<br>"
+				+ "You can either do this manually or click the button.<br><br>"
+				+ "Deployment started : " + new Date(info.start) + "<br>"
+				+ "Deployment finished: " + new Date(info.end);
+
+		new MessageBuilder()
+				.title("Deployment finished")
+				.info(text)
+				.specialInteractionButton("Reload Page", function () { location.reload(); })
+				.show();
+
 	}
 };
 
@@ -2064,7 +2091,6 @@ function MessageBuilder () {
 
 		}
 
-
 		if (uniqueMessageAlreadyPresented === false) {
 
 			this.params.msgId = 'message_' + (Structr.msgCount++);
@@ -2135,7 +2161,12 @@ function MessageBuilder () {
 			action: callback
 		};
 
-		return this.requiresConfirmation(confirmButtonText);
+		if (confirmButtonText) {
+			return this.requiresConfirmation(confirmButtonText);
+		} else {
+			this.params.requiresConfirmation = true;
+			return this;
+		}
 	};
 
 	this.uniqueClass = function (className) {
