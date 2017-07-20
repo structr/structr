@@ -307,38 +307,45 @@ var _Elements = {
 	},
 	reloadComponents: function() {
 
-		if (!componentsSlideout) return;
-		componentsSlideout.find(':not(.compTab)').remove();
-		componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
-		components = $('#componentsArea', componentsSlideout);
+		if (components) {
+			fastRemoveAllChildren(components[0]);
+		} else {
 
-		components.droppable({
-			drop: function(e, ui) {
-				e.preventDefault();
-				e.stopPropagation();
+			componentsSlideout.append('<div class="ver-scrollable" id="componentsArea"></div>');
+			components = $('#componentsArea', componentsSlideout);
 
-				if (!shadowPage) {
-					// Create shadow page if not existing
-					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-						shadowPage = entities[0];
-						_Elements.createComponent(ui);
-					});
-				} else {
-					_Elements.createComponent(ui);
+			components.droppable({
+				drop: function(e, ui) {
+					e.preventDefault();
+					e.stopPropagation();
+
+					if (ui.draggable.hasClass('widget')) {
+						// special treatment for widgets dragged to the shared components area
+
+					} else {
+						if (!shadowPage) {
+							// Create shadow page if not existing
+							Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
+								shadowPage = entities[0];
+								_Elements.createComponent(ui);
+							});
+						} else {
+							_Elements.createComponent(ui);
+						}
+					}
 				}
+			});
+		}
 
-			}
-
-		});
 
 		_Dragndrop.makeSortable(components);
 
 		Command.listComponents(1000, 1, 'name', 'asc', function(result) {
 
 			_Elements.appendEntitiesToDOMElement(result, components);
+			Structr.refreshPositionsForCurrentlyActiveSortable();
 
 		});
-
 	},
 	createComponent: function(el) {
 

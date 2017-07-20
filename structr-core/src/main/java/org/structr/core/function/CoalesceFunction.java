@@ -22,38 +22,36 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
-public class NumFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_NUM = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
+public class CoalesceFunction extends Function<Object, Object> {
+
+	public static final String ERROR_MESSAGE_COALESCE = "Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}";
+	public static final String ERROR_MESSAGE_COALESCE_JS = "Usage: ${{Structr.coalesce(string1, string2...)}}. Example: ${{Structr.coalesce(node.name, node.title, node.id)}}";
 
 	@Override
 	public String getName() {
-		return "num()";
+		return "coalesace()";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		try {
-			if (!arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
+		if (sources != null) {
 
-			try {
-				return getDoubleOrNull(sources[0]);
+			final int length = sources.length;
 
-			} catch (Throwable t) {
+			for (int i = 0; i < length; i++) {
 
-				logException(caller, t, sources);
-				return null;
+				if (sources[i] != null && !sources[i].equals(Functions.NULL_STRING)) {
+					return sources[i].toString();
+				}
 
 			}
 
-		} catch (final IllegalArgumentException e) {
+			// no non-null value was supplied
+			return null;
+
+		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
@@ -61,15 +59,14 @@ public class NumFunction extends Function<Object, Object> {
 		}
 	}
 
-
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_NUM;
+		return (inJavaScriptContext ? ERROR_MESSAGE_COALESCE_JS : ERROR_MESSAGE_COALESCE);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Converts the given string to a floating-point number";
+		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned";
 	}
 
 }

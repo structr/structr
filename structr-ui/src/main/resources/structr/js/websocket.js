@@ -193,7 +193,9 @@ function wsConnect() {
 					var codeStr = code ? code.toString() : '';
 
 					if (codeStr === '422') {
-						StructrModel.callCallback(data.callback, null, null, true);
+						try {
+							StructrModel.callCallback(data.callback, null, null, true);
+						} catch (e) {}
 					}
 
 					var msgClass;

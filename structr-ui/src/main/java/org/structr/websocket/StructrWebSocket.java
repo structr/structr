@@ -70,6 +70,7 @@ public class StructrWebSocket implements WebSocketListener {
 	private Authenticator authenticator = null;
 	private String pagePath = null;
 	private Console console = null;
+	private Boolean timedOut = false;
 
 	//~--- constructors ---------------------------------------------------
 	public StructrWebSocket() {}
@@ -409,6 +410,8 @@ public class StructrWebSocket implements WebSocketListener {
 
                     invalidateConsole();
 
+					this.timedOut = true;
+
 				}
 
 			} catch (FrameworkException ex) {
@@ -468,7 +471,7 @@ public class StructrWebSocket implements WebSocketListener {
 	public boolean isAuthenticated() {
 
 		final Principal user = getCurrentUser();
-		return (user != null && (isPrivilegedUser(user) || isFrontendWebsocketAccessEnabled()));
+		return (!timedOut && user != null && (isPrivilegedUser(user) || isFrontendWebsocketAccessEnabled()));
 
 	}
 
@@ -521,6 +524,7 @@ public class StructrWebSocket implements WebSocketListener {
 	public void setAuthenticated(final String sessionId, final Principal user) {
 		this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 		this.securityContext.setSessionId(sessionId);
+		this.timedOut = false;
 	}
 
 	@Override

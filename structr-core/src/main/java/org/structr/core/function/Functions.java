@@ -45,6 +45,7 @@ import org.structr.core.parser.FunctionExpression;
 import org.structr.core.parser.FunctionValueExpression;
 import org.structr.core.parser.GroupExpression;
 import org.structr.core.parser.IfExpression;
+import org.structr.core.parser.IsExpression;
 import org.structr.core.parser.NoneExpression;
 import org.structr.core.parser.NullExpression;
 import org.structr.core.parser.RootExpression;
@@ -275,6 +276,9 @@ public class Functions {
 
 			case "if":
 				return new IfExpression();
+
+			case "is":
+				return new IsExpression();
 
 			case "each":
 				return new EachExpression();

@@ -108,7 +108,7 @@ public class ScriptingTest extends StructrTest {
 		PropertyKey testIntegerProperty = null;
 		PropertyKey testStringProperty  = null;
 		PropertyKey testDoubleProperty  = null;
-		PropertyKey testDateProperty = null;
+		PropertyKey testDateProperty    = null;
 		Class testEnumType              = null;
 
 		// setup phase: create schema nodes
@@ -1467,6 +1467,22 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid number_format() result with null parameter(s)", NumberFormatFunction.ERROR_MESSAGE_NUMBER_FORMAT,  Scripting.replaceVariables(ctx, testOne, "${number_format(\"10\", this.alwaysNull, \"#\")}"));
 			assertEquals("Invalid number_format() result with null parameter(s)", NumberFormatFunction.ERROR_MESSAGE_NUMBER_FORMAT,  Scripting.replaceVariables(ctx, testOne, "${number_format(this.alwaysNull, this.alwaysNull, this.alwaysNull)}"));
 
+			// parse_number
+			final Locale oldLocale = ctx.getLocale();
+			ctx.setLocale(Locale.ENGLISH);
+			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123.456')}"));
+			ctx.setLocale(oldLocale);
+			
+			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123.456', 'en')}"));
+			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123,456', 'de')}"));
+			assertEquals("Invalid parse_number() result", "123456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123456', 'de')}"));
+			assertEquals("Invalid parse_number() result", "123456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123.456', 'de')}"));
+			assertEquals("Invalid parse_number() result", "123456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123.456 €', 'de')}"));
+			assertEquals("Invalid parse_number() result", "123456789", Scripting.replaceVariables(ctx, testOne, "${parse_number('£ 123,456,789.00 ', 'en')}"));
+			assertEquals("Invalid parse_number() result", "123456789", Scripting.replaceVariables(ctx, testOne, "${parse_number('123,foo456,bar789.00 ', 'en')}"));
+			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('£ 123,456,789.00 ', 'de')}"));
+			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123,foo456,bar789.00 ', 'de')}"));
+			
 			// not
 			assertEquals("Invalid not() result", "true",  Scripting.replaceVariables(ctx, testOne, "${not(false)}"));
 			assertEquals("Invalid not() result", "false", Scripting.replaceVariables(ctx, testOne, "${not(true)}"));

@@ -499,6 +499,7 @@ var Structr = {
 	classes: [],
 	expanded: {},
 	msgCount: 0,
+	currentlyActiveSortable: undefined,
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -1265,18 +1266,18 @@ var Structr = {
 	},
 	closeSlideOuts: function(slideouts, activeTabKey) {
 		var wasOpen = false;
-		slideouts.forEach(function(w) {
-			var s = $(w);
-			var l = s.position().left;
+		slideouts.forEach(function(slideout) {
+			var l = slideout.position().left;
 			if (Math.abs(l - $(window).width()) >= 3) {
 				wasOpen = true;
-				s.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
-				$('.compTab.active', s).removeClass('active');
+				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
+				$('.compTab.active', slideout).removeClass('active');
 			}
 		});
 		if (wasOpen) {
 			_Pages.resize(0, -rsw);
 		}
+
 		LSWrapper.removeItem(activeTabKey);
 	},
 	openLeftSlideOut: function(triggerEl, slideoutElement, activeTabKey, callback) {
@@ -1886,6 +1887,17 @@ var Structr = {
 		}
 
 		return el.append(toggleElement).append(helpElement);
+	},
+	refreshPositionsForCurrentlyActiveSortable: function () {
+
+		if (Structr.currentlyActiveSortable) {
+
+			Structr.currentlyActiveSortable.sortable({ refreshPositions: true });
+
+			window.setTimeout(function () {
+				Structr.currentlyActiveSortable.sortable({ refreshPositions: false });
+			}, 500);
+		}
 	}
 };
 

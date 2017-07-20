@@ -167,7 +167,7 @@ var _Dragndrop = {
 				helperEl.css({height: '17px'});
 				var hlp = helperEl.clone();
 				hlp.find('.node').remove();
-				hlp.find('.expand_icon').attr('src', _Icons.collapsed_icon);
+				hlp.find('.expand_icon').removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
 				return hlp;
 			},
 			zIndex: 99,
@@ -176,6 +176,7 @@ var _Dragndrop = {
 				sorting = true;
 				sortParent = $(ui.item).parent();
 				_Logger.log(_LogType.DND, '### sortable start: sorting?', sorting, Structr.getId(el), Structr.getId(self), Structr.getId(sortParent));
+				Structr.currentlyActiveSortable = el;
 			},
 			update: function(event, ui) {
 				var el = $(ui.item);
@@ -200,6 +201,8 @@ var _Dragndrop = {
 				sorting = false;
 				sortParent = undefined;
 				$('#collapse-offset', pages).remove();
+
+				Structr.currentlyActiveSortable = undefined;
 			},
 			stop: function(event, ui) {
 				sorting = false;
@@ -209,6 +212,8 @@ var _Dragndrop = {
 				});
 				$(ui.item).css({height: ''});
 				$('#collapse-offset', pages).remove();
+
+				Structr.currentlyActiveSortable = undefined;
 			}
 		};
 

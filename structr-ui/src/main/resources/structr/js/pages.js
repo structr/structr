@@ -188,32 +188,32 @@ var _Pages = {
 		});
 
 		$('#widgetsTab').on('click', function() {
-			_Pages.rightSlideoutTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], function() {
+			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], false, function() {
 				_Widgets.reloadWidgets();
 			});
 		});
 
 		$('#paletteTab').on('click', function() {
-			_Pages.rightSlideoutTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], function() {
+			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], false, function() {
 				_Elements.reloadPalette();
 			});
 		});
 
 		$('#componentsTab').on('click', function() {
-			_Pages.rightSlideoutTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], function() {
+			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], false, function() {
 				_Elements.reloadComponents();
 			});
 		}).droppable({
 			tolerance: 'touch',
 			over: function(e, ui) {
-				_Pages.rightSlideoutTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], function() {
+				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], true, function() {
 					_Elements.reloadComponents();
 				});
 			}
 		});
 
 		$('#elementsTab').on('click', function() {
-			_Pages.rightSlideoutTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], function() {
+			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], false, function() {
 				_Elements.reloadUnattachedNodes();
 			});
 		});
@@ -1161,11 +1161,11 @@ var _Pages = {
 			}
 		}
 	},
-	rightSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, callback) {
+	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, isDrag, callback) {
 		if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
 			Structr.closeSlideOuts(otherSlideouts, _Pages.activeTabRightKey);
 			Structr.openSlideOut(slideoutElement, triggerEl, _Pages.activeTabRightKey, callback);
-		} else {
+		} else if (!isDrag) {
 			Structr.closeSlideOuts([slideoutElement], _Pages.activeTabRightKey);
 		}
 	},
