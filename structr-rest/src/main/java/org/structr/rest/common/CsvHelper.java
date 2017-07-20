@@ -32,7 +32,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.logger;
 import org.structr.core.JsonInput;
-import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import static org.structr.rest.servlet.CsvServlet.DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS;
@@ -121,16 +120,12 @@ public class CsvHelper {
 							logger.warn("Exception in CSV line: {}", line);
 							logger.warn("", ioex);
 
-							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-								final Map<String, Object> data = new LinkedHashMap();
-								data.put("type", "CSV_IMPORT_ERROR");
-								data.put("title", "CSV Import Error");
-								data.put("text", "Error occured with dataset: " + line);
-								data.put("username", securityContext.getUser(false).getName());
-								listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-							}
+							final Map<String, Object> data = new LinkedHashMap();
+							data.put("type", "CSV_IMPORT_ERROR");
+							data.put("title", "CSV Import Error");
+							data.put("text", "Error occured with dataset: " + line);
+							data.put("username", securityContext.getUser(false).getName());
+							TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
 						} finally {
 

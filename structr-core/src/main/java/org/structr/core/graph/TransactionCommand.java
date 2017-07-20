@@ -21,6 +21,7 @@ package org.structr.core.graph;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -360,6 +361,18 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	public static Set<StructrTransactionListener> getTransactionListeners() {
 		return listeners;
+	}
+
+	public static void simpleBroadcast (final String messageName, final Map<String, Object> data) {
+		simpleBroadcast(messageName, data, null);
+	}
+
+	public static void simpleBroadcast (final String messageName, final Map<String, Object> data, final String exemptedSessionId) {
+
+		for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+			listener.simpleBroadcast(messageName, data, exemptedSessionId);
+		}
+
 	}
 
 	public static boolean inTransaction() {

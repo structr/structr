@@ -52,7 +52,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.Result;
 import org.structr.core.Services;
-import org.structr.core.StructrTransactionListener;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -361,16 +360,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 									logger.info("CSV: Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
 
-									for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-										final Map<String, Object> data = new LinkedHashMap();
-										data.put("type", "CSV_IMPORT_STATUS");
-										data.put("title", "CSV Import Status");
-										data.put("text", "Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
-										data.put("username", securityContext.getUser(false).getName());
-										listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-									}
+									final Map<String, Object> data = new LinkedHashMap();
+									data.put("type", "CSV_IMPORT_STATUS");
+									data.put("title", "CSV Import Status");
+									data.put("text", "Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
+									data.put("username", securityContext.getUser(false).getName());
+									TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
 								} catch (RetryException ddex) {
 									retry = true;
@@ -415,16 +410,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 				logger.info("CSV: Finished importing csv data.");
 
-				for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-					final Map<String, Object> data = new LinkedHashMap();
-					data.put("type", "CSV_IMPORT_STATUS");
-					data.put("title", "CSV Import Done");
-					data.put("text", "Finished importing csv data.");
-					data.put("username", securityContext.getUser(false).getName());
-					listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-				}
+				final Map<String, Object> data = new LinkedHashMap();
+				data.put("type", "CSV_IMPORT_STATUS");
+				data.put("title", "CSV Import Done");
+				data.put("text", "Finished importing csv data.");
+				data.put("username", securityContext.getUser(false).getName());
+				TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
 				// set default value for property view
 				propertyView.set(securityContext, config.getDefaultPropertyView());
@@ -548,16 +539,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 			logger.warn("CSV Import Error: " + fxe.getMessage() + "\n" + fxe.toString() + "\n{}", propertySet);
 
-			for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-				final Map<String, Object> data = new LinkedHashMap();
-				data.put("type", "CSV_IMPORT_ERROR");
-				data.put("title", "CSV Import Error");
-				data.put("text", fxe.getMessage() + "<br>" + fxe.toString() + "<br>" + propertySet.toString());
-				data.put("username", securityContext.getUser(false).getName());
-				listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-			}
+			final Map<String, Object> data = new LinkedHashMap();
+			data.put("type", "CSV_IMPORT_ERROR");
+			data.put("title", "CSV Import Error");
+			data.put("text", fxe.getMessage() + "<br>" + fxe.toString() + "<br>" + propertySet.toString());
+			data.put("username", securityContext.getUser(false).getName());
+			TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
 			throw fxe;
 		}

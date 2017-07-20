@@ -56,6 +56,7 @@ import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
+import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -69,12 +70,14 @@ import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
@@ -89,10 +92,6 @@ import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
-import org.structr.common.ResultTransformer;
-import org.structr.core.StructrTransactionListener;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.common.XMLHandler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -703,16 +702,12 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 								tx.success();
 
-								for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-									final Map<String, Object> data = new LinkedHashMap();
-									data.put("type", "CSV_IMPORT_STATUS");
-									data.put("title", "CSV Import Status");
-									data.put("text", "Finished importing chunk " + ++chunks);
-									data.put("username", threadContext.getUser(false).getName());
-									listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-								}
+								final Map<String, Object> data = new LinkedHashMap();
+								data.put("type", "CSV_IMPORT_STATUS");
+								data.put("title", "CSV Import Status");
+								data.put("text", "Finished importing chunk " + ++chunks);
+								data.put("username", threadContext.getUser(false).getName());
+								TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 							}
 						}
 
@@ -720,16 +715,12 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 						logger.info("CSV: Finished importing csv data.");
 
-						for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-							final Map<String, Object> data = new LinkedHashMap();
-							data.put("type", "CSV_IMPORT_STATUS");
-							data.put("title", "CSV Import Done");
-							data.put("text", "Finished importing csv data.");
-							data.put("username", threadContext.getUser(false).getName());
-							listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-						}
+						final Map<String, Object> data = new LinkedHashMap();
+						data.put("type", "CSV_IMPORT_STATUS");
+						data.put("title", "CSV Import Done");
+						data.put("text", "Finished importing csv data.");
+						data.put("username", threadContext.getUser(false).getName());
+						TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
 					} catch (IOException | FrameworkException fex) {
 						fex.printStackTrace();
@@ -784,16 +775,12 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 							tx.success();
 
-							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-								final Map<String, Object> data = new LinkedHashMap();
-								data.put("type", "XML_IMPORT_STATUS");
-								data.put("title", "XML Import Status");
-								data.put("text", "Finished importing chunk " + ++chunks);
-								data.put("username", threadContext.getUser(false).getName());
-								listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-							}
+							final Map<String, Object> data = new LinkedHashMap();
+							data.put("type", "XML_IMPORT_STATUS");
+							data.put("title", "XML Import Status");
+							data.put("text", "Finished importing chunk " + ++chunks);
+							data.put("username", threadContext.getUser(false).getName());
+							TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
 							logger.info("XML: Imported {} objects, commiting batch.", batchSize);
 						}
@@ -801,16 +788,12 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 					logger.info("XML: Finished importing XML data.");
 
-					for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-
-						final Map<String, Object> data = new LinkedHashMap();
-						data.put("type", "XML_IMPORT_STATUS");
-						data.put("title", "XML Import Done");
-						data.put("text", "Finished importing XML data.");
-						data.put("username", threadContext.getUser(false).getName());
-						listener.simpleBroadcast("GENERIC_MESSAGE", data);
-
-					}
+					final Map<String, Object> data = new LinkedHashMap();
+					data.put("type", "XML_IMPORT_STATUS");
+					data.put("title", "XML Import Done");
+					data.put("text", "Finished importing XML data.");
+					data.put("username", threadContext.getUser(false).getName());
+					TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
 				} catch (XMLStreamException | IOException | FrameworkException fex) {
 					System.out.println(fex.toString());

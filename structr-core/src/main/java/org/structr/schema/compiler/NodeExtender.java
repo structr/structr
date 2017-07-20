@@ -21,6 +21,7 @@ package org.structr.schema.compiler;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,7 +43,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
-import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
@@ -145,11 +145,9 @@ public class NodeExtender {
 
 					logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
 
-					for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-						final Map<String, Object> data = new TreeMap();
-						data.put("success", true);
-						listener.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
-					}
+					final Map<String, Object> data = new LinkedHashMap();
+					data.put("success", true);
+					TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
 
 					Services.getInstance().setOverridingSchemaTypesAllowed(false);
 
