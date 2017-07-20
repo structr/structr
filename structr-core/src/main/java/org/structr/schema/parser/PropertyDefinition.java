@@ -33,6 +33,7 @@ public interface PropertyDefinition {
 	public String getDbName();
 	public String getFormat();
 	public boolean isNotNull();
+	public boolean isCompound();
 	public boolean isUnique();
 	public boolean isIndexed();
 	public String getDefaultValue();

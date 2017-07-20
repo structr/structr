@@ -20,7 +20,6 @@ package org.structr.common.error;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Iterator;
@@ -102,17 +101,7 @@ public class FrameworkException extends Exception {
 
 			for (final ErrorToken errorToken : errorBuffer.getErrorTokens()) {
 
-				final JsonObject token = new JsonObject();
-
-				token.add("type",     getStringOrNull(errorToken.getType()));
-				token.add("property", getStringOrNull(errorToken.getProperty()));
-				token.add("token",    getStringOrNull(errorToken.getToken()));
-
-				// optional
-				addIfNonNull(token, "detail", getObjectOrNull(errorToken.getDetail()));
-				addIfNonNull(token, "value",  getObjectOrNull(errorToken.getValue()));
-
-				errors.add(token);
+				errors.add(errorToken.toJSON());
 			}
 
 			container.add("errors", errors);
@@ -132,47 +121,5 @@ public class FrameworkException extends Exception {
 	@Override
 	public String getMessage() {
 		return message;
-	}
-
-
-	// ----- private methods -----
-	private void addIfNonNull(final JsonObject obj, final String key, final JsonElement value) {
-
-		if (value != null && !JsonNull.INSTANCE.equals(value)) {
-
-			obj.add(key, value);
-		}
-	}
-
-
-	private JsonElement getStringOrNull(final String source) {
-
-		if (source != null) {
-			return new JsonPrimitive(source);
-		}
-
-		return JsonNull.INSTANCE;
-	}
-
-	private JsonElement getObjectOrNull(final Object source) {
-
-		if (source != null) {
-
-			if (source instanceof String) {
-				return new JsonPrimitive((String)source);
-			}
-
-			if (source instanceof Number) {
-				return new JsonPrimitive((Number)source);
-			}
-
-			if (source instanceof Boolean) {
-				return new JsonPrimitive((Boolean)source);
-			}
-
-			return new JsonPrimitive(source.toString());
-		}
-
-		return JsonNull.INSTANCE;
 	}
 }

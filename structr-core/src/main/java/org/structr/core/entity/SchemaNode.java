@@ -156,6 +156,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
+		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
 		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
@@ -249,7 +250,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		}
 
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, errorBuffer));
 
 		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
 		SchemaHelper.extractMethods(this, saveActions);
@@ -290,7 +291,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			src.append("\t}\n");
 		}
 
-		SchemaHelper.formatValidators(src, validators);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys);
 		SchemaHelper.formatSaveActions(this, src, saveActions);
 
 		// insert source code from module
@@ -483,13 +484,14 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
 		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final String _className                                = getProperty(name);
 		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
 
-		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, dummyErrorBuffer);
+		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, dummyErrorBuffer);
 
 		SchemaHelper.extractViews(this, viewProperties, dummyErrorBuffer);
 		SchemaHelper.extractMethods(this, saveActions);
@@ -529,7 +531,6 @@ public class SchemaNode extends AbstractSchemaNode {
 					src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
 					src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
 					src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
-
 				}
 
 				// Code for custom Views on "File" type
@@ -542,15 +543,13 @@ public class SchemaNode extends AbstractSchemaNode {
 						}
 
 						src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, \"").append(viewName).append("\", \"").append(propertyName).append("\");\n\n");
-
 					}
-
 				}
 
 				src.append("\t}\n\n");
 			}
 
-			SchemaHelper.formatDynamicValidators(src, validators);
+			SchemaHelper.formatDynamicValidators(src, validators, compoundIndexKeys);
 			SchemaHelper.formatDynamicSaveActions(src, saveActions);
 
 			src.append("}\n");

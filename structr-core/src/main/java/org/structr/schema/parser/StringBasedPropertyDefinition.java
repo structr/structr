@@ -27,19 +27,20 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class StringBasedPropertyDefinition implements PropertyDefinition {
 
-	private String propertyName  = null;
-	private Type propertyType    = null;
-	private String rawSource     = null;
-	private String source        = null;
-	private String dbName        = null;
-	private String format        = null;
-	private String defaultValue  = null;
-	private String contentType   = null;
-	private boolean notNull      = false;
-	private boolean unique       = false;
-	private boolean indexed      = true;
-	private String readFunction  = null;
-	private String writeFunction = null;
+	private String propertyName    = null;
+	private Type propertyType      = null;
+	private String rawSource       = null;
+	private String source          = null;
+	private String dbName          = null;
+	private String format          = null;
+	private String defaultValue    = null;
+	private String contentType     = null;
+	private boolean notNull        = false;
+	private boolean compound       = false;
+	private boolean unique         = false;
+	private boolean indexed        = true;
+	private String readFunction    = null;
+	private String writeFunction   = null;
 
 	public StringBasedPropertyDefinition(final String propertyName, final String rawSource) {
 
@@ -92,7 +93,13 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 
 		}
 
-		if (source.endsWith("!")) {
+		if (source.endsWith("!!")) {
+
+			compound = true;
+			source = source.substring(0, source.length() - 2);
+
+		} else if (source.endsWith("!")) {
+
 			unique = true;
 			source = source.substring(0, source.length() - 1);
 		}
@@ -133,6 +140,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	@Override
 	public boolean isNotNull() {
 		return notNull;
+	}
+
+	@Override
+	public boolean isCompound() {
+		return compound;
 	}
 
 	@Override

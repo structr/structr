@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.CompoundToken;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -36,6 +37,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 /**
  * Defines helper methods for property validation.
@@ -562,6 +564,89 @@ public class ValidationHelper {
 							// error!
 							return false;
 						}
+					}
+				}
+			}
+		}
+
+		// no error
+		return true;
+	}
+
+	public static synchronized boolean areValidCompoundUniqueProperties(final GraphObject object, final ErrorBuffer errorBuffer, final PropertyKey... keys) {
+
+		if (keys != null && keys.length > 0) {
+
+			final PropertyMap properties = new PropertyMap();
+			List<GraphObject> result     = null;
+			Class type                   = null;
+
+			for (final PropertyKey key : keys) {
+
+				properties.put(key, object.getProperty(key));
+
+				if (type != null) {
+
+					// set type on first iteration
+					type = key.getDeclaringClass();
+				}
+			}
+
+			if (type == null) {
+
+				// fallback: object type
+				type = object.getClass();
+			}
+
+			try {
+
+				if (object instanceof NodeInterface) {
+
+					result = StructrApp.getInstance()
+						.nodeQuery(type)
+						.and(properties)
+						.sortDescending(GraphObject.createdDate)
+						.getAsList();
+
+				} else {
+
+					result = StructrApp.getInstance()
+						.relationshipQuery(type)
+						.and(properties)
+						.sortDescending(GraphObject.createdDate)
+						.getAsList();
+
+				}
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("", fex);
+
+			}
+
+			/* This validation code runs at the end of a transaction, so if there
+			 * is a constraint violation, there are at least two different nodes
+			 * with the same value for the unique key. At this point, we don't
+			 * know which node we are currently examining, so we sort by creation
+			 * date (ascending order) and look at the first node of the result
+			 * list. We want the validation code to fail for all constraint
+			 * violating nodes that are older than the first node.
+			 */
+
+			if (result != null) {
+
+				for (final GraphObject foundNode : result) {
+
+					if (foundNode.getId() != object.getId()) {
+
+						// validation is aborted when the first validation failure occurs, so
+						// we can assume that the object currently exmained is the first
+						// existing object, hence all others get the error message with the
+						// UUID of the first one.
+						errorBuffer.add(new CompoundToken(object.getType(), keys, object.getUuid()));
+
+						// error!
+						return false;
 					}
 				}
 			}

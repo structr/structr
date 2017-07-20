@@ -36,6 +36,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 
 	public String getDefaultValue();
 
+	public boolean isCompoundUnique();
 	public boolean isRequired();
 	public boolean isUnique();
 	public boolean isIndexed();
@@ -43,6 +44,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	public JsonProperty setFormat(final String format);
 	public JsonProperty setName(final String name);
 	public JsonProperty setRequired(final boolean isRequired);
+	public JsonProperty setCompound(final boolean isCompoundUnique);
 	public JsonProperty setUnique(final boolean isUnique);
 	public JsonProperty setIndexed(final boolean isIndexed);
 	public JsonProperty setDefaultValue(final String defaultValue);

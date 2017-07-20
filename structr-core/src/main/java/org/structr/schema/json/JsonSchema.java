@@ -64,6 +64,7 @@ public interface JsonSchema {
 	public static final String KEY_CONTENT_TYPE            = "contentType";
 	public static final String KEY_RELATIONSHIP            = "rel";
 	public static final String KEY_DIRECTION               = "direction";
+	public static final String KEY_COMPOUND                = "compound";
 	public static final String KEY_UNIQUE                  = "unique";
 	public static final String KEY_INDEXED                 = "indexed";
 	public static final String KEY_DEFAULT                 = "default";

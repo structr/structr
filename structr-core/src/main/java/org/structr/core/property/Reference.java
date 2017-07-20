@@ -282,6 +282,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isCompound() {
+		return false;
+	}
+
+	@Override
 	public boolean isUnique() {
 		return false;
 	}

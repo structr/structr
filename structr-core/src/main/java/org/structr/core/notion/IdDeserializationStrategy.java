@@ -103,7 +103,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 						for (final PropertyKey key : convertedProperties.keySet()) {
 
-							if (!key.isUnique() && !isIdentifying(actualType, key) && !allProperties.contains(key)) {
+							if (!key.isUnique() && !key.isCompound() && !isIdentifying(actualType, key) && !allProperties.contains(key)) {
 
 								// store "foreign" properties (those that are to be set on the newly created relationship
 								foreignProps.put(key.jsonName(), properties.get(key.jsonName()));
@@ -120,7 +120,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 
 					for (final PropertyKey key : convertedProperties.keySet()) {
 
-						if (key.isUnique() || isIdentifying(actualType, key)) {
+						if (key.isUnique() || key.isCompound() || isIdentifying(actualType, key)) {
 
 							uniqueKeyValues.put(key, convertedProperties.get(key));
 

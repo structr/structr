@@ -1131,7 +1131,7 @@ var _Schema = {
 	},
 	appendLocalProperties: function(el, entity) {
 
-		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format/Code</th><th>Notnull</th><th>Uniq.</th><th>Idx</th><th>Default</th><th class="actions-col">Action</th></thead></table>');
+		el.append('<table class="local schema-props"><thead><th>JSON Name</th><th>DB Name</th><th>Type</th><th>Format/Code</th><th>Notnull</th><th>Comp.</th><th>Uniq.</th><th>Idx</th><th>Default</th><th class="actions-col">Action</th></thead></table>');
 		el.append('<i title="Add local attribute" class="add-icon add-local-attribute ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 
 		var propertiesTable = $('.local.schema-props', el);
@@ -1148,6 +1148,7 @@ var _Schema = {
 					+ '<td>' + _Schema.typeOptions + '</td>'
 					+ '<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>'
 					+ '<td><input class="not-null" type="checkbox"></td>'
+					+ '<td><input class="compound" type="checkbox"></td>'
 					+ '<td><input class="unique" type="checkbox"></td>'
 					+ '<td><input class="indexed" type="checkbox"></td>'
 					+ '<td><input class="property-default" size="10" type="text"></td>'
@@ -1682,6 +1683,7 @@ var _Schema = {
 						propertyType: prop.propertyType,
 						isBuiltinProperty: true,
 						notNull: prop.notNull,
+						compound: prop.compound,
 						unique: prop.unique,
 						indexed: prop.indexed,
 						declaringClass: prop.declaringClass
@@ -1700,6 +1702,7 @@ var _Schema = {
 		var type = $('.' + rowClass + ' .property-type', el).val();
 		var format = $('.' + rowClass + ' .property-format', el).val();
 		var notNull = $('.' + rowClass + ' .not-null', el).is(':checked');
+		var compound = $('.' + rowClass + ' .compound', el).is(':checked');
 		var unique = $('.' + rowClass + ' .unique', el).is(':checked');
 		var indexed = $('.' + rowClass + ' .indexed', el).is(':checked');
 		var defaultValue = $('.' + rowClass + ' .property-default', el).val();
@@ -1717,6 +1720,7 @@ var _Schema = {
 			if (type)         { obj.propertyType = type; }
 			if (format)       { obj.format = format; }
 			if (notNull)      { obj.notNull = notNull; }
+			if (compound)     { obj.compound = compound; }
 			if (unique)       { obj.unique = unique; }
 			if (indexed)      { obj.indexed = indexed; }
 			if (defaultValue) { obj.defaultValue = defaultValue; }
@@ -1868,7 +1872,8 @@ var _Schema = {
 				+ _Schema.typeOptions + '</td>'
 				+ (property.propertyType !== 'Function' ?  '<td><input size="15" type="text" class="property-format" value="' + (property.format ? escapeForHtmlAttributes(property.format) : '') + '"></td>' : '<td><button class="edit-read-function">Read</button><button class="edit-write-function">Write</button></td>')
 				+ '<td><input class="not-null" type="checkbox"'
-				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
+				+ (property.notNull ? ' checked="checked"' : '') + '></td><td><input class="compound" type="checkbox"'
+				+ (property.compound ? ' checked="checked"' : '') + '></td><td><input class="unique" type="checkbox"'
 				+ (property.unique ? ' checked="checked"' : '') + '</td><td><input class="indexed" type="checkbox"'
 				+ (property.indexed ? ' checked="checked"' : '') + '</td><td>'
 				+ '<input type="text" size="10" class="property-default" value="' + escapeForHtmlAttributes(property.defaultValue) + '">' + '</td><td>'
@@ -1891,6 +1896,7 @@ var _Schema = {
 				+ '<td>' + escapeForHtmlAttributes(property.name) + '</td>'
 				+ '<td>' + property.propertyType + '</td>'
 				+ '<td>' + '<input class="not-null" type="checkbox" disabled="disabled"' + (property.notNull ? ' checked="checked"' : '') + '></td>'
+				+ '<td>' + '<input class="compound" type="checkbox" disabled="disabled"' + (property.compound ? ' checked="checked"' : '') + '</td>'
 				+ '<td>' + '<input class="unique" type="checkbox" disabled="disabled"' + (property.unique ? ' checked="checked"' : '') + '</td>'
 				+ '<td>' + '<input class="indexed" type="checkbox" disabled="disabled"' + (property.indexed ? ' checked="checked"' : '')+ '</td>'
 				+ '</tr>');
@@ -1912,6 +1918,7 @@ var _Schema = {
 		$('.' + key + ' .property-format', el).prop('disabled', true);
 		$('.' + key + ' button', el).prop('disabled', true);
 		$('.' + key + ' .not-null', el).prop('disabled', true);
+		$('.' + key + ' .compound', el).prop('disabled', true);
 		$('.' + key + ' .unique', el).prop('disabled', true);
 		$('.' + key + ' .indexed', el).prop('disabled', true);
 		$('.' + key + ' .property-default', el).prop('disabled', true);
@@ -1973,6 +1980,10 @@ var _Schema = {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.notNull);
 
+		$('.' + key + ' .compound', el).on('change', function() {
+			_Schema.savePropertyDefinition(property);
+		}).prop('disabled', null).val(property.compound);
+
 		$('.' + key + ' .unique', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
 		}).prop('disabled', null).val(property.unique);
@@ -1998,6 +2009,7 @@ var _Schema = {
 		$('.' + key + ' .content-type', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .property-format', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .not-null', el).off('change').prop('disabled', 'disabled');
+		$('.' + key + ' .compound', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .unique', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .indexed', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .property-default', el).off('change').prop('disabled', 'disabled');
@@ -2237,6 +2249,7 @@ var _Schema = {
 			contentType:  $('.' + property.name + ' .content-type').val(),
 			format:       $('.' + property.name + ' .property-format').val(),
 			notNull:      $('.' + property.name + ' .not-null').is(':checked'),
+			compound:     $('.' + property.name + ' .compound').is(':checked'),
 			unique:       $('.' + property.name + ' .unique').is(':checked'),
 			indexed:      $('.' + property.name + ' .indexed').is(':checked'),
 			defaultValue: $('.' + property.name + ' .property-default').val()
@@ -2266,6 +2279,7 @@ var _Schema = {
 				property.contentType = obj.contentType;
 				property.format = obj.format;
 				property.notNull = obj.notNull;
+				property.compound = obj.compound;
 				property.unique = obj.unique;
 				property.indexed = obj.indexed;
 				property.defaultValue = obj.defaultValue;

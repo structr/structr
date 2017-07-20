@@ -475,6 +475,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _className                            = getClassName();
 		final String _sourceNodeType                       = getSchemaNodeSourceType();
 		final String _targetNodeType                       = getSchemaNodeTargetType();
+		final Set<String> compoundIndexKeys                = new LinkedHashSet<>();
 		final Set<String> propertyNames                    = new LinkedHashSet<>();
 		final Set<Validator> validators                    = new LinkedHashSet<>();
 		final Set<String> enums                            = new LinkedHashSet<>();
@@ -515,7 +516,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
 		}
 
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, errorBuffer));
 
 		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
 		SchemaHelper.extractMethods(this, actions);
@@ -569,7 +570,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
 
-		SchemaHelper.formatValidators(src, validators);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys);
 		SchemaHelper.formatSaveActions(this, src, actions);
 
 		formatRelationshipFlags(src);

@@ -42,6 +42,7 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public abstract class PropertySourceGenerator {
 
+	private final Set<String> compoundIndexKeys   = new LinkedHashSet<>();
 	private final Set<Validator> globalValidators = new LinkedHashSet<>();
 	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
 	protected PropertyDefinition source           = null;
@@ -74,6 +75,11 @@ public abstract class PropertySourceGenerator {
 			globalValidators.add(new Validator("isValidUniqueProperty", className, source.getPropertyName()));
 		}
 
+		if (source.isCompound()) {
+
+			compoundIndexKeys.add(SchemaHelper.cleanPropertyName(source.getPropertyName()) + "Property");
+		}
+
 		parseFormatString(entity, source.getFormat());
 
 		getPropertySource(buf);
@@ -81,6 +87,10 @@ public abstract class PropertySourceGenerator {
 
 	public String getClassName() {
 		return className;
+	}
+
+	public Set<String> getCompoundIndexKeys() {
+		return compoundIndexKeys;
 	}
 
 	public Set<Validator> getGlobalValidators() {
@@ -134,6 +144,7 @@ public abstract class PropertySourceGenerator {
 				new NodeAttribute<>(SchemaProperty.dbName,         source.getDbName()),
 				new NodeAttribute<>(SchemaProperty.defaultValue,   source.getDefaultValue()),
 				new NodeAttribute<>(SchemaProperty.format,         source.getFormat()),
+				new NodeAttribute<>(SchemaProperty.compound, source.isCompound()),
 				new NodeAttribute<>(SchemaProperty.unique,         source.isUnique()),
 				new NodeAttribute<>(SchemaProperty.indexed,        source.isIndexed()),
 				new NodeAttribute<>(SchemaProperty.notNull,        source.isNotNull()),
@@ -181,6 +192,10 @@ public abstract class PropertySourceGenerator {
 
 		if (source.isUnique()) {
 			buf.append(".unique()");
+		}
+
+		if (source.isCompound()) {
+			buf.append(".compound()");
 		}
 
 		if (source.isNotNull()) {

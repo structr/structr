@@ -255,6 +255,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	/**
 	 * Indicates whether the value associated with this property is
+	 * validated for uniqueness in a compound index.
+	 *
+	 * @return whether this property value is validated for uniqueness
+	 */
+	public boolean isCompound();
+
+	/**
+	 * Indicates whether the value associated with this property is
 	 * may not be null.
 	 *
 	 * @return whether this property value is validated for uniqueness

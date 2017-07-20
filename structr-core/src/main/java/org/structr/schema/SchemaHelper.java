@@ -484,7 +484,7 @@ public class SchemaHelper {
 
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final StringBuilder src                   = new StringBuilder();
@@ -546,6 +546,7 @@ public class SchemaHelper {
 
 						// register global elements created by parser
 						validators.addAll(parser.getGlobalValidators());
+						compoundIndexKeys.addAll(parser.getCompoundIndexKeys());
 						enums.addAll(parser.getEnumDefinitions());
 
 						// register property in default view
@@ -910,9 +911,9 @@ public class SchemaHelper {
 		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
-	public static void formatValidators(final StringBuilder src, final Set<Validator> validators) {
+	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys) {
 
-		if (!validators.isEmpty()) {
+		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
 
 			src.append("\n\t@Override\n");
 			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
@@ -922,21 +923,31 @@ public class SchemaHelper {
 				src.append("\t\tvalid &= ").append(validator.getSource("this", true)).append(";\n");
 			}
 
+			if (!compoundIndexKeys.isEmpty()) {
+
+				src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");\n");
+			}
+
 			src.append("\n\t\treturn valid;\n");
 			src.append("\t}\n");
 		}
 
 	}
 
-	public static void formatDynamicValidators(final StringBuilder src, final Set<Validator> validators) {
+	public static void formatDynamicValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys) {
 
-		if (!validators.isEmpty()) {
+		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
 
 			src.append("\tpublic static boolean isValid(final AbstractNode obj, final ErrorBuffer errorBuffer) {\n\n");
 			src.append("\t\tboolean valid = true;\n\n");
 
 			for (final Validator validator : validators) {
 				src.append("\t\tvalid &= ").append(validator.getSource("obj", false)).append(";\n");
+			}
+
+			if (!compoundIndexKeys.isEmpty()) {
+
+				src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, ").append(StringUtils.join(compoundIndexKeys)).append(");\n");
 			}
 
 			src.append("\n\t\treturn valid;\n");
@@ -1173,6 +1184,7 @@ public class SchemaHelper {
 		map.put("system", property.isSystemInternal());
 		map.put("indexed", property.isIndexed());
 		map.put("indexedWhenEmpty", property.isIndexedWhenEmpty());
+		map.put("compound", property.isCompound());
 		map.put("unique", property.isUnique());
 		map.put("notNull", property.isNotNull());
 		map.put("dynamic", property.isDynamic());

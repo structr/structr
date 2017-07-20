@@ -51,6 +51,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected String name         = null;
 	protected String defaultValue = null;
 	protected boolean required    = false;
+	protected boolean compound    = false;
 	protected boolean unique      = false;
 	protected boolean indexed     = false;
 
@@ -103,6 +104,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public boolean isCompoundUnique() {
+		return compound;
+	}
+
+	@Override
 	public boolean isUnique() {
 		return unique;
 	}
@@ -130,6 +136,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	public JsonProperty setRequired(boolean required) {
 
 		this.required = required;
+		return this;
+	}
+
+	@Override
+	public JsonProperty setCompound(boolean compound) {
+
+		this.compound = compound;
 		return this;
 	}
 
@@ -170,6 +183,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		return app.create(SchemaProperty.class,
 			new NodeAttribute(SchemaProperty.name, getName()),
 			new NodeAttribute(SchemaProperty.schemaNode, schemaNode),
+			new NodeAttribute(SchemaProperty.compound, isCompoundUnique()),
 			new NodeAttribute(SchemaProperty.unique, isUnique()),
 			new NodeAttribute(SchemaProperty.indexed, isIndexed()),
 			new NodeAttribute(SchemaProperty.notNull, isRequired()),
@@ -179,6 +193,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 
 	void deserialize(final Map<String, Object> source) {
+
+		if (source.containsKey(JsonSchema.KEY_COMPOUND)) {
+			this.compound = (Boolean)source.get(JsonSchema.KEY_COMPOUND);
+		}
 
 		if (source.containsKey(JsonSchema.KEY_UNIQUE)) {
 			this.unique = (Boolean)source.get(JsonSchema.KEY_UNIQUE);
@@ -198,6 +216,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	void deserialize(final SchemaProperty property) {
 
 		setDefaultValue(property.getDefaultValue());
+		setCompound(property.isCompound());
 		setRequired(property.isRequired());
 		setUnique(property.isUnique());
 		setIndexed(property.isIndexed());
@@ -208,6 +227,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put(JsonSchema.KEY_TYPE, getType());
+
+		if (compound) {
+			map.put(JsonSchema.KEY_COMPOUND, true);
+		}
 
 		if (unique) {
 			map.put(JsonSchema.KEY_UNIQUE, true);

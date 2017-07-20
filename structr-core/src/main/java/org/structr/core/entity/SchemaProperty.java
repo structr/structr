@@ -69,8 +69,9 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             dbName            = new StringProperty("dbName");
 	public static final Property<String>             format            = new StringProperty("format");
 	public static final Property<Boolean>            notNull           = new BooleanProperty("notNull");
+	public static final Property<Boolean>            compound          = new BooleanProperty("compound");
 	public static final Property<Boolean>            unique            = new BooleanProperty("unique");
-	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed").defaultValue(true);	//
+	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed").defaultValue(true);
 	public static final Property<Boolean>            isDynamic         = new BooleanProperty("isDynamic");
 	public static final Property<Boolean>            isBuiltinProperty = new BooleanProperty("isBuiltinProperty");
 	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
@@ -80,19 +81,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             writeFunction     = new StringProperty("writeFunction");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -140,6 +141,18 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		final Boolean isNotNull = getProperty(notNull);
 		if (isNotNull != null && isNotNull) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isCompound() {
+
+		final Boolean isCompoundUnique = getProperty(compound);
+		if (isCompoundUnique != null && isCompoundUnique) {
 
 			return true;
 		}

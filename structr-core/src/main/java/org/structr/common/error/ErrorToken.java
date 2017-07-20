@@ -18,6 +18,11 @@
  */
 package org.structr.common.error;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 /**
  * Abstract base class for all error tokens.
  *
@@ -63,6 +68,21 @@ public abstract class ErrorToken {
 		this.value = value;
 	}
 
+	public JsonObject toJSON() {
+
+		final JsonObject token = new JsonObject();
+
+		token.add("type",     getStringOrNull(getType()));
+		token.add("property", getStringOrNull(getProperty()));
+		token.add("token",    getStringOrNull(getToken()));
+
+		// optional
+		addIfNonNull(token, "detail", getObjectOrNull(getDetail()));
+		addIfNonNull(token, "value",  getObjectOrNull(getValue()));
+
+		return token;
+	}
+
 	@Override
 	public String toString() {
 
@@ -92,5 +112,46 @@ public abstract class ErrorToken {
 		}
 
 		return buf.toString();
+	}
+
+	// ----- protected methods -----
+	protected void addIfNonNull(final JsonObject obj, final String key, final JsonElement value) {
+
+		if (value != null && !JsonNull.INSTANCE.equals(value)) {
+
+			obj.add(key, value);
+		}
+	}
+
+
+	protected JsonElement getStringOrNull(final String source) {
+
+		if (source != null) {
+			return new JsonPrimitive(source);
+		}
+
+		return JsonNull.INSTANCE;
+	}
+
+	protected JsonElement getObjectOrNull(final Object source) {
+
+		if (source != null) {
+
+			if (source instanceof String) {
+				return new JsonPrimitive((String)source);
+			}
+
+			if (source instanceof Number) {
+				return new JsonPrimitive((Number)source);
+			}
+
+			if (source instanceof Boolean) {
+				return new JsonPrimitive((Boolean)source);
+			}
+
+			return new JsonPrimitive(source.toString());
+		}
+
+		return JsonNull.INSTANCE;
 	}
 }

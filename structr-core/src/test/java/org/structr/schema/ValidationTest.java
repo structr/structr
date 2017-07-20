@@ -18,6 +18,7 @@
  */
 package org.structr.schema;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -26,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -1896,6 +1898,106 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid SchemaRelationshipNode validation result", "SchemaRelationshipNode", token.getType());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "sourceNode", token.getProperty());
 			assertEquals("Invalid SchemaRelationshipNode validation result", "must_not_be_empty", token.getToken());
+		}
+	}
+
+	@Test
+	public void testCompoundUniqueness() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaNode.class,
+				new NodeAttribute<>(AbstractNode.name, "TestType"),
+				new NodeAttribute<>(new StringProperty("_key1"), "String!!"),
+				new NodeAttribute<>(new StringProperty("_key2"), "String!!"),
+				new NodeAttribute<>(new StringProperty("_key3"), "String!!")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class type         = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+		final PropertyKey key1   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "key1");
+		final PropertyKey key2   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "key2");
+		final PropertyKey key3   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "key3");
+		final PropertyKey[] keys = new PropertyKey[] { key1, key2, key3 };
+
+		// test success
+		try (final Tx tx = app.tx()) {
+
+			app.create(type,
+				new NodeAttribute<>(key1, "one"),
+				new NodeAttribute<>(key2, "two"),
+				new NodeAttribute<>(key3, "three")
+			);
+
+			app.create(type,
+				new NodeAttribute<>(key1, "one"),
+				new NodeAttribute<>(key2, "one"),
+				new NodeAttribute<>(key3, "three")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Invalid compound indexing validation result.");
+		}
+
+		// test success
+		try (final Tx tx = app.tx()) {
+
+			app.create(type,
+				new NodeAttribute<>(key1, "one"),
+				new NodeAttribute<>(key3, "three")
+			);
+
+			app.create(type,
+				new NodeAttribute<>(key1, "one"),
+				new NodeAttribute<>(key3, "four")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Invalid compound indexing validation result.");
+		}
+
+		String uuid = null;
+
+		// test failure
+		try (final Tx tx = app.tx()) {
+
+			uuid = app.create(type,
+				new NodeAttribute<>(key1, "one"),
+				new NodeAttribute<>(key2, "two"),
+				new NodeAttribute<>(key3, "three")
+			).getUuid();
+
+			app.create(type,
+				new NodeAttribute<>(key1, "one"),
+				new NodeAttribute<>(key2, "two"),
+				new NodeAttribute<>(key3, "three")
+			);
+
+			tx.success();
+
+			fail("Invalid compound indexing validation result.");
+
+		} catch (FrameworkException fex) {
+
+			System.out.println(fex.toJSON());
+
+			final ErrorToken token = fex.getErrorBuffer().getErrorTokens().get(0);
+
+			assertEquals("Invalid validation status code", fex.getStatus(), 422);
+			assertEquals("Invalid validation error token", "already_taken", token.getToken());
+			assertEquals("Invalid validation error type", "TestType",       token.getType());
+			assertEquals("Invalid validation error type", uuid,             token.getDetail());
+			assertTrue("Invalid validation error type", Arrays.equals(keys, (PropertyKey[])token.getValue()));
+
 		}
 	}
 
