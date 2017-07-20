@@ -31,11 +31,6 @@ import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
 
-/**
- * Flushes caches
- *
- *
- */
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlushCachesCommand.class.getName());
@@ -45,16 +40,20 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 		logger.info("Clearing all caches.");
 
+		flushAll();
+
+		logger.info("Done");
+	}
+
+	public static void flushAll() {
 		NodeWrapper.clearCache();
 		RelationshipWrapper.clearCache();
 		AccessPathCache.invalidate();
 
-		App app = StructrApp.getInstance(securityContext);
+		App app = StructrApp.getInstance();
 
 		app.invalidateCache();
 		app.getDatabaseService().invalidateQueryCache();
-
-		logger.info("Done");
 	}
 
 	@Override

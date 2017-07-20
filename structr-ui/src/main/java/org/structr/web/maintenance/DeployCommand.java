@@ -62,6 +62,7 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
@@ -334,10 +335,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try (final Tx tx = app.tx(true, true, false)) {
 
 				info("Removing pages, templates and components..");
-				for (final DOMNode node : app.nodeQuery(DOMNode.class)) {
 
-					app.delete(node);
-				}
+				app.cypher("MATCH (n:DOMNode) DETACH DELETE n", null);
+				FlushCachesCommand.flushAll();
 
 				tx.success();
 			}
