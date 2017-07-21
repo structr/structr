@@ -171,8 +171,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
+		final long startTime = System.currentTimeMillis();
+
 		final Map<String, Object> broadcastData = new TreeMap();
-		broadcastData.put("start", System.currentTimeMillis());
+		broadcastData.put("start", startTime);
 		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_STARTED", broadcastData);
 
 		final String path                        = (String) attributes.get("source");
@@ -415,9 +417,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// restore saved value
 		Settings.ChangelogEnabled.setValue(changeLogEnabled);
 
-		info("Import from {} done.", source.toString());
+		final long endTime = System.currentTimeMillis();
+		info("Import from {} done. (Took {} ms)", source.toString(), (endTime - startTime));
 
-		broadcastData.put("end", System.currentTimeMillis());
+		broadcastData.put("end", endTime);
 		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_FINISHED", broadcastData);
 
 	}
