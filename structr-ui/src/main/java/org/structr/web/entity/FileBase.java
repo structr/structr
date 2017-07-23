@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -93,6 +95,7 @@ import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
 import org.structr.rest.common.XMLHandler;
+import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
@@ -737,6 +740,28 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 			throw new FrameworkException(400, "Cannot import CSV, please specify target type.");
 		}
+	}
+
+	@Export
+	public String getXMLStructure() throws FrameworkException {
+
+		final String contentType = getProperty(FileBase.contentType);
+
+		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
+
+			try (final Reader input = new InputStreamReader(getInputStream())) {
+
+				final XMLStructureAnalyzer analyzer = new XMLStructureAnalyzer(input);
+				final Gson gson                     = new GsonBuilder().setPrettyPrinting().create();
+
+				return gson.toJson(analyzer.getStructure(10));
+
+			} catch (XMLStreamException | IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		return null;
 	}
 
 	@Export

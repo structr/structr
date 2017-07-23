@@ -1643,7 +1643,7 @@ var Structr = {
 
 		var container = $('#xml-import');
 
-		container.append('<div><h3>Import configuration</h3><textarea id="config" rows="20"></textarea></div>');
+		container.append('<div><h3>Import configuration</h3><div class="csv-mapping"><table><thead id="structure"></thead></table></div></div>');
 		container.append('<div style="text-align: center; margin-top: 8px;"><button id="start-import">Start import</button></div>');
 		$('#start-import').on('click', function() {
 
@@ -1652,6 +1652,42 @@ var Structr = {
 					fadeOut: 25
 				});
 			});
+		});
+
+		$.post(rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
+
+			if (data && data.result) {
+
+				function buildTree(htmlElement, treeElement, path, level) {
+
+					Object.keys(treeElement).forEach(function(key) {
+
+						var cleanedKey = key.replace(/:/g, '');
+						var localPath  = path + cleanedKey + level;
+
+						htmlElement.append(
+							'<tr>' +
+							'<td id="' + localPath + '" style="padding-left: ' + (level * 40) + 'px;">' + key + '</td>' +
+							'<td><select class="csv">' +
+							'<option>skip</option>' +
+							'<option>ignore</option>' +
+							'<option>create node</option>' +
+							'<option>create relationship</option>' +
+							'<option>set property</option>' +
+							'</select>' +
+							'</td>' +
+							'</tr>'
+						);
+
+						var value = treeElement[key];
+						if (value) {
+
+							buildTree(htmlElement, value, localPath, level + 1);
+						}
+					});
+				}
+				buildTree($('#structure'), JSON.parse(data.result), 'xmlRootStructure', 0);
+			}
 		});
 	},
 	ensureIsAdmin: function(el, callback) {
