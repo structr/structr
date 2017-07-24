@@ -1917,7 +1917,8 @@ var Structr = {
 		var text = "The current deployment has finished. You should reload structr-ui to see the new data.<br>"
 				+ "You can either do this manually or click the button.<br><br>"
 				+ "Deployment started : " + new Date(info.start) + "<br>"
-				+ "Deployment finished: " + new Date(info.end);
+				+ "Deployment finished: " + new Date(info.end) + "<br>"
+				+ "Total duration: " + info.duration;
 
 		new MessageBuilder()
 				.title("Deployment finished")

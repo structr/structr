@@ -114,6 +114,12 @@ public class MaintenanceResource extends Resource {
 							cmd.execute(propertySet);
 						}
 
+						final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
+						cmd.getCustomHeaders().forEach((final String headerName, final String headerValue) -> {
+							result.addHeader(headerName, headerValue);
+						});
+						return result;
+
 					} else {
 						return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
 					}

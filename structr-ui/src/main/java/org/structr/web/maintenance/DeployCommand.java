@@ -36,6 +36,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -179,6 +180,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
 		final long startTime = System.currentTimeMillis();
+		customHeaders.put("start", new Date(startTime).toString());
 
 		final String path                        = (String) attributes.get("source");
 
@@ -426,10 +428,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final long endTime = System.currentTimeMillis();
 		DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+		final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
 
-		info("Import from {} done. (Took {} s)", source.toString(), decimalFormat.format(((endTime - startTime) / 1000.0)));
+		customHeaders.put("end", new Date(endTime).toString());
+		customHeaders.put("duration", duration);
+
+		info("Import from {} done. (Took {})", source.toString(), duration);
 
 		broadcastData.put("end", endTime);
+		broadcastData.put("duration", duration);
 		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_FINISHED", broadcastData);
 
 	}
