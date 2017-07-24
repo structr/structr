@@ -4468,3 +4468,37 @@ div.csv-mapping td.transform {
 div.csv-mapping td.transform input {
 	width: 99%;
 }
+
+div.xml-mapping table {
+	width: 100%;
+}
+
+div.xml-mapping td {
+	cursor: pointer;
+}
+
+div.xml-mapping td:hover, div.xml-mapping td.selected {
+	background-color: #81ce25;
+}
+
+div#left {
+	float: left;
+	width: 40%;
+}
+
+div#right {
+	float: right;
+	width: 60%;
+}
+
+div#xml-config {
+	margin: 0 24px 24px 24px;
+}
+
+div#xml-config label {
+	font-weight: bold;
+}
+
+div#xml-config select {
+	width: 45%;
+}

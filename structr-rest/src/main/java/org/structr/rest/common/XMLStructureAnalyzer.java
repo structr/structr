@@ -19,13 +19,18 @@
 package org.structr.rest.common;
 
 import java.io.Reader;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +78,7 @@ public class XMLStructureAnalyzer {
 
 					case XMLEvent.START_ELEMENT:
 						current = new Element(current, tagName, level++);
+						current.attributes.addAll(getAttributes(event.asStartElement()));
 						break;
 
 					case XMLEvent.END_ELEMENT:
@@ -83,12 +89,10 @@ public class XMLStructureAnalyzer {
 						level--;
 
 						// start analysis for elements with more than one occurrence
-						if (current.level == 0) {
+						if (current != null && current.level == 0) {
 
 							analyze(current, structure);
 							analysisCount++;
-
-							System.out.println(structure);
 						}
 						break;
 				}
@@ -125,16 +129,45 @@ public class XMLStructureAnalyzer {
 			map.put(parent.tagName, currentObject);
 		}
 
+		// store attributes (if present)
+		if (!parent.attributes.isEmpty()) {
+
+			Set<String> attributes = (Set<String>)currentObject.get("::attributes");
+			if (attributes == null) {
+
+				attributes = new LinkedHashSet<>();
+				currentObject.put("::attributes", attributes);
+			}
+
+			// store attributes
+			attributes.addAll(parent.attributes);
+		}
+
 		// recurse
 		for (Element child : parent.children) {
 			analyze(child, currentObject);
 		}
 	}
 
+	private Set<String> getAttributes(final StartElement startElement) {
+
+		final Set<String> attributes = new LinkedHashSet<>();
+		final Iterator iterator      = startElement.getAttributes();
+
+		while (iterator.hasNext()) {
+
+			final Attribute attr = (Attribute)iterator.next();
+			attributes.add(attr.getName().toString());
+		}
+
+		return attributes;
+	}
+
 	// ----- nested classes -----
 	private class Element {
 
 		private final List<Element> children = new LinkedList<>();
+		private final Set<String> attributes = new LinkedHashSet<>();
 		private Element parent               = null;
 		private String tagName               = null;
 		private int level                    = 0;

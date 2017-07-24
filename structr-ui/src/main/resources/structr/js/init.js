@@ -1515,11 +1515,6 @@ var Structr = {
 
 		targetTypeSelector.on('change', function(e) {
 
-			var blacklist = [
-				'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
-				'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
-				'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
-			];
 			var type      = $(this).val();
 
 			propertySelector.empty();
@@ -1533,101 +1528,113 @@ var Structr = {
 				propertySelector.append('<h3>Select Mapping</h3>');
 				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
-				var rowContainer = $('#row-container');
-
 				if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
 
 					var names = [];
 
-					$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+					Structr.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, function() {
 
-						if (typeInfo && typeInfo.result) {
+						propertySelector.append('<div style="text-align: center"><button id="start-import">Start import</button></div>');
+						$('#start-import').on('click', function() {
 
-							// sort by name
-							typeInfo.result.sort(function(a, b) {
-								return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
+							var mappings = {};
+							var transforms = {};
+
+							$('select.csv').each(function(i, elem) {
+
+								var e     = $(elem);
+								var name  = names[i];
+								var value = e.val();
+
+								// property mappings need to be from source type to target type
+								if (value && value.length) {
+									mappings[value] = name;
+								}
+
+								var transform = $('input#transform' + i).val();
+								if (transform && transform.length) {
+									transforms[value] = transform;
+								}
 							});
 
-							csvHeaders.result.headers.forEach(function(p, i) {
-
-								rowContainer.append(
-									'<tr>' +
-									'<td class="key">' + p + '</td>' +
-									'<td class="transform"><input type="text" id="transform' + i + '" title="' +
-									'Specify optional StructrScript expression here to\n' +
-									'transform the input value. The data key is &quot;input&quot;\n' +
-									'and the return value of the expression will be\nimported.' +
-									'" /></td>' +
-									'<td>' +
-									'<select class="csv" id="key' + i + '">' +
-									'<option value="">--- do not import ---</option>' +
-									'</select>' +
-									'</td>' +
-									'</tr>'
-								);
-
-								var selectedString = '';
-								var select         = $('select#key' + i);
-								var longestMatch   = 0;
-								names[i]           = p;
-
-								// create drop-down list with pre-selected options
-								typeInfo.result.forEach(function(info) {
-
-									if (blacklist.indexOf(info.jsonName) === -1) {
-
-										// match with longest target property wins
-										if (checkSelection(p, info.jsonName) && info.jsonName.length > longestMatch) {
-											selectedString = ' selected="selected"';
-											longestMatch = info.jsonName.length;
-										} else {
-											selectedString = '';
-										}
-
-										select.append('<option' + selectedString + '>' + info.jsonName + '</option>');
-									}
+							$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
+								targetType: type,
+								delimiter: $('#delimiter').val(),
+								quoteChar: $('#quote-char').val(),
+								mappings: mappings,
+								transforms: transforms
+							}), function(data) {
+								$.unblockUI({
+									fadeOut: 25
 								});
 							});
-
-							propertySelector.append('<div style="text-align: center"><button id="start-import">Start import</button></div>');
-							$('#start-import').on('click', function() {
-
-								var mappings = {};
-								var transforms = {};
-
-								$('select.csv').each(function(i, elem) {
-
-									var e     = $(elem);
-									var name  = names[i];
-									var value = e.val();
-
-									// property mappings need to be from source type to target type
-									if (value && value.length) {
-										mappings[value] = name;
-									}
-
-									var transform = $('input#transform' + i).val();
-									if (transform && transform.length) {
-										transforms[value] = transform;
-									}
-								});
-
-								$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
-									targetType: type,
-									delimiter: $('#delimiter').val(),
-									quoteChar: $('#quote-char').val(),
-									mappings: mappings,
-									transforms: transforms
-								}), function(data) {
-									$.unblockUI({
-										fadeOut: 25
-									});
-								});
-							});
-						}
+						});
 					});
 				}
 			});
+		});
+	},
+	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, callback) {
+
+		var blacklist = [
+			'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
+			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
+			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+		];
+
+		$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+
+			if (typeInfo && typeInfo.result) {
+
+				// sort by name
+				typeInfo.result.sort(function(a, b) {
+					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
+				});
+
+				inputProperties.forEach(function(p, i) {
+
+					rowContainer.append(
+						'<tr>' +
+						'<td class="key">' + p + '</td>' +
+							(displayTransformInput ?
+							'<td class="transform"><input type="text" id="transform' + i + '" title="' +
+							'Specify optional StructrScript expression here to\n' +
+							'transform the input value. The data key is &quot;input&quot;\n' +
+							'and the return value of the expression will be\nimported.' +
+							'" /></td>' : '') +
+						'<td>' +
+						'<select class="csv" id="key' + i + '">' +
+						'<option value="">--- do not import ---</option>' +
+						'</select>' +
+						'</td>' +
+						'</tr>'
+					);
+
+					var selectedString = '';
+					var select         = $('select#key' + i);
+					var longestMatch   = 0;
+					names[i]           = p;
+
+					// create drop-down list with pre-selected options
+					typeInfo.result.forEach(function(info) {
+
+						if (blacklist.indexOf(info.jsonName) === -1) {
+
+							// match with longest target property wins
+							if (checkSelection(p, info.jsonName) && info.jsonName.length > longestMatch) {
+								selectedString = ' selected="selected"';
+								longestMatch = info.jsonName.length;
+							} else {
+								selectedString = '';
+							}
+
+							select.append('<option' + selectedString + '>' + info.jsonName + '</option>');
+						}
+					});
+				});
+
+				callback();
+			}
 		});
 
 		function checkSelection(sourceName, targetName) {
@@ -1640,11 +1647,17 @@ var Structr = {
 
 		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
 		dialog.append('<div id="xml-import"></div>');
+		dialogBtn.append('<button id="start-import">Start import</button>');
 
 		var container = $('#xml-import');
 
-		container.append('<div><h3>Import configuration</h3><div class="csv-mapping"><table><thead id="structure"></thead></table></div></div>');
-		container.append('<div style="text-align: center; margin-top: 8px;"><button id="start-import">Start import</button></div>');
+		container.append('<div id="left"><h2>Document Structure</h2><div class="xml-mapping"><table><thead id="structure"></thead></table></div></div><div id="right"><div id="xml-config"></div></div>');
+		container.append('<div style="clear: both;"></div>');
+
+		var xmlConfig = $('#xml-config');
+
+		xmlConfig.append('<p>Please click one of the XML elements on the left to configure the XML import for that element.</p>');
+
 		$('#start-import').on('click', function() {
 
 			$.post(rootUrl + 'File/' + file.id + '/doXMLImport', $('#config').val(), function(data) {
@@ -1658,37 +1671,116 @@ var Structr = {
 
 			if (data && data.result) {
 
-				function buildTree(htmlElement, treeElement, path, level) {
+				var attributes = {};
+
+				function buildTree(htmlElement, parentKey, treeElement, path, level) {
 
 					Object.keys(treeElement).forEach(function(key) {
+
+						// store attributes
+						if (key === '::attributes') {
+							if (!attributes[parentKey]) {
+								attributes[parentKey] = {};
+							}
+							var map = attributes[parentKey];
+							treeElement[key].forEach(function(attr) {
+								map[attr] = 1;
+							});
+							return;
+						}
 
 						var cleanedKey = key.replace(/:/g, '');
 						var localPath  = path + cleanedKey + level;
 
-						htmlElement.append(
-							'<tr>' +
-							'<td id="' + localPath + '" style="padding-left: ' + (level * 40) + 'px;">' + key + '</td>' +
-							'<td><select class="csv">' +
-							'<option>skip</option>' +
-							'<option>ignore</option>' +
-							'<option>create node</option>' +
-							'<option>create relationship</option>' +
-							'<option>set property</option>' +
-							'</select>' +
-							'</td>' +
-							'</tr>'
-						);
+						htmlElement.append('<tr><td class="xml-mapping" id="' + localPath + '" style="padding-left: ' + (level * 30) + 'px;">&#11208;&nbsp;&nbsp;' + key + '</td></tr>');
+						$('#' + localPath).on('click', function() {
+
+							$('td.xml-mapping').removeClass('selected');
+							$(this).addClass('selected');
+
+							xmlConfig.empty();
+							xmlConfig.append('<h2>' + key + '</h2>');
+							xmlConfig.append('<div id="config"></div>');
+
+							var config = $('#config');
+							config.append('<label>Action:</label>');
+							config.append('<select id="action-select"></select>');
+
+							var action = $('#action-select');
+							action.append('<option value="">Skip</option>');
+							action.append('<option value="ignore">Ignore branch</option>');
+							action.append('<option value="createNode">Create node</option>');
+							action.append('<option value="setProperty">Set property</option>');
+
+							config.append('<div id="options"></div>');
+							var options = $('#options');
+
+							action.on('change', function() {
+								switch ($(this).val()) {
+									case "createNode":
+										Structr.showCreateNodeOptions(options, key, attributes);
+										break;
+									case "createNode":
+										Structr.showSetPropertyOptions(options, key, attributes);
+										break;
+								}
+							});
+
+						});
 
 						var value = treeElement[key];
 						if (value) {
 
-							buildTree(htmlElement, value, localPath, level + 1);
+							buildTree(htmlElement, key, value, localPath, level + 1);
 						}
 					});
 				}
-				buildTree($('#structure'), JSON.parse(data.result), 'xmlRootStructure', 0);
+
+				buildTree($('#structure'), '', JSON.parse(data.result), 'xmlRootStructure', 0);
 			}
 		});
+	},
+	showCreateNodeOptions: function(el, key, attributes) {
+
+		el.append('<label>Type:</label>');
+		el.append('<select id="type-select"></select>');
+		el.append('<div id="property-select"></div>');
+
+		var typeSelector     = $('#type-select');
+		var propertySelector = $('#property-select');
+
+		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+
+			if (data && data.result) {
+
+				data.result.forEach(function(r) {
+
+					typeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
+				});
+			}
+		});
+
+		typeSelector.on('change', function(e) {
+
+			var type  = $(this).val();
+			var names = [];
+
+			propertySelector.empty();
+			propertySelector.append('<h3>Select Mapping</h3>');
+			propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+
+			var rowContainer = $('#row-container');
+
+			//displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, callback) {
+			Structr.displayImportPropertyMapping(type, Object.keys(attributes[key]), rowContainer, names, false, function() {
+
+			});
+
+		});
+	},
+	showSetPropertyOptions: function(el, key, configuration, attributes) {
+
+
 	},
 	ensureIsAdmin: function(el, callback) {
 		Structr.ping(function() {
