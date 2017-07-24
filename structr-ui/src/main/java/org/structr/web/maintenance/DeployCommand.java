@@ -32,12 +32,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -171,15 +174,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
 
+		final long startTime = System.currentTimeMillis();
+
 		final Map<String, Object> broadcastData = new TreeMap();
-		broadcastData.put("start", System.currentTimeMillis());
+		broadcastData.put("start", startTime);
 		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_STARTED", broadcastData);
 
 		final String path                        = (String) attributes.get("source");
 
 		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
 		ctx.setDoTransactionNotifications(false);
-		final App app                            = StructrApp.getInstance();
+		final App app                            = StructrApp.getInstance(ctx);
 
 		final Map<String, Object> componentsConf = new HashMap<>();
 		final Map<String, Object> templatesConf  = new HashMap<>();
@@ -206,7 +211,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path preDeployConf = source.resolve("pre-deploy.conf");
 		if (Files.exists(preDeployConf)) {
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 
 				info("Applying pre-deployment configuration from {}..", preDeployConf);
 
@@ -331,16 +336,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		// construct paths
-		final Path templates = source.resolve("templates");
+		final Path templates  = source.resolve("templates");
 		final Path components = source.resolve("components");
-		final Path pages = source.resolve("pages");
+		final Path pages      = source.resolve("pages");
 
 		// remove all DOMNodes from the database (clean webapp for import, but only
 		// if the actual import directories exist, don't delete web components if
 		// an empty directory was specified accidentially).
 		if (Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
 
-			try (final Tx tx = app.tx(true, true, false)) {
+			try (final Tx tx = app.tx()) {
 
 				info("Removing pages, templates and components..");
 
@@ -398,7 +403,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path postDeployConf = source.resolve("post-deploy.conf");
 		if (Files.exists(postDeployConf)) {
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			try (final Tx tx = app.tx()) {
 
 				info("Applying post-deployment configuration from {}..", postDeployConf);
 
@@ -415,9 +420,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// restore saved value
 		Settings.ChangelogEnabled.setValue(changeLogEnabled);
 
-		info("Import from {} done.", source.toString());
+		final long endTime = System.currentTimeMillis();
+		DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 
-		broadcastData.put("end", System.currentTimeMillis());
+		info("Import from {} done. (Took {} s)", source.toString(), decimalFormat.format(((endTime - startTime) / 1000.0)));
+
+		broadcastData.put("end", endTime);
 		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_FINISHED", broadcastData);
 
 	}
