@@ -176,10 +176,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final long startTime = System.currentTimeMillis();
 
-		final Map<String, Object> broadcastData = new TreeMap();
-		broadcastData.put("start", startTime);
-		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_STARTED", broadcastData);
-
 		final String path                        = (String) attributes.get("source");
 
 		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
@@ -206,6 +202,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 		}
+
+		final Map<String, Object> broadcastData = new TreeMap();
+		broadcastData.put("start", startTime);
+		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_STARTED", broadcastData);
 
 		// apply configuration
 		final Path preDeployConf = source.resolve("pre-deploy.conf");

@@ -1902,7 +1902,7 @@ var Structr = {
 	handleDeploymentStarted: function (info) {
 
 		var text = "A deployment import process has begun. Any changes made during a deployment might get lost or conflict with the deployment!<br>"
-				+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment is finished.<br><br>"
+				+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment finished successfully.<br><br>"
 				+ "Deployment started : " + new Date(info.start);
 
 		new MessageBuilder()
