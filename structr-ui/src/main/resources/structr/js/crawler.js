@@ -310,8 +310,9 @@ var _Crawler = {
 			var name = (site.name || '[unnamed]');
 			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Site" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
 
-			$('.site-header .site-name', crawlerList).on('click', function() {
-				_Entities.makeNameEditable($(this), 200, function() {
+			var nameEl = $('.site-header .site-name', crawlerList);
+			nameEl.children('b.name_').off('click').on('click', function (e) {
+				_Entities.makeNameEditable(nameEl, 200, function() {
 					_Crawler.refreshTree();
 				});
 			});
@@ -341,7 +342,7 @@ var _Crawler = {
 			};
 
 			_Pager.initPager('crawler-pages', 'SourcePage', 1, 25, 'name', 'asc');
-			page['ContentItem'] = 1;
+			page['SourcePage'] = 1;
 			_Pager.initFilters('crawler-pages', 'SourcePage', id === 'root' ? {} : { site: id });
 
 			var itemsPager = _Pager.addPager('crawler-pages', crawlerList, false, 'SourcePage', 'ui', handlePage);
@@ -463,13 +464,40 @@ var _Crawler = {
 
 			fastRemoveAllChildren(crawlerList[0]);
 
+			var name = (sourcePage.name || '[unnamed]');
+			crawlerList.append('<div class="page-header"><div id="id_' + sourcePage.id + '" class="page-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Page" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
+
+			var nameEl = $('.page-header .page-name', crawlerList);
+			nameEl.children('b.name_').off('click').on('click', function (e) {
+				e.stopPropagation();
+				_Entities.makeNameEditable(nameEl, 200, function() {
+					_Crawler.refreshTree();
+				});
+			});
+
+			$('.page-header .delete', crawlerList).on('click', function(e) {
+				e.stopPropagation();
+				_Entities.deleteNode(this, sourcePage, false, function() {
+					_Crawler.refreshTree();
+					window.setTimeout(function() {
+						$('.jstree-wholerow').first().click();
+					}, 250);
+				});
+			});
+
+			var editIcon = $('.page-header .edit-properties', crawlerList);
+			editIcon.on('click', function(e) {
+				e.stopPropagation();
+				_Entities.showProperties(sourcePage);
+			});
+
 			_Pager.initPager('crawler-patterns', 'SourcePattern', 1, 25, 'name', 'asc');
 			page['ContentItem'] = 1;
 			_Pager.initFilters('crawler-patterns', 'SourcePattern', sourcePage.id === 'root' ? {} : { sourcePage: sourcePage.id });
 
 			_Crawler.refreshPatterns(sourcePage);
 
-			$('#crawler-list').append('<div class="crawler-inputs"><input id="element-path" type="text" placeholder="Selector">'
+			crawlerList.append('<div class="crawler-inputs"><input id="element-path" type="text" placeholder="Selector">'
 				+ '<input id="element-link" type="text" placeholder="Link"><br>'
 				+ '<input id="element-id" type="text" placeholder="Id">'
 				+ '<input id="element-class" type="text" placeholder="Class"></div>');
@@ -513,7 +541,7 @@ var _Crawler = {
 
 				//console.log(url);
 
-				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="' + url + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
+				crawlerList.append('<iframe id="page-frame" name="page-frame" src="' + url + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
 				_Crawler.initPageFrame(sourcePage.url);
 			}
 
@@ -658,9 +686,7 @@ var _Crawler = {
 				+ '<th>Selector</th>'
 				+ '<th>Mapped Type</th>'
 				+ '<th>Mapped Attribute</th>'
-				+ '<th>Locale</th>'
-				+ '<th>Format</th>'
-				+ '<th>Sub Page</th>'
+				+ '<th>Transformation Function</th>'
 				+ '<th>Actions</th>'
 				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
 		}
@@ -682,7 +708,7 @@ var _Crawler = {
 	},
 	appendPatternRow: function(d) {
 
-		console.log(d);
+		//console.log(d);
 
 		// add container/item to global model
 		StructrModel.createFromData(d, null, false);
@@ -704,8 +730,9 @@ var _Crawler = {
 				+ '<td><div data-raw-value="' + (subPattern.selector || '') + '" class="editable sub-selector">' + (subPattern.selector || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div title="' + (subPattern.mappedType || '') + '" class="editable mappedType_">' + (subPattern.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div title="' + (subPattern.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (subPattern.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>'
-				+ '<td><div title="' + (subPattern.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>'
-				+ '<td><div title="' + (subPattern.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div title="' + (subPattern.mappedAttributeFunction || '') + '" class="editable mappedAttributeFunction_">' + (subPattern.mappedAttributeFunction || '<span class="placeholder">click to edit</span>') + '</div></td>'
+//				+ '<td><div title="' + (subPattern.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>'
+//				+ '<td><div title="' + (subPattern.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div class="subPage_"></td>'
 				+ '<td></td></tr>');
 
@@ -727,15 +754,20 @@ var _Crawler = {
 				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttribute_', 'mappedAttribute', 200);
 			});
 
-			row.find('.mappedAttributeLocale_').on('click', function(e) {
+			row.find('.mappedAttributeFunction_').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
 			});
 
-			row.find('.mappedAttributeFormat_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
-			});
+//			row.find('.mappedAttributeLocale_').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+//			});
+//
+//			row.find('.mappedAttributeFormat_').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
+//			});
 
 			var div = Structr.node(subPattern.id);
 			_Entities.appendAccessControlIcon(div, d);
@@ -777,8 +809,9 @@ var _Crawler = {
 				  '<td><div title="' + (d.inputValue || '') + '" class="editable inputValue_">' + (d.inputValue || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				: '<td><div title="' + (d.mappedType || '') + '" class="editable mappedType_">' + (d.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>')
 			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (d.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>')
-			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>')
-			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFunction || '') + '" class="editable mappedAttributeFunction_">' + (d.mappedAttributeFunction || '<span class="placeholder">click to edit</span>') + '</div></td>')
+//			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>')
+//			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
 			+ (d.sourcePage.isLoginPage ? '<td></td>' : '<td></td><td><button class="extract">Extract</button></td>'));
 
 		row.find('.inputValue_').on('click', function(e) {
@@ -796,15 +829,20 @@ var _Crawler = {
 			_Entities.makeAttributeEditable(row, d.id, '.mappedAttribute_', 'mappedAttribute', 200);
 		});
 
-		row.find('.mappedAttributeLocale_').on('click', function(e) {
+		row.find('.mappedAttributeFunction_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
 		});
 
-		row.find('.mappedAttributeFormat_').on('click', function(e) {
-			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
-		});
+//		row.find('.mappedAttributeLocale_').on('click', function(e) {
+//			e.stopPropagation();
+//			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+//		});
+//
+//		row.find('.mappedAttributeFormat_').on('click', function(e) {
+//			e.stopPropagation();
+//			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
+//		});
 
 		var div = Structr.node(d.id);
 
@@ -849,25 +887,32 @@ var _Crawler = {
 						btn.html(text + ' <i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
 					},
 					400: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + JSON.stringify(data.responseJSON), true);
+						//Structr.errorFromResponse(data.responseJSON, url);
+						btn.html(text);
 					},
 					401: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
+						btn.html(text);
 					},
 					403: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
+						btn.html(text);
 					},
 					404: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
+						btn.html(text);
 					},
 					422: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + JSON.stringify(data.responseJSON), true);
+						btn.html(text);
 					}
 				}
 
 			}).always(function() {
 				window.setTimeout(function() {
 					$('i', btn).fadeOut();
+					btn.removeClass('disabled').attr('disabled', null);
 				}, 1000);
 			});
 		});

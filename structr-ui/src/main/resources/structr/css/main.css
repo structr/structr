@@ -3624,11 +3624,11 @@ input#element-class {
 	border-radius: 3px;
 }
 
-#crawler-list .site-header {
+#crawler-list .site-header, #crawler-list .page-header {
 	height: 40px;
 }
 
-#crawler-list .site-name {
+#crawler-list .site-name, #crawler-list .page-name {
 	min-width: 100px;
 	font-size: 2em;
 	margin-top: 0;
