@@ -1490,13 +1490,13 @@ var Structr = {
 
 		// import options
 		container.append('<h3>Import Options</h3>');
-		container.append('<label>Delimiter: <select id="delimiter"><option>,</option><option>;</option><option>|</option></select></label>');
-		container.append('<label>Quote character: <select id="quote-char"><option>&quot;</option></select></label>');
-		container.append('<label>Record separator: <select id="record-separator"></select></label>');
+		container.append('<label>Delimiter: <select id="delimiter" class="import-option"><option>,</option><option>;</option><option>|</option></select></label>');
+		container.append('<label>Quote character: <select id="quote-char" class="import-option"><option>&quot;</option><option>\'</option></select></label>');
+		container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
 
 		// target selection
 		container.append('<h3>Select target type</h3>');
-		container.append('<select id="target-type-select" name="targetType"><option value="">Select target type..</option></select>');
+		container.append('<select id="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
 		container.append('<div id="property-select"></div>');
 
 		var targetTypeSelector = $('#target-type-select');
@@ -1513,14 +1513,17 @@ var Structr = {
 			}
 		});
 
-		targetTypeSelector.on('change', function(e) {
+		var updateMapping = function () {
+			var type = targetTypeSelector.val();
+			if (!type) {
+				return;
+			};
 
 			var blacklist = [
 				'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 				'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
 				'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 			];
-			var type      = $(this).val();
 
 			propertySelector.empty();
 
@@ -1628,7 +1631,10 @@ var Structr = {
 					});
 				}
 			});
-		});
+		};
+
+		targetTypeSelector.on('change', updateMapping);
+		$(".import-option", container).on('change', updateMapping);
 
 		function checkSelection(sourceName, targetName) {
 			var src     = sourceName.toLowerCase().replace(/\W/g, '');
