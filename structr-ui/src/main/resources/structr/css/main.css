@@ -4455,7 +4455,6 @@ pre.csv-preview {
 
 div.attr-mapping table {
 	width: 100%;
-	margin-bottom: 24px;
 }
 
 .attr-mapping th {
@@ -4480,15 +4479,27 @@ div.attr-mapping td.transform input {
 	width: 99%;
 }
 
+div.attr-mapping select.attr-mapping {
+	width: 100% !important;
+}
+
 div#xml-import {
 	padding-left: 12px;
 }
 
-div.xml-mapping {
+div#xml-import h2, div#xml-import h3 {
+	margin-bottom: 0;
+}
+
+div.xml-mapping, div#config {
 	padding: 2px 6px;
-	height: 420px;
+	height: 440px;
 	overflow: auto;
+}
+
+div.xml-mapping {
 	background-color: #fff;
+	border: 1px solid #ddd;
 }
 
 div.xml-mapping table {
@@ -4505,16 +4516,16 @@ div.xml-mapping td:hover, div.xml-mapping td.selected {
 
 div#left {
 	float: left;
-	width: 40%;
+	width: 45%;
 }
 
 div#right {
 	float: right;
-	width: 60%;
+	width: 55%;
 }
 
 div#xml-config {
-	margin: 0 24px 24px 24px;
+	margin: 0 6px 0 24px;
 }
 
 div#xml-config label {
@@ -4523,4 +4534,20 @@ div#xml-config label {
 
 div#xml-config select {
 	width: 45%;
+}
+
+button#start-import {
+	background-color: #81ce25;
+}
+
+button#cancel-button {
+	margin-right: 24px;
+}
+
+div#xml-config p.hint {
+	padding: 48px;
+}
+
+div#xml-config label {
+	width: 55%;
 }
