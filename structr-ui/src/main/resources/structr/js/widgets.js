@@ -77,7 +77,7 @@ var _Widgets = {
 			});
 		});
 
-		_wPager.pager.append('<input type="text" class="filter" data-attribute="name" placeholder="Filter..." />');
+		_wPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name" />');
 		_wPager.activateFilterElements();
 
 		_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
