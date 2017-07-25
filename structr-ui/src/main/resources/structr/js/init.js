@@ -1534,7 +1534,10 @@ var Structr = {
 			}), function(csvHeaders) {
 
 				propertySelector.append('<h3>Select Mapping</h3>');
-				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+
+				var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.';
+				Structr.appendInfoTextToElement(helpText, $('th.transform-head', propertySelector), {marginLeft: "2px"});
 
 				var rowContainer = $('#row-container');
 
@@ -1555,17 +1558,9 @@ var Structr = {
 
 								rowContainer.append(
 									'<tr>' +
-									'<td class="key">' + p + '</td>' +
-									'<td class="transform"><input type="text" id="transform' + i + '" title="' +
-									'Specify optional StructrScript expression here to\n' +
-									'transform the input value. The data key is &quot;input&quot;\n' +
-									'and the return value of the expression will be\nimported.' +
-									'" /></td>' +
-									'<td>' +
-									'<select class="csv" id="key' + i + '">' +
-									'<option value="">--- do not import ---</option>' +
-									'</select>' +
-									'</td>' +
+										'<td class="key">' + p + '</td>' +
+										'<td class="transform"><input type="text" id="transform' + i + '"/></td>' +
+										'<td><select class="csv" id="key' + i + '"><option value="">--- do not import ---</option></select></td>' +
 									'</tr>'
 								);
 
