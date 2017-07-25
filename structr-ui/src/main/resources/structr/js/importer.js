@@ -88,7 +88,7 @@ var Importer = {
 
 					var names = [];
 
-					Structr.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, {}, function() {
+					Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, {}, function() {
 
 						propertySelector.append('<div style="text-align: center"><button id="start-import">Start import</button></div>');
 						$('#start-import').on('click', function() {
@@ -334,10 +334,10 @@ var Importer = {
 
 								switch ($(this).val()) {
 									case "createNode":
-										Structr.showCreateNodeOptions(options, key, configuration, attributes);
+										Importer.showCreateNodeOptions(options, key, configuration, attributes);
 										break;
 									case "setProperty":
-										Structr.showSetPropertyOptions(options, key, configuration, attributes);
+										Importer.showSetPropertyOptions(options, key, configuration, attributes);
 										break;
 									case "ignore":
 										// reset configuration
@@ -415,11 +415,11 @@ var Importer = {
 
 		configuration[key].action = 'createNode';
 
-		var isRoot = Structr.xmlImportIsRoot(configuration, key);
-		var hasRoot = Structr.xmlImportHasRoot(configuration);
+		var isRoot = Importer.xmlImportIsRoot(configuration, key);
+		var hasRoot = Importer.xmlImportHasRoot(configuration);
 
 		if (!hasRoot) {
-			Structr.xmlImportSetRoot(configuration, key);
+			Importer.xmlImportSetRoot(configuration, key);
 			isRoot = true;
 		}
 
@@ -459,7 +459,7 @@ var Importer = {
 
 			if (!isRoot) {
 
-				var parentType = Structr.xmlImportGetParentType(configuration);
+				var parentType = Importer.xmlImportGetParentType(configuration);
 				if (parentType) {
 
 					var nonRoot    = $('#non-root-options');
@@ -470,6 +470,7 @@ var Importer = {
 					nonRoot.append('<select id="text-select"><option value="">--- ignore ---</option></select>');
 
 					var nameSelect = $('#name-select');
+					var textSelect = $('#text-select');
 
 					$.get(rootUrl + '_schema/' + parentType + '/all', function(typeInfo) {
 
@@ -482,9 +483,16 @@ var Importer = {
 
 							typeInfo.result.forEach(function(info) {
 
-								if (info.type === type) {
+								switch (info.type) {
 
-									nameSelect.append('<option data-is-collection="' + info.isCollection + '">' + info.jsonName + '</option>');
+									case type:
+										nameSelect.append('<option data-is-collection="' + info.isCollection + '">' + info.jsonName + '</option>');
+										break;
+
+									case 'String':
+										textSelect.append('<option>' + info.jsonName + '</option>');
+										break;
+
 								}
 							});
 
@@ -503,6 +511,25 @@ var Importer = {
 									}
 								}
 							});
+
+							// trigger select event when an element is already configured
+							if (typeConfig && typeConfig.propertyName) {
+								nameSelect.val(typeConfig.propertyName).trigger('change');
+							}
+
+							textSelect.on('change', function() {
+
+								var value = textSelect.val();
+								if (value && value.length) {
+
+									configuration[key].content = value;
+								}
+							});
+
+							// trigger select event when an element is already configured
+							if (typeConfig && typeConfig.content) {
+								textSelect.val(typeConfig.content).trigger('change');
+							}
 						}
 					});
 				}
@@ -516,7 +543,7 @@ var Importer = {
 			var inputProperties = Object.keys(attributes[key]);
 
 			//displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, callback) {
-			Structr.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[key], function(mapping) {
+			Importer.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[key], function(mapping) {
 
 				var typeConfig = configuration[key];
 				if (!typeConfig) {
