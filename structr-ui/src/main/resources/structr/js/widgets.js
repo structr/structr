@@ -70,12 +70,15 @@ var _Widgets = {
 		});
 
 		_Pager.initPager('local-widgets', 'Widget', 1, 25);
-		_Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
+		var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
 			entities.forEach(function (entity) {
 				StructrModel.create(entity, null, false);
 				_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
 			});
 		});
+
+		_wPager.pager.append('<input type="text" class="filter" data-attribute="name" placeholder="Filter..." />');
+		_wPager.activateFilterElements();
 
 		_Widgets.remoteWidgetsEl = $('#remoteWidgets', widgetsSlideout);
 
