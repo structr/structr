@@ -142,6 +142,8 @@ var _Files = {
 			});
 		}
 
+		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
+
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;

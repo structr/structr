@@ -4445,28 +4445,50 @@ pre.csv-preview {
 	height: 100px;
 }
 
-div.csv-mapping table {
+#row-container tr:nth-child(odd) {
+	background-color: #fff;
+}
+
+#row-container tr:nth-child(even) {
+	background-color: #f7f7f7;
+}
+
+div.attr-mapping table {
 	width: 100%;
 	margin-bottom: 24px;
 }
 
-div.csv-mapping td {
-	background-color: #fff;
+.attr-mapping th {
+	padding-bottom: 2px;
+}
+
+div.attr-mapping td {
 	border: 1px solid #ddd;
 }
 
-div.csv-mapping td.key {
+div.attr-mapping td.key {
 	padding: 0 8px 0 8px;
 	width: 55%;
 }
 
-div.csv-mapping td.transform {
+div.attr-mapping td.transform {
 	padding: 2;
 	width: 40%;
 }
 
-div.csv-mapping td.transform input {
+div.attr-mapping td.transform input {
 	width: 99%;
+}
+
+div#xml-import {
+	padding-left: 12px;
+}
+
+div.xml-mapping {
+	padding: 2px 6px;
+	height: 420px;
+	overflow: auto;
+	background-color: #fff;
 }
 
 div.xml-mapping table {

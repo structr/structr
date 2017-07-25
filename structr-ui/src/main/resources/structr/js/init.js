@@ -1604,7 +1604,7 @@ var Structr = {
 							'" /></td>' : '') +
 						'<td>' +
 						'<select class="csv" id="key' + i + '">' +
-						'<option value="">--- do not import ---</option>' +
+						'<option value="">-- skip --</option>' +
 						'</select>' +
 						'</td>' +
 						'</tr>'
@@ -1743,7 +1743,7 @@ var Structr = {
 	showCreateNodeOptions: function(el, key, attributes) {
 
 		el.append('<label>Type:</label>');
-		el.append('<select id="type-select"></select>');
+		el.append('<select id="type-select"><option>-- select --</option></select>');
 		el.append('<div id="property-select"></div>');
 
 		var typeSelector     = $('#type-select');
@@ -1767,7 +1767,7 @@ var Structr = {
 
 			propertySelector.empty();
 			propertySelector.append('<h3>Select Mapping</h3>');
-			propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+			propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th>Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
 			var rowContainer = $('#row-container');
 

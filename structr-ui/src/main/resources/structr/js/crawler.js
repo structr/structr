@@ -658,9 +658,7 @@ var _Crawler = {
 				+ '<th>Selector</th>'
 				+ '<th>Mapped Type</th>'
 				+ '<th>Mapped Attribute</th>'
-				+ '<th>Locale</th>'
-				+ '<th>Format</th>'
-				+ '<th>Sub Page</th>'
+				+ '<th>Transformation Function</th>'
 				+ '<th>Actions</th>'
 				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
 		}
@@ -682,7 +680,7 @@ var _Crawler = {
 	},
 	appendPatternRow: function(d) {
 
-		console.log(d);
+		//console.log(d);
 
 		// add container/item to global model
 		StructrModel.createFromData(d, null, false);
@@ -704,8 +702,9 @@ var _Crawler = {
 				+ '<td><div data-raw-value="' + (subPattern.selector || '') + '" class="editable sub-selector">' + (subPattern.selector || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div title="' + (subPattern.mappedType || '') + '" class="editable mappedType_">' + (subPattern.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div title="' + (subPattern.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (subPattern.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>'
-				+ '<td><div title="' + (subPattern.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>'
-				+ '<td><div title="' + (subPattern.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div title="' + (subPattern.mappedAttributeFunction || '') + '" class="editable mappedAttributeFunction_">' + (subPattern.mappedAttributeFunction || '<span class="placeholder">click to edit</span>') + '</div></td>'
+//				+ '<td><div title="' + (subPattern.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>'
+//				+ '<td><div title="' + (subPattern.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				+ '<td><div class="subPage_"></td>'
 				+ '<td></td></tr>');
 
@@ -727,15 +726,20 @@ var _Crawler = {
 				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttribute_', 'mappedAttribute', 200);
 			});
 
-			row.find('.mappedAttributeLocale_').on('click', function(e) {
+			row.find('.mappedAttributeFunction_').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
 			});
 
-			row.find('.mappedAttributeFormat_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
-			});
+//			row.find('.mappedAttributeLocale_').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+//			});
+//
+//			row.find('.mappedAttributeFormat_').on('click', function(e) {
+//				e.stopPropagation();
+//				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
+//			});
 
 			var div = Structr.node(subPattern.id);
 			_Entities.appendAccessControlIcon(div, d);
@@ -777,8 +781,9 @@ var _Crawler = {
 				  '<td><div title="' + (d.inputValue || '') + '" class="editable inputValue_">' + (d.inputValue || '<span class="placeholder">click to edit</span>') + '</div></td>'
 				: '<td><div title="' + (d.mappedType || '') + '" class="editable mappedType_">' + (d.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>')
 			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (d.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>')
-			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>')
-			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFunction || '') + '" class="editable mappedAttributeFunction_">' + (d.mappedAttributeFunction || '<span class="placeholder">click to edit</span>') + '</div></td>')
+//			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>')
+//			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
 			+ (d.sourcePage.isLoginPage ? '<td></td>' : '<td></td><td><button class="extract">Extract</button></td>'));
 
 		row.find('.inputValue_').on('click', function(e) {
@@ -796,15 +801,20 @@ var _Crawler = {
 			_Entities.makeAttributeEditable(row, d.id, '.mappedAttribute_', 'mappedAttribute', 200);
 		});
 
-		row.find('.mappedAttributeLocale_').on('click', function(e) {
+		row.find('.mappedAttributeFunction_').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
 		});
 
-		row.find('.mappedAttributeFormat_').on('click', function(e) {
-			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
-		});
+//		row.find('.mappedAttributeLocale_').on('click', function(e) {
+//			e.stopPropagation();
+//			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
+//		});
+//
+//		row.find('.mappedAttributeFormat_').on('click', function(e) {
+//			e.stopPropagation();
+//			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
+//		});
 
 		var div = Structr.node(d.id);
 
