@@ -310,8 +310,9 @@ var _Crawler = {
 			var name = (site.name || '[unnamed]');
 			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Site" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
 
-			$('.site-header .site-name', crawlerList).on('click', function() {
-				_Entities.makeNameEditable($(this), 200, function() {
+			var nameEl = $('.site-header .site-name', crawlerList);
+			nameEl.children('b.name_').off('click').on('click', function (e) {
+				_Entities.makeNameEditable(nameEl, 200, function() {
 					_Crawler.refreshTree();
 				});
 			});
@@ -341,7 +342,7 @@ var _Crawler = {
 			};
 
 			_Pager.initPager('crawler-pages', 'SourcePage', 1, 25, 'name', 'asc');
-			page['ContentItem'] = 1;
+			page['SourcePage'] = 1;
 			_Pager.initFilters('crawler-pages', 'SourcePage', id === 'root' ? {} : { site: id });
 
 			var itemsPager = _Pager.addPager('crawler-pages', crawlerList, false, 'SourcePage', 'ui', handlePage);
@@ -463,13 +464,40 @@ var _Crawler = {
 
 			fastRemoveAllChildren(crawlerList[0]);
 
+			var name = (sourcePage.name || '[unnamed]');
+			crawlerList.append('<div class="page-header"><div id="id_' + sourcePage.id + '" class="page-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Page" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
+
+			var nameEl = $('.page-header .page-name', crawlerList);
+			nameEl.children('b.name_').off('click').on('click', function (e) {
+				e.stopPropagation();
+				_Entities.makeNameEditable(nameEl, 200, function() {
+					_Crawler.refreshTree();
+				});
+			});
+
+			$('.page-header .delete', crawlerList).on('click', function(e) {
+				e.stopPropagation();
+				_Entities.deleteNode(this, sourcePage, false, function() {
+					_Crawler.refreshTree();
+					window.setTimeout(function() {
+						$('.jstree-wholerow').first().click();
+					}, 250);
+				});
+			});
+
+			var editIcon = $('.page-header .edit-properties', crawlerList);
+			editIcon.on('click', function(e) {
+				e.stopPropagation();
+				_Entities.showProperties(sourcePage);
+			});
+
 			_Pager.initPager('crawler-patterns', 'SourcePattern', 1, 25, 'name', 'asc');
 			page['ContentItem'] = 1;
 			_Pager.initFilters('crawler-patterns', 'SourcePattern', sourcePage.id === 'root' ? {} : { sourcePage: sourcePage.id });
 
 			_Crawler.refreshPatterns(sourcePage);
 
-			$('#crawler-list').append('<div class="crawler-inputs"><input id="element-path" type="text" placeholder="Selector">'
+			crawlerList.append('<div class="crawler-inputs"><input id="element-path" type="text" placeholder="Selector">'
 				+ '<input id="element-link" type="text" placeholder="Link"><br>'
 				+ '<input id="element-id" type="text" placeholder="Id">'
 				+ '<input id="element-class" type="text" placeholder="Class"></div>');
@@ -513,7 +541,7 @@ var _Crawler = {
 
 				//console.log(url);
 
-				$('#crawler-list').append('<iframe id="page-frame" name="page-frame" src="' + url + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
+				crawlerList.append('<iframe id="page-frame" name="page-frame" src="' + url + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
 				_Crawler.initPageFrame(sourcePage.url);
 			}
 
@@ -859,25 +887,32 @@ var _Crawler = {
 						btn.html(text + ' <i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
 					},
 					400: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + JSON.stringify(data.responseJSON), true);
+						//Structr.errorFromResponse(data.responseJSON, url);
+						btn.html(text);
 					},
 					401: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
+						btn.html(text);
 					},
 					403: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
+						btn.html(text);
 					},
 					404: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
+						btn.html(text);
 					},
 					422: function(data) {
-						Structr.errorFromResponse(data.responseJSON, url);
+						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + JSON.stringify(data.responseJSON), true);
+						btn.html(text);
 					}
 				}
 
 			}).always(function() {
 				window.setTimeout(function() {
 					$('i', btn).fadeOut();
+					btn.removeClass('disabled').attr('disabled', null);
 				}, 1000);
 			});
 		});

@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
 
@@ -30,7 +31,14 @@ import org.structr.common.error.FrameworkException;
  */
 public interface MaintenanceCommand {
 
+	final Map<String, String> customHeaders = new LinkedHashMap();
+
 	public void execute(Map<String, Object> attributes) throws FrameworkException;
 	public boolean requiresEnclosingTransaction();
 	public boolean requiresFlushingOfCaches();
+
+	default public Map<String, String> getCustomHeaders () {
+		return customHeaders;
+	}
+
 }

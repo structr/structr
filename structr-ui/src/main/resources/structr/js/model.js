@@ -491,7 +491,7 @@ var StructrModel = {
 		if (callback) {
 			_Logger.log(_LogType.MODEL, 'Calling callback', callback, 'on entity', entity, resultSize);
 			var callbackFunction = StructrModel.callbacks[callback];
-			if (callback && callbackFunction) {
+			if (callbackFunction) {
 				_Logger.log(_LogType.MODEL, callback, callbackFunction.toString());
 				StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
 			}

@@ -449,8 +449,15 @@ public class Settings {
 
 				} else {
 
+					SettingsGroup targetGroup = miscGroup;
+
+					// put key in cron group if it contains ".cronExpression"
+					if (key.contains(".cronExpression")) {
+						targetGroup = cronGroup;
+					}
+
 					// create new StringSetting for unknown key
-					Settings.createSettingForValue(miscGroup, key, value);
+					Settings.createSettingForValue(targetGroup, key, value);
 				}
 			}
 

@@ -20,12 +20,9 @@ package org.structr.crawler;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -43,29 +40,32 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.script.Scripting;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 
 public class SourcePattern extends AbstractNode {
 	
 	private static final Logger logger = LoggerFactory.getLogger(SourcePattern.class.getName());
 
-	public static final Property<List<SourcePattern>> subPatternsProperty           = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
-	public static final Property<SourcePage>          subPageProperty               = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
-	public static final Property<SourcePage>          sourcePageProperty            = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
-	public static final Property<SourcePattern>       parentPatternProperty         = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
-      
-	public static final Property<Long>                fromProperty                  = new LongProperty("from");
-	public static final Property<Long>                toProperty                    = new LongProperty("to");
-	public static final Property<String>              selectorProperty              = new StringProperty("selector").indexed();
-	public static final Property<String>              mappedTypeProperty            = new StringProperty("mappedType").indexed();
-	public static final Property<String>              mappedAttributeProperty       = new StringProperty("mappedAttribute").indexed();
-	public static final Property<String>              mappedAttributeFormatProperty = new StringProperty("mappedAttributeFormat");
-	public static final Property<String>              mappedAttributeLocaleProperty = new StringProperty("mappedAttributeLocale");
-	public static final Property<String>              inputValue                    = new StringProperty("inputValue").indexed();
+	public static final Property<List<SourcePattern>> subPatternsProperty             = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
+	public static final Property<SourcePage>          subPageProperty                 = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
+	public static final Property<SourcePage>          sourcePageProperty              = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
+	public static final Property<SourcePattern>       parentPatternProperty           = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
+        
+	public static final Property<Long>                fromProperty                    = new LongProperty("from");
+	public static final Property<Long>                toProperty                      = new LongProperty("to");
+	public static final Property<String>              selectorProperty                = new StringProperty("selector").indexed();
+	public static final Property<String>              mappedTypeProperty              = new StringProperty("mappedType").indexed();
+	public static final Property<String>              mappedAttributeProperty         = new StringProperty("mappedAttribute").indexed();
+	public static final Property<String>              mappedAttributeFunctionProperty = new StringProperty("mappedAttributeFunction");
+//	public static final Property<String>              mappedAttributeFormatProperty   = new StringProperty("mappedAttributeFormat");
+//	public static final Property<String>              mappedAttributeLocaleProperty   = new StringProperty("mappedAttributeLocale");
+	public static final Property<String>              inputValue                      = new StringProperty("inputValue").indexed();
   
 	public static final View uiView = new View(SourcePattern.class, "ui",
-		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeFormatProperty, mappedAttributeLocaleProperty, inputValue
+		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeFunctionProperty, inputValue
 	);
 
 	private Class type(final String typeString) throws FrameworkException {
@@ -134,7 +134,7 @@ public class SourcePattern extends AbstractNode {
 				.replace("<head>", "<head>\n  <base href=\"" + urlString + "\">");
 	}
 	
-	private void extractAndSetValue(final NodeInterface obj, final Document doc, final String selector, final String mappedType, final String mappedAttribute, final String mappedAttributeFormat, final SourcePage subPage)  throws FrameworkException {
+	private void extractAndSetValue(final NodeInterface obj, final Document doc, final String selector, final String mappedType, final String mappedAttribute, final String mappedAttributeFunction, final SourcePage subPage)  throws FrameworkException {
 
 		// If the sub pattern has a mapped attribute, set the extracted value
 		if (StringUtils.isNotEmpty(mappedAttribute)) {
@@ -145,39 +145,22 @@ public class SourcePattern extends AbstractNode {
 			final ConfigurationProvider config  = StructrApp.getConfiguration();
 			final PropertyKey key = config.getPropertyKeyForJSONName(type(mappedType), mappedAttribute);
 
-			if (key != null) {
+			if (StringUtils.isNotBlank(ex) && key != null) {
 
 				Object convertedValue = ex;
-	
+				
+				if (StringUtils.isNotBlank(mappedAttributeFunction)) {
+
+					// input transformation requested
+					ActionContext ctx = new ActionContext(securityContext);
+					ctx.setConstant("input", convertedValue);
+					convertedValue = Scripting.evaluate(ctx, null, "${" + mappedAttributeFunction + "}", " virtual property " + mappedAttribute);
+				}						
+
 				final PropertyConverter inputConverter = key.inputConverter(securityContext);
 				
 				if (inputConverter != null) {
-				
-					final String locale = getProperty(mappedAttributeLocaleProperty);
-					DecimalFormat decimalFormat = null;
-					
-					if (key instanceof DoubleProperty) {
-
-						if (StringUtils.isNotBlank(locale)) {
-
-							decimalFormat = (DecimalFormat) NumberFormat.getNumberInstance(new Locale(locale));
-
-						} else if (StringUtils.isNotBlank(mappedAttributeFormat)) {
-
-							decimalFormat = new DecimalFormat(mappedAttributeFormat);
-						}
-						
-						if (decimalFormat != null) {
-
-							convertedValue = decimalFormat.format(convertedValue);
-						}
-						
-
-					} else {
-
-						convertedValue = inputConverter.convert(ex);
-					}
-
+					convertedValue = inputConverter.convert(convertedValue);
 				}
 				
 				obj.setProperty(key, convertedValue);
@@ -347,20 +330,20 @@ public class SourcePattern extends AbstractNode {
 
 					final String subSelector = selector + ":nth-child(" + i + ") > " + subPattern.getProperty(SourcePattern.selectorProperty);
 
-					final String subPatternMappedAttribute       = subPattern.getProperty(SourcePattern.mappedAttributeProperty);
-					final String subPatternMappedAttributeFormat = subPattern.getProperty(SourcePattern.mappedAttributeFormatProperty);
-					final SourcePage subPatternSubPage           = subPattern.getProperty(SourcePattern.subPageProperty);
+					final String subPatternMappedAttribute         = subPattern.getProperty(SourcePattern.mappedAttributeProperty);
+					final String subPatternMappedAttributeFunction = subPattern.getProperty(SourcePattern.mappedAttributeFunctionProperty);
+					final SourcePage subPatternSubPage             = subPattern.getProperty(SourcePattern.subPageProperty);
 
-					extractAndSetValue(obj, doc, subSelector, mappedType, subPatternMappedAttribute, subPatternMappedAttributeFormat, subPatternSubPage);
+					extractAndSetValue(obj, doc, subSelector, mappedType, subPatternMappedAttribute, subPatternMappedAttributeFunction, subPatternSubPage);
 
 				}
 			
 			} else {
 				
-				final String mappedAttribute       = getProperty(mappedAttributeProperty);
-				final String mappedAttributeFormat = getProperty(mappedAttributeFormatProperty);
+				final String mappedAttribute         = getProperty(mappedAttributeProperty);
+				final String mappedAttributeFunction = getProperty(mappedAttributeFunctionProperty);
 			
-				extractAndSetValue(obj, doc, selector, mappedType, mappedAttribute, mappedAttributeFormat, null);
+				extractAndSetValue(obj, doc, selector, mappedType, mappedAttribute, mappedAttributeFunction, null);
 				
 			}
 			

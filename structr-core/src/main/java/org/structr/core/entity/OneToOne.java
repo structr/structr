@@ -18,16 +18,18 @@
  */
 package org.structr.core.entity;
 
+import java.util.LinkedHashMap;
 import org.structr.api.graph.Direction;
 import static org.structr.api.graph.Direction.BOTH;
 import static org.structr.api.graph.Direction.INCOMING;
 import static org.structr.api.graph.Direction.OUTGOING;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 
@@ -70,33 +72,27 @@ public abstract class OneToOne<S extends NodeInterface, T extends NodeInterface>
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app                         = StructrApp.getInstance();
-		final Class<? extends OneToOne> clazz = getClass();
-		final Class<S> sourceType             = getSourceType();
-		final Class<T> targetType             = getTargetType();
+		final App app = StructrApp.getInstance();
 
 		if (sourceNode != null) {
 
-			// check existing relationships
-			final Relation<S, ?, ?, ?> outgoingRel = sourceNode.getOutgoingRelationship(clazz);
+			final LinkedHashMap<String, Object> props = new LinkedHashMap();
+			props.put("sourceId",       sourceNode.getUuid());
+			props.put("structrRelType", getClass().getSimpleName());
 
-			// remove relationship if exists
-//			if (outgoingRel != null && targetType.isAssignableFrom(outgoingRel.getTargetType())) {
-//			if (outgoingRel != null && targetType.isInstance(outgoingRel.getTargetNode())) {
-			if (outgoingRel != null && SearchCommand.isTypeAssignableFromOtherType(targetType, outgoingRel.getTargetType())) {
-				app.delete(outgoingRel);
+			for (GraphObject outgoingRel : app.cypher("MATCH (s:" + sourceNode.getType() + ")-[r]->() WHERE s.id = {sourceId} AND r.type = {structrRelType} RETURN r", props)) {
+				app.delete((RelationshipInterface) outgoingRel);
 			}
 		}
 
 		if (targetNode != null) {
 
-			// check existing relationships
-			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
+			final LinkedHashMap<String, Object> props = new LinkedHashMap();
+			props.put("targetId",       targetNode.getUuid());
+			props.put("structrRelType", getClass().getSimpleName());
 
-//			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
-//			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
-			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
-				app.delete(incomingRel);
+			for (GraphObject incomingRel : app.cypher("MATCH ()-[r]->(t:" + targetNode.getType() + ") WHERE r.type = {structrRelType} AND t.id = {targetId} RETURN r", props)) {
+				app.delete((RelationshipInterface) incomingRel);
 			}
 		}
 	}

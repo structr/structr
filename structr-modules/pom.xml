@@ -38,7 +38,8 @@
 		<module>structr-peer-to-peer-module</module>
 		<module>structr-payment-module</module>
 		<module>structr-crawler-module</module>
-	 <module>structr-xml-module</module>
+		<module>structr-xml-module</module>
+		<module>structr-mqtt-module</module>
 	</modules>
 
 	<profiles>

@@ -1890,11 +1890,11 @@ input.property-name:disabled {
 	margin: -2px 0 -2px 0;
 }
 
-.schema-details .remote-schema-node:hover {
+.schema-details .edit-schema-object:hover {
 	cursor: pointer;
 }
 
-.schema-details .remote-schema-node {
+.schema-details .edit-schema-object {
 	border-bottom: 1px dashed #999;
 }
 
@@ -3515,10 +3515,18 @@ i.fa.ps {
 /**
  * L10N Styles
  */
+#localizations-pager {
+	height: 42px;
+}
+
 #localizations-pager .pager input.filter[type="text"] {
 	width: 100px;
 	border: 1px solid #a5a5a5;
 	font-size: 9pt;
+}
+
+#localizations-table {
+	height: calc(100% - 100px);
 }
 
 #localizations-table a {
@@ -3624,11 +3632,11 @@ input#element-class {
 	border-radius: 3px;
 }
 
-#crawler-list .site-header {
+#crawler-list .site-header, #crawler-list .page-header {
 	height: 40px;
 }
 
-#crawler-list .site-name {
+#crawler-list .site-name, #crawler-list .page-name {
 	min-width: 100px;
 	font-size: 2em;
 	margin-top: 0;
@@ -3941,6 +3949,7 @@ span.context-help-text {
 	border-radius: 3px;
 	padding: 4px 10px;
 	max-width: 250px;
+	font-weight: normal;
 	text-align: left;
 	z-index: 1000;
 }
@@ -4445,6 +4454,7 @@ pre.csv-preview {
 	height: 100px;
 }
 
+
 #row-container tr:nth-child(odd) {
 	background-color: #fff;
 }
@@ -4454,7 +4464,8 @@ pre.csv-preview {
 }
 
 div.attr-mapping table {
-	width: 100%;
+	width: 99%;
+	margin-bottom: 24px;
 }
 
 .attr-mapping th {
@@ -4467,12 +4478,10 @@ div.attr-mapping td {
 
 div.attr-mapping td.key {
 	padding: 0 8px 0 8px;
-	width: 55%;
 }
 
 div.attr-mapping td.transform {
-	padding: 2;
-	width: 40%;
+	padding: 1px;
 }
 
 div.attr-mapping td.transform input {
@@ -4481,6 +4490,11 @@ div.attr-mapping td.transform input {
 
 div.attr-mapping select.attr-mapping {
 	width: 100% !important;
+}
+
+div.attr-mapping select.csv {
+	width: calc(100% - 5px);
+	margin-left: 5px;
 }
 
 div#xml-import {

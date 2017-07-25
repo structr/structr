@@ -1570,7 +1570,7 @@ var _Entities = {
 	},
 	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, width, callback) {
 		var w = width || 200;
-		var attributeElement = parentElement.find(attributeSelector).first();
+		var attributeElement = parentElement.find(attributeSelector).first(); console.log(attributeElement, attributeElement.prop('tagName'))
 		var attributeElementTagName = attributeElement.prop('tagName').toLowerCase();
 		var oldValue = $.trim(attributeElement.attr('title'));
 

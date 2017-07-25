@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.ValidationHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -193,6 +194,17 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		_ontimeupdate, _onvolumechange, _onwaiting, _role
 	);
 
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= nonEmpty(tag, errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, tag, "^[a-zA-Z0-9]+$", errorBuffer);
+
+		return valid;
+	}
+	
 	@Override
 	public boolean contentEquals(DOMNode otherNode) {
 
