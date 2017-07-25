@@ -2183,14 +2183,14 @@ var _Schema = {
 		var row = $(
 			'<tr>' +
 				'<td><input size="15" type="text" class="property-name related" value="' + attributeName + '"></td>' +
-				'<td>' + (out ? '-' : '&lt;-') + '[:' + relType + ']' + (out ? '-&gt;' : '-') + ' <span class="remote-schema-node" id="relId_' + rel.id + '">'+ nodes[relatedNodeId].name + '</span></td>' +
+				'<td>' + (out ? '' : '&lt;') + '-[:<span class="edit-schema-object" data-object-id="' + rel.id + '">' + relType + '</span>]-' + (out ? '&gt;' : '') + ' <span class="edit-schema-object" data-object-id="' + relatedNodeId + '">'+ nodes[relatedNodeId].name + '</span></td>' +
 				'<td><i title="Reset name to default" class="remove-icon reset-action ' + _Icons.getFullSpriteClass(_Icons.arrow_undo_icon) + '" /></td>' +
 			'</tr>');
 		el.append(row);
 
-		$('#relId_' + rel.id, row).on('click', function(e) {
+		$('.edit-schema-object', row).on('click', function(e) {
 			e.stopPropagation();
-			_Schema.openEditDialog(relatedNodeId);
+			_Schema.openEditDialog($(this).data('objectId'));
 			return false;
 		});
 

@@ -1890,11 +1890,11 @@ input.property-name:disabled {
 	margin: -2px 0 -2px 0;
 }
 
-.schema-details .remote-schema-node:hover {
+.schema-details .edit-schema-object:hover {
 	cursor: pointer;
 }
 
-.schema-details .remote-schema-node {
+.schema-details .edit-schema-object {
 	border-bottom: 1px dashed #999;
 }
 
