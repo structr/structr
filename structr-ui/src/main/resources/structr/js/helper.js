@@ -490,6 +490,7 @@ var _LogType = {
 		CLONE_COMPONENT:            "WS.CLONE_COMPONENT",
 		CLONE_NODE:                 "WS.CLONE_NODE",
 		CLONE_PAGE:                 "WS.CLONE_PAGE",
+		CONSOLE:                    "WS.CONSOLE",
 		CREATE:                     "WS.CREATE",
 		CREATE_AND_APPEND_DOM_NODE: "WS.CREATE_AND_APPEND_DOM_NODE",
 		CREATE_COMPONENT:           "WS.CREATE_COMPONENT",
@@ -602,7 +603,7 @@ var _Logger = {
 	 */
 	consoleLog: function () {
 		if (this.subscribed(Array.prototype.slice.call(arguments, 0, 1)[0])) {
-			console.log(Array.prototype.slice.call(arguments));
+			console.log.apply(null, Array.prototype.slice.call(arguments));
 		}
 	},
 
@@ -653,7 +654,7 @@ var _Logger = {
 		if (type) {
 			return (this.ignored.indexOf(type) === -1) && (this.subscriptions.indexOf(type) !== -1 || this.subscriptions.indexOf(type.split('.')[0]) !== -1);
 		} else {
-			console.error("undefined log type - this should not happen!");
+			console.error("undefined log type - this should not happen!", type);
 			return true;
 		}
 	},
