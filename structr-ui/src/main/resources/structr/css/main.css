@@ -3515,10 +3515,18 @@ i.fa.ps {
 /**
  * L10N Styles
  */
+#localizations-pager {
+	height: 42px;
+}
+
 #localizations-pager .pager input.filter[type="text"] {
 	width: 100px;
 	border: 1px solid #a5a5a5;
 	font-size: 9pt;
+}
+
+#localizations-table {
+	height: calc(100% - 100px);
 }
 
 #localizations-table a {

@@ -51,7 +51,7 @@ var _Localization = {
 			'<div id="localization-main">' +
 				'<div id="localizations-list" class="resourceBox full-height-box">' +
 					'<div id="localizations-pager"></div>' +
-					'<p><button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Prepare new Localization</button></p>' +
+					'<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Prepare new Localization</button>' +
 					'<table id="localizations-table">' +
 						'<thead><tr>' +
 							'<th><a class="sortByKey">Key</a></th>' +
@@ -146,7 +146,7 @@ var _Localization = {
 	},
 	appendKeyAndDomainListRow: function (keyAndDomainObject) {
 		_Localization.keysAndDomainsList.append(
-			'<tr class="node key-domain-pair">' +
+			'<tr class="key-domain-pair">' +
 				'<td>' + keyAndDomainObject.name + '</td>' +
 				'<td>' + (keyAndDomainObject.domain || '') + '</td>' +
 				'<td class="actions">' +
@@ -332,11 +332,11 @@ var _Localization = {
 	},
 	appendEmptyLocalizationRow: function () {
 		_Localization.localizationsDetailList.append(
-			'<tr class="node localization">' +
+			'<tr class="localization">' +
 				'<td><span class="placeholderText"> - not saved yet - </span></td>' +
 				'<td><input class="___locale"></td>' +
 				'<td><textarea class="___localizedName" cols="40"></textarea></td>' +
-                                '<td><textarea class="___description" cols="40"></textarea></td>' +
+				'<td><textarea class="___description" cols="40"></textarea></td>' +
 				'<td><input class="___visibleToPublicUsers" type="checkbox" checked></td>' +
 				'<td><input class="___visibleToAuthenticatedUsers" type="checkbox" checked></td>' +
 				'<td><input class="___imported" type="checkbox"></td>' +
@@ -379,7 +379,7 @@ var _Localization = {
 				_Localization.textfieldChangeAction($(event.target), localization.id, 'description');
 			});
 
-                $('.___visibleToPublicUsers', $row)
+		$('.___visibleToPublicUsers', $row)
 			.prop('checked', (localization.visibleToPublicUsers === true))
 			.attr('disabled', null)
 			.data('oldValue', localization.visibleToPublicUsers)
@@ -478,7 +478,7 @@ var _Localization = {
 					name: _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
 					locale: $('.___locale', $tr).val().trim(),
 					localizedName: $('.___localizedName', $tr).val(),
-                                        description: $('.___description', $tr).val(),
+					description: $('.___description', $tr).val(),
 					visibleToPublicUsers: $('.___visibleToPublicUsers', $tr).prop('checked'),
 					visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked'),
 					imported: $('.___imported', $tr).prop('checked')
