@@ -3941,6 +3941,7 @@ span.context-help-text {
 	border-radius: 3px;
 	padding: 4px 10px;
 	max-width: 250px;
+	font-weight: normal;
 	text-align: left;
 	z-index: 1000;
 }
@@ -4446,7 +4447,7 @@ pre.csv-preview {
 }
 
 div.csv-mapping table {
-	width: 100%;
+	width: 99%;
 	margin-bottom: 24px;
 }
 
@@ -4457,14 +4458,17 @@ div.csv-mapping td {
 
 div.csv-mapping td.key {
 	padding: 0 8px 0 8px;
-	width: 55%;
 }
 
 div.csv-mapping td.transform {
-	padding: 2;
-	width: 40%;
+	padding: 1px;
 }
 
 div.csv-mapping td.transform input {
 	width: 99%;
+}
+
+div.csv-mapping select.csv {
+	width: calc(100% - 5px);
+	margin-left: 5px;
 }

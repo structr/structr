@@ -1490,13 +1490,13 @@ var Structr = {
 
 		// import options
 		container.append('<h3>Import Options</h3>');
-		container.append('<label>Delimiter: <select id="delimiter"><option>,</option><option>;</option><option>|</option></select></label>');
-		container.append('<label>Quote character: <select id="quote-char"><option>&quot;</option></select></label>');
-		container.append('<label>Record separator: <select id="record-separator"></select></label>');
+		container.append('<label>Delimiter: <select id="delimiter" class="import-option"><option>,</option><option>;</option><option>|</option></select></label>');
+		container.append('<label>Quote character: <select id="quote-char" class="import-option"><option>&quot;</option><option>\'</option></select></label>');
+		container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
 
 		// target selection
 		container.append('<h3>Select target type</h3>');
-		container.append('<select id="target-type-select" name="targetType"><option value="">Select target type..</option></select>');
+		container.append('<select id="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
 		container.append('<div id="property-select"></div>');
 
 		var targetTypeSelector = $('#target-type-select');
@@ -1513,14 +1513,17 @@ var Structr = {
 			}
 		});
 
-		targetTypeSelector.on('change', function(e) {
+		var updateMapping = function () {
+			var type = targetTypeSelector.val();
+			if (!type) {
+				return;
+			};
 
 			var blacklist = [
 				'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 				'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
 				'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 			];
-			var type      = $(this).val();
 
 			propertySelector.empty();
 
@@ -1531,7 +1534,10 @@ var Structr = {
 			}), function(csvHeaders) {
 
 				propertySelector.append('<h3>Select Mapping</h3>');
-				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th>Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+				propertySelector.append('<div class="csv-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+
+				var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.';
+				Structr.appendInfoTextToElement(helpText, $('th.transform-head', propertySelector), {marginLeft: "2px"});
 
 				var rowContainer = $('#row-container');
 
@@ -1552,17 +1558,9 @@ var Structr = {
 
 								rowContainer.append(
 									'<tr>' +
-									'<td class="key">' + p + '</td>' +
-									'<td class="transform"><input type="text" id="transform' + i + '" title="' +
-									'Specify optional StructrScript expression here to\n' +
-									'transform the input value. The data key is &quot;input&quot;\n' +
-									'and the return value of the expression will be\nimported.' +
-									'" /></td>' +
-									'<td>' +
-									'<select class="csv" id="key' + i + '">' +
-									'<option value="">--- do not import ---</option>' +
-									'</select>' +
-									'</td>' +
+										'<td class="key">' + p + '</td>' +
+										'<td class="transform"><input type="text" id="transform' + i + '"/></td>' +
+										'<td><select class="csv" id="key' + i + '"><option value="">--- do not import ---</option></select></td>' +
 									'</tr>'
 								);
 
@@ -1628,7 +1626,10 @@ var Structr = {
 					});
 				}
 			});
-		});
+		};
+
+		targetTypeSelector.on('change', updateMapping);
+		$(".import-option", container).on('change', updateMapping);
 
 		function checkSelection(sourceName, targetName) {
 			var src     = sourceName.toLowerCase().replace(/\W/g, '');
