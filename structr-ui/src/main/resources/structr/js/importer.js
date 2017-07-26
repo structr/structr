@@ -17,9 +17,11 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var appDataXMLKey = 'xml-import-config';
+
 var Importer = {
 
-	initializeButtons: function(start, next, prev, cancel, configurations) {
+	initializeButtons: function(start, next, prev, cancel, configurations, configuration) {
 
 		dialogCancelButton.addClass('hidden');
 
@@ -40,6 +42,7 @@ var Importer = {
 		}
 
 		if (configurations) {
+
 			dialogBox.append(
 				'<div id="xml-configurations">' +
 				'<select id="load-xml-config-name">' +
@@ -49,6 +52,30 @@ var Importer = {
 				'<input id="xml-config-name" type="text" placeholder="Enter name for configuration" />' +
 				'<button id="save-xml-config">Save</button>' +
 				'</div>');
+
+			Command.appData('list', appDataXMLKey, null, null, function(result) {
+
+				result[0].names.forEach(function(v) {
+					$('#load-xml-config-name').append('<option>' + v + '</option>');
+				});
+			});
+
+			$('#load-xml-config-button').on('click', function() {
+
+				var name = $('#load-xml-config-name').val();
+				if (name && name.length) {
+
+					Command.appData('get', appDataXMLKey, name, null, function(result) {
+						if (result && result.value) {
+							var config = JSON.parse(result.value);
+							Object.keys(config).forEach(function(k) {
+								configuration[k] = config[k];
+								Importer.updateStructureSelector(k, configuration[k].type);
+							});
+						}
+					});
+				}
+			});
 		}
 
 	},
@@ -280,7 +307,7 @@ var Importer = {
 		var configuration = {};
 
 		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
-		Importer.initializeButtons(true, true, true, true, true);
+		Importer.initializeButtons(true, true, true, true, true, configuration);
 		dialog.append('<div id="xml-import"></div>');
 
 		$('#cancel-button').on('click', function() {
@@ -316,6 +343,22 @@ var Importer = {
 				Importer.restoreButtons();
 			});
 		});
+
+		/*
+		'<input id="xml-config-name" type="text" placeholder="Enter name for configuration" />' +
+		'<button id="save-xml-config">Save</button>' +
+		*/
+		$('#save-xml-config').on('click', function() {
+
+			var name = $('#xml-config-name').val();
+			if (name && name.length) {
+
+				// mode, category, name, value, callback
+				Command.appData('add', appDataXMLKey, name, JSON.stringify(configuration));
+			}
+		});
+
+
 
 		var container = $('#xml-import');
 

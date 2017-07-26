@@ -62,6 +62,7 @@ public class Settings {
 	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,   "Paths",       "data.exchange.path",         "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,   "Paths",       "snapshot.path",              "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,   "Paths",       "layouts.path",               "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");
+	public static final Setting<String> WebDataPath           = new StringSetting(generalGroup,   "Paths",       "data.webapp.path",           "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log",           false);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,  "Logging",     "log.requests",               false);
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,   "Logging",     "log.prefix",                 "structr");
