@@ -4484,12 +4484,11 @@ div.attr-mapping td.transform {
 }
 
 div.attr-mapping td.transform input {
-	width: 99%;
+	width: calc(100% - 10px);
 }
 
 div.attr-mapping select.attr-mapping {
-	width: calc(100% - 5px);
-	margin-left: 5px;
+	width: 100%;
 }
 
 div#xml-import {
@@ -4541,7 +4540,7 @@ div#xml-config label {
 	font-weight: bold;
 }
 
-div#xml-config select {
+div#xml-config select.xml-config-select {
 	width: 45%;
 }
 

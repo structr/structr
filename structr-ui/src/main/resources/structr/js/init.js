@@ -490,6 +490,10 @@ var _Icons = {
 			default:
 				return _Icons.edition_community_icon;
 		}
+	},
+
+	getHtmlForIcon: function (icon) {
+		return '<i class="' + _Icons.getFullSpriteClass(icon) + '" />';
 	}
 };
 

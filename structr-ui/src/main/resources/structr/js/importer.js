@@ -360,7 +360,8 @@ var Importer = {
 							'<tr><td data-name="' + key + '" data-level="' + level + '"' +
 							' class="xml-mapping" id="' + localPath + '"' +
 							' style="padding-left: ' + (level * 30) + 'px;">' +
-							'&#11208;&nbsp;&nbsp;' + key + '</td></tr>'
+							_Icons.getHtmlForIcon(_Icons.collapsed_icon) +
+							'&nbsp;&nbsp;' + key + '</td></tr>'
 						);
 
 						$('#' + localPath).on('click', function() {
@@ -374,7 +375,7 @@ var Importer = {
 
 							var config = $('#config');
 							config.append('<label>Select action:</label>');
-							config.append('<select id="action-select"></select>');
+							config.append('<select id="action-select" class="xml-config-select"></select>');
 
 							var action = $('#action-select');
 							action.append('<option value="">Skip</option>');
@@ -502,7 +503,7 @@ var Importer = {
 		}
 
 		el.append('<label>Select type:</label>');
-		el.append('<select id="type-select"><option>-- select --</option></select>');
+		el.append('<select id="type-select" class="xml-config-select"><option>-- select --</option></select>');
 
 		if (!isRoot) {
 			el.append('<div id="non-root-options"></div>');
@@ -546,7 +547,7 @@ var Importer = {
 
 					nonRoot.empty();
 					nonRoot.append('<label>Select property name:</label>');
-					nonRoot.append('<select id="name-select"></select>');
+					nonRoot.append('<select id="name-select" class="xml-config-select"></select>');
 
 					var nameSelect = $('#name-select');
 
@@ -639,7 +640,7 @@ var Importer = {
 		} else {
 
 			el.append('<label>Select property for text content:</label>');
-			el.append('<select id="text-select"><option value="">--- ignore ---</option></select>');
+			el.append('<select id="text-select" class="xml-config-select"><option value="">--- ignore ---</option></select>');
 
 			var textSelect = $('#text-select');
 			var typeConfig = configuration[key];
@@ -723,9 +724,9 @@ var Importer = {
 		var elem = $('td.xml-mapping[data-name="' + key + '"]');
 		elem.empty();
 		if (value && value.length) {
-			elem.append('<b>&#11208;&nbsp;&nbsp;' + value + '</b>');
+			elem.append('<b>' + _Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + value + '</b>');
 		} else {
-			elem.append('&#11208;&nbsp;&nbsp;' + key);
+			elem.append(_Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + key);
 		}
 	}
 };
