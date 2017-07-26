@@ -117,6 +117,12 @@ public class EachExpression extends Expression {
 						}
 
 						tx.success();
+
+					} catch (FrameworkException fex) {
+
+						logger.warn(fex.getMessage());
+						logger.warn(fex.toString());
+						fex.printStackTrace();
 					}
 
 					logger.info("Commiting batch after {} objects", count);

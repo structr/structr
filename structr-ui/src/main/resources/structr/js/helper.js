@@ -540,6 +540,7 @@ var _LogType = {
 		UNARCHIVE:                  "WS.UNARCHIVE",
 		UPDATE:                     "WS.UPDATE",
 		UPLOAD:                     "WS.UPLOAD",
+		WEBAPPDATA:                 "WS.WEBAPPDATA",
 		WRAP_CONTENT:               "WS.WRAP_CONTENT"
 	}
 };

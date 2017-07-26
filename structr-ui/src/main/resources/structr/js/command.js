@@ -1274,6 +1274,25 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
+	 * Send a WEBAPPDATA command to the server.
+	 *
+	 * The server will return the stored data items
+	 */
+	appData: function(mode, category, name, value, callback) {
+		var obj  = {
+			command: 'WEBAPPDATA',
+			data: {
+				category: category,
+				mode: mode,
+				name: name
+			}
+		};
+		if (value && value.length) {
+			obj.data.value = value;
+		}
+		return sendObj(obj, callback);
+	},
+	/**
 	 * Send a LAYOUTS command to the server.
 	 *
 	 * The server will return the stored layout filenames

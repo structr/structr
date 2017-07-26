@@ -142,6 +142,8 @@ var _Files = {
 			});
 		}
 
+		$('div.xml-mapping').css({ height: dialogBox.height()- 118 });
+
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(filesResizerLeftKey) || 300;
@@ -821,6 +823,7 @@ var _Files = {
 	},
 	handleFolder: function(div, d) {
 
+		/* disabled
 		if (Structr.isModulePresent('cloud')) {
 			div.append('<i title="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
 			div.children('.push_icon').on('click', function() {
@@ -828,6 +831,7 @@ var _Files = {
 				return false;
 			});
 		}
+		*/
 
 		var delIcon = div.children('.delete_icon');
 		var newDelIcon = '<i title="Delete folder \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
@@ -891,7 +895,7 @@ var _Files = {
 		if (Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && d.contentType === 'text/csv') {
 			div.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + ' hidden" title="Import this CSV file" />');
 			div.children('.import_icon').on('click', function() {
-				Structr.importCSVDialog(d, false);
+				Importer.importCSVDialog(d, false);
 				return false;
 			});
 		}
@@ -899,7 +903,7 @@ var _Files = {
 		if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
 			div.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + ' hidden" title="Import this XML file" />');
 			div.children('.import_icon').on('click', function() {
-				Structr.importXMLDialog(d, false);
+				Importer.importXMLDialog(d, false);
 				return false;
 			});
 		}
