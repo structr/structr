@@ -85,8 +85,8 @@ var Importer = {
 		// import options
 		container.append('<h3>Import Options</h3>');
 		container.append('<label>Delimiter: <select id="delimiter" class="import-option"><option>,</option><option>;</option><option>|</option></select></label>');
-		container.append('<label>Quote character: <select id="quote-char"><option>&quot;</option></select></label>');		 +		container.append('<label>Quote character: <select id="quote-char" class="import-option"><option>&quot;</option><option>\'</option></select></label>');
-		container.append('<label>Record separator: <select id="record-separator"></select></label>');		 +		container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
+		container.append('<label>Quote character: <select id="quote-char" class="import-option"><option>&quot;</option><option>\'</option></select></label>');
+		container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
 
 		// target selection
 		container.append('<h3>Select target type</h3>');
@@ -108,12 +108,12 @@ var Importer = {
 		});
 
 		var updateMapping = function() {
-			
-			var type      = $(this).val();
+
+			var type = targetTypeSelector.val();
 			if (!type) {
 				return;
 			};
-			
+
 			propertySelector.empty();
 
 			$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
@@ -125,9 +125,9 @@ var Importer = {
 				propertySelector.append('<h3>Select Mapping</h3>');
 				propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
-				var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.';
+				var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
 				Structr.appendInfoTextToElement(helpText, $('th.transform-head', propertySelector), {marginLeft: "2px"});
-  		  
+
 				if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
 
 					var names = [];
@@ -172,11 +172,11 @@ var Importer = {
 					});
 				}
 			});
-		}
-		
+		};
+
 		targetTypeSelector.on('change', updateMapping);
 		$(".import-option", container).on('change', updateMapping);
-		
+
 	},
 	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) {
 
@@ -202,17 +202,12 @@ var Importer = {
 					rowContainer.append(
 						'<tr>' +
 							'<td class="key">' + inputPropertyName + '</td>' +
-							(displayTransformInput ?
-							'<td class="transform"><input type="text" id="transform' + i + '" title="' +
-							'Specify optional StructrScript expression here to\n' +
-							'transform the input value. The data key is &quot;input&quot;\n' +
-							'and the return value of the expression will be\nimported.' +
-							'" /></td>' : '') +
-						'<td>' +
-						'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
-						'<option value="">-- skip --</option>' +
-						'</select>' +
-						'</td>' +
+							(displayTransformInput ? '<td class="transform"><input type="text" id="transform' + i + '" /></td>' : '') +
+							'<td>' +
+								'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
+									'<option value="">-- skip --</option>' +
+								'</select>' +
+							'</td>' +
 						'</tr>'
 					);
 
@@ -710,4 +705,4 @@ var Importer = {
 			elem.append('&#11208;&nbsp;&nbsp;' + key);
 		}
 	}
-}
+};
