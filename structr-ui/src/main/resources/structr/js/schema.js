@@ -1635,6 +1635,8 @@ var _Schema = {
 				instance.repaintEverything();
 			});
 
+			dialogMeta.hide();
+
 			var contentEl = dialogText;
 
 			var contentDiv = $('<div id="___global_methods_content" class="schema-details"></div>');
@@ -1643,7 +1645,6 @@ var _Schema = {
 			_Schema.appendMethods(contentDiv, null, methods);
 			var initFunction = _Schema.getMethodsInitFunction(contentDiv);
 			initFunction();
-
 		});
 
 	},
