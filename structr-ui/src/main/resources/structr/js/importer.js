@@ -19,7 +19,7 @@
 
 var Importer = {
 
-	initializeButtons: function(start, next, prev, cancel) {
+	initializeButtons: function(start, next, prev, cancel, configurations) {
 
 		dialogCancelButton.addClass('hidden');
 
@@ -39,6 +39,18 @@ var Importer = {
 			dialogBtn.append('<button id="cancel-button">Cancel</button>');
 		}
 
+		if (configurations) {
+			dialogBox.append(
+				'<div id="xml-configurations">' +
+				'<select id="load-xml-config-name">' +
+				'<option value="">--- Select configuration to load ---</option>' +
+				'</select>' +
+				'<button id="load-xml-config-button">Load</button>' +
+				'<input id="xml-config-name" type="text" placeholder="Enter name for configuration" />' +
+				'<button id="save-xml-config">Save</button>' +
+				'</div>');
+		}
+
 	},
 	restoreButtons: function() {
 		dialogCancelButton.removeClass('hidden');
@@ -46,6 +58,7 @@ var Importer = {
 		$('#next-element').remove();
 		$('#prev-element').remove();
 		$('#cancel-button').remove();
+		$('#xml-configurations').remove();
 	},
 	importCSVDialog: function(file) {
 
@@ -108,12 +121,12 @@ var Importer = {
 		});
 
 		var updateMapping = function() {
-			
+
 			var type      = $(this).val();
 			if (!type) {
 				return;
 			};
-			
+
 			propertySelector.empty();
 
 			$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
@@ -127,7 +140,7 @@ var Importer = {
 
 				var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.';
 				Structr.appendInfoTextToElement(helpText, $('th.transform-head', propertySelector), {marginLeft: "2px"});
-  		  
+
 				if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
 
 					var names = [];
@@ -173,10 +186,10 @@ var Importer = {
 				}
 			});
 		}
-		
+
 		targetTypeSelector.on('change', updateMapping);
 		$(".import-option", container).on('change', updateMapping);
-		
+
 	},
 	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) {
 
@@ -272,7 +285,7 @@ var Importer = {
 		var configuration = {};
 
 		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
-		Importer.initializeButtons(true, true, true, true);
+		Importer.initializeButtons(true, true, true, true, true);
 		dialog.append('<div id="xml-import"></div>');
 
 		$('#cancel-button').on('click', function() {
@@ -301,14 +314,12 @@ var Importer = {
 
 		$('#start-import').on('click', function() {
 
-			console.log(configuration);
-			/*
 			$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {
 				$.unblockUI({
 					fadeOut: 25
 				});
+				Importer.restoreButtons();
 			});
-			*/
 		});
 
 		var container = $('#xml-import');
@@ -328,6 +339,7 @@ var Importer = {
 
 			if (data && data.result) {
 
+				var structure  = JSON.parse(data.result);
 				var attributes = {};
 
 				function buildTree(htmlElement, parentKey, treeElement, path, level) {
@@ -385,10 +397,10 @@ var Importer = {
 
 								switch ($(this).val()) {
 									case "createNode":
-										Importer.showCreateNodeOptions(options, key, configuration, attributes);
+										Importer.showCreateNodeOptions(options, key, structure, configuration, attributes);
 										break;
 									case "setProperty":
-										Importer.showSetPropertyOptions(options, key, configuration, attributes);
+										Importer.showSetPropertyOptions(options, key, structure, configuration, attributes);
 										break;
 									case "ignore":
 										// reset configuration
@@ -419,11 +431,11 @@ var Importer = {
 					});
 				}
 
-				buildTree($('#structure'), '', JSON.parse(data.result), 'xmlRootStructure', 0);
+				buildTree($('#structure'), '', structure, 'xmlRootStructure', 0);
 			}
 		});
 	},
-	xmlImportHasRoot: function(configuration) {
+	hasRoot: function(configuration) {
 		var hasRoot = false;
 		Object.keys(configuration).forEach(function(k) {
 			var typeConfig = configuration[k];
@@ -431,11 +443,11 @@ var Importer = {
 		});
 		return hasRoot;
 	},
-	xmlImportIsRoot: function(configuration, key) {
+	isRoot: function(configuration, key) {
 		var typeConfig = configuration[key];
 		return typeConfig && typeConfig.isRoot;
 	},
-	xmlImportSetRoot: function(configuration, key) {
+	setRoot: function(configuration, key) {
 		Object.keys(configuration).forEach(function(k) {
 			var typeConfig = configuration[k];
 			if (typeConfig) {
@@ -443,32 +455,42 @@ var Importer = {
 			}
 		});
 	},
-	xmlImportGetParentType: function(configuration) {
+	getParentType: function(key, structure, configuration) {
 
-		var elem  = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
-		var level = elem.data('level');
-		var name  = elem.data('name');
-		var currentLevel = level + 1;
-		var parentType;
+		var path = [];
 
-		while (elem && name && currentLevel >= level && !parentType) {
+		Importer.find(structure, key, path, 0);
 
-			currentLevel = elem.data('level');
-			name         = elem.data('name');
-
-			if (name) {
-
-				if (configuration && configuration[name] && configuration[name].action === 'createNode') {
-					parentType = configuration[name].type;
-				}
+		for (var i=0; i<path.length; i++) {
+			var key = path[i];
+			if (configuration[key] && configuration[key].type) {
+				return configuration[key].type;
 			}
-
-			elem = elem.parent('tr').prev().children('td.xml-mapping');
 		}
 
-		return parentType;
+		return undefined;
+
 	},
-	showCreateNodeOptions: function(el, key, configuration, attributes) {
+	find: function(structure, key, path, level) {
+		if (level > 100) { return; }
+		var keys = Object.keys(structure);
+		for (var i=0; i<keys.length; i++) {
+			var k = keys[i];
+			// skip attributes
+			if (k === '::attributes') {continue;}
+			if (k === key) {
+				return true;
+			} else {
+				var result = Importer.find(structure[k], key, path, level+1);
+				if (result === true) {
+					path.push(k);
+					return true;
+				}
+			}
+		}
+		return false;
+	},
+	showCreateNodeOptions: function(el, key, structure, configuration, attributes) {
 
 		if (!configuration[key]) {
 			configuration[key] = {};
@@ -476,11 +498,11 @@ var Importer = {
 
 		configuration[key].action = 'createNode';
 
-		var isRoot = Importer.xmlImportIsRoot(configuration, key);
-		var hasRoot = Importer.xmlImportHasRoot(configuration);
+		var isRoot  = Importer.isRoot(configuration, key);
+		var hasRoot = Importer.hasRoot(configuration);
 
 		if (!hasRoot) {
-			Importer.xmlImportSetRoot(configuration, key);
+			Importer.setRoot(configuration, key);
 			isRoot = true;
 		}
 
@@ -522,7 +544,7 @@ var Importer = {
 
 			if (!isRoot) {
 
-				var parentType = Importer.xmlImportGetParentType(configuration);
+				var parentType = Importer.getParentType(key, structure, configuration);
 				if (parentType) {
 
 					var nonRoot    = $('#non-root-options');
@@ -538,8 +560,9 @@ var Importer = {
 
 						// trigger select event when an element is already configured
 						if (typeConfig && typeConfig.propertyName) {
-							nameSelect.val(typeConfig.propertyName).trigger('change');
+							nameSelect.val(typeConfig.propertyName);
 						}
+						nameSelect.trigger('change');
 
 					}, function() {
 
@@ -605,7 +628,7 @@ var Importer = {
 
 		});
 	},
-	showSetPropertyOptions: function(el, key, configuration, attributes) {
+	showSetPropertyOptions: function(el, key, structure, configuration, attributes) {
 
 		if (!configuration[key]) {
 			configuration[key] = {};
@@ -613,7 +636,7 @@ var Importer = {
 
 		configuration[key].action = 'setProperty';
 
-		var parentType = Importer.xmlImportGetParentType(configuration);
+		var parentType = Importer.getParentType(key, structure, configuration);
 		if (!parentType) {
 
 			el.append('<p class="hint">Action &laquo;setProperty&raquo; cannot be used without enclosing &laquo;createNode&raquo; action.</p>');

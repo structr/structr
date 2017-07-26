@@ -4564,3 +4564,32 @@ div#xml-config p.hint {
 div#xml-config label {
 	width: 55%;
 }
+
+div#xml-configurations {
+	padding: 0;
+	margin: 0;
+	position: absolute;
+	left: 12px;
+	bottom: 12px;
+	text-align: left;
+}
+
+div#xml-configurations input {
+	padding: 3px 2px 2px 4px;
+	width: 100px;
+	vertical-align: bottom;
+}
+
+div#xml-configurations select {
+	width: 100px;
+	vertical-align: bottom;
+	line-height: 1.3em;
+	height: 24px;
+	background-color: #e5e5e5;
+	border: 1px solid #ddd;
+}
+
+div#xml-configurations button {
+	padding-left: 8px;
+	margin: 0 24px 0 12px;
+}

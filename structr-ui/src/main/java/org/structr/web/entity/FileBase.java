@@ -791,7 +791,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 						try (final Tx tx = app.tx()) {
 
-							while (iterator.hasNext() && count++ < batchSize) {
+							while (iterator.hasNext() && ++count < batchSize) {
 
 								final PropertyMap map = PropertyMap.inputTypeToJavaType(threadContext, iterator.next());
 
@@ -807,7 +807,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 							data.put("username", threadContext.getUser(false).getName());
 							TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
-							logger.info("XML: Imported {} objects, commiting batch.", batchSize);
+							logger.info("XML: Imported {} objects, commiting batch.", count+1);
 						}
 					}
 
