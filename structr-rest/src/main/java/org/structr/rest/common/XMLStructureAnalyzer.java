@@ -41,7 +41,8 @@ import org.slf4j.LoggerFactory;
  */
 public class XMLStructureAnalyzer {
 
-	private static final Logger logger = LoggerFactory.getLogger(XMLStructureAnalyzer.class);
+	private static final Logger logger          = LoggerFactory.getLogger(XMLStructureAnalyzer.class);
+	private static final int XML_MAX_EXCEPTIONS = 100;
 
 	private final Map<String, Object> structure = new LinkedHashMap<>();
 	private XMLInputFactory factory             = null;
@@ -67,8 +68,9 @@ public class XMLStructureAnalyzer {
 	public Map<String, Object> getStructure(final int threshold) {
 
 		int level = 0;
+		int exceptionCount = 0;
 
-		while (reader.hasNext() && analysisCount < threshold) {
+		while (reader.hasNext() && analysisCount < threshold && exceptionCount < XML_MAX_EXCEPTIONS) {
 
 			try {
 				final XMLEvent event = reader.nextEvent();
@@ -99,7 +101,12 @@ public class XMLStructureAnalyzer {
 
 			} catch (XMLStreamException strex) {
 				logger.warn(strex.getMessage());
+				exceptionCount++;
 			}
+		}
+
+		if (exceptionCount == XML_MAX_EXCEPTIONS) {
+			logger.info("Stopping XML processing at error threshold ({})", XML_MAX_EXCEPTIONS);
 		}
 
 		return structure;

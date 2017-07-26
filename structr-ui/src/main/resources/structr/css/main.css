@@ -4488,10 +4488,6 @@ div.attr-mapping td.transform input {
 }
 
 div.attr-mapping select.attr-mapping {
-	width: 100% !important;
-}
-
-div.attr-mapping select.csv {
 	width: calc(100% - 5px);
 	margin-left: 5px;
 }
