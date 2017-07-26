@@ -53,7 +53,15 @@ var Importer = {
 
 		dialog.append('<div id="csv-import"><div id="sample"></div></div>');
 
-		Importer.initializeButtons(false, false, false, true);
+		Importer.initializeButtons(true, false, false, true);
+
+		$('#cancel-button').on('click', function() {
+			// close dialog
+			$.unblockUI({
+				fadeOut: 25
+			});
+			Importer.restoreButtons();
+		});
 
 		var container       = $('#csv-import');
 		var sample          = $('#sample');
@@ -120,7 +128,6 @@ var Importer = {
 
 					Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, {}, function() {
 
-						propertySelector.append('<div style="text-align: center"><button id="start-import">Start import</button></div>');
 						$('#start-import').on('click', function() {
 
 							var mappings = {};
@@ -241,12 +248,14 @@ var Importer = {
 
 			return typeConfig.properties[sourceName] === targetName;
 
-		} else {
+		} else if (sourceName && sourceName.length && targetName && targetName.length) {
 
 			var src     = sourceName.toLowerCase().replace(/\W/g, '');
 			var tgt     = targetName.toLowerCase().replace(/\W/g, '');
 			return src == tgt || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
 		}
+
+		return false;
 	},
 	importXMLDialog: function(file) {
 
@@ -330,7 +339,13 @@ var Importer = {
 						var cleanedKey = key.replace(/:/g, '');
 						var localPath  = path + cleanedKey + level;
 
-						htmlElement.append('<tr><td data-name="' + key + '" class="xml-mapping" id="' + localPath + '" style="padding-left: ' + (level * 30) + 'px;">&#11208;&nbsp;&nbsp;' + key + '</td></tr>');
+						htmlElement.append(
+							'<tr><td data-name="' + key + '" data-level="' + level + '"' +
+							' class="xml-mapping" id="' + localPath + '"' +
+							' style="padding-left: ' + (level * 30) + 'px;">' +
+							'&#11208;&nbsp;&nbsp;' + key + '</td></tr>'
+						);
+
 						$('#' + localPath).on('click', function() {
 
 							$('td.xml-mapping').removeClass('selected');
@@ -368,6 +383,12 @@ var Importer = {
 									case "ignore":
 										// reset configuration
 										configuration[key] = { action: 'ignore' };
+										Importer.updateStructureSelector(key);
+										break;
+
+									default:
+										configuration[key] = {};
+										Importer.updateStructureSelector(key);
 										break;
 								}
 							});
@@ -414,13 +435,17 @@ var Importer = {
 	},
 	xmlImportGetParentType: function(configuration) {
 
-		var elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
-		var name = elem.data('name');
+		var elem  = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
+		var level = elem.data('level');
+		var name  = elem.data('name');
+		var currentLevel = level + 1;
 		var parentType;
 
-		while (elem && name && !parentType) {
+		while (elem && name && currentLevel >= level && !parentType) {
 
-			name = elem.data('name');
+			currentLevel = elem.data('level');
+			name         = elem.data('name');
+
 			if (name) {
 
 				if (configuration && configuration[name] && configuration[name].action === 'createNode') {
@@ -483,6 +508,8 @@ var Importer = {
 			var type  = $(this).val();
 			var names = [];
 
+			Importer.updateStructureSelector(key, type);
+
 			if (!isRoot) {
 
 				var parentType = Importer.xmlImportGetParentType(configuration);
@@ -490,72 +517,38 @@ var Importer = {
 
 					var nonRoot    = $('#non-root-options');
 
+					nonRoot.empty();
 					nonRoot.append('<label>Select property name:</label>');
 					nonRoot.append('<select id="name-select"></select>');
-					nonRoot.append('<label>Select property for text content:</label>');
-					nonRoot.append('<select id="text-select"><option value="">--- ignore ---</option></select>');
 
 					var nameSelect = $('#name-select');
-					var textSelect = $('#text-select');
 
-					$.get(rootUrl + '_schema/' + parentType + '/all', function(typeInfo) {
+					//fetchPropertyList(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
+					Importer.fetchPropertyList(parentType, typeConfig, '', nameSelect, function() {
 
-						if (typeInfo && typeInfo.result) {
+						// trigger select event when an element is already configured
+						if (typeConfig && typeConfig.propertyName) {
+							nameSelect.val(typeConfig.propertyName).trigger('change');
+						}
 
-							// sort by name
-							typeInfo.result.sort(function(a, b) {
-								return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
-							});
+					}, function() {
 
-							typeInfo.result.forEach(function(info) {
+						var option       = nameSelect.children(':selected');
+						var isCollection = $(option).data('isCollection');
+						var value        = $(option).val();
 
-								switch (info.type) {
+						if (value && value.length) {
 
-									case type:
-										nameSelect.append('<option data-is-collection="' + info.isCollection + '">' + info.jsonName + '</option>');
-										break;
+							configuration[key].propertyName = value;
+							if (!isCollection) {
 
-									case 'String':
-										textSelect.append('<option>' + info.jsonName + '</option>');
-										break;
-
-								}
-							});
-
-							nameSelect.on('change', function() {
-
-								var option       = nameSelect.children(':selected');
-								var isCollection = $(option).data('isCollection');
-								var value        = $(option).val();
-
-								if (value && value.length) {
-
-									configuration[key].propertyName = value;
-									if (!isCollection) {
-
-										configuration[key].multiplicity = "1";
-									}
-								}
-							});
-
-							// trigger select event when an element is already configured
-							if (typeConfig && typeConfig.propertyName) {
-								nameSelect.val(typeConfig.propertyName).trigger('change');
+								configuration[key].multiplicity = "1";
 							}
+						}
 
-							textSelect.on('change', function() {
-
-								var value = textSelect.val();
-								if (value && value.length) {
-
-									configuration[key].content = value;
-								}
-							});
-
-							// trigger select event when an element is already configured
-							if (typeConfig && typeConfig.content) {
-								textSelect.val(typeConfig.content).trigger('change');
-							}
+					}, function(info, selectedString) {
+						if (info.type === type) {
+							nameSelect.append('<option ' + selectedString + ' data-is-collection="' + info.isCollection + '">' + info.jsonName + '</option>');
 						}
 					});
 				}
@@ -617,60 +610,94 @@ var Importer = {
 
 		} else {
 
-			el.append('<label>Select property name:</label>');
-			el.append('<select id="name-select"></select>');
+			el.append('<label>Select property for text content:</label>');
+			el.append('<select id="text-select"><option value="">--- ignore ---</option></select>');
 
-			var nameSelect = $('#name-select');
+			var textSelect = $('#text-select');
+			var typeConfig = configuration[key];
 
-			$.get(rootUrl + '_schema/' + parentType + '/all', function(typeInfo) {
+			Importer.fetchPropertyList(parentType, typeConfig, '', textSelect, function() {
 
-				if (typeInfo && typeInfo.result) {
+				// trigger select event when an element is already configured
+				if (typeConfig && typeConfig.propertyName) {
+					textSelect.val(typeConfig.propertyName).trigger('change');
+				}
 
-					var typeConfig = configuration[key];
+			}, function() {
 
-					// sort by name
-					typeInfo.result.sort(function(a, b) {
-						return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
-					});
+				var value = textSelect.val();
 
-					var selectedString = '';
-					var longestMatch   = 0;
-
-					// create drop-down list with pre-selected options
-					typeInfo.result.forEach(function(info) {
-
-						// match with longest target property wins
-						if (Importer.checkSelection(typeConfig, key, info.jsonName) && info.jsonName.length > longestMatch) {
-
-							selectedString = ' selected="selected"';
-							longestMatch   = info.jsonName.length;
-
-						} else {
-							selectedString = '';
-						}
-
-						nameSelect.append('<option' + selectedString + '>' + info.jsonName + '</option>');
-					});
-
-					typeInfo.result.forEach(function(info) {
-						nameSelect.append('<option>' + info.jsonName + '</option>');
-					});
-
-					nameSelect.on('change', function() {
-
-						var value = nameSelect.val();
-
-						if (value && value.length) {
-							configuration[key].propertyName = value;
-						}
-					});
-
-					// trigger select event when an element is already configured
-					if (typeConfig && typeConfig.propertyName) {
-						nameSelect.val(typeConfig.propertyName).trigger('change');
-					}
+				if (value && value.length) {
+					configuration[key].propertyName = value;
+					Importer.updateStructureSelector(key, value);
 				}
 			});
 		}
 	},
+	fetchPropertyList: function(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
+
+		var blacklist = [
+			'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
+			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
+			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+		];
+
+		$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+
+			if (typeInfo && typeInfo.result) {
+
+				// sort by name
+				typeInfo.result.sort(function(a, b) {
+					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
+				});
+
+				var selectedString = '';
+				var longestMatch   = 0;
+
+				// create drop-down list with pre-selected options
+				typeInfo.result.forEach(function(info) {
+
+					// skip names that are blacklisted
+					if (blacklist.indexOf(info.jsonName) >= 0) {
+						return;
+					}
+
+					// match with longest target property wins
+					if (Importer.checkSelection(typeConfig, key, info.jsonName) && info.jsonName.length > longestMatch) {
+
+						selectedString = ' selected="selected"';
+						longestMatch   = info.jsonName.length;
+
+					} else {
+						selectedString = '';
+					}
+
+					if (appendCallback && typeof appendCallback === 'function') {
+						appendCallback(info, selectedString);
+					} else {
+						select.append('<option' + selectedString + '>' + info.jsonName + '</option>');
+					}
+				});
+
+				// onChange callback
+				if (changeCallback && typeof changeCallback === 'function') {
+					select.on('change', changeCallback);
+				}
+
+				// callback when loading is finished
+				if (loadCallback && typeof loadCallback === 'function') {
+					loadCallback();
+				}
+			}
+		});
+	},
+	updateStructureSelector: function(key, value) {
+		var elem = $('td.xml-mapping[data-name="' + key + '"]');
+		elem.empty();
+		if (value && value.length) {
+			elem.append('<b>&#11208;&nbsp;&nbsp;' + value + '</b>');
+		} else {
+			elem.append('&#11208;&nbsp;&nbsp;' + key);
+		}
+	}
 }
