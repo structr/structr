@@ -19,11 +19,41 @@
 
 var Importer = {
 
+	initializeButtons: function(start, next, prev, cancel) {
+
+		dialogCancelButton.addClass('hidden');
+
+		if (start) {
+			dialogBtn.append('<button id="start-import">Start import</button>');
+		}
+
+		if (next) {
+			dialogBtn.append('<button id="next-element">Next</button>');
+		}
+
+		if (prev) {
+			dialogBtn.append('<button id="prev-element">Previous</button>');
+		}
+
+		if (cancel) {
+			dialogBtn.append('<button id="cancel-button">Cancel</button>');
+		}
+
+	},
+	restoreButtons: function() {
+		dialogCancelButton.removeClass('hidden');
+		$('#start-import').remove();
+		$('#next-element').remove();
+		$('#prev-element').remove();
+		$('#cancel-button').remove();
+	},
 	importCSVDialog: function(file) {
 
 		Structr.dialog('Import CSV from ' + file.name, function() {}, function() {});
 
 		dialog.append('<div id="csv-import"><div id="sample"></div></div>');
+
+		Importer.initializeButtons(false, false, false, true);
 
 		var container       = $('#csv-import');
 		var sample          = $('#sample');
@@ -123,6 +153,7 @@ var Importer = {
 								$.unblockUI({
 									fadeOut: 25
 								});
+								Importer.restoreButtons();
 							});
 						});
 					});
@@ -179,7 +210,7 @@ var Importer = {
 						if (blacklist.indexOf(info.jsonName) === -1) {
 
 							// match with longest target property wins
-							if (checkSelection(inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
+							if (Importer.checkSelection(typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
 
 								selectedString = ' selected="selected"';
 								longestMatch   = info.jsonName.length;
@@ -203,19 +234,18 @@ var Importer = {
 				}
 			}
 		});
+	},
+	checkSelection: function(typeConfig, sourceName, targetName) {
 
-		function checkSelection(sourceName, targetName) {
+		if (typeConfig && typeConfig.properties) {
 
-			if (typeConfig && typeConfig.properties) {
+			return typeConfig.properties[sourceName] === targetName;
 
-				return typeConfig.properties[sourceName] === targetName;
+		} else {
 
-			} else {
-
-				var src     = sourceName.toLowerCase().replace(/\W/g, '');
-				var tgt     = targetName.toLowerCase().replace(/\W/g, '');
-				return src == tgt || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
-			}
+			var src     = sourceName.toLowerCase().replace(/\W/g, '');
+			var tgt     = targetName.toLowerCase().replace(/\W/g, '');
+			return src == tgt || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
 		}
 	},
 	importXMLDialog: function(file) {
@@ -223,19 +253,15 @@ var Importer = {
 		var configuration = {};
 
 		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
+		Importer.initializeButtons(true, true, true, true);
 		dialog.append('<div id="xml-import"></div>');
-
-		dialogBtn.empty();
-		dialogBtn.append('<button id="start-import">Start import</button>');
-		dialogBtn.append('<button id="next-element">Next</button>');
-		dialogBtn.append('<button id="prev-element">Previous</button>');
-		dialogBtn.append('<button id="cancel-button">Cancel</button>');
 
 		$('#cancel-button').on('click', function() {
 			// close dialog
 			$.unblockUI({
 				fadeOut: 25
 			});
+			Importer.restoreButtons();
 		});
 
 		$('#next-element').on('click', function() {
@@ -584,5 +610,67 @@ var Importer = {
 
 		configuration[key].action = 'setProperty';
 
+		var parentType = Importer.xmlImportGetParentType(configuration);
+		if (!parentType) {
+
+			el.append('<p class="hint">Action &laquo;setProperty&raquo; cannot be used without enclosing &laquo;createNode&raquo; action.</p>');
+
+		} else {
+
+			el.append('<label>Select property name:</label>');
+			el.append('<select id="name-select"></select>');
+
+			var nameSelect = $('#name-select');
+
+			$.get(rootUrl + '_schema/' + parentType + '/all', function(typeInfo) {
+
+				if (typeInfo && typeInfo.result) {
+
+					var typeConfig = configuration[key];
+
+					// sort by name
+					typeInfo.result.sort(function(a, b) {
+						return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
+					});
+
+					var selectedString = '';
+					var longestMatch   = 0;
+
+					// create drop-down list with pre-selected options
+					typeInfo.result.forEach(function(info) {
+
+						// match with longest target property wins
+						if (Importer.checkSelection(typeConfig, key, info.jsonName) && info.jsonName.length > longestMatch) {
+
+							selectedString = ' selected="selected"';
+							longestMatch   = info.jsonName.length;
+
+						} else {
+							selectedString = '';
+						}
+
+						nameSelect.append('<option' + selectedString + '>' + info.jsonName + '</option>');
+					});
+
+					typeInfo.result.forEach(function(info) {
+						nameSelect.append('<option>' + info.jsonName + '</option>');
+					});
+
+					nameSelect.on('change', function() {
+
+						var value = nameSelect.val();
+
+						if (value && value.length) {
+							configuration[key].propertyName = value;
+						}
+					});
+
+					// trigger select event when an element is already configured
+					if (typeConfig && typeConfig.propertyName) {
+						nameSelect.val(typeConfig.propertyName).trigger('change');
+					}
+				}
+			});
+		}
 	},
 }
