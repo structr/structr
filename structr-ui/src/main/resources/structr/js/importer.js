@@ -631,7 +631,10 @@ var Importer = {
 			propertySelector.append('<div class="attr-mapping"><table><tbody id="row-container"></tbody></table></div>');
 
 			var rowContainer    = $('#row-container');
-			var inputProperties = Object.keys(attributes[key]);
+			var inputProperties = [];
+			if (attributes[key]) {
+				inputProperties = Object.keys(attributes[key]);
+			}
 
 			//displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, callback) {
 			Importer.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[key], function(mapping) {

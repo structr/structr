@@ -531,6 +531,19 @@ function wsConnect() {
 						}
 						break;
 
+					case "XML_IMPORT_STATUS":
+						if (me.name === data.username) {
+							new MessageBuilder()
+									.title(data.data.title)
+									.info(data.data.text)
+									.uniqueClass('xml-import-status')
+									.updatesText()
+									.requiresConfirmation()
+									.show();
+						}
+						break;
+
+
 					default:
 						console.log("Received generic websocket broadcast: ", data);
 				}
