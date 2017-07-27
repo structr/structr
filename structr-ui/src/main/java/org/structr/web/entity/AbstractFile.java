@@ -165,4 +165,21 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public Class<FileSiblings> getSiblingLinkType() {
 		return FileSiblings.class;
 	}
+
+	public boolean includeInFrontendExport() {
+
+		if (getProperty(FileBase.includeInFrontendExport)) {
+
+			return true;
+		}
+
+		final Folder _parent = getProperty(FileBase.parent);
+		if (_parent != null) {
+
+			// recurse
+			return _parent.includeInFrontendExport();
+		}
+
+		return false;
+	}
 }

@@ -1811,6 +1811,46 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test38DynamicFileExport() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "ExtendedFile"),
+				new NodeAttribute<>(SchemaNode.extendsClass, "org.structr.dynamic.File"),
+				new NodeAttribute<>(new StringProperty("_test"), "String")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile");
+		final PropertyKey test = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "test");
+
+		Assert.assertNotNull("Extended file type should exist", type);
+		Assert.assertNotNull("Extended file property should exist", test);
+
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt");
+			node.setProperty(File.includeInFrontendExport, true);
+			node.setProperty(test, "test");
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
@@ -1907,7 +1947,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			for (final Folder folder : app.nodeQuery(Folder.class).sort(AbstractNode.name).getAsList()) {
 
-				if (DeployCommand.okToExport(folder)) {
+				if (DeployCommand.okToExport(folder) && folder.includeInFrontendExport()) {
 
 					System.out.print("############################# ");
 					calculateHash(folder, buf, 0);
@@ -1916,7 +1956,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			for (final FileBase file : app.nodeQuery(File.class).sort(AbstractNode.name).getAsList()) {
 
-				if (DeployCommand.okToExport(file)) {
+				if (DeployCommand.okToExport(file) && file.includeInFrontendExport()) {
 
 					System.out.print("############################# ");
 					calculateHash(file, buf, 0);

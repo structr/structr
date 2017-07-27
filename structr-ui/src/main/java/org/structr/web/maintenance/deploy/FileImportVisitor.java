@@ -186,6 +186,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getPath());
 			if (fileProperties != null) {
 
+				file.unlockSystemPropertiesOnce();
 				file.setProperties(securityContext, fileProperties);
 
 			} else {
@@ -292,6 +293,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					final PropertyMap properties = getPropertiesForFileOrFolder(current.getPath());
 					if (properties != null) {
 
+						current.unlockSystemPropertiesOnce();
 						current.setProperties(securityContext, properties);
 					}
 				}

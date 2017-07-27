@@ -913,8 +913,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// only export dynamic (=> additional) keys
 			if (key.isDynamic()) {
 
-				System.out.println("################################################################################## EXPORTING " + key.jsonName());
-
 				putIf(config, key.jsonName(), node.getProperty(key));
 			}
 		}
@@ -927,6 +925,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (file.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
 		if (file.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
 
+		putIf(config, "type",                        file.getProperty(FileBase.type));
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
 		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
 		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
@@ -1199,11 +1198,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	// ----- public static methods -----
 	public static boolean okToExport(final AbstractFile file) {
-
-		// export non-derived types only (ignore things that extend built-in file/folder etc.)
-		if (!exportFileTypes.contains(file.getType())) {
-			return false;
-		}
 
 		for (final AbstractRelationship rel : file.getRelationships()) {
 
