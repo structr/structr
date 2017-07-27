@@ -245,29 +245,29 @@ var _Elements = {
 		'custom'
 	],
 	suggestedElements: {
-		"html": [ "head", "body" ],
-		"head": [ "title", "style", "base", "link", "meta", "script", "noscript" ],
-		"table" : [ "thead", "tbody", "tr", "tfoot", "caption", "colgroup" ],
-		"colgroup" : [ "col" ],
-		"thead" : [ "tr" ],
-		"tbody" : [ "tr" ],
-		"tfoot" : [ "tr" ],
-		"tr" : ["th", "td" ],
-		"ul" : [ "li" ],
-		"ol" : [ "li" ],
-		"dir" : [ "li" ],
-		"dl" : [ "dt", "dd" ],
-		"select" : [ "option", "optgroup" ],
-		"form" : [ "input", "textarea", "select", "button", "label", "fieldset" ],
-		"fieldset": [ "legend", "input", "textarea", "select", "button", "label", "fieldset" ],
-		"figure": [ "img", "figcaption" ],
-		"frameset": [ "frame" , "noframes" ],
-		"map": [ "area" ],
-		"nav": [ "a" ],
-		"object": [ "param" ],
-		"details": [ "summary" ],
-		"video" : [ "source", "track" ],
-		"audio" : [ "source" ]
+		html     : [ "head", "body" ],
+		head     : [ "title", "style", "base", "link", "meta", "script", "noscript" ],
+		table    : [ "thead", "tbody", "tr", "tfoot", "caption", "colgroup" ],
+		colgroup : [ "col" ],
+		thead    : [ "tr" ],
+		tbody    : [ "tr" ],
+		tfoot    : [ "tr" ],
+		tr       : ["th", "td" ],
+		ul       : [ "li" ],
+		ol       : [ "li" ],
+		dir      : [ "li" ],
+		dl       : [ "dt", "dd" ],
+		select   : [ "option", "optgroup" ],
+		form     : [ "input", "textarea", "select", "button", "label", "fieldset" ],
+		fieldset : [ "legend", "input", "textarea", "select", "button", "label", "fieldset" ],
+		figure   : [ "img", "figcaption" ],
+		frameset : [ "frame" , "noframes" ],
+		map      : [ "area" ],
+		nav      : [ "a" ],
+		object   : [ "param" ],
+		details  : [ "summary" ],
+		video    : [ "source", "track" ],
+		audio    : [ "source" ]
 	},
 	reloadPalette: function() {
 
@@ -976,44 +976,45 @@ var _Elements = {
 			}
 		}
 
-		if (entity.type !== 'Content' && entity.type !== 'Page') {
-			elements.push({
-				name: 'Insert div element',
-				clickHandler: function() {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
-					return false;
-				},
-				separatorAfter: true
-			});
-		}
-
-		if (entity.type !== 'Page' && entity.parent !== null && entity.parent.type !== 'Page') {
-			elements.push({
-				name: 'Wrap element in...',
-				separatorAfter: true,
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleWrapInHTMLAction
-					},
-					{
-						name: '... Template element',
-						clickHandler: function () {
-							handleWrapInHTMLAction('template');
-						}
-					},
-					{
-						name: '... div element',
-						clickHandler: function () {
-							handleWrapInHTMLAction('div');
-						}
-					}
-				]
-			});
-		}
-
 		if (entity.type !== 'Page') {
+
+			if (entity.type !== 'Content') {
+				elements.push({
+					name: 'Insert div element',
+					clickHandler: function() {
+						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
+						return false;
+					},
+					separatorAfter: true
+				});
+			}
+
+			if (entity.parent !== null && entity.parent.type !== 'Page') {
+				elements.push({
+					name: 'Wrap element in...',
+					separatorAfter: true,
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleWrapInHTMLAction
+						},
+						{
+							name: '... Template element',
+							clickHandler: function () {
+								handleWrapInHTMLAction('template');
+							}
+						},
+						{
+							name: '... div element',
+							clickHandler: function () {
+								handleWrapInHTMLAction('div');
+							}
+						}
+					]
+				});
+			}
+
 			elements.push({
 				name: 'Query and Data Binding',
 				clickHandler: function() {
@@ -1035,6 +1036,7 @@ var _Elements = {
 					return false;
 				}
 			});
+
 		}
 
 		elements.push({
@@ -1129,15 +1131,6 @@ var _Elements = {
 			separatorAfter: true
 		});
 
-		if (entity.mostUsedTags !== undefined && entity.mostUsedTags.length > 0) {
-			// information about most used elements in this page from backend
-			elements.push({
-				name: 'Most used elements',
-				elements: entity.mostUsedTags,
-				separatorAfter: true
-			});
-		}
-
 		if (entity.type !== 'Content' && entity.children.length > 0) {
 			elements.push({
 				name: 'Expand / Collapse',
@@ -1191,7 +1184,6 @@ var _Elements = {
 		}
 
 		return elements;
-
 	},
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
 		_Logger.log(_LogType.CONTENTS, 'Contents.appendContentElement', entity, refNode);

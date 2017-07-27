@@ -20,7 +20,6 @@ package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -28,7 +27,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +34,6 @@ import org.apache.http.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.SortType;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.Filter;
@@ -57,7 +54,6 @@ import org.structr.core.entity.Security;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.ConstantBooleanProperty;
@@ -170,7 +166,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property<String> dataStructrIdProperty        = new StringProperty("data-structr-id");
 	public static final Property<String> dataHashProperty             = new StringProperty("data-structr-hash");
 
-	public static final Property<List<String>> mostUsedTagsProperty   = new MostUsedTagsProperty("mostUsedTags");
 	public static final Property<Integer> domSortPosition             = new IntProperty("domSortPosition");
 
 	public static final Property[] rawProps = new Property[] {
@@ -1516,7 +1511,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMElement.syncedNodes)
-					&& !key.equals(DOMNode.mostUsedTagsProperty)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					properties.put(key, getProperty(key));
@@ -1534,7 +1528,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
 					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
 					&& !key.equals(DOMElement.syncedNodes)
-					&& !key.equals(DOMNode.mostUsedTagsProperty)
 					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
 
 					properties.put(key, getProperty(key));
@@ -1983,76 +1976,5 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 
 		return true;
-	}
-
-	// nested classes
-	private static class MostUsedTagsProperty extends AbstractReadOnlyProperty<List<String>> {
-
-		public MostUsedTagsProperty(final String name) {
-			super(name);
-		}
-
-		@Override
-		public Class valueType() {
-			return List.class;
-		}
-
-		@Override
-		public Class relatedType() {
-			return null;
-		}
-
-		@Override
-		public List<String> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-			return getProperty(securityContext, obj, applyConverter, null);
-		}
-
-		@Override
-		public List<String> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
-
-			final List<String> recentNodes = new LinkedList<>();
-
-			if (obj instanceof DOMNode) {
-
-				DOMNode node                        = (DOMNode)obj;
-				final Map<String, Integer> mostUsed = node.getMostUsedElementNames();
-				final List<Entry<String, Integer>> list = new LinkedList<>(mostUsed.entrySet());
-
-				Collections.sort(list, new Comparator<Entry<String, Integer>>() {
-
-					@Override
-					public int compare(final Entry<String, Integer> o1, final Entry<String, Integer> o2) {
-
-						final Integer v1 = o1.getValue();
-						final Integer v2 = o2.getValue();
-
-						return v2.compareTo(v1);
-					}
-
-				});
-
-				for (final Entry<String, Integer> entry : list) {
-
-					recentNodes.add(entry.getKey());
-
-					if (recentNodes.size() > 4) {
-						break;
-					}
-				}
-			}
-
-			return recentNodes;
-
-		}
-
-		@Override
-		public boolean isCollection() {
-			return true;
-		}
-
-		@Override
-		public SortType getSortType() {
-			return SortType.Default;
-		}
 	}
 }
