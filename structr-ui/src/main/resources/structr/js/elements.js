@@ -1027,14 +1027,23 @@ var _Elements = {
 
 		if (!isPage) {
 
-			elements.push({
-				name: 'Select element',
-				clickHandler: function() {
-					_Elements.selectEntity(entity);
-					return false;
-				}
-			});
-
+			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
+				elements.push({
+					name: 'Deselect element',
+					clickHandler: function() {
+						_Elements.unselectEntity();
+						return false;
+					}
+				});
+			} else {
+				elements.push({
+					name: 'Select element',
+					clickHandler: function() {
+						_Elements.selectEntity(entity);
+						return false;
+					}
+				});
+			}
 		}
 
 		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
