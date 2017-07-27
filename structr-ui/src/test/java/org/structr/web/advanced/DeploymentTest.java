@@ -1571,18 +1571,15 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			Page testPage = app.create(Page.class, "WidgetTestPage");
-			Html html = app.create(Html.class);
-			Head head = app.create(Head.class);
-			Body body = app.create(Body.class);
-			Div div = app.create(Div.class,"WidgetTestPage-Div");
-			Div div2 = app.create(Div.class,"WidgetTestPage-Div2");
+			final Page testPage = Page.createNewPage(securityContext, "WidgetTestPage");
+			final Html html     = createElement(testPage, testPage, "html");
+			final Head head     = createElement(testPage, html, "head");
+			final Body body     = createElement(testPage, html, "body");
+			final Div div       = createElement(testPage, body, "div");
+			final Div div2      = createElement(testPage, body, "div");
 
-			testPage.appendChild(html);
-			html.appendChild(head);
-			html.appendChild(body);
-			body.appendChild(div);
-			body.appendChild(div2);
+			div.setProperty(AbstractNode.name, "WidgetTestPage-Div");
+			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
 			Widget widgetToImport = app.create(Widget.class,
 					new NodeAttribute<>(Widget.name,"TestWidget"),
@@ -1590,7 +1587,6 @@ public class DeploymentTest extends StructrUiTest {
 					new NodeAttribute<>(Widget.configuration,"{\"processDeploymentInfo\": true}"),
 					new NodeAttribute<>(Widget.visibleToPublicUsers,true),
 					new NodeAttribute<>(Widget.visibleToAuthenticatedUsers,true)
-
 			);
 
 			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true);
@@ -1643,18 +1639,15 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			Page testPage = app.create(Page.class, "WidgetTestPage");
-			Html html = app.create(Html.class);
-			Head head = app.create(Head.class);
-			Body body = app.create(Body.class);
-			Div div = app.create(Div.class,"WidgetTestPage-Div");
-			Div div2 = app.create(Div.class,"WidgetTestPage-Div2");
+			final Page testPage = Page.createNewPage(securityContext, "WidgetTestPage");
+			final Html html     = createElement(testPage, testPage, "html");
+			final Head head     = createElement(testPage, html, "head");
+			final Body body     = createElement(testPage, html, "body");
+			final Div div       = createElement(testPage, body, "div");
+			final Div div2      = createElement(testPage, body, "div");
 
-			testPage.appendChild(html);
-			html.appendChild(head);
-			html.appendChild(body);
-			body.appendChild(div);
-			body.appendChild(div2);
+			div.setProperty(AbstractNode.name, "WidgetTestPage-Div");
+			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
 			Widget widgetToImport = app.create(Widget.class,
 					new NodeAttribute<>(Widget.name,"TestWidget"),
