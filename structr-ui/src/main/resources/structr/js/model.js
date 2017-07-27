@@ -825,6 +825,22 @@ StructrElement.prototype.save = function() {
 };
 
 StructrElement.prototype.remove = function() {
+
+	if (this.parent) {
+		// remove this element from its parent object in the model
+		var modelEntity = StructrModel.obj(this.parent.id);
+		if (modelEntity) {
+			modelEntity.children = modelEntity.children.filter(function (child) {
+				return child.id === this.id;
+			});
+			if (modelEntity.childrenIds) {
+				modelEntity.childrenIds = modelEntity.childrenIds.filter(function (childId) {
+					return childId === this.id;
+				});
+			}
+		}
+	}
+
 	if (Structr.isModuleActive(_Pages)) {
 		var element = Structr.node(this.id);
 		if (this.parent) {
