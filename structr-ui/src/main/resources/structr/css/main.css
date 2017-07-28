@@ -941,9 +941,8 @@ span.id {
 	margin-right: 3px ! important;
 }
 
-.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .minify_file_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .minify_file_icon, .remove_favorite_icon,
-i.edit_ui_properties_icon, i.edit_icon, i.add_icon, i.delete_icon, i.close_icon, i.key_icon, i.edit_props_icon, i.edit_file_icon, i.clone_icon, i.view_icon, i.minify_file_icon, i.link_icon, i.add_form_icon, i.data_icon, i.unarchive_icon, i.push_icon, i.show_active_icon, i.collapse_children_icon, i.add_child_icon, i.minify_file_icon,
-i.remove_favorite_icon, i.import_icon {
+.edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .minify_file_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .remove_favorite_icon, .import_icon
+i.edit_ui_properties_icon, i.edit_icon, i.add_icon, i.delete_icon, i.close_icon, i.key_icon, i.edit_props_icon, i.edit_file_icon, i.clone_icon, i.view_icon, i.minify_file_icon, i.link_icon, i.add_form_icon, i.data_icon, i.unarchive_icon, i.push_icon, i.show_active_icon, i.collapse_children_icon, i.add_child_icon, i.remove_favorite_icon, i.import_icon {
 	display: none;
 	cursor: pointer;
 	height: 16px;
@@ -976,6 +975,10 @@ i.link_icon {
 	margin-left: 24px ! important;
 	vertical-align: top;
 	position: absolute;
+}
+
+.import_icon {
+	right: 84px;
 }
 
 .edit_icon, .edit_file_icon, .collapse_children_icon, .minify_file_icon {
@@ -3961,7 +3964,7 @@ span.context-help-text {
 }
 
 /**
- * Icon Sprites
+ * START Icon Sprites
  */
 .sprite {
 	background-image: url(/structr/img/spritesheet.png);
@@ -4389,69 +4392,77 @@ span.context-help-text {
 	background-position: -360px -66px;
 }
 
-.sprite-table_multiple {
+.sprite-table_lightning {
 	background-position: -384px -66px;
 }
 
-.sprite-text_horizontalrule {
+.sprite-table_multiple {
 	background-position: -408px -66px;
 }
 
-.sprite-text_indent_remove {
+.sprite-text_horizontalrule {
 	background-position: -432px -66px;
 }
 
-.sprite-textfield_add {
+.sprite-text_indent_remove {
 	background-position: -456px -66px;
 }
 
-.sprite-tick {
+.sprite-textfield_add {
 	background-position: -480px -66px;
+}
+
+.sprite-tick {
+	background-position: -296px -90px;
 }
 
 .sprite-tree_arrow_down {
 	width: 8px;
 	height: 8px;
-	background-position: -296px -90px;
+	background-position: -320px -90px;
 }
 
 .sprite-tree_arrow_right {
 	width: 8px;
 	height: 8px;
-	background-position: -312px -90px;
+	background-position: -336px -90px;
 }
 
 .sprite-tux {
-	background-position: -328px -90px;
-}
-
-.sprite-user {
 	background-position: -352px -90px;
 }
 
-.sprite-user_add {
+.sprite-user {
 	background-position: -376px -90px;
 }
 
-.sprite-user_delete {
+.sprite-user_add {
 	background-position: -400px -90px;
 }
 
-.sprite-wand {
+.sprite-user_delete {
 	background-position: -424px -90px;
 }
 
-.sprite-wrench {
+.sprite-wand {
 	background-position: -448px -90px;
 }
 
-.sprite-xhtml_add {
+.sprite-wrench {
 	background-position: -472px -90px;
 }
 
-.sprite-zoom {
+.sprite-xhtml_add {
 	background-position: -296px -114px;
 }
+
+.sprite-zoom {
+	background-position: -320px -114px;
+}
+
+/**
+ * END Icon Sprites
+ */
 
 pre.csv-preview {
 	overflow: auto;

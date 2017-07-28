@@ -260,6 +260,7 @@ var _Icons = {
 	edition_basic_icon: 'icon/medal_bronze_2.png',
 	edition_small_business_icon: 'icon/medal_silver_2.png',
 	edition_enterprise_icon: 'icon/medal_gold_2.png',
+	import_icon: 'icon/table_lightning.png',
 
 
 	getFullSpriteClass: function (key) {
@@ -356,6 +357,7 @@ var _Icons = {
 			case _Icons.edition_basic_icon:           return 'sprite-medal_bronze_2';
 			case _Icons.edition_small_business_icon:  return 'sprite-medal_silver_2';
 			case _Icons.edition_enterprise_icon:      return 'sprite-medal_gold_2';
+			case _Icons.import_icon:                  return 'sprite-table_lightning';
 
 			default:                                  return 'sprite-error';
 		}

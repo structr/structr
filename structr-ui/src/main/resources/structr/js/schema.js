@@ -3150,7 +3150,7 @@ var _Schema = {
 		ul.append('<li data-name="visibility">Visibility</li>');
 		ul.append('<li data-name="snapshots">Snapshots</li>');
 
-		if (Structr.isModulePresent("cloud")) {
+		if (Structr.isModulePresent('cloud')) {
 			ul.append('<li id="tab" data-name="schema-sync">Schema Sync</li>');
 		}
 
@@ -3179,7 +3179,7 @@ var _Schema = {
 		contentDiv.append('<div class="tab tools-tab-content" id="tabView-snapshots"></div>');
 		_Schema.appendSnapshotsDialogToContainer($('#tabView-snapshots', contentDiv));
 
-		if (Structr.isModulePresent("cloud")) {
+		if (Structr.isModulePresent('cloud')) {
 			contentDiv.append('<div class="tab tools-tab-content" id="tabView-schema-sync"></div>');
 			_Schema.appendSyncOptionsToContainer($('#tabView-schema-sync', contentDiv));
 		}
