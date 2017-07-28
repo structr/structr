@@ -453,7 +453,7 @@ var _Files = {
 		};
 
 		if (!id) {
-			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', null, displayFunction);
+			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', 'id,name,isFolder,folders,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers', displayFunction);
 		} else {
 			Command.query('Folder', folderPageSize, folderPage, 'name', 'asc', {parent: id}, displayFunction, true);
 		}
@@ -522,7 +522,7 @@ var _Files = {
 			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
 
 			if (isRootFolder) {
-				Command.list('Folder', true, 1000, 1, 'name', 'asc', null, handleChildren);
+				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,isFolder,folders,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers', handleChildren);
 			} else {
 				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
 			}
