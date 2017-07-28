@@ -239,9 +239,9 @@ var _Elements = {
 		},
 		{
 			name: 'u-w',
-			elements: ['u', 'ul', '|', 'var', 'video', '|', 'wbr'],
-			separatorAfter: true
+			elements: ['u', 'ul', '|', 'var', 'video', '|', 'wbr']
 		},
+		'|',
 		'custom'
 	],
 	suggestedElements: {
@@ -269,6 +269,7 @@ var _Elements = {
 		video    : [ "source", "track" ],
 		audio    : [ "source" ]
 	},
+	selectedEntity: undefined,
 	reloadPalette: function() {
 
 		paletteSlideout.find(':not(.compTab)').remove();
@@ -437,7 +438,7 @@ var _Elements = {
 
 		var id = entity.id;
 
-		var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' ' + (isActiveNode ? ' activeNode' : 'staticNode') + '"></div>';
+		var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelected' : '') + '"></div>';
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -880,10 +881,6 @@ var _Elements = {
 				registerContextMenuItemClickHandler(menuEntry, element);
 				ul.append(menuEntry);
 
-				if (element.separatorAfter) {
-					ul.append('<hr />');
-				}
-
 				if (element.elements) {
 					menuEntry.append('<i class="fa fa-caret-right pull-right"></i>');
 
@@ -941,8 +938,12 @@ var _Elements = {
 	},
 	getContextMenuElements: function (div, entity) {
 
+		var isPage      = (entity.type === 'Page');
+		var isContent   = (entity.type === 'Content');
+		var hasChildren = (entity.children && entity.children.length > 0);
+
 		var handleInsertHTMLAction = function (itemText) {
-			var pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
+			var pageId = isPage ? entity.id : entity.pageId;
 			var tagName = (itemText === 'content') ? null : itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, {}, _Elements.isInheritVisibililtyFlagsChecked());
@@ -955,15 +956,21 @@ var _Elements = {
 
 		var elements = [];
 
-		if (entity.type !== 'Content') {
+		var appendSeparator = function () {
+			if (elements[elements.length - 1] !== '|') {
+				elements.push('|');
+			}
+		};
+
+		if (!isContent) {
 			elements.push({
 				name: 'Insert HTML element',
-				elements: (entity.type !== 'Page') ? _Elements.sortedElementGroups : ['html'],
+				elements: !isPage ? _Elements.sortedElementGroups : ['html'],
 				forcedClickHandler: handleInsertHTMLAction
 			});
 			elements.push({
 				name: 'Insert content element',
-				elements: (entity.type !== 'Page') ? ['content', 'template'] : ['template'],
+				elements: !isPage ? ['content', 'template'] : ['template'],
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
@@ -976,44 +983,122 @@ var _Elements = {
 			}
 		}
 
-		if (entity.type !== 'Page') {
+		appendSeparator();
 
-			if (entity.type !== 'Content') {
-				elements.push({
-					name: 'Insert div element',
-					clickHandler: function() {
-						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
-						return false;
+		if (!isPage && !isContent) {
+			elements.push({
+				name: 'Insert div element',
+				clickHandler: function() {
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', {}, _Elements.isInheritVisibililtyFlagsChecked());
+					return false;
+				}
+			});
+		}
+
+		appendSeparator();
+
+		if (!isPage && entity.parent !== null && entity.parent.type !== 'Page') {
+
+			elements.push({
+				name: 'Wrap element in...',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleWrapInHTMLAction
 					},
-					separatorAfter: true
+					{
+						name: '... Template element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('template');
+						}
+					},
+					{
+						name: '... div element',
+						clickHandler: function () {
+							handleWrapInHTMLAction('div');
+						}
+					}
+				]
+			});
+		}
+
+		appendSeparator();
+
+		if (!isPage) {
+
+			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
+				elements.push({
+					name: 'Deselect element',
+					clickHandler: function() {
+						_Elements.unselectEntity();
+						return false;
+					}
+				});
+			} else {
+				elements.push({
+					name: 'Select element',
+					clickHandler: function() {
+						_Elements.selectEntity(entity);
+						return false;
+					}
+				});
+			}
+		}
+
+		if (!isContent && _Elements.selectedEntity && _Elements.selectedEntity.id !== entity.id) {
+
+			var isSamePage = _Elements.selectedEntity.pageId === entity.pageId;
+			var isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
+			var isSelectedEntityInShadowPage = _Elements.selectedEntity.pageId === shadowPage.id;
+			var isSelectedEntitySharedComponent = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+
+			var isDescendantOfSelectedEntity = function (possibleDescendant) {
+				if (possibleDescendant.parent) {
+					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
+						return true;
+					}
+					return isDescendantOfSelectedEntity(StructrModel.obj(possibleDescendant.parent.id));
+				}
+				return false;
+			};
+
+			if (isSelectedEntitySharedComponent) {
+				elements.push({
+					name: 'Link shared component here',
+					clickHandler: function() {
+						Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
+						_Elements.unselectEntity();
+						return false;
+					}
+				});
+
+			} else if ( !isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template')) ) {
+				elements.push({
+					name: 'Clone selected element here',
+					clickHandler: function() {
+						Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
+						_Elements.unselectEntity();
+						return false;
+					}
 				});
 			}
 
-			if (entity.parent !== null && entity.parent.type !== 'Page') {
+			if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
 				elements.push({
-					name: 'Wrap element in...',
-					separatorAfter: true,
-					elements: [
-						{
-							name: '... HTML element',
-							elements: _Elements.sortedElementGroups,
-							forcedClickHandler: handleWrapInHTMLAction
-						},
-						{
-							name: '... Template element',
-							clickHandler: function () {
-								handleWrapInHTMLAction('template');
-							}
-						},
-						{
-							name: '... div element',
-							clickHandler: function () {
-								handleWrapInHTMLAction('div');
-							}
-						}
-					]
+					name: 'Move selected element here',
+					clickHandler: function() {
+						Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
+						_Elements.unselectEntity();
+						return false;
+					}
 				});
 			}
+		}
+
+		appendSeparator();
+
+		if (!isPage) {
 
 			elements.push({
 				name: 'Query and Data Binding',
@@ -1044,9 +1129,10 @@ var _Elements = {
 			clickHandler: function() {
 				_Entities.showProperties(entity, 'ui');
 				return false;
-			},
-			separatorAfter: true
+			}
 		});
+
+		appendSeparator();
 
 		elements.push({
 			name: 'Security',
@@ -1056,9 +1142,9 @@ var _Elements = {
 					clickHandler: function() {
 						_Entities.showAccessControlDialog(entity.id);
 						return false;
-					},
-					separatorAfter: true
+					}
 				},
+				'|',
 				{
 					name: 'Authenticated Users',
 					elements: [
@@ -1074,9 +1160,9 @@ var _Elements = {
 							clickHandler: function() {
 								Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
 								return false;
-							},
-							separatorAfter: true
+							}
 						},
+						'|',
 						{
 							name: 'Make subtree visible',
 							clickHandler: function() {
@@ -1108,9 +1194,9 @@ var _Elements = {
 							clickHandler: function() {
 								Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
 								return false;
-							},
-							separatorAfter: true
+							}
 						},
+						'|',
 						{
 							name: 'Make subtree visible',
 							clickHandler: function() {
@@ -1127,11 +1213,13 @@ var _Elements = {
 						}
 					]
 				}
-			],
-			separatorAfter: true
+			]
 		});
 
-		if (entity.type !== 'Content' && entity.children.length > 0) {
+		appendSeparator();
+
+		if (!isContent && hasChildren) {
+
 			elements.push({
 				name: 'Expand / Collapse',
 				elements: [
@@ -1163,15 +1251,16 @@ var _Elements = {
 							return false;
 						}
 					}
-				],
-				separatorAfter: true
+				]
 			});
 		}
 
-		if (entity.type !== 'Content') {
+		appendSeparator();
+
+		if (!isContent) {
+
 			elements.push({
 				name: '<input type="checkbox" id="inherit-visibility-flags">Inherit Visibility Flags',
-				separatorAfter: true,
 				stayOpen: true,
 				clickHandler: function(el) {
 					var checkbox = el.find('input');
@@ -1183,7 +1272,34 @@ var _Elements = {
 			});
 		}
 
+		appendSeparator();
+
 		return elements;
+	},
+	selectEntity: function (entity) {
+
+		_Elements.unselectEntity();
+
+		_Elements.selectedEntity = entity;
+
+		var node = Structr.node(_Elements.selectedEntity.id);
+		if (node) {
+			node.addClass('nodeSelected');
+		}
+	},
+	unselectEntity: function () {
+		if (_Elements.selectedEntity) {
+
+			var node = Structr.node(_Elements.selectedEntity.id);
+			if (node) {
+				node.removeClass('nodeSelected');
+			}
+
+			_Elements.selectedEntity = undefined;
+		}
+	},
+	isEntitySelected: function (entity) {
+		return _Elements.selectedEntity && _Elements.selectedEntity.id === entity.id;
 	},
 	appendContentElement: function(entity, refNode, refNodeIsParent) {
 		_Logger.log(_LogType.CONTENTS, 'Contents.appendContentElement', entity, refNode);
@@ -1208,7 +1324,7 @@ var _Elements = {
 		var displayName = getElementDisplayName(entity);
 
 		var icon = _Elements.getContentIcon(entity);
-		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + '">'
+		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelected' : '') + '">'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
 				+ '<span class="id">' + entity.id + '</span>'
