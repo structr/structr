@@ -569,9 +569,9 @@ var _Files = {
 					folderContents.append('<div id="parent-file-link" class="tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
 				}
 			} else if (_Files.isViewModeActive('img')) {
-//				if (!isRootFolder) {
-//					folderContents.append('<div id="parent-file-link" class="tile img-tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
-//				}
+				if (!isRootFolder) {
+					folderContents.append('<div id="parent-file-link" class="tile img-tile"><div class="node folder"><div class="file-type"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>');
+				}
 			}
 
 			$('#parent-file-link').on('click', function(e) {
