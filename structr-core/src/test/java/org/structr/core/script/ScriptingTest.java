@@ -617,118 +617,6 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
-	/*
-	public void testExtractScripts() {
-
-		testExtraction("${function test() { return 'blah'; } return test();}");
-		testExtraction("${function test() { return '{' + \"{\"; } return test();}");
-		testExtraction("${function test() {{{ return '{' + \"{\" + '}'; }}} return test();}");
-
-		// test multiple sources directly after each other
-		final List<String> scripts = Scripting.extractScripts("${{this.aString}}${upper(true)}${lower(false)}");
-		assertEquals("Invalid script extraction result", "${{this.aString}}", scripts.get(0));
-		assertEquals("Invalid script extraction result", "${upper(true)}", scripts.get(1));
-		assertEquals("Invalid script extraction result", "${lower(false)}", scripts.get(2));
-
-		final List<String> scripts2 = Scripting.extractScripts("${{this.aString}}${{{upper(true)}}}{}{{${{{{lower(false)}}}}");
-		assertEquals("Invalid script extraction result", "${{this.aString}}", scripts2.get(0));
-		assertEquals("Invalid script extraction result", "${{{upper(true)}}}", scripts2.get(1));
-		assertEquals("Invalid script extraction result", "${{{{lower(false)}}}}", scripts2.get(2));
-
-		final List<String> scripts3 = Scripting.extractScripts("}}}{{$[[]{&/(&){}{{${{{{lower(false)}}}}}}}{{}{}{");
-		assertEquals("Invalid script extraction result", "${{{{lower(false)}}}}", scripts3.get(0));
-
-	}
-
-	public void testJavascript() {
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext actionContext = new ActionContext(securityContext);
-			final TestOne test                = createTestNode(TestOne.class);
-
-			test.setProperty(TestOne.anInt             , 1);
-			test.setProperty(TestOne.aLong             , 2L);
-			test.setProperty(TestOne.aDouble           , 3.0);
-			test.setProperty(TestOne.aDate             , new Date());
-			test.setProperty(TestOne.anEnum            , TestOne.Status.One);
-			test.setProperty(TestOne.aString           , "täst");
-			test.setProperty(TestOne.aBoolean          , true);
-			test.setProperty(TestOne.anotherString     , "oneTwoThree${{{");
-			test.setProperty(TestOne.stringWithQuotes  , "''\"\"''");
-
-			assertEquals("Invalid JavaScript evaluation result", "test", Scripting.replaceVariables(actionContext, test, "${{ return 'test' }}"));
-			assertEquals("Invalid JavaScript evaluation result", "1",    Scripting.replaceVariables(actionContext, test, "${{ return Structr.get('this').anInt; }}"));
-			assertEquals("Invalid JavaScript evaluation result", "2",    Scripting.replaceVariables(actionContext, test, "${{ return Structr.get('this').aLong; }}"));
-			assertEquals("Invalid JavaScript evaluation result", "3.0",  Scripting.replaceVariables(actionContext, test, "${{ return Structr.get('this').aDouble; }}"));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-	}
-
-	public void testPhp() {
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx = new ActionContext(securityContext);
-
-			assertEquals("Invalid PHP scripting evaluation result", "✓ Hello World from PHP!", Scripting.evaluate(ctx, null, "${quercus{<?\necho \"✓ Hello World from PHP!\";\n#phpinfo();\n?>}}"));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-	}
-
-	public void testRenjin() {
-
-		//final String source = "${Renjin{print(\"Hello World from R!\")\n#plot(sin, -pi, 2*pi)\n# Define the cars vector with 5 values\ncars <- c(1, 3, 6, 4, 9)\n# Graph the cars vector with all defaults\nplot(cars)}}";
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx = new ActionContext(securityContext);
-
-			final Object result     = Scripting.evaluate(ctx, null, "${Renjin{print(\"Hello World from R!\")}}");
-			assertEquals("Invalid R scripting evaluation result", "[1] \"Hello World from R!\"\n", result);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-	}
-
-	public void testRuby() {
-
-		final String source = "${ruby{puts \"Hello World from Ruby!\"}}";
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx = new ActionContext(securityContext);
-			final Object result     = Scripting.evaluate(ctx, null, source);
-
-			System.out.println(result);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-	}
-	*/
-
 	@Test
 	public void testPython() {
 
@@ -749,15 +637,6 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
-
-	/*
-
-	private void testExtraction(final String source) {
-
-		final List<String> scripts = Scripting.extractScripts(source);
-		assertEquals("Invalid script extraction result", source, scripts.get(0));
-	}
-	*/
 
 	@Test
 	public void testVariableReplacement() {
@@ -1472,7 +1351,7 @@ public class ScriptingTest extends StructrTest {
 			ctx.setLocale(Locale.ENGLISH);
 			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123.456')}"));
 			ctx.setLocale(oldLocale);
-			
+
 			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123.456', 'en')}"));
 			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123,456', 'de')}"));
 			assertEquals("Invalid parse_number() result", "123456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123456', 'de')}"));
@@ -1482,7 +1361,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid parse_number() result", "123456789", Scripting.replaceVariables(ctx, testOne, "${parse_number('123,foo456,bar789.00 ', 'en')}"));
 			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('£ 123,456,789.00 ', 'de')}"));
 			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123,foo456,bar789.00 ', 'de')}"));
-			
+
 			// not
 			assertEquals("Invalid not() result", "true",  Scripting.replaceVariables(ctx, testOne, "${not(false)}"));
 			assertEquals("Invalid not() result", "false", Scripting.replaceVariables(ctx, testOne, "${not(true)}"));
@@ -1986,6 +1865,20 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Parser does not handle quotes correctly,", "test\'test", Scripting.replaceVariables(ctx, testOne, "${join(merge('test', 'test'), '\\'')}"));
 			assertEquals("Parser does not handle quotes correctly,", "test\"test", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"test\", \"test\"), \"\\\"\")}"));
 			assertEquals("Parser does not handle quotes correctly,", "test\'test", Scripting.replaceVariables(ctx, testOne, "${join(merge(\"test\", \"test\"), \"\\'\")}"));
+
+			// get_or_create()
+			final String newUuid1 = Scripting.replaceVariables(ctx, null, "${get_or_create('TestOne', 'name', 'new-object-1')}");
+			assertNotNull("Invalid get_or_create() result", newUuid1);
+			assertEquals("Invalid get_or_create() result", newUuid1, Scripting.replaceVariables(ctx, null, "${get_or_create('TestOne', 'name', 'new-object-1')}"));
+			assertEquals("Invalid get_or_create() result", newUuid1, Scripting.replaceVariables(ctx, null, "${get_or_create('TestOne', 'name', 'new-object-1')}"));
+			assertEquals("Invalid get_or_create() result", newUuid1, Scripting.replaceVariables(ctx, null, "${get_or_create('TestOne', 'name', 'new-object-1')}"));
+
+			// get_or_create()
+			final String newUuid2 = Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}");
+			assertNotNull("Invalid get_or_create() result", newUuid2);
+			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
+			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
+			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
 			tx.success();
 

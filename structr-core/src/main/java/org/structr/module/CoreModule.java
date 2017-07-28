@@ -66,6 +66,7 @@ import org.structr.core.function.GeocodeFunction;
 import org.structr.core.function.GetCounterFunction;
 import org.structr.core.function.GetFunction;
 import org.structr.core.function.GetIncomingRelationshipsFunction;
+import org.structr.core.function.GetOrCreateFunction;
 import org.structr.core.function.GetOrNullFunction;
 import org.structr.core.function.GetOutgoingRelationshipsFunction;
 import org.structr.core.function.GetRelationshipsFunction;
@@ -298,6 +299,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "print", new PrintFunction());
 		Functions.put(true, LicenseManager.Community, "log", new LogFunction());
 		Functions.put(true, LicenseManager.Community, "find", new FindFunction());
+		Functions.put(true, LicenseManager.Community, "get_or_create", new GetOrCreateFunction());
 		Functions.put(true, LicenseManager.Community, "find_relationship", new FindRelationshipFunction());
 
 		// ----- BEGIN functions with side effects -----

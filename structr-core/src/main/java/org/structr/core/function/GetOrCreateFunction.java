@@ -23,7 +23,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
-import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
@@ -35,18 +34,15 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class FindFunction extends Function<Object, Object> implements QueryFunction {
+public class GetOrCreateFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
-	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
-	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND = "Error in find(): type not found: ";
-
-	private int start = -1;
-	private int end   = -1;
+	public static final String ERROR_MESSAGE_GET_OR_CREATE     = "Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}";
+	public static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in get_or_create(): no type specified.";
+	public static final String ERROR_MESSAGE_TYPE_NOT_FOUND    = "Error in get_or_create(): type not found: ";
 
 	@Override
 	public String getName() {
-		return "find()";
+		return "get_or_create()";
 	}
 
 	@Override
@@ -63,17 +59,7 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final App app                         = StructrApp.getInstance(securityContext);
-			final Query query                     = app.nodeQuery().sort(GraphObject.createdDate).order(false);
-
-			// paging applied by surrounding slice() function
-			if (start >= 0 && end >= 0) {
-
-				final int pageSize = end - start;
-				final int page     = start % pageSize;
-
-				query.pageSize(pageSize);
-				query.page(page);
-			}
+			final PropertyMap properties          = new PropertyMap();
 
 			// the type to query for
 			Class type = null;
@@ -83,22 +69,18 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 				final String typeString = sources[0].toString();
 				type = config.getNodeEntityClass(typeString);
 
-				if (type != null) {
+				if (type == null) {
 
-					query.andTypes(type);
-
-				} else {
-
-					logger.warn("Error in find(): type \"{}\" not found.", typeString);
-					return ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + typeString;
-
+					logger.warn("Error in get_or_create(): type \"{}\" not found.", typeString);
+					return ERROR_MESSAGE_TYPE_NOT_FOUND + typeString;
 				}
 			}
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.warn("Error in find(): no type specified. Parameters: {}", getParametersAsString(sources));
-				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
+
+				logger.warn("Error in get_or_create(): no type specified. Parameters: {}", getParametersAsString(sources));
+				return ERROR_MESSAGE_NO_TYPE_SPECIFIED;
 			}
 
 			// experimental: disable result count, prevents instantiation
@@ -108,21 +90,7 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
-
-			} else if (sources.length == 2) {
-
-				if (sources[1] == null) {
-
-					throw new IllegalArgumentException();
-				}
-
-				// special case: second parameter is a UUID
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, "id");
-
-				query.and(key, sources[1].toString());
-
-				return query.getFirst();
+				properties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
 
 			} else {
 
@@ -130,7 +98,7 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 
 				if (parameter_count % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND);
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_GET_OR_CREATE);
 				}
 
 				for (int c = 1; c < parameter_count; c += 2) {
@@ -140,23 +108,30 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 					}
 
 					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
-
 					if (key != null) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);
-						Object value = sources[c + 1];
+						Object value                           = sources[c + 1];
 
 						if (inputConverter != null) {
 
 							value = inputConverter.convert(value);
 						}
 
-						query.and(key, value);
+						properties.put(key, value);
 					}
 				}
 			}
 
-			return query.getAsList();
+			final GraphObject obj = app.nodeQuery(type).sort(GraphObject.createdDate).order(false).and(properties).getFirst();
+			if (obj != null) {
+
+				// return existing object
+				return obj;
+			}
+
+			// create new object
+			return app.create(type, properties);
 
 		} catch (final IllegalArgumentException e) {
 
@@ -169,22 +144,11 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_FIND;
+		return ERROR_MESSAGE_GET_OR_CREATE;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs";
-	}
-
-	// ----- interface QueryFunction -----
-	@Override
-	public void setRangeStart(final int start) {
-		this.start = start;
-	}
-
-	@Override
-	public void setRangeEnd(final int end) {
-		this.end = end;
+		return "Returns an entity with the given properties, creating one if it doesn't exist.";
 	}
 }
