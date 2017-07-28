@@ -179,7 +179,7 @@ var Importer = {
 							var mappings = {};
 							var transforms = {};
 
-							$('select.csv').each(function(i, elem) {
+							$('select.attr-mapping').each(function(i, elem) {
 
 								var e     = $(elem);
 								var name  = names[i];
