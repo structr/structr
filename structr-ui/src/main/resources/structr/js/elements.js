@@ -438,7 +438,7 @@ var _Elements = {
 
 		var id = entity.id;
 
-		var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelected' : '') + '"></div>';
+		var html = '<div id="id_' + id + '" class="node element' + (entity.tag === 'html' ? ' html_element' : '') + ' ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '"></div>';
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -1282,7 +1282,7 @@ var _Elements = {
 
 		var node = Structr.node(_Elements.selectedEntity.id);
 		if (node) {
-			node.addClass('nodeSelected');
+			node.addClass('nodeSelectedFromContextMenu');
 		}
 	},
 	unselectEntity: function () {
@@ -1290,7 +1290,7 @@ var _Elements = {
 
 			var node = Structr.node(_Elements.selectedEntity.id);
 			if (node) {
-				node.removeClass('nodeSelected');
+				node.removeClass('nodeSelectedFromContextMenu');
 			}
 
 			_Elements.selectedEntity = undefined;
@@ -1322,7 +1322,7 @@ var _Elements = {
 		var displayName = getElementDisplayName(entity);
 
 		var icon = _Elements.getContentIcon(entity);
-		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelected' : '') + '">'
+		var html = '<div id="id_' + entity.id + '" class="node content ' + (isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '') + '">'
 				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 				+ (name ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
 				+ '<span class="id">' + entity.id + '</span>'
