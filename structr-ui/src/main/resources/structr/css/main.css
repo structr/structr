@@ -1057,7 +1057,7 @@ i.button {
 	border: 1px solid #aaa;
 }
 
-.node.nodeSelected {
+.node.nodeSelectedFromContextMenu {
     color: #333 ! important;
     background-color: #fafafa ! important;
     border: 1px dashed #777;
