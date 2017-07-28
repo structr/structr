@@ -754,7 +754,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				final XMLStructureAnalyzer analyzer = new XMLStructureAnalyzer(input);
 				final Gson gson                     = new GsonBuilder().setPrettyPrinting().create();
 
-				return gson.toJson(analyzer.getStructure(10));
+				return gson.toJson(analyzer.getStructure(100));
 
 			} catch (XMLStreamException | IOException ex) {
 				ex.printStackTrace();
@@ -778,6 +778,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 				final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
 				final App app                       = StructrApp.getInstance(threadContext);
+				int overallCount                    = 0;
 
 				try (final Reader reader = new InputStreamReader(getInputStream())) {
 
@@ -791,11 +792,13 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 						try (final Tx tx = app.tx()) {
 
-							while (iterator.hasNext() && ++count < batchSize) {
+							while (iterator.hasNext() && ++count <= batchSize) {
 
 								final PropertyMap map = PropertyMap.inputTypeToJavaType(threadContext, iterator.next());
 
 								app.create(AbstractNode.class, map);
+
+								overallCount++;
 							}
 
 							tx.success();
@@ -807,7 +810,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 							data.put("username", threadContext.getUser(false).getName());
 							TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
-							logger.info("XML: Imported {} objects, commiting batch.", count+1);
+							logger.info("XML: Imported {} objects, commiting batch.", overallCount);
 						}
 					}
 

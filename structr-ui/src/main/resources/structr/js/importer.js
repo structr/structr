@@ -70,7 +70,7 @@ var Importer = {
 							var config = JSON.parse(result.value);
 							Object.keys(config).forEach(function(k) {
 								configuration[k] = config[k];
-								Importer.updateStructureSelector(k, configuration[k].type);
+								Importer.updateStructureSelector('', k, configuration[k].type);
 							});
 						}
 					});
@@ -396,18 +396,21 @@ var Importer = {
 							return;
 						}
 
-						var cleanedKey = key.replace(/:/g, '');
-						var localPath  = path + cleanedKey + level;
+
+						var hasChildren = Object.keys(treeElement[key]).length > 1;
+						var localPath   = path + '/' + key;
 
 						htmlElement.append(
-							'<tr><td data-name="' + key + '" data-level="' + level + '"' +
-							' class="xml-mapping" id="' + localPath + '"' +
+							'<tr><td data-name="' + localPath + '" data-level="' + level + '"' +
+							' class="xml-mapping" ' +
 							' style="padding-left: ' + (level * 30) + 'px;">' +
 							_Icons.getHtmlForIcon(_Icons.collapsed_icon) +
 							'&nbsp;&nbsp;' + key + '</td></tr>'
 						);
 
-						$('#' + localPath).on('click', function() {
+						$('td[data-name="' + localPath + '"]').on('click', function() {
+
+							console.log(localPath);
 
 							$('td.xml-mapping').removeClass('selected');
 							$(this).addClass('selected');
@@ -436,26 +439,26 @@ var Importer = {
 
 								switch ($(this).val()) {
 									case "createNode":
-										Importer.showCreateNodeOptions(options, key, structure, configuration, attributes);
+										Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
 										break;
 									case "setProperty":
-										Importer.showSetPropertyOptions(options, key, structure, configuration, attributes);
+										Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
 										break;
 									case "ignore":
 										// reset configuration
-										configuration[key] = { action: 'ignore' };
-										Importer.updateStructureSelector(key);
+										configuration[localPath] = { action: 'ignore' };
+										Importer.updateStructureSelector(localPath);
 										break;
 
 									default:
-										configuration[key] = {};
-										Importer.updateStructureSelector(key);
+										configuration[localPath] = {};
+										Importer.updateStructureSelector(localPath);
 										break;
 								}
 							});
 
 							// activate elements for existing configuration
-							var typeConfig = configuration[key];
+							var typeConfig = configuration[localPath];
 							if (typeConfig && typeConfig.action) {
 
 								$('#action-select').val(typeConfig.action).trigger('change');
@@ -470,7 +473,7 @@ var Importer = {
 					});
 				}
 
-				buildTree($('#structure'), '', structure, 'xmlRootStructure', 0);
+				buildTree($('#structure'), '', structure, '', 0);
 			}
 		});
 	},
@@ -482,66 +485,47 @@ var Importer = {
 		});
 		return hasRoot;
 	},
-	isRoot: function(configuration, key) {
-		var typeConfig = configuration[key];
+	isRoot: function(configuration, path) {
+		var typeConfig = configuration[path];
 		return typeConfig && typeConfig.isRoot;
 	},
-	setRoot: function(configuration, key) {
+	setRoot: function(configuration, path) {
 		Object.keys(configuration).forEach(function(k) {
 			var typeConfig = configuration[k];
 			if (typeConfig) {
-				typeConfig.isRoot = (k === key);
+				typeConfig.isRoot = (k === path);
 			}
 		});
 	},
-	getParentType: function(key, structure, configuration) {
+	getParentType: function(path, configuration) {
 
-		var path = [];
+		var parts = path.split('/');
+		var index = parts.length;
 
-		Importer.find(structure, key, path, 0);
+		while (--index >= 0) {
 
-		for (var i=0; i<path.length; i++) {
-			var key = path[i];
-			if (configuration[key] && configuration[key].type) {
-				return configuration[key].type;
+			var fullPath = parts.slice(0, index).join('/');
+			if (configuration[fullPath] && configuration[fullPath].type) {
+				return configuration[fullPath].type;
 			}
 		}
 
 		return undefined;
 
 	},
-	find: function(structure, key, path, level) {
-		if (level > 100) { return; }
-		var keys = Object.keys(structure);
-		for (var i=0; i<keys.length; i++) {
-			var k = keys[i];
-			// skip attributes
-			if (k === '::attributes') {continue;}
-			if (k === key) {
-				return true;
-			} else {
-				var result = Importer.find(structure[k], key, path, level+1);
-				if (result === true) {
-					path.push(k);
-					return true;
-				}
-			}
-		}
-		return false;
-	},
-	showCreateNodeOptions: function(el, key, structure, configuration, attributes) {
+	showCreateNodeOptions: function(el, key, path, structure, configuration, attributes, hasChildren) {
 
-		if (!configuration[key]) {
-			configuration[key] = {};
+		if (!configuration[path]) {
+			configuration[path] = {};
 		}
 
-		configuration[key].action = 'createNode';
+		configuration[path].action = 'createNode';
 
-		var isRoot  = Importer.isRoot(configuration, key);
+		var isRoot  = Importer.isRoot(configuration, path);
 		var hasRoot = Importer.hasRoot(configuration);
 
 		if (!hasRoot) {
-			Importer.setRoot(configuration, key);
+			Importer.setRoot(configuration, path);
 			isRoot = true;
 		}
 
@@ -556,7 +540,7 @@ var Importer = {
 
 		var typeSelector     = $('#type-select');
 		var propertySelector = $('#property-select');
-		var typeConfig       = configuration[key];
+		var typeConfig       = configuration[path];
 
 		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
 
@@ -579,11 +563,11 @@ var Importer = {
 			var type  = $(this).val();
 			var names = [];
 
-			Importer.updateStructureSelector(key, type);
+			Importer.updateStructureSelector(key, path, type);
 
 			if (!isRoot) {
 
-				var parentType = Importer.getParentType(key, structure, configuration);
+				var parentType = Importer.getParentType(path, configuration);
 				if (parentType) {
 
 					var nonRoot    = $('#non-root-options');
@@ -592,7 +576,7 @@ var Importer = {
 					nonRoot.append('<label>Select property name:</label>');
 					nonRoot.append('<select id="name-select" class="xml-config-select"></select>');
 
-					var nameSelect = $('#name-select');
+					var nameSelect    = $('#name-select');
 
 					//fetchPropertyList(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
 					Importer.fetchPropertyList(parentType, typeConfig, '', nameSelect, function() {
@@ -611,10 +595,10 @@ var Importer = {
 
 						if (value && value.length) {
 
-							configuration[key].propertyName = value;
+							configuration[path].propertyName = value;
 							if (!isCollection) {
 
-								configuration[key].multiplicity = "1";
+								configuration[path].multiplicity = "1";
 							}
 						}
 
@@ -623,6 +607,39 @@ var Importer = {
 							nameSelect.append('<option ' + selectedString + ' data-is-collection="' + info.isCollection + '">' + info.jsonName + '</option>');
 						}
 					});
+
+					// allow text content of a node to be stored
+					if (!hasChildren) {
+
+						nonRoot.append('<label>Select property for text content:</label>');
+						nonRoot.append('<select id="content-select" class="xml-config-select"></select>');
+
+						var contentSelect = $('#content-select');
+
+						//fetchPropertyList(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
+						Importer.fetchPropertyList(type, typeConfig, '', contentSelect, function() {
+
+							// trigger select event when an element is already configured
+							if (typeConfig && typeConfig.content) {
+								nameSelect.val(typeConfig.content);
+							}
+
+							contentSelect.trigger('change');
+
+						}, function() {
+
+							var value = contentSelect.val();
+							if (value && value.length) {
+
+								configuration[path].content = value;
+							}
+
+						}, function(info, selectedString) {
+							if (info.type === 'String') {
+								contentSelect.append('<option ' + selectedString + '">' + info.jsonName + '</option>');
+							}
+						});
+					}
 				}
 			}
 
@@ -637,13 +654,13 @@ var Importer = {
 			}
 
 			//displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, callback) {
-			Importer.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[key], function(mapping) {
+			Importer.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[path], function(mapping) {
 
-				var typeConfig = configuration[key];
+				var typeConfig = configuration[path];
 				if (!typeConfig) {
 
 					typeConfig = {};
-					configuration[key] = typeConfig;
+					configuration[path] = typeConfig;
 				}
 
 				typeConfig.action     = 'createNode';
@@ -663,22 +680,22 @@ var Importer = {
 
 				if (name && name.length) {
 
-					var typeConfig = configuration[key];
+					var typeConfig = configuration[path];
 					typeConfig.properties[name] = value;
 				}
 			});
 
 		});
 	},
-	showSetPropertyOptions: function(el, key, structure, configuration, attributes) {
+	showSetPropertyOptions: function(el, key, path, structure, configuration, attributes) {
 
-		if (!configuration[key]) {
-			configuration[key] = {};
+		if (!configuration[path]) {
+			configuration[path] = {};
 		}
 
-		configuration[key].action = 'setProperty';
+		configuration[path].action = 'setProperty';
 
-		var parentType = Importer.getParentType(key, structure, configuration);
+		var parentType = Importer.getParentType(path, configuration);
 		if (!parentType) {
 
 			el.append('<p class="hint">Action &laquo;setProperty&raquo; cannot be used without enclosing &laquo;createNode&raquo; action.</p>');
@@ -689,7 +706,7 @@ var Importer = {
 			el.append('<select id="text-select" class="xml-config-select"><option value="">--- ignore ---</option></select>');
 
 			var textSelect = $('#text-select');
-			var typeConfig = configuration[key];
+			var typeConfig = configuration[path];
 
 			Importer.fetchPropertyList(parentType, typeConfig, '', textSelect, function() {
 
@@ -703,8 +720,8 @@ var Importer = {
 				var value = textSelect.val();
 
 				if (value && value.length) {
-					configuration[key].propertyName = value;
-					Importer.updateStructureSelector(key, value);
+					configuration[path].propertyName = value;
+					Importer.updateStructureSelector(key, path, value);
 				}
 			});
 		}
@@ -766,12 +783,12 @@ var Importer = {
 			}
 		});
 	},
-	updateStructureSelector: function(key, value) {
-		var elem = $('td.xml-mapping[data-name="' + key + '"]');
+	updateStructureSelector: function(key, path, value) {
+		var elem = $('td.xml-mapping[data-name="' + path + '"]');
 		elem.empty();
 		if (value && value.length) {
 			elem.append('<b>' + _Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + value + '</b>');
-		} else {
+		} else if (key && key.length) {
 			elem.append(_Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + key);
 		}
 	}

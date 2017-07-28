@@ -80,7 +80,16 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 		final List<GraphObject> existingRelationships = StructrApp.getInstance().cypher("MATCH (s:" + sourceNode.getType() + ")-[r]->(t:" + targetNode.getType() + ") WHERE s.id = {sourceId} AND r.type = {structrRelType} AND t.id = {targetId} RETURN r", props);
 
 		if (existingRelationships.size() > 0) {
-			throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists"));
+
+			final AbstractRelationship rel = (AbstractRelationship)existingRelationships.get(0);
+
+			throw new FrameworkException(422,
+				"Relationship already exists",
+				new DuplicateRelationshipToken(getClass().getSimpleName(),
+					"Relationship already exists: " + rel.getUuid() +
+					" from " + rel.getSourceNodeId() + " to " + rel.getTargetNodeId()
+				)
+			);
 		}
 	}
 

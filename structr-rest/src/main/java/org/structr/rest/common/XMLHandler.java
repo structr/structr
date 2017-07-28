@@ -88,19 +88,16 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 		final String tagName = element.getName().toString();
 
-		// collect attributes
-		if (configuration.containsKey(tagName)) {
+		current = new Element(current, tagName);
 
-			final Map<String, Object> typeHandler = (Map)configuration.get(tagName);
+		final Map<String, Object> typeHandler = (Map)configuration.get(current.getPath());
+		if (typeHandler != null) {
+
 			final Map<String, Object> properties  = (Map)typeHandler.get(PROPERTIES);
 			final Object isRoot                   = typeHandler.get(ISROOT);
+			final Map<String, Object> data        = new LinkedHashMap<>();
 
-			// check for root tag first, do not import otherwise
-			if (current == null && !"true".equals(isRoot) && !Boolean.TRUE.equals(isRoot)) {
-				return;
-			}
-
-			final Map<String, Object> data = new LinkedHashMap<>();
+			current.isRoot = Boolean.TRUE.equals(isRoot);
 
 			for (final Iterator it = element.getAttributes(); it.hasNext();) {
 
@@ -124,7 +121,6 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 				}
 			}
 
-			current = new Element(current, tagName);
 			current.setData(data);
 		}
 	}
@@ -133,18 +129,17 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 		if (current != null) {
 
-			final String tagName = element.getName().toString();
-			if (configuration.containsKey(tagName)) {
+			if (configuration.containsKey(current.getPath())) {
 
-				if (current.parent == null) {
+				if (current.isRoot) {
 
 					// object is complete, can be created
 					handleObject(current);
 				}
-
-				// one level up
-				current = current.parent;
 			}
+
+			// one level up
+			current = current.parent;
 		}
 	}
 
@@ -167,7 +162,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 	private void convertAndTransform(final Element element, final Map<String, Object> entityData) {
 
-		final Map<String, Object> config = (Map)configuration.get(element.tagName);
+		final Map<String, Object> config = (Map)configuration.get(element.getPath());
 		if (config != null) {
 
 			final String action = (String)config.get(ACTION);
@@ -177,29 +172,25 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 					case "createNode":
 						handleCreateNode(element, entityData, config);
-						break;
-
-					case "createRelationship":
-						handleCreateRelationship(element, entityData, config);
-						break;
+						return;
 
 					case "setProperty":
 						handleSetProperty(element, entityData, config);
-						break;
+						return;
 
 					case "ignore":
-						break;
+						return;
 				}
 
 			} else {
 
 				System.out.println("No action for tag " + element.tagName + ", ignoring");
 			}
+		}
 
-		} else {
-
-			System.out.println("No config for tag " + element.tagName + ", ignoring");
-
+		// recurse into children
+		for (final Element child: element.children) {
+			convertAndTransform(child, entityData);
 		}
 	}
 
@@ -209,8 +200,19 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		final String type = (String)config.get(TYPE);
 		if (type != null) {
 
-			if (element.parent != null) {
+			if (element.isRoot) {
 
+				// handle data for toplevel element
+				entityData.put(TYPE, type);
+				entityData.putAll(element.data);
+
+				for (final Element child : element.children) {
+
+					convertAndTransform(child, entityData);
+				}
+
+			} else {
+				
 				final String propertyName = (String)config.get(PROPERTY_NAME);
 				if (propertyName != null) {
 
@@ -266,44 +268,6 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 					System.out.println("Missing property name for nested createNode action in " + element.tagName);
 				}
-
-			} else {
-
-				// handle data for toplevel element
-				entityData.put(TYPE, type);
-				entityData.putAll(element.data);
-
-				for (final Element child : element.children) {
-
-					convertAndTransform(child, entityData);
-				}
-			}
-
-		} else {
-
-			System.out.println("Invalid import specification for " + element.tagName + ", createNode action must be accompanied by type attribute.");
-		}
-	}
-
-	private void handleCreateRelationship(final Element element, final Map<String, Object> entityData, final Map<String, Object> config) {
-
-		// copy and transform entity data into
-		final String propertyName = (String)config.get(PROPERTY_NAME);
-		if (propertyName != null) {
-
-			List<Map<String, Object>> elements = (List)entityData.get(propertyName);
-			if (elements == null) {
-
-				elements = new LinkedList<>();
-				entityData.put(propertyName, elements);
-			}
-
-			final Map<String, Object> childData = new LinkedHashMap<>();
-			elements.add(childData);
-
-			for (final Element child : element.children) {
-
-				convertAndTransform(child, childData);
 			}
 
 		} else {
@@ -334,8 +298,9 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 	// ----- nested classes -----
 	private class Element {
 
+		private Map<String, Object> data = new LinkedHashMap<>();
 		private List<Element> children   = new LinkedList<>();
-		private Map<String, Object> data = null;
+		private boolean isRoot           = false;
 		private Element parent           = null;
 		private String tagName           = null;
 		private String text              = null;
@@ -350,11 +315,20 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		}
 
 		public void setData(final Map<String, Object> data) {
-			this.data = data;
+			this.data.putAll(data);
 		}
 
 		public void setText(final String text) {
 			this.text = text;
+		}
+
+		public String getPath() {
+
+			if (parent != null) {
+				return parent.getPath() + "/" + tagName;
+			}
+
+			return "/" + tagName;
 		}
 	}
 
