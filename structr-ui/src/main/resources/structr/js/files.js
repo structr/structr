@@ -646,7 +646,9 @@ var _Files = {
 			}
 		};
 
-		$('button.switch').on('click', layoutSwitchFunction);
+		listSw.on('click', layoutSwitchFunction);
+		tilesSw.on('click', layoutSwitchFunction);
+		imgSw.on('click', layoutSwitchFunction);
 
 	},
 	fileOrFolderCreationNotification: function (newFileOrFolder) {
