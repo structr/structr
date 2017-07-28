@@ -983,8 +983,6 @@ var _Elements = {
 			}
 		}
 
-		appendSeparator();
-
 		if (!isPage && !isContent) {
 			elements.push({
 				name: 'Insert div element',
