@@ -185,7 +185,14 @@
 	width: 100%;
 }
 
-.resourceBox td, .resourceBox th {
+.resourceBox th {
+	padding: 4px;
+	text-align: left;
+	vertical-align: top;
+	height: 1em;
+}
+
+.resourceBox td {
 	padding: 4px;
 	border: 1px solid #b5b5b5;
 	text-align: left;
@@ -282,10 +289,10 @@ input.readonly {
 	line-height: 1.7em;
 	border-radius: 3px;
 	border: 1px solid #a5a5a5;
-	padding: 2px 5px;
+	padding: 2px 4px;
 	margin: 2px 2px 3px 1px;
 	background-color: #eee;
-	float: left;
+	/*float: left;*/
 }
 
 .resourceBox div.node.stringarray {
@@ -320,10 +327,14 @@ input.readonly {
 	opacity: 1.0;
 }
 
-.props td i.add, .props td i.remove,
-.resourceBox td i.add, .resourceBox td i.remove {
+.props td i.add
+.resourceBox td i.add {
 	margin: 2px 0 2px 1px;
-	float: right;
+}
+
+.props td i.remove,
+.resourceBox td i.remove {
+	margin: 4px 0 2px 1px;
 }
 
 .resourceBox div.node i.add:hover, .resourceBox td i.add:hover, .props td i.add:hover,
@@ -370,12 +381,16 @@ table.props td.__value {
 .resourceBox td .image,
 #relatedNodesList .image {
 	width: 102px;
-	height: 130px;
-	float: left;
+	height: 106px;
+	/*float: left;*/
 	margin-right: 4px;
 	position: relative;
 }
 
+.resourceBox td .node .remove {
+	position: absolute;
+	right: 3px;
+}
 
 .resourceBox td .thumbnailZoom,
 #relatedNodesList .node .thumbnailZoom {
@@ -388,7 +403,7 @@ table.props td.__value {
 .resourceBox td div.wrap,
 #relatedNodesList .node div.wrap {
 	position: absolute;
-	top: 50%;
+	bottom: 0;
 	left: 50%;
 	margin-bottom: 4px;
 }
