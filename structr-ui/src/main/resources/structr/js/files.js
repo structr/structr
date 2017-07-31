@@ -1351,6 +1351,8 @@ var _Files = {
 				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
 				dialogMeta.html(h);
 
+				Structr.appendInfoTextToElement("Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. Administrators will always see the source code in this editor. To see a preview, please open the file in a new tab.", dialogMeta);
+
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
 					if (inp.is(':checked')) {

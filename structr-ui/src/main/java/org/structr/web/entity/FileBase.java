@@ -101,6 +101,7 @@ import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.entity.relation.UserFavoriteFile;
@@ -422,7 +423,19 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				// Return file input stream
 				fis = new FileInputStream(fileOnDisk);
 
-				if (getProperty(isTemplate)) {
+				boolean userIsAdmin = false;
+				final Principal requestingUser = securityContext.getUser(false);
+				if (requestingUser != null) {
+					userIsAdmin = requestingUser.getProperty(Principal.isAdmin);
+				}
+
+				boolean editModeDisabled = true;
+				final String editParameter = securityContext.getRequest().getParameter("edit");
+				if (editParameter != null) {
+					editModeDisabled = RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
+				}
+
+				if (getProperty(isTemplate) && (!userIsAdmin || (userIsAdmin && editModeDisabled))) {
 
 					final String content = IOUtils.toString(fis, "UTF-8");
 
