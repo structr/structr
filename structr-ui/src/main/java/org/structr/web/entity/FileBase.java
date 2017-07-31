@@ -423,32 +423,36 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				// Return file input stream
 				fis = new FileInputStream(fileOnDisk);
 
-				boolean userIsAdmin = false;
-				final Principal requestingUser = securityContext.getUser(false);
-				if (requestingUser != null) {
-					userIsAdmin = requestingUser.getProperty(Principal.isAdmin);
-				}
+				if (getProperty(isTemplate)) {
 
-				boolean editModeDisabled = true;
-				final String editParameter = securityContext.getRequest().getParameter("edit");
-				if (editParameter != null) {
-					editModeDisabled = RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
-				}
-
-				if (getProperty(isTemplate) && (!userIsAdmin || (userIsAdmin && editModeDisabled))) {
-
-					final String content = IOUtils.toString(fis, "UTF-8");
-
-					try {
-
-						final String result = Scripting.replaceVariables(new ActionContext(securityContext), this, content);
-						return IOUtils.toInputStream(result, "UTF-8");
-
-					} catch (Throwable t) {
-
-						logger.warn("Scripting error in {}:\n{}", getUuid(), content, t);
+					boolean userIsAdmin = false;
+					final Principal requestingUser = securityContext.getUser(false);
+					if (requestingUser != null) {
+						userIsAdmin = requestingUser.getProperty(Principal.isAdmin);
 					}
 
+					boolean editModeActive = false;
+					if (securityContext.getRequest() != null) {
+						final String editParameter = securityContext.getRequest().getParameter("edit");
+						if (editParameter != null) {
+							editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
+						}
+					}
+
+					if (!userIsAdmin || (userIsAdmin && !editModeActive)) {
+
+						final String content = IOUtils.toString(fis, "UTF-8");
+
+						try {
+
+							final String result = Scripting.replaceVariables(new ActionContext(securityContext), this, content);
+							return IOUtils.toInputStream(result, "UTF-8");
+
+						} catch (Throwable t) {
+
+							logger.warn("Scripting error in {}:\n{}", getUuid(), content, t);
+						}
+					}
 				}
 
 				return fis;
