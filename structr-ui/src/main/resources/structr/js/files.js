@@ -522,7 +522,7 @@ var _Files = {
 			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
 
 			if (isRootFolder) {
-				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,isFolder,folders,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers', handleChildren);
+				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,type,isFolder,folders,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers', handleChildren);
 			} else {
 				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
 			}
