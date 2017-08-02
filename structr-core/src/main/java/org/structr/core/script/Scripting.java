@@ -32,7 +32,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import org.apache.commons.collections4.map.LRUMap;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
@@ -122,11 +122,17 @@ public class Scripting {
 
 		}
 
-		// return literal null
 		if (Functions.NULL_STRING.equals(value)) {
-			return null;
-		}
 
+			// return literal null for a single ___NULL___
+			return null;
+
+		} else {
+
+			// Replace ___NULL___ by empty string
+			value = StringUtils.replaceAll(value, Functions.NULL_STRING, "");
+		}
+		
 		return value;
 	}
 

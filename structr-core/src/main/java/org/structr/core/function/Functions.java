@@ -306,6 +306,10 @@ public class Functions {
 
 			case "null":
 				return new ConstantExpression(NULL_STRING);
+
+			case NULL_STRING:
+				return new ConstantExpression(NULL_STRING);
+				
 		}
 
 		// no match, try functions
