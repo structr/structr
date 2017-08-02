@@ -18,8 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import org.structr.api.graph.Direction;
 import static org.structr.api.graph.Direction.BOTH;
 import static org.structr.api.graph.Direction.INCOMING;
@@ -27,9 +25,8 @@ import static org.structr.api.graph.Direction.OUTGOING;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 
@@ -72,24 +69,21 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final LinkedHashMap<String, Object> props = new LinkedHashMap();
-		props.put("sourceId",       sourceNode.getUuid());
-		props.put("targetId",       targetNode.getUuid());
-		props.put("structrRelType", getClass().getSimpleName());
+		final Class<? extends ManyToMany> clazz = getClass();
 
-		final List<GraphObject> existingRelationships = StructrApp.getInstance().cypher("MATCH (s:" + sourceNode.getType() + ")-[r]->(t:" + targetNode.getType() + ") WHERE s.id = {sourceId} AND r.type = {structrRelType} AND t.id = {targetId} RETURN r", props);
+		if (sourceNode != null) {
 
-		if (existingRelationships.size() > 0) {
+			// check existing relationships
+			final Iterable<? extends Relation<S, ?, ?, ?>> outgoingRels = sourceNode.getOutgoingRelationships(clazz);
 
-			final AbstractRelationship rel = (AbstractRelationship)existingRelationships.get(0);
+			// check existing relationships
+			for (final RelationshipInterface rel : outgoingRels) {
 
-			throw new FrameworkException(422,
-				"Relationship already exists",
-				new DuplicateRelationshipToken(getClass().getSimpleName(),
-					"Relationship already exists: " + rel.getUuid() +
-					" from " + rel.getSourceNodeId() + " to " + rel.getTargetNodeId()
-				)
-			);
+				if (rel.getTargetNode().equals(targetNode)) {
+
+					throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists"));
+				}
+			}
 		}
 	}
 

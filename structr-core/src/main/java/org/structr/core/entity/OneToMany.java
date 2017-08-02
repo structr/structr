@@ -18,15 +18,13 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedHashMap;
 import org.structr.api.graph.Direction;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 
@@ -69,16 +67,19 @@ public abstract class OneToMany<S extends NodeInterface, T extends NodeInterface
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance();
+		final App app                          = StructrApp.getInstance();
+		final Class<? extends OneToMany> clazz = this.getClass();
+		final Class<S> sourceType              = getSourceType();
 
 		if (targetNode != null) {
 
-			final LinkedHashMap<String, Object> props = new LinkedHashMap();
-			props.put("targetId",       targetNode.getUuid());
-			props.put("structrRelType", getClass().getSimpleName());
+			// check existing relationships
+			final Relation<?, T, ?, ?> incomingRel = targetNode.getIncomingRelationship(clazz);
+//			if (incomingRel != null && sourceType.isAssignableFrom(incomingRel.getSourceType())) {
+//			if (incomingRel != null && sourceType.isInstance(incomingRel.getSourceNode())) {
+			if (incomingRel != null && SearchCommand.isTypeAssignableFromOtherType(sourceType, incomingRel.getSourceType())) {
 
-			for (GraphObject incomingRel : app.cypher("MATCH ()-[r]->(t:" + targetNode.getType() + ") WHERE r.type = {structrRelType} AND t.id = {targetId} RETURN r", props)) {
-				app.delete((RelationshipInterface) incomingRel);
+				app.delete(incomingRel);
 			}
 		}
 	}
