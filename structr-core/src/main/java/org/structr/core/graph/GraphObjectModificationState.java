@@ -498,8 +498,15 @@ public class GraphObjectModificationState implements ModificationEvent {
 			final JsonObject obj = new JsonObject();
 
 			obj.add("time", toElement(System.currentTimeMillis()));
-			obj.add("userId", toElement(user.getUuid()));
-			obj.add("userName", toElement(user.getName()));
+
+			if (user != null) {
+				obj.add("userId", toElement(user.getUuid()));
+				obj.add("userName", toElement(user.getName()));
+			} else {
+				obj.add("userId", JsonNull.INSTANCE);
+				obj.add("userName", JsonNull.INSTANCE);
+			}
+
 			obj.add("verb", toElement(verb));
 			obj.add("target", toElement(object));
 
