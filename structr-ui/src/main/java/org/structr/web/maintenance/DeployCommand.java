@@ -125,7 +125,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		if (!securityContext.getCachedUserId().equals(Principal.SUPERUSER_ID)) {
-			logger.info("Deployment is faster using the superadmin account - consider using this account next time");
+			logger.info("");
+			logger.info("/*************************************************************************************************/");
+			logger.info("/*                                                                                               */");
+			logger.info("/*   Deployment is faster using the superadmin account - consider using this account next time   */");
+			logger.info("/*                                                                                               */");
+			logger.info("/*************************************************************************************************/");
+			logger.info("");
 		}
 
 		final String mode = (String) attributes.get("mode");
@@ -219,10 +225,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				info("Applying pre-deployment configuration from {}..", preDeployConf);
+				final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8")).trim();
 
-				final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8"));
-				Scripting.evaluate(new ActionContext(ctx), null, confSource.trim(), "pre-deploy.conf");
+				if (confSource.length() > 0) {
+					info("Applying pre-deployment configuration from {}..", preDeployConf);
+					Scripting.evaluate(new ActionContext(ctx), null, confSource, "pre-deploy.conf");
+				} else {
+					info("Ignoring empty pre-deployment configuration {}..", preDeployConf);
+				}
 
 				tx.success();
 
@@ -411,10 +421,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				info("Applying post-deployment configuration from {}..", postDeployConf);
+				final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8")).trim();
 
-				final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8"));
-				Scripting.evaluate(new ActionContext(ctx), null, confSource.trim(), "post-deploy.conf");
+				if (confSource.length() > 0) {
+					info("Applying post-deployment configuration from {}..", postDeployConf);
+					Scripting.evaluate(new ActionContext(ctx), null, confSource, "post-deploy.conf");
+				} else {
+					info("Ignoring empty post-deployment configuration {}..", preDeployConf);
+				}
 
 				tx.success();
 
