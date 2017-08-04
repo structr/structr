@@ -76,7 +76,7 @@
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-bolt</artifactId>
-			<version>3.2.0</version>
+			<version>3.2.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>net.sf.opencsv</groupId>
@@ -160,7 +160,7 @@
 				<dependency>
 					<groupId>org.neo4j</groupId>
 					<artifactId>neo4j-community</artifactId>
-					<version>3.2.0</version>
+					<version>3.2.3</version>
 					<type>pom</type>
 				</dependency>
 			</dependencies>
@@ -171,7 +171,7 @@
 				<dependency>
 					<groupId>org.neo4j</groupId>
 					<artifactId>neo4j-enterprise</artifactId>
-					<version>3.2.0</version>
+					<version>3.2.3</version>
 					<type>pom</type>
 					<exclusions>
 						<exclusion>
