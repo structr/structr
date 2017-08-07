@@ -34,7 +34,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -91,7 +90,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 						createPage(file, fileName);
 
 					} catch (FrameworkException fex) {
-						logger.warn("Exception while importing page {}: {}", new Object[] { name, fex.getMessage() });
+						logger.warn("Exception while importing page {}: {}", new Object[] { fileName, fex.getMessage() });
 					}
 				}
 			}
