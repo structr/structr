@@ -277,7 +277,7 @@ public class ActionContext {
 							}
 							return remoteAddress;
 
-						case "response":
+						case "response": {
 							final HttpServletResponse response = securityContext.getResponse();
 							if (response != null) {
 
@@ -290,6 +290,16 @@ public class ActionContext {
 								}
 							}
 							return null;
+						}
+
+						case "statusCode":
+						case "status_code": {
+							final HttpServletResponse response = securityContext.getResponse();
+							if (response != null) {
+								return response.getStatus();
+							}
+							return null;
+						}
 
 						case "me":
 							return securityContext.getUser(false);
