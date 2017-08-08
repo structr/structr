@@ -180,7 +180,7 @@ function StructrApp(baseUrl, locale) {
 			var container = $('[data-structr-id="' + id + '"]');
 
 			if (action === 'create') {
-				var data = s.collectData(btn, id, attrs, type, suffix);
+				var data = s.collectData(btn, id, attrs, type, suffix, 'name');
 				s.create(btn, type, data, reload, returnUrl, appendId, enableBtnFunction, enableBtnFunction);
 
 			} else if (action === 'save') {
@@ -271,14 +271,15 @@ function StructrApp(baseUrl, locale) {
 		}
 		return container;
 	},
-	this.collectData = function(btn, id, attrs, type, suffix) {
+	this.collectData = function(btn, id, attrs, type, suffix, paramKey) {
+		paramKey = paramKey || 'attr';
 		var container = s.container(btn, id);
 
 		if (!s.data[id]) s.data[id] = {};
 		$.each(attrs, function(i, key) {
 
-			var inp = s.getPossibleFields(container, suffix, type, key, 'name');
-			var f = s.field(inp);
+			var inp = s.getPossibleFields(container, suffix, type, key, paramKey);
+			var f = s.field(inp, true);
 			if (!f) return;
 
 			if (key.contains('.')) {
@@ -681,7 +682,7 @@ function StructrApp(baseUrl, locale) {
 			}
 		}
 	},
-	this.field = function(el) {
+	this.field = function(el, collect) {
 		if (!el || !el.length) return;
 		var displayVal  = el.attr('data-structr-display-value') || (el.is('select') ? null : el.html());
 		var rawType     = el.attr('data-structr-type');
@@ -691,7 +692,7 @@ function StructrApp(baseUrl, locale) {
 		var type        = rawType ? rawType.match(/^\S+/)[0] : 'String';
 		var id          = el.attr('data-structr-id');
 		var key         = el.attr('data-structr-attr');
-		var rawVal      = el.attr('data-structr-raw-value');
+		var rawVal      = !collect ? el.attr('data-structr-raw-value') : undefined;
 		var placeholder = el.attr('data-structr-placeholder');
 		var format      =  (rawType && rawType.contains(' ')) ? rawType.replace(type + ' ', '') : el.attr('data-structr-format');
 		var val;
@@ -699,7 +700,12 @@ function StructrApp(baseUrl, locale) {
 			if (el.is('input')) {
 				val = el.is(':checked');
 			} else {
-				val = (rawVal === 'true') || (el.text() === 'true');
+				if (collect) {
+					var inp = s.input(el);
+					val = inp.is(':checked');
+				} else {
+					val = (rawVal === 'true') || (el.text() === 'true');
+				}
 			}
 		} else {
 			var inp = s.input(el);
@@ -1214,8 +1220,9 @@ function textarea(f) {
 function inputField(f) {
 	var size = (f.val ? f.val.length : (f.type && f.type === 'Date' ? 25 : f.key.length));
 	return '<input data-structr-id="' + f.id + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + (f.format ? ' data-structr-format="' + f.format + '"' : '') + '" data-structr-name="' + f.key + '" data-structr-type="' + f.type + '" type="text" placeholder="' + (f.placeholder ? f.placeholder : '')
-			+ '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
-			+ '" size="' + size + '">';
+		+ '" data-structr-raw-value="' + escapeForHtmlAttributes(f.rawVal === 'null' ? '' : f.rawVal)
+		+ '" value="' + escapeForHtmlAttributes(f.val === 'null' ? '' : f.val)
+		+ '" size="' + size + '">';
 }
 
 function field(f) {
