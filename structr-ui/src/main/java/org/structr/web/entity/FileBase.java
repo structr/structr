@@ -692,6 +692,10 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				startNewThread(() -> {
 
 					final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
+
+					// do not send websocket notifications for created objects
+					threadContext.setDoTransactionNotifications(false);
+
 					final App app                       = StructrApp.getInstance(threadContext);
 
 					try (final InputStream is = getInputStream()) {
@@ -728,6 +732,8 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 								data.put("text", "Finished importing chunk " + ++chunks);
 								data.put("username", threadContext.getUser(false).getName());
 								TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+
+								logger.info("CSV: Finished importing chunk {}", chunks);
 							}
 						}
 
@@ -794,6 +800,10 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			startNewThread(() -> {
 
 				final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
+
+				// do not send websocket notifications for created objects
+				threadContext.setDoTransactionNotifications(false);
+
 				final App app                       = StructrApp.getInstance(threadContext);
 				int overallCount                    = 0;
 
