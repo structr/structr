@@ -425,12 +425,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 				if (getProperty(isTemplate)) {
 
-					boolean userIsAdmin = false;
-					final Principal requestingUser = securityContext.getUser(false);
-					if (requestingUser != null) {
-						userIsAdmin = requestingUser.getProperty(Principal.isAdmin);
-					}
-
 					boolean editModeActive = false;
 					if (securityContext.getRequest() != null) {
 						final String editParameter = securityContext.getRequest().getParameter("edit");
@@ -439,7 +433,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 						}
 					}
 
-					if (!userIsAdmin || (userIsAdmin && !editModeActive)) {
+					if (!editModeActive) {
 
 						final String content = IOUtils.toString(fis, "UTF-8");
 
@@ -483,6 +477,12 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	public FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append) {
 
+		if (getProperty(isTemplate)) {
+			
+			logger.error("File is in template mode, no write access allowed: {}", path);
+			return null;
+		}
+		
 		final String path = getRelativeFilePath();
 		if (path != null) {
 
