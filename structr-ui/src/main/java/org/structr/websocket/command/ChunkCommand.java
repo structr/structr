@@ -81,6 +81,14 @@ public class ChunkCommand extends AbstractCommand {
 
 			final FileBase file = (FileBase) getNode(uuid);
 
+			if (file.getProperty(FileBase.isTemplate)) {
+
+				logger.warn("No write permission, file is in template mode: {}", new Object[] {file.toString()});
+				getWebSocket().send(MessageBuilder.status().message("No write permission, file is in template mode").code(400).build(), true);
+				return;
+
+			}
+
 			if (!file.isGranted(Permission.write, securityContext)) {
 
 				logger.warn("No write permission for {} on {}", new Object[] {getWebSocket().getCurrentUser().toString(), file.toString()});

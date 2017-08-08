@@ -1320,7 +1320,7 @@ var _Files = {
 				if (Structr.isButtonDisabled(button)) {
 					return;
 				}
-				element.append('<div class="editor"></div>');
+				element.append('<div class="editor"></div><div id="template-preview"><textarea readonly></textarea></div>');
 				var contentBox = $('.editor', element);
 				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 				editor = CodeMirror(contentBox.get(0), {
@@ -1342,6 +1342,7 @@ var _Files = {
 					var scrollInfo = editor.getScrollInfo();
 					LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
 				});
+				
 				editor.id = file.id;
 
 				dialogBtn.children('#saveFile').remove();
@@ -1351,7 +1352,7 @@ var _Files = {
 				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
 				dialogMeta.html(h);
 
-				Structr.appendInfoTextToElement("Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. Administrators will always see the source code in this editor. To see a preview, please open the file in a new tab.", dialogMeta);
+				Structr.appendInfoTextToElement("Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.", dialogMeta);
 
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
@@ -1367,18 +1368,17 @@ var _Files = {
 
 				$('#isTemplate').on('change', function() {
 					var inp = $(this);
-					_Entities.setProperty(file.id, 'isTemplate', inp.is(':checked'), false, function() {
-						$.ajax({
-							url: url,
-							//async: false,
-							dataType: dataType,
-							contentType: contentType,
-							success: function(data) {
-								fileContents[file.id] = data;
-								editor.getDoc().setValue(data);
-								editor.refresh();
-							}
-						});
+					var active = inp.is(':checked');
+					_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
+						if (active) {
+							_Files.updateTemplatePreview(element, url, dataType, contentType);
+						} else {
+							var previewArea = $('#template-preview');
+							previewArea.hide();
+							$('textarea', previewArea).val('');
+							var contentBox = $('.editor', element);
+							contentBox.width('inherit');
+						}
 					});
 				});
 
@@ -1397,19 +1397,45 @@ var _Files = {
 						dialogSaveButton.prop("disabled", false).removeClass('disabled');
 						saveAndClose.prop("disabled", false).removeClass('disabled');
 					}
+					
 				});
 
 				$('button#saveFile', dialogBtn).on('click', function(e) {
-					e.preventDefault();
-					e.stopPropagation();
-					var newText = editor.getValue();
-					if (text === newText) {
-						return;
+					
+					var isTemplate = $('#isTemplate').is(':checked');
+					
+					if (isTemplate) {
+						$('#isTemplate').prop('checked', false);
+						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
+
+							e.preventDefault();
+							e.stopPropagation();
+							var newText = editor.getValue();
+							if (text === newText) {
+								return;
+							}
+							_Files.updateTextFile(file, newText);
+							text = newText;
+							dialogSaveButton.prop("disabled", true).addClass('disabled');
+							saveAndClose.prop("disabled", true).addClass('disabled');
+							
+							$('#isTemplate').click();
+							
+						});
+					
+					} else {
+						e.preventDefault();
+						e.stopPropagation();
+						var newText = editor.getValue();
+						if (text === newText) {
+							return;
+						}
+						_Files.updateTextFile(file, newText);
+						text = newText;
+						dialogSaveButton.prop("disabled", true).addClass('disabled');
+						saveAndClose.prop("disabled", true).addClass('disabled');
 					}
-					_Files.updateTextFile(file, newText);
-					text = newText;
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
+
 				});
 
 				saveAndClose.on('click', function(e) {
@@ -1424,12 +1450,29 @@ var _Files = {
 
 				_Files.resize();
 
+				if (file.isTemplate) {
+					_Files.updateTemplatePreview(element, url, dataType, contentType);
+				}
 			},
 			error: function(xhr, statusText, error) {
 				console.log(xhr, statusText, error);
 			}
 		});
 
+	},
+	updateTemplatePreview: function(element, url, dataType, contentType) {
+		$.ajax({
+			url: url.substr(0, url.indexOf('?')),
+			dataType: dataType,
+			contentType: contentType,
+			success: function(data) {
+				var contentBox = $('.editor', element);
+				contentBox.width('50%');
+				var previewArea = $('#template-preview');
+				$('textarea', previewArea).val(data);
+				previewArea.show();
+			}
+		});
 	},
 	isArchive: function(file) {
 		var contentType = file.contentType;
