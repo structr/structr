@@ -155,12 +155,15 @@ public class SourcePattern extends AbstractNode {
 					ActionContext ctx = new ActionContext(securityContext);
 					ctx.setConstant("input", convertedValue);
 					convertedValue = Scripting.evaluate(ctx, null, "${" + mappedAttributeFunction + "}", " virtual property " + mappedAttribute);
-				}						
-
-				final PropertyConverter inputConverter = key.inputConverter(securityContext);
 				
-				if (inputConverter != null) {
-					convertedValue = inputConverter.convert(convertedValue);
+				} else {				
+
+					// if no custom transformation is given, try input converter
+					final PropertyConverter inputConverter = key.inputConverter(securityContext);
+				
+					if (inputConverter != null) {
+						convertedValue = inputConverter.convert(convertedValue);
+					}
 				}
 				
 				obj.setProperty(key, convertedValue);

@@ -686,10 +686,13 @@ var _Crawler = {
 				+ '<th>Selector</th>'
 				+ '<th>Mapped Type</th>'
 				+ '<th>Mapped Attribute</th>'
-				+ '<th>Transformation Function</th>'
+				+ '<th class="transform-head">Transformation Function</th>'
 				+ '<th>Actions</th>'
 				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
 		}
+		
+		var helpText = 'Specify optional StructrScript expression here to transform the input value. The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Examples</b>:<br>parse_number(input)<br>parse_date(input, \'dd.MM.yyyy\')';
+		Structr.appendInfoTextToElement(helpText, $('th.transform-head', crawlerList), {marginLeft: "2px"});
 
 		$('.breadcrumb-entry').click(function (e) {
 			e.preventDefault();
@@ -728,8 +731,8 @@ var _Crawler = {
 				+ '<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
 				+ '<td><div id="id_' + subPattern.id + '" data-structr_type="item" class="node item"><b title="' +  (name ? name : '[unnamed]') + '" class="name_">' + (name ? fitStringToWidth(name, 200) : '[unnamed]') + '</b></td>'
 				+ '<td><div data-raw-value="' + (subPattern.selector || '') + '" class="editable sub-selector">' + (subPattern.selector || '<span class="placeholder">click to edit</span>') + '</div></td>'
-				+ '<td><div title="' + (subPattern.mappedType || '') + '" class="editable mappedType_">' + (subPattern.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>'
-				+ '<td><div title="' + (subPattern.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (subPattern.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>'
+				+ '<td><div title="' + (subPattern.mappedType || '') + '" class="editable mappedType_"></div></td>'
+				+ '<td><div title="' + (subPattern.mappedAttribute || '') + '" class="editable mappedAttribute_"></div></td>'
 				+ '<td><div title="' + (subPattern.mappedAttributeFunction || '') + '" class="editable mappedAttributeFunction_">' + (subPattern.mappedAttributeFunction || '<span class="placeholder">click to edit</span>') + '</div></td>'
 //				+ '<td><div title="' + (subPattern.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (subPattern.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>'
 //				+ '<td><div title="' + (subPattern.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (subPattern.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>'
@@ -744,30 +747,57 @@ var _Crawler = {
 				});
 			}
 
-			row.find('.mappedType_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable($('tr#row' + subPattern.id), subPattern.id, '.mappedType_', 'mappedType', 200);
-			});
+			// target selection
+			//row.find('.mappedType_').append('<select class="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
+			row.find('.mappedAttribute_').append('<select class="property-select"></select>');
 
-			row.find('.mappedAttribute_').on('click', function(e) {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttribute_', 'mappedAttribute', 200);
-			});
+			var propertySelector   = row.find('.property-select');
+			
+			var updatePropertySelector = function(type) {
 
+				var blacklist = [
+					'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
+					'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
+					'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+				];
+
+				propertySelector.empty();
+
+				propertySelector.append('<option value="" disabled="disabled" selected="selected">Select target attribute..</option>');
+
+				$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+
+					if (typeInfo && typeInfo.result) {
+
+						// sort by name
+						typeInfo.result.sort(function(a, b) {
+							return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
+						});
+
+						typeInfo.result.forEach(function(r) {
+							if (blacklist.indexOf(r.jsonName) === -1) {
+								propertySelector.append('<option ' + (subPattern.mappedAttribute === r.jsonName ? 'selected ' : '') + 'value="' + r.jsonName + '">' + r.jsonName + '</option>');
+							}
+						});
+					}
+
+				});
+			}
+
+			updatePropertySelector(d.mappedType);
+
+			propertySelector.on('change', function() {
+				var newAttr = $(this).val();
+				_Entities.setProperty(subPattern.id, 'mappedAttribute', newAttr, false, function() {
+					blinkGreen(row);
+				});
+
+			});
+				
 			row.find('.mappedAttributeFunction_').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
 			});
-
-//			row.find('.mappedAttributeLocale_').on('click', function(e) {
-//				e.stopPropagation();
-//				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
-//			});
-//
-//			row.find('.mappedAttributeFormat_').on('click', function(e) {
-//				e.stopPropagation();
-//				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
-//			});
 
 			var div = Structr.node(subPattern.id);
 			_Entities.appendAccessControlIcon(div, d);
@@ -807,42 +837,90 @@ var _Crawler = {
 
 			+ (d.sourcePage.isLoginPage ?
 				  '<td><div title="' + (d.inputValue || '') + '" class="editable inputValue_">' + (d.inputValue || '<span class="placeholder">click to edit</span>') + '</div></td>'
-				: '<td><div title="' + (d.mappedType || '') + '" class="editable mappedType_">' + (d.mappedType || '<span class="placeholder">click to edit</span>') + '</div></td>')
-			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttribute || '') + '" class="editable mappedAttribute_">' + (d.mappedAttribute || '<span class="placeholder">click to edit</span>') + '</div></td>')
+				: '<td><div title="' + (d.mappedType || '') + '" class="editable mappedType_"></div></td>')
+//			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttribute || '') + '" class="editable mappedAttribute_"></div></td>')
+			+ (d.sourcePage.isLoginPage ? '' : '<td></td>')
 			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFunction || '') + '" class="editable mappedAttributeFunction_">' + (d.mappedAttributeFunction || '<span class="placeholder">click to edit</span>') + '</div></td>')
 //			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeLocale || '') + '" class="editable mappedAttributeLocale_">' + (d.mappedAttributeLocale || '<span class="placeholder">click to edit</span>') + '</div></td>')
 //			+ (d.sourcePage.isLoginPage ? '' : '<td><div title="' + (d.mappedAttributeFormat || '') + '" class="editable mappedAttributeFormat_">' + (d.mappedAttributeFormat || '<span class="placeholder">click to edit</span>') + '</div></td>')
 			+ (d.sourcePage.isLoginPage ? '<td></td>' : '<td></td><td><button class="extract">Extract</button></td>'));
+
+		// target selection
+		row.find('.mappedType_').append('<select class="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
+		row.find('.mappedAttribute_').append('<select class="property-select"></select>');
+
+		var targetTypeSelector = row.find('.target-type-select');
+		var propertySelector   = row.find('.property-select');
+
+		
+		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+
+			if (data && data.result) {
+				data.result.forEach(function(r) {
+					targetTypeSelector.append('<option ' + (d.mappedType === r.name ? 'selected ' : '') + 'value="' + r.name + '">' + r.name + '</option>');
+				});
+			}
+		});
+
+		var updatePropertySelector = function(type) {
+
+			var blacklist = [
+				'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
+				'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
+				'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+			];
+			
+			propertySelector.empty();
+			
+			propertySelector.append('<option value="" disabled="disabled" selected="selected">Select target attribute..</option>');
+			
+			$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+
+				if (typeInfo && typeInfo.result) {
+
+					// sort by name
+					typeInfo.result.sort(function(a, b) {
+						return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
+					});
+					
+					typeInfo.result.forEach(function(r) {
+						if (blacklist.indexOf(r.jsonName) === -1) {
+							propertySelector.append('<option ' + (d.mappedAttribute === r.jsonName ? 'selected ' : '') + 'value="' + r.jsonName + '">' + r.jsonName + '</option>');
+						}
+					});
+				}
+				
+			});
+		}
+
+		updatePropertySelector(d.mappedType);
+
+		targetTypeSelector.on('change', function() {
+			var newType = $(this).val();
+			_Entities.setProperty(d.id, 'mappedType', newType, false, function() {
+				blinkGreen(row);
+				updatePropertySelector(newType);
+			});
+			
+		});
+
+		propertySelector.on('change', function() {
+			var newAttr = $(this).val();
+			_Entities.setProperty(d.id, 'mappedAttribute', newAttr, false, function() {
+				blinkGreen(row);
+			});
+			
+		});
 
 		row.find('.inputValue_').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(row, d.id, '.inputValue_', 'inputValue', 200);
 		});
 
-		row.find('.mappedType_').on('click', function(e) {
-			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.mappedType_', 'mappedType', 200);
-		});
-
-		row.find('.mappedAttribute_').on('click', function(e) {
-			e.stopPropagation();
-			_Entities.makeAttributeEditable(row, d.id, '.mappedAttribute_', 'mappedAttribute', 200);
-		});
-
 		row.find('.mappedAttributeFunction_').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
 		});
-
-//		row.find('.mappedAttributeLocale_').on('click', function(e) {
-//			e.stopPropagation();
-//			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeLocale_', 'mappedAttributeLocale', 200);
-//		});
-//
-//		row.find('.mappedAttributeFormat_').on('click', function(e) {
-//			e.stopPropagation();
-//			_Entities.makeAttributeEditable(row, d.id, '.mappedAttributeFormat_', 'mappedAttributeFormat', 200);
-//		});
 
 		var div = Structr.node(d.id);
 
