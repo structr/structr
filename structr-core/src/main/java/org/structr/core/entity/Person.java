@@ -59,11 +59,11 @@ public class Person extends AbstractNode {
 	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter").cmis();
 
 	public static final View publicView = new View(Person.class, PropertyView.Public,
-		name, salutation, firstName, middleNameOrInitial, lastName, twitterName, eMail, zipCode, city, state, country
+		id, name, salutation, firstName, middleNameOrInitial, lastName, twitterName, eMail, zipCode, city, state, country
 	);
 
 	public static final View uiView = new View(Person.class, PropertyView.Ui,
-		name, salutation, firstName, middleNameOrInitial, lastName, twitterName, eMail, zipCode, city, state, country
+		id, name, salutation, firstName, middleNameOrInitial, lastName, twitterName, eMail, eMail2, phoneNumber1, phoneNumber2, faxNumber1, faxNumber2, zipCode, city, state, country, birthday, gender, newsletter
 	);
 
 }
