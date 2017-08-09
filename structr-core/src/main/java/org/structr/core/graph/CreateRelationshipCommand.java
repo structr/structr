@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
 
@@ -65,11 +66,11 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final Node startNode                 = fromNode.getNode();
 		final Node endNode                   = toNode.getNode();
 		final Date now                       = new Date();
+		final Principal user                 = securityContext.getCachedUser();
 
 		template.ensureCardinality(securityContext, fromNode, toNode);
 
 		// date properties need converter
-		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
 		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
 		AbstractRelationship.lastModifiedDate.setProperty(securityContext, tmp, now);
 
@@ -83,6 +84,10 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		tmp.getData().put(AbstractRelationship.visibleToAuthenticatedUsers.jsonName(), false);
 		tmp.getData().put(AbstractRelationship.cascadeDelete.jsonName(), template.getCascadingDeleteFlag());
 
+		if (user != null) {
+			tmp.getData().put(AbstractRelationship.createdBy.jsonName(), user.getUuid());
+		}
+
 		// create relationship including initial properties
 		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
 		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
@@ -91,7 +96,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			newRel.setProperties(securityContext, properties);
 
 			// notify transaction handler
-			TransactionCommand.relationshipCreated(securityContext.getCachedUser(), newRel);
+			TransactionCommand.relationshipCreated(user, newRel);
 
 			// notify relationship of its creation
 			newRel.onRelationshipCreation();
