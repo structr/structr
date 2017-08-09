@@ -120,7 +120,7 @@ public class DeleteFunction extends Function<Object, Object> implements Batchabl
 						tx.success();
 					}
 
-					logger.info("Commiting batch after {} objects", count);
+					logger.debug("Committing batch after {} objects", count);
 
 					// reset count
 					count = 0;
