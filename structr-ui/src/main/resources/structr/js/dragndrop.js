@@ -132,6 +132,10 @@ var _Dragndrop = {
 					target = {id: targetId};
 				}
 
+				if (target.type === 'Page') {
+					pageId = target.id;
+				}
+
 				_Logger.log(_LogType.DND, source, target, pageId, tag, related);
 
 				if (target.isContent && target.type !== 'Template' && source) {
