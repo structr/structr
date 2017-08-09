@@ -125,7 +125,7 @@ public class EachExpression extends Expression {
 						fex.printStackTrace();
 					}
 
-					logger.info("Commiting batch after {} objects", count);
+					logger.debug("Committing batch after {} objects", count);
 
 					// reset count
 					count = 0;
