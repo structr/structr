@@ -44,12 +44,13 @@ public class TestOne extends AbstractNode {
 	public static final Property<Double>        aDouble            = new DoubleProperty("aDouble").indexed().indexedWhenEmpty();
 	public static final Property<Date>          aDate              = new ISO8601DateProperty("aDate").indexed().indexedWhenEmpty();
 	public static final Property<String>        aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
+	public static final Property<String>        htmlString         = new StringProperty("htmlString");
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
-		name, anInt, aDouble, aLong, aDate, createdDate, aString
+		name, anInt, aDouble, aLong, aDate, createdDate, aString, htmlString
 	);
 
 	public static final View uiView = new View(TestOne.class, PropertyView.Ui,
-		name, anInt, aDouble, aLong, aDate, createdDate, aString
+		name, anInt, aDouble, aLong, aDate, createdDate, aString, htmlString
 	);
 }

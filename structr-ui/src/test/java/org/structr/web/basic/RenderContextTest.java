@@ -364,6 +364,7 @@ public class RenderContextTest extends StructrUiTest {
 		DOMNode a                       = null;
 		DOMNode div4                    = null;
 		DOMNode p4                      = null;
+		TestOne testOne                 = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -562,6 +563,17 @@ public class RenderContextTest extends StructrUiTest {
 
 			// test values() with single parameter
 			assertEquals("Invalid values() result", "[test]", Scripting.replaceVariables(ctx, page, "${values(from_json('{name:test}'))}"));
+
+			testOne = createTestNode(TestOne.class);
+			testOne.setProperty(TestOne.htmlString, "<a b=\"c\">&d</a>");
+
+			// escape_html
+			assertEquals("Invalid escape_html() result", "&lt;a b=&quot;c&quot;&gt;&amp;d&lt;/a&gt;", Scripting.replaceVariables(ctx, testOne, "${escape_html(this.htmlString)}"));
+
+			testOne.setProperty(TestOne.htmlString, "&lt;a b=&quot;c&quot;&gt;&amp;d&lt;/a&gt;");
+			
+			// unescape_html
+			assertEquals("Invalid unescape_html() result", "<a b=\"c\">&d</a>", Scripting.replaceVariables(ctx, testOne, "${unescape_html(this.htmlString)}"));
 
 			tx.success();
 

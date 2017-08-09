@@ -27,6 +27,7 @@ import org.structr.schema.action.Actions;
 import org.structr.web.function.AddHeaderFunction;
 import org.structr.web.function.CopyFileContentsFunction;
 import org.structr.web.function.EscapeHtmlFunction;
+import org.structr.web.function.UnescapeHtmlFunction;
 import org.structr.web.function.FromJsonFunction;
 import org.structr.web.function.FromXmlFunction;
 import org.structr.web.function.GetContentFunction;
@@ -63,6 +64,7 @@ public class UiModule implements StructrModule {
 
 		// Community Edition
 		Functions.put(true, LicenseManager.Community, "escape_html",              new EscapeHtmlFunction());
+		Functions.put(true, LicenseManager.Community, "unescape_html",            new UnescapeHtmlFunction());
 		Functions.put(true, LicenseManager.Community, "strip_html",               new StripHtmlFunction());
 		Functions.put(true, LicenseManager.Community, "from_json",                new FromJsonFunction());
 		Functions.put(true, LicenseManager.Community, "to_json",                  new ToJsonFunction());

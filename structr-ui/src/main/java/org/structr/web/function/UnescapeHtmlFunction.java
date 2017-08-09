@@ -26,14 +26,14 @@ import org.structr.web.entity.dom.DOMNode;
 /**
  *
  */
-public class EscapeHtmlFunction extends Function<Object, Object> {
+public class UnescapeHtmlFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_ESCAPE_HTML    = "Usage: ${escape_html(text)}. Example: ${escape_html(\"test & test\")}";
-	public static final String ERROR_MESSAGE_ESCAPE_HTML_JS = "Usage: ${{Structr.escape_html(text)}}. Example: ${{Structr.escape_html(\"test & test\")}}";
+	public static final String ERROR_MESSAGE_UNESCAPE_HTML    = "Usage: ${unescape_html(text)}. Example: ${unescape_html(\"test &amp; test\")}";
+	public static final String ERROR_MESSAGE_UNESCAPE_HTML_JS = "Usage: ${{Structr.unescape_html(text)}}. Example: ${{Structr.unescape_html(\"test &amp; test\")}}";
 
 	@Override
 	public String getName() {
-		return "escape_html()";
+		return "unescape_html()";
 	}
 
 	@Override
@@ -43,25 +43,24 @@ public class EscapeHtmlFunction extends Function<Object, Object> {
 			
 			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
 				
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-				return usage(ctx.isJavaScriptContext());
+				return null;
 			}
 
-			return DOMNode.escapeForHtmlAttributes(sources[0].toString());
+			return DOMNode.unescapeForHtmlAttributes(sources[0].toString());
 
-		} catch (final Throwable e) {
+		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			
-			return null;
+
+			return usage(ctx.isJavaScriptContext());
+
 		}
 
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ESCAPE_HTML_JS : ERROR_MESSAGE_ESCAPE_HTML);
+		return (inJavaScriptContext ? ERROR_MESSAGE_UNESCAPE_HTML_JS : ERROR_MESSAGE_UNESCAPE_HTML);
 	}
 
 	@Override
