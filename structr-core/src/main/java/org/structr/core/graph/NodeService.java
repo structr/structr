@@ -20,11 +20,12 @@ package org.structr.core.graph;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Iterator;
+import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.NativeResult;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
@@ -36,7 +37,6 @@ import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 
@@ -92,7 +92,7 @@ public class NodeService implements SingletonService {
 				files.mkdir();
 			}
 
-			logger.info("Database driver loaded.");
+			logger.info("Database driver loaded, initializing indexes..");
 
 			// index creation transaction
 			try ( final Transaction tx = graphDb.beginTx() ) {
@@ -104,6 +104,8 @@ public class NodeService implements SingletonService {
 
 				// if the above operations fail, the database is probably not available
 				isInitialized = true;
+
+				logger.info("Indexes successfully initialized.");
 
 			} catch (Throwable t) {
 
@@ -222,21 +224,17 @@ public class NodeService implements SingletonService {
 
 		if (seedFile.exists()) {
 
-			boolean hasApplicationNodes   = false;
+			boolean hasApplicationNodes = false;
+
+			logger.info("Checking if seed file should be imported..");
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final Iterator<Node> allNodes = graphDb.getAllNodes().iterator();
-				final String idName           = GraphObject.id.dbName();
+				// do two very quick count queries to determine the number of Structr nodes in the database
+				final int abstractNodeCount  = getCount("MATCH (n:AbstractNode) RETURN count(n) AS count", "count");
+				final int nodeInterfaceCount = getCount("MATCH (n:NodeInterface) RETURN count(n) AS count", "count");
 
-				while (allNodes.hasNext()) {
-
-					if (allNodes.next().hasProperty(idName)) {
-
-						hasApplicationNodes = true;
-						break;
-					}
-				}
+				hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
 
 				tx.success();
 
@@ -255,7 +253,29 @@ public class NodeService implements SingletonService {
 					logger.warn("Unable to import initial seed file.", fex);
 				}
 			}
+
+			logger.info("Done.");
 		}
+	}
+
+	private int getCount(final String query, final String resultKey) {
+
+		final NativeResult result = graphDb.execute(query);
+		if (result.hasNext()) {
+
+			final Map<String, Object> row = result.next();
+			if (row.containsKey(resultKey)) {
+
+				final Object value = row.get(resultKey);
+				if (value != null && value instanceof Number) {
+
+					final Number number = (Number)value;
+					return number.intValue();
+				}
+			}
+		}
+
+		return 0;
 	}
 
 	// ----- interface Feature -----

@@ -174,7 +174,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	// <editor-fold defaultstate="collapsed" desc="private methods">
 	protected List<S> read(final Iterable<S> iterable) {
 
-		final List<S> nodes  = new LinkedList();
+		final List<S> nodes  = new ArrayList();
 		final Iterator<S> it = iterable.iterator();
 
 		while (it.hasNext()) {
