@@ -18,16 +18,33 @@
  */
 package org.structr.transform;
 
+import com.google.gson.Gson;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.ResultTransformer;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.schema.action.Actions;
@@ -36,6 +53,8 @@ import org.structr.schema.action.Actions;
  *
  */
 public class APIBuilderModule implements StructrModule, APIBuilder {
+
+	private static final Logger logger = LoggerFactory.getLogger(APIBuilderModule.class.getName());
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
@@ -72,6 +91,102 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 	@Override
 	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
+	}
+
+	@Override
+	public boolean hasDeploymentData () {
+		return true;
+	}
+
+	@Override
+	public void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
+
+		final App app                                = StructrApp.getInstance();
+		final Path virtualTypesFile                  = target.resolve("virtual-types.json");
+		final List<Map<String, Object>> virtualTypes = new LinkedList();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final VirtualType virtualType : app.nodeQuery(VirtualType.class).sort(VirtualType.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				virtualTypes.add(entry);
+
+				entry.put("name",             virtualType.getProperty(VirtualType.name));
+				entry.put("sourceType",       virtualType.getProperty(VirtualType.sourceType));
+				entry.put("position",         virtualType.getProperty(VirtualType.position));
+				entry.put("filterExpression", virtualType.getProperty(VirtualType.filterExpression));
+
+				final List<Map<String, Object>> properties = new LinkedList();
+				entry.put("properties", properties);
+
+				for (final VirtualProperty virtualProperty : virtualType.getProperty(VirtualType.properties)) {
+
+					final Map<String, Object> virtualPropEntry = new TreeMap<>();
+					properties.add(virtualPropEntry);
+
+					virtualPropEntry.put("sourceName",     virtualProperty.getProperty(VirtualProperty.sourceName));
+					virtualPropEntry.put("targetName",     virtualProperty.getProperty(VirtualProperty.targetName));
+					virtualPropEntry.put("inputFunction",  virtualProperty.getProperty(VirtualProperty.inputFunction));
+					virtualPropEntry.put("outputFunction", virtualProperty.getProperty(VirtualProperty.outputFunction));
+					virtualPropEntry.put("position",       virtualProperty.getProperty(VirtualProperty.position));
+
+				}
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(virtualTypesFile.toFile()))) {
+
+			gson.toJson(virtualTypes, fos);
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
+	@Override
+	public void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
+
+		final Path virtualTypesConf = source.resolve("virtual-types.json");
+		if (Files.exists(virtualTypesConf)) {
+
+			logger.info("Reading {}..", virtualTypesConf);
+
+			try (final Reader reader = Files.newBufferedReader(virtualTypesConf, Charset.forName("utf-8"))) {
+
+				final List<Map<String, Object>> virtualTypes = gson.fromJson(reader, List.class);
+
+				final SecurityContext context = SecurityContext.getSuperUserInstance();
+				context.setDoTransactionNotifications(false);
+
+				final App app                 = StructrApp.getInstance(context);
+
+				try (final Tx tx = app.tx()) {
+
+					for (final VirtualType toDelete : app.nodeQuery(VirtualType.class).getAsList()) {
+						app.delete(toDelete);
+					}
+
+					for (final VirtualProperty toDelete : app.nodeQuery(VirtualProperty.class).getAsList()) {
+						app.delete(toDelete);
+					}
+
+					for (final Map<String, Object> entry : virtualTypes) {
+
+						final PropertyMap map = PropertyMap.inputTypeToJavaType(context, VirtualType.class, entry);
+
+						app.create(VirtualType.class, map);
+					}
+
+					tx.success();
+				}
+
+			} catch (IOException ioex) {
+				logger.warn("", ioex);
+			}
+		}
 	}
 
 	// ----- interface APIBuilder -----

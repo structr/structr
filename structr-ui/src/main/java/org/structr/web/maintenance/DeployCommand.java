@@ -34,16 +34,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -74,6 +71,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.module.StructrModule;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -114,7 +112,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private static final Logger logger                   = LoggerFactory.getLogger(DeployCommand.class.getName());
 	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
-	private static final Set<String> exportFileTypes     = new HashSet<>(Arrays.asList(new String[] { "File", "Folder", "Image" } ));
 
 	static {
 
@@ -351,6 +348,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
+
+		for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+
+			if (module.hasDeploymentData()) {
+
+				logger.info("Importing deployment data for module {}", module.getName());
+
+				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
+
+				module.importDeploymentData(moduleFolder, getGson());
+
+			}
+
+		}
+
+
+
 		// construct paths
 		final Path templates  = source.resolve("templates");
 		final Path components = source.resolve("components");
@@ -476,6 +490,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path schema         = Files.createDirectories(target.resolve("schema"));
 			final Path security       = Files.createDirectories(target.resolve("security"));
 			final Path templates      = Files.createDirectories(target.resolve("templates"));
+			final Path modules        = Files.createDirectories(target.resolve("modules"));
 			final Path schemaJson     = schema.resolve("schema.json");
 			final Path grants         = security.resolve("grants.json");
 			final Path filesConf      = target.resolve("files.json");
@@ -497,6 +512,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportMailTemplates(mailTemplates);
 			exportLocalizations(localizations);
 			exportWidgets(widgets);
+
+			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+
+				if (module.hasDeploymentData()) {
+					logger.info("Exporting deployment data for module {}", module.getName());
+
+					final Path moduleFolder = Files.createDirectories(modules.resolve(module.getName()));
+					module.exportDeploymentData(moduleFolder, getGson());
+				}
+
+			}
 
 			// config import order is "users, grants, pages, components, templates"
 			// data import order is "schema, files, templates, components, pages"
@@ -1031,7 +1057,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-		private void exportWidgets(final Path target) throws FrameworkException {
+	private void exportWidgets(final Path target) throws FrameworkException {
 
 		final List<Map<String, Object>> widgets = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
@@ -1138,9 +1164,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private List<Map<String, Object>> readConfigList(final Path pagesConf) {
+	private List<Map<String, Object>> readConfigList(final Path conf) {
 
-		try (final Reader reader = Files.newBufferedReader(pagesConf, Charset.forName("utf-8"))) {
+		try (final Reader reader = Files.newBufferedReader(conf, Charset.forName("utf-8"))) {
 
 			return getGson().fromJson(reader, List.class);
 
@@ -1150,37 +1176,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		return Collections.emptyList();
 	}
-
-//	private <T extends NodeInterface> void importMapData(final Class<T> type, final Map<String, Object> data) throws FrameworkException {
-//
-//		final SecurityContext context = SecurityContext.getSuperUserInstance();
-//		final App app                 = StructrApp.getInstance();
-//
-//		try (final Tx tx = app.tx()) {
-//
-//			for (final T toDelete : app.nodeQuery(type).getAsList()) {
-//				app.delete(toDelete);
-//			}
-//
-//			for (final Entry<String, Object> entry : data.entrySet()) {
-//
-//				final String key = entry.getKey();
-//				final Object val = entry.getValue();
-//
-//				if (val instanceof Map) {
-//
-//					final Map<String, Object> values = (Map<String, Object>)val;
-//					final PropertyMap properties     = PropertyMap.inputTypeToJavaType(context, type, values);
-//
-//					properties.put(AbstractNode.name, key);
-//
-//					app.create(type, properties);
-//				}
-//			}
-//
-//			tx.success();
-//		}
-//	}
 
 	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
 
