@@ -118,6 +118,10 @@ public class IncludeFunction extends Function<Object, Object> {
 					node.render(innerCtx, 0);
 				}
 
+				if (innerCtx.appLibRendered()) {
+					((RenderContext)ctx).setAppLibRendered(true);
+				}
+
 			} else {
 
 				final FileBase file = app.nodeQuery(FileBase.class).andName((String)sources[0]).getFirst();
