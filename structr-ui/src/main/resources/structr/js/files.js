@@ -1342,7 +1342,7 @@ var _Files = {
 					var scrollInfo = editor.getScrollInfo();
 					LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
 				});
-				
+
 				editor.id = file.id;
 
 				dialogBtn.children('#saveFile').remove();
@@ -1352,7 +1352,10 @@ var _Files = {
 				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
 				dialogMeta.html(h);
 
-				Structr.appendInfoTextToElement("Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.", dialogMeta);
+				Structr.appendInfoTextToElement({
+					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
+					element: dialogMeta
+				});
 
 				$('#lineWrapping').on('change', function() {
 					var inp = $(this);
@@ -1397,13 +1400,13 @@ var _Files = {
 						dialogSaveButton.prop("disabled", false).removeClass('disabled');
 						saveAndClose.prop("disabled", false).removeClass('disabled');
 					}
-					
+
 				});
 
 				$('button#saveFile', dialogBtn).on('click', function(e) {
-					
+
 					var isTemplate = $('#isTemplate').is(':checked');
-					
+
 					if (isTemplate) {
 						$('#isTemplate').prop('checked', false);
 						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
@@ -1418,11 +1421,11 @@ var _Files = {
 							text = newText;
 							dialogSaveButton.prop("disabled", true).addClass('disabled');
 							saveAndClose.prop("disabled", true).addClass('disabled');
-							
+
 							$('#isTemplate').click();
-							
+
 						});
-					
+
 					} else {
 						e.preventDefault();
 						e.stopPropagation();

@@ -166,7 +166,13 @@ var Importer = {
 				propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
 				var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
-				Structr.appendInfoTextToElement(helpText, $('th.transform-head', propertySelector), {marginLeft: "2px"});
+				Structr.appendInfoTextToElement({
+					text: helpText,
+					element: $('th.transform-head', propertySelector),
+					css: {
+						marginLeft: "2px"
+					}
+				});
 
 				if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
 

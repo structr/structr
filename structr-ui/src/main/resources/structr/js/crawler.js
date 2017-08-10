@@ -690,9 +690,15 @@ var _Crawler = {
 				+ '<th>Actions</th>'
 				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
 		}
-		
+
 		var helpText = 'Specify optional StructrScript expression here to transform the input value. The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Examples</b>:<br>parse_number(input)<br>parse_date(input, \'dd.MM.yyyy\')';
-		Structr.appendInfoTextToElement(helpText, $('th.transform-head', crawlerList), {marginLeft: "2px"});
+		Structr.appendInfoTextToElement({
+			text: helpText,
+			element: $('th.transform-head', crawlerList),
+			css: {
+				marginLeft: "2px"
+			}
+		});
 
 		$('.breadcrumb-entry').click(function (e) {
 			e.preventDefault();
@@ -752,7 +758,7 @@ var _Crawler = {
 			row.find('.mappedAttribute_').append('<select class="property-select"></select>');
 
 			var propertySelector   = row.find('.property-select');
-			
+
 			var updatePropertySelector = function(type) {
 
 				var blacklist = [
@@ -793,7 +799,7 @@ var _Crawler = {
 				});
 
 			});
-				
+
 			row.find('.mappedAttributeFunction_').on('click', function(e) {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(row, subPattern.id, '.mappedAttributeFunction_', 'mappedAttributeFunction', 200);
@@ -852,7 +858,7 @@ var _Crawler = {
 		var targetTypeSelector = row.find('.target-type-select');
 		var propertySelector   = row.find('.property-select');
 
-		
+
 		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
 
 			if (data && data.result) {
@@ -869,11 +875,11 @@ var _Crawler = {
 				'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
 				'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 			];
-			
+
 			propertySelector.empty();
-			
+
 			propertySelector.append('<option value="" disabled="disabled" selected="selected">Select target attribute..</option>');
-			
+
 			$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 				if (typeInfo && typeInfo.result) {
@@ -882,14 +888,14 @@ var _Crawler = {
 					typeInfo.result.sort(function(a, b) {
 						return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
 					});
-					
+
 					typeInfo.result.forEach(function(r) {
 						if (blacklist.indexOf(r.jsonName) === -1) {
 							propertySelector.append('<option ' + (d.mappedAttribute === r.jsonName ? 'selected ' : '') + 'value="' + r.jsonName + '">' + r.jsonName + '</option>');
 						}
 					});
 				}
-				
+
 			});
 		}
 
@@ -901,7 +907,7 @@ var _Crawler = {
 				blinkGreen(row);
 				updatePropertySelector(newType);
 			});
-			
+
 		});
 
 		propertySelector.on('change', function() {
@@ -909,7 +915,7 @@ var _Crawler = {
 			_Entities.setProperty(d.id, 'mappedAttribute', newAttr, false, function() {
 				blinkGreen(row);
 			});
-			
+
 		});
 
 		row.find('.inputValue_').on('click', function(e) {

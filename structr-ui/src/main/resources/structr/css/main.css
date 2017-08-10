@@ -1121,6 +1121,10 @@ i.button {
 	background-color: #f1cd2e !important;
 }
 
+#schema-graph .label.schema-reltype-warning {
+	background: #ffbaba !important;
+}
+
 button {
 	color: #222;
 	font-weight: bold;
@@ -3960,7 +3964,7 @@ span.context-help-text {
 	max-width: 250px;
 	font-weight: normal;
 	text-align: left;
-	z-index: 1000;
+	z-index: 1012;
 }
 
 /**
