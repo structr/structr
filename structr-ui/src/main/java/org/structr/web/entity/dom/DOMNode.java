@@ -87,6 +87,7 @@ import org.structr.web.entity.dom.relationship.DOMSiblings;
 import org.structr.web.entity.relation.PageLink;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
+import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -172,8 +173,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
 	};
 
-	// a simple cache for data-* properties
-	private Set<PropertyKey> dataProperties = null;
+	// a simple cache for custom properties
+	private Set<PropertyKey> customProperties = null;
 
 	public abstract boolean isSynced();
 	public abstract boolean contentEquals(final DOMNode otherNode);
@@ -266,10 +267,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
-			if (dataProperties != null) {
+			if (customProperties != null) {
 
 				// invalidate data property cache
-				dataProperties.clear();
+				customProperties.clear();
 			}
 
 
@@ -799,7 +800,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			if (StringUtils.isNotBlank(value)) {
 
-				out.append(" ").append(key.dbName()).append("=\"").append(value).append("\"");
+				if (key instanceof CustomHtmlAttributeProperty) {
+					out.append(" ").append(((CustomHtmlAttributeProperty)key).cleanName()).append("=\"").append(value).append("\"");
+				} else {
+					out.append(" ").append(key.dbName()).append("=\"").append(value).append("\"");
+				}
 			}
 		}
 
@@ -835,21 +840,27 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	protected Set<PropertyKey> getDataPropertyKeys() {
 
-		if (dataProperties == null) {
+		if (customProperties == null) {
 
-			dataProperties = new TreeSet<>();
+			customProperties = new TreeSet<>();
 
 			final Iterable<String> props = dbNode.getPropertyKeys();
 			for (final String key : props) {
 
 				if (key.startsWith("data-")) {
 
-					dataProperties.add(StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key));
+					customProperties.add(StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key));
+
+				} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
+
+					final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key));
+
+					customProperties.add(customProp);
 				}
 			}
 		}
 
-		return dataProperties;
+		return customProperties;
 	}
 
 	protected void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
