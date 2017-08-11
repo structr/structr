@@ -548,10 +548,19 @@ var _Entities = {
 								display = true;
 							}
 
+							var displayKey = key;
+							if (key.indexOf('data-') !== 0) {
+								if (key.indexOf('_html_') === 0) {
+									displayKey = displayKey.substring(6);
+								} else if (key.indexOf('_custom_html_') === 0) {
+									displayKey = displayKey.substring(13);
+								}
+							}
+
 							if (display || key === '_html_class' || key === '_html_id') {
-								props.append('<tr><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
+								props.append('<tr><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 							} else if (key !== 'id') {
-								props.append('<tr class="hidden"><td class="key">' + key.replace(view, '') + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
+								props.append('<tr class="hidden"><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 							}
 						} else if (view === 'in' || view === 'out') {
 							if (key === 'id') {
@@ -725,8 +734,8 @@ var _Entities = {
 					});
 
 					props.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-					$('.props tr td.value input',    dialog).each(function(i, v) { _Entities.activateInput(v, id); });
-					$('.props tr td.value textarea', dialog).each(function(i, v) { _Entities.activateInput(v, id); });
+					$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id); });
+					$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id); });
 
 					if (view === '_html_') {
 						$('input[name="_html_' + focusAttr + '"]', props).focus();
@@ -933,7 +942,7 @@ var _Entities = {
 				_Logger.log(_LogType.ENTITIES, keyInput);
 				if (keyInput && keyInput.length) {
 
-					var newKey = keyInput.val();
+					var newKey = '_custom_html_' + keyInput.val();
 					var val = input.val();
 
 					// new key
