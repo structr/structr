@@ -18,8 +18,11 @@
  */
 package org.structr.module;
 
+import com.google.gson.Gson;
+import java.nio.file.Path;
 import java.util.Set;
 import org.structr.api.service.LicenseManager;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.schema.action.Actions;
 
@@ -62,4 +65,13 @@ public interface StructrModule {
 	void insertSourceCode(final AbstractSchemaNode schemaNode, final StringBuilder buf);
 	void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type);
 	Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode);
+
+
+	// ---- Deployment-specific methods
+	default public boolean hasDeploymentData () {
+		return false;
+	}
+
+	default public void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {};
+	default public void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {};
 }

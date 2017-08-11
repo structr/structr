@@ -32,7 +32,10 @@ var _DuplicateFinder = new (function () {
 			_handleDuplicatesList(data);
 
 			var doneMessage = $('<div id="no-duplicates-found"><i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" /> No more duplicates to show </div>');
-			Structr.appendInfoTextToElement("There still may be duplicates around. If you chose to ignore some duplicates or renamed files to other already existing filenames. Reopen the dialog to check for this.", doneMessage);
+			Structr.appendInfoTextToElement({
+				text: "If you chose to ignore some duplicates or renamed files to other already existing filenames, there may be some duplicates left. Reopen the dialog to check for this.",
+				element: doneMessage
+			});
 			dialogText.append(doneMessage);
 
 		});

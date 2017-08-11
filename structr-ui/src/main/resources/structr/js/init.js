@@ -1677,31 +1677,50 @@ var Structr = {
 		});
 
 	},
-	appendInfoTextToElement: function (helpText, el, css, after) {
+	appendInfoTextToElement: function (config) {
 
-		var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
-		if (css) {
-			toggleElement.css(css);
-		}
-		var helpElement = $('<span class="context-help-text">' + helpText + '</span>');
+		var element           = config.element;
+		var appendToElement   = config.appendToElement || element;
+		var text              = config.text || 'No text supplied!';
+		var toggleElementCss  = config.css || {};
+		var customToggleIcon  = config.customToggleIcon || _Icons.information_icon;
+		var insertAfter       = config.insertAfter || false;
+		var offsetX           = config.offsetX || 0;
+		var offsetY           = config.offsetY || 0;
 
-		toggleElement.on("mousemove", function(e) {
-			helpElement.show();
-			helpElement.css({
-				left: e.clientX + 20,
-				top: e.clientY + 10
-			});
-		});
-
-		toggleElement.on("mouseout", function(e) {
-			helpElement.hide();
-		});
-
-		if (after) {
-			return el.after(toggleElement).after(helpElement);
+		var customToggleElement = true;
+		var toggleElement = config.toggleElement;
+		if (!toggleElement) {
+			customToggleElement = false;
+			toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(customToggleIcon) + '"></span>');
 		}
 
-		return el.append(toggleElement).append(helpElement);
+		toggleElement.css(toggleElementCss);
+
+		var helpElement = $('<span class="context-help-text">' + text + '</span>');
+
+		toggleElement
+				.on("mousemove", function(e) {
+					helpElement.show();
+					helpElement.css({
+						left: e.clientX + 20 + offsetX,
+						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
+					});
+				}).on("mouseout", function(e) {
+					helpElement.hide();
+				});
+
+		if (insertAfter) {
+			if (!customToggleElement) {
+				element.after(toggleElement);
+			}
+			appendToElement.after(helpElement);
+		} else {
+			if (!customToggleElement) {
+				element.append(toggleElement);
+			}
+			appendToElement.append(helpElement);
+		}
 	},
 	refreshPositionsForCurrentlyActiveSortable: function () {
 

@@ -935,7 +935,15 @@ var _Crud = {
 
 					var button = $('#crud-buttons #create' + type);
 					button.attr('disabled', 'disabled').addClass('disabled');
-					Structr.appendInfoTextToElement('Action not supported for built-in relationship types', $('#crud-buttons #create' + type), { 'marginRight': '10px' }, true);
+					Structr.appendInfoTextToElement({
+						text: 'Action not supported for built-in relationship types',
+						element: $('#crud-buttons #create' + type),
+						css: {
+							marginRight: '10px'
+						},
+						offsetY: -50,
+						insertAfter: true
+					});
 
 				}
 

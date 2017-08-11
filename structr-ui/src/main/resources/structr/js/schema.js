@@ -794,7 +794,7 @@ var _Schema = {
 							],
 							["Label", {
 									cssClass: "label rel-type",
-									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '&nbsp;' : res.relationshipType)
+									label: '<div id="rel_' + res.id + '">' + (res.relationshipType === initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)
 											+ ' <i title="Edit schema relationship" class="edit icon ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '"></i>'
 											+ ' <i title="Remove schema relationship" class="remove icon ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '"></i></div>',
 									location: .5,
@@ -810,6 +810,22 @@ var _Schema = {
 							]
 						]
 					});
+
+					if (res.relationshipType === initialRelType) {
+						var relTypeOverlay = $('#rel_' + res.id);
+						relTypeOverlay.css({
+							width: "80px"
+						});
+						relTypeOverlay.parent().addClass('schema-reltype-warning');
+
+
+						Structr.appendInfoTextToElement({
+							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit mode.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
+							element: $('span', relTypeOverlay),
+							customToggleIcon: _Icons.error_icon,
+							appendToElement: $('body')
+						});
+					}
 
 					$('#rel_' + res.id).parent().on('mouseover', function() {
 						$('#rel_' + res.id + ' .icon').showInlineBlock();
