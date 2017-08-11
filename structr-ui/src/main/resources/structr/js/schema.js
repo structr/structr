@@ -211,8 +211,12 @@ var _Schema = {
 
 					$('.node').css({zIndex: ++maxZ});
 
-					instance.bind('connection', function(info) {
-						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+					instance.bind('connection', function(info, originalEvent) {
+						if (!originalEvent) {
+							_Logger.log(_LogType.SCHEMA, "Ignoring connection event in jsPlumb as it looks like it has been created programmatically");
+						} else {
+							_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+						}
 					});
 					instance.bind('connectionDetached', function(info) {
 						_Schema.askDeleteRelationship(info.connection.scope);
