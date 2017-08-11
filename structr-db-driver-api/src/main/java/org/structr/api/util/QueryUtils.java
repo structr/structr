@@ -27,10 +27,11 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
 import org.structr.api.Predicate;
+import org.structr.api.QueryResult;
 
-public class Iterables {
+public class QueryUtils {
 
-	public static <T, C extends Collection<T>> C addAll(C collection, Iterable<? extends T> iterable) {
+	public static <T, C extends Collection<T>> C addAll(C collection, QueryResult<? extends T> iterable) {
 
 		final Iterator<? extends T> iterator = iterable.iterator();
 
@@ -65,7 +66,7 @@ public class Iterables {
 		return collection;
 	}
 
-	public static long count(Iterable<?> iterable) {
+	public static long count(QueryResult<?> iterable) {
 
 		long c = 0;
 
@@ -76,11 +77,11 @@ public class Iterables {
 		return c;
 	}
 
-	public static boolean isEmpty(final Iterable<?> iterable) {
+	public static boolean isEmpty(final QueryResult<?> iterable) {
 		return !iterable.iterator().hasNext();
 	}
 
-	public static <X> Iterable<X> filter(Predicate<? super X> specification, Iterable<X> i) {
+	public static <X> QueryResult<X> filter(Predicate<? super X> specification, QueryResult<X> i) {
 		return new FilterIterable<>(i, specification);
 	}
 
@@ -88,7 +89,7 @@ public class Iterables {
 		return new FilterIterable.FilterIterator<>(i, specification);
 	}
 
-	public static <FROM, TO> Iterable<TO> map(Function<? super FROM, ? extends TO> function, Iterable<FROM> from) {
+	public static <FROM, TO> QueryResult<TO> map(Function<? super FROM, ? extends TO> function, QueryResult<FROM> from) {
 		return new MapIterable<>(from, function);
 	}
 
@@ -96,7 +97,7 @@ public class Iterables {
 		return new MapIterable.MapIterator<>(from, function);
 	}
 
-	public static <T> List<T> toList(Iterable<T> iterable) {
+	public static <T> List<T> toList(QueryResult<T> iterable) {
 		return addAll(new ArrayList<T>(), iterable);
 	}
 
@@ -115,18 +116,23 @@ public class Iterables {
 		return list;
 	}
 
-	public static <T> Set<T> toSet(Iterable<T> iterable) {
+	public static <T> Set<T> toSet(QueryResult<T> iterable) {
 		return addAll(new HashSet<T>(), iterable);
 	}
 
-	private static class MapIterable<FROM, TO> implements Iterable<TO> {
+	private static class MapIterable<FROM, TO> implements QueryResult<TO> {
 
-		private final Iterable<FROM> from;
+		private final QueryResult<FROM> from;
 		private final Function<? super FROM, ? extends TO> function;
 
-		public MapIterable(final Iterable<FROM> from, Function<? super FROM, ? extends TO> function) {
+		public MapIterable(final QueryResult<FROM> from, Function<? super FROM, ? extends TO> function) {
 			this.from = from;
 			this.function = function;
+		}
+
+		@Override
+		public void close() {
+			from.close();
 		}
 
 		@Override
@@ -164,15 +170,20 @@ public class Iterables {
 		}
 	}
 
-	private static class FilterIterable<T> implements Iterable<T> {
+	private static class FilterIterable<T> implements QueryResult<T> {
 
 		private final Predicate<? super T> specification;
-		private final Iterable<T> iterable;
+		private final QueryResult<T> iterable;
 
-		public FilterIterable(Iterable<T> iterable, Predicate<? super T> specification) {
+		public FilterIterable(QueryResult<T> iterable, Predicate<? super T> specification) {
 
 			this.specification = specification;
 			this.iterable      = iterable;
+		}
+
+		@Override
+		public void close() {
+			iterable.close();
 		}
 
 		@Override

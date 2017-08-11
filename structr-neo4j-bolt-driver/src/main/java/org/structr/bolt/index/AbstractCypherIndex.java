@@ -140,7 +140,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public Iterable<T> query(final QueryPredicate predicate) {
+	public QueryResult<T> query(final QueryPredicate predicate) {
 
 		final CypherQuery query = new CypherQuery(this);
 

@@ -36,8 +36,9 @@ import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.structr.api.NativeResult;
 import org.structr.api.NotFoundException;
+import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
-import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryUtils;
 import org.structr.bolt.mapper.RecordLongMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
 import org.structr.bolt.mapper.RecordRelationshipMapper;
@@ -238,13 +239,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public Iterable<Node> getNodes(final String statement, final Map<String, Object> map) {
+	public QueryResult<Node> getNodes(final String statement, final Map<String, Object> map) {
 
 		try {
 
 			logQuery(statement, map);
 
-			return Iterables.map(new RecordNodeMapper(), new StatementIterable(tx.run(statement, map)));
+			return QueryUtils.map(new RecordNodeMapper(), new StatementIterable(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -254,13 +255,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public Iterable<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
+	public QueryResult<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
 
 		try {
 
 			logQuery(statement, map);
 
-			return Iterables.map(new RecordRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
+			return QueryUtils.map(new RecordRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -270,13 +271,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public Iterable<Long> getIds(final String statement, final Map<String, Object> map) {
+	public QueryResult<Long> getIds(final String statement, final Map<String, Object> map) {
 
 		try {
 
 			logQuery(statement, map);
 
-			return Iterables.map(new RecordLongMapper(), new StatementIterable(tx.run(statement, map)));
+			return QueryUtils.map(new RecordLongMapper(), new StatementIterable(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -286,7 +287,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
+	public QueryResult<String> getStrings(final String statement, final Map<String, Object> map) {
 
 		try {
 
@@ -296,7 +297,18 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			final Record record = result.next();
 			final Value value = record.get(0);
 
-			return value.asList(Values.ofString());
+			return new QueryResult<String>() {
+
+				@Override
+				public void close() {
+					result.consume();
+				}
+
+				@Override
+				public Iterator<String> iterator() {
+					return value.asList(Values.ofString()).iterator();
+				}
+			};
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -370,12 +382,17 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		modifiedEntities.add(wrapper);
 	}
 
-	private class StatementIterable implements Iterable<Record> {
+	private class StatementIterable implements QueryResult<Record> {
 
 		private StatementResult result = null;
 
 		public StatementIterable(final StatementResult result) {
 			this.result = result;
+		}
+
+		@Override
+		public void close() {
+			result.consume();
 		}
 
 		@Override

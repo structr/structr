@@ -187,6 +187,17 @@ public class Services implements StructrServices {
 		// opportunity to modify the default configuration
 		getConfigurationProvider();
 
+		// do simple heap size check
+		final Runtime runtime = Runtime.getRuntime();
+		final long max        = runtime.maxMemory() / 1024 / 1024 / 1024;
+		final int processors  = runtime.availableProcessors();
+
+		logger.info("{} processors available, {} GB max heap memory", processors, max);
+		if (max < 8) {
+			logger.warn("Maximum heap size is smaller than recommended, this can lead to problems with large databases!");
+			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
+		}
+
 		logger.info("Starting services..");
 
 		// initialize other services

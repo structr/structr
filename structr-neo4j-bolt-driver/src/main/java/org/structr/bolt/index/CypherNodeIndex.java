@@ -20,7 +20,7 @@ package org.structr.bolt.index;
 
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
-import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.NodeNodeMapper;
@@ -52,6 +52,16 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	@Override
 	public QueryResult<Node> getResult(final CypherQuery query) {
 
+		final SessionTransaction tx = db.getCurrentTransaction();
+		final NodeNodeMapper mapper = new NodeNodeMapper(db);
+
+		return QueryUtils.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
+	}
+
+	/*
+	@Override
+	public QueryResult<Node> getResult(final CypherQuery query) {
+
 		final int queryHashCode  = query.getHashCode();
 		CachedQueryResult result = queryCache.get(queryHashCode);
 
@@ -70,4 +80,5 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		return result;
 	}
+	*/
 }

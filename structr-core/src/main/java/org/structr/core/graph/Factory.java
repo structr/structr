@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.FactoryDefinition;
@@ -111,8 +112,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 * @return result
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public Result instantiate(final Iterable<S> input) throws FrameworkException {
-
+	public Result instantiate(final QueryResult<S> input) throws FrameworkException {
 
 		if (input != null) {
 
@@ -185,7 +185,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result resultWithOffsetId(final Iterable<S> input) throws FrameworkException {
+	protected Result resultWithOffsetId(final QueryResult<S> input) throws FrameworkException {
 
 		final List<S> list       = Iterables.toList(input);
 		int size                 = list.size();
@@ -200,9 +200,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		// We have an offsetId, so first we need to
 		// find the node with this uuid to get the offset
 		final Iterator<S> iterator = list.iterator();
-		List<T> nodesUpToOffset = new LinkedList();
-		int i                   = 0;
-		boolean gotOffset        = false;
+		List<T> nodesUpToOffset    = new LinkedList();
+		int i                      = 0;
+		boolean gotOffset          = false;
 
 		while (iterator.hasNext()) {
 
@@ -294,7 +294,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result resultWithoutOffsetId(final Iterable<S> input) throws FrameworkException {
+	protected Result resultWithoutOffsetId(final QueryResult<S> input) throws FrameworkException {
 
 		final int pageSize = factoryProfile.getPageSize();
 		final int page     = factoryProfile.getPage();
@@ -328,37 +328,40 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		}
 	}
 
-	protected Result page(final Iterable<S> input, final int offset, final int pageSize) throws FrameworkException {
+	protected Result page(final QueryResult<S> input, final int offset, final int pageSize) throws FrameworkException {
 
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
 		final boolean dontCheckCount          = securityContext.ignoreResultCount();
 		final List<T> nodes                   = new ArrayList<>();
 		int overallCount                      = 0;
+		int position                          = 0;
+		int count                             = 0;
 
-		for (final S item : input) {
+		try (final QueryResult<S> tmp = input) {
 
-			T n = instantiate(item);
-			if (n != null) {
+			for (final S item : tmp) {
 
-				overallCount++;
+				T n = instantiate(item);
+				if (n != null) {
 
-				// synchronize access to the target list
-				nodes.add(n);
+					overallCount++;
+					position++;
 
-				// stop evaluation of new nodes if count is not required
-				if (dontCheckCount && overallCount > offset + pageSize) {
-					break;
+					if (position > offset && position <= offset + pageSize) {
+
+						nodes.add(n);
+
+						// stop if we got enough nodes
+						if (++count == pageSize && dontCheckCount) {
+							break;
+						}
+					}
 				}
 			}
 		}
 
-
-		final int size = nodes.size();
-		final int from = Math.min(offset, size);
-		final int to   = Math.min(offset+pageSize, size);
-
 		// The overall count may be inaccurate
-		return new Result(nodes.subList(from, to), overallCount, true, false);
+		return new Result(nodes, overallCount, true, false);
 	}
 
 
