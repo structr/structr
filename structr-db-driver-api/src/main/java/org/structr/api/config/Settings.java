@@ -122,7 +122,7 @@ public class Settings {
 	public static final Setting<String> OwnerlessNodes        = new StringSetting(applicationGroup,  "Security",   "application.security.ownerless.nodes",      "read");
 	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",             false);
 	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",            false);
-	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",       false);
+	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",       true);
 	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",     50000);
 	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength", 4);
 	public static final Setting<Integer> IndexingMaxLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxlength", 40);
