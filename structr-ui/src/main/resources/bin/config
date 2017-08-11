@@ -4,7 +4,7 @@
 #
 
 RUN_OPTS="-cp lib/*:${project.build.finalName}.jar"
-JAVA_OPTS="-server -d64 -Xms4g -Xmx4g -XX:+UseNUMA -Dorg.apache.sshd.registerBouncyCastle=false"
+JAVA_OPTS="-Djava.awt.headless=true -Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Dorg.apache.sshd.registerBouncyCastle=false -server -d64 -Xms4g -Xmx4g -XX:+UseNUMA -XX:+UseG1GC"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${project.build.finalName}.jar"
 LOG_FILE="logs/server.log"
