@@ -692,10 +692,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				startNewThread(() -> {
 
 					final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
-
-					// do not send websocket notifications for created objects
-					threadContext.setDoTransactionNotifications(false);
-
 					final App app                       = StructrApp.getInstance(threadContext);
 
 					try (final InputStream is = getInputStream()) {
@@ -732,8 +728,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 								data.put("text", "Finished importing chunk " + ++chunks);
 								data.put("username", threadContext.getUser(false).getName());
 								TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
-
-								logger.info("CSV: Finished importing chunk {}", chunks);
 							}
 						}
 
@@ -800,10 +794,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			startNewThread(() -> {
 
 				final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
-
-				// do not send websocket notifications for created objects
-				threadContext.setDoTransactionNotifications(false);
-
 				final App app                       = StructrApp.getInstance(threadContext);
 				int overallCount                    = 0;
 
@@ -915,36 +905,90 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
 
-			for (int count=0; count<num; count++) {
+			int[] buf = new int[10010];
+			
+			int ch          = reader.read();
+			int i           = 0;
+			int l           = 0;
 
-				final int[] buf = new int[10010];
-				int ch          = reader.read();
-				int i           = 0;
+			// break on file end or if max char or line count is reached
+			while (ch != -1 && i < 10000 && l < num) {
+				
+				switch (ch) {
+					
+					// CR
+					case 13:
 
-				// restart separator detection for each line
-				separatorLength = 0;
+						// take only first line ending separator into account
+						if (separator.length < 1) {
+							
+							// collect first separator char
+							separator[separatorLength++] = ch;
+						}
 
-				while (ch != 10 && ch != 13 && i < 10000) {
+						// check next char only in case of CR
+						ch = reader.read();
+						
+						// next char is LF ?
+						if (ch == 10) {
+							
+							// CR + LF as line ending, collect second separator char
+							separator[separatorLength++] = ch;
+							
+						} else {
+							
+							// CR only - do nothing
+						}
+						
+						// append LF as line ending for display purposes
+						buf[i++] = '\n';
+						
+						// add line to output
+						lines.append(new String(buf, 0, i));
 
-					buf[i++] = ch;
-					ch = reader.read();
+						// reset buffer
+						buf = new int[10010];
+						i=0;
+						l++;
+						
+						break;
+
+					// LF
+					case 10:
+						
+						// take only first line ending separator into account
+						if (separator.length < 1) {
+							
+							// collect first separator char
+							separator[separatorLength++] = ch;
+						}
+						
+						// must be LF only because two LF have to be ignored as empty line
+						buf[i++] = '\n';
+						
+						// add line to output
+						lines.append(new String(buf, 0, i));
+						
+						// reset buffer
+						buf = new int[10010];
+						i=0;
+						l++;
+						
+						break;
+					
+					default:
+					
+						// no CR, no LF: Just add char
+						buf[i++] = ch;
+						break;
 				}
-
-				// consume line ending (CR, LF or CR+LF)
-				while (separatorLength < 2 && (ch == 10 || ch == 13)) {
-
-					separator[separatorLength++] = ch;
-					ch = reader.read();
-				}
-
-				// append correct line ending for display purposes
-				buf[i++] = '\n';
-
-				// store line in buffer
-				lines.append(new String(buf, 0, i));
+				
+				ch = reader.read();
 			}
+			
+			lines.append(new String(buf, 0, i));
 
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
