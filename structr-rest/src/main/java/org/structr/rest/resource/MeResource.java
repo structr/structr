@@ -76,7 +76,7 @@ public class MeResource extends TypedIdResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		Principal user = securityContext.getUser(true);
 		if (user != null) {

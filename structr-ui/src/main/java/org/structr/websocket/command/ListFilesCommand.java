@@ -98,7 +98,7 @@ public class ListFilesCommand extends AbstractCommand {
 			int resultCountBeforePaging = filteredResults.size();
 			
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
+			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection

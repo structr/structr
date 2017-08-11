@@ -29,11 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
-import org.structr.api.util.Iterables;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
 import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -67,17 +65,16 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly);
 	}
 
-	public Factory(final SecurityContext securityContext, final int pageSize, final int page, final String offsetId) {
+	public Factory(final SecurityContext securityContext, final int pageSize, final int page) {
 
 		factoryProfile = new FactoryProfile(securityContext);
 
 		factoryProfile.setPageSize(pageSize);
 		factoryProfile.setPage(page);
-		factoryProfile.setOffsetId(offsetId);
 	}
 
-	public Factory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
-		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
+	public Factory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
+		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page);
 	}
 
 	public abstract T instantiate(final S obj);
@@ -115,14 +112,35 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	public Result instantiate(final QueryResult<S> input) throws FrameworkException {
 
 		if (input != null) {
+			final int pageSize = factoryProfile.getPageSize();
+			final int page     = factoryProfile.getPage();
+			int fromIndex;
 
-			if (factoryProfile.getOffsetId() != null) {
+			if (page < 0) {
 
-				return resultWithOffsetId(input);
+				final List<S> rawNodes = read(input);
+				final int size         = rawNodes.size();
+
+				fromIndex = Math.max(0, size + (page * pageSize));
+
+				final List<T> nodes = new LinkedList<>();
+				int toIndex         = Math.min(size, fromIndex + pageSize);
+
+				for (final S n : rawNodes.subList(fromIndex, toIndex)) {
+
+					nodes.add(instantiate(n));
+				}
+
+				// We've run completely through the iterator,
+				// so the overall count from here is accurate.
+				return new Result(nodes, size, true, false);
 
 			} else {
 
-				return resultWithoutOffsetId(input);
+				fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
+
+				// The overall count may be inaccurate
+				return page(input, fromIndex, pageSize);
 			}
 		}
 
@@ -185,149 +203,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result resultWithOffsetId(final QueryResult<S> input) throws FrameworkException {
-
-		final List<S> list       = Iterables.toList(input);
-		int size                 = list.size();
-		final int pageSize       = Math.min(size, factoryProfile.getPageSize());
-		final int page           = factoryProfile.getPage();
-		final String offsetId    = factoryProfile.getOffsetId();
-		List<T> elements         = new LinkedList<>();
-		int position             = 0;
-		int count                = 0;
-		int offset               = 0;
-
-		// We have an offsetId, so first we need to
-		// find the node with this uuid to get the offset
-		final Iterator<S> iterator = list.iterator();
-		List<T> nodesUpToOffset    = new LinkedList();
-		int i                      = 0;
-		boolean gotOffset          = false;
-
-		while (iterator.hasNext()) {
-
-			T n = instantiate(iterator.next());
-			if (n == null) {
-
-				continue;
-
-			}
-
-			nodesUpToOffset.add(n);
-
-			if (!gotOffset) {
-
-				if (!offsetId.equals(n.getUuid())) {
-
-					i++;
-
-					continue;
-
-				}
-
-				gotOffset = true;
-				offset    = page > 0
-					    ? i
-					    : i + (page * pageSize);
-
-				break;
-
-			}
-
-		}
-
-		if (!nodesUpToOffset.isEmpty() && !gotOffset) {
-
-			throw new FrameworkException(404, "Node with ID " + offsetId + " not found", new IdNotFoundToken("offsetId", offsetId));
-		}
-
-		if (offset < 0) {
-
-			// Remove last item
-			nodesUpToOffset.remove(nodesUpToOffset.size()-1);
-
-			return new Result(nodesUpToOffset, size, true, false);
-		}
-
-		for (T node : nodesUpToOffset) {
-
-			if (node != null) {
-
-				if (++position > offset) {
-
-					// stop if we got enough nodes
-					if (++count > pageSize) {
-
-						return new Result(elements, size, true, false);
-					}
-
-					elements.add(node);
-				}
-
-			}
-
-		}
-
-		// If we get here, the result was not complete, so we need to iterate
-		// through the index result (input) to get more items.
-		while (iterator.hasNext()) {
-
-			T n = instantiate(iterator.next());
-			if (n != null) {
-
-				if (++position > offset) {
-
-					// stop if we got enough nodes
-					if (++count > pageSize) {
-
-						return new Result(elements, size, true, false);
-					}
-
-					elements.add(n);
-				}
-
-			}
-
-		}
-
-		return new Result(elements, size, true, false);
-
-	}
-
-	protected Result resultWithoutOffsetId(final QueryResult<S> input) throws FrameworkException {
-
-		final int pageSize = factoryProfile.getPageSize();
-		final int page     = factoryProfile.getPage();
-		int fromIndex;
-
-		if (page < 0) {
-
-			final List<S> rawNodes = read(input);
-			final int size         = rawNodes.size();
-
-			fromIndex = Math.max(0, size + (page * pageSize));
-
-			final List<T> nodes = new LinkedList<>();
-			int toIndex         = Math.min(size, fromIndex + pageSize);
-
-			for (final S n : rawNodes.subList(fromIndex, toIndex)) {
-
-				nodes.add(instantiate(n));
-			}
-
-			// We've run completely through the iterator,
-			// so the overall count from here is accurate.
-			return new Result(nodes, size, true, false);
-
-		} else {
-
-			fromIndex = pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
-
-			// The overall count may be inaccurate
-			return page(input, fromIndex, pageSize);
-		}
-	}
-
 	protected Result page(final QueryResult<S> input, final int offset, final int pageSize) throws FrameworkException {
 
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
@@ -369,7 +244,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	protected class FactoryProfile {
 
 		private boolean includeDeletedAndHidden = true;
-		private String offsetId                 = null;
 		private boolean publicOnly              = false;
 		private int pageSize                    = DEFAULT_PAGE_SIZE;
 		private int page                        = DEFAULT_PAGE;
@@ -391,15 +265,13 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		}
 
-		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page,
-				      final String offsetId) {
+		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
 
 			this.securityContext         = securityContext;
 			this.includeDeletedAndHidden = includeDeletedAndHidden;
 			this.publicOnly              = publicOnly;
 			this.pageSize                = pageSize;
 			this.page                    = page;
-			this.offsetId                = offsetId;
 
 		}
 
@@ -424,15 +296,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		}
 
 		//~--- get methods --------------------------------------------
-
-		/**
-		 * @return the offsetId
-		 */
-		public String getOffsetId() {
-
-			return offsetId;
-
-		}
 
 		/**
 		 * @return the pageSize
@@ -469,15 +332,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		public void setIncludeDeletedAndHidden(boolean includeDeletedAndHidden) {
 
 			this.includeDeletedAndHidden = includeDeletedAndHidden;
-
-		}
-
-		/**
-		 * @param offsetId the offsetId to set
-		 */
-		public void setOffsetId(String offsetId) {
-
-			this.offsetId = offsetId;
 
 		}
 

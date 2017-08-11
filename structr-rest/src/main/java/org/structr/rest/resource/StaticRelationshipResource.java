@@ -89,7 +89,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
 		// ok, source node exists, fetch it
 		final GraphObject sourceEntity = typedIdResource.getEntity();
@@ -107,7 +107,7 @@ public class StaticRelationshipResource extends SortableResource {
 						final Class relationshipType = typeResource.entityClass;
 						final Relation relation = AbstractNode.getRelationshipForType(relationshipType);
 						final Class destNodeType = relation.getOtherType(typedIdResource.getEntityClass());
-						final Set partialResult = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults());
+						final Set partialResult = new LinkedHashSet<>(typeResource.doGet(sortKey, sortDescending, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getResults());
 
 						// filter list according to end node type
 						final Set<GraphObject> set = Iterables.toSet(Iterables.filter(new OtherNodeTypeRelationFilter(securityContext, sourceNode, destNodeType), source.getRelationships(relationshipType)));
@@ -121,7 +121,7 @@ public class StaticRelationshipResource extends SortableResource {
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-						return new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+						return new Result(PagingHelper.subList(finalResult, pageSize, page), finalResult.size(), isCollectionResource(), isPrimitiveArray());
 
 					} else {
 
@@ -190,7 +190,7 @@ public class StaticRelationshipResource extends SortableResource {
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
 
 						// return result
-						Result r = new Result(PagingHelper.subList(finalResult, pageSize, page, offsetId), finalResult.size(), isCollectionResource(), isPrimitiveArray());
+						Result r = new Result(PagingHelper.subList(finalResult, pageSize, page), finalResult.size(), isCollectionResource(), isPrimitiveArray());
 						r.setRawResultCount(rawResultCount);
 						return r;
 
@@ -256,7 +256,7 @@ public class StaticRelationshipResource extends SortableResource {
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-		final List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE, null).getResults();
+		final List<? extends GraphObject> results = typedIdResource.doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getResults();
 		final App app = StructrApp.getInstance(securityContext);
 
 		if (results != null) {

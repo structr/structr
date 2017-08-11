@@ -59,7 +59,7 @@ public class TypedIdResource extends FilterableResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 		return new Result(getEntity(), isPrimitiveArray());
 	}
 

@@ -21,7 +21,9 @@ package org.structr.rest.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.text.SimpleDateFormat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -239,8 +241,6 @@ public class PagingAndSortingTest extends StructrRestTest {
 			.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '2012-09-18T03:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
 
-		String offsetId = getUuidFromLocation(location);
-
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-4', 'anInt' : 4, 'aLong' : 40, 'aDate' : '2012-09-18T04:33:12+0200' } ")
 			.expect().statusCode(201).when().post(resource).getHeader("Location");
@@ -369,42 +369,6 @@ public class PagingAndSortingTest extends StructrRestTest {
 
 			.when()
 				.get(resource + "?sort=name&pageSize=2&page=-5");
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result",			hasSize(2))
-				.body("result_count",		equalTo(8))
-
-				.body("result[0]",		isEntity(TestOne.class))
-				.body("result[0].name ",	equalTo("TestOne-3"))
-
-				.body("result[1]",		isEntity(TestOne.class))
-				.body("result[1].name ",	equalTo("TestOne-4"))
-
-			.when()
-				.get(resource + "?sort=name&pageSize=2&page=1&pageStartId=" + offsetId);
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result",			hasSize(2))
-				.body("result_count",		equalTo(8))
-
-				.body("result[0]",		isEntity(TestOne.class))
-				.body("result[0].name ",	equalTo("TestOne-1"))
-
-				.body("result[1]",		isEntity(TestOne.class))
-				.body("result[1].name ",	equalTo("TestOne-2"))
-
-			.when()
-				.get(resource + "?sort=name&pageSize=2&page=-1&pageStartId=" + offsetId);
 
 	}
 

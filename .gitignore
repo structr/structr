@@ -12,6 +12,7 @@ structr-ui/sessions
 structr-ui/scripts
 structr-ui/logs
 structr-ui/layouts
+structr-core/structr.conf
 structr-ui/modules
 structr-ui/jsp
 structr-ui/structr.conf

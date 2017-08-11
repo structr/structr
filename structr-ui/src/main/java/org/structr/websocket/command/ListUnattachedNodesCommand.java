@@ -18,7 +18,8 @@
  */
 package org.structr.websocket.command;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PagingHelper;
@@ -76,7 +77,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			int resultCountBeforePaging = filteredResults.size();
 
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page, null));
+			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection

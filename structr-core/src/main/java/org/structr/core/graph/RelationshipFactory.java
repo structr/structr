@@ -51,12 +51,12 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		super(securityContext, includeDeletedAndHidden, publicOnly);
 	}
 
-	public RelationshipFactory(final SecurityContext securityContext, final int pageSize, final int page, final String offsetId) {
-		super(securityContext, pageSize, page, offsetId);
+	public RelationshipFactory(final SecurityContext securityContext, final int pageSize, final int page) {
+		super(securityContext, pageSize, page);
 	}
 
-	public RelationshipFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
-		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
+	public RelationshipFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
+		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page);
 	}
 
 	@Override

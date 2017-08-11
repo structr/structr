@@ -44,7 +44,13 @@ import org.structr.api.config.Settings;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.*;
+import org.structr.core.GraphObject;
+import org.structr.core.IJsonInput;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
+import org.structr.core.Result;
+import org.structr.core.Services;
+import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -77,7 +83,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String REQUEST_PARAMETER_LOOSE_SEARCH           = "loose";
 	public static final String REQUEST_PARAMETER_PAGE_NUMBER            = "page";
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
-	public static final String REQUEST_PARAMETER_OFFSET_ID              = "pageStartId";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
 	public static final Set<String> commonRequestParameters             = new LinkedHashSet<>();
@@ -88,7 +93,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(REQUEST_PARAMETER_LOOSE_SEARCH);
 		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_NUMBER);
 		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_SIZE);
-		commonRequestParameters.add(REQUEST_PARAMETER_OFFSET_ID);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_KEY);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
 		commonRequestParameters.add("debugLoggingEnabled");
@@ -791,7 +795,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			// add sorting & paging
 			String pageSizeParameter = request.getParameter(REQUEST_PARAMETER_PAGE_SIZE);
 			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
-			String offsetId          = request.getParameter(REQUEST_PARAMETER_OFFSET_ID);
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
@@ -819,7 +822,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			while (retry) {
 
 				try (final Tx tx = app.tx()) {
-					result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+					result = resource.doGet(sortKey, sortDescending, pageSize, page);
 					tx.success();
 					retry = false;
 

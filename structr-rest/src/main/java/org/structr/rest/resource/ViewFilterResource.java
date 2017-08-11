@@ -72,11 +72,11 @@ public class ViewFilterResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		if (wrappedResource != null) {
 
-			return wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+			return wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 
 		}
 

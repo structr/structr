@@ -19,7 +19,9 @@
 package org.structr.core.graph;
 
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
@@ -52,12 +54,12 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		super(securityContext, includeDeletedAndHidden, publicOnly);
 	}
 
-	public NodeFactory(final SecurityContext securityContext, final int pageSize, final int page, final String offsetId) {
-		super(securityContext, pageSize, page, offsetId);
+	public NodeFactory(final SecurityContext securityContext, final int pageSize, final int page) {
+		super(securityContext, pageSize, page);
 	}
 
-	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page, final String offsetId) {
-		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page, offsetId);
+	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
+		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page);
 	}
 
 	@Override

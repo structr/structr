@@ -55,11 +55,11 @@ public class SortResource extends WrappingResource {
 	}
 
 	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page, String offsetId) throws FrameworkException {
+	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
 
 		if(wrappedResource != null) {
 
-			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+			Result result = wrappedResource.doGet(sortKey, sortDescending, pageSize, page);
 
 			try {
 				Collections.sort(result.getResults(), new GraphObjectComparator(sortKey, sortOrder));

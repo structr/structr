@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
+import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
@@ -49,7 +50,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
-import org.structr.common.ResultTransformer;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.schema.SchemaHelper;
@@ -117,7 +117,7 @@ public class TypeResource extends SortableResource {
 	}
 
 	@Override
-	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page, final String offsetId) throws FrameworkException {
+	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
 		boolean includeDeletedAndHidden        = true;
 		boolean publicOnly                     = false;
@@ -163,12 +163,11 @@ public class TypeResource extends SortableResource {
 					.publicOnly(publicOnly)
 					.sort(actualSortKey)
 					.order(actualSortOrder)
-					.offsetId(offsetId)
 					.getResult();
 
 				final Result result = virtualType.transformOutput(securityContext, entityClass, untransformedResult);
 
-				return PagingHelper.subResult(result, pageSize, page, offsetId);
+				return PagingHelper.subResult(result, pageSize, page);
 
 			} else {
 
@@ -179,7 +178,6 @@ public class TypeResource extends SortableResource {
 					.order(actualSortOrder)
 					.pageSize(pageSize)
 					.page(page)
-					.offsetId(offsetId)
 					.getResult();
 			}
 

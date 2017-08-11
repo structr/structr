@@ -171,7 +171,6 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				// add sorting & paging
 				String pageSizeParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_SIZE);
 				String pageParameter = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_PAGE_NUMBER);
-				String offsetId = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_OFFSET_ID);
 				String sortOrder = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_ORDER);
 				String sortKeyName = request.getParameter(JsonRestServlet.REQUEST_PARAMETER_SORT_KEY);
 				boolean sortDescending = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
@@ -195,7 +194,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
 				// do action
-				result = resource.doGet(sortKey, sortDescending, pageSize, page, offsetId);
+				result = resource.doGet(sortKey, sortDescending, pageSize, page);
 				if (result != null) {
 
 					result.setIsCollection(resource.isCollectionResource());
