@@ -23,7 +23,7 @@ import static org.structr.api.search.Occurrence.FORBIDDEN;
 import static org.structr.api.search.Occurrence.OPTIONAL;
 import org.structr.api.search.TypeConverter;
 import org.structr.bolt.index.AbstractCypherIndex;
-import org.structr.bolt.index.CypherQuery;
+import org.structr.bolt.index.AdvancedCypherQuery;
 
 /**
  *
@@ -64,7 +64,7 @@ public abstract class AbstractQueryFactory implements QueryFactory {
 	}
 
 	// ----- protected methods -----
-	protected void checkOccur(final CypherQuery query, final Occurrence occ, final boolean first) {
+	protected void checkOccur(final AdvancedCypherQuery query, final Occurrence occ, final boolean first) {
 
 		if (!first || occ.equals(Occurrence.FORBIDDEN)) {
 			addOccur(query, occ, first);
@@ -72,7 +72,7 @@ public abstract class AbstractQueryFactory implements QueryFactory {
 	}
 
 
-	protected void addOccur(final CypherQuery query, final Occurrence occ, final boolean first) {
+	protected void addOccur(final AdvancedCypherQuery query, final Occurrence occ, final boolean first) {
 
 		switch (occ) {
 

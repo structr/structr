@@ -16,21 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
+package org.structr.bolt.index;
 
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.AdvancedCypherQuery;
+import java.util.Map;
 
-public class NotEmptyQueryFactory extends AbstractQueryFactory {
+public interface PageableQuery {
 
-	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+	int pageSize();
+	void nextPage();
+	String getStatement();
+	Map<String, Object> getParameters();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
-
-		// not empty query is simple
-		query.addSimpleParameter(predicate.getName(), "is not", null);
-
-		return true;
-	}
 }

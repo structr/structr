@@ -50,12 +50,13 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public QueryResult<Node> getResult(final CypherQuery query) {
+	public QueryResult<Node> getResult(final PageableQuery query) {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
 		final NodeNodeMapper mapper = new NodeNodeMapper(db);
 
-		return QueryUtils.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
+		//return QueryUtils.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
+		return QueryUtils.map(mapper, new NodeResultStream(tx, query));
 	}
 
 	/*

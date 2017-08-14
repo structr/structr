@@ -19,12 +19,12 @@
 package org.structr.bolt.index.factory;
 
 import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.CypherQuery;
+import org.structr.bolt.index.AdvancedCypherQuery;
 
 public class EmptyQueryFactory extends AbstractQueryFactory {
 
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		checkOccur(query, predicate.getOccurrence(), isFirst);
 

@@ -156,6 +156,7 @@ public class TypeResource extends SortableResource {
 					actualSortKey = AbstractNode.name;
 				}
 			}
+
 			if (virtualType != null) {
 
 				final Result untransformedResult = query
