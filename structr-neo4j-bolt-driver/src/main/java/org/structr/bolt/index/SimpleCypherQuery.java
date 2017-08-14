@@ -33,7 +33,7 @@ public class SimpleCypherQuery implements PageableQuery {
 
 	public SimpleCypherQuery(final String base) {
 
-		this.pageSize = 1000;
+		this.pageSize = 10000;
 		this.base     = base;
 	}
 
