@@ -441,7 +441,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					info("Applying post-deployment configuration from {}..", postDeployConf);
 					Scripting.evaluate(new ActionContext(ctx), null, confSource, "post-deploy.conf");
 				} else {
-					info("Ignoring empty post-deployment configuration {}..", preDeployConf);
+					info("Ignoring empty post-deployment configuration {}..", postDeployConf);
 				}
 
 				tx.success();
