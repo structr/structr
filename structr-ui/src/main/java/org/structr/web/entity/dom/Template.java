@@ -23,8 +23,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -34,16 +32,14 @@ import org.structr.web.entity.dom.relationship.DOMChildren;
 
 public class Template extends Content {
 
-	public static final Property<String> configuration                                   = new StringProperty("configuration").indexed();
-
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
 		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		showForLocales, hideForLocales, showConditions, hideConditions, isContent, configuration
+		showForLocales, hideForLocales, showConditions, hideConditions, isContent
 	);
 
 	public static final org.structr.common.View publicView                               = new org.structr.common.View(Content.class, PropertyView.Public,
 		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
-		showForLocales, hideForLocales, showConditions, hideConditions, isContent, configuration
+		showForLocales, hideForLocales, showConditions, hideConditions, isContent
 	);
 
 	@Override

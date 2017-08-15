@@ -16,21 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index.factory;
+package org.structr.bolt.index;
 
-import org.structr.api.search.QueryPredicate;
-import org.structr.bolt.index.AdvancedCypherQuery;
+import java.util.Map;
+import org.neo4j.driver.v1.types.Relationship;
+import org.structr.api.QueryResult;
+import org.structr.bolt.SessionTransaction;
 
-public class NotEmptyQueryFactory extends AbstractQueryFactory {
+/**
+ */
+public class RelationshipResultStream extends AbstractResultStream<Relationship> {
+
+	public RelationshipResultStream(final SessionTransaction tx, final PageableQuery query) {
+		super(tx, query);
+	}
 
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
-
-		checkOccur(query, predicate.getOccurrence(), isFirst);
-
-		// not empty query is simple
-		query.addSimpleParameter(predicate.getName(), "is not", null);
-
-		return true;
+	protected QueryResult<Relationship> fetchData(final SessionTransaction tx, final String statement, final Map<String, Object> data) {
+		return tx.getRelationships(statement, data);
 	}
 }
+

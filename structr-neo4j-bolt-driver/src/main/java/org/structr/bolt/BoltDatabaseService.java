@@ -28,7 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.QueryResult;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
@@ -57,9 +57,12 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
-import org.structr.api.util.Iterables;
+import org.structr.api.util.QueryUtils;
 import org.structr.bolt.index.CypherNodeIndex;
 import org.structr.bolt.index.CypherRelationshipIndex;
+import org.structr.bolt.index.NodeResultStream;
+import org.structr.bolt.index.RelationshipResultStream;
+import org.structr.bolt.index.SimpleCypherQuery;
 import org.structr.bolt.mapper.NodeNodeMapper;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 import org.structr.bolt.wrapper.NodeWrapper;
@@ -241,16 +244,17 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public Iterable<Node> getAllNodes() {
+	public QueryResult<Node> getAllNodes() {
 
 		final SessionTransaction tx = getCurrentTransaction();
 		final NodeNodeMapper mapper = new NodeNodeMapper(this);
 
-		return Iterables.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
+		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
+		return QueryUtils.map(mapper, new NodeResultStream(tx, new SimpleCypherQuery("MATCH (n) RETURN n")));
 	}
 
 	@Override
-	public Iterable<Node> getNodesByLabel(final String type) {
+	public QueryResult<Node> getNodesByLabel(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -259,11 +263,12 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final SessionTransaction tx = getCurrentTransaction();
 		final NodeNodeMapper mapper = new NodeNodeMapper(this);
 
-		return Iterables.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
+		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
+		return QueryUtils.map(mapper, new NodeResultStream(tx, new SimpleCypherQuery("MATCH (n:" + type + ") RETURN n")));
 	}
 
 	@Override
-	public Iterable<Node> getNodesByTypeProperty(final String type) {
+	public QueryResult<Node> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -271,24 +276,26 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final SessionTransaction tx   = getCurrentTransaction();
 		final NodeNodeMapper mapper   = new NodeNodeMapper(this);
-		final Map<String, Object> map = new LinkedHashMap<>();
+		final SimpleCypherQuery query = new SimpleCypherQuery("MATCH (n) WHERE n.type = {type} RETURN n");
 
-		map.put("type", type);
+		query.getParameters().put("type", type);
 
-		return Iterables.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
+		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
+		return QueryUtils.map(mapper, new NodeResultStream(tx, query));
 	}
 
 	@Override
-	public Iterable<Relationship> getAllRelationships() {
+	public QueryResult<Relationship> getAllRelationships() {
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
 		final SessionTransaction tx                 = getCurrentTransaction();
 
-		return Iterables.map(mapper, tx.getRelationships("MATCH ()-[r]->() RETURN r", Collections.emptyMap()));
+		//return QueryUtils.map(mapper, tx.getRelationships("MATCH ()-[r]->() RETURN r", Collections.emptyMap()));
+		return QueryUtils.map(mapper, new RelationshipResultStream(tx, new SimpleCypherQuery("MATCH ()-[r]->() RETURN r")));
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationshipsByType(final String type) {
+	public QueryResult<Relationship> getRelationshipsByType(final String type) {
 
 		if (type == null) {
 			return getAllRelationships();
@@ -297,7 +304,8 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
 		final SessionTransaction tx                 = getCurrentTransaction();
 
-		return Iterables.map(mapper, tx.getRelationships("MATCH ()-[r:" + type + "]->() RETURN r", Collections.emptyMap()));
+		//return QueryUtils.map(mapper, tx.getRelationships("MATCH ()-[r:" + type + "]->() RETURN r", Collections.emptyMap()));
+		return QueryUtils.map(mapper, new RelationshipResultStream(tx, new SimpleCypherQuery("MATCH ()-[r:" + type + "]->() RETURN r")));
 	}
 
 	@Override

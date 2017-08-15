@@ -29,7 +29,7 @@ import org.structr.api.search.SortType;
 /**
  *
  */
-public class CypherQuery {
+public class AdvancedCypherQuery implements PageableQuery {
 
 	private final Map<String, Object> parameters = new HashMap<>();
 	private final List<String> typeLabels        = new LinkedList<>();
@@ -40,10 +40,13 @@ public class CypherQuery {
 	private boolean sortDescending               = false;
 	private SortType sortType                    = null;
 	private String sortKey                       = null;
+	private int page                             = 0;
+	private int pageSize                         = 0;
 	private int count                            = 0;
 
-	public CypherQuery(final AbstractCypherIndex<?> index) {
-		this.index = index;
+	public AdvancedCypherQuery(final AbstractCypherIndex<?> index) {
+		this.index    = index;
+		this.pageSize = 10000;
 	}
 
 	@Override
@@ -58,7 +61,10 @@ public class CypherQuery {
 		hashCode += 27 * typeLabels.hashCode();
 		hashCode += 37 * getStatement().hashCode();
 		hashCode += 47 * deepHashCode(parameters);
-		hashCode += 57 * sortKey.hashCode();
+
+		if (sortKey != null) {
+			hashCode += 57 * sortKey.hashCode();
+		}
 
 		if (sortDescending) {
 			hashCode += 1;
@@ -67,12 +73,24 @@ public class CypherQuery {
 		return hashCode;
 	}
 
+	@Override
+	public void nextPage() {
+		page++;
+	}
+
+	@Override
+	public int pageSize() {
+		return this.pageSize;
+	}
+
+	@Override
 	public String getStatement() {
 
 		final StringBuilder buf = new StringBuilder();
 		final int typeCount     = typeLabels.size();
 
 		switch (typeCount) {
+
 			case 0:
 
 				buf.append(index.getQueryPrefix(null, sourceTypeLabel, targetTypeLabel));
@@ -147,9 +165,15 @@ public class CypherQuery {
 			}
 		}
 
+		buf.append(" SKIP ");
+		buf.append(page * pageSize);
+		buf.append(" LIMIT ");
+		buf.append(pageSize);
+
 		return buf.toString();
 	}
 
+	@Override
 	public Map<String, Object> getParameters() {
 		return parameters;
 	}

@@ -994,13 +994,13 @@ var _Schema = {
 			+ '</div>'
 		);
 
-		$('#basic-options').append('<span class="relationship-emphasis"><span id="source-type-name"></span> &#8212;</span>'
+		$('#basic-options').append('<span class="relationship-emphasis"><span id="source-type-name" class="edit-schema-object"></span> &#8212;</span>'
 			+ '<select disabled id="source-multiplicity-selector" data-attr-name="sourceMultiplicity"><option value="1">1</option><option value="*">*</option></select>'
 			+ '<span class="relationship-emphasis">&#8212;[</span>'
 			+ '<input disabled id="relationship-type-name" data-attr-name="relationshipType">'
 			+ '<span class="relationship-emphasis">]&#8212;</span>'
 			+ '<select disabled id="target-multiplicity-selector" data-attr-name="targetMultiplicity"><option value="1">1</option><option value="*">*</option></select>'
-			+ '<span class="relationship-emphasis">&#8212;&#9658; <span id="target-type-name"></span></span>'
+			+ '<span class="relationship-emphasis">&#8212;&#9658; <span id="target-type-name" class="edit-schema-object"></span></span>'
 		);
 
 		$('#cascading-options').append('<h3>Cascading Delete</h3>'
@@ -1040,11 +1040,11 @@ var _Schema = {
 		}, _Schema.getMethodsInitFunction(contentDiv));
 
 		var selectRelationshipOptions = function(rel) {
-			$('#source-type-name').text(nodes[rel.sourceId].name);
+			$('#source-type-name').text(nodes[rel.sourceId].name).data('objectId', rel.sourceId);
 			$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
 			$('#relationship-type-name').val(rel.relationshipType === initialRelType ? '' : rel.relationshipType);
 			$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
-			$('#target-type-name').text(nodes[rel.targetId].name);
+			$('#target-type-name').text(nodes[rel.targetId].name).data('objectId', rel.targetId);
 
 			$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
 			$('#autocreate-selector').val(rel.autocreationFlag || 0);
@@ -1055,6 +1055,12 @@ var _Schema = {
 			$('#access-control-selector').val(rel.accessControlPropagation || 'Remove');
 			$('#masked-properties').val(rel.propertyMask);
 		};
+
+		$('.edit-schema-object', headEl).on('click', function(e) {
+			e.stopPropagation();
+			_Schema.openEditDialog($(this).data('objectId'));
+			return false;
+		});
 
 		selectRelationshipOptions(entity);
 

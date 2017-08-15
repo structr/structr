@@ -737,6 +737,17 @@ var _Entities = {
 					$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id); });
 					$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id); });
 
+					Structr.appendInfoTextToElement({
+						element: $('.newKey', props),
+						text: "Any attribute name is allowed but 'data-' attributes are recommended.",
+						insertAfter: true,
+						css: {
+							marginLeft: "3px",
+							top: "-5px",
+							position: "relative"
+						}
+					});
+
 					if (view === '_html_') {
 						$('input[name="_html_' + focusAttr + '"]', props).focus();
 

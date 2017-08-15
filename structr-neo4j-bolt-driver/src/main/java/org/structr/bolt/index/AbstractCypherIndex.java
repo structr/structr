@@ -107,7 +107,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		this.db         = db;
 	}
 
-	public abstract QueryResult<T> getResult(final CypherQuery query);
+	public abstract QueryResult<T> getResult(final PageableQuery query);
 	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
 	public abstract String getQuerySuffix();
 
@@ -142,7 +142,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	@Override
 	public QueryResult<T> query(final QueryPredicate predicate) {
 
-		final CypherQuery query = new CypherQuery(this);
+		final AdvancedCypherQuery query = new AdvancedCypherQuery(this);
 
 		createQuery(this, predicate, query, true);
 
@@ -165,7 +165,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 
 	// ----- interface QueryFactory -----
 	@Override
-	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final CypherQuery query, final boolean isFirst) {
+	public boolean createQuery(final QueryFactory parent, final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		final Class type = predicate.getQueryType();
 		if (type != null) {
