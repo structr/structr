@@ -76,6 +76,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Table;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -371,8 +372,8 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page       = Page.createSimplePage(securityContext, "test");
-			final Div div         = (Div)page.getElementsByTagName("div").item(0);
-			final Content content = (Content)div.getFirstChild();
+			final Div div         = (Div) page.getElementsByTagName("div").item(0);
+			final Content content = (Content) div.getFirstChild();
 
 			// setup scripting repeater
 			content.setProperty(Content.restQuery, "/Page/${current.id}");
@@ -415,6 +416,67 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1",    Matchers.equalTo("Test"))
 				.body("html.body.div",   Matchers.equalTo(uuid))
+			.when()
+			.get("/html/test/" + uuid);
+	}
+
+
+	@Test
+	public void testRestQueryWithRemoteAttributeRepeater() {
+
+		String uuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createSimplePage(securityContext, "test");
+			final Div div         = (Div) page.getElementsByTagName("div").item(0);
+			final Content content = (Content) div.getFirstChild();
+			
+			// Create second div without children
+			Div div2 = (Div) div.cloneNode(false);
+			div.getUuid();
+			
+			// setup scripting repeater to repeat over (non-existing) children of second div
+			content.setProperty(Content.restQuery, "/Div/" + div2.getUuid()+ "/children");
+			content.setProperty(Content.dataKey, "test");
+			content.setProperty(Content.content, "foo${test}");
+
+			// store UUID for later use
+			uuid = page.getUuid();
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(User.name, "admin"),
+				new NodeAttribute<>(User.password, "admin"),
+				new NodeAttribute<>(User.isAdmin, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body("html.head.title", Matchers.equalTo("Test"))
+				.body("html.body.h1",    Matchers.equalTo("Test"))
+				.body("html.body.div",   Matchers.equalTo(""))
 			.when()
 			.get("/html/test/" + uuid);
 	}

@@ -171,7 +171,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						int rawResultCount = propertyResults.size();
 
-						if (!iterableContainsGraphObject) {
+						if (rawResultCount > 0 && !iterableContainsGraphObject) {
 
 							GraphObjectMap gObject = new GraphObjectMap();
 							gObject.setProperty(new ArrayProperty(this.typeResource.rawType, Object.class), propertyResults.toArray());
@@ -184,7 +184,7 @@ public class StaticRelationshipResource extends SortableResource {
 						final List<GraphObject> finalResult = new LinkedList<>();
 
 						propertyResults.forEach(
-								v -> finalResult.add((GraphObject) v)
+							v -> finalResult.add((GraphObject) v)
 						);
 
 						applyDefaultSorting(finalResult, sortKey, sortDescending);
@@ -198,7 +198,7 @@ public class StaticRelationshipResource extends SortableResource {
 
 						return new Result((GraphObject) value, isPrimitiveArray());
 
-					} else if (value != null) {
+					} else {
 
 						GraphObjectMap gObject = new GraphObjectMap();
 						PropertyKey key;
@@ -232,12 +232,7 @@ public class StaticRelationshipResource extends SortableResource {
 						r.setRawResultCount(resultCount);
 						return r;
 
-					} else {
-
-						logger.info("Found object {}, but will not return as it is no graph object or iterable", value);
-
 					}
-
 				}
 
 				// check propertyKey to return the right variant of empty result
