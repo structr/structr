@@ -127,6 +127,7 @@ var Importer = {
 		container.append('<label>Delimiter: <select id="delimiter" class="import-option"><option>,</option><option>;</option><option>|</option></select></label>');
 		container.append('<label>Quote character: <select id="quote-char" class="import-option"><option>&quot;</option><option>\'</option></select></label>');
 		container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
+		container.append('<label>Commit Interval: <input type="number" id="commit-interval" value="1000" placeholder="1000"></label>');
 
 		// target selection
 		container.append('<h3>Select target type</h3>');
@@ -206,6 +207,7 @@ var Importer = {
 								targetType: type,
 								delimiter: $('#delimiter').val(),
 								quoteChar: $('#quote-char').val(),
+								commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
 								mappings: mappings,
 								transforms: transforms
 							}), function(data) {

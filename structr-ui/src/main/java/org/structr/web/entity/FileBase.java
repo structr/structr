@@ -478,11 +478,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		if (getProperty(isTemplate)) {
-			
+
 			logger.error("File is in template mode, no write access allowed: {}", path);
 			return null;
 		}
-		
+
 		final String path = getRelativeFilePath();
 		if (path != null) {
 
@@ -676,6 +676,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		final String targetType                  = (String)parameters.get("targetType");
 		final String delimiter                   = (String)parameters.get("delimiter");
 		final String quoteChar                   = (String)parameters.get("quoteChar");
+		final Integer commitInterval             = Integer.parseInt((String)parameters.get("commitInterval"));
 
 		if (targetType != null && delimiter != null && quoteChar != null) {
 
@@ -702,7 +703,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 						final char quoteCharacter          = quoteChar.charAt(0);
 						final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, reverse(importMappings));
 						final Iterator<JsonInput> iterator = iterable.iterator();
-						final int batchSize                = 1000;
 						int chunks                         = 0;
 
 						while (iterator.hasNext()) {
@@ -711,7 +711,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 							try (final Tx tx = app.tx()) {
 
-								while (iterator.hasNext() && count++ < batchSize) {
+								while (iterator.hasNext() && count++ < commitInterval) {
 
 									final JsonInput input = iterator.next();
 
@@ -722,10 +722,14 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 								tx.success();
 
+								chunks++;
+
+								logger.info("CSV: Finished importing chunk {}", chunks);
+
 								final Map<String, Object> data = new LinkedHashMap();
 								data.put("type", "CSV_IMPORT_STATUS");
 								data.put("title", "CSV Import Status");
-								data.put("text", "Finished importing chunk " + ++chunks);
+								data.put("text", "Finished importing chunk " + chunks);
 								data.put("username", threadContext.getUser(false).getName());
 								TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 							}
@@ -906,43 +910,43 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
 
 			int[] buf = new int[10010];
-			
+
 			int ch          = reader.read();
 			int i           = 0;
 			int l           = 0;
 
 			// break on file end or if max char or line count is reached
 			while (ch != -1 && i < 10000 && l < num) {
-				
+
 				switch (ch) {
-					
+
 					// CR
 					case 13:
 
 						// take only first line ending separator into account
 						if (separator.length < 1) {
-							
+
 							// collect first separator char
 							separator[separatorLength++] = ch;
 						}
 
 						// check next char only in case of CR
 						ch = reader.read();
-						
+
 						// next char is LF ?
 						if (ch == 10) {
-							
+
 							// CR + LF as line ending, collect second separator char
 							separator[separatorLength++] = ch;
-							
+
 						} else {
-							
+
 							// CR only - do nothing
 						}
-						
+
 						// append LF as line ending for display purposes
 						buf[i++] = '\n';
-						
+
 						// add line to output
 						lines.append(new String(buf, 0, i));
 
@@ -950,42 +954,42 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 						buf = new int[10010];
 						i=0;
 						l++;
-						
+
 						break;
 
 					// LF
 					case 10:
-						
+
 						// take only first line ending separator into account
 						if (separator.length < 1) {
-							
+
 							// collect first separator char
 							separator[separatorLength++] = ch;
 						}
-						
+
 						// must be LF only because two LF have to be ignored as empty line
 						buf[i++] = '\n';
-						
+
 						// add line to output
 						lines.append(new String(buf, 0, i));
-						
+
 						// reset buffer
 						buf = new int[10010];
 						i=0;
 						l++;
-						
+
 						break;
-					
+
 					default:
-					
+
 						// no CR, no LF: Just add char
 						buf[i++] = ch;
 						break;
 				}
-				
+
 				ch = reader.read();
 			}
-			
+
 			lines.append(new String(buf, 0, i));
 
 		} catch (Exception ex) {

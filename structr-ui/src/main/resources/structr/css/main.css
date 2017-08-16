@@ -4468,6 +4468,10 @@ span.context-help-text {
  * END Icon Sprites
  */
 
+#csv-import #commit-interval {
+	width: 50px;
+}
+
 pre.csv-preview {
 	overflow: auto;
 	background-color: #fff;
