@@ -212,7 +212,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 				}
 
 			} else {
-				
+
 				final String propertyName = (String)config.get(PROPERTY_NAME);
 				if (propertyName != null) {
 
@@ -241,6 +241,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 						}
 
 						// add element to collection
+						childData.putAll(element.data);
 						elements.add(childData);
 
 						for (final Element child : element.children) {
