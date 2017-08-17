@@ -71,17 +71,16 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 
 		final Class<? extends ManyToMany> clazz = getClass();
 
-		if (sourceNode != null) {
+		if (targetNode != null) {
 
 			// check existing relationships
-			final Iterable<? extends Relation<S, ?, ?, ?>> outgoingRels = sourceNode.getOutgoingRelationships(clazz);
+			final Iterable<? extends Relation<?, T, ?, ?>> incomingRels = targetNode.getIncomingRelationships(clazz);
 
 			// check existing relationships
-			for (final RelationshipInterface rel : outgoingRels) {
+			for (final RelationshipInterface rel : incomingRels) {
 
-				if (rel.getTargetNode().equals(targetNode)) {
-
-					throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists"));
+				if (rel.getSourceNode().equals(sourceNode)) {
+					throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists: " + rel.getUuid() + " from " + rel.getSourceNodeId() + " to " + rel.getTargetNodeId()));
 				}
 			}
 		}
