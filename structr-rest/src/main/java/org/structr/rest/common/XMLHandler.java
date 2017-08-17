@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -34,6 +35,7 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.JsonInput;
 
 /**
  *
@@ -201,10 +203,17 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		if (type != null) {
 
 			if (element.isRoot) {
-
 				// handle data for toplevel element
+
+				// add config.properties to entityData
+				final Set<String> mappedProperties = ((JsonInput)config.get(PROPERTIES)).keySet();
+				element.data.forEach((String key, Object value) -> {
+					if (mappedProperties.contains(key)) {
+						entityData.put(key, value);
+					}
+				});
+
 				entityData.put(TYPE, type);
-				entityData.putAll(element.data);
 
 				for (final Element child : element.children) {
 
@@ -218,13 +227,20 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 					final Map<String, Object> childData = new LinkedHashMap<>();
 
+					// add config.properties to childData
+					final Set<String> mappedProperties = ((JsonInput)config.get(PROPERTIES)).keySet();
+					element.data.forEach((String key, Object value) -> {
+						if (mappedProperties.contains(key)) {
+							childData.put(key, value);
+						}
+					});
+
 					if ("1".equals(config.get(MULTIPLICITY))) {
 
 						// handle data for nested child element
 						entityData.put(propertyName, childData);
 
 						childData.put(TYPE, type);
-						childData.putAll(element.data);
 
 						for (final Element child : element.children) {
 
@@ -241,7 +257,6 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 						}
 
 						// add element to collection
-						childData.putAll(element.data);
 						elements.add(childData);
 
 						for (final Element child : element.children) {
