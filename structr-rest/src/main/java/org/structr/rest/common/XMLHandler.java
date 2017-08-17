@@ -19,12 +19,12 @@
 package org.structr.rest.common;
 
 import java.io.Reader;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -206,7 +206,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 				// handle data for toplevel element
 
 				// add config.properties to entityData
-				final Set<String> mappedProperties = ((JsonInput)config.get(PROPERTIES)).keySet();
+				final Collection<Object> mappedProperties = ((JsonInput)config.get(PROPERTIES)).values();
 				element.data.forEach((String key, Object value) -> {
 					if (mappedProperties.contains(key)) {
 						entityData.put(key, value);
@@ -228,7 +228,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 					final Map<String, Object> childData = new LinkedHashMap<>();
 
 					// add config.properties to childData
-					final Set<String> mappedProperties = ((JsonInput)config.get(PROPERTIES)).keySet();
+					final Collection<Object>  mappedProperties = ((JsonInput)config.get(PROPERTIES)).values();
 					element.data.forEach((String key, Object value) -> {
 						if (mappedProperties.contains(key)) {
 							childData.put(key, value);
