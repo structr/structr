@@ -324,6 +324,8 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);
 
+				final long startTime = System.currentTimeMillis();
+
 				// isolate doPost
 				boolean retry = true;
 				while (retry) {
@@ -407,12 +409,16 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 					}
 				}
 
-				logger.info("CSV: Finished importing csv data.");
+				final long endTime = System.currentTimeMillis();
+				DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+				final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
+				logger.info("CSV: Finished importing CSV data (Time: {})", duration);
 
 				final Map<String, Object> data = new LinkedHashMap();
 				data.put("type", "CSV_IMPORT_STATUS");
 				data.put("title", "CSV Import Done");
-				data.put("text", "Finished importing csv data.");
+				data.put("text", "Finished importing CSV data (Time: " + duration + ")");
 				data.put("username", securityContext.getUser(false).getName());
 				TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 

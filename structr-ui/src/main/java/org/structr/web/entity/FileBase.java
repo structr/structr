@@ -32,10 +32,13 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -677,10 +680,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		final String delimiter                   = (String)parameters.get("delimiter");
 		final String quoteChar                   = (String)parameters.get("quoteChar");
 		final Integer commitInterval             = Integer.parseInt((String)parameters.get("commitInterval"));
+		final String filePath                    = getPath();
 
 		if (targetType != null && delimiter != null && quoteChar != null) {
 
-			logger.info("Importing CSV from {} to {} using {}", this.getUuid(), targetType, parameters);
+			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, this.getUuid(), targetType, parameters);
 
 			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
 			if (module != null && module instanceof APIBuilder) {
@@ -696,6 +700,8 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 					final App app                       = StructrApp.getInstance(threadContext);
 
 					try (final InputStream is = getInputStream()) {
+
+						final long startTime = System.currentTimeMillis();
 
 						final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
 						final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
@@ -735,14 +741,19 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 							}
 						}
 
-						logger.info("CSV: Finished importing csv data.");
+						final long endTime = System.currentTimeMillis();
+						DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+						final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
+						logger.info("CSV: Finished importing CSV data from '{}' (Time: {})", filePath, duration);
 
 						final Map<String, Object> data = new LinkedHashMap();
 						data.put("type", "CSV_IMPORT_STATUS");
 						data.put("title", "CSV Import Done");
-						data.put("text", "Finished importing csv data.");
+						data.put("text", "Finished importing CSV data from '" + filePath + "' (Time: " + duration + ")");
 						data.put("username", threadContext.getUser(false).getName());
 						TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+
 
 					} catch (IOException | FrameworkException fex) {
 						fex.printStackTrace();
@@ -794,10 +805,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public void doXMLImport(final Map<String, Object> config) throws FrameworkException {
 
 		final String contentType = getProperty(FileBase.contentType);
+		final String filePath = getPath();
 
 		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
 
-			logger.info("Importing XML from {}..", this.getUuid());
+			logger.info("Importing XML from {} ({})..", filePath, this.getUuid());
 
 			// do import using periodic commit
 			startNewThread(() -> {
@@ -811,6 +823,8 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 					final Iterator<Map<String, Object>> iterator = new XMLHandler(config, reader);
 					final int batchSize                          = 100;
 					int chunks                                   = 0;
+
+					final long startTime = System.currentTimeMillis();
 
 					while (iterator.hasNext()) {
 
@@ -840,12 +854,16 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 						}
 					}
 
-					logger.info("XML: Finished importing XML data.");
+					final long endTime = System.currentTimeMillis();
+					DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
+					logger.info("XML: Finished importing XML data from '{}' (Time: {})", filePath, duration);
 
 					final Map<String, Object> data = new LinkedHashMap();
 					data.put("type", "XML_IMPORT_STATUS");
 					data.put("title", "XML Import Done");
-					data.put("text", "Finished importing XML data.");
+					data.put("text", "Finished importing XML data from '" + filePath + "' (Time: " + duration + ")");
 					data.put("username", threadContext.getUser(false).getName());
 					TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
 
