@@ -735,8 +735,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 							}
 						}
 
-						builder.removeMapping(app, targetType, importTypeName);
-
 						logger.info("CSV: Finished importing csv data.");
 
 						final Map<String, Object> data = new LinkedHashMap();
@@ -748,6 +746,13 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 					} catch (IOException | FrameworkException fex) {
 						fex.printStackTrace();
+					} finally {
+
+						try {
+							builder.removeMapping(app, targetType, importTypeName);
+						} catch (FrameworkException ex) {
+							logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
+						}
 					}
 
 				}, false);
