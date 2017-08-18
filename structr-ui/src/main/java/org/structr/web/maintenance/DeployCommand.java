@@ -340,7 +340,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				info("Importing files...");
+				info("Importing files... (unchanged files will be skipped)");
 				Files.walkFileTree(files, new FileImportVisitor(files, filesConf));
 
 			} catch (IOException ioex) {
@@ -534,6 +534,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
 
+		logger.info("Exporting files... (unchanged files will be skipped)");
+
 		final Map<String, Object> config = new TreeMap<>();
 		final App app                    = StructrApp.getInstance();
 
@@ -618,21 +620,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Path targetPath                      = target.resolve(name);
 		boolean doExport                     = true;
 
-		// modify file name if there are duplicates in the database
 		if (Files.exists(targetPath)) {
 
 			// compare checksum
 			final Long checksumOfExistingFile = FileHelper.getChecksum(targetPath.toFile());
 			final Long checksumOfExportFile   = file.getChecksum();
 
-			if (checksumOfExistingFile.equals(checksumOfExportFile)) {
-
-				logger.info("Skipping export of file {}, no changes.", name);
-				doExport = false;
-			}
+			doExport = !checksumOfExistingFile.equals(checksumOfExportFile);
 		}
 
-		// export only if file is
 		if (doExport) {
 
 			try {
@@ -651,6 +647,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	private void exportPages(final Path target, final Path configTarget) throws FrameworkException {
+
+		logger.info("Exporting pages... (unchanged pages will be skipped)");
 
 		final Map<String, Object> pagesConfig = new TreeMap<>();
 		final App app                         = StructrApp.getInstance();
@@ -674,11 +672,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 							try {
 
 								final String existingContent = new String(Files.readAllBytes(pageFile), "utf-8");
-								if (existingContent.equals(content)) {
-
-									logger.info("Skipping export of page {}, no changes.", name);
-									doExport = false;
-								}
+								doExport = !existingContent.equals(content);
 
 							} catch (IOException ignore) {
 								logger.warn("", ignore);
@@ -718,6 +712,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
 
+		logger.info("Exporting components... (unchanged components will be skipped)");
+
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
 
@@ -752,12 +748,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						if (Files.exists(targetFile)) {
 
 							try {
-								final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
-								if (existingContent.equals(content)) {
 
-									logger.info("Skipping export of component {}, no changes.", name);
-									doExport = false;
-								}
+								final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
+								doExport = !existingContent.equals(content);
 
 							} catch (IOException ignore) {}
 						}
@@ -794,6 +787,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	private void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
+
+		logger.info("Exporting templates... (unchanged templates will be skipped)");
 
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
@@ -845,12 +840,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (Files.exists(targetFile)) {
 
 				try {
-					final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
-					if (existingContent.equals(content)) {
 
-						logger.info("Skipping export of template {}, no changes.", name);
-						doExport = false;
-					}
+					final String existingContent = new String(Files.readAllBytes(targetFile), "utf-8");
+					doExport = !existingContent.equals(content);
 
 				} catch (IOException ignore) {}
 			}

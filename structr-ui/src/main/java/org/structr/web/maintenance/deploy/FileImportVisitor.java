@@ -143,7 +143,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
 
-					logger.info("Checksum of {} is unmodified, skipping data import.", fullPath);
+//					logger.info("Checksum of {} is unmodified, skipping data import.", fullPath);
 
 				} else {
 
