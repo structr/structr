@@ -955,8 +955,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
 
-		if (file.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
-		if (file.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
+		if (file.isVisibleToPublicUsers())         { putIf(config, "visibleToPublicUsers", true); }
+		if (file.isVisibleToAuthenticatedUsers())  { putIf(config, "visibleToAuthenticatedUsers", true); }
+		if (file.getProperty(FileBase.isTemplate)) { putIf(config, "isTemplate", true); }
 
 		putIf(config, "type",                        file.getProperty(FileBase.type));
 		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
