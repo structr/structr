@@ -937,6 +937,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (node instanceof Page) {
 			putIf(config, "position",                node.getProperty(Page.position));
+			putIf(config, "category",                node.getProperty(Page.category));
 			putIf(config, "showOnErrorCodes",        node.getProperty(Page.showOnErrorCodes));
 			putIf(config, "showConditions",          node.getProperty(Page.showConditions));
 			putIf(config, "hideConditions",          node.getProperty(Page.hideConditions));
