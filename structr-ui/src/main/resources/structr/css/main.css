@@ -1520,19 +1520,24 @@ button.enabled, button.active {
 }
 
 .pager input[type=text] {
-	width: 24px;
+	width: 14px;
 	margin-right: 4px;
+	padding-bottom: 3px;
+}
+
+.pager input.page, .pager input.pageNo {
+	margin-top: 1px;
+	height: 17px;
 }
 
 .pager button {
 	font-size: 8pt;
-	height: 22px;
 	border: 1px solid #999;
 	background-color: #e5e5e5;
 }
 
 .pager input.filter[type="text"][data-attribute="name"], .pager input.filter[type="text"][data-attribute="category"] {
-	width: 60px;
+	width: 52px;
 }
 
 .pager > div {

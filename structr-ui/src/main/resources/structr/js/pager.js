@@ -77,8 +77,9 @@ var _Pager = {
 			pageSize[id]  = pagerData.pageSize;
 			sortKey[id]   = pagerData.sort;
 			sortOrder[id] = pagerData.order;
-			if (pagerData.filters) {
-				$.extend(pagerFilters[id], pagerData.filters);
+			if (pagerData.filters) {console.log(pagerData)
+				pagerFilters[id] = pagerFilters[id] || {};
+				$.extend(pagerFilters[id], pagerData.filters); console.log(pagerFilters[id])
 			}
 
 			return true;
@@ -144,7 +145,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 
 		this.el.append('<div class="pager pager' + this.id + '" style="clear: both"><button class="pageLeft">&lt; Prev</button>'
 				+ ' <input class="pageNo" type="text" size="2" value="' + page[this.id] + '"><button class="pageRight">Next &gt;</button>'
-				+ ' of <input class="readonly pageCount" readonly="readonly" size="2">'
+				+ ' of <input class="readonly pageCount" type="text" readonly="readonly" size="2">'
 				+ ' Items: <input class="pageSize" type="text" size="2" value="' + pageSize[this.id] + '"></div>');
 
 		this.pager = $('.pager' + this.id, this.el);
@@ -270,7 +271,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();
 				}
-
+				
 			} else if (e.keyCode === 27) {
 
 				pagerFilters[pagerObj.id][filterAttribute] = null;
@@ -294,7 +295,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 			var $filterEl = $(this);
 			var filterAttribute = $filterEl.data('attribute');
 
-			if(filterAttribute && filterAttribute.length) {
+			if (filterAttribute && filterAttribute.length) {
 				pagerFilters[pagerObj.id][filterAttribute] = $filterEl.prop('checked');
 
 				page[pagerObj.id] = 1;
