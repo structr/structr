@@ -144,7 +144,7 @@ public class PropertyMap {
 	 * Calculates a hash code for the contents of this PropertyMap.
 	 *
 	 * @param comparableKeys the set of property keys to use for hash code calculation, or null to use the whole keySet
-	 * @param includeSystemProperties whether to include system properties in the calculatio9n
+	 * @param includeSystemProperties whether to include system properties in the calculation
 	 * @return hash code
 	 */
 	public int contentHashCode(Set<PropertyKey> comparableKeys, boolean includeSystemProperties) {

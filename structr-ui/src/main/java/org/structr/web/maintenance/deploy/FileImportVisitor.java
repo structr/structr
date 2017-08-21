@@ -24,7 +24,9 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,14 +40,18 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.AbstractMinifiedFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.entity.relation.Thumbnails;
 
 /**
@@ -58,6 +64,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	private SecurityContext securityContext = null;
 	private Path basePath                   = null;
 	private App app                         = null;
+	private List<FileBase> deferredFiles    = null;
 
 	public FileImportVisitor(final Path basePath, final Map<String, Object> config) {
 
@@ -66,6 +73,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		this.basePath        = basePath;
 		this.config          = config;
 		this.app             = StructrApp.getInstance(this.securityContext);
+		this.deferredFiles   = new ArrayList<>();
 	}
 
 	@Override
@@ -100,6 +108,45 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
+	}
+
+	public void handleDeferredFiles() {
+
+		if (!this.deferredFiles.isEmpty()) {
+
+			for(FileBase file : this.deferredFiles) {
+
+				try (final Tx tx = app.tx(true, false, false)) {
+
+					// set properties from files.json
+					final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getPath());
+
+					final PropertyKey<Map<String, String>> sourcesPropertyKey = new GenericProperty("minificationSources");
+					Map<String, String> sourcesConfig = fileProperties.get(sourcesPropertyKey);
+					fileProperties.remove(sourcesPropertyKey);
+
+					file.unlockSystemPropertiesOnce();
+					file.setProperties(securityContext, fileProperties);
+
+					for(String positionString : sourcesConfig.keySet()) {
+						final Integer position = Integer.parseInt(positionString);
+						final String sourcePath = sourcesConfig.get(positionString);
+
+						final AbstractFile source = FileHelper.getFileByAbsolutePath(securityContext, sourcePath);
+						if (source != null) {
+							app.create((AbstractMinifiedFile)app.get(file.getUuid()), (FileBase)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
+						} else {
+							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
+						}
+					}
+
+					tx.success();
+
+				} catch (FrameworkException fxe) {
+
+				}
+			}
+		}
 	}
 
 	// ----- private methods -----
@@ -186,8 +233,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getPath());
 			if (fileProperties != null) {
 
-				file.unlockSystemPropertiesOnce();
-				file.setProperties(securityContext, fileProperties);
+				if (fileProperties.containsKey(AbstractMinifiedFile.minificationSources)) {
+					deferredFiles.add(file);
+				} else {
+					file.unlockSystemPropertiesOnce();
+					file.setProperties(securityContext, fileProperties);
+				}
 
 			} else {
 

@@ -79,9 +79,12 @@ import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.AbstractMinifiedFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.MinifiedCssFile;
+import org.structr.web.entity.MinifiedJavaScriptFile;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
@@ -341,7 +344,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing files... (unchanged files will be skipped)");
-				Files.walkFileTree(files, new FileImportVisitor(files, filesConf));
+				FileImportVisitor fiv = new FileImportVisitor(files, filesConf);
+				Files.walkFileTree(files, fiv);
+				fiv.handleDeferredFiles();
 
 			} catch (IOException ioex) {
 				logger.warn("Exception while importing files", ioex);
@@ -972,6 +977,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "isImage",                 file.getProperty(Image.isImage));
 			putIf(config, "width",                   file.getProperty(Image.width));
 			putIf(config, "height",                  file.getProperty(Image.height));
+		}
+
+		if (file instanceof AbstractMinifiedFile) {
+
+			if (file instanceof MinifiedCssFile) {
+				putIf(config, "lineBreak",               file.getProperty(MinifiedCssFile.lineBreak));
+			}
+
+			if (file instanceof MinifiedJavaScriptFile) {
+				putIf(config, "optimizationLevel",       file.getProperty(MinifiedJavaScriptFile.optimizationLevel));
+				putIf(config, "minificationSources",     file.getProperty(MinifiedJavaScriptFile.minificationSources));
+			}
+
+			Map<Integer, String> minifcationSources = new TreeMap<>();
+			for(MinificationSource minificationSourceRel : file.getOutgoingRelationships(MinificationSource.class)) {
+				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getPath());
+			}
+			putIf(config, "minificationSources",     minifcationSources);
+
 		}
 
 		// export all dynamic properties
