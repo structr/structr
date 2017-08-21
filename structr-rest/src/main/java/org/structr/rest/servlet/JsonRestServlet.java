@@ -798,7 +798,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
-			int pageSize		 = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			int pageSize             = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 			String baseUrl           = request.getRequestURI();
 			PropertyKey sortKey      = null;
@@ -831,6 +831,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				}
 			}
 
+			if (result == null) {
+				
+				throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection.");
+			}
+			
 			if (returnContent) {
 
 				if (!(resource instanceof StaticRelationshipResource) && !result.isPrimitiveArray() && !result.isEmpty()) {
@@ -949,7 +954,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	private void assertInitialized() throws FrameworkException {
 
 		if (!Services.getInstance().isInitialized()) {
-			throw new FrameworkException(503, "System is not initialized yet.");
+			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet.");
 		}
 	}
 	// </editor-fold>
