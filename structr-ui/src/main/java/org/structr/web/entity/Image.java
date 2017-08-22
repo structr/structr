@@ -96,7 +96,11 @@ public class Image extends org.structr.dynamic.File {
 
 			for (Image tn : getThumbnails()) {
 
-				tn.setProperty(key, value);
+				if (!tn.getUuid().equals(getUuid())) {
+					tn.setProperty(key, value);
+				} else {
+//					logger.info("Ignoring recursive setProperty for thumbnail where image is its own thumbnail");
+				}
 
 			}
 
@@ -130,7 +134,11 @@ public class Image extends org.structr.dynamic.File {
 
 				for (Image tn : thumbnails) {
 
-					tn.setProperties(tn.getSecurityContext(), propertiesCopiedToAllThumbnails);
+					if (!tn.getUuid().equals(getUuid())) {
+						tn.setProperties(tn.getSecurityContext(), propertiesCopiedToAllThumbnails);
+					} else {
+//						logger.info("Ignoring recursive setProperty for thumbnail where image is its own thumbnail");
+					}
 
 				}
 
