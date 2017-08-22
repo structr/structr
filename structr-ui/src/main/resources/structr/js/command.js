@@ -1009,7 +1009,7 @@ var Command = {
 				parent: file.parent,
 				hasParent: file.hasParent,
 				parentId: file.parentId,
-				type: (isImage(file.type) ? 'Image' : isVideo(file.type) ? 'VideoFile' : 'File')
+				type: (isImage(file.type) ? 'Image' : (isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
 			}
 		};
 		_Logger.log(_LogType.WS[obj.command], 'createFile()', obj);
