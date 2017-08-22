@@ -94,6 +94,10 @@ public class StructrApp implements App {
 	@Override
 	public <T extends NodeInterface> T create(final Class<T> type, final PropertyMap source) throws FrameworkException {
 
+		if (type == null) {
+			throw new FrameworkException(422, "Empty type (null). Please supply a valid class name in the type property.");
+		}
+		
 		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
 		final PropertyMap properties       = new PropertyMap(source);
 		String finalType                   = type.getSimpleName();
