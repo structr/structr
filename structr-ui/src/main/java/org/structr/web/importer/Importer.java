@@ -1346,11 +1346,11 @@ public class Importer {
 		String workString = source;
 
 		// Leading and trailing whitespace may be replaced by a single space in HTML
-		while (workString.startsWith("\n") || workString.startsWith("\t")) {
+		while (workString.startsWith("\n") || workString.startsWith("\r") || workString.startsWith("\t")) {
 			workString = workString.substring(1);
 		}
 
-		while (workString.endsWith("\n") || workString.endsWith("\t")) {
+		while (workString.endsWith("\n") || workString.endsWith("\r") || workString.endsWith("\t")) {
 			workString = workString.substring(0, workString.length() - 1);
 		}
 
