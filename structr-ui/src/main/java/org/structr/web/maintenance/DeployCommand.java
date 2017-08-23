@@ -259,6 +259,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(schemaMethodsConf)) {
 
 			info("Reading {}..", schemaMethodsConf);
+			final String title = "Deprecation warning";
+			final String text = "Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
+
+			final Map<String, Object> deprecationBroadcastData = new TreeMap();
+			deprecationBroadcastData.put("type", "WARNING");
+			deprecationBroadcastData.put("title", title);
+			deprecationBroadcastData.put("text", text);
+			TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", deprecationBroadcastData);
+
+			info(title + ": " + text);
+
 			importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
 		}
 
@@ -502,7 +513,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path pagesConf      = target.resolve("pages.json");
 			final Path componentsConf = target.resolve("components.json");
 			final Path templatesConf  = target.resolve("templates.json");
-			final Path schemaMethods  = target.resolve("schema-methods.json");
 			final Path mailTemplates  = target.resolve("mail-templates.json");
 			final Path localizations  = target.resolve("localizations.json");
 			final Path widgets		  = target.resolve("widgets.json");
@@ -513,7 +523,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			exportTemplates(templates, templatesConf);
 			exportResourceAccessGrants(grants);
 			exportSchema(schemaJson);
-			exportSchemaMethods(schemaMethods);
 			exportMailTemplates(mailTemplates);
 			exportLocalizations(localizations);
 			exportWidgets(widgets);
@@ -1104,38 +1113,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
 			getGson().toJson(widgets, fos);
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
-	}
-
-	private void exportSchemaMethods(final Path target) throws FrameworkException {
-
-		final List<Map<String, Object>> schemaMethods = new LinkedList<>();
-		final App app                                 = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final SchemaMethod schemaMethod : app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				schemaMethods.add(entry);
-
-				entry.put("name",                        schemaMethod.getProperty(SchemaMethod.name));
-				entry.put("comment",                     schemaMethod.getProperty(SchemaMethod.comment));
-				entry.put("source",                      schemaMethod.getProperty(SchemaMethod.source));
-				entry.put("virtualFileName",             schemaMethod.getProperty(SchemaMethod.virtualFileName));
-				entry.put("visibleToAuthenticatedUsers", schemaMethod.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers",        schemaMethod.getProperty(SchemaMethod.visibleToPublicUsers));
-			}
-
-			tx.success();
-		}
-
-		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
-
-			getGson().toJson(schemaMethods, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);

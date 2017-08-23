@@ -37,6 +37,10 @@ public interface JsonSchema {
 		sourceToTarget, targetToSource, always, constraintBased
 	}
 
+	public enum ImportMode {
+		replace, extend
+	}
+
 	public static final String KEY_SCHEMA                  = "$schema";
 	public static final String KEY_SIZE_OF                 = "$size";
 	public static final String KEY_REFERENCE               = "$ref";
@@ -92,7 +96,7 @@ public interface JsonSchema {
 
 	public static final String FORMAT_DATE_TIME            = "date-time";
 
-	public static final String EMPTY_SCHEMA                = "{\"definitions\":{}}";
+	public static final String EMPTY_SCHEMA                = "{\"definitions\":{}, \"methods\":[]}";
 
 	public URI getId();
 
@@ -106,7 +110,7 @@ public interface JsonSchema {
 	public JsonType getType(final String name);
 	public void removeType(final String name) throws URISyntaxException;
 
-	public void createDatabaseSchema(final App app) throws FrameworkException;
+	public void createDatabaseSchema(final App app, final ImportMode importMode) throws FrameworkException;
 
 	public Object resolveURI(final URI uri);
 	public String toJsonPointer(final URI uri);

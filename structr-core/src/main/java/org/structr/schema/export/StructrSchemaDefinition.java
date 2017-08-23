@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
@@ -46,6 +47,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	protected final Set<String> existingPropertyNames = new TreeSet<>();
 	private StructrTypeDefinitions typeDefinitions    = null;
+	private StructrGlobalSchemaMethods globalMethods  = null;
 	private String description                        = null;
 	private String title                              = null;
 	private URI id                                    = null;
@@ -53,6 +55,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	StructrSchemaDefinition(final URI id) {
 
 		this.typeDefinitions = new StructrTypeDefinitions(this);
+		this.globalMethods   = new StructrGlobalSchemaMethods();
 		this.id              = id;
 	}
 
@@ -64,7 +67,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	public Set<StructrTypeDefinition> getTypes() {
 		return typeDefinitions.getTypes();
 	}
-	
+
 	@Override
 	public JsonType getType(final String name) {
 		return typeDefinitions.getType(name);
@@ -110,8 +113,9 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	@Override
-	public void createDatabaseSchema(final App app) throws FrameworkException {
-		typeDefinitions.createDatabaseSchema(app);
+	public void createDatabaseSchema(final App app, ImportMode importMode) throws FrameworkException {
+		typeDefinitions.createDatabaseSchema(app, importMode);
+		globalMethods.createDatabaseSchema(app, importMode);
 	}
 
 	@Override
@@ -171,6 +175,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put(JsonSchema.KEY_DEFINITIONS, typeDefinitions.serialize());
+		map.put(JsonSchema.KEY_METHODS, globalMethods.serialize());
 		map.put(JsonSchema.KEY_ID, getId());
 
 		return map;
@@ -188,6 +193,26 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			throw new IllegalStateException("Invalid JSON object for schema definitions, missing value for 'definitions'.");
 		}
 
+		final List<Map<String, Object>> globalSchemaMethods = (List<Map<String, Object>>) source.get(JsonSchema.KEY_METHODS);
+		if (globalSchemaMethods != null) {
+
+			globalMethods.deserialize(globalSchemaMethods);
+
+		} else {
+
+			final String title = "Deprecation warning";
+			final String text = "This schema snapshot was created with an older version of structr. Newer versions contain global schema methods. Re-create the snapshot with the current version to avoid compatibility issues.";
+
+			final Map<String, Object> deprecationBroadcastData = new TreeMap();
+			deprecationBroadcastData.put("type", "WARNING");
+			deprecationBroadcastData.put("title", title);
+			deprecationBroadcastData.put("text", text);
+			TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", deprecationBroadcastData);
+
+			logger.info(title + ": " + text);
+
+		}
+
 		final Object idValue = source.get(JsonSchema.KEY_ID);
 		if (idValue != null) {
 
@@ -197,6 +222,11 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	void deserialize(final App app) throws FrameworkException {
 		typeDefinitions.deserialize(app);
+		globalMethods.deserialize(app);
+	}
+
+	void clearGlobalMethods() {
+		globalMethods.clear();
 	}
 
 	StructrDefinition resolveJsonPointer(final String reference) {
@@ -317,12 +347,12 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 		final StructrSchemaDefinition sourceSchema = new StructrSchemaDefinition(id);
 		sourceSchema.deserialize(app);
-		
+
 		final StructrSchemaDefinition schema = new StructrSchemaDefinition(id);
 		schema.deserialize(app);
-		
+
 		if (types != null && !types.isEmpty()) {
-		
+
 			for (final StructrTypeDefinition t : sourceSchema.getTypes()) {
 
 				final String name = t.getName();
@@ -335,9 +365,12 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 					}
 				}
 			}
+
+			// when user selected types for export he can not have selected global schema methods ==> delete them
+			schema.clearGlobalMethods();
 		}
 
-		
+
 		return schema;
 
 	}

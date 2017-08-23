@@ -167,7 +167,7 @@ public class StructrSchema {
 				app.delete(schemaView);
 			}
 
-			newSchema.createDatabaseSchema(app);
+			newSchema.createDatabaseSchema(app, JsonSchema.ImportMode.replace);
 
 			tx.success();
 		}
@@ -186,7 +186,7 @@ public class StructrSchema {
 
 		try (final Tx tx = app.tx()) {
 
-			newSchema.createDatabaseSchema(app);
+			newSchema.createDatabaseSchema(app, JsonSchema.ImportMode.extend);
 
 			tx.success();
 		}

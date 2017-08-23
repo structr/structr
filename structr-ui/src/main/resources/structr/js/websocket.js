@@ -543,6 +543,13 @@ function wsConnect() {
 						}
 						break;
 
+					case "WARNING":
+						new MessageBuilder()
+								.title(data.data.title)
+								.warning(data.data.text)
+								.requiresConfirmation()
+								.show();
+						break;
 
 					default:
 						console.log("Received generic websocket broadcast: ", data);

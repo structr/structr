@@ -30,6 +30,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 
 /**
@@ -49,7 +50,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	public Set<StructrTypeDefinition> getTypes() {
 		return typeDefinitions;
 	}
-	
+
 	public JsonType getType(final String name) {
 
 		for (final JsonType type : typeDefinitions) {
@@ -80,7 +81,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	}
 
-	public void createDatabaseSchema(final App app) throws FrameworkException {
+	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
 		for (final StructrTypeDefinition type : typeDefinitions) {
 
@@ -125,7 +126,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	void deserialize(final Map<String, Object> source) {
 		deserialize(source, null);
 	}
-	
+
 	void deserialize(final Map<String, Object> source, final List<String> nodeIds) {
 
 		for (final Entry<String, Object> entry : source.entrySet()) {
