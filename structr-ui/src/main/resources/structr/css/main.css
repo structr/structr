@@ -1791,6 +1791,33 @@ button.add_property {
 	min-width: 30%;
 }
 
+.schema-props.related-attrs td {
+	padding: 3px 4px 1px 4px;
+}
+
+.related-attrs .cardinality {
+	font-size: x-small;
+	font-style: initial;
+	font-weight: bold;
+	position: relative;
+	right: 3px;
+	margin-right: -7px;
+	vertical-align: sub;
+}
+
+.related-attrs .cardinality.one::before {
+	content: '1';
+}
+.related-attrs .cardinality.one {
+	top: -10px;
+}
+.related-attrs .cardinality.many::before {
+	content: '*';
+}
+.related-attrs .cardinality.many {
+	top: -8px;
+}
+
 .schema-props td {
 	border: 1px solid #ccc;
 	padding: 2px 4px;
