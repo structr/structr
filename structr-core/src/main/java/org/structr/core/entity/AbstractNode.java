@@ -1499,7 +1499,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			if (key.isPassivelyIndexed()) {
 
-				key.index(this, this.getProperty(key));
+				key.index(this);
 			}
 		}
 	}

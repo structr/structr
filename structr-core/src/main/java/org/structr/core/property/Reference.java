@@ -247,6 +247,11 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public void index(GraphObject entity) {
+		propertyKey.index(entity, entity.getProperty(propertyKey));
+	}
+	
+	@Override
 	public void index(GraphObject entity, Object value) {
 		propertyKey.index(entity, value);
 	}

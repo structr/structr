@@ -242,7 +242,7 @@ public interface GraphObject {
 				} else {
 
 					// index unconverted value
-					key.index(this, this.getProperty(key));
+					key.index(this);
 				}
 			}
 		}

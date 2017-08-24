@@ -628,7 +628,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 			if (key.isPassivelyIndexed()) {
 
-				key.index(this, this.getProperty(key));
+				key.index(this);
 			}
 		}
 	}
