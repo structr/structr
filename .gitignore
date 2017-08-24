@@ -12,6 +12,7 @@ structr-ui/sessions
 structr-ui/scripts
 structr-ui/logs
 structr-ui/layouts
+structr-ui/webapp-data
 structr-core/structr.conf
 structr-ui/modules
 structr-ui/jsp
@@ -20,6 +21,8 @@ structr-ui/log4j.log
 structr-ui/logDb.dat
 structr-ui/src/test/javascript/screenshots
 structr-ui/structr-ui*.pid
+structr-ui/*.key
+*.diff
 **nb-configuration.xml
 **nohup.out
 docs/html
