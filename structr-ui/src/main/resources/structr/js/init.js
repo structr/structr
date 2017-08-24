@@ -1757,7 +1757,7 @@ var Structr = {
 		new MessageBuilder()
 				.title("Deployment finished")
 				.info(text)
-				.specialInteractionButton("Reload Page", function () { location.reload(); })
+				.specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore")
 				.show();
 
 	}
@@ -1935,8 +1935,10 @@ function MessageBuilder () {
 					(this.params.title ? '<h3>' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
 					'<div class="text">' + this.params.text + '</div>' +
 					(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
-					(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
-					(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
+					'<div class="message-buttons">' +
+						(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
+						(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
+					'</div>' +
 				'</div>'
 			);
 
