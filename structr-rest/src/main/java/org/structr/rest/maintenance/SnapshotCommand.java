@@ -26,7 +26,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -163,7 +162,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 			} else {
 
-				throw new FrameworkException(422, "Please supply schema name to import.");
+				throw new FrameworkException(422, "Please supply schema snapshot name to restore from.");
 			}
 
 			tx.success();
@@ -220,7 +219,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 			} else {
 
-				throw new FrameworkException(422, "Please supply schema name to import.");
+				throw new FrameworkException(422, "Please supply schema snapshot name to add to database.");
 			}
 
 			tx.success();
@@ -239,7 +238,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 
 		} else {
 
-			throw new FrameworkException(422, "Please supply schema name to import.");
+			throw new FrameworkException(422, "Please supply schema snapshot name to delete.");
 		}
 	}
 
@@ -253,7 +252,12 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 			final String[] names = baseDir.list();
 			if (names != null) {
 
-				fileNames.addAll(Arrays.asList(names));
+				for (final String name : names) {
+					if (name.endsWith(".json")) {
+						fileNames.add(name);
+					}
+				}
+
 			}
 		}
 
