@@ -96,11 +96,11 @@ public class DeploymentCommentHandler implements CommentHandler {
 		});
 
 		handlers.put("show", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperties(node.getSecurityContext(), new PropertyMap(DOMNode.showConditions, parameters));
+			node.setProperties(node.getSecurityContext(), new PropertyMap(DOMNode.showConditions, DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters))));
 		});
 
 		handlers.put("hide", (Page page, DOMNode node, final String parameters) -> {
-			node.setProperties(node.getSecurityContext(), new PropertyMap(DOMNode.hideConditions, parameters));
+			node.setProperties(node.getSecurityContext(), new PropertyMap(DOMNode.hideConditions, DOMNode.unescapeForHtmlAttributes(DOMNode.unescapeForHtmlAttributes(parameters))));
 		});
 
 		handlers.put("owner", (Page page, DOMNode node, final String parameters) -> {
