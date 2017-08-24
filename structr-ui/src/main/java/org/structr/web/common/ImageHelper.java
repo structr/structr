@@ -147,9 +147,11 @@ public abstract class ImageHelper extends FileHelper {
 			int maxHeight = tnProp.getHeight();
 			boolean crop  = tnProp.getCrop();
 
+			final float scale = getScaleRatio(origWidth, origHeight, maxWidth, maxHeight, crop);
+			
 			final String tnName = ImageHelper.getThumbnailName(originalImage.getName(),
-					getThumbnailWidth(origWidth, origHeight, maxWidth, maxHeight, crop),
-					getThumbnailHeight(origWidth, origHeight, maxWidth, maxHeight, crop));
+					getThumbnailWidth(origWidth, scale),
+					getThumbnailHeight(origHeight, scale));
 
 			try {
 
@@ -209,20 +211,20 @@ public abstract class ImageHelper extends FileHelper {
 		return scale;
 	}
 
-	public static int getThumbnailWidth(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
-		return Math.max(4, Math.round(sourceWidth / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
+	public static int getThumbnailWidth(final int sourceWidth, final float scale) {
+		return Math.max(4, Math.round(sourceWidth / scale));
 	}
 	
-	public static int getThumbnailHeight(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
-		return Math.max(4, Math.round(sourceHeight / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop)));
+	public static int getThumbnailHeight(final int sourceHeight, final float scale) {
+		return Math.max(4, Math.round(sourceHeight / scale));
 	}
 
 	public static int getThumbnailWidth(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
-		return getThumbnailWidth(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop);
+		return getThumbnailWidth(originalImage.getWidth(), getScaleRatio(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop));
 	}
 	
 	public static int getThumbnailHeight(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
-		return getThumbnailHeight(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop);
+		return getThumbnailHeight(originalImage.getHeight(), getScaleRatio(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop));
 	}
 
 
@@ -271,8 +273,8 @@ public abstract class ImageHelper extends FileHelper {
 				// Don't scale up
 				if (scale > 1.0) {
 
-					final int destWidth  = getThumbnailWidth(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
-					final int destHeight = getThumbnailHeight(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
+					final int destWidth  = getThumbnailWidth(sourceWidth, scale);
+					final int destHeight = getThumbnailHeight(sourceHeight, scale);
 
 					if (crop) {
 
@@ -285,7 +287,7 @@ public abstract class ImageHelper extends FileHelper {
 
 						Thumbnails.of(source)
 								.scale(1.0f / scale)
-								.sourceRegion(dims[0], dims[1], dims[2], dims[3])
+								.sourceRegion((int) (dims[0]*scale), (int) (dims[1]*scale), (int) (dims[2]*scale), (int) (dims[3]*scale))
 								.outputFormat(format.name())
 								.toOutputStream(baos);
 

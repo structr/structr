@@ -276,6 +276,12 @@ public class Image extends org.structr.dynamic.File {
 		if (currentChecksum == null || currentChecksum == 0) {
 
 			newChecksum = FileHelper.getChecksum(originalImage);
+			
+			if (newChecksum == null || newChecksum == 0) {
+
+				logger.debug("Unable to create scaled image, file {} is not ready.", originalImage.getName());
+				return null;
+			}
 
 		} else {
 
@@ -381,6 +387,7 @@ public class Image extends org.structr.dynamic.File {
 						properties.put(File.size,                                Long.valueOf(data.length));
 						properties.put(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
 						properties.put(File.parent,                              originalImage.getProperty(File.parent));
+						properties.put(File.hasParent,                           originalImage.getProperty(File.hasParent));
 
 						thumbnail.unlockSystemPropertiesOnce();
 						thumbnail.setProperties(securityContext, properties);

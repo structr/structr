@@ -90,10 +90,15 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 		if (StringUtils.isNotBlank(format) && format.contains(",")) {
 
 			final String[] parts = format.split("[, ]+");
-			if (parts.length == 3) {
+			
+			if (parts.length >= 1) {
 
 				width    = Integer.parseInt(parts[0].trim());
 				height   = Integer.parseInt(parts[1].trim());
+			}
+
+			if (parts.length == 3) {
+
 				crop = Boolean.parseBoolean(parts[2].trim());
 			}
 		}
@@ -113,4 +118,8 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 		return crop;
 	}
 
+	@Override
+	public void index(final GraphObject entity) {
+		// noop, don't index thumbnail properties
+	}	
 }

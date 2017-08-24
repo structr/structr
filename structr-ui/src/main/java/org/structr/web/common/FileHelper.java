@@ -19,6 +19,7 @@
 package org.structr.web.common;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -435,15 +436,15 @@ public class FileHelper {
 
 		if (relativeFilePath != null) {
 
-			String filePath = getFilePath(relativeFilePath);
-
 			try {
-
+				
+				String filePath = getFilePath(relativeFilePath);
+				
 				return getChecksum(new java.io.File(filePath));
 
 			} catch (IOException ex) {
 
-				logger.warn("Could not calculate checksum of file {}: {}", filePath, ex);
+				logger.warn("Could not calculate checksum of file {}: {}", relativeFilePath, ex.getMessage());
 			}
 		}
 
