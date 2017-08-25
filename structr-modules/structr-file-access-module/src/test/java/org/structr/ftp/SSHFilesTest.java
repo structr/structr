@@ -278,6 +278,8 @@ public class SSHFilesTest extends SSHTest {
 		final String name1        = "file1.txt";
 		final String name2        = "fileöäüß.txt";
 
+		String date = null;
+		
 		try {
 
 			sftp.mkdir("/files/dir1");
@@ -293,6 +295,7 @@ public class SSHFilesTest extends SSHTest {
 			}
 
 			sftp.rename("/files/dir1/" + name1, "/files/dir2/" + name2);
+			date = getDateStringDependingOnCurrentDayOfMonth();
 
 		} catch (SftpException ex) {
 
@@ -301,7 +304,6 @@ public class SSHFilesTest extends SSHTest {
 		}
 
 		try {
-			final String date = getDateStringDependingOnCurrentDayOfMonth();
 			final Vector<LsEntry> entries = sftp.ls("/files/dir2");
 
 			// listing contains "." and ".." => 3 entries
