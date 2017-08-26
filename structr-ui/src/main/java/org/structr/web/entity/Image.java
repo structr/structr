@@ -39,6 +39,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
@@ -70,6 +71,9 @@ public class Image extends org.structr.dynamic.File {
 	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
 
 	public static final Property<Integer> orientation             = new IntProperty("orientation").cmis().indexed();
+	public static final Property<String>  exifIFD0Data            = new StringProperty("exifIFD0Data").cmis().indexed();
+	public static final Property<String>  exifSubIFDData          = new StringProperty("exifSubIFDData").cmis().indexed();
+	public static final Property<String>  gpsData                 = new StringProperty("gpsData").cmis().indexed();
 
 	public static final Property<Image> tnSmall                   = new ThumbnailProperty("tnSmall").format("100, 100, false");
 	public static final Property<Image> tnMid                     = new ThumbnailProperty("tnMid").format("300, 300, false");
@@ -81,8 +85,8 @@ public class Image extends org.structr.dynamic.File {
 
 	public static final Property<Boolean> isCreatingThumb         = new BooleanProperty("isCreatingThumb").systemInternal();
 
-	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, orientation, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
-	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, orientation, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
+	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
+	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 
 	@Override
 	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
@@ -288,6 +292,9 @@ public class Image extends org.structr.dynamic.File {
 			newChecksum = currentChecksum;
 		}
 
+		// Read Exif and GPS data from image and update properties
+		ImageHelper.getExifData(originalImage);
+		
 		// Return self if SVG image
 		final String _contentType = getProperty(Image.contentType);
 		if (_contentType != null && (_contentType.startsWith("image/svg") || (_contentType.startsWith("image/") && _contentType.endsWith("icon")))) {

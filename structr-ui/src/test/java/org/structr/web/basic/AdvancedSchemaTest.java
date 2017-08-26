@@ -129,9 +129,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(41))
-					.body("result[40].jsonName",       equalTo("testFile"))
-					.body("result[40].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(44))
+					.body("result[43].jsonName",       equalTo("testFile"))
+					.body("result[43].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/Image/ui");
@@ -314,11 +314,11 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(42))
-					.body("result[40].jsonName",       equalTo("testSubFile"))
-					.body("result[40].declaringClass", equalTo("SubFile"))
-					.body("result[41].jsonName",       equalTo("testFile"))
-					.body("result[41].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(45))
+					.body("result[43].jsonName",       equalTo("testSubFile"))
+					.body("result[43].declaringClass", equalTo("SubFile"))
+					.body("result[44].jsonName",       equalTo("testFile"))
+					.body("result[44].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/SubFile/ui");

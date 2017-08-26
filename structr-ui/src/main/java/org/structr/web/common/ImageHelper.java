@@ -20,9 +20,19 @@ package org.structr.web.common;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
+import com.drew.metadata.Tag;
+import com.drew.metadata.TagDescriptor;
 import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDescriptor;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.exif.GpsDirectory;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.twelvemonkeys.image.AffineTransformOp;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -38,6 +48,8 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PathHelper;
@@ -706,47 +718,108 @@ public abstract class ImageHelper extends FileHelper {
 	
 	private static Metadata getMetadata(final FileBase originalImage) {
 
+		Metadata metadata = new Metadata();
+		
 		try {
 	
 			final InputStream in = originalImage.getInputStream();
 				
 			if (in != null && in.available() > 0) {
 
-				return ImageMetadataReader.readMetadata(in);
+				metadata = ImageMetadataReader.readMetadata(in);
 			}
 
 		} catch (ImageProcessingException | IOException ex) {
 			logger.warn("Unable to get metadata information from image stream", ex);
 		}
 		
-		return null;
+		return metadata;
 	}
 
 	public static int getOrientation(final FileBase originalImage) {
-		
-		try {
 	
-			final Metadata metadata = getMetadata(originalImage);
-			final ExifIFD0Directory exifIFD0Directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+		try {
+			
+			final ExifIFD0Directory exifIFD0Directory = getMetadata(originalImage).getFirstDirectoryOfType(ExifIFD0Directory.class);
 
-			if (exifIFD0Directory != null && exifIFD0Directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
+			if (exifIFD0Directory != null && exifIFD0Directory.hasTagName(ExifIFD0Directory.TAG_ORIENTATION)) {
 				
-				final int orientation = exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-				
+				final Integer orientation = exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
 				originalImage.setProperty(Image.orientation, orientation);
-				
+
 				return orientation;
 			}
 
-		} catch (MetadataException ex) {
-			logger.warn("Unable to get orientation information from EXIF metadata.", ex);
-		} catch (FrameworkException ex) {
+		} catch (MetadataException | JSONException | FrameworkException ex) {
 			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getId() });
 		}
 		
 		return 1;
 	}
 
+	public static JSONObject getExifData(final FileBase originalImage) {
+
+		final JSONObject exifDataJson = new JSONObject();
+	
+		try {
+	
+			final Metadata metadata = getMetadata(originalImage);
+			
+			final ExifIFD0Directory   exifIFD0Directory   = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+			final ExifSubIFDDirectory exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
+			final GpsDirectory        gpsDirectory        = metadata.getFirstDirectoryOfType(GpsDirectory.class);
+
+			
+			if (exifIFD0Directory != null) {
+				
+				final JSONObject exifIFD0DataJson = new JSONObject();
+				
+				exifIFD0Directory.getTags().forEach((tag) -> {
+					exifIFD0DataJson.put(tag.getTagName(), exifIFD0Directory.getDescription(tag.getTagType()));
+				});
+				
+				originalImage.setProperty(Image.exifIFD0Data, exifIFD0DataJson.toString());
+				exifDataJson.putOnce(Image.exifIFD0Data.jsonName(), exifIFD0DataJson);
+			}
+
+			if (exifSubIFDDirectory != null) {
+				
+				final JSONObject exifSubIFDDataJson = new JSONObject();
+				
+				exifSubIFDDirectory.getTags().forEach((tag) -> {
+					exifSubIFDDataJson.put(tag.getTagName(), exifSubIFDDirectory.getDescription(tag.getTagType()));
+				});
+				
+				originalImage.setProperty(Image.exifSubIFDData, exifSubIFDDataJson.toString());
+				exifDataJson.putOnce(Image.exifSubIFDData.jsonName(), exifSubIFDDataJson);
+			}
+
+			if (gpsDirectory != null) {
+			
+				final JSONObject exifGpsDataJson = new JSONObject();
+				
+				gpsDirectory.getTags().forEach((tag) -> {
+					exifGpsDataJson.put(tag.getTagName(), gpsDirectory.getDescription(tag.getTagType()));
+				});
+				
+				originalImage.setProperty(Image.gpsData, exifGpsDataJson.toString());
+				exifDataJson.putOnce(Image.gpsData.jsonName(), exifGpsDataJson);
+			}
+				
+			return exifDataJson;
+
+		} catch (Exception ex) {
+			logger.warn("Unable to extract EXIF metadata.", ex);
+		}
+
+		return null;
+	}
+	
+	public static String getExifDataString(final FileBase originalImage) {
+		JSONObject data = getExifData(originalImage);
+		return data != null ? data.toString() : null;
+	}
+	
 	/**
 	 * @param originalImageName The filename of the original image
 	 * @param width The width of the new image variant
