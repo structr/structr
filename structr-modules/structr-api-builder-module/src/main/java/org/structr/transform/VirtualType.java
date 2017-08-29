@@ -19,6 +19,7 @@
 package org.structr.transform;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
+import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -43,7 +45,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
-import org.structr.common.ResultTransformer;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -89,6 +90,25 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final List<VirtualProperty> props = sort(getProperty(properties));
+
+		// remove all properties for which no VirtualProperty exists
+		final Iterator<String> it = propertySet.keySet().iterator();
+		while (it.hasNext()) {
+			final String propertyName = it.next();
+
+			boolean foundMatchingVirtualProperty = false;
+
+			for (final VirtualProperty property : props) {
+				if (propertyName.equals(property.getProperty(VirtualProperty.targetName))) {
+					foundMatchingVirtualProperty = true;
+				}
+			}
+
+			if (!foundMatchingVirtualProperty) {
+				logger.info("Removing property '{}' with value '{}' from propertyset because no matching virtual property was found", propertyName, propertySet.get(propertyName));
+				it.remove();
+			}
+		};
 
 		for (final VirtualProperty property : props) {
 
