@@ -759,10 +759,15 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				// first character only
 				for (final String perm : perms) {
-					shortPerms.append(perm.substring(0, 1));
+					if (perm.length() > 0) {
+						shortPerms.append(perm.substring(0, 1));
+					}
 				}
 
-				instructions.add("@structr:grant(" + grantee.getProperty(AbstractNode.name) + "," + shortPerms.toString() + ")");
+				if (shortPerms.length() > 0) {
+					// ignore SECURITY-relationships without permissions
+					instructions.add("@structr:grant(" + grantee.getProperty(AbstractNode.name) + "," + shortPerms.toString() + ")");
+				}
 			}
 		}
 	}

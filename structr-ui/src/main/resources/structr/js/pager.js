@@ -77,9 +77,11 @@ var _Pager = {
 			pageSize[id]  = pagerData.pageSize;
 			sortKey[id]   = pagerData.sort;
 			sortOrder[id] = pagerData.order;
-			if (pagerData.filters) {console.log(pagerData)
+			if (pagerData.filters) {
+				//console.log(pagerData);
 				pagerFilters[id] = pagerFilters[id] || {};
-				$.extend(pagerFilters[id], pagerData.filters); console.log(pagerFilters[id])
+				$.extend(pagerFilters[id], pagerData.filters);
+				//console.log(pagerFilters[id]);
 			}
 
 			return true;
@@ -271,7 +273,7 @@ var Pager = function (id, el, rootOnly, type, view, callback) {
 					pagerObj.updatePagerElements();
 					pagerObj.transportFunction();
 				}
-				
+
 			} else if (e.keyCode === 27) {
 
 				pagerFilters[pagerObj.id][filterAttribute] = null;

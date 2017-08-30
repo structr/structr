@@ -63,18 +63,21 @@ public class Transformation {
 
 	public void transformInput(final ActionContext actionContext, final Map<String, Object> source) throws FrameworkException {
 
-		// move / rename input value
-		Object inputValue = source.remove(targetName);
-		if (inputValue != null) {
+		if (source != null) {
+		
+			// move / rename input value
+			Object inputValue = source.remove(targetName);
+			if (inputValue != null) {
 
-			if (inputFunction != null) {
+				if (inputFunction != null) {
 
-				// input transformation requested
-				actionContext.setConstant("input", inputValue);
-				inputValue = Scripting.evaluate(actionContext, null, "${" + inputFunction + "}", " virtual property " + sourceName);
+					// input transformation requested
+					actionContext.setConstant("input", inputValue);
+					inputValue = Scripting.evaluate(actionContext, null, "${" + inputFunction + "}", " virtual property " + sourceName);
+				}
+
+				source.put(sourceName, inputValue);
 			}
-
-			source.put(sourceName, inputValue);
 		}
 	}
 

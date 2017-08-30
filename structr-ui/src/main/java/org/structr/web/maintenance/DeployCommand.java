@@ -695,6 +695,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						pagesConfig.put(name, properties);
 						exportConfiguration(page, properties);
+						exportOwnershipAndSecurity(page, properties);
 
 						if (doExport) {
 
@@ -963,8 +964,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putIf(config, key.jsonName(), node.getProperty(key));
 			}
 		}
-
-		exportOwnershipAndSecurity(node, config);
 	}
 
 	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
@@ -1041,9 +1040,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> grant = new TreeMap<>();
 
 				grant.put("name", security.getSourceNode().getProperty(AbstractNode.name));
-				grant.put("allowed", StringUtils.join(security.getPermissions(), ","));
+				final String allowedActions = StringUtils.join(security.getPermissions(), ",");
+				grant.put("allowed", allowedActions);
 
-				grantees.add(grant);
+				if (allowedActions.length() > 0) {
+					grantees.add(grant);
+				}
 			}
 		}
 
