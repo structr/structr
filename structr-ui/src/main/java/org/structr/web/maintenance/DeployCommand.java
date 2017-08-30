@@ -1040,9 +1040,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> grant = new TreeMap<>();
 
 				grant.put("name", security.getSourceNode().getProperty(AbstractNode.name));
-				grant.put("allowed", StringUtils.join(security.getPermissions(), ","));
+				final String allowedActions = StringUtils.join(security.getPermissions(), ",");
+				grant.put("allowed", allowedActions);
 
-				grantees.add(grant);
+				if (allowedActions.length() > 0) {
+					grantees.add(grant);
+				}
 			}
 		}
 
