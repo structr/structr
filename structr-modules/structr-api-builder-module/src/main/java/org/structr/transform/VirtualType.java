@@ -101,7 +101,7 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 			final String propertyName = it.next();
 
 			if (!targetNames.contains(propertyName)) {
-				logger.info("Removing property '{}' with value '{}' from propertyset because no matching virtual property was found", propertyName, propertySet.get(propertyName));
+				logger.debug("Removing property '{}' with value '{}' from propertyset because no matching virtual property was found", propertyName, propertySet.get(propertyName));
 				it.remove();
 			}
 		};
