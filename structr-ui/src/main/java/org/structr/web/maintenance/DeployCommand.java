@@ -695,6 +695,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 						pagesConfig.put(name, properties);
 						exportConfiguration(page, properties);
+						exportOwnershipAndSecurity(page, properties);
 
 						if (doExport) {
 
@@ -963,8 +964,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putIf(config, key.jsonName(), node.getProperty(key));
 			}
 		}
-
-		exportOwnershipAndSecurity(node, config);
 	}
 
 	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
