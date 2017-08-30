@@ -113,118 +113,123 @@ var Importer = {
 
 				sample.append('<h3>Data Sample</h3>');
 				sample.append('<pre class="csv-preview">' + data.result.lines + '</pre>');
+				
+				var results = Papa.parse(data.result.lines);
+				var delim = results.meta.delimiter;
+				var qc    = data.result.lines.substring(0,1);
+
+				// import options
+				container.append('<h3>Import Options</h3>');
+				container.append('<label>Delimiter: <select id="delimiter" class="import-option"><option' + (delim === ',' ? ' selected' : '') + '>,</option><option' + (delim === ';' ? ' selected' : '') + '>;</option><option' + (delim === '|' ? ' selected' : '') + '>|</option></select></label>');
+				container.append('<label>Quote character: <select id="quote-char" class="import-option"><option' + (qc === '"' ? ' selected' : '') + '>&quot;</option><option' + (qc === '\'' ? ' selected' : '') + '>\'</option></select></label>');
+				container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
+				container.append('<label>Commit Interval: <input type="number" id="commit-interval" value="1000" placeholder="1000"></label>');
+
+				// target selection
+				container.append('<h3>Select target type</h3>');
+				container.append('<select id="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
+				container.append('<div id="property-select"></div>');
 
 				$('#record-separator').append(
 					'<option ' + (data.result.separator ===    'LF' ? 'selected="selected"' : '') + '>LF</option>' +
 					'<option ' + (data.result.separator ===    'CR' ? 'selected="selected"' : '') + '>CR</option>' +
 					'<option ' + (data.result.separator === 'CR+LF' ? 'selected="selected"' : '') + '>CR+LF</option>'
 				);
-			}
-		});
 
-		// import options
-		container.append('<h3>Import Options</h3>');
-		container.append('<label>Delimiter: <select id="delimiter" class="import-option"><option>,</option><option>;</option><option>|</option></select></label>');
-		container.append('<label>Quote character: <select id="quote-char" class="import-option"><option>&quot;</option><option>\'</option></select></label>');
-		container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
-		container.append('<label>Commit Interval: <input type="number" id="commit-interval" value="1000" placeholder="1000"></label>');
+				var targetTypeSelector = $('#target-type-select');
+				var propertySelector   = $('#property-select');
 
-		// target selection
-		container.append('<h3>Select target type</h3>');
-		container.append('<select id="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
-		container.append('<div id="property-select"></div>');
+				$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
 
-		var targetTypeSelector = $('#target-type-select');
-		var propertySelector   = $('#property-select');
+					if (data && data.result) {
 
-		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+						data.result.forEach(function(r) {
 
-			if (data && data.result) {
-
-				data.result.forEach(function(r) {
-
-					targetTypeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
-				});
-			}
-		});
-
-		var updateMapping = function() {
-
-			var type = targetTypeSelector.val();
-			if (!type) {
-				return;
-			};
-
-			propertySelector.empty();
-
-			$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
-				delimiter: $('#delimiter').val(),
-				quoteChar: $('#quote-char').val(),
-				recordSeparator: $('#record-separator').val()
-			}), function(csvHeaders) {
-
-				propertySelector.append('<h3>Select Mapping</h3>');
-				propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
-
-				var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
-				Structr.appendInfoTextToElement({
-					text: helpText,
-					element: $('th.transform-head', propertySelector),
-					css: {
-						marginLeft: "2px"
+							targetTypeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
+						});
 					}
 				});
 
-				if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
+				var updateMapping = function() {
 
-					var names = [];
+					var type = targetTypeSelector.val();
+					if (!type) {
+						return;
+					};
 
-					Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, {}, function() {
+					propertySelector.empty();
 
-						$('#start-import').on('click', function() {
+					$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
+						delimiter: $('#delimiter').val(),
+						quoteChar: $('#quote-char').val(),
+						recordSeparator: $('#record-separator').val()
+					}), function(csvHeaders) {
 
-							var mappings = {};
-							var transforms = {};
+						propertySelector.append('<h3>Select Mapping</h3>');
+						propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
-							$('select.attr-mapping').each(function(i, elem) {
-
-								var e     = $(elem);
-								var name  = names[i];
-								var value = e.val();
-
-								// property mappings need to be from source type to target type
-								if (value && value.length) {
-									mappings[value] = name;
-								}
-
-								var transform = $('input#transform' + i).val();
-								if (transform && transform.length) {
-									transforms[value] = transform;
-								}
-							});
-
-							$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
-								targetType: type,
-								delimiter: $('#delimiter').val(),
-								quoteChar: $('#quote-char').val(),
-								commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
-								mappings: mappings,
-								transforms: transforms
-							}), function(data) {
-								$.unblockUI({
-									fadeOut: 25
-								});
-								Importer.restoreButtons();
-							});
+						var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
+						Structr.appendInfoTextToElement({
+							text: helpText,
+							element: $('th.transform-head', propertySelector),
+							css: {
+								marginLeft: "2px"
+							}
 						});
+
+						if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
+
+							var names = [];
+
+							Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, {}, function() {
+
+								$('#start-import').on('click', function() {
+
+									var mappings = {};
+									var transforms = {};
+
+									$('select.attr-mapping').each(function(i, elem) {
+
+										var e     = $(elem);
+										var name  = names[i];
+										var value = e.val();
+
+										// property mappings need to be from source type to target type
+										if (value && value.length) {
+											mappings[value] = name;
+										}
+
+										var transform = $('input#transform' + i).val();
+										if (transform && transform.length) {
+											transforms[value] = transform;
+										}
+									});
+
+									$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
+										targetType: type,
+										delimiter: $('#delimiter').val(),
+										quoteChar: $('#quote-char').val(),
+										commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+										mappings: mappings,
+										transforms: transforms
+									}), function(data) {
+										$.unblockUI({
+											fadeOut: 25
+										});
+										Importer.restoreButtons();
+									});
+								});
+							});
+						}
 					});
 				}
-			});
-		}
+				
+				targetTypeSelector.on('change', updateMapping);
+				$(".import-option", container).on('change', updateMapping);
 
-		targetTypeSelector.on('change', updateMapping);
-		$(".import-option", container).on('change', updateMapping);
-
+				
+			}
+		});
 	},
 	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) {
 
@@ -305,7 +310,7 @@ var Importer = {
 
 			var src     = sourceName.toLowerCase().replace(/\W/g, '');
 			var tgt     = targetName.toLowerCase().replace(/\W/g, '');
-			return src == tgt || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
+			return src == tgt;// || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
 		}
 
 		return false;
