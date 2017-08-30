@@ -35,6 +35,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -674,12 +675,12 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Export
 	public void doCSVImport(final Map<String, Object> parameters) throws FrameworkException {
 
-		final Map<String, String> importMappings = (Map<String, String>)parameters.get("mappings");
-		final Map<String, String> transforms     = (Map<String, String>)parameters.get("transforms");
-		final String targetType                  = (String)parameters.get("targetType");
-		final String delimiter                   = (String)parameters.get("delimiter");
-		final String quoteChar                   = (String)parameters.get("quoteChar");
-		final Integer commitInterval             = Integer.parseInt((String)parameters.get("commitInterval"));
+		final Map<String, String> importMappings = getOrDefault(parameters.get("mappings"), Collections.EMPTY_MAP);
+		final Map<String, String> transforms     = getOrDefault(parameters.get("transforms"), Collections.EMPTY_MAP);
+		final String targetType                  = getOrDefault(parameters.get("targetType"), null);
+		final String delimiter                   = getOrDefault(parameters.get("delimiter"), ";");
+		final String quoteChar                   = getOrDefault(parameters.get("quoteChar"), "\"");
+		final Integer commitInterval             = parseInt(parameters.get("commitInterval"), 1000);
 		final String filePath                    = getPath();
 
 		if (targetType != null && delimiter != null && quoteChar != null) {
@@ -775,7 +776,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} else {
 
-			throw new FrameworkException(400, "Cannot import CSV, please specify target type.");
+			throw new FrameworkException(400, "Cannot import CSV, please specify target type, delimiter and quote character.");
 		}
 	}
 
@@ -805,7 +806,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public void doXMLImport(final Map<String, Object> config) throws FrameworkException {
 
 		final String contentType = getProperty(FileBase.contentType);
-		final String filePath = getPath();
+		final String filePath    = getPath();
 
 		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
 
@@ -1043,6 +1044,34 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		}
 
 		return output;
+	}
+
+	private int parseInt(final Object input, final int defaultValue) {
+
+		if (input != null) {
+
+			// do not parse if it's already a number
+			if (input instanceof Number) {
+				return ((Number)input).intValue();
+			}
+
+			// use string representation otherwise
+			final String value = input.toString();
+
+			// try to parse value but ignore any errors
+			try { return Integer.parseInt(value); } catch (Throwable t) {}
+		}
+
+		return defaultValue;
+	}
+
+	private <T> T getOrDefault(final Object value, final T defaultValue) {
+
+		if (value != null) {
+			return (T)value;
+		}
+
+		return defaultValue;
 	}
 
 	// ----- interface Syncable -----

@@ -20,9 +20,11 @@ package org.structr.transform;
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -90,21 +92,15 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final List<VirtualProperty> props = sort(getProperty(properties));
+		final Set<String> targetNames     = extractTargetNames(props);
 
 		// remove all properties for which no VirtualProperty exists
 		final Iterator<String> it = propertySet.keySet().iterator();
 		while (it.hasNext()) {
+
 			final String propertyName = it.next();
 
-			boolean foundMatchingVirtualProperty = false;
-
-			for (final VirtualProperty property : props) {
-				if (propertyName.equals(property.getProperty(VirtualProperty.targetName))) {
-					foundMatchingVirtualProperty = true;
-				}
-			}
-
-			if (!foundMatchingVirtualProperty) {
+			if (!targetNames.contains(propertyName)) {
 				logger.info("Removing property '{}' with value '{}' from propertyset because no matching virtual property was found", propertyName, propertySet.get(propertyName));
 				it.remove();
 			}
@@ -128,6 +124,17 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 		Collections.sort(source, new GraphObjectComparator(VirtualProperty.position, false));
 
 		return source;
+	}
+
+	private Set<String> extractTargetNames(final List<VirtualProperty> source) {
+
+		final Set<String> result = new LinkedHashSet<>();
+
+		for (final VirtualProperty prop : source) {
+			result.add(prop.getProperty(VirtualProperty.targetName));
+		}
+
+		return result;
 	}
 
 	// ----- nested classes -----
