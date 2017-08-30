@@ -181,6 +181,13 @@ public class SchemaService implements Service {
 						// inject views in configuration provider
 						config.registerDynamicViews(dynamicViews);
 
+						// disable hierarchy calculation and automatic index creation for testing runs
+						if (!Services.isTesting()) {
+
+							calculateHierarchy();
+							updateIndexConfiguration(removedClasses);
+						}
+
 						tx.success();
 					}
 
@@ -189,13 +196,6 @@ public class SchemaService implements Service {
 					logger.error("Unable to compile dynamic schema.", t);
 
 					success = false;
-				}
-
-				// disable hierarchy calculation and automatic index creation for testing runs
-				if (!Services.isTesting()) {
-
-					calculateHierarchy();
-					updateIndexConfiguration(removedClasses);
 				}
 
 			} finally {
