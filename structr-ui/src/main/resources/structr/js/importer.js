@@ -70,7 +70,19 @@ var Importer = {
 							var config = JSON.parse(result.value);
 							Object.keys(config).forEach(function(k) {
 								configuration[k] = config[k];
-								Importer.updateStructureSelector('', k, configuration[k].type);
+
+								switch (configuration[k].action) {
+									case 'createNode':
+										Importer.updateStructureSelector('', k, configuration[k].type);
+										break;
+
+									case 'setProperty':
+										Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
+										break;
+
+									default:
+										console.log("Unknown action: ", configuration[k].action);
+								}
 							});
 						}
 					});
@@ -113,7 +125,7 @@ var Importer = {
 
 				sample.append('<h3>Data Sample</h3>');
 				sample.append('<pre class="csv-preview">' + data.result.lines + '</pre>');
-				
+
 				var results = Papa.parse(data.result.lines);
 				var delim = results.meta.delimiter;
 				var qc    = data.result.lines.substring(0,1);
@@ -222,12 +234,12 @@ var Importer = {
 							});
 						}
 					});
-				}
-				
+				};
+
 				targetTypeSelector.on('change', updateMapping);
 				$(".import-option", container).on('change', updateMapping);
 
-				
+
 			}
 		});
 	},
@@ -308,9 +320,9 @@ var Importer = {
 
 		} else if (sourceName && sourceName.length && targetName && targetName.length) {
 
-			var src     = sourceName.toLowerCase().replace(/\W/g, '');
-			var tgt     = targetName.toLowerCase().replace(/\W/g, '');
-			return src == tgt;// || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
+			var src      = sourceName.toLowerCase().replace(/\W/g, '');
+			var tgt      = targetName.toLowerCase().replace(/\W/g, '');
+			return src === tgt;// || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
 		}
 
 		return false;
@@ -423,7 +435,7 @@ var Importer = {
 
 						$('td[data-name="' + localPath + '"]').on('click', function() {
 
-							console.log(localPath);
+							console.log("HERE", localPath);
 
 							$('td.xml-mapping').removeClass('selected');
 							$(this).addClass('selected');
@@ -804,5 +816,10 @@ var Importer = {
 		} else if (key && key.length) {
 			elem.append(_Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + key);
 		}
+	},
+	updateStructureSelectorForSetProperty: function(key, path, propertyName) {
+		var elem = $('td.xml-mapping[data-name="' + path + '"]');
+		elem.empty();
+		elem.append('<b>' + _Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + propertyName + '</b>');
 	}
 };
