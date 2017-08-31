@@ -194,6 +194,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
 
+		increaseSerializationDepth();
+
 		currentObject = graphObject;
 
 		if (!hasName) {
@@ -216,6 +218,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter endObject(final GraphObject graphObject) throws IOException {
+
+		decreaseSerializationDepth();
 
 		currentElement = currentElement.parent();	// end UL
 		currentElement.inline("span").text("}");	// print }

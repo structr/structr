@@ -19,7 +19,6 @@
 package org.structr.rest.test;
 
 
-import org.structr.rest.common.*;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
@@ -66,6 +65,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.DefaultResourceProvider;
+import org.structr.rest.common.EntityMatcher;
 import org.structr.rest.entity.TestOne;
 import org.structr.rest.entity.TestTwo;
 
@@ -309,12 +309,112 @@ public class PropertyViewRestTest {
  				.body("result[1].type",	                                    equalTo("ScriptTest"))
 				.body("result[1].depth",                                    equalTo(0))
 				.body("result[1].name",                                     equalTo("ScriptTest2"))
- 				.body("result[1].parents[0].type",	                    equalTo("ScriptTest"))
+				.body("result[1].parents[0].type",	                        equalTo("ScriptTest"))
 				.body("result[1].parents[0].depth",                         equalTo(1))
 				.body("result[1].parents[0].name",                          equalTo("ScriptTest1"))
 
+			.when().get(resource);
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.expect()
+				.statusCode(200)
+				.body("query_time",                                      notNullValue())
+				.body("serialization_time",                              notNullValue())
+				.body("result_count",                                    equalTo(1))
+
+				.body("result.type",                                     equalTo("ScriptTest"))
+				.body("result.depth",                                    equalTo(0))
+				.body("result.name",                                     equalTo("ScriptTest1"))
+				.body("result.children[0].type",                         equalTo("ScriptTest"))
+				.body("result.children[0].depth",                        equalTo(1))
+				.body("result.children[0].name",                         equalTo("ScriptTest2"))
+				.body("result.children[0].parents[0].type",              equalTo("ScriptTest"))
+				.body("result.children[0].parents[0].depth",             equalTo(2))
+				.body("result.children[0].parents[0].name",              equalTo("ScriptTest1"))
+				.body("result.children[0].parents[0].children[0].type",  equalTo("ScriptTest"))
+				.body("result.children[0].parents[0].children[0].depth", equalTo(3))
+				.body("result.children[0].parents[0].children[0].name",  equalTo("ScriptTest2"))
+
 			.when()
-				.get(resource);
+				.get(resource.concat("/").concat(uuid));
+
+	}
+
+	@Test
+	public void testOutputDepthScriptingPropertyInCustomView() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(SchemaNode.class,
+				new NodeAttribute<>(AbstractNode.name, "DepthTest"),
+				new NodeAttribute<>(new StringProperty("_depth"), "Function(depth)"),
+				new NodeAttribute<>(new StringProperty("__customView"), "depth, type")
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			fail("Unexpected exception.");
+		}
+
+		final String resource = "/DepthTest";
+
+		// create entities
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.body(" { 'name' : 'DepthTest1' } ")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post(resource);
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.body(" { 'name' : 'DepthTest2' } ")
+
+			.expect()
+				.statusCode(201)
+
+			.when()
+				.post(resource);
+
+
+		// test default view with properties in it
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.header("Accept", "application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+
+			.expect()
+				.statusCode(200)
+				.body("query_time",                                         notNullValue())
+				.body("serialization_time",                                 notNullValue())
+				.body("result_count",                                       equalTo(2))
+				.body("result",                                             hasSize(2))
+
+				.body("result[0].type",	                                    equalTo("DepthTest"))
+				.body("result[0].depth",                                    equalTo(0))
+				.body("result[1].type",	                                    equalTo("DepthTest"))
+				.body("result[1].depth",                                    equalTo(0))
+
+			.when()
+				.get(resource.concat("/customView"));
 
 	}
 

@@ -414,8 +414,6 @@ public abstract class StreamingWriter {
 
 			final SecurityContext securityContext = writer.getSecurityContext();
 
-			securityContext.setSerializationDepth(depth);
-
 			try {
 				final PropertyConverter converter = key.inputConverter(securityContext);
 				if (converter != null) {

@@ -79,6 +79,7 @@ public class StructrJsonWriter implements RestWriter {
 
 	@Override
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
+		increaseSerializationDepth();
 		writer.beginObject();
 		return this;
 	}
@@ -90,6 +91,7 @@ public class StructrJsonWriter implements RestWriter {
 
 	@Override
 	public RestWriter endObject(final GraphObject graphObject) throws IOException {
+		decreaseSerializationDepth();
 		writer.endObject();
 		return this;
 	}

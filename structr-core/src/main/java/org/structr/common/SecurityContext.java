@@ -809,8 +809,12 @@ public class SecurityContext {
 		this.sessionId = sessionId;
 	}
 
-	public void setSerializationDepth(final int depth) {
-		this.serializationDepth = depth;
+	public void increaseSerializationDepth() {
+		this.serializationDepth++;
+	}
+
+	public void decreaseSerializationDepth() {
+		this.serializationDepth--;
 	}
 
 	public int getSerializationDepth() {

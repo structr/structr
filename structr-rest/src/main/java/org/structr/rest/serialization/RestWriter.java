@@ -46,4 +46,17 @@ public interface RestWriter {
 	public RestWriter value(final double value) throws IOException;
 	public RestWriter value(final long value) throws IOException;
 	public RestWriter value(final Number value) throws IOException;
+
+	default public void increaseSerializationDepth() {
+
+		getSecurityContext().increaseSerializationDepth();
+
+	}
+
+	default public void decreaseSerializationDepth() {
+
+		getSecurityContext().decreaseSerializationDepth();
+
+	}
+
 }

@@ -28,14 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.Tx;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Document;
 import org.structr.api.util.html.Tag;
@@ -45,6 +37,14 @@ import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.If;
 import org.structr.api.util.html.attr.Onload;
 import org.structr.api.util.html.attr.Type;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.Tx;
 
 /**
  *
@@ -194,6 +194,8 @@ public class StructrConfigHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter beginObject(final GraphObject graphObject) throws IOException {
 
+		increaseSerializationDepth();
+
 		currentObject = graphObject;
 
 		if (!hasName) {
@@ -216,6 +218,8 @@ public class StructrConfigHtmlWriter implements RestWriter {
 
 	@Override
 	public RestWriter endObject(final GraphObject graphObject) throws IOException {
+
+		decreaseSerializationDepth();
 
 		currentElement = currentElement.parent();	// end UL
 		currentElement.inline("span").text("}");	// print }
