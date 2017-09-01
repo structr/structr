@@ -20,6 +20,7 @@ package org.structr.common.error;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -51,7 +52,7 @@ public class CompoundToken extends ErrorToken {
 
 		// add all keys that form the compound index
 		for (final PropertyKey key : keys) {
-			array.add(key.jsonName());
+			array.add(new JsonPrimitive(key.jsonName()));
 		}
 
 		token.add("type",       getStringOrNull(getType()));
