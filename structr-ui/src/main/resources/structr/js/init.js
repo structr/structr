@@ -1733,32 +1733,112 @@ var Structr = {
 			}, 500);
 		}
 	},
-	handleDeploymentStarted: function (info) {
+	handleGenericMessage: function (data) {
 
-		var text = "A deployment import process has begun. Any changes made during a deployment might get lost or conflict with the deployment!<br>"
-				+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment finished successfully.<br><br>"
-				+ "Deployment started : " + new Date(info.start);
+		switch (data.type) {
 
-		new MessageBuilder()
-				.title("Deployment started")
-				.info(text)
-				.requiresConfirmation("Understood")
-				.show();
+			case "CSV_IMPORT_STATUS":
 
-	},
-	handleDeploymentFinished: function (info) {
+				if (me.username === data.username) {
 
-		var text = "The current deployment has finished. You should reload structr-ui to see the new data.<br>"
-				+ "You can either do this manually or click the button.<br><br>"
-				+ "Deployment started : " + new Date(info.start) + "<br>"
-				+ "Deployment finished: " + new Date(info.end) + "<br>"
-				+ "Total duration: " + info.duration;
+					var titles = {
+						BEGIN: 'CSV Import started',
+						CHUNK: 'CSV Import status',
+						END:   'CSV Import finished'
+					};
 
-		new MessageBuilder()
-				.title("Deployment finished")
-				.info(text)
-				.specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore")
-				.show();
+					var texts = {
+						BEGIN: 'Started importing CSV data',
+						CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' / ' + data.totalChunkNo,
+						END:   'Finished importing CSV data (Time: ' + data.duration + ')'
+					};
+
+					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().show();
+				}
+				break;
+
+			case "CSV_IMPORT_ERROR":
+
+				if (me.username === data.username) {
+					new MessageBuilder()
+							.title(data.title)
+							.error(data.message + '<br>' + data.exception + '<br>' + data.propertySet)
+							.requiresConfirmation()
+							.show();
+				}
+				break;
+
+			case "CSV_FILE_IMPORT_STATUS":
+
+				if (me.username === data.username) {
+
+					var titles = {
+						BEGIN: 'CSV Import started',
+						CHUNK: 'CSV Import status',
+						END:   'CSV Import finished'
+					};
+
+					var texts = {
+						BEGIN: 'Started importing CSV data from ' + data.filepath,
+						CHUNK: 'Finished importing chunk ' + data.currentChunkNo,
+						END:   'Finished importing CSV data from ' + data.filepath + ' (Time: ' + data.duration + ')'
+					};
+
+					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('csv-import-status-' + data.filepath).updatesText().requiresConfirmation().show();
+				}
+				break;
+
+			case "XML_FILE_IMPORT_STATUS":
+
+				if (me.username === data.username) {
+
+					var titles = {
+						BEGIN: 'XML Import started',
+						CHUNK: 'XML Import status',
+						END:   'XML Import finished'
+					};
+
+					var texts = {
+						BEGIN: 'Started importing XML data from ' + data.filepath,
+						CHUNK: 'Finished importing chunk ' + data.currentChunkNo,
+						END:   'Finished importing XML data from ' + data.filepath + ' (Time: ' + data.duration + ')'
+					};
+
+					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('xml-import-status-' + data.filepath).updatesText().requiresConfirmation().show();
+				}
+				break;
+
+			case "DEPLOYMENT_STATUS":
+
+				if (data.subtype === 'BEGIN') {
+
+					var text = "A deployment import process has begun. Any changes made during a deployment might get lost or conflict with the deployment!<br>"
+							+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment finished successfully.<br><br>"
+							+ "Deployment started : " + new Date(data.start);
+
+					new MessageBuilder().title("Deployment started").info(text).requiresConfirmation("Understood").show();
+
+				} else if (data.subtype === 'END') {
+
+					var text = "The current deployment has finished. You should reload structr-ui to see the new data.<br>"
+							+ "You can either do this manually or click the button.<br><br>"
+							+ "Deployment started : " + new Date(data.start) + "<br>"
+							+ "Deployment finished: " + new Date(data.end) + "<br>"
+							+ "Total duration: " + data.duration;
+
+					new MessageBuilder().title("Deployment finished").info(text).specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").show();
+
+				}
+				break;
+
+			case "WARNING":
+				new MessageBuilder().title(data.title).warning(data.text).requiresConfirmation().show();
+				break;
+
+			default:
+				console.log("Received generic websocket broadcast: ", data);
+
+		}
 
 	}
 };
@@ -1919,6 +1999,7 @@ function MessageBuilder () {
 				}
 
 				if (this.params.updatesText) {
+					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
 					$('#info-area .message.' + this.params.uniqueClass + ' .text').html(this.params.text);
 				}
 
@@ -1932,7 +2013,7 @@ function MessageBuilder () {
 
 			$('#info-area').append(
 				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
-					(this.params.title ? '<h3>' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
+					(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
 					'<div class="text">' + this.params.text + '</div>' +
 					(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
 					'<div class="message-buttons">' +
@@ -2008,6 +2089,7 @@ function MessageBuilder () {
 
 	this.uniqueClass = function (className) {
 		if (className) {
+			className = className.replace(/[\/\. ]/g, "_");
 			this.params.uniqueClass = className;
 			return this.className(className);
 		}

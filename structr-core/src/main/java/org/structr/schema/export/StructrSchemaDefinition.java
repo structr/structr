@@ -207,7 +207,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			deprecationBroadcastData.put("type", "WARNING");
 			deprecationBroadcastData.put("title", title);
 			deprecationBroadcastData.put("text", text);
-			TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", deprecationBroadcastData);
+			TransactionCommand.simpleBroadcastGenericMessage(deprecationBroadcastData);
 
 			logger.info(title + ": " + text);
 

@@ -363,6 +363,10 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 		return listeners;
 	}
 
+	public static void simpleBroadcastGenericMessage (final Map<String, Object> data) {
+		simpleBroadcast("GENERIC_MESSAGE", data, null);
+	}
+
 	public static void simpleBroadcast (final String messageName, final Map<String, Object> data) {
 		simpleBroadcast(messageName, data, null);
 	}

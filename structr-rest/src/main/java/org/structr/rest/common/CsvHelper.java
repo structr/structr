@@ -125,7 +125,7 @@ public class CsvHelper {
 							data.put("title", "CSV Import Error");
 							data.put("text", "Error occured with dataset: " + line);
 							data.put("username", securityContext.getUser(false).getName());
-							TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+							TransactionCommand.simpleBroadcastGenericMessage(data);
 
 						} finally {
 

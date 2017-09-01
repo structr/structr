@@ -215,9 +215,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 		}
 
-		final Map<String, Object> broadcastData = new TreeMap();
+		final Map<String, Object> broadcastData = new HashMap();
+		broadcastData.put("type", "DEPLOYMENT_STATUS");
+		broadcastData.put("subtype", "BEGIN");
 		broadcastData.put("start", startTime);
-		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_STARTED", broadcastData);
+		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 		// apply configuration
 		final Path preDeployConf = source.resolve("pre-deploy.conf");
@@ -266,7 +268,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deprecationBroadcastData.put("type", "WARNING");
 			deprecationBroadcastData.put("title", title);
 			deprecationBroadcastData.put("text", text);
-			TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", deprecationBroadcastData);
+			TransactionCommand.simpleBroadcastGenericMessage(deprecationBroadcastData);
 
 			info(title + ": " + text);
 
@@ -479,9 +481,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		info("Import from {} done. (Took {})", source.toString(), duration);
 
+		broadcastData.put("subtype", "END");
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
-		TransactionCommand.simpleBroadcast("DEPLOYMENT_IMPORT_FINISHED", broadcastData);
+		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 	}
 

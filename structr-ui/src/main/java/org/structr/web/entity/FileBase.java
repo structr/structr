@@ -682,6 +682,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		final String quoteChar                   = getOrDefault(parameters.get("quoteChar"), "\"");
 		final Integer commitInterval             = parseInt(parameters.get("commitInterval"), 1000);
 		final String filePath                    = getPath();
+		final String fileName                    = getName();
 
 		if (targetType != null && delimiter != null && quoteChar != null) {
 
@@ -699,10 +700,19 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 					final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
 					final App app                       = StructrApp.getInstance(threadContext);
+					final String username               = threadContext.getUser(false).getName();
 
 					try (final InputStream is = getInputStream()) {
 
 						final long startTime = System.currentTimeMillis();
+
+						final Map<String, Object> beginMsgData = new LinkedHashMap();
+						beginMsgData.put("type",     "CSV_FILE_IMPORT_STATUS");
+						beginMsgData.put("subtype",  "BEGIN");
+						beginMsgData.put("filename", fileName);
+						beginMsgData.put("filepath", filePath);
+						beginMsgData.put("username", username);
+						TransactionCommand.simpleBroadcastGenericMessage(beginMsgData);
 
 						final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
 						final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
@@ -733,12 +743,14 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 								logger.info("CSV: Finished importing chunk {}", chunks);
 
-								final Map<String, Object> data = new LinkedHashMap();
-								data.put("type", "CSV_IMPORT_STATUS");
-								data.put("title", "CSV Import Status");
-								data.put("text", "Finished importing chunk " + chunks);
-								data.put("username", threadContext.getUser(false).getName());
-								TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+								final Map<String, Object> chunkMsgData = new LinkedHashMap();
+								chunkMsgData.put("type",           "CSV_FILE_IMPORT_STATUS");
+								chunkMsgData.put("subtype",        "CHUNK");
+								chunkMsgData.put("filename",       fileName);
+								chunkMsgData.put("filepath",       filePath);
+								chunkMsgData.put("username",       username);
+								chunkMsgData.put("currentChunkNo", chunks);
+								TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
 							}
 						}
 
@@ -748,12 +760,14 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 						logger.info("CSV: Finished importing CSV data from '{}' (Time: {})", filePath, duration);
 
-						final Map<String, Object> data = new LinkedHashMap();
-						data.put("type", "CSV_IMPORT_STATUS");
-						data.put("title", "CSV Import Done");
-						data.put("text", "Finished importing CSV data from '" + filePath + "' (Time: " + duration + ")");
-						data.put("username", threadContext.getUser(false).getName());
-						TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+						final Map<String, Object> endMsgData = new LinkedHashMap();
+						endMsgData.put("type",     "CSV_FILE_IMPORT_STATUS");
+						endMsgData.put("subtype",  "END");
+						endMsgData.put("filename", fileName);
+						endMsgData.put("filepath", filePath);
+						endMsgData.put("username", username);
+						endMsgData.put("duration", duration);
+						TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
 
 
 					} catch (IOException | FrameworkException fex) {
@@ -807,6 +821,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		final String contentType = getProperty(FileBase.contentType);
 		final String filePath    = getPath();
+		final String fileName    = getName();
 
 		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
 
@@ -816,10 +831,19 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			startNewThread(() -> {
 
 				final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
+				final String username               = threadContext.getUser(false).getName();
 				final App app                       = StructrApp.getInstance(threadContext);
 				int overallCount                    = 0;
 
 				try (final Reader reader = new InputStreamReader(getInputStream())) {
+
+					final Map<String, Object> beginMsgData = new LinkedHashMap();
+					beginMsgData.put("type", "XML_FILE_IMPORT_STATUS");
+					beginMsgData.put("subtype", "BEGIN");
+					beginMsgData.put("filename", fileName);
+					beginMsgData.put("filepath", filePath);
+					beginMsgData.put("username", username);
+					TransactionCommand.simpleBroadcastGenericMessage(beginMsgData);
 
 					final Iterator<Map<String, Object>> iterator = new XMLHandler(config, reader);
 					final int batchSize                          = 100;
@@ -844,12 +868,16 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 							tx.success();
 
-							final Map<String, Object> data = new LinkedHashMap();
-							data.put("type", "XML_IMPORT_STATUS");
-							data.put("title", "XML Import Status");
-							data.put("text", "Finished importing chunk " + ++chunks);
-							data.put("username", threadContext.getUser(false).getName());
-							TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+							chunks++;
+
+							final Map<String, Object> chunkMsgData = new LinkedHashMap();
+							chunkMsgData.put("type", "XML_FILE_IMPORT_STATUS");
+							chunkMsgData.put("subtype", "CHUNK");
+							chunkMsgData.put("filename", fileName);
+							chunkMsgData.put("filepath", filePath);
+							chunkMsgData.put("username", username);
+							chunkMsgData.put("currentChunkNo", chunks);
+							TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
 
 							logger.info("XML: Imported {} objects, commiting batch.", overallCount);
 						}
@@ -861,12 +889,14 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 					logger.info("XML: Finished importing XML data from '{}' (Time: {})", filePath, duration);
 
-					final Map<String, Object> data = new LinkedHashMap();
-					data.put("type", "XML_IMPORT_STATUS");
-					data.put("title", "XML Import Done");
-					data.put("text", "Finished importing XML data from '" + filePath + "' (Time: " + duration + ")");
-					data.put("username", threadContext.getUser(false).getName());
-					TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+					final Map<String, Object> endMsgData = new LinkedHashMap();
+					endMsgData.put("type", "XML_FILE_IMPORT_STATUS");
+					endMsgData.put("subtype", "END");
+					endMsgData.put("filename", fileName);
+					endMsgData.put("filepath", filePath);
+					endMsgData.put("username", username);
+					endMsgData.put("duration", duration);
+					TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
 
 				} catch (XMLStreamException | IOException | FrameworkException fex) {
 					System.out.println(fex.toString());

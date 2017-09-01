@@ -324,7 +324,14 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);
 
+				final String username = securityContext.getUser(false).getName();
 				final long startTime = System.currentTimeMillis();
+
+				final Map<String, Object> data = new LinkedHashMap();
+				data.put("type", "CSV_IMPORT_STATUS");
+				data.put("subtype", "BEGIN");
+				data.put("username", username);
+				TransactionCommand.simpleBroadcastGenericMessage(data);
 
 				// isolate doPost
 				boolean retry = true;
@@ -361,12 +368,13 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 									logger.info("CSV: Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
 
-									final Map<String, Object> data = new LinkedHashMap();
-									data.put("type", "CSV_IMPORT_STATUS");
-									data.put("title", "CSV Import Status");
-									data.put("text", "Finished importing chunk " + currentChunkNo + " / " + totalChunkNo);
-									data.put("username", securityContext.getUser(false).getName());
-									TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+									final Map<String, Object> chunkMsgData = new LinkedHashMap();
+									chunkMsgData.put("type",           "CSV_IMPORT_STATUS");
+									chunkMsgData.put("subtype",        "CHUNK");
+									chunkMsgData.put("currentChunkNo", currentChunkNo);
+									chunkMsgData.put("totalChunkNo",   totalChunkNo);
+									chunkMsgData.put("username",       username);
+									TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
 
 								} catch (RetryException ddex) {
 									retry = true;
@@ -415,12 +423,12 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 				logger.info("CSV: Finished importing CSV data (Time: {})", duration);
 
-				final Map<String, Object> data = new LinkedHashMap();
-				data.put("type", "CSV_IMPORT_STATUS");
-				data.put("title", "CSV Import Done");
-				data.put("text", "Finished importing CSV data (Time: " + duration + ")");
-				data.put("username", securityContext.getUser(false).getName());
-				TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+				final Map<String, Object> endMsgData = new LinkedHashMap();
+				endMsgData.put("type", "CSV_IMPORT_STATUS");
+				endMsgData.put("subtype", "END");
+				endMsgData.put("duration", duration);
+				endMsgData.put("username", username);
+				TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
 
 				// set default value for property view
 				propertyView.set(securityContext, config.getDefaultPropertyView());
@@ -549,7 +557,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 			data.put("title", "CSV Import Error");
 			data.put("text", fxe.getMessage() + "<br>" + fxe.toString() + "<br>" + propertySet.toString());
 			data.put("username", securityContext.getUser(false).getName());
-			TransactionCommand.simpleBroadcast("GENERIC_MESSAGE", data);
+			TransactionCommand.simpleBroadcastGenericMessage(data);
 
 			throw fxe;
 		}

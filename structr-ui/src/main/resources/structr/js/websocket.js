@@ -498,62 +498,9 @@ function wsConnect() {
 
 				_Schema.processSchemaRecompileNotification();
 
-			} else if (command === 'DEPLOYMENT_IMPORT_STARTED') {
-
-				Structr.handleDeploymentStarted(data.data);
-
-			} else if (command === 'DEPLOYMENT_IMPORT_FINISHED') {
-
-				Structr.handleDeploymentFinished(data.data);
-
 			} else if (command === 'GENERIC_MESSAGE') {
 
-				switch (data.data.type) {
-					case "CSV_IMPORT_STATUS":
-						if (me.name === data.username) {
-							new MessageBuilder()
-									.title(data.data.title)
-									.info(data.data.text)
-									.uniqueClass('csv-import-status')
-									.updatesText()
-									.requiresConfirmation()
-									.show();
-						}
-						break;
-
-					case "CSV_IMPORT_ERROR":
-						if (me.name === data.username) {
-							new MessageBuilder()
-									.title(data.data.title)
-									.error(data.data.text)
-									.requiresConfirmation()
-									.show();
-						}
-						break;
-
-					case "XML_IMPORT_STATUS":
-						if (me.name === data.username) {
-							new MessageBuilder()
-									.title(data.data.title)
-									.info(data.data.text)
-									.uniqueClass('xml-import-status')
-									.updatesText()
-									.requiresConfirmation()
-									.show();
-						}
-						break;
-
-					case "WARNING":
-						new MessageBuilder()
-								.title(data.data.title)
-								.warning(data.data.text)
-								.requiresConfirmation()
-								.show();
-						break;
-
-					default:
-						console.log("Received generic websocket broadcast: ", data);
-				}
+				Structr.handleGenericMessage(data.data);
 
 			} else {
 				console.log('Received unknown command: ' + command);
