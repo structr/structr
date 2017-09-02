@@ -1689,7 +1689,7 @@ var _Schema = {
 	},
 	appendBuiltinProperties: function(el, entity) {
 
-		el.append('<table class="builtin schema-props"><thead><th>Declaring Class</th><th>JSON Name</th><th>Type</th><th>Notnull</th><th>Uniq.</th><th>Idx</th></thead></table>');
+		el.append('<table class="builtin schema-props"><thead><th>Declaring Class</th><th>JSON Name</th><th>Type</th><th>Notnull</th><th>Comp.</th><th>Uniq.</th><th>Idx</th></thead></table>');
 
 		var propertiesTable = $('.builtin.schema-props', el);
 
