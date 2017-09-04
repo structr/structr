@@ -262,7 +262,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			info("Reading {}..", schemaMethodsConf);
 			final String title = "Deprecation warning";
-			final String text = "Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
+			final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
 
 			final Map<String, Object> deprecationBroadcastData = new TreeMap();
 			deprecationBroadcastData.put("type", "WARNING");
