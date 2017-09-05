@@ -107,6 +107,11 @@ var _Crud = {
 	}),
 	getProperties: function(type, callback) {
 
+		// We need at least the type to do anything  
+		if (type === null) {
+			return;
+		}
+
 		var url = rootUrl + '_schema/' + type + '/ui';
 		$.ajax({
 			url: url,
@@ -118,7 +123,7 @@ var _Crud = {
 					// no schema entry found?
 					if (!data || !data.result || data.result_count === 0) {
 
-						new MessageBuilder().warning("Failed loading Schema for '" + type + "' - check your resource access grants.").show();
+						new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
 
 					} else {
 
