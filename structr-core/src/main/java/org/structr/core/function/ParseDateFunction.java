@@ -67,7 +67,7 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 			} catch (ParseException ex) {
 
-				logException(ex, "{}: Could not parse date and format it to pattern in element: \"{}\". Parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+				logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getName(), dateString, pattern, caller, getParametersAsString(sources) });
 
 			}
 
