@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
@@ -97,6 +98,12 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	@Override
 	public Class valueType() {
+		// This trick results in returning the proper array class for array properties.
+		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
+		try {
+			return Class.forName("[L" + componentType.getName() + ";");
+		} catch (ClassNotFoundException ex) {}
+		
 		return componentType;
 	}
 
