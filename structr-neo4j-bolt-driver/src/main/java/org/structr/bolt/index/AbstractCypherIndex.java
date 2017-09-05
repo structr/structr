@@ -47,10 +47,13 @@ import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.*;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
+import org.structr.bolt.index.converter.ByteTypeConverter;
 import org.structr.bolt.index.converter.DateTypeConverter;
 import org.structr.bolt.index.converter.DoubleTypeConverter;
+import org.structr.bolt.index.converter.FloatTypeConverter;
 import org.structr.bolt.index.converter.IntTypeConverter;
 import org.structr.bolt.index.converter.LongTypeConverter;
+import org.structr.bolt.index.converter.ShortTypeConverter;
 import org.structr.bolt.index.converter.StringTypeConverter;
 import org.structr.bolt.index.factory.ArrayQueryFactory;
 import org.structr.bolt.index.factory.EmptyQueryFactory;
@@ -74,7 +77,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	public static final Map<Class, QueryFactory> FACTORIES   = new HashMap<>();
 
 	public static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
-		String.class, Boolean.class, Short.class, Integer.class, Long.class, Character.class, Float.class, Double.class, byte.class,
+		String.class,   Boolean.class,   Short.class,   Integer.class,   Long.class,   Character.class,   Float.class,   Double.class,   byte.class,
 		String[].class, Boolean[].class, Short[].class, Integer[].class, Long[].class, Character[].class, Float[].class, Double[].class, byte[].class
 	}));
 
@@ -95,8 +98,11 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		CONVERTERS.put(String.class,  new StringTypeConverter());
 		CONVERTERS.put(Date.class,    new DateTypeConverter());
 		CONVERTERS.put(Long.class,    new LongTypeConverter());
+		CONVERTERS.put(Short.class,   new ShortTypeConverter());
 		CONVERTERS.put(Integer.class, new IntTypeConverter());
+		CONVERTERS.put(Float.class,   new FloatTypeConverter());
 		CONVERTERS.put(Double.class,  new DoubleTypeConverter());
+		CONVERTERS.put(byte.class,    new ByteTypeConverter());
 	}
 
 	protected final FixedSizeCache<Integer, CachedQueryResult> queryCache;
