@@ -118,6 +118,7 @@ public class MaintenanceResource extends Resource {
 						cmd.getCustomHeaders().forEach((final String headerName, final String headerValue) -> {
 							result.addHeader(headerName, headerValue);
 						});
+						cmd.getCustomHeaders().clear();
 						return result;
 
 					} else {
