@@ -335,7 +335,7 @@ public class PropertyMap {
 		if (source != null) {
 
 			// caution, source can be null when an empty nested property group is encountered!
-			for (Entry<String, Object> entry : source.entrySet()) {
+			for (final Entry<String, Object> entry : source.entrySet()) {
 
 				String key   = entry.getKey();
 				Object value = entry.getValue();
@@ -345,7 +345,7 @@ public class PropertyMap {
 					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
-					if (converter != null) {
+					if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
 
 						try {
 
