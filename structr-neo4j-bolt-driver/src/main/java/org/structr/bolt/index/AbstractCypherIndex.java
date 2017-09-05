@@ -74,7 +74,8 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	public static final Map<Class, QueryFactory> FACTORIES   = new HashMap<>();
 
 	public static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
-		String.class, Boolean.class, Double.class, Integer.class, Long.class, Character.class, Float.class
+		String.class, Boolean.class, Short.class, Integer.class, Long.class, Character.class, Float.class, Double.class, byte.class,
+		String[].class, Boolean[].class, Short[].class, Integer[].class, Long[].class, Character[].class, Float[].class, Double[].class, byte[].class
 	}));
 
 	static {
