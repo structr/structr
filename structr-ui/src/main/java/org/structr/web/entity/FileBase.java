@@ -699,6 +699,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				startNewThread(() -> {
 
 					final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
+					threadContext.setDoTransactionNotifications(false);
 					final App app                       = StructrApp.getInstance(threadContext);
 					final String username               = threadContext.getUser(false).getName();
 
@@ -831,6 +832,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			startNewThread(() -> {
 
 				final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
+				threadContext.setDoTransactionNotifications(false);
 				final String username               = threadContext.getUser(false).getName();
 				final App app                       = StructrApp.getInstance(threadContext);
 				int overallCount                    = 0;
