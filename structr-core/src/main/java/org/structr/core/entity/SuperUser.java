@@ -212,6 +212,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	}
 
+	@Override
+	public boolean shouldSkipSecurityRelationships() {
+		return true;
+	}
+
 	//~--- set methods ----------------------------------------------------
 
 	public void setPassword(final String passwordValue) {

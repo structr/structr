@@ -74,6 +74,11 @@ public class Group extends AbstractUser implements Principal {
 		return principals;
 	}
 
+	@Override
+	public boolean shouldSkipSecurityRelationships() {
+		return false;
+	}
+
 	/*
 	public void addAllowedPermission(final Permission permission) {
 		SecurityDelegate.addPermission(this, Principal.allowed, permission);

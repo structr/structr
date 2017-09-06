@@ -35,7 +35,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
-import org.structr.core.entity.SuperUser;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
@@ -169,7 +168,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		final StringBuilder buf                      = new StringBuilder();
 		final String newUuid                         = (String)properties.get("id");
 
-		if (user != null && !(user instanceof SuperUser)) {
+		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
 			buf.append("MATCH (u:Principal) WHERE id(u) = {userId}");
 			buf.append(" CREATE (u)-[o:OWNS {ownsProperties}]->(n");

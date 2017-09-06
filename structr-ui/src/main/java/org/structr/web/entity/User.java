@@ -25,11 +25,13 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Group;
+import static org.structr.core.entity.Principal.eMail;
 import org.structr.core.entity.relationship.Groups;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
@@ -52,23 +54,24 @@ import org.structr.web.property.UiNotion;
 
 public class User extends AbstractUser {
 
-	public static final Property<String>            confirmationKey  = new StringProperty("confirmationKey").indexed();
-	public static final Property<Boolean>           backendUser      = new BooleanProperty("backendUser").indexed();
-	public static final Property<Boolean>           frontendUser     = new BooleanProperty("frontendUser").indexed();
-	public static final Property<Image>             img              = new StartNode<>("img", UserImage.class);
-	public static final ImageDataProperty           imageData        = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
-	public static final Property<Folder>            homeDirectory    = new EndNode<>("homeDirectory", UserHomeDir.class);
-	public static final Property<Folder>            workingDirectory = new EndNode<>("workingDirectory", UserWorkDir.class);
-	public static final Property<List<Group>>       groups           = new StartNodes<>("groups", Groups.class, new UiNotion());
-	public static final Property<Boolean>           isUser           = new ConstantBooleanProperty("isUser", true);
-	public static final Property<String>            twitterName      = new StringProperty("twitterName").cmis().indexed();
-	public static final Property<String>            localStorage     = new StringProperty("localStorage");
-	public static final Property<List<Favoritable>> favorites        = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
+	public static final Property<String>            confirmationKey           = new StringProperty("confirmationKey").indexed();
+	public static final Property<Boolean>           backendUser               = new BooleanProperty("backendUser").indexed();
+	public static final Property<Boolean>           frontendUser              = new BooleanProperty("frontendUser").indexed();
+	public static final Property<Image>             img                       = new StartNode<>("img", UserImage.class);
+	public static final ImageDataProperty           imageData                 = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
+	public static final Property<Folder>            homeDirectory             = new EndNode<>("homeDirectory", UserHomeDir.class);
+	public static final Property<Folder>            workingDirectory          = new EndNode<>("workingDirectory", UserWorkDir.class);
+	public static final Property<List<Group>>       groups                    = new StartNodes<>("groups", Groups.class, new UiNotion());
+	public static final Property<Boolean>           isUser                    = new ConstantBooleanProperty("isUser", true);
+	public static final Property<String>            twitterName               = new StringProperty("twitterName").cmis().indexed();
+	public static final Property<String>            localStorage              = new StringProperty("localStorage");
+	public static final Property<List<Favoritable>> favorites                 = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
+	public static final Property<Boolean>           skipSecurityRelationships = new BooleanProperty("skipSecurityRelationships").defaultValue(Boolean.FALSE).indexed().readOnly();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
 		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser,
 			groups, img, homeDirectory, workingDirectory, isUser, locale, favorites,
-			proxyUrl, proxyUsername, proxyPassword
+			proxyUrl, proxyUsername, proxyPassword, skipSecurityRelationships
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
@@ -80,6 +83,19 @@ public class User extends AbstractUser {
 		// register this type as an overridden builtin type
 		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
 	}
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		if ( getProperty(skipSecurityRelationships).equals(Boolean.TRUE) && !isAdmin()) {
+
+			errorBuffer.add(new SemanticErrorToken(getClass().getSimpleName(), skipSecurityRelationships, "can_only_be_set_for_admin_accounts"));
+			return false;
+		}
+
+		return super.isValid(errorBuffer);
+	}
+
 
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
@@ -195,5 +211,10 @@ public class User extends AbstractUser {
 			}
 
 		}
+	}
+
+	@Override
+	public boolean shouldSkipSecurityRelationships() {
+		return getProperty(User.skipSecurityRelationships);
 	}
 }
