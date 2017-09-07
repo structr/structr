@@ -2660,8 +2660,9 @@ input.bitmask {
 #info-area {
 	z-index: 9999;
 	position: absolute;
-	left: 25%;
-	right: 25%;
+	left: 60%;
+	right: 4px;
+	top: 4px;
 }
 
 #info-area .message {
@@ -2672,6 +2673,7 @@ input.bitmask {
 	clear: both;
 	overflow: auto;
 	background-position: 16px 16px;
+	margin-bottom: 2px;
 }
 
 #info-area .message h3 {
