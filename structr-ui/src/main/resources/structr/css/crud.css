@@ -209,6 +209,7 @@
 }
 
 .resourceBox th {
+	border: 1px solid #b5b5b5;
 	background: #f0f0f0;
 	color: #333;
 	vertical-align: top;
