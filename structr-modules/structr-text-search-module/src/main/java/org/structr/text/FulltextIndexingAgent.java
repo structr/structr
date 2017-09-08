@@ -113,10 +113,9 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 					try (final InputStream is = inputStream) {
 
-						Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
+						Detector detector             = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 						final AutoDetectParser parser = new AutoDetectParser(detector);
-
-						final Metadata metadata = new Metadata();
+						final Metadata metadata       = new Metadata();
 
 						parser.parse(is, new BodyContentHandler(tokenizer), metadata);
 						parsingSuccessful = true;

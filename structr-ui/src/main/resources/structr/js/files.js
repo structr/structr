@@ -58,6 +58,8 @@ var _Files = {
 
 		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 
+		searchField = $('.search', main);
+
 		if (searchField && searchField.length > 0) {
 
 			searchField.focus();
