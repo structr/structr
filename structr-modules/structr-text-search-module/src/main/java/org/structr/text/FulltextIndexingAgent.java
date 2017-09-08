@@ -119,11 +119,6 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 						Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 						final AutoDetectParser parser = new AutoDetectParser(detector);
-
-						final Map<MediaType, Parser> customParsers = new HashMap<>();
-						customParsers.put(MediaType.application("pdf"), new PDFParser());
-						parser.setParsers(customParsers);
-
 						final Metadata metadata = new Metadata();
 
 						parser.parse(is, new BodyContentHandler(tokenizer), metadata);
