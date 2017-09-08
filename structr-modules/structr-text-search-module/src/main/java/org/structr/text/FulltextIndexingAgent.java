@@ -21,7 +21,6 @@ package org.structr.text;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -35,11 +34,8 @@ import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.io.IOUtils;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.Parser;
-import org.apache.tika.parser.pdf.PDFParser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,10 +115,6 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 
 						Detector detector = new DefaultDetector(MimeTypes.getDefaultMimeTypes());
 						final AutoDetectParser parser = new AutoDetectParser(detector);
-
-						final Map<MediaType, Parser> customParsers = new HashMap<>();
-						customParsers.put(MediaType.application("pdf"), new PDFParser());
-						parser.setParsers(customParsers);
 
 						final Metadata metadata = new Metadata();
 

@@ -19,7 +19,6 @@
 package org.structr.web.common;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -160,6 +159,9 @@ public class FileHelper {
 		T newFile = (T) StructrApp.getInstance(securityContext).create(t, props);
 
 		setFileData(newFile, fileData, contentType);
+
+		// schedule indexing
+		newFile.notifyUploadCompletion();
 
 		return newFile;
 	}
@@ -437,9 +439,9 @@ public class FileHelper {
 		if (relativeFilePath != null) {
 
 			try {
-				
+
 				String filePath = getFilePath(relativeFilePath);
-				
+
 				return getChecksum(new java.io.File(filePath));
 
 			} catch (IOException ex) {

@@ -76,7 +76,7 @@ public class FulltextTokenizer extends Writer {
 	}
 
 	public FulltextTokenizer(final String fileName) {
-		this.fileName       = fileName;
+		this.fileName = fileName;
 	}
 
 	@Override
@@ -132,7 +132,7 @@ public class FulltextTokenizer extends Writer {
 	}
 
 	public String getRawText() {
-		return rawText.toString();
+		return rawText.toString().trim();
 	}
 
 	public Set<String> getWords() {
@@ -183,7 +183,7 @@ public class FulltextTokenizer extends Writer {
 
 		flush();
 
-		final LanguageIdentifier identifier = new LanguageIdentifier(rawText.toString());
+		final LanguageIdentifier identifier = new LanguageIdentifier(getRawText());
 		if (identifier.isReasonablyCertain()) {
 
 			language = identifier.getLanguage();
