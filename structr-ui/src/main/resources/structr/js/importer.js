@@ -17,9 +17,125 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var appDataXMLKey = 'xml-import-config';
+$(document).ready(function() {
+
+	Structr.registerModule(Importer);
+
+	$(document).on('click', '.import-job-action', function (e) {
+		e.preventDefault();
+
+		var mode = $(this).data('action');
+		var jobId = $(this).data('jobId');
+
+		Command.fileImport(mode, jobId);
+
+		return false;
+	});
+
+});
 
 var Importer = {
+	_moduleName: 'importer',
+	appDataXMLKey: 'xml-import-config',
+	timeout: undefined,
+
+	init: function() {
+		main = $('#main');
+	},
+	resize: function() {
+	},
+	onload: function() {
+		Importer.init();
+
+		main.append(
+			'<div id="importer-main" class="resourceBox full-height-box">' +
+					'<button class="refresh">Refresh</button>' +
+					'<table id="importer-jobs-table">' +
+						'<thead><tr>' +
+							'<th>Job ID</th>' +
+							'<th>File UUID</th>' +
+							'<th>File path</th>' +
+							'<th>User</th>' +
+							'<th>Processed Chunks</th>' +
+							'<th>Status</th>' +
+							'<th>Action</th>' +
+						'</tr></thead>' +
+						'<tbody></tbody>' +
+					'</table>' +
+			'</div>'
+		);
+
+		$('#importer-main .refresh').click(function () {
+			Importer.updateJobTable();
+		});
+
+		Importer.updateJobTable();
+
+		Structr.unblockMenu(100);
+	},
+	unload: function() {
+
+	},
+	updateJobTable: function () {
+
+		window.clearTimeout(Importer.timeout);
+
+		window.setTimeout(function () {
+
+			Command.fileImport("list", null, function (jobs) {
+
+				var table = $('#importer-jobs-table');
+				var tbody = $('tbody', table);
+				tbody.empty();
+
+				var imports = jobs[0].imports;
+
+				if (imports.length) {
+
+					imports.forEach(function (job) {
+						tbody.append(Importer.createRowForJob(job));
+					});
+
+				} else {
+					tbody.append('<td colspan=7>No import jobs</td>');
+				}
+
+			});
+
+			window.clearTimeout(Importer.timeout);
+
+		}, 250);
+
+
+	},
+	createRowForJob: function (job) {
+		return $('<tr><td>' + job.jobId + '</td><td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.username + '</td><td>' + job.processedChunks + '</td><td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
+	},
+	createActionButtons: function (job) {
+		var actionHtml = '';
+
+		switch (job.status) {
+			case 'QUEUED':
+				actionHtml += Importer.createActionButton('start', job.jobId, 'Start');
+				actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+				break;
+
+			case 'PAUSED':
+				actionHtml += Importer.createActionButton('resume', job.jobId, 'Resume');
+				actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+				break;
+
+			case 'RUNNING':
+				actionHtml += Importer.createActionButton('pause', job.jobId, 'Pause');
+				actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+				break;
+		}
+
+		return actionHtml;
+	},
+	createActionButton: function (action, jobId, content) {
+		return '<button class="import-job-action" data-action="' + action + '" data-job-id="' + jobId + '">' + content + '</button>';
+	},
 
 	initializeButtons: function(start, next, prev, cancel, configurations, configuration) {
 
@@ -53,7 +169,7 @@ var Importer = {
 				'<button id="save-xml-config">Save</button>' +
 				'</div>');
 
-			Command.appData('list', appDataXMLKey, null, null, function(result) {
+			Command.appData('list', Importer.appDataXMLKey, null, null, function(result) {
 
 				result[0].names.forEach(function(v) {
 					$('#load-xml-config-name').append('<option>' + v + '</option>');
@@ -65,7 +181,7 @@ var Importer = {
 				var name = $('#load-xml-config-name').val();
 				if (name && name.length) {
 
-					Command.appData('get', appDataXMLKey, name, null, function(result) {
+					Command.appData('get', Importer.appDataXMLKey, name, null, function(result) {
 						if (result && result.value) {
 							var config = JSON.parse(result.value);
 							Object.keys(config).forEach(function(k) {
@@ -379,7 +495,7 @@ var Importer = {
 			if (name && name.length) {
 
 				// mode, category, name, value, callback
-				Command.appData('add', appDataXMLKey, name, JSON.stringify(configuration));
+				Command.appData('add', Importer.appDataXMLKey, name, JSON.stringify(configuration));
 			}
 		});
 

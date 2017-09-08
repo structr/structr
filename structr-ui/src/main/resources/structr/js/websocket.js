@@ -502,6 +502,10 @@ function wsConnect() {
 
 				Structr.handleGenericMessage(data.data);
 
+			} else if (command === 'FILE_IMPORT') {
+
+				StructrModel.callCallback(data.callback, result);
+
 			} else {
 				console.log('Received unknown command: ' + command);
 

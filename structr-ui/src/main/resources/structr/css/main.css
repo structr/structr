@@ -4671,3 +4671,12 @@ div#xml-configurations button {
     border-radius: 0;
 	line-height: 1.0;
 }
+
+/**
+ * Importer
+ */
+
+#importer-main {
+	width: calc(100vw - 60px);
+	margin: 10px 5px 10px 10px;
+}
