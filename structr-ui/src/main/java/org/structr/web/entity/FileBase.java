@@ -32,14 +32,8 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -59,10 +53,8 @@ import org.structr.cmis.info.CMISItemInfo;
 import org.structr.cmis.info.CMISPolicyInfo;
 import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
-import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
-import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
@@ -73,17 +65,13 @@ import org.structr.common.fulltext.Indexable;
 import static org.structr.common.fulltext.Indexable.extractedContent;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import org.structr.core.JsonInput;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
@@ -95,10 +83,6 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.files.cmis.config.StructrFileActions;
-import org.structr.module.StructrModule;
-import org.structr.module.api.APIBuilder;
-import org.structr.rest.common.CsvHelper;
-import org.structr.rest.common.XMLHandler;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -109,6 +93,9 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.relation.Folders;
 import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.entity.relation.UserFavoriteFile;
+import org.structr.web.importer.CSVFileImportJob;
+import org.structr.web.importer.DataImportManager;
+import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
 
 /**
@@ -675,124 +662,9 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Export
 	public void doCSVImport(final Map<String, Object> parameters) throws FrameworkException {
 
-		final Map<String, String> importMappings = getOrDefault(parameters.get("mappings"), Collections.EMPTY_MAP);
-		final Map<String, String> transforms     = getOrDefault(parameters.get("transforms"), Collections.EMPTY_MAP);
-		final String targetType                  = getOrDefault(parameters.get("targetType"), null);
-		final String delimiter                   = getOrDefault(parameters.get("delimiter"), ";");
-		final String quoteChar                   = getOrDefault(parameters.get("quoteChar"), "\"");
-		final Integer commitInterval             = parseInt(parameters.get("commitInterval"), 1000);
-		final String filePath                    = getPath();
-		final String fileName                    = getName();
+		CSVFileImportJob job = new CSVFileImportJob(this, securityContext.getUser(false), parameters);
+		DataImportManager.getInstance().addJob(job);
 
-		if (targetType != null && delimiter != null && quoteChar != null) {
-
-			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, this.getUuid(), targetType, parameters);
-
-			final StructrModule module = StructrApp.getConfiguration().getModules().get("api-builder");
-			if (module != null && module instanceof APIBuilder) {
-
-				final APIBuilder builder       = (APIBuilder)module;
-				final SimpleDateFormat df      = new SimpleDateFormat("yyyyMMddHHMM");
-				final String importTypeName    = "ImportFromCsv" + df.format(System.currentTimeMillis());
-
-				// do import using periodic commit
-				startNewThread(() -> {
-
-					final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
-					threadContext.setDoTransactionNotifications(false);
-					final App app                       = StructrApp.getInstance(threadContext);
-					final String username               = threadContext.getUser(false).getName();
-
-					try (final InputStream is = getInputStream()) {
-
-						final long startTime = System.currentTimeMillis();
-
-						final Map<String, Object> beginMsgData = new LinkedHashMap();
-						beginMsgData.put("type",     "CSV_FILE_IMPORT_STATUS");
-						beginMsgData.put("subtype",  "BEGIN");
-						beginMsgData.put("filename", fileName);
-						beginMsgData.put("filepath", filePath);
-						beginMsgData.put("username", username);
-						TransactionCommand.simpleBroadcastGenericMessage(beginMsgData);
-
-						final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
-						final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
-						final char fieldSeparator          = delimiter.charAt(0);
-						final char quoteCharacter          = quoteChar.charAt(0);
-						final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, reverse(importMappings));
-						final Iterator<JsonInput> iterator = iterable.iterator();
-						int chunks                         = 0;
-
-						while (iterator.hasNext()) {
-
-							int count = 0;
-
-							try (final Tx tx = app.tx()) {
-
-								while (iterator.hasNext() && count++ < commitInterval) {
-
-									final JsonInput input = iterator.next();
-
-									mapper.transformInput(threadContext, targetEntityType, input);
-
-									app.create(targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
-								}
-
-								tx.success();
-
-								chunks++;
-
-								logger.info("CSV: Finished importing chunk {}", chunks);
-
-								final Map<String, Object> chunkMsgData = new LinkedHashMap();
-								chunkMsgData.put("type",           "CSV_FILE_IMPORT_STATUS");
-								chunkMsgData.put("subtype",        "CHUNK");
-								chunkMsgData.put("filename",       fileName);
-								chunkMsgData.put("filepath",       filePath);
-								chunkMsgData.put("username",       username);
-								chunkMsgData.put("currentChunkNo", chunks);
-								TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
-							}
-						}
-
-						final long endTime = System.currentTimeMillis();
-						DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-						final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-
-						logger.info("CSV: Finished importing CSV data from '{}' (Time: {})", filePath, duration);
-
-						final Map<String, Object> endMsgData = new LinkedHashMap();
-						endMsgData.put("type",     "CSV_FILE_IMPORT_STATUS");
-						endMsgData.put("subtype",  "END");
-						endMsgData.put("filename", fileName);
-						endMsgData.put("filepath", filePath);
-						endMsgData.put("username", username);
-						endMsgData.put("duration", duration);
-						TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
-
-
-					} catch (IOException | FrameworkException fex) {
-						fex.printStackTrace();
-					} finally {
-
-						try {
-							builder.removeMapping(app, targetType, importTypeName);
-						} catch (FrameworkException ex) {
-							logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
-						}
-					}
-
-				}, false);
-
-			} else {
-
-				logger.warn("API builder module is not available.");
-			}
-
-		} else {
-
-			throw new FrameworkException(400, "Cannot import CSV, please specify target type, delimiter and quote character.");
-		}
 	}
 
 	@Export
@@ -820,98 +692,9 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Export
 	public void doXMLImport(final Map<String, Object> config) throws FrameworkException {
 
-		final String contentType = getProperty(FileBase.contentType);
-		final String filePath    = getPath();
-		final String fileName    = getName();
+		XMLFileImportJob job = new XMLFileImportJob(this, securityContext.getUser(false), config);
+		DataImportManager.getInstance().addJob(job);
 
-		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
-
-			logger.info("Importing XML from {} ({})..", filePath, this.getUuid());
-
-			// do import using periodic commit
-			startNewThread(() -> {
-
-				final SecurityContext threadContext = SecurityContext.getInstance(securityContext.getUser(false), AccessMode.Backend);
-				threadContext.setDoTransactionNotifications(false);
-				final String username               = threadContext.getUser(false).getName();
-				final App app                       = StructrApp.getInstance(threadContext);
-				int overallCount                    = 0;
-
-				try (final Reader reader = new InputStreamReader(getInputStream())) {
-
-					final Map<String, Object> beginMsgData = new LinkedHashMap();
-					beginMsgData.put("type", "XML_FILE_IMPORT_STATUS");
-					beginMsgData.put("subtype", "BEGIN");
-					beginMsgData.put("filename", fileName);
-					beginMsgData.put("filepath", filePath);
-					beginMsgData.put("username", username);
-					TransactionCommand.simpleBroadcastGenericMessage(beginMsgData);
-
-					final Iterator<Map<String, Object>> iterator = new XMLHandler(config, reader);
-					final int batchSize                          = 100;
-					int chunks                                   = 0;
-
-					final long startTime = System.currentTimeMillis();
-
-					while (iterator.hasNext()) {
-
-						int count = 0;
-
-						try (final Tx tx = app.tx()) {
-
-							while (iterator.hasNext() && ++count <= batchSize) {
-
-								final PropertyMap map = PropertyMap.inputTypeToJavaType(threadContext, iterator.next());
-
-								app.create(AbstractNode.class, map);
-
-								overallCount++;
-							}
-
-							tx.success();
-
-							chunks++;
-
-							final Map<String, Object> chunkMsgData = new LinkedHashMap();
-							chunkMsgData.put("type", "XML_FILE_IMPORT_STATUS");
-							chunkMsgData.put("subtype", "CHUNK");
-							chunkMsgData.put("filename", fileName);
-							chunkMsgData.put("filepath", filePath);
-							chunkMsgData.put("username", username);
-							chunkMsgData.put("currentChunkNo", chunks);
-							TransactionCommand.simpleBroadcastGenericMessage(chunkMsgData);
-
-							logger.info("XML: Imported {} objects, commiting batch.", overallCount);
-						}
-					}
-
-					final long endTime = System.currentTimeMillis();
-					DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-					final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-
-					logger.info("XML: Finished importing XML data from '{}' (Time: {})", filePath, duration);
-
-					final Map<String, Object> endMsgData = new LinkedHashMap();
-					endMsgData.put("type", "XML_FILE_IMPORT_STATUS");
-					endMsgData.put("subtype", "END");
-					endMsgData.put("filename", fileName);
-					endMsgData.put("filepath", filePath);
-					endMsgData.put("username", username);
-					endMsgData.put("duration", duration);
-					TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
-
-				} catch (XMLStreamException | IOException | FrameworkException fex) {
-					System.out.println(fex.toString());
-					System.out.println(fex.getMessage());
-					fex.printStackTrace();
-				}
-
-			}, false);
-
-		} else {
-
-			logger.warn("Cannot import XML from file with content type {}", contentType);
-		}
 	}
 
 	// ----- private methods -----

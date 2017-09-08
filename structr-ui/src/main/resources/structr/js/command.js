@@ -1356,5 +1356,21 @@ var Command = {
 			}
 		};
 		return sendObj(obj, callback);
+	},
+	/**
+	 * Send a FILE_IMPORT command to the server.
+	 *
+	 * Depending on the mode the server will either list/start/pause/resume/cancel
+	 * file imports
+	 */
+	fileImport: function(mode, jobId, callback) {
+		var obj  = {
+			command: 'FILE_IMPORT',
+			data: {
+				mode: mode,
+				jobId: jobId
+			}
+		};
+		return sendObj(obj, callback);
 	}
 };

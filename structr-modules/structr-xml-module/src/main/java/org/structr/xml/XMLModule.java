@@ -29,7 +29,7 @@ import org.structr.schema.action.Actions;
 /**
  *
  */
-public class XMLModule implements StructrModule {
+public class XMLModule implements StructrModule, org.structr.module.xml.XMLModule {
 
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {

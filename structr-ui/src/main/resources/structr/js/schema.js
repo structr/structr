@@ -1822,7 +1822,7 @@ var _Schema = {
 			});
 
 			if (containsSpace) {
-				new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for more information.').requiresConfirmation().show();
+				new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="https://support.structr.com/article/329" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
 				return false;
 			}
 

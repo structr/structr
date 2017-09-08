@@ -1735,6 +1735,30 @@ var Structr = {
 	},
 	handleGenericMessage: function (data) {
 
+		var fileImportTitles = {
+			QUEUED: 'Import added to queue',
+			BEGIN: 'Import started',
+			CHUNK: 'Import status',
+			END: 'Import finished',
+			WAIT_ABORT: 'Import waiting to abort',
+			ABORTED: 'Import aborted',
+			WAIT_PAUSE: 'Import waiting to pause',
+			PAUSED: 'Import paused',
+			RESUMED: 'Import resumed'
+		};
+
+		var fileImportTexts = {
+			QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running import(s)',
+			BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
+			CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b>',
+			END: 'Finished importing data from <b>' + data.filename + '</b> (Time: ' + data.duration + ')',
+			WAIT_ABORT: 'The import of <b>' + data.filename + '</b> will be aborted after finishing the current chunk',
+			ABORTED: 'The import of <b>' + data.filename + '</b> has been aborted',
+			WAIT_PAUSE: 'The import of <b>' + data.filename + '</b> will be paused after finishing the current chunk',
+			PAUSED: 'The import of <b>' + data.filename + '</b> has been paused',
+			RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
+		};
+
 		switch (data.type) {
 
 			case "CSV_IMPORT_STATUS":
@@ -1762,49 +1786,46 @@ var Structr = {
 				if (me.username === data.username) {
 					new MessageBuilder()
 							.title(data.title)
-							.error(data.message + '<br>' + data.exception + '<br>' + data.propertySet)
+							.error(data.text)
 							.requiresConfirmation()
 							.show();
 				}
 				break;
 
-			case "CSV_FILE_IMPORT_STATUS":
+			case "FILE_IMPORT_STATUS":
 
 				if (me.username === data.username) {
 
-					var titles = {
-						BEGIN: 'CSV Import started',
-						CHUNK: 'CSV Import status',
-						END:   'CSV Import finished'
-					};
+					var msg = new MessageBuilder()
+							.title(data.importtype + ' ' + fileImportTitles[data.subtype])
+							.info(fileImportTexts[data.subtype])
+							.uniqueClass(data.importtype + '-import-status-' + data.filepath);
 
-					var texts = {
-						BEGIN: 'Started importing CSV data from ' + data.filepath,
-						CHUNK: 'Finished importing chunk ' + data.currentChunkNo,
-						END:   'Finished importing CSV data from ' + data.filepath + ' (Time: ' + data.duration + ')'
-					};
+					if (data.subtype !== 'QUEUED') {
+						msg.updatesText().requiresConfirmation();
+					}
 
-					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('csv-import-status-' + data.filepath).updatesText().requiresConfirmation().show();
+					msg.show();
+
+					if (Structr.isModuleActive(Importer)) {
+						Importer.updateJobTable();
+					}
 				}
 				break;
 
-			case "XML_FILE_IMPORT_STATUS":
+			case "FILE_IMPORT_EXCEPTION":
 
 				if (me.username === data.username) {
 
-					var titles = {
-						BEGIN: 'XML Import started',
-						CHUNK: 'XML Import status',
-						END:   'XML Import finished'
-					};
+					new MessageBuilder()
+							.title("Exception while importing " + data.importtype)
+							.error("File: " + data.filepath + "<br>" + data.message)
+							.requiresConfirmation()
+							.show();
 
-					var texts = {
-						BEGIN: 'Started importing XML data from ' + data.filepath,
-						CHUNK: 'Finished importing chunk ' + data.currentChunkNo,
-						END:   'Finished importing XML data from ' + data.filepath + ' (Time: ' + data.duration + ')'
-					};
-
-					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('xml-import-status-' + data.filepath).updatesText().requiresConfirmation().show();
+					if (Structr.isModuleActive(Importer)) {
+						Importer.updateJobTable();
+					}
 				}
 				break;
 
@@ -1812,16 +1833,15 @@ var Structr = {
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "A deployment import process has begun. Any changes made during a deployment might get lost or conflict with the deployment!<br>"
+					var text = "Any changes made during a deployment might get lost or conflict with the deployment!<br>"
 							+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment finished successfully.<br><br>"
 							+ "Deployment started : " + new Date(data.start);
 
-					new MessageBuilder().title("Deployment started").info(text).requiresConfirmation("Understood").show();
+					new MessageBuilder().title("Deployment started").info(text).requiresConfirmation().show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "The current deployment has finished. You should reload structr-ui to see the new data.<br>"
-							+ "You can either do this manually or click the button.<br><br>"
+					var text = "Reload the page to see the new data.<br><br>"
 							+ "Deployment started : " + new Date(data.start) + "<br>"
 							+ "Deployment finished: " + new Date(data.end) + "<br>"
 							+ "Total duration: " + data.duration;

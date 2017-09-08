@@ -1015,7 +1015,7 @@ var _Favorites = new (function () {
 			LSWrapper.setItem(_Favorites.favoritesTabKey, id);
 			_refreshEditor(id);
 		}
-	}
+	};
 
 	this.toggleFavorites = function() {
 		if (_favsVisible === true) {
@@ -1065,7 +1065,7 @@ var _Favorites = new (function () {
 
 			dialogSaveButton = $('#buttons-' + id + ' button#saveFile');
 		}
-	}
+	};
 
 });
 
