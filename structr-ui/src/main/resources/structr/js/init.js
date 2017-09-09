@@ -872,7 +872,7 @@ var Structr = {
 
 		$('.blockPage').css({
 			width: dw + 'px',
-			height: dh + 'px',
+			//height: dh + 'px',
 			top: t + 'px',
 			left: l + 'px'
 		});

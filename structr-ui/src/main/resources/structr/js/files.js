@@ -455,7 +455,7 @@ var _Files = {
 		};
 
 		if (!id) {
-			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', 'id,name,isFolder,folders,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers', displayFunction);
+			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', 'id,name,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers', displayFunction);
 		} else {
 			Command.query('Folder', folderPageSize, folderPage, 'name', 'asc', {parent: id}, displayFunction, true);
 		}
@@ -524,7 +524,7 @@ var _Files = {
 			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
 
 			if (isRootFolder) {
-				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,type,isFolder,folders,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,owner', handleChildren);
+				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,type,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,owner', handleChildren);
 			} else {
 				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
 			}
@@ -669,7 +669,7 @@ var _Files = {
 
 		var files = d.files || [];
 		var folders = d.folders || [];
-		var size = d.isFolder ? folders.length + files.length : (d.size ? d.size : '-');
+		var size = d.isFolder ? (folders.length + files.length) : (d.size ? d.size : '-');
 		var icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
 
 		if (_Files.isViewModeActive('list')) {
@@ -1483,8 +1483,8 @@ var _Files = {
 		var contentType = file.contentType;
 		var extension = file.name.substring(file.name.lastIndexOf('.') + 1);
 
-		var archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive'];
-		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar'];
+		var archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive', 'application/x-7z-compressed', 'application/x-ar', 'application/x-arj'];
+		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar', '7z', 'ar', 'arj'];
 
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
 	},

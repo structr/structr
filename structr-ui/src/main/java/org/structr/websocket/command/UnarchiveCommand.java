@@ -19,6 +19,7 @@
 package org.structr.websocket.command;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -28,6 +29,9 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +80,7 @@ public class UnarchiveCommand extends AbstractCommand {
 			ArchiveStreamFactory.DUMP,
 			ArchiveStreamFactory.JAR,
 			ArchiveStreamFactory.TAR,
+			ArchiveStreamFactory.SEVEN_Z,
 			ArchiveStreamFactory.ZIP
 		}));
 
@@ -172,73 +177,181 @@ public class UnarchiveCommand extends AbstractCommand {
 			tx.success();
 		}
 
-		try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(new BufferedInputStream(is))) {
+		final BufferedInputStream bufferedIs = new BufferedInputStream(is);
+		
+		switch (ArchiveStreamFactory.detect(bufferedIs)) {
 
-			ArchiveEntry entry = in.getNextEntry();
-			int overallCount = 0;
+			// 7z doesn't support streaming
+			case ArchiveStreamFactory.SEVEN_Z:
+				
+				SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
+				
+				SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
+				
+				int overallCount = 0;
+				
+				while (sevenZEntry != null) {
+					
+					try (final Tx tx = app.tx(true, true, false)) {
+						
+						int count = 0;
 
-			while (entry != null) {
+						while (sevenZEntry != null && count++ < 50) {
+						
+							final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
+							logger.info("Entry path: {}", entryPath);
 
-				try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+							if (sevenZEntry.isDirectory()) {
 
-					int count = 0;
+								handleDirectory(securityContext, existingParentFolder, entryPath);
 
-					while (entry != null && count++ < 50) {
+							} else {
 
-						final String entryPath = "/" + PathHelper.clean(entry.getName());
-						logger.info("Entry path: {}", entryPath);
+								byte[] buf = new byte[(int) sevenZEntry.getSize()];
+								sevenZFile.read(buf, 0, buf.length);
 
-						if (entry.isDirectory()) {
+								final ByteArrayInputStream in = new ByteArrayInputStream(buf);
 
-							final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
-							final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
-
-							logger.info("Created folder {} with path {}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
-
-						} else {
-
-							final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
-
-							final String name = PathHelper.getName(entryPath);
-
-							AbstractFile newFile = ImageHelper.isImageType(name)
-										? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
-										: FileHelper.createFile(securityContext, in, null, File.class, name);
-
-							final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
-							final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
-
-							if (parentFolder != null) {
-								newFile.setProperties(securityContext, new PropertyMap(AbstractFile.parent, parentFolder));
+								handleFile(securityContext, in, existingParentFolder, entryPath);
 							}
-							// create thumbnails while importing data
-	//						if (newFile instanceof Image) {
-	//							newFile.getProperty(Image.tnMid);
-	//							newFile.getProperty(Image.tnSmall);
-	//						}
+							
+							sevenZEntry = sevenZFile.getNextEntry();
 
-							logger.info("Created {} file {} with path {}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
-
+							overallCount++;
 						}
-
-
-						entry = in.getNextEntry();
-
-						overallCount++;
+						
+						logger.info("Committing transaction after {} entries.", overallCount);
+						
+						tx.success();
+						
 					}
-
-					logger.info("Committing transaction after {} files.", overallCount);
-
-					tx.success();
-
-					logger.info("Unarchived {} files.", overallCount);
+					
 				}
-			}
+
+				logger.info("Unarchived {} files.", overallCount);
+				
+				break;
+			
+			// ZIP needs special treatment to support "unsupported feature data descriptor"
+			case ArchiveStreamFactory.ZIP:
+				
+				try (final ZipArchiveInputStream in = new ZipArchiveInputStream(bufferedIs, null, false, true)) {
+
+					ArchiveEntry entry = in.getNextEntry();
+					overallCount = 0;
+
+					while (entry != null) {
+
+						try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+
+							int count = 0;
+
+							while (entry != null && count++ < 50) {
+
+								final String entryPath = "/" + PathHelper.clean(entry.getName());
+								logger.info("Entry path: {}", entryPath);
+
+								if (entry.isDirectory()) {
+
+									handleDirectory(securityContext, existingParentFolder, entryPath);
+
+								} else {
+
+									handleFile(securityContext, in, existingParentFolder, entryPath);
+								}
+
+								entry = in.getNextEntry();
+
+								overallCount++;
+							}
+
+							logger.info("Committing transaction after {} entries.", overallCount);
+
+							tx.success();
+						}
+					}
+				}
+
+				logger.info("Unarchived {} entries.", overallCount);
+				
+				break;
+			default:
+		
+				try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(bufferedIs)) {
+
+					ArchiveEntry entry = in.getNextEntry();
+					overallCount = 0;
+
+					while (entry != null) {
+
+						try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+
+							int count = 0;
+
+							while (entry != null && count++ < 50) {
+
+								final String entryPath = "/" + PathHelper.clean(entry.getName());
+								logger.info("Entry path: {}", entryPath);
+
+								if (entry.isDirectory()) {
+
+									handleDirectory(securityContext, existingParentFolder, entryPath);
+
+								} else {
+
+									handleFile(securityContext, in, existingParentFolder, entryPath);
+								}
+								
+								entry = in.getNextEntry();
+
+								overallCount++;
+							}
+
+							logger.info("Committing transaction after {} entries.", overallCount);
+
+							tx.success();
+						}
+					}
+				}
+
+				logger.info("Unarchived {} entries.", overallCount);
 		}
 
 		getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
 	}
 
+	private void handleDirectory(final SecurityContext securityContext, final Folder existingParentFolder, final String entryPath) throws FrameworkException {
+		
+		final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
+		final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
+
+		logger.info("Created folder {} with path {}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
+		
+	}
+	
+	private void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
+		
+		final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
+
+		final String name = PathHelper.getName(entryPath);
+
+		AbstractFile newFile = ImageHelper.isImageType(name)
+					? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
+					: FileHelper.createFile(securityContext, in, null, File.class, name);
+
+		final String folderPath = StringUtils.substringBeforeLast(filePath, PathHelper.PATH_SEP);
+		final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
+
+		if (parentFolder != null) {
+			final PropertyMap properties = new PropertyMap(AbstractFile.parent, parentFolder);
+			properties.put(AbstractFile.hasParent, true);
+			newFile.setProperties(securityContext, properties);
+		}
+
+		logger.info("Created {} file {} with path {}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
+		
+	}
+	
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {

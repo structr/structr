@@ -318,7 +318,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 								}
 								
-// can only happen if the configuration value is invalid or maps to the root folder
+								// can only happen if the configuration value is invalid or maps to the root folder
 								if (uploadFolder != null) {
 
 									changedProperties.put(FileBase.hasParent, true);

@@ -45,36 +45,6 @@ public class PathHelper {
 
 	//~--- methods --------------------------------------------------------
 
-	public static void main(String[] args) {
-
-		String[] input = { "/blog//blog_entries/892fa9194a36427bb87e18641c217d7d/comments", "/img/blog.gif", "blog" };
-
-		for (int i = 0; i < input.length; i++) {
-
-			String path = input[i];
-			
-			System.out.println("################### Testing " + path + " ###################");
-			
-			String name = getName(path);
-			String pagePart = getParts(path)[0];
-			
-			
-			System.out.println("Name: " + name);
-			System.out.println("Page part: " + pagePart);
-			
-			String[] parts = getParts(path);
-
-			for (String part : parts) {
-
-				System.out.println(part);
-
-			}
-			
-			System.out.println();
-
-		}
-	}
-
 	public static String clean(final String path) {
 
 		// Remove leading and trailing /

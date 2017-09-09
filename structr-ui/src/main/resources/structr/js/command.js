@@ -196,7 +196,7 @@ var Command = {
 	 * Send a QUERY command to the server.
 	 *
 	 * The server will return a result set containing all query results that match the
-     * given type and property values.
+	 * given type and property values.
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
