@@ -18,27 +18,24 @@
  */
 package org.structr.web.importer;
 
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 
 public class DataImportManager {
 
-	private static final Logger logger = LoggerFactory.getLogger(DataImportManager.class.getName());
-
 	private static DataImportManager singletonInstance = null;
 
 	private final AtomicLong importJobIdCount      = new AtomicLong(0);
-	private final Map<Long, ImportJob> queuedJobs  = new LinkedHashMap<>();
-	private final Map<Long, ImportJob> activeJobs  = new LinkedHashMap<>();
-	private final Queue<Long> jobIdQueue           = new LinkedList<>();
+	private final Map<Long, ImportJob> queuedJobs  = new ConcurrentHashMap<>();
+	private final Map<Long, ImportJob> activeJobs  = new ConcurrentHashMap<>();
+	private final Queue<Long> jobIdQueue           = new ConcurrentLinkedDeque<>();
 
 	private DataImportManager() { }
 
@@ -114,29 +111,30 @@ public class DataImportManager {
 
 		final List jobInfoList = new LinkedList();
 
-		addJobsToList(jobInfoList, activeJobs.values());
-		addJobsToList(jobInfoList, queuedJobs.values());
+		activeJobs.values().forEach((ImportJob job) -> {
+			addJobToList(jobInfoList, job);
+		});
+
+		jobIdQueue.forEach((Long jobId) -> {
+			addJobToList(jobInfoList, queuedJobs.get(jobId));
+		});
 
 		return jobInfoList;
 	}
 
-	private void addJobsToList (List list, Collection<ImportJob> jobList) {
+	private void addJobToList (List list, ImportJob job) {
 
-		jobList.forEach((job) -> {
+		final LinkedHashMap jobInfo = new LinkedHashMap();
+		jobInfo.put("jobId", job.jobId());
+		jobInfo.put("fileUuid", job.getFileUuid());
+		jobInfo.put("filepath", job.getFilePath());
+		jobInfo.put("filesize", job.getFileSize());
+		jobInfo.put("username", job.getUsername());
+		jobInfo.put("status", job.getCurrentStatus());
+		jobInfo.put("processedChunks", job.getProcessedChunks());
 
-			final LinkedHashMap jobInfo = new LinkedHashMap();
-			jobInfo.put("jobId", job.jobId());
-			jobInfo.put("fileUuid", job.getFileUuid());
-			jobInfo.put("filepath", job.getFilePath());
-			jobInfo.put("username", job.getUsername());
-			jobInfo.put("status", job.getCurrentStatus());
-			jobInfo.put("processedChunks", job.getProcessedChunks());
-
-			list.add(jobInfo);
-
-		});
+		list.add(jobInfo);
 	}
-
 
 	protected void jobFinished (final ImportJob job) {
 
@@ -157,8 +155,6 @@ public class DataImportManager {
 		}
 
 	}
-
-
 
 
 	//~--- private methods ----------------------------------------------------

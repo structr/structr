@@ -60,6 +60,7 @@ abstract class ImportJob {
 	protected String fileUuid;
 	protected String filePath;
 	protected String fileName;
+	protected Long fileSize;
 	protected JobStatus currentStatus;
 	protected Integer processedChunks = 0;
 
@@ -68,6 +69,7 @@ abstract class ImportJob {
 		this.fileUuid = file.getUuid();
 		this.filePath = file.getPath();
 		this.fileName = file.getName();
+		this.fileSize = file.getSize();
 		this.user = user;
 		this.username = user.getName();
 		this.configuration = configuration;
@@ -143,6 +145,10 @@ abstract class ImportJob {
 
 	public String getFileName () {
 		return fileName;
+	}
+
+	public Long getFileSize () {
+		return fileSize;
 	}
 
 	public String getUsername () {

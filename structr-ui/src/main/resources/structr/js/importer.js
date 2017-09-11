@@ -55,6 +55,7 @@ var Importer = {
 							'<th>Job ID</th>' +
 							'<th>File UUID</th>' +
 							'<th>File path</th>' +
+							'<th>File size</th>' +
 							'<th>User</th>' +
 							'<th>Processed Chunks</th>' +
 							'<th>Status</th>' +
@@ -97,7 +98,7 @@ var Importer = {
 					});
 
 				} else {
-					tbody.append('<td colspan=7>No import jobs</td>');
+					tbody.append('<td colspan=8>No import jobs</td>');
 				}
 
 			});
@@ -109,7 +110,7 @@ var Importer = {
 
 	},
 	createRowForJob: function (job) {
-		return $('<tr><td>' + job.jobId + '</td><td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.username + '</td><td>' + job.processedChunks + '</td><td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
+		return $('<tr><td>' + job.jobId + '</td><td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.username + '</td><td>' + job.processedChunks + '</td><td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
 	},
 	createActionButtons: function (job) {
 		var actionHtml = '';
