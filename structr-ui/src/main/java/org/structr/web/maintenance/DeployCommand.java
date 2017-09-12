@@ -116,6 +116,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Logger logger                   = LoggerFactory.getLogger(DeployCommand.class.getName());
 	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
 
+	private Integer stepCounter                          = 0;
+
 	static {
 
 		MaintenanceParameterResource.registerMaintenanceCommand("deploy", DeployCommand.class);
@@ -230,16 +232,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String confSource = new String(Files.readAllBytes(preDeployConf), Charset.forName("utf-8")).trim();
 
 				if (confSource.length() > 0) {
-					info("Applying pre-deployment configuration from {}..", preDeployConf);
+
+					info("Applying pre-deployment configuration from {}", preDeployConf);
+					publishDeploymentProgressMessage("Applying pre-deployment configuration");
+
 					Scripting.evaluate(new ActionContext(ctx), null, confSource, "pre-deploy.conf");
 				} else {
-					info("Ignoring empty pre-deployment configuration {}..", preDeployConf);
+
+					info("Ignoring empty pre-deployment configuration {}", preDeployConf);
+
 				}
 
 				tx.success();
 
 			} catch (Throwable t) {
 				logger.warn("", t);
+				publishDeploymentWarnigMessage("Exception caught while importing pre-deploy.conf", t.toString());
 			}
 		}
 
@@ -249,10 +257,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Settings.ChangelogEnabled.setValue(false);
 
 		// read grants.json
+		publishDeploymentProgressMessage("Importing resource access grants");
+
 		final Path grantsConf = source.resolve("security/grants.json");
 		if (Files.exists(grantsConf)) {
 
-			info("Reading {}..", grantsConf);
+			info("Reading {}", grantsConf);
 			importListData(ResourceAccess.class, readConfigList(grantsConf));
 		}
 
@@ -260,17 +270,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path schemaMethodsConf = source.resolve("schema-methods.json");
 		if (Files.exists(schemaMethodsConf)) {
 
-			info("Reading {}..", schemaMethodsConf);
+			info("Reading {}", schemaMethodsConf);
 			final String title = "Deprecation warning";
 			final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
 
-			final Map<String, Object> deprecationBroadcastData = new TreeMap();
-			deprecationBroadcastData.put("type", "WARNING");
-			deprecationBroadcastData.put("title", title);
-			deprecationBroadcastData.put("text", text);
-			TransactionCommand.simpleBroadcastGenericMessage(deprecationBroadcastData);
-
 			info(title + ": " + text);
+			publishDeploymentWarnigMessage(title, text);
 
 			importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
 		}
@@ -279,7 +284,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path mailTemplatesConf = source.resolve("mail-templates.json");
 		if (Files.exists(mailTemplatesConf)) {
 
-			info("Reading {}..", mailTemplatesConf);
+			info("Reading {}", mailTemplatesConf);
+			publishDeploymentProgressMessage("Importing mail templates");
+
 			importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
 		}
 
@@ -287,7 +294,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path widgetsConf = source.resolve("widgets.json");
 		if (Files.exists(widgetsConf)) {
 
-			info("Reading {}..", widgetsConf);
+			info("Reading {}", widgetsConf);
+			publishDeploymentProgressMessage("Importing widgets");
+
 			importListData(Widget.class, readConfigList(widgetsConf));
 		}
 
@@ -297,10 +306,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final PropertyMap additionalData = new PropertyMap();
 
-			// Question: shouldn't this be true?
+			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
+			// have been imported from a legacy-system which was replaced by structr.
+			// it is a way to differentiate between new and old localization strings
 			additionalData.put(Localization.imported, false);
 
-			info("Reading {}..", localizationsConf);
+			info("Reading {}", localizationsConf);
+			publishDeploymentProgressMessage("Importing localizations");
+
 			importListData(Localization.class, readConfigList(localizationsConf), additionalData);
 		}
 
@@ -308,7 +321,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path filesConfFile = source.resolve("files.json");
 		if (Files.exists(filesConfFile)) {
 
-			info("Reading {}..", filesConfFile);
+			info("Reading {}", filesConfFile);
 			filesConf.putAll(readConfigMap(filesConfFile));
 		}
 
@@ -316,7 +329,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path pagesConfFile = source.resolve("pages.json");
 		if (Files.exists(pagesConfFile)) {
 
-			info("Reading {}..", pagesConfFile);
+			info("Reading {}", pagesConfFile);
 			pagesConf.putAll(readConfigMap(pagesConfFile));
 		}
 
@@ -324,7 +337,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path componentsConfFile = source.resolve("components.json");
 		if (Files.exists(componentsConfFile)) {
 
-			info("Reading {}..", componentsConfFile);
+			info("Reading {}", componentsConfFile);
 			componentsConf.putAll(readConfigMap(componentsConfFile));
 		}
 
@@ -332,7 +345,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path templatesConfFile = source.resolve("templates.json");
 		if (Files.exists(templatesConfFile)) {
 
-			info("Reading {}..", templatesConfFile);
+			info("Reading {}", templatesConfFile);
 			templatesConf.putAll(readConfigMap(templatesConfFile));
 		}
 
@@ -342,7 +355,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				info("Importing data from schema/ directory..");
+				info("Importing data from schema/ directory");
+				publishDeploymentProgressMessage("Importing schema");
+
 				Files.walkFileTree(schema, new SchemaImportVisitor(schema));
 
 			} catch (IOException ioex) {
@@ -356,7 +371,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				info("Importing files... (unchanged files will be skipped)");
+				info("Importing files (unchanged files will be skipped)");
+				publishDeploymentProgressMessage("Importing files");
+
 				FileImportVisitor fiv = new FileImportVisitor(files, filesConf);
 				Files.walkFileTree(files, fiv);
 				fiv.handleDeferredFiles();
@@ -371,7 +388,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (module.hasDeploymentData()) {
 
-				logger.info("Importing deployment data for module {}", module.getName());
+				info("Importing deployment data for module {}", module.getName());
+				publishDeploymentProgressMessage("Importing deployment data for module " + module.getName());
 
 				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
 
@@ -380,7 +398,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 		}
-
 
 
 		// construct paths
@@ -395,7 +412,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				info("Removing pages, templates and components..");
+				info("Removing pages, templates and components");
+				publishDeploymentProgressMessage("Removing pages, templates and components");
 
 				app.cypher("MATCH (n:DOMNode) DETACH DELETE n", null);
 				FlushCachesCommand.flushAll();
@@ -413,7 +431,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				info("Importing templates..");
+				info("Importing templates");
+				publishDeploymentProgressMessage("Importing templates");
+
 				Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
 
 			} catch (IOException ioex) {
@@ -426,7 +446,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				info("Importing shared components..");
+				info("Importing shared components");
+				publishDeploymentProgressMessage("Importing shared components");
+
 				Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
 
 			} catch (IOException ioex) {
@@ -439,7 +461,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try {
 
-				info("Importing pages..");
+				info("Importing pages");
+				publishDeploymentProgressMessage("Importing pages");
+
 				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
 
 			} catch (IOException ioex) {
@@ -456,16 +480,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final String confSource = new String(Files.readAllBytes(postDeployConf), Charset.forName("utf-8")).trim();
 
 				if (confSource.length() > 0) {
-					info("Applying post-deployment configuration from {}..", postDeployConf);
+
+					info("Applying post-deployment configuration from {}", postDeployConf);
+					publishDeploymentProgressMessage("Applying post-deployment configuration");
+
 					Scripting.evaluate(new ActionContext(ctx), null, confSource, "post-deploy.conf");
+
 				} else {
-					info("Ignoring empty post-deployment configuration {}..", postDeployConf);
+
+					info("Ignoring empty post-deployment configuration {}", postDeployConf);
+
 				}
 
 				tx.success();
 
 			} catch (Throwable t) {
 				logger.warn("", t);
+				publishDeploymentWarnigMessage("Exception caught while importing post-deploy.conf", t.toString());
 			}
 		}
 
@@ -485,6 +516,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
 		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
+
+	}
+
+	private void publishDeploymentProgressMessage (final String message) {
+
+		final Map<String, Object> msgData = new HashMap();
+		msgData.put("type", "DEPLOYMENT_STATUS");
+		msgData.put("subtype", "PROGRESS");
+		msgData.put("message", message);
+		msgData.put("step", ++stepCounter);
+
+		TransactionCommand.simpleBroadcastGenericMessage(msgData);
+
+	}
+
+	private void publishDeploymentWarnigMessage (final String title, final String text) {
+
+		final Map<String, Object> warningMsgData = new HashMap();
+		warningMsgData.put("type", "WARNING");
+		warningMsgData.put("title", title);
+		warningMsgData.put("text", text);
+
+		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData);
 
 	}
 
@@ -551,7 +605,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting files... (unchanged files will be skipped)");
+		logger.info("Exporting files (unchanged files will be skipped)");
 
 		final Map<String, Object> config = new TreeMap<>();
 		final App app                    = StructrApp.getInstance();
@@ -665,7 +719,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportPages(final Path target, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting pages... (unchanged pages will be skipped)");
+		logger.info("Exporting pages (unchanged pages will be skipped)");
 
 		final Map<String, Object> pagesConfig = new TreeMap<>();
 		final App app                         = StructrApp.getInstance();
@@ -730,7 +784,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportComponents(final Path target, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting components... (unchanged components will be skipped)");
+		logger.info("Exporting components (unchanged components will be skipped)");
 
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();
@@ -806,7 +860,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportTemplates(final Path target, final Path configTarget) throws FrameworkException {
 
-		logger.info("Exporting templates... (unchanged templates will be skipped)");
+		logger.info("Exporting templates (unchanged templates will be skipped)");
 
 		final Map<String, Object> configuration = new TreeMap<>();
 		final App app                           = StructrApp.getInstance();

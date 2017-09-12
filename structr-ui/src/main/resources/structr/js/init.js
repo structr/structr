@@ -1835,18 +1835,21 @@ var Structr = {
 
 					var text = "Any changes made during a deployment might get lost or conflict with the deployment!<br>"
 							+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment finished successfully.<br><br>"
-							+ "Deployment started : " + new Date(data.start);
+							+ "Deployment started : " + new Date(data.start) + "<br>";
 
-					new MessageBuilder().title("Deployment started").info(text).requiresConfirmation().show();
+					new MessageBuilder().title("Deployment in progress").info(text).uniqueClass('deployment-import').requiresConfirmation().uniqueClass('deployment-import').updatesText().show();
+
+				} else if (data.subtype === 'PROGRESS') {
+
+					new MessageBuilder().title("Deployment in progress").info("Step " + data.step + ": " + data.message).requiresConfirmation().uniqueClass('deployment-import').appendsText().show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "Reload the page to see the new data.<br><br>"
-							+ "Deployment started : " + new Date(data.start) + "<br>"
-							+ "Deployment finished: " + new Date(data.end) + "<br>"
-							+ "Total duration: " + data.duration;
+					var text = "<br>Deployment finished: " + new Date(data.end)
+							+ "<br>Total duration: " + data.duration
+							+ "<br><br>Reload the page to see the new data.";
 
-					new MessageBuilder().title("Deployment finished").info(text).specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").show();
+					new MessageBuilder().title("Deployment finished").info(text).uniqueClass('deployment-import').specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").appendsText().updatesButtons().show();
 
 				}
 				break;
@@ -1936,6 +1939,8 @@ function MessageBuilder () {
 		uniqueClass: undefined,
 		uniqueCount: 1,
 		updatesText: false,
+		updatesButtons: false,
+		appendsText: false,
 		incrementsUniqueCount: false
 	};
 
@@ -2004,6 +2009,45 @@ function MessageBuilder () {
 		return this;
 	};
 
+	this.getButtonHtml = function () {
+		return (this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
+			   (this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
+	};
+
+	this.activateButtons = function (originalMsgBuilder, newMsgBuilder) {
+
+		if (newMsgBuilder.params.requiresConfirmation === true) {
+
+			$('#' + originalMsgBuilder.params.msgId).find('button.confirm').click(function () {
+				$(this).remove();
+				originalMsgBuilder.hide();
+			});
+
+		} else {
+
+			window.setTimeout(function () {
+				originalMsgBuilder.hide();
+			}, this.params.delayDuration);
+
+			$('#' + newMsgBuilder.params.msgId).click(function () {
+				originalMsgBuilder.hide();
+			});
+
+		}
+
+		if (newMsgBuilder.params.specialInteractionButton) {
+
+			$('#' + originalMsgBuilder.params.msgId).find('button.special').click(function () {
+				if (newMsgBuilder.params.specialInteractionButton) {
+					newMsgBuilder.params.specialInteractionButton.action();
+
+					originalMsgBuilder.hide();
+				}
+			});
+
+		}
+	};
+
 	this.show = function () {
 
 		var uniqueMessageAlreadyPresented = false;
@@ -2021,6 +2065,14 @@ function MessageBuilder () {
 				if (this.params.updatesText) {
 					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
 					$('#info-area .message.' + this.params.uniqueClass + ' .text').html(this.params.text);
+				} else if (this.params.appendsText) {
+					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
+					$('#info-area .message.' + this.params.uniqueClass + ' .text').append('<br>' + this.params.text);
+				}
+
+				if (this.params.updatesButtons) {
+					$('#info-area .message.' + this.params.uniqueClass + ' .message-buttons').empty().html(this.getButtonHtml());
+					this.activateButtons(existingMsgBuilder, this);
 				}
 
 			}
@@ -2036,46 +2088,13 @@ function MessageBuilder () {
 					(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
 					'<div class="text">' + this.params.text + '</div>' +
 					(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
-					'<div class="message-buttons">' +
-						(this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
-						(this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '') +
-					'</div>' +
+					'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
 				'</div>'
 			);
 
-			var msgBuilder = this;
-			$('#' + this.params.msgId).data('msgbuilder', msgBuilder);
+			$('#' + this.params.msgId).data('msgbuilder', this);
 
-			if (this.params.requiresConfirmation === true) {
-
-				$('#' + this.params.msgId).find('button.confirm').click(function () {
-					$(this).remove();
-					msgBuilder.hide();
-				});
-
-			} else {
-
-				window.setTimeout(function () {
-					msgBuilder.hide();
-				}, this.params.delayDuration);
-
-				$('#' + this.params.msgId).click(function () {
-					msgBuilder.hide();
-				});
-
-			}
-
-			if (this.params.specialInteractionButton) {
-
-				$('#' + this.params.msgId).find('button.special').click(function () {
-					if (msgBuilder.params.specialInteractionButton) {
-						msgBuilder.params.specialInteractionButton.action();
-
-						msgBuilder.hide();
-					}
-				});
-
-			}
+			this.activateButtons(this, this);
 
 		}
 	};
@@ -2123,6 +2142,16 @@ function MessageBuilder () {
 
 	this.updatesText = function () {
 		this.params.updatesText = true;
+		return this;
+	};
+
+	this.updatesButtons = function () {
+		this.params.updatesButtons = true;
+		return this;
+	};
+
+	this.appendsText = function () {
+		this.params.appendsText = true;
 		return this;
 	};
 
