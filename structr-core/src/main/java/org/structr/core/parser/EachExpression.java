@@ -18,6 +18,7 @@
  */
 package org.structr.core.parser;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +91,12 @@ public class EachExpression extends Expression {
 			return ERROR_MESSAGE_EACH;
 		}
 
-		final Object listSource = listExpression.evaluate(ctx, entity);
+		Object listSource = listExpression.evaluate(ctx, entity);
+		
+		if (listSource != null && listSource.getClass().isArray()) {
+			listSource = Arrays.asList((Object[]) listSource);
+		}
+		
 		if (listSource != null && listSource instanceof Iterable) {
 
 			final Iterable source     = (Iterable)listSource;

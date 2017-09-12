@@ -713,6 +713,7 @@ public class ScriptingTest extends StructrTest {
 			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
 			testOne.setProperty(TestOne.cleanTestString, "a<b>c.d'e?f(g)h{i}j[k]l+m/n–o\\p\\q|r's!t,u-v_w`x-y-zöäüßABCDEFGH");
 			testOne.setProperty(TestOne.stringWithQuotes, "A'B\"C");
+			testOne.setProperty(TestOne.aStringArray, new String[] { "a", "b", "c" });
 
 			testTwo.setProperty(TestTwo.name, "testTwo_name");
 			testThree.setProperty(TestThree.name, "testThree_name");
@@ -1535,6 +1536,10 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid each() result", "1", Scripting.replaceVariables(ctx, testOne, "${get(this, \"setTestInteger2\")}"));
 			assertEquals("Invalid each() result", "1", Scripting.replaceVariables(ctx, testOne, "${get(this, \"setTestInteger3\")}"));
 
+			// each expression
+			assertEquals("Invalid each() result", "abc", Scripting.replaceVariables(ctx, testOne, "${each(split('a,b,c', ','), print(data))}"));
+			assertEquals("Invalid each() result", "abc", Scripting.replaceVariables(ctx, testOne, "${each(this.aStringArray, print(data))}"));
+			
 			// complex each expression, sets the value of "testString" to the concatenated IDs of all testSixs that are linked to "this"
 			Scripting.replaceVariables(ctx, testOne, "${each(this.manyToManyTestSixs, set(this, \"testString\", concat(get(this, \"testString\"), data.id)))}");
 			assertEquals("Invalid each() result", "640", Scripting.replaceVariables(ctx, testOne, "${length(this.testString)}"));

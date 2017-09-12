@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.EndNode;
@@ -70,9 +71,11 @@ public class TestOne extends AbstractNode {
 
 	public static final Property<String>        aCreateString      = new StringProperty("aCreateString").indexed();
 	public static final Property<Integer>       aCreateInt         = new IntProperty("aCreateInt").indexed();
+	
+	public static final Property<String[]>      aStringArray       = new ArrayProperty("aStringArray", String.class).indexed();
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
-		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum, stringWithDefault
+		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum, stringWithDefault, aStringArray
 	);
 
 	public static final View protectedView = new View(TestOne.class, PropertyView.Protected,
