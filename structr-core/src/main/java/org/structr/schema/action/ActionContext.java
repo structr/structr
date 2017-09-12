@@ -214,7 +214,11 @@ public class ActionContext {
 
 			// special HttpServletRequest handling
 			if (data instanceof HttpServletRequest) {
-				value = ((HttpServletRequest)data).getParameter(key);
+				value = ((HttpServletRequest)data).getParameterValues(key);
+				
+				if (value != null && ((String[]) value).length == 1) {
+					value = ((String[]) value)[0];
+				}
 			}
 
 			// special handling of maps..

@@ -55,6 +55,7 @@ import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.html.Body;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Table;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -88,7 +89,97 @@ import org.structr.websocket.command.CreateComponentCommand;
 public class UiScriptingTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiScriptingTest.class.getName());
+ 
+	@Test
+	public void testSingleRequestParameters() {
 
+		try (final Tx tx = app.tx()) {
+
+			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			template.setProperty(Template.content, "${request.param}");
+			
+			page.appendChild(template);
+			
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+			.given()
+				//.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body(equalTo("a"))
+			.when()
+				.get("http://localhost:8875/test?param=a");
+
+			tx.success();
+		
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testMultiRequestParameters() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
+			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
+			template.setProperty(Template.content, "${each(request.param, print(data))}");
+			
+			page.appendChild(template);
+			
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			RestAssured
+			.given()
+				//.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				.body(equalTo("abc"))
+			.when()
+				.get("http://localhost:8875/test?param=a&param=b&param=c");
+
+			tx.success();
+		
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+	}
+	
 	@Test
 	public void testScripting() {
 
