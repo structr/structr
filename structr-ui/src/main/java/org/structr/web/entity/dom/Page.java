@@ -113,11 +113,11 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final Property<Site> site  = new StartNode<>("site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
+		name, path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
 	);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
-		path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
+		name, path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
 	);
 
 	public static final org.structr.common.View categoryView = new org.structr.common.View(Page.class, "category",
