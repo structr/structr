@@ -41,8 +41,6 @@ import org.structr.web.property.UiNotion;
 
 public class Site extends AbstractNode {
 
-//	public static final Property<List<String>>  hostnames = new ArrayProperty("hostnames", String.class).indexedWhenEmpty();
-//	public static final Property<List<Integer>> ports     = new ArrayProperty("ports", Integer.class).indexedWhenEmpty();
 	public static final Property<String>  hostname = new StringProperty("hostname").cmis().indexedWhenEmpty();
 	public static final Property<Integer> port     = new IntProperty("port").cmis().indexedWhenEmpty();
 
