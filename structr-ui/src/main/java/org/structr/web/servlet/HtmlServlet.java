@@ -71,6 +71,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -196,8 +197,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
+			
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
+			
+			} catch (AuthenticationException aex) {
+				
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+				return;
 			}
 
 			app = StructrApp.getInstance(securityContext);
