@@ -28,7 +28,7 @@ import org.structr.util.Writable;
 import org.structr.web.maintenance.DirectFileImportCommand;
 
 /**
- * A console wrapper for DirectFileImportCommand, import mode.
+ * A console wrapper for DirectFileImportCommand
  */
 public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 
@@ -45,7 +45,12 @@ public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 			final DirectFileImportCommand cmd = StructrApp.getInstance(securityContext).command(DirectFileImportCommand.class);
 
 			cmd.setLogBuffer(writable);
-			cmd.execute(toMap("mode", "import", "source", getParameter(parameters, 1)));
+			cmd.execute(toMap(
+				"source",   getParameter(parameters, 1),
+				"mode",     getParameter(parameters, 2),
+				"existing", getParameter(parameters, 3),
+				"index",    getParameter(parameters, 4)
+			));
 
 		} else {
 
@@ -60,7 +65,12 @@ public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("file-import <source> - imports an application from the given source directory.");
+		writable.println("file-import <source> <mode> <existing> <missing> <index>: Import files directly from a server directoy.");
+		writable.println("  <source>:   Path to a directory on the server.");
+		writable.println("  <mode>:     Whether to copy or move the files into Structr's files directory. Possible values: copy (default), move");
+		writable.println("  <existing>: How to handle files already existing with the same path in Structr. Possible values: skip (default), overwrite, rename");
+		//writable.println("<missing>: How to handle files that exist in Structr but are missing in the import. Possible values: skip (default), delete, rename");
+		writable.println("  <index>:    Whether new files should be fulltext-indexed after import. Possible values: true (default), false");
 	}
 
 	@Override

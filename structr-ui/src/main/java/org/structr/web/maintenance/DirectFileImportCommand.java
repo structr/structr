@@ -57,7 +57,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 	private enum Mode     { COPY, MOVE }
 	private enum Existing { SKIP, OVERWRITE, RENAME }
-	private enum Missing  { SKIP, DELETE, RENAME }
+	//private enum Missing  { SKIP, DELETE, RENAME }
 	
 	
 	private static final Logger logger                   = LoggerFactory.getLogger(DirectFileImportCommand.class.getName());
@@ -76,21 +76,12 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-
-		// Parameters (first value = default)
 		
-		// source
-		// mode=[copy|move]
-		// existing=[skip|overwrite|rename]
-		// missing=[skip|delete|rename]
-		// index=[false|true]
-		
-		final String path     = (String) attributes.get("source");
-		final String mode     = (String) attributes.get("mode");
-		final String existing = (String) attributes.get("existing");
-		final String missing  = (String) attributes.get("missing");
-		final String index    = (String) attributes.get("index");
-		final boolean doIndex = (index != null && Boolean.parseBoolean(index));
+		final String path     = getParameterValueAsString(attributes, "source", null);
+		final String mode     = getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase();
+		final String existing = getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase();
+		//final String missing  = getParameterValueAsUppercaseString(attributes, "missing");
+		final boolean doIndex = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
 		
 		if (StringUtils.isBlank(path)) {
 
@@ -151,7 +142,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 						} else if (attrs.isRegularFile()) {
 							
-							final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, relativePath).getFirst();
+							final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, "/" + relativePath).getFirst();
 							
 							if (existingFile != null) {
 								
@@ -254,6 +245,18 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		return false;
 	}
 	
+	private String getParameterValueAsString(final Map<String, Object> attributes, final String key, final String defaultValue) {
+		
+		Object value = attributes.get(key);
+		
+		if (value != null) {
+			
+			return ((String) value);
+		}
+		
+		return defaultValue;
+	}
+
 	private void publishProgressMessage (final String message) {
 
 		final Map<String, Object> msgData = new HashMap();

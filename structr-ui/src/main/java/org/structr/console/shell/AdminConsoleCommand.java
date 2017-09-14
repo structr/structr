@@ -121,4 +121,26 @@ public abstract class AdminConsoleCommand {
 
 		return map;
 	}
+
+	protected Map<String, Object> toMap(final String key, final Object value, final String key2, final Object value2, final String key3, final Object value3, final String key4, final Object value4) {
+
+		final Map<String, Object> map = toMap(key, value, key2, value2, key3, value3);
+
+		if (key4 != null && value4 != null) {
+			map.put(key4, value4);
+		}
+
+		return map;
+	}
+
+	protected Map<String, Object> toMap(final String key, final Object value, final String key2, final Object value2, final String key3, final Object value3, final String key4, final Object value4, final String key5, final Object value5) {
+
+		final Map<String, Object> map = toMap(key, value, key2, value2, key3, value3, key4, value4);
+
+		if (key5 != null && value5 != null) {
+			map.put(key5, value5);
+		}
+
+		return map;
+	}
 }
