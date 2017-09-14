@@ -120,7 +120,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 						parser.parse(is, new BodyContentHandler(tokenizer), metadata);
 						parsingSuccessful = true;
 
-						logger.info(String.join(", ", metadata.names()));
+						logger.debug(String.join(", ", metadata.names()));
 					}
 
 					// only do indexing when parsing was successful
