@@ -114,7 +114,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		if (!this.deferredFiles.isEmpty()) {
 
-			for(FileBase file : this.deferredFiles) {
+			for (FileBase file : this.deferredFiles) {
 
 				try (final Tx tx = app.tx(true, false, false)) {
 
@@ -128,7 +128,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					file.unlockSystemPropertiesOnce();
 					file.setProperties(securityContext, fileProperties);
 
-					for(String positionString : sourcesConfig.keySet()) {
+					for (String positionString : sourcesConfig.keySet()) {
 						final Integer position = Integer.parseInt(positionString);
 						final String sourcePath = sourcesConfig.get(positionString);
 

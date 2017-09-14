@@ -24,7 +24,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.LoggerFactory;
@@ -79,7 +82,7 @@ public class Console {
 		tabCompletionProviders.put(ConsoleMode.Cypher,        new CypherTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.JavaScript,    new JavaScriptTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.StructrScript, new StructrScriptTabCompletionProvider());
-		tabCompletionProviders.put(ConsoleMode.AdminShell,         new AdminTabCompletionProvider());
+		tabCompletionProviders.put(ConsoleMode.AdminShell,    new AdminTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.REST,          new RestTabCompletionProvider());
 	}
 
@@ -384,19 +387,29 @@ public class Console {
 
 	private List<String> splitAndClean(final String src) {
 
-		final List<String> parts = new ArrayList<>();
-
-		for (final String part : src.split("[ ]+")) {
+		final List<String> list = new ArrayList<>();
+		
+		String[] parts;
+		
+		try {
+			parts = CommandLineUtils.translateCommandline(src);
+			
+		} catch (Exception ex) {
+			
+			parts = src.split("[ ]+");
+		}
+		
+		for (final String part : parts) {
 
 			final String trimmed = part.trim();
 
 			if (StringUtils.isNotBlank(trimmed)) {
 
-				parts.add(trimmed);
+				list.add(trimmed);
 			}
 		}
 
-		return parts;
+		return list;
 	}
 
 	// ----- nested classes -----
