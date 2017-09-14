@@ -57,6 +57,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
@@ -179,6 +180,11 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			}
 
 			tx.success();
+
+		} catch (AuthenticationException ae) {
+			logger.warn(ae.getMessage());
+
+			isValid = false;
 
 		} catch (Throwable t) {
 			logger.warn("", t);
