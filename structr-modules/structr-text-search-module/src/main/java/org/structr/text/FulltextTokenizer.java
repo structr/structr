@@ -48,6 +48,7 @@ public class FulltextTokenizer extends Writer {
 	private char lastCharacter               = 0;
 	private int consecutiveCharCount         = 0;
 	private int wordCount                    = 0;
+	private boolean wordCountLimitInfoShown  = false;
 
 	static {
 
@@ -204,7 +205,7 @@ public class FulltextTokenizer extends Writer {
 
 			wordCount++;
 
-			if (wordCount > wordCountLimit) {
+			if (wordCount > wordCountLimit && !wordCountLimitInfoShown) {
 
 				logger.info("Indexing word count of {} reached for {}, no more words will be indexed. Set {} in structr.conf to increase this limit.",
 
@@ -214,6 +215,8 @@ public class FulltextTokenizer extends Writer {
 						Settings.IndexingLimit.getKey()
 					}
 				);
+
+				wordCountLimitInfoShown = true;
 			}
 		}
 	}
