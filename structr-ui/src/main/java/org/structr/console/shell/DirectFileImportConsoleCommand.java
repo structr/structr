@@ -47,9 +47,10 @@ public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 			cmd.setLogBuffer(writable);
 			cmd.execute(toMap(
 				"source",   getParameter(parameters, 1),
-				"mode",     getParameter(parameters, 2),
-				"existing", getParameter(parameters, 3),
-				"index",    getParameter(parameters, 4)
+				"target",   getParameter(parameters, 2),
+				"mode",     getParameter(parameters, 3),
+				"existing", getParameter(parameters, 4),
+				"index",    getParameter(parameters, 5)
 			));
 
 		} else {
@@ -65,11 +66,11 @@ public class DirectFileImportConsoleCommand extends AdminConsoleCommand {
 
 	@Override
 	public void detailHelp(final Writable writable) throws IOException {
-		writable.println("file-import <source> <mode> <existing> <missing> <index>: Import files directly from a server directoy.");
+		writable.println("file-import <source> <target> <mode> <existing> <index>: Import files directly from a server directoy.");
 		writable.println("  <source>:   Path to a directory on the server.");
+		writable.println("  <target>:   Target path in Structr's virtual file system.");
 		writable.println("  <mode>:     Whether to copy or move the files into Structr's files directory. Possible values: copy (default), move");
 		writable.println("  <existing>: How to handle files already existing with the same path in Structr. Possible values: skip (default), overwrite, rename");
-		//writable.println("<missing>: How to handle files that exist in Structr but are missing in the import. Possible values: skip (default), delete, rename");
 		writable.println("  <index>:    Whether new files should be fulltext-indexed after import. Possible values: true (default), false");
 	}
 
