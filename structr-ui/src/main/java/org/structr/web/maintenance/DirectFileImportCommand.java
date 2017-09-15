@@ -72,35 +72,50 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
+		final String sourcePath       = getParameterValueAsString(attributes, "source", null);
+		final String targetPath       = getParameterValueAsString(attributes, "target", null);
+		final Mode mode               = getModeEnum(getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase());
+		final Existing existing       = getExistingEnum(getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase());
+		final boolean doIndex         = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
 
-		final String path       = getParameterValueAsString(attributes, "source", null);
-		final Mode mode         = getModeEnum(getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase());
-		final Existing existing = getExistingEnum(getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase());
-		final boolean doIndex   = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
-
-		if (StringUtils.isBlank(path)) {
+		if (StringUtils.isBlank(sourcePath)) {
 
 			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
 		}
 
-		final Path source = Paths.get(path);
+		final Path source = Paths.get(sourcePath);
 		if (!Files.exists(source)) {
 
-			throw new FrameworkException(422, "Source path " + path + " does not exist.");
+			throw new FrameworkException(422, "Source path " + sourcePath + " does not exist.");
 		}
 
 		if (!Files.isDirectory(source)) {
 
-			throw new FrameworkException(422, "Source path " + path + " is not a directory.");
+			throw new FrameworkException(422, "Source path " + sourcePath + " is not a directory.");
 		}
 
 		try {
 
 			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-			ctx.setDoTransactionNotifications(false);
-			final App app = StructrApp.getInstance(ctx);
+			final App app             = StructrApp.getInstance(ctx);
+			Folder targetFolder       = null;
 
-			String msg = "Staring direct file import from source directory " + path;
+			ctx.setDoTransactionNotifications(false);
+
+			if (StringUtils.isNotBlank(targetPath) && !("/".equals(targetPath))) {
+
+				try (final Tx tx = app.tx()) {
+
+					targetFolder = app.nodeQuery(Folder.class).and(Folder.path, targetPath).getFirst();
+					if (targetFolder == null) {
+						throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
+					}
+					tx.success();
+				}
+			}
+
+			String msg = "Starting direct file import from source directory " + sourcePath + " into target path " + targetPath;
+
 			logger.info(msg);
 			publishProgressMessage(msg);
 
@@ -122,7 +137,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 						final String filesPath    = Settings.FilesPath.getValue();
 						final String relativePath = PathHelper.getRelativeNodePath(source.toString(), file.toString());
-						final String parentPath   = PathHelper.getFolderPath(relativePath);
+						final String parentPath   = targetPath + PathHelper.getFolderPath(relativePath);
 
 						if (attrs.isDirectory()) {
 
@@ -197,7 +212,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						tx.success();
 
 					} catch (IOException | FrameworkException ex) {
-						logger.debug("File: " + name + ", path: " + path, ex);
+						logger.debug("File: " + name + ", path: " + sourcePath, ex);
 					}
 
 					return FileVisitResult.CONTINUE;
@@ -214,12 +229,12 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				}
 			});
 
-			msg = "Finished direct file import from source directory " + path + ". Imported " + folderCount + " folders and " + fileCount + " files.";
+			msg = "Finished direct file import from source directory " + sourcePath + ". Imported " + folderCount + " folders and " + fileCount + " files.";
 			logger.info(msg);
 			publishProgressMessage(msg);
 
 		} catch (IOException ex) {
-			logger.debug("Mode: " + mode + ", path: " + path, ex);
+			logger.debug("Mode: " + mode + ", path: " + sourcePath, ex);
 		}
 
 	}
