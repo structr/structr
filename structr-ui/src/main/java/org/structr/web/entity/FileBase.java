@@ -35,7 +35,6 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -838,58 +837,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
 	}
 
-	private void startNewThread(final Runnable runnable, final boolean wait) {
-
-		final Thread worker = new Thread(runnable);
-
-		worker.start();
-
-		if (wait) {
-			try { worker.join(); } catch (InterruptedException ex) {}
-		}
-	}
-
-	private Map<String, String> reverse(final Map<String, String> input) {
-
-		final Map<String, String> output = new LinkedHashMap<>();
-
-		// reverse map
-		for (final Entry<String, String> entry : input.entrySet()) {
-			output.put(entry.getValue(), entry.getKey());
-		}
-
-		return output;
-	}
-
-	private int parseInt(final Object input, final int defaultValue) {
-
-		if (input != null) {
-
-			// do not parse if it's already a number
-			if (input instanceof Number) {
-				return ((Number)input).intValue();
-			}
-
-			// use string representation otherwise
-			final String value = input.toString();
-
-			// try to parse value but ignore any errors
-			try { return Integer.parseInt(value); } catch (Throwable t) {}
-		}
-
-		return defaultValue;
-	}
-
-	private <T> T getOrDefault(final Object value, final T defaultValue) {
-
-		if (value != null) {
-			return (T)value;
-		}
-
-		return defaultValue;
-	}
-
-	// ----- interface Syncable -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
 
@@ -908,7 +855,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try (final InputStream is = getInputStream()) {
 
-			return IOUtils.toString(is);
+			return IOUtils.toString(new InputStreamReader(is));
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);

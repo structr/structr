@@ -27,7 +27,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,16 +56,13 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 	private enum Mode     { COPY, MOVE }
 	private enum Existing { SKIP, OVERWRITE, RENAME }
-	//private enum Missing  { SKIP, DELETE, RENAME }
-	
-	
-	private static final Logger logger                   = LoggerFactory.getLogger(DirectFileImportCommand.class.getName());
-	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
+
+	private static final Logger logger = LoggerFactory.getLogger(DirectFileImportCommand.class.getName());
 
 	private Integer folderCount = 0;
 	private Integer fileCount   = 0;
 	private Integer stepCounter = 0;
-	
+
 	static {
 
 		MaintenanceParameterResource.registerMaintenanceCommand("directFileImport", DirectFileImportCommand.class);
@@ -76,13 +72,12 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-		
-		final String path     = getParameterValueAsString(attributes, "source", null);
-		final String mode     = getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase();
-		final String existing = getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase();
-		//final String missing  = getParameterValueAsUppercaseString(attributes, "missing");
-		final boolean doIndex = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
-		
+
+		final String path       = getParameterValueAsString(attributes, "source", null);
+		final Mode mode         = getModeEnum(getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase());
+		final Existing existing = getExistingEnum(getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase());
+		final boolean doIndex   = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
+
 		if (StringUtils.isBlank(path)) {
 
 			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
@@ -98,19 +93,19 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			throw new FrameworkException(422, "Source path " + path + " is not a directory.");
 		}
-		
+
 		try {
-			
+
 			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
 			ctx.setDoTransactionNotifications(false);
 			final App app = StructrApp.getInstance(ctx);
-			
+
 			String msg = "Staring direct file import from source directory " + path;
 			logger.info(msg);
 			publishProgressMessage(msg);
-			
+
 			Files.walkFileTree(source, new FileVisitor<Path>() {
-				
+
 				@Override
 				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 					return FileVisitResult.CONTINUE;
@@ -120,11 +115,11 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
 					ctx.setDoTransactionNotifications(false);
-					
+
 					final Path name = file.getFileName();
 
 					try (final Tx tx = app.tx()) {
-						
+
 						final String filesPath    = Settings.FilesPath.getValue();
 						final String relativePath = PathHelper.getRelativeNodePath(source.toString(), file.toString());
 						final String parentPath   = PathHelper.getFolderPath(relativePath);
@@ -137,34 +132,29 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 							);
 
 							folderCount++;
-							
+
 							logger.info("Created folder " + newFolder.getPath());
 
 						} else if (attrs.isRegularFile()) {
-							
+
 							final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, "/" + relativePath).getFirst();
-							
 							if (existingFile != null) {
-								
-								if (Existing.SKIP.name().equals(existing)) {
-									
-									return FileVisitResult.CONTINUE;
 
-								} else if (Existing.OVERWRITE.name().equals(existing)) {
+								switch (existing) {
 
-									app.delete(existingFile);
+									case SKIP:
+										return FileVisitResult.CONTINUE;
 
-								} else if (Existing.RENAME.name().equals(existing)) {
-									
-									final String newName = existingFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
-									existingFile.setProperty(AbstractFile.name, newName);
+									case OVERWRITE:
+										app.delete(existingFile);
+										break;
 
-								} else {
+									case RENAME:
+										final String newName = existingFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
+										existingFile.setProperty(AbstractFile.name, newName);
+										break;
 
-									throw new FrameworkException(422, "Unknown value for 'existing' attribute. Valid values are: skip, overwrite, rename");
 								}
-
-
 							}
 
 							final FileBase newFile = app.create(org.structr.dynamic.File.class,
@@ -172,7 +162,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 								new NodeAttribute(FileBase.parent, FileHelper.createFolderPath(securityContext, parentPath)),
 								new NodeAttribute(AbstractNode.type, "File")
 							);
-	
+
 							final String uuid             = newFile.getUuid();
 							final String relativeFilePath = FileBase.getDirectoryPath(uuid) + "/" + uuid;
 							final Path targetPath         = Paths.get(filesPath + "/" + relativeFilePath);
@@ -180,28 +170,27 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 							newFile.setProperty(FileBase.relativeFilePath, relativeFilePath);
 
 							Files.createDirectories(targetPath.getParent());
-							
-							if (Mode.MOVE.name().equals(mode)) {
-								
-								Files.move(file, targetPath);
-								
-							} else if (Mode.COPY.name().equals(mode)) {
-								
-								Files.copy(file, targetPath);
-							
-							} else {
-								
-								throw new FrameworkException(422, "Unknown value for 'mode' attribute. Valid values are: copy, move");
+
+							switch (mode) {
+
+								case MOVE:
+									Files.move(file, targetPath);
+									break;
+
+								case COPY:
+									Files.copy(file, targetPath);
+									break;
+
 							}
 
 							FileHelper.updateMetadata(newFile);
-							
+
 							if (doIndex) {
 								indexer.addToFulltextIndex(newFile);
 							}
-							
+
 							fileCount++;
-							
+
 							logger.info("Created file " + newFile.getPath());
 						}
 
@@ -210,7 +199,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 					} catch (IOException | FrameworkException ex) {
 						logger.debug("File: " + name + ", path: " + path, ex);
 					}
-					
+
 					return FileVisitResult.CONTINUE;
 				}
 
@@ -228,11 +217,11 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 			msg = "Finished direct file import from source directory " + path + ". Imported " + folderCount + " folders and " + fileCount + " files.";
 			logger.info(msg);
 			publishProgressMessage(msg);
-			
+
 		} catch (IOException ex) {
 			logger.debug("Mode: " + mode + ", path: " + path, ex);
 		}
-		
+
 	}
 
 	@Override
@@ -244,16 +233,30 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	public boolean requiresFlushingOfCaches() {
 		return false;
 	}
-	
+
+	// ----- private methods -----
+	private Mode getModeEnum(final String src) throws FrameworkException {
+
+		try { return Mode.valueOf(src); } catch (IllegalArgumentException ex) {}
+
+		throw new FrameworkException(422, "Unknown value for 'mode' attribute. Valid values are: copy, move");
+	}
+
+	private Existing getExistingEnum(String src) throws FrameworkException {
+
+		try { return Existing.valueOf(src); } catch (IllegalArgumentException ex) {}
+
+		throw new FrameworkException(422, "Unknown value for 'existing' attribute. Valid values are: skip, overwrite, rename");
+	}
+
 	private String getParameterValueAsString(final Map<String, Object> attributes, final String key, final String defaultValue) {
-		
+
 		Object value = attributes.get(key);
-		
 		if (value != null) {
-			
-			return ((String) value);
+
+			return value.toString();
 		}
-		
+
 		return defaultValue;
 	}
 
@@ -279,5 +282,5 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData);
 
 	}
-	
+
 }
