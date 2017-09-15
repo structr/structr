@@ -78,6 +78,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		final Existing existing       = getExistingEnum(getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase());
 		final boolean doIndex         = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
 
+
 		if (StringUtils.isBlank(sourcePath)) {
 
 			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
@@ -87,11 +88,6 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		if (!Files.exists(source)) {
 
 			throw new FrameworkException(422, "Source path " + sourcePath + " does not exist.");
-		}
-
-		if (!Files.isDirectory(source)) {
-
-			throw new FrameworkException(422, "Source path " + sourcePath + " is not a directory.");
 		}
 
 		try {
@@ -108,6 +104,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 					targetFolder = app.nodeQuery(Folder.class).and(Folder.path, targetPath).getFirst();
 					if (targetFolder == null) {
+
 						throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
 					}
 					tx.success();
@@ -252,14 +249,20 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	// ----- private methods -----
 	private Mode getModeEnum(final String src) throws FrameworkException {
 
-		try { return Mode.valueOf(src); } catch (IllegalArgumentException ex) {}
+		if (StringUtils.isNotBlank(src)) {
+
+			try { return Mode.valueOf(src); } catch (IllegalArgumentException ex) {}
+		}
 
 		throw new FrameworkException(422, "Unknown value for 'mode' attribute. Valid values are: copy, move");
 	}
 
 	private Existing getExistingEnum(String src) throws FrameworkException {
 
-		try { return Existing.valueOf(src); } catch (IllegalArgumentException ex) {}
+		if (StringUtils.isNotBlank(src)) {
+
+			try { return Existing.valueOf(src); } catch (IllegalArgumentException ex) {}
+		}
 
 		throw new FrameworkException(422, "Unknown value for 'existing' attribute. Valid values are: skip, overwrite, rename");
 	}
