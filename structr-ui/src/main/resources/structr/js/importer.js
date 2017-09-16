@@ -27,7 +27,7 @@ $(document).ready(function() {
 		var mode = $(this).data('action');
 		var jobId = $(this).data('jobId');
 
-		Command.fileImport(mode, jobId);
+		Command.fileImport(mode, jobId, Importer.updateJobTable);
 
 		return false;
 	});
