@@ -1858,11 +1858,18 @@ var Structr = {
 				new MessageBuilder().title(data.title).warning(data.text).requiresConfirmation().show();
 				break;
 
-			default:
-				console.log("Received generic websocket broadcast: ", data);
+			default: {
+
+					var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
+					Object.keys(data).forEach(function (key) {
+						text += "<b>" + key + "</b>: " + data[key] + "<br>";
+					});
+
+					new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
+
+			}
 
 		}
-
 	}
 };
 
