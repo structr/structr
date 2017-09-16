@@ -34,8 +34,6 @@ import org.structr.module.StructrModule;
 public class VersionHelper {
 
 	private static final String classPath;
-	private static final String instanceName;
-	private static final String instanceStage;
 	private static final Map<String, Map<String, Object>> modules    = new HashMap<>();
 	private static final Map<String, Map<String, String>> components = new HashMap<>();
 	private static boolean modulesUpdatedAfterSystemInitComplete = false;
@@ -43,8 +41,6 @@ public class VersionHelper {
 	static {
 
 		classPath                            = System.getProperty("java.class.path");
-		instanceName                         = Settings.InstanceName.getValue();
-		instanceStage                        = Settings.InstanceStage.getValue();
 		final Pattern outerPattern           = Pattern.compile("(structr-.+?(?=.jar))");
 		final Matcher outerMatcher           = outerPattern.matcher(classPath);
 
@@ -84,11 +80,11 @@ public class VersionHelper {
 	}
 
 	public static String getInstanceName() {
-		return instanceName;
+		return Settings.InstanceName.getValue();
 	}
 
 	public static String  getInstanceStage() {
-		return instanceStage;
+		return Settings.InstanceStage.getValue();
 	}
 
 	public static void updateModuleList () {
