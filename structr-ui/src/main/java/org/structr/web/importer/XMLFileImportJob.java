@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
@@ -104,6 +101,8 @@ public class XMLFileImportJob extends ImportJob {
 
 					while (iterator.hasNext()) {
 
+						final long chunkStartTime = System.currentTimeMillis();
+
 						int count = 0;
 
 						try (final Tx tx = app.tx()) {
@@ -121,9 +120,8 @@ public class XMLFileImportJob extends ImportJob {
 
 							chunks++;
 
-							reportChunk(chunks);
+							chunkFinished(overallCount, chunks, chunkStartTime);
 
-							logger.info("XML: Imported {} objects, commiting batch.", overallCount);
 						}
 
 						// do this outside of the transaction!
@@ -134,13 +132,7 @@ public class XMLFileImportJob extends ImportJob {
 
 					}
 
-					final long endTime = System.currentTimeMillis();
-					DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-					final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-
-					logger.info("XML: Finished importing XML data from '{}' (Time: {})", filePath, duration);
-
-					reportEnd(duration);
+					importFinished(startTime);
 
 				} catch (XMLStreamException | FrameworkException ex) {
 					reportException(ex);

@@ -1750,7 +1750,7 @@ var Structr = {
 		var fileImportTexts = {
 			QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running import(s)',
 			BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
-			CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b>',
+			CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b> (Took: ' + data.duration + ')',
 			END: 'Finished importing data from <b>' + data.filename + '</b> (Time: ' + data.duration + ')',
 			WAIT_ABORT: 'The import of <b>' + data.filename + '</b> will be aborted after finishing the current chunk',
 			ABORTED: 'The import of <b>' + data.filename + '</b> has been aborted',

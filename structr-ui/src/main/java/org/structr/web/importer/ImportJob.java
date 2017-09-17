@@ -19,7 +19,10 @@
 package org.structr.web.importer;
 
 import java.io.InputStream;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -269,18 +272,31 @@ abstract class ImportJob {
 		reportStatus(JobStatusMessageSubtype.RESUMED);
 	}
 
-	protected void reportChunk(final int currentChunkNo) {
+	protected void chunkFinished(final int overallCount, final int currentChunkNo, final long chunkStartTime) {
+
 		processedChunks = currentChunkNo;
 
-		final Map<String, Object> endMsgData = getWebsocketStatusData(JobStatusMessageSubtype.CHUNK);
-		endMsgData.put("currentChunkNo", currentChunkNo);
-		TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
+		final String duration = getFormattedDuration(chunkStartTime, System.currentTimeMillis());
+
+		logger.info("{}: Finished importing chunk {}, commiting batch. Took {}. Imported {} objects overall.", getImportType(), currentChunkNo, duration, overallCount);
+
+		final Map<String, Object> data = getWebsocketStatusData(JobStatusMessageSubtype.CHUNK);
+		data.put("currentChunkNo", currentChunkNo);
+		data.put("duration", duration);
+		TransactionCommand.simpleBroadcastGenericMessage(data);
+
 	}
 
-	protected void reportEnd(final String duration) {
-		final Map<String, Object> endMsgData = getWebsocketStatusData(JobStatusMessageSubtype.END);
-		endMsgData.put("duration", duration);
-		TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
+	protected void importFinished(final long startTime) {
+
+		final String duration = getFormattedDuration(startTime, System.currentTimeMillis());
+
+		logger.info("{}: Finished importing {} data from '{}' (Time: {})", getImportType(), getImportType(), filePath, duration);
+
+		final Map<String, Object> data = getWebsocketStatusData(JobStatusMessageSubtype.END);
+		data.put("duration", duration);
+		TransactionCommand.simpleBroadcastGenericMessage(data);
+
 	}
 
 	protected void reportException(Exception ex) {
@@ -292,6 +308,13 @@ abstract class ImportJob {
 		data.put("filepath",   filePath);
 		data.put("username",   username);
 		TransactionCommand.simpleBroadcastException(ex, data, true);
+	}
+
+	protected String getFormattedDuration (final long startTime, final long endTime) {
+
+		final DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+		return decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
 	}
 
 	protected InputStream getFileInputStream(final SecurityContext ctx) {

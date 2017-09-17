@@ -21,12 +21,9 @@ package org.structr.web.importer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,12 +114,15 @@ public class CSVFileImportJob extends ImportJob {
 				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, reverse(importMappings));
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
+				int overallCount                   = 0;
 
 				while (iterator.hasNext()) {
 
 					int count = 0;
 
 					try (final Tx tx = app.tx()) {
+
+						final long chunkStartTime = System.currentTimeMillis();
 
 						while (iterator.hasNext() && count++ < commitInterval) {
 
@@ -131,15 +131,15 @@ public class CSVFileImportJob extends ImportJob {
 							mapper.transformInput(threadContext, targetEntityType, input);
 
 							app.create(targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
+
+							overallCount++;
 						}
 
 						tx.success();
 
 						chunks++;
 
-						reportChunk(chunks);
-
-						logger.info("CSV: Finished importing chunk {}", chunks);
+						chunkFinished(overallCount, chunks, chunkStartTime);
 
 					}
 
@@ -151,13 +151,7 @@ public class CSVFileImportJob extends ImportJob {
 
 				}
 
-				final long endTime = System.currentTimeMillis();
-				DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-				final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-
-				logger.info("CSV: Finished importing CSV data from '{}' (Time: {})", filePath, duration);
-
-				reportEnd(duration);
+				importFinished(startTime);
 
 			} catch (IOException | FrameworkException fex) {
 
