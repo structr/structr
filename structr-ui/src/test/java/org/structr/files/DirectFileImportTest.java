@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
+import org.structr.dynamic.File;
 import org.structr.web.StructrUiTest;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -145,10 +146,10 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).andName(testDir.getFileName().toString()).getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(Folder.class).andName("test1.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(Folder.class).andName("test2.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(Folder.class).andName("test3.txt").getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).and(File.path, "/" + testDir.getFileName().toString()).getFirst());
+			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test1.txt").getFirst());
+			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test2.txt").getFirst());
+			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test3.txt").getFirst());
 
 			tx.success();
 
@@ -198,10 +199,10 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).andName(testDir.getFileName().toString()).getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(Folder.class).andName("test1.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(Folder.class).andName("test2.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(Folder.class).andName("test3.txt").getFirst());
+			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).and(File.path, "/" + testDir.getFileName().toString()).getFirst());
+			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test1.txt").getFirst());
+			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test2.txt").getFirst());
+			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test3.txt").getFirst());
 
 			tx.success();
 
@@ -341,11 +342,11 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			assertNotNull("Folder should have been created by import",     app.nodeQuery(Folder.class).andName(testDir.getFileName().toString()).getFirst());
-			assertNotNull("Test file should have been created by import",  app.nodeQuery(Folder.class).andName("test1.txt").getFirst());
-			assertNull("Test file should NOT have been created by import", app.nodeQuery(Folder.class).andName("test2.pdf").getFirst());
-			assertNull("Test file should NOT have been created by import", app.nodeQuery(Folder.class).andName("test3.zip").getFirst());
-			assertNotNull("Test file should have been created by import",  app.nodeQuery(Folder.class).andName("test4.txt").getFirst());
+			//assertNotNull("Folder should have been created by import",     app.nodeQuery(Folder.class).andName(testDir.getFileName().toString()).getFirst());
+			assertNotNull("Test file should have been created by import",  app.nodeQuery(File.class).and(File.path, "/test1.txt").getFirst());
+			assertNull("Test file should NOT have been created by import", app.nodeQuery(File.class).and(File.path, "/test2.pdf").getFirst());
+			assertNull("Test file should NOT have been created by import", app.nodeQuery(File.class).and(File.path, "/test3.zip").getFirst());
+			assertNotNull("Test file should have been created by import",  app.nodeQuery(File.class).and(File.path, "/test4.txt").getFirst());
 
 			tx.success();
 
