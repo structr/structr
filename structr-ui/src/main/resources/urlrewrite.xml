@@ -4,7 +4,7 @@
         "http://www.tuckey.org/res/dtds/urlrewrite3.2.dtd">
 <urlrewrite>
 
-	<!-- execute a method in Structr context to access the "force http" setting -->
+	<!-- execute a method in Structr context to access the "force https" setting -->
 	<class-rule class="org.structr.web.common.RewriteRule" method="checkConfig" />
 
 	<!-- the default rule to allow access to Structr pages -->
@@ -21,7 +21,7 @@
 		<condition type="attribute" name="structr.force.https" operator="equal">true</condition>
 		<condition type="scheme" operator="notequal">https</condition>
 		<from>^/(.*)</from>
-		<to type="permanent-redirect" last="true">https://%{server-name}/</to>
+		<to type="permanent-redirect" last="true">https://%{server-name}/$1</to>
 	</rule>
 
 
