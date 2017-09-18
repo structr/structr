@@ -271,6 +271,9 @@ public class TypeResource extends SortableResource {
 
 		if (entityClass != null) {
 
+			// experimental: instruct deserialization strategies to set properties on related nodes
+			securityContext.setAttribute("setNestedProperties", true);
+
 			final App app                = StructrApp.getInstance(securityContext);
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 

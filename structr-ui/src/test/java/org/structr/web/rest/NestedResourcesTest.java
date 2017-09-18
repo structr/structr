@@ -20,9 +20,17 @@ package org.structr.web.rest;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import org.junit.Test;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Relation;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.StructrUiTest;
 
@@ -279,5 +287,68 @@ public class NestedResourcesTest extends StructrUiTest {
 				.when()
 					.get("/TestFour/" + testFour + "/test");
 		}
+	}
+
+	@Test
+	public void testMultiLevelUpdateOnPost() {
+
+		/**
+		 * This test verifies that the modification of existing entities
+		 * works when creating a subgraph with mixed (existing and new)
+		 * entities.
+		 */
+
+		try {
+
+			final JsonSchema schema       = StructrSchema.newInstance(URI.create("http://localhost/test/#"));
+			final JsonObjectType document = schema.addType("TestDocument");
+			final JsonObjectType version  = schema.addType("TestVersion");
+			final JsonObjectType author   = schema.addType("TestAuthor");
+
+			document.relate(version, "VERSION").setCardinality(Relation.Cardinality.OneToOne).setTargetPropertyName("hasVersion");
+			version.relate(author, "AUTHOR").setCardinality(Relation.Cardinality.OneToOne).setTargetPropertyName("hasAuthor");
+
+			// extend public view to make result testable via REST GET
+			document.addViewProperty("public", "hasVersion");
+			document.addViewProperty("public", "name");
+			version.addViewProperty("public", "hasAuthor");
+			version.addViewProperty("public", "name");
+			author.addViewProperty("public", "name");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+		} catch (URISyntaxException | FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		final String authorId    = createEntityAsUser("admin", "admin", "/TestAuthor", "{ name: 'Tester' }");
+		final String versionId   = createEntityAsUser("admin", "admin", "/TestVersion", "{ name: 'TestVersion' }");
+		final String documentId  = createEntityAsUser("admin", "admin", "/TestDocument", "{ name: 'TestDocument', hasVersion: { id: '" + versionId + "', hasAuthor: { id: '" + authorId + "' } } } ");
+
+
+		// check document to have correct associations
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.header("X-User",     "admin")
+				.header("X-Password", "admin")
+			.expect()
+				.statusCode(200)
+				.body("result_count",                     equalTo(1))
+				.body("result.id",                        equalTo(documentId))
+				.body("result.name",                      equalTo("TestDocument"))
+				.body("result.hasVersion.id",             equalTo(versionId))
+				.body("result.hasVersion.name",           equalTo("TestVersion"))
+				.body("result.hasVersion.hasAuthor.id",   equalTo(authorId))
+				.body("result.hasVersion.hasAuthor.name", equalTo("Tester"))
+			.when()
+				.get("/TestDocument/" + documentId);
+
+
 	}
 }

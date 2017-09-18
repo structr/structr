@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.basic;
+package org.structr.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
@@ -39,6 +39,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.basic.FrontendTest;
 import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
 
 
