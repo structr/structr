@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -60,54 +59,54 @@ import org.structr.web.entity.Folder;
  */
 public class DirectFileImportCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private enum Mode     { COPY, MOVE }
-	private enum Existing { SKIP, OVERWRITE, RENAME }
-	//private enum Missing  { SKIP, DELETE, RENAME }
-	
-	private FulltextIndexer indexer;
-	
-	private static final Logger logger                   = LoggerFactory.getLogger(DirectFileImportCommand.class.getName());
-	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
+	private static final Logger logger = LoggerFactory.getLogger(DirectFileImportCommand.class.getName());
 
-	private Integer folderCount = 0;
-	private Integer fileCount   = 0;
-	private Integer stepCounter = 0;
-	
 	static {
 
 		MaintenanceParameterResource.registerMaintenanceCommand("directFileImport", DirectFileImportCommand.class);
 	}
 
+	private enum Mode     { COPY, MOVE }
+	private enum Existing { SKIP, OVERWRITE, RENAME }
+
+	private FulltextIndexer indexer = null;
+	private Integer folderCount     = 0;
+	private Integer fileCount       = 0;
+	private Integer stepCounter     = 0;
+
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
 		indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-		
-		final String sourcePath = getParameterValueAsString(attributes, "source", null);
-		final String mode       = getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase();
-		final String existing   = getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase();
-		final boolean doIndex   = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
-		
-		if (StringUtils.isBlank(sourcePath)) {
 
+		final String sourcePath     = getParameterValueAsString(attributes, "source", null);
+		final String modeString     = getParameterValueAsString(attributes, "mode", Mode.COPY.name()).toUpperCase();
+		final String existingString = getParameterValueAsString(attributes, "existing", Existing.SKIP.name()).toUpperCase();
+		final boolean doIndex       = Boolean.parseBoolean(getParameterValueAsString(attributes, "index", Boolean.TRUE.toString()));
+
+		if (StringUtils.isBlank(sourcePath)) {
 			throw new FrameworkException(422, "Please provide 'source' attribute for deployment source directory path.");
 		}
 
-		if (!EnumUtils.isValidEnum(Mode.class, mode)) {
+		if (!EnumUtils.isValidEnum(Mode.class, modeString)) {
 			throw new FrameworkException(422, "Unknown value for 'mode' attribute. Valid values are: copy, move");
 		}
 
-		if (!EnumUtils.isValidEnum(Existing.class, existing)) {
+		if (!EnumUtils.isValidEnum(Existing.class, existingString)) {
 			throw new FrameworkException(422, "Unknown value for 'existing' attribute. Valid values are: skip, overwrite, rename");
 		}
-		
+
+		// use actual enums
+		final Existing existing = Existing.valueOf(existingString);
+		final Mode mode         = Mode.valueOf(modeString);
+
 		final List<Path> paths = new ArrayList<>();
-		
+
 		if (sourcePath.contains(PathHelper.PATH_SEP)) {
-			
+
 			final String folderPart = PathHelper.getFolderPath(sourcePath);
 			final String namePart   = PathHelper.getName(sourcePath);
-			
+
 			if (StringUtils.isNotBlank(folderPart)) {
 
 				final Path source = Paths.get(folderPart);
@@ -120,47 +119,44 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 					throw new FrameworkException(422, "Source path " + sourcePath + " is not a directory.");
 				}
-				
+
 				try {
-					
+
 					try (final DirectoryStream<Path> stream = Files.newDirectoryStream(source, namePart)) {
-						
+
 						for (final Path entry: stream) {
 							paths.add(entry);
 						}
-						
+
 					} catch (final DirectoryIteratorException ex) {
 						throw ex.getCause();
 					}
-					
+
 				} catch (final IOException ioex) {
 					throw new FrameworkException(422, "Unable to parse source path " + sourcePath + ".");
 				}
 			}
-			
-			
+
+
 		} else {
-			
+
 			// Relative path
-			
-			
-			
 			final Path source = Paths.get(Settings.BasePath.getValue()).resolve(sourcePath);
 			if (!Files.exists(source)) {
 
 				throw new FrameworkException(422, "Source path " + sourcePath + " does not exist.");
 			}
-			
+
 			paths.add(source);
-			
+
 		}
 
 		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		ctx.setDoTransactionNotifications(false);
-		final App app = StructrApp.getInstance(ctx);
+		final App app             = StructrApp.getInstance(ctx);
+		String targetPath         = getParameterValueAsString(attributes, "target", "/");
+		Folder targetFolder       = null;
 
-		Folder targetFolder = null;
-		String targetPath = getParameterValueAsString(attributes, "target", "/");
+		ctx.setDoTransactionNotifications(false);
 
 		if (StringUtils.isNotBlank(targetPath) && !("/".equals(targetPath))) {
 
@@ -168,11 +164,13 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				targetFolder = app.nodeQuery(Folder.class).and(Folder.path, targetPath).getFirst();
 				if (targetFolder == null) {
+
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
 				}
+
 				tx.success();
 			}
-		}			
+		}
 
 		String msg = "Starting direct file import from source directory " + sourcePath + " into target path " + targetPath;
 		logger.info(msg);
@@ -181,26 +179,26 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		paths.forEach((path) -> {
 
 			try {
-				
+
 				final String newTargetPath;
-				
+
 				// If path is a directory, create it and use it as the new target folder
 				if (Files.isDirectory(path)) {
-					
+
 					Path parentPath = path.getParent();
 					if (parentPath == null) {
 						parentPath = path;
 					}
-					
+
 					createFileOrFolder(ctx, app, parentPath, path, Files.readAttributes(path, BasicFileAttributes.class), sourcePath, targetPath, mode, existing, doIndex);
-					
+
 					newTargetPath = targetPath + PathHelper.PATH_SEP + PathHelper.clean(path.getFileName().toString());
-					
+
 				} else {
-					
+
 					newTargetPath = targetPath;
 				}
-				
+
 				Files.walkFileTree(path, new FileVisitor<Path>() {
 
 					@Override
@@ -210,7 +208,6 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 					@Override
 					public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-
 						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, mode, existing, doIndex);
 					}
 
@@ -224,21 +221,21 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						return FileVisitResult.CONTINUE;
 					}
 				});
-				
+
 			} catch (final IOException ex) {
-				logger.debug("Mode: " + mode + ", path: " + sourcePath, ex);
+				logger.debug("Mode: " + modeString + ", path: " + sourcePath, ex);
 			}
 		});
+
 		msg = "Finished direct file import from source directory " + sourcePath + ". Imported " + folderCount + " folders and " + fileCount + " files.";
 		logger.info(msg);
-		publishProgressMessage(msg);
 
-		
+		publishProgressMessage(msg);
 	}
 
 	private FileVisitResult createFileOrFolder(final SecurityContext ctx, final App app, final Path path, final Path file, final BasicFileAttributes attrs,
-			final String sourcePath, final String targetPath, final String mode, final String existing, final boolean doIndex) {
-		
+			final String sourcePath, final String targetPath, final Mode mode, final Existing existing, final boolean doIndex) {
+
 		ctx.setDoTransactionNotifications(false);
 
 		final Path name = file.getFileName();
@@ -247,7 +244,12 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			final String filesPath    = Settings.FilesPath.getValue();
 			final String relativePath = PathHelper.getRelativeNodePath(path.toString(), file.toString());
-			final String parentPath   = targetPath + PathHelper.getFolderPath(relativePath);
+			String parentPath         = targetPath + PathHelper.getFolderPath(relativePath);
+
+			// fix broken path concatenation
+			if (parentPath.startsWith("//")) {
+				parentPath = parentPath.substring(1);
+			}
 
 			if (attrs.isDirectory()) {
 
@@ -262,28 +264,25 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			} else if (attrs.isRegularFile()) {
 
-				final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, "/" + relativePath).getFirst();
-
+				final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, parentPath + name.toString()).getFirst();
 				if (existingFile != null) {
 
-					if (Existing.SKIP.name().equals(existing)) {
+					switch (existing) {
 
-						return FileVisitResult.CONTINUE;
+						case SKIP:
+							logger.info("Skipping import of {}, file exists and mode is SKIP.", parentPath + name.toString());
+							return FileVisitResult.CONTINUE;
 
-					} else if (Existing.OVERWRITE.name().equals(existing)) {
+						case OVERWRITE:
+							logger.info("Overwriting {}, file exists and mode is OVERWRITE.", parentPath + name.toString());
+							app.delete(existingFile);
+							break;
 
-						app.delete(existingFile);
-
-					} else if (Existing.RENAME.name().equals(existing)) {
-
-						final String newName = existingFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
-						existingFile.setProperty(AbstractFile.name, newName);
-
-					} else {
-
-						throw new FrameworkException(422, "Unknown value for 'existing' attribute. Valid values are: skip, overwrite, rename");
+						case RENAME:
+							logger.info("Renaming existing file {}, file exists and mode is RENAME.", parentPath + name.toString());
+							existingFile.setProperty(AbstractFile.name, existingFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString()));
+							break;
 					}
-
 
 				}
 
@@ -295,23 +294,21 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				final String uuid             = newFile.getUuid();
 				final String relativeFilePath = FileBase.getDirectoryPath(uuid) + "/" + uuid;
-				final Path fullFolderPath         = Paths.get(filesPath + "/" + relativeFilePath);
+				final Path fullFolderPath     = Paths.get(filesPath + "/" + relativeFilePath);
 
 				newFile.setProperty(FileBase.relativeFilePath, relativeFilePath);
 
 				Files.createDirectories(fullFolderPath.getParent());
 
-				if (Mode.MOVE.name().equals(mode)) {
+				switch (mode) {
 
-					Files.move(file, fullFolderPath);
+					case MOVE:
+						Files.move(file, fullFolderPath);
+						break;
 
-				} else if (Mode.COPY.name().equals(mode)) {
-
-					Files.copy(file, fullFolderPath);
-
-				} else {
-
-					throw new FrameworkException(422, "Unknown value for 'mode' attribute. Valid values are: copy, move");
+					case COPY:
+						Files.copy(file, fullFolderPath);
+						break;
 				}
 
 				FileHelper.updateMetadata(newFile);
@@ -321,8 +318,6 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				}
 
 				fileCount++;
-
-				logger.info("Created file " + newFile.getPath());
 			}
 
 			tx.success();
@@ -331,9 +326,9 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 			logger.debug("File: " + name + ", path: " + sourcePath, ex);
 		}
 
-		return FileVisitResult.CONTINUE;		
+		return FileVisitResult.CONTINUE;
 	}
-	
+
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
@@ -343,16 +338,16 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	public boolean requiresFlushingOfCaches() {
 		return false;
 	}
-	
+
 	private String getParameterValueAsString(final Map<String, Object> attributes, final String key, final String defaultValue) {
-		
+
 		Object value = attributes.get(key);
-		
+
 		if (value != null) {
-			
+
 			return value.toString();
 		}
-		
+
 		return defaultValue;
 	}
 
@@ -378,5 +373,5 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData);
 
 	}
-	
+
 }

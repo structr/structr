@@ -20,11 +20,15 @@ package org.structr.files;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.cxf.helpers.IOUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -36,6 +40,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.web.StructrUiTest;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.maintenance.DirectFileImportCommand;
@@ -147,9 +152,18 @@ public class DirectFileImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).and(File.path, "/" + testDir.getFileName().toString()).getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test1.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test2.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test3.txt").getFirst());
+
+			final FileBase file1 = app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test1.txt").getFirst();
+			final FileBase file2 = app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test2.txt").getFirst();
+			final FileBase file3 = app.nodeQuery(File.class).and(File.path, "/" + testDir.getFileName().toString() + "/test3.txt").getFirst();
+
+			assertNotNull("Test file should have been created by import", file1);
+			assertNotNull("Test file should have been created by import", file2);
+			assertNotNull("Test file should have been created by import", file3);
+
+			assertEquals("Imported test file content does not match source", "test file content 1", getContent(file1));
+			assertEquals("Imported test file content does not match source", "test file content 2", getContent(file2));
+			assertEquals("Imported test file content does not match source", "test file content 3", getContent(file3));
 
 			tx.success();
 
@@ -200,9 +214,18 @@ public class DirectFileImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			assertNotNull("Folder should have been created by import", app.nodeQuery(Folder.class).and(File.path, "/" + testDir.getFileName().toString()).getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test1.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test2.txt").getFirst());
-			assertNotNull("Test file should have been created by import", app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test3.txt").getFirst());
+
+			final FileBase file1 = app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test1.txt").getFirst();
+			final FileBase file2 = app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test2.txt").getFirst();
+			final FileBase file3 = app.nodeQuery(File.class).and(File.path, "/" +  testDir.getFileName().toString() + "/test3.txt").getFirst();
+
+			assertNotNull("Test file should have been created by import", file1);
+			assertNotNull("Test file should have been created by import", file2);
+			assertNotNull("Test file should have been created by import", file3);
+
+			assertEquals("Imported test file content does not match source", "test file content 1", getContent(file1));
+			assertEquals("Imported test file content does not match source", "test file content 2", getContent(file2));
+			assertEquals("Imported test file content does not match source", "test file content 3", getContent(file3));
 
 			tx.success();
 
@@ -213,7 +236,149 @@ public class DirectFileImportTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testDirectFileImportWithFileCopyOverwrite() {
+	public void testDirectFileImportWithExistingFileCopySkip() {
+
+		/**
+		 * Create test file prior to import, expect file to be unchanged after import
+		 * because of import mode "SKIP".
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileCopySkip");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "COPY", "SKIP", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
+
+			assertNotNull("Test file should exist", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
+			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content should not be modified by import", "initial content", getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file exists after import
+		assertTrue("Source file should not be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithNonexistingFileCopySkip() {
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileCopySkip");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "COPY", "SKIP", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
+
+			assertNotNull("Test file should have been created by import", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
+			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file exists after import
+		assertTrue("Source file should not be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithExistingFileCopyOverwrite() {
+
+		/**
+		 * Create test file prior to import, expect file to be overwritten after import
+		 * because of import mode "OVERWRITE".
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 
 		Path testDir    = null;
 		Path importPath = null;
@@ -243,10 +408,17 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = app.nodeQuery(FileBase.class).andName("test.txt").getFirst();
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
 
 			assertNotNull("Test file should have been created by import", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
 			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file));
 
 			tx.success();
 
@@ -260,7 +432,340 @@ public class DirectFileImportTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testDirectFileImportWithFileMoveOverwrite() {
+	public void testDirectFileImportWithNonexistingFileCopyOverwrite() {
+
+		/**
+		 * Create test file prior to import, expect file to be overwritten after import
+		 * because of import mode "OVERWRITE".
+		 */
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileCopyOverwrite");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "COPY", "OVERWRITE", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
+
+			assertNotNull("Test file should have been created by import", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
+			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file exists after import
+		assertTrue("Source file should not be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithExistingFileCopyRename() {
+
+		/**
+		 * Create test file prior to import, expect file to be renamed after import
+		 * because of import mode "RENAME".
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileCopyRename");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "COPY", "RENAME", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+			final SimpleDateFormat df  = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Two files should exist after import", 2, files.size());
+
+			final FileBase file1 = files.get(0);
+			final FileBase file2 = files.get(1);
+
+			assertNotNull("Test file should have been created by import", file1);
+			assertEquals("Test file name should be test.txt", "test.txt", file1.getName());
+			assertNull("Test file should NOT have a parent folder", file1.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file1));
+
+			assertNotNull("Test file should have been created by import", file2);
+			assertEquals("Existing file should be renamed", "test.txt_" + df.format(System.currentTimeMillis()), file2.getName());
+			assertNull("Test file should NOT have a parent folder", file2.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "initial content", getContent(file2));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file exists after import
+		assertTrue("Source file should not be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithNonexistingFileCopyRename() {
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileCopyRename");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "COPY", "RENAME", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Two files should exist after import", 1, files.size());
+
+			final FileBase file1 = files.get(0);
+
+			assertNotNull("Test file should have been created by import", file1);
+			assertEquals("Test file name should be test.txt", "test.txt", file1.getName());
+			assertNull("Test file should NOT have a parent folder", file1.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file1));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file exists after import
+		assertTrue("Source file should not be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithExistingFileMoveSkip() {
+
+		/**
+		 * Create test file prior to import, expect file to be unchanged after import
+		 * because of import mode "SKIP".
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileMoveSkip");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "MOVE", "SKIP", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
+
+			assertNotNull("Test file should exist", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
+			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content should not be modified by import", "initial content", getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file is not deleted after import because source file was skipped
+		assertTrue("Source file should not be deleted after import because it was skipped", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithNonexistingFileMoveSkip() {
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileMoveSkip");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "MOVE", "SKIP", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
+
+			assertNotNull("Test file should have been created by import", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
+			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file is deleted after import
+		assertFalse("Source file should be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithExistingFileMoveOverwrite() {
+
+		/**
+		 * Create test file prior to import, expect file to be overwritten after import
+		 * because of import mode "OVERWRITE".
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 
 		Path testDir    = null;
 		Path importPath = null;
@@ -290,10 +795,17 @@ public class DirectFileImportTest extends StructrUiTest {
 		// verify successful file import
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = app.nodeQuery(FileBase.class).andName("test.txt").getFirst();
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
 
 			assertNotNull("Test file should have been created by import", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
 			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file));
 
 			tx.success();
 
@@ -302,7 +814,198 @@ public class DirectFileImportTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		// verify source file is deleted after import (move)
+		// verify source file is deleted after import
+		assertFalse("Source file should be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithNonexistingFileMoveOverwrite() {
+
+		/**
+		 * Create test file prior to import, expect file to be overwritten after import
+		 * because of import mode "OVERWRITE".
+		 */
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileMoveOverwrite");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "MOVE", "OVERWRITE", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Only one file should exist after import", 1, files.size());
+
+			final FileBase file = files.get(0);
+
+			assertNotNull("Test file should have been created by import", file);
+			assertEquals("Test file name should be test.txt", "test.txt", file.getName());
+			assertNull("Test file should NOT have a parent folder", file.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file is deleted after import
+		assertFalse("Source file should be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithExistingFileMoveRename() {
+
+		/**
+		 * Create test file prior to import, expect file to be renamed after import
+		 * because of import mode "RENAME".
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			FileHelper.createFile(securityContext, "initial content".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileMoveRename");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "MOVE", "RENAME", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+			final SimpleDateFormat df  = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Two files should exist after import", 2, files.size());
+
+			final FileBase file1 = files.get(0);
+			final FileBase file2 = files.get(1);
+
+			assertNotNull("Test file should have been created by import", file1);
+			assertEquals("Test file name should be test.txt", "test.txt", file1.getName());
+			assertNull("Test file should NOT have a parent folder", file1.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file1));
+
+			assertNotNull("Test file should have been created by import", file2);
+			assertEquals("Existing file should be renamed", "test.txt_" + df.format(System.currentTimeMillis()), file2.getName());
+			assertNull("Test file should NOT have a parent folder", file2.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "initial content", getContent(file2));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file is deleted after import
+		assertFalse("Source file should be deleted after import", importPath.toFile().exists());
+	}
+
+	@Test
+	public void testDirectFileImportWithNonexistingFileMoveRename() {
+
+		Path testDir    = null;
+		Path importPath = null;
+
+		try {
+
+			testDir    = Files.createTempDirectory(Paths.get(basePath), "directFileImportTestFileMoveRename");
+			importPath = testDir.resolve(Paths.get("test.txt"));
+
+			createTestFile(importPath, "test file content 1");
+
+		} catch (IOException ioex) {
+			fail("Unable to create test files.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			app.command(DirectFileImportCommand.class).execute(setupParameters(importPath.toString(), "/", "MOVE", "RENAME", false));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// verify successful file import
+		try (final Tx tx = app.tx()) {
+
+			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+
+			// import mode SKIP => no change, no additional file
+			assertEquals("Two files should exist after import", 1, files.size());
+
+			final FileBase file1 = files.get(0);
+
+			assertNotNull("Test file should have been created by import", file1);
+			assertEquals("Test file name should be test.txt", "test.txt", file1.getName());
+			assertNull("Test file should NOT have a parent folder", file1.getProperty(FileBase.parent));
+			assertEquals("Test file content does not match source", "test file content 1", getContent(file1));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// verify source file is deleted after import
 		assertFalse("Source file should be deleted after import", importPath.toFile().exists());
 	}
 
@@ -399,5 +1102,19 @@ public class DirectFileImportTest extends StructrUiTest {
 		}
 
 		return attributes;
+	}
+
+	private String getContent(final FileBase file) {
+
+		try (final InputStream is = file.getInputStream()) {
+
+			return IOUtils.toString(is, "utf-8");
+
+		} catch (IOException ioex) {
+			ioex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		return null;
 	}
 }
