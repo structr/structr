@@ -328,10 +328,8 @@ var StructrModel = {
 
 					tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 
-					if (activeTab === id) {
-						_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
-						_Pages.reloadIframe(id);
-					}
+					_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
+					_Pages.reloadIframe(id);
 
 				}
 
