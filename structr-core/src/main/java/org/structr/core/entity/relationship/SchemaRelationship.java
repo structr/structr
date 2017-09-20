@@ -104,7 +104,7 @@ public class SchemaRelationship extends ManyToMany<SchemaNode, SchemaNode> {
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		final Set<PropertyKey> propertyKeys = new LinkedHashSet<>(Iterables.toList(super.getPropertyKeys(propertyView)));
 

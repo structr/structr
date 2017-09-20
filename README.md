@@ -1,10 +1,12 @@
-# The Structr Project
-
 [![Build Status](http://ci.structr.org:59398/job/Structr/badge/icon)](http://ci.structr.org:59398/job/Structr)
 
-Structr (pronounce it like 'structure') is a powerful application platform for **Enterprise Master Data Management**, **Product Data Management**, **Enterprise Content Management** and more.
+# What is Structr?
 
-Technically, it is a build and runtime environment for mobile and web applications based on the graph database Neo4j. It was designed to simplify the creation of complex graph database applications by providing a comprehensive set of features common to many use cases like **security**, **schema** enforcement, **JSON REST API** and integrated **search**, **CMS** and **DMS** functionality.
+Structr is the leading Graph-based **Low-Code Development** and **Runtime** environment for **Data-centric** Web and mobile **Applications**.
+
+Among its many features are a **visual schema editor** tool to customize the data model at runtime, a **JSON/REST API** to access any data in form of **JSON documents**, an **IDE to create micro web apps**, a **Content Management System** featuring a **virtual file system** with **fulltext indexing/-search** and many file protocol connectors, a comprehensive **three-level security system** to define and manage users, groups, access rights and individual object permission, and last but not least a variety of technical interfaces to support **data exchange**, **report creation** and connecting to third-party systems.
+
+Structr (pronounce it like 'structure') is used a powerful application platform for **Enterprise Master Data Management**, **Product Data Management**, **Enterprise Content Management** and more.
 
 ## Editions and Modules
 
@@ -14,32 +16,17 @@ Structr is free and open source software and dual licensed (GPLv3/AGPLv3). For a
 
 Download the binary distributions package from [https://structr.org/download](https://structr.org/download).
 
+To activate the commercial editions/modules, you need to buy a license key. Please contact us at [licensing@structr.com](mailto:licensing@structr.com).
+
 ## Documentation
 
 The one-stop documentation and support site can be found at [https://support.structr.com/](https://support.structr.com/).
 
-## Quick Start
+## Installation and Setup
 
-Prerequisites are the Java JDK 1.8 (not JRE!), Maven 3.0.4+ and git.
+Prerequisites are the Java JDK 1.8 (JRE is not sufficient). See [https://support.structr.com/article/246](https://support.structr.com/article/246) for instrucxtions on how to install and start Structr.
 
-Verify the Java/Maven version with `mvn -v`, then do:
-
-```
-git clone https://github.com/structr/structr.git
-
-cd structr
-mvn clean install -DskipTests
-cd structr-ui
-
-mvn validate exec:exec
-```
-Login with the credentials admin/admin at:
-
-[http://localhost:8082/structr/](http://localhost:8082/structr/)
-
-This help article describes how to build and run Structr from the source code: [https://support.structr.com/article/280](https://support.structr.com/article/280).
-
-For a guide about the installation on Windows, see [https://support.structr.com/article/258](https://support.structr.com/article/258).
+Login with the default credentials admin/admin at: [http://localhost:8082/structr/](http://localhost:8082/structr/)
 
 ## Google Group / Mailing List
 
@@ -51,23 +38,14 @@ You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https
 
 ## Contribute
 
-For more information on how to contribute, please see [Contribute to Structr](http://docs.structr.org/contribute).
+For more information on how to contribute, please see [Contribute to Structr](https://support.structr.com/article/245).
 
 ## Commercial Services
 
 https://structr.com/services
 
-## Structr Hosting
-
-https://hosting.structr.com/
-
-## Initial Authors
-
-- Axel Morgner (axel.morgner@structr.com, @amorgner)
-- Christian Morgner (christian.morgner@structr.com, @cmor_)
-
 ## Copyright and License
 
 Copyright 2010-2017 Structr GmbH
 
-Structr is dual licensed under the GPLv3 and AGPLv3. [Commercial editions](https://structr.com/editions) also available.
+Structr is dual licensed under the GPLv3/AGPLv3 and a commercial license. [Commercial editions](https://structr.com/editions) and [support plans](https://structr.com/support) also available.

@@ -26,18 +26,25 @@ import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaView;
+import org.structr.core.function.TypeInfoFunction;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.basic.FrontendTest;
 import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
@@ -50,7 +57,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
-
 
 		try (final Tx tx = app.tx()) {
 
@@ -334,9 +340,238 @@ public class AdvancedSchemaTest extends FrontendTest {
 	}
 
 	@Test
-	public void test04SchemaPropertyOrder() {
+	public void test04SchemaPropertyOrderInBuiltInViews() {
 
-		SchemaView testView = null;
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+			createResourceAccess("_schema", UiAuthenticator.AUTH_USER_GET);
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		final GenericProperty jsonName = new GenericProperty("jsonName");
+		SchemaNode test                = null;
+		String id                      = null;
+
+		try (final Tx tx = app.tx()) {
+
+			// create test type
+			test = app.create(SchemaNode.class, "Test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			// create view with sort order
+			final List<SchemaView> list = test.getProperty(SchemaNode.schemaViews);
+
+			// create properties
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "one")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "two")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "three")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, test),
+				new NodeAttribute<>(SchemaProperty.schemaViews, list),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "four")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
+
+		Assert.assertEquals("Invalid number of properties in sorted view", 6, list.size());
+		Assert.assertEquals("id",    list.get(0).dbName());
+		Assert.assertEquals("type",  list.get(1).dbName());
+		Assert.assertEquals("one",   list.get(2).dbName());
+		Assert.assertEquals("two",   list.get(3).dbName());
+		Assert.assertEquals("three", list.get(4).dbName());
+		Assert.assertEquals("four",  list.get(5).dbName());
+
+		try (final Tx tx = app.tx()) {
+
+			for (final SchemaView testView : test.getProperty(SchemaNode.schemaViews)) {
+
+				// modify sort order
+				testView.setProperty(SchemaView.sortOrder, "type, one, id, two, three, four, name");
+			}
+
+			// create test entity
+			final NodeInterface node = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"));
+
+			// save UUID for later
+			id = node.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
+
+		Assert.assertEquals("Invalid number of properties in sorted view", 6, list2.size());
+		Assert.assertEquals("id",    list2.get(0).dbName());
+		Assert.assertEquals("type",  list2.get(1).dbName());
+		Assert.assertEquals("one",   list2.get(2).dbName());
+		Assert.assertEquals("two",   list2.get(3).dbName());
+		Assert.assertEquals("three", list2.get(4).dbName());
+		Assert.assertEquals("four",  list2.get(5).dbName());
+
+		// test schema resource
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+			.expect()
+				.statusCode(200)
+
+				.body("result",	                  hasSize(6))
+				.body("result[0].jsonName",       equalTo("id"))
+				.body("result[1].jsonName",       equalTo("type"))
+				.body("result[2].jsonName",       equalTo("one"))
+				.body("result[3].jsonName",       equalTo("two"))
+				.body("result[4].jsonName",       equalTo("three"))
+				.body("result[5].jsonName",       equalTo("four"))
+
+			.when()
+				.get("/_schema/Test/public");
+
+		// test actual REST resource (not easy to extract and verify
+		// JSON property order, that's why we're using replaceAll and
+		// string comparison..
+		final String[] actual = RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.get("/Test")
+			.body()
+			.asString()
+			.replaceAll("[\\s]+", "")
+			.split("[\\W]+");
+
+		// we can only test the actual ORDER of the JSON result object by splitting it on whitespace and validating the resulting array
+		assertEquals("Invalid JSON result for sorted property view", "",                   actual[ 0]);
+		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[ 1]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[ 2]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[ 4]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[ 5]);
+		assertEquals("Invalid JSON result for sorted property view", "result",             actual[ 6]);
+		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[ 7]);
+		assertEquals("Invalid JSON result for sorted property view", id,                   actual[ 8]);
+		assertEquals("Invalid JSON result for sorted property view", "type",               actual[ 9]);
+		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[10]);
+		assertEquals("Invalid JSON result for sorted property view", "one",                actual[11]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[12]);
+		assertEquals("Invalid JSON result for sorted property view", "two",                actual[13]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[14]);
+		assertEquals("Invalid JSON result for sorted property view", "three",              actual[15]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[16]);
+		assertEquals("Invalid JSON result for sorted property view", "four",               actual[17]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[18]);
+		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[19]);
+
+		// try built-in function
+		try {
+
+			final List<GraphObjectMap> list3 = (List)new TypeInfoFunction().apply(new ActionContext(securityContext), null, new Object[] { "Test", "public" });
+
+			Assert.assertEquals("Invalid number of properties in sorted view", 6, list3.size());
+			Assert.assertEquals("id",    list3.get(0).get(jsonName));
+			Assert.assertEquals("type",  list3.get(1).get(jsonName));
+			Assert.assertEquals("one",   list3.get(2).get(jsonName));
+			Assert.assertEquals("two",   list3.get(3).get(jsonName));
+			Assert.assertEquals("three", list3.get(4).get(jsonName));
+			Assert.assertEquals("four",  list3.get(5).get(jsonName));
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		// try scripting call
+		try {
+
+			final List<GraphObjectMap> list4 = (List)Scripting.evaluate(new ActionContext(securityContext), null, "${type_info('Test', 'public')}", "test");
+
+			Assert.assertEquals("Invalid number of properties in sorted view", 6, list4.size());
+			Assert.assertEquals("id",    list4.get(0).get(jsonName));
+			Assert.assertEquals("type",  list4.get(1).get(jsonName));
+			Assert.assertEquals("one",   list4.get(2).get(jsonName));
+			Assert.assertEquals("two",   list4.get(3).get(jsonName));
+			Assert.assertEquals("three", list4.get(4).get(jsonName));
+			Assert.assertEquals("four",  list4.get(5).get(jsonName));
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+	}
+
+	@Test
+	public void test04SchemaPropertyOrderInCustomViews() {
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+			createResourceAccess("_schema", UiAuthenticator.AUTH_USER_GET);
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		final GenericProperty jsonName = new GenericProperty("jsonName");
+		SchemaView testView            = null;
+		String id                      = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -406,6 +641,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 			// modify sort order
 			testView.setProperty(SchemaView.sortOrder, "type, one, id, two, three, four, name");
 
+			// create test entity
+			final NodeInterface node = app.create(StructrApp.getConfiguration().getNodeEntityClass("Test"));
+			id = node.getUuid();
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -423,5 +662,116 @@ public class AdvancedSchemaTest extends FrontendTest {
 		Assert.assertEquals("four",  list2.get(5).dbName());
 		Assert.assertEquals("name",  list2.get(6).dbName());
 
+		// test schema resource
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+			.expect()
+				.statusCode(200)
+
+				.body("result",	                  hasSize(7))
+				.body("result[0].jsonName",       equalTo("type"))
+				.body("result[1].jsonName",       equalTo("one"))
+				.body("result[2].jsonName",       equalTo("id"))
+				.body("result[3].jsonName",       equalTo("two"))
+				.body("result[4].jsonName",       equalTo("three"))
+				.body("result[5].jsonName",       equalTo("four"))
+				.body("result[6].jsonName",       equalTo("name"))
+
+			.when()
+				.get("/_schema/Test/test");
+
+		// test actual REST resource (not easy to extract and verify
+		// JSON property order, that's why we're using replaceAll and
+		// string comparison..
+		final String[] actual = RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.get("/Test/test")
+			.body()
+			.asString()
+			.replaceAll("[\\s]+", "")
+			.split("[\\W]+");
+
+		// we can only test the actual ORDER of the JSON result object by splitting it on whitespace and validating the resulting array
+		assertEquals("Invalid JSON result for sorted property view", "",                   actual[ 0]);
+		assertEquals("Invalid JSON result for sorted property view", "query_time",         actual[ 1]);
+		assertEquals("Invalid JSON result for sorted property view", "0",                  actual[ 2]);
+		assertEquals("Invalid JSON result for sorted property view", "result_count",       actual[ 4]);
+		assertEquals("Invalid JSON result for sorted property view", "1",                  actual[ 5]);
+		assertEquals("Invalid JSON result for sorted property view", "result",             actual[ 6]);
+		assertEquals("Invalid JSON result for sorted property view", "type",               actual[ 7]);
+		assertEquals("Invalid JSON result for sorted property view", "Test",               actual[ 8]);
+		assertEquals("Invalid JSON result for sorted property view", "one",                actual[ 9]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[10]);
+		assertEquals("Invalid JSON result for sorted property view", "id",                 actual[11]);
+		assertEquals("Invalid JSON result for sorted property view", id,                   actual[12]);
+		assertEquals("Invalid JSON result for sorted property view", "two",                actual[13]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[14]);
+		assertEquals("Invalid JSON result for sorted property view", "three",              actual[15]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[16]);
+		assertEquals("Invalid JSON result for sorted property view", "four",               actual[17]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[18]);
+		assertEquals("Invalid JSON result for sorted property view", "name",               actual[19]);
+		assertEquals("Invalid JSON result for sorted property view", "null",               actual[20]);
+		assertEquals("Invalid JSON result for sorted property view", "serialization_time", actual[21]);
+
+
+		// try built-in function
+		try {
+
+			final List<GraphObjectMap> list3 = (List)new TypeInfoFunction().apply(new ActionContext(securityContext), null, new Object[] { "Test", "test" });
+
+			Assert.assertEquals("Invalid number of properties in sorted view", 7, list2.size());
+			Assert.assertEquals("type",  list3.get(0).get(jsonName));
+			Assert.assertEquals("one",   list3.get(1).get(jsonName));
+			Assert.assertEquals("id",    list3.get(2).get(jsonName));
+			Assert.assertEquals("two",   list3.get(3).get(jsonName));
+			Assert.assertEquals("three", list3.get(4).get(jsonName));
+			Assert.assertEquals("four",  list3.get(5).get(jsonName));
+			Assert.assertEquals("name",  list3.get(6).get(jsonName));
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		// try scripting call
+		try {
+
+			final List<GraphObjectMap> list4 = (List)Scripting.evaluate(new ActionContext(securityContext), null, "${type_info('Test', 'test')}", "test");
+
+			Assert.assertEquals("Invalid number of properties in sorted view", 7, list2.size());
+			Assert.assertEquals("type",  list4.get(0).get(jsonName));
+			Assert.assertEquals("one",   list4.get(1).get(jsonName));
+			Assert.assertEquals("id",    list4.get(2).get(jsonName));
+			Assert.assertEquals("two",   list4.get(3).get(jsonName));
+			Assert.assertEquals("three", list4.get(4).get(jsonName));
+			Assert.assertEquals("four",  list4.get(5).get(jsonName));
+			Assert.assertEquals("name",  list4.get(6).get(jsonName));
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
 	}
 }

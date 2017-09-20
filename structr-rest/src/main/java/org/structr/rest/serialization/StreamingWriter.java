@@ -136,15 +136,15 @@ public abstract class StreamingWriter {
 
 		// result fields in alphabetical order
 		List<? extends GraphObject> results = result.getResults();
-		Integer page = result.getPage();
-		Integer pageCount = result.getPageCount();
-		Integer pageSize = result.getPageSize();
-		String queryTime = result.getQueryTime();
-		Integer resultCount = result.getRawResultCount();
-		String searchString = result.getSearchString();
-		String sortKey = result.getSortKey();
-		String sortOrder = result.getSortOrder();
-		GraphObject metaData = result.getMetaData();
+		Integer page                        = result.getPage();
+		Integer pageCount                   = result.getPageCount();
+		Integer pageSize                    = result.getPageSize();
+		String queryTime                    = result.getQueryTime();
+		Integer resultCount                 = result.getRawResultCount();
+		String searchString                 = result.getSearchString();
+		String sortKey                      = result.getSortKey();
+		String sortOrder                    = result.getSortOrder();
+		GraphObject metaData                = result.getMetaData();
 
 		writer.beginDocument(baseUrl, propertyView.get(securityContext));
 

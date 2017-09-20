@@ -21,6 +21,7 @@ package org.structr.common;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
@@ -202,7 +203,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(String propertyView) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

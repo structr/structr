@@ -439,7 +439,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 * @return the property set for the given view
 	 */
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		// check for custom view in content-type field
 		if (securityContext != null && securityContext.hasCustomView()) {
