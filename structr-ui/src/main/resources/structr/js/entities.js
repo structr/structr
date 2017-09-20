@@ -143,7 +143,7 @@ var _Entities = {
 	appendRowWithInputField: function(entity, el, key, label) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 		var inp = $('[name="' + key + '"]', el);
-		_Entities.activateInput(inp, entity.id);
+		_Entities.activateInput(inp, entity.id, entity.pageId);
 		var nullIcon = $('#null_' + key, el);
 		nullIcon.on('click', function() {
 			Command.setProperty(entity.id, key, null, false, function() {
@@ -734,8 +734,8 @@ var _Entities = {
 					});
 
 					props.append('<tr class="hidden"><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-					$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id); });
-					$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id); });
+					$('.props tr td.value input',    dialog).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId); });
+					$('.props tr td.value textarea', dialog).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId); });
 
 					Structr.appendInfoTextToElement({
 						element: $('.newKey', props),
@@ -927,7 +927,7 @@ var _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	activateInput: function(el, id) {
+	activateInput: function(el, id, pageId) {
 
 		var input = $(el);
 		var oldVal = input.val();
@@ -941,7 +941,11 @@ var _Entities = {
 
 			input.on('change', function() {
 				input.data('changed', true);
-				_Pages.reloadPreviews();
+
+				if (pageId && pageId === activeTab) {
+					console.log('reloading previews')
+					_Pages.reloadPreviews();
+				}
 			});
 
 			input.on('focusout', function() {
