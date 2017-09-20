@@ -494,7 +494,11 @@ var StructrModel = {
 			var callbackFunction = StructrModel.callbacks[callback];
 			if (callbackFunction) {
 				_Logger.log(_LogType.MODEL, callback, callbackFunction.toString());
-				StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
+				try {
+					StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
+				} catch (e) {
+					//console.log('Exception catched: ', e, ', callback:', StructrModel.callbacks[callback], entity);
+				}
 			}
 			StructrModel.clearCallback(callback);
 		}

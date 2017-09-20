@@ -1191,7 +1191,7 @@ var Structr = {
 		_Logger.log(_LogType.INIT, Structr.classes);
 		$(Structr.classes).each(function(i, cls) {
 			_Logger.log(_LogType.INIT, 'testing class', cls);
-			if (el && el.hasClass(cls)) {
+			if (el && $(el).hasClass(cls)) {
 				c = cls;
 				_Logger.log(_LogType.INIT, 'found class', cls);
 			}

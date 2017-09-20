@@ -845,9 +845,27 @@ var _Files = {
 		}
 		div.children('.delete_icon').on('click', function(e) {
 			e.stopPropagation();
-			_Entities.deleteNode(this, d, true, function() {
-				_Files.refreshTree();
-			});
+			
+			selectedElements = $('.node.selected');
+			var selectedCount = selectedElements.length;
+
+			if (selectedCount > 1) {
+
+				var files = [];
+
+				$.each(selectedElements, function(i, el) {
+					files.push(Structr.entityFromElement(el));
+				});
+
+				_Entities.deleteNodes(this, files, true, function() {
+					_Files.refreshTree();
+				});
+
+			} else {
+				_Entities.deleteNode(this, d, true, function() {
+					_Files.refreshTree();
+				});
+			}
 		});
 
 		div.droppable({
@@ -959,7 +977,25 @@ var _Files = {
 			div.append('<i title="Delete file \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 			$('.delete_icon', div).on('click', function(e) {
 				e.stopPropagation();
-				_Entities.deleteNode(this, d);
+
+				selectedElements = $('.node.selected');
+				var selectedCount = selectedElements.length;
+				
+				if (selectedCount > 1) {
+
+					var files = [];
+
+					$.each(selectedElements, function(i, el) {
+						files.push(Structr.entityFromElement(el));
+					});
+					
+					_Entities.deleteNodes(this, files, true, function() {
+						_Files.refreshTree();
+					});
+					
+				} else {
+					_Entities.deleteNode(this, d);
+				}
 			});
 		}
 

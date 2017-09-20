@@ -47,6 +47,35 @@ var _Entities = {
 		Command.children(id);
 
 	},
+	deleteNodes: function(button, entities, recursive, callback) {
+		buttonClicked = button;
+		if ( !Structr.isButtonDisabled(button) ) {
+			
+			var confirmationText = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>\n';
+			
+			var nodeIds = [];
+			
+			entities.forEach(function(entity) {
+			
+				confirmationText += '' + entity.name + ' [' + entity.id + ']<br>';
+				nodeIds.push(entity.id);
+			});
+			
+			confirmationText += '<br>';
+			
+			Structr.confirmation(confirmationText,
+				function() {
+					
+					Command.deleteNodes(nodeIds, recursive);
+					$.unblockUI({
+						fadeOut: 25
+					});
+					if (callback) {
+						callback();
+					}
+				});
+		}
+	},
 	deleteNode: function(button, entity, recursive, callback) {
 		buttonClicked = button;
 		if ( !Structr.isButtonDisabled(button) ) {

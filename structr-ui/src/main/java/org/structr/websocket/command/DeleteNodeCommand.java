@@ -39,8 +39,7 @@ import org.w3c.dom.DOMException;
 
 //~--- classes ----------------------------------------------------------------
 /**
- *
- *
+ * Websocket command to delete a single node.
  */
 public class DeleteNodeCommand extends AbstractCommand {
 
@@ -56,75 +55,12 @@ public class DeleteNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
 		final Boolean recursive = (Boolean) webSocketData.getNodeData().get("recursive");
-		final AbstractNode obj = getNode(webSocketData.getId());
+		final NodeInterface obj = getNode(webSocketData.getId());
 
 		if (obj != null) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			try (final Tx tx = app.tx()) {
-
-				if (!(obj.isGranted(Permission.delete, getWebSocket().getSecurityContext()))) {
-
-					logger.warn("No delete permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
-					getWebSocket().send(MessageBuilder.status().message("No delete permission").code(400).build(), true);
-					tx.success();
-
-					return;
-
-				}
-
-			} catch (FrameworkException ex) {
-				logger.warn("", ex);
-			}
-
-			if (Boolean.TRUE.equals(recursive)) {
-
-				// Remove all child nodes first
-				try {
-
-					final List<AbstractNode> filteredResults = new LinkedList();
-					if (obj instanceof DOMNode) {
-
-						DOMNode node = (DOMNode) obj;
-
-						filteredResults.addAll(DOMNode.getAllChildNodes(node));
-
-					} else if (obj instanceof LinkedTreeNode) {
-
-						LinkedTreeNode node = (LinkedTreeNode) obj;
-
-						filteredResults.addAll(node.getAllChildNodes());
-
-					}
-
-					for (NodeInterface node : filteredResults) {
-						app.delete(node);
-					}
-
-				} catch (FrameworkException fex) {
-
-					logger.warn("Exception occured", fex);
-					getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-
-				} catch (DOMException dex) {
-
-					logger.warn("DOMException occured.", dex);
-					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
-
-				}
-
-			}
-
-			try {
-				app.delete(obj);
-
-			} catch (FrameworkException fex) {
-				logger.warn("Unable to delete node(s)", fex);
-			}
+			deleteNode(getWebSocket(), obj, recursive);
 
 		} else {
 			// Don't throw a 404. If node doesn't exist, it doesn't need to be removed,
@@ -135,6 +71,74 @@ public class DeleteNodeCommand extends AbstractCommand {
 		}
 	}
 
+	protected static void deleteNode(final StructrWebSocket ws, final NodeInterface obj, final Boolean recursive) {
+
+		final SecurityContext securityContext = ws.getSecurityContext();
+		
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			if (!(obj.isGranted(Permission.delete, securityContext))) {
+
+				logger.warn("No delete permission for {} on {}", new Object[]{ ws.getCurrentUser().toString(), obj.toString() });
+				ws.send(MessageBuilder.status().message("No delete permission").code(400).build(), true);
+				tx.success();
+
+				return;
+
+			}
+
+		} catch (FrameworkException ex) {
+			logger.warn("", ex);
+		}
+
+		if (Boolean.TRUE.equals(recursive)) {
+
+			// Remove all child nodes first
+			try {
+
+				final List<AbstractNode> filteredResults = new LinkedList();
+				if (obj instanceof DOMNode) {
+
+					DOMNode node = (DOMNode) obj;
+
+					filteredResults.addAll(DOMNode.getAllChildNodes(node));
+
+				} else if (obj instanceof LinkedTreeNode) {
+
+					LinkedTreeNode node = (LinkedTreeNode) obj;
+
+					filteredResults.addAll(node.getAllChildNodes());
+
+				}
+
+				for (NodeInterface node : filteredResults) {
+					app.delete(node);
+				}
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Exception occured", fex);
+				ws.send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
+
+			} catch (DOMException dex) {
+
+				logger.warn("DOMException occured.", dex);
+				ws.send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+
+			}
+
+		}
+
+		try {
+			app.delete(obj);
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to delete node(s)", fex);
+		}
+	}
+	
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
