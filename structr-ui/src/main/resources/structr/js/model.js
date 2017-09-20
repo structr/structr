@@ -328,8 +328,11 @@ var StructrModel = {
 
 					tabNameElement.attr('title', newValue).html(fitStringToWidth(newValue, w));
 
-					_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
-					_Pages.reloadIframe(id);
+					if (activeTab === id) {
+						_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
+						_Pages.reloadIframe(id);
+					}
+
 				}
 
 			} else if (Structr.getClass(element) === 'folder') {
