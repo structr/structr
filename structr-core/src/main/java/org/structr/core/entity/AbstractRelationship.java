@@ -18,14 +18,13 @@
  */
 package org.structr.core.entity;
 
-//~--- classes ----------------------------------------------------------------
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -432,13 +431,13 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	 *
 	 * @return property keys
 	 */
-	public final Iterable<PropertyKey> getPropertyKeys() {
+	public final Set<PropertyKey> getPropertyKeys() {
 		return getPropertyKeys(PropertyView.All);
 	}
 
 	// ----- interface GraphObject -----
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 		return StructrApp.getConfiguration().getPropertySet(this.getClass(), propertyView);
 	}
 

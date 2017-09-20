@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
@@ -91,7 +92,7 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(String propertyView) {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

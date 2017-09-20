@@ -44,6 +44,7 @@ public class PagedQueryResult<T> implements QueryResult<T> {
 
 	// Custom iterator for Query Results
 	private class PagingIterator<T> implements Iterator<T> {
+		
 		private final Iterator<T> iterator;
 		private final int page;
 		private final int pageSize;

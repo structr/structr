@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -125,7 +126,7 @@ public interface GraphObject {
 	 * @param propertyView
 	 * @return the property set for the given view
 	 */
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView);
+	public Set<PropertyKey> getPropertyKeys(String propertyView);
 
 	/**
 	 * Sets the property with the given key to the given value.

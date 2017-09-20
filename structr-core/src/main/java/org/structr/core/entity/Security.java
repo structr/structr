@@ -57,7 +57,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(String propertyView) {
 
 		Set<PropertyKey> keys = new LinkedHashSet<>();
 

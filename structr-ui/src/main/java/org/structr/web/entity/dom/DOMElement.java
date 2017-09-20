@@ -20,9 +20,10 @@ package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -946,10 +947,11 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	 * @return property key
 	 */
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(String propertyView) {
 
-		final List<PropertyKey> allProperties = new LinkedList();
-		final Iterable<PropertyKey> htmlAttrs = super.getPropertyKeys(propertyView);
+
+		final Set<PropertyKey> allProperties = new LinkedHashSet<>();
+		final Set<PropertyKey> htmlAttrs     = super.getPropertyKeys(propertyView);
 
 		for (final PropertyKey attr : htmlAttrs) {
 

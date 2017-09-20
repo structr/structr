@@ -40,13 +40,8 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Represents a component. A component is an assembly of elements
- *
- *
- *
  */
 public class Component extends DOMElement {
 
@@ -122,10 +117,8 @@ public class Component extends DOMElement {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		Set<PropertyKey> augmentedPropertyKeys = new LinkedHashSet<PropertyKey>();
 

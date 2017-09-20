@@ -18,9 +18,6 @@
  */
 package org.structr.core.entity;
 
-
-//~--- JDK imports ------------------------------------------------------------
-
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,14 +35,9 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A generic relationship entity that will be instantiated when an anonymous
  * relationship is encountered.
- *
- *
- *
  */
 public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface> {
 
@@ -63,7 +55,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		Set<PropertyKey> keys = new LinkedHashSet<>();
 
@@ -83,22 +75,22 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public boolean onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 		return true;
 	}
 

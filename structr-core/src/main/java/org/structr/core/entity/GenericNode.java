@@ -35,13 +35,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A generic node entity that will be instantiated when a node with an unknown
  * type is encountered.
- *
- *
  */
 public class GenericNode extends AbstractNode implements NonIndexed {
 
@@ -83,7 +79,7 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		final Node node = getNode();
 		if (node != null) {

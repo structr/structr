@@ -124,7 +124,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public Iterable<PropertyKey> getPropertyKeys(final String propertyView) {
+	public Set<PropertyKey> getPropertyKeys(final String propertyView) {
 
 		final List<PropertyKey> propertyKeys = new LinkedList<>(Iterables.toList(super.getPropertyKeys(propertyView)));
 
