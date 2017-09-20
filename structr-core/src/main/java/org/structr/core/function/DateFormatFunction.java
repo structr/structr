@@ -74,14 +74,16 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 				} catch (ParseException ex) {
 
-					logException(caller, ex, sources);
+					logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources) });
+					//logException(caller, ex, sources);
+					return sources[0];
 
 				}
 
 			}
 
 			// format with given pattern
-			return new SimpleDateFormat(sources[1].toString()).format(date);
+			return new SimpleDateFormat(sources[1].toString(), ctx.getLocale()).format(date);
 			
 		} catch (final IllegalArgumentException e) {
 

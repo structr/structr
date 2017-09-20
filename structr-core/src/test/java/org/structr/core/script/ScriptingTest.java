@@ -1323,6 +1323,14 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid date_format() result", nowString2, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format2.toPattern() + "\")}"));
 			assertEquals("Invalid date_format() result", nowString3, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format3.toPattern() + "\")}"));
 
+			// date_format with locale
+			Locale locale = ctx.getLocale();
+			ctx.setLocale(Locale.US);
+			assertEquals("Invalid date_format() result", "01. Oct 2017", Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
+			ctx.setLocale(Locale.GERMANY);
+			assertEquals("Invalid date_format() result", "01. Okt 2017", Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
+			ctx.setLocale(locale);
+			
 			// date_format with null
 			assertEquals("Invalid date_format() result with null value", "",                                           Scripting.replaceVariables(ctx, testOne, "${date_format(this.alwaysNull, \"yyyy\")}"));
 			assertEquals("Invalid date_format() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(\"10\", this.alwaysNull)}"));
@@ -1332,10 +1340,12 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
 			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
 			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
-
+			
 			// parse_date
 			assertEquals("Invalid parse_date() result", ParseDateFunction.ERROR_MESSAGE_PARSE_DATE, Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12')}"));
 			assertEquals("Invalid parse_date() result", "2015-12-12T00:00:00+0000", Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12', 'yyyy-MM-dd')}"));
+			assertEquals("Invalid parse_date() result", "2015-12-12T00:00:00+0000", Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12', 'yyyy-MM-dd')}"));
+			assertEquals("Invalid parse_date() result for wrong number of parameters", ParseDateFunction.ERROR_MESSAGE_PARSE_DATE, Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('2017-09-20T18:23:22+0200'), 'dd. MMM yyyy')}"));
 
 			// to_date
 			assertEquals("Invalid to_date() result", ToDateFunction.ERROR_MESSAGE_TO_DATE, Scripting.replaceVariables(ctx, testOne, "${to_date()}"));
