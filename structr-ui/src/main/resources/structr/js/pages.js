@@ -571,8 +571,8 @@ var _Pages = {
 	 * Load and display the preview iframe with the given id.
 	 */
 	loadIframe: function(id) {
-		if (!id) {
-			return;
+		if (!id || !_Pages.isPageTabPresent(id)) {
+			return false;
 		}
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
@@ -591,7 +591,7 @@ var _Pages = {
 	 * and the page's version attribute is higher than the stored version.
 	 */
 	reloadIframe: function(id) {
-		if (!id || id !== activeTab) {
+		if (!id || id !== activeTab || !_Pages.isPageTabPresent(id)) {
 			return false;
 		}
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
@@ -607,6 +607,12 @@ var _Pages = {
 				}
 			});
 		}
+	},
+	/**
+	 * simply checks if the preview tab for that id is visible. if it is not, the preview can not be shown
+	 */
+	isPageTabPresent: function(id) {
+		return ($('#show_' + id, previewTabs).length > 0);
 	},
 	unloadIframes: function() {
 		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
