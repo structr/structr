@@ -42,13 +42,16 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			if (sourceTypeLabel != null && targetTypeLabel != null) {
 
 				return "MATCH (:" + sourceTypeLabel + ")-[n: " + typeLabel + "]->(: " + targetTypeLabel + ")";
-
-			} else {
-
-				return "MATCH ()-[n: " + typeLabel + "]-()";
 			}
 
+			return "MATCH ()-[n: " + typeLabel + "]-()";
+
 		} else {
+
+			if (sourceTypeLabel != null && targetTypeLabel != null) {
+
+				return "MATCH (:" + sourceTypeLabel + ")-[n]->(: " + targetTypeLabel + ")";
+			}
 
 			return "MATCH ()-[n]-()";
 		}
