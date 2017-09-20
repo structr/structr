@@ -34,11 +34,16 @@ case "$1" in
             exit 1
         fi
   ;;
+  restart)
+
+        /usr/lib/structr/bin/stop
+        /usr/lib/structr/bin/start
+        ;;
   stop)
         /usr/lib/structr/bin/stop
         ;;
   *)
-        echo "Usage: structr {start|stop|status}" >&2
+        echo "Usage: structr {start|stop|status|restart}" >&2
         exit 3
         ;;
 esac
