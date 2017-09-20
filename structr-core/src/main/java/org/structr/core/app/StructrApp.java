@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.agent.AgentService;
 import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
@@ -69,6 +71,8 @@ import org.structr.schema.ConfigurationProvider;
  */
 public class StructrApp implements App {
 
+	private static final Logger logger = LoggerFactory.getLogger(StructrApp.class);
+
 	private static FixedSizeCache<String, Long> nodeUuidMap = null;
 	private static FixedSizeCache<String, Long> relUuidMap  = null;
 	private static final URI schemaBaseURI                  = URI.create("https://structr.org/v1.1/#");
@@ -97,7 +101,7 @@ public class StructrApp implements App {
 		if (type == null) {
 			throw new FrameworkException(422, "Empty type (null). Please supply a valid class name in the type property.");
 		}
-		
+
 		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
 		final PropertyMap properties       = new PropertyMap(source);
 		String finalType                   = type.getSimpleName();
@@ -174,6 +178,9 @@ public class StructrApp implements App {
 
 			return node;
 		}
+
+		logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time. Please examine the following stack trace and amend.");
+		Thread.dumpStack();
 
 		final RelationshipInterface rel = getRelationshipById(uuid);
 		if (rel != null) {
