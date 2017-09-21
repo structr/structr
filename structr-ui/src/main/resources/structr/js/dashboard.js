@@ -74,6 +74,38 @@ var _Dashboard = {
 			}
 		});
 
+		var maintenanceBox  = _Dashboard.appendBox('Maintenance', 'maintenance');
+		var maintenanceList = $('<div></div>').appendTo(maintenanceBox);
+
+		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
+
+			data.result.forEach(function(result) {
+
+				maintenanceList.append('<div class="dashboard-info"><span style="line-height: 2em;">' + result.name + '</span><button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button></div>');
+				$('button#run-' + result.id).on('click', function() {
+
+					Structr.confirmation('Are you sure that you want to run the global schema method <b>' + result.name + '</b> now?<br/><br />', function() {
+
+						//Command.deleteNodes(nodeIds, recursive);
+						$.unblockUI({
+							fadeOut: 25
+						});
+					});
+				});
+			});
+		});
+
+		/*
+		var helpText = 'test';
+		Structr.appendInfoTextToElement({
+			text: helpText,
+			element: $('div.dashboard-header h2', maintenanceBox),
+		});
+		*/
+
+
+
+		/*
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
 		myPages.append('<div class="dashboard-info">You own the following <a class="internal-link" href="javascript:void(0)">pages</a>:</div>');
 		Command.getByType('Page', 5, 1, 'version', 'desc', null, false, function(pages) {
@@ -116,6 +148,7 @@ var _Dashboard = {
 				myImages.append('<div class="dashboard-info"><a href="/' + i.name + '" target="_blank">' + _Icons.getImageOrIcon(i) + '</a> <a href="/' + i.id + '" target="_blank">' + _Dashboard.displayName(i) + '</a>' + _Dashboard.displayVersion(i) + '</div>');
 			});
 		});
+		*/
 
 		$('.dashboard-info a.internal-link').on('click', function() {
 			$('#' + $(this).text() + '_').click();
