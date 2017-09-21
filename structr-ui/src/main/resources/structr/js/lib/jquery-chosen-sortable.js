@@ -66,8 +66,7 @@
 				'placeholder' : 'ui-state-highlight',
 				'items'       : 'li:not(.search-field)',
 				'update'      : (typeof cb === "function") ? cb : function(){},
-				'tolerance'   : 'pointer',
-				'cursor'      : 'move'
+				'tolerance'   : 'pointer'
 			});
 
 			// Intercept form submit & order the chosens
