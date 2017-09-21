@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
@@ -101,21 +100,13 @@ public class ChunkCommand extends AbstractCommand {
 
 			if (sequenceNumber+1 == chunks) {
 
-				final long checksum = FileHelper.getChecksum(file);
-				final long size     = FileHelper.getSize(file);
-
-				final PropertyMap changedProperties = new PropertyMap();
-				changedProperties.put(FileBase.checksum, checksum);
-				changedProperties.put(FileBase.size, size);
-
-				file.unlockSystemPropertiesOnce();
-				file.setProperties(securityContext, changedProperties);
+				FileHelper.updateMetadata(file);
 
 				file.increaseVersion();
 
 				getWebSocket().removeFileUploadHandler(uuid);
 
-				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ checksum, size });
+				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), file.getSize() });
 
 			}
 
