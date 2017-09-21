@@ -1873,6 +1873,22 @@ button.add_property {
 	background: transparent;
 }
 
+.view-properties-select > .chosen-container > .chosen-choices > li {
+    cursor: move;
+}
+
+.view-properties-select .ui-state-highlight {
+	background: #e4e4e4;
+	margin: 3px 0 3px 5px;
+	border: 1px dotted gray;
+	width: 80px;
+	height: 19px;
+}
+
+.chosen-container.sorting .chosen-drop {
+	display: none;
+}
+
 input.property-name:disabled {
 	background-color: inherit;
 }
