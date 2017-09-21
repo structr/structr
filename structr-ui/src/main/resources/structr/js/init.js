@@ -1683,6 +1683,7 @@ var Structr = {
 		var appendToElement   = config.appendToElement || element;
 		var text              = config.text || 'No text supplied!';
 		var toggleElementCss  = config.css || {};
+		var elementCss        = config.elementCss || {};
 		var customToggleIcon  = config.customToggleIcon || _Icons.information_icon;
 		var insertAfter       = config.insertAfter || false;
 		var offsetX           = config.offsetX || 0;
@@ -1696,6 +1697,7 @@ var Structr = {
 		}
 
 		toggleElement.css(toggleElementCss);
+		appendToElement.css(elementCss);
 
 		var helpElement = $('<span class="context-help-text">' + text + '</span>');
 
