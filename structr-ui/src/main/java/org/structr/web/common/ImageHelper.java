@@ -733,7 +733,7 @@ public abstract class ImageHelper extends FileHelper {
 			}
 
 		} catch (ImageProcessingException | IOException ex) {
-			logger.warn("Unable to get metadata information from image stream", ex);
+			logger.debug("Unable to get metadata information from image stream", ex);
 		}
 		
 		return metadata;
