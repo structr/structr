@@ -45,8 +45,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
-			<scope>test</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
