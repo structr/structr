@@ -18,7 +18,9 @@
  */
 package org.structr.web.common;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -37,6 +39,9 @@ import net.sf.jmimemagic.MagicParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.mime.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -431,25 +436,32 @@ public class FileHelper {
 			}
 		}
 
-		// then file content
-		mimeType = Files.probeContentType(file.toPath());
-		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
+		final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
+		
+		mimeType = mediaType.toString();
+		
+//		// then file content
+//		mimeType = Files.probeContentType(file.toPath());
+//		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
+//
+//			return mimeType;
+//		}
+//
+//		// fallback: jmimemagic
+//		try {
+//			final MagicMatch match = Magic.getMagicMatch(file, false, true);
+//			if (match != null) {
+//
+//				return match.getMimeType();
+//			}
+//
+//		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
+//			// mlogger.warn("", ex);
+//		}
 
+		if (mimeType != null) {
 			return mimeType;
 		}
-
-		// fallback: jmimemagic
-		try {
-			final MagicMatch match = Magic.getMagicMatch(file, false, true);
-			if (match != null) {
-
-				return match.getMimeType();
-			}
-
-		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
-			// mlogger.warn("", ex);
-		}
-
 
 		// no success :(
 		return UNKNOWN_MIME_TYPE;
