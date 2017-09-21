@@ -564,9 +564,8 @@ public abstract class ImageHelper extends FileHelper {
 	 *
 	 * @param image the image
 	 * @throws FrameworkException
-	 * @throws IOException
 	 */
-	public static void updateMetadata(final FileBase image) throws FrameworkException, IOException {
+	public static void updateMetadata(final FileBase image) throws FrameworkException {
 
 		updateMetadata(image, image.getInputStream());
 	}
@@ -577,25 +576,29 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param image the image
 	 * @param fis file input stream
 	 * @throws FrameworkException
-	 * @throws IOException
 	 */
-	public static void updateMetadata(final FileBase image, final InputStream fis) throws FrameworkException, IOException {
+	public static void updateMetadata(final FileBase image, final InputStream fis) throws FrameworkException {
 
-		final BufferedImage source = ImageIO.read(fis);
+		try {
+			final BufferedImage source = ImageIO.read(fis);
 
-		if (source != null) {
+			if (source != null) {
 
-			final int sourceWidth  = source.getWidth();
-			final int sourceHeight = source.getHeight();		
+				final int sourceWidth  = source.getWidth();
+				final int sourceHeight = source.getHeight();		
 
-			final PropertyMap map = new PropertyMap();
+				final PropertyMap map = new PropertyMap();
 
-			map.put(Image.width, sourceWidth);
-			map.put(Image.height, sourceHeight);
-			map.put(Image.orientation, ImageHelper.getOrientation(image));
+				map.put(Image.width, sourceWidth);
+				map.put(Image.height, sourceHeight);
+				map.put(Image.orientation, ImageHelper.getOrientation(image));
 
-			image.setProperties(image.getSecurityContext(), map);
+				image.setProperties(image.getSecurityContext(), map);
+
+			}
 			
+		} catch (IOException ex) {
+			logger.warn("Unable to read image data", ex);
 		}
 	}
 
