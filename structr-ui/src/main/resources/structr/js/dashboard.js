@@ -74,36 +74,49 @@ var _Dashboard = {
 			}
 		});
 
-		var maintenanceBox  = _Dashboard.appendBox('Maintenance', 'maintenance');
+		var maintenanceBox  = _Dashboard.appendBox('Global schema methods', 'maintenance');
 		var maintenanceList = $('<div></div>').appendTo(maintenanceBox);
 
 		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
 
 			data.result.forEach(function(result) {
 
-				maintenanceList.append('<div class="dashboard-info"><span style="line-height: 2em;">' + result.name + '</span><button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button></div>');
+				maintenanceList.append('<div class="dashboard-info" style="border-bottom: 1px solid #ddd; padding-bottom: 2px;"><span style="line-height: 2em;">' + result.name + '</span><button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button></div>');
 				$('button#run-' + result.id).on('click', function() {
 
-					Structr.confirmation('Are you sure that you want to run the global schema method <b>' + result.name + '</b> now?<br/><br />', function() {
+					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
+						$('#run-method').remove();
+						$('#clear-log').remove();
+					});
 
-						//Command.deleteNodes(nodeIds, recursive);
-						$.unblockUI({
-							fadeOut: 25
+					dialogBtn.prepend('<button id="run-method">Run</button>');
+					dialogBtn.append('<button id="clear-log">Clear output</button>');
+
+					dialog.append('<h3>Method output</h3>');
+					dialog.append('<pre id="log-output"></pre>');
+
+					$('#run-method').on('click', function() {
+
+						$('#log-output').empty();
+						$('#log-output').append('Running method..\n');
+
+						$.ajax({
+							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
+							method: 'POST',
+							complete: function(data) {
+								console.log(data);
+								$('#log-output').append(data.responseText);
+								$('#log-output').append('Done.');
+							}
 						});
+					});
+
+					$('#clear-log').on('click', function() {
+						$('#log-output').empty();
 					});
 				});
 			});
 		});
-
-		/*
-		var helpText = 'test';
-		Structr.appendInfoTextToElement({
-			text: helpText,
-			element: $('div.dashboard-header h2', maintenanceBox),
-		});
-		*/
-
-
 
 		/*
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');

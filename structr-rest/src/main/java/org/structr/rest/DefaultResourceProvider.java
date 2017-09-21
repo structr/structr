@@ -50,8 +50,12 @@ public class DefaultResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("log"),			LogResource.class);			// log resource
 		resourceMap.put(Pattern.compile("resolver"),		EntityResolverResource.class);		// resolves [] of UUIDs to complete result
-		
+
 		resourceMap.put(Pattern.compile("[a-zA-Z]+"),		MaintenanceParameterResource.class);	// maintenance parameter
+
+		// needed to make global schema method execution via maintenance resource testable..
+		resourceMap.put(Pattern.compile("globalSchemaMethods"),    GlobalSchemaMethodsResource.class);
+		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), GlobalSchemaMethodResource.class);
 
 		resourceMap.put(Pattern.compile("_schema"),		SchemaResource.class);			// special resource for schema information
 		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), TypeResource.class);			// any type match

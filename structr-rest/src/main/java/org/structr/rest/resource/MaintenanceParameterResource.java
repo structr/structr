@@ -48,8 +48,6 @@ import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  *
  *
@@ -57,8 +55,6 @@ import org.structr.util.StructrLicenseManager;
 public class MaintenanceParameterResource extends Resource {
 
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
-
-	//~--- static initializers --------------------------------------------
 
 	static {
 
@@ -83,11 +79,7 @@ public class MaintenanceParameterResource extends Resource {
 
 	}
 
-	//~--- fields ---------------------------------------------------------
-
 	private String uriPart = null;
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -121,11 +113,15 @@ public class MaintenanceParameterResource extends Resource {
 	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
+	public Resource tryCombineWith(final Resource next) throws FrameworkException {
+
+		if (next != null) {
+
+			System.out.println(next);
+		}
+
 		return null;
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public Class getEntityClass() {
@@ -151,7 +147,7 @@ public class MaintenanceParameterResource extends Resource {
                 return SchemaHelper.normalizeEntityName(getUriPart());
         }
 
-	public static void registerMaintenanceTask(String key, Class<? extends Task> task) {
+	public static void registerMaintenanceTask(final String key, final Class<? extends Task> task) {
 
 		if(maintenanceCommandMap.containsKey(key)) {
 			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");
@@ -160,7 +156,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put(key, task);
 	}
 
-	public static void registerMaintenanceCommand(String key, Class<? extends Command> command) {
+	public static void registerMaintenanceCommand(final String key, final Class<? extends Command> command) {
 
 		if(maintenanceCommandMap.containsKey(key)) {
 			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");

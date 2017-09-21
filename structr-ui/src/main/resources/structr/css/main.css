@@ -4604,8 +4604,12 @@ div#xml-config select.xml-config-select {
 	width: 45%;
 }
 
-button#start-import {
+button#start-import, button#run-method {
 	background-color: #81ce25;
+}
+
+button#run-method {
+	margin-left: 24px;
 }
 
 button#cancel-button {
@@ -4679,4 +4683,12 @@ div#xml-configurations button {
 #importer-main {
 	width: calc(100vw - 60px);
 	margin: 10px 5px 10px 10px;
+}
+
+#log-output {
+	background-color: #fff;
+	border: 1px solid #ddd;
+	padding: 2px;
+	height: 420px;
+	overflow: auto;
 }

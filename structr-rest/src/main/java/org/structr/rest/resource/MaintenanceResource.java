@@ -164,7 +164,11 @@ public class MaintenanceResource extends Resource {
 			this.taskOrCommand = param.getMaintenanceCommand();
 
 			return this;
+		}
 
+		// accept global schema methods resource as successor
+		if (next instanceof GlobalSchemaMethodsResource) {
+			return next;
 		}
 
 		return null;
