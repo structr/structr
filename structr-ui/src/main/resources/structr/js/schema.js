@@ -1250,19 +1250,10 @@ var _Schema = {
 	initViewRow: function(tr, entity, view) {
 
 		var activate = function() {
-			$('.save-action', tr).removeClass('hidden');
-			$('.cancel-action', tr).removeClass('hidden');
-			$('.remove-action', tr).addClass('hidden');
-			$('.reset-action', tr).addClass('hidden');
+			_Schema.activateViewRow(tr);
 		};
 
-		var deactivate = function() {
-			$('.save-action', tr).addClass('hidden');
-			$('.cancel-action', tr).addClass('hidden');
-			$('.remove-action', tr).removeClass('hidden');
-			$('.reset-action', tr).removeClass('hidden');
-		};
-		deactivate();
+		_Schema.deactivateViewRow(tr);
 
 		$('.view.property-name', tr).on('change', activate).on('keyup', activate);
 		$('.view.property-attrs', tr).on('change', activate);
@@ -1287,7 +1278,7 @@ var _Schema = {
 				select.trigger('chosen:updated');
 			});
 
-			deactivate();
+			_Schema.deactivateViewRow(tr);
 
 		});
 
@@ -1296,40 +1287,76 @@ var _Schema = {
 		});
 
 	},
+	activateViewRow: function(tr) {
+		$('.save-action', tr).removeClass('hidden');
+		$('.cancel-action', tr).removeClass('hidden');
+		$('.remove-action', tr).addClass('hidden');
+		$('.reset-action', tr).addClass('hidden');
+	},
+	deactivateViewRow: function(tr) {
+		$('.save-action', tr).addClass('hidden');
+		$('.cancel-action', tr).addClass('hidden');
+		$('.remove-action', tr).removeClass('hidden');
+		$('.reset-action', tr).removeClass('hidden');
+	},
 	appendViewSelectionElement: function(tr, view, schemaEntity) {
 
 		var propertySelectTd = $('.view-properties-select', tr).last();
-		propertySelectTd.append('<select class="property-attrs view" multiple="multiple"></select>');
+		propertySelectTd.append('<select class="property-attrs view chosen-sortable" multiple="multiple"></select>');
 		var viewSelectElem = $('.property-attrs', propertySelectTd);
 
 		Command.listSchemaProperties(schemaEntity.id, view.name, function(properties) {
 
-			properties.forEach(function(prop) {
-
+			var appendProperty = function(prop) {
 				var name       = prop.name;
 				var isSelected = prop.isSelected ? ' selected="selected"' : '';
 				var isDisabled = (view.name === 'ui' || prop.isDisabled) ? ' disabled="disabled"' : '';
 
 				viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
+			};
+
+			if (view.sortOrder) {
+				view.sortOrder.split(',').forEach(function(sortedProp) {
+
+					var prop = properties.filter(function(prop) {
+						return (prop.name === sortedProp);
+					});
+
+					if (prop.length) {
+						appendProperty(prop[0]);
+
+						properties = properties.filter(function(prop) {
+							return (prop.name !== sortedProp);
+						});
+					}
+
+				});
+			}
+
+			properties.forEach(function (prop) {
+				appendProperty(prop);
 			});
 
-			viewSelectElem.chosen({ search_contains: true, width: '100%' });
+			viewSelectElem.chosen({ search_contains: true, width: '100%' }).chosenSortable(function() {
+				_Schema.activateViewRow(tr);
+			});
 
 		});
 
 	},
 	createOrSaveView: function(tr, entity, view) {
 
-		var name  = $('.view.property-name', tr).val();
-		var attrs = $('.view.property-attrs', tr).val();
+		var name        = $('.view.property-name', tr).val();
+		var sortedAttrs = $('.view.property-attrs', tr).sortedVals();
 
 		if (name && name.length) {
 
 			var obj                = {};
 			obj.schemaNode         = { id: entity.id };
-			obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(entity, attrs);
-			obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, attrs);
+			obj.schemaProperties   = _Schema.findSchemaPropertiesByNodeAndName(entity, sortedAttrs);
+			obj.nonGraphProperties = _Schema.findNonGraphProperties(entity, sortedAttrs);
 			obj.name               = name;
+			obj.sortOrder          = sortedAttrs.join(',');
 
 			_Schema.storeSchemaEntity('schema_views', (view || {}), JSON.stringify(obj), function(result) {
 
@@ -1344,10 +1371,7 @@ var _Schema = {
 
 					tr.removeClass(oldName).addClass(view.name);
 
-					$('.save-action', tr).addClass('hidden');
-					$('.cancel-action', tr).addClass('hidden');
-					$('.reset-action', tr).removeClass('hidden');
-					$('.remove-action', tr).removeClass('hidden');
+					_Schema.deactivateViewRow(tr);
 
 				} else {
 

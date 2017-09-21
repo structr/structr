@@ -52,6 +52,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
+import static org.structr.web.entity.FileBase.checksum;
+import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.Folder;
 
 /**
@@ -224,21 +226,48 @@ public class FileHelper {
 	}
 
 	/**
+	 * Update checksum, content type, size and additional properties of the given file
+	 *
+	 * @param file the file
+	 * @param map  additional properties
+	 * @throws FrameworkException
+	 */
+	public static void updateMetadata(final FileBase file, final PropertyMap map) throws FrameworkException {
+		
+		map.put(checksum, FileHelper.getChecksum(file));
+
+		// Don't overwrite existing MIME type
+		if (StringUtils.isBlank(file.getContentType())) {
+			
+			try {
+				
+				map.put(FileBase.contentType, getContentMimeType(file));
+				
+			} catch (IOException ex) {
+				logger.debug("Unable to detect content MIME type", ex);
+			}
+		}
+		
+		map.put(FileBase.checksum, FileHelper.getChecksum(file));
+
+		long fileSize = FileHelper.getSize(file);
+		if (fileSize > 0) {
+			map.put(size, fileSize);
+		}
+
+		file.unlockSystemPropertiesOnce();
+		file.setProperties(file.getSecurityContext(), map);
+	}
+	
+	/**
 	 * Update checksum content type and size of the given file
 	 *
 	 * @param file the file
 	 * @throws FrameworkException
-	 * @throws IOException
 	 */
-	public static void updateMetadata(final FileBase file) throws FrameworkException, IOException {
+	public static void updateMetadata(final FileBase file) throws FrameworkException {
 
-		final PropertyMap map = new PropertyMap();
-
-		map.put(FileBase.contentType, getContentMimeType(file));
-		map.put(FileBase.checksum, FileHelper.getChecksum(file));
-		map.put(FileBase.size, FileHelper.getSize(file));
-
-		file.setProperties(file.getSecurityContext(), map);
+		updateMetadata(file, new PropertyMap());
 	}
 
 	//~--- get methods ----------------------------------------------------

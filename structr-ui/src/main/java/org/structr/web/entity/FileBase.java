@@ -164,9 +164,9 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				// replace with SU context
 				this.securityContext = SecurityContext.getSuperUserInstance();
 
-				// set property as super user
-				setProperties(this.securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
-
+				// update metadata and parent as superuser
+				FileHelper.updateMetadata(this, new PropertyMap(hasParent, getProperty(parentId) != null));
+				
 				// restore previous security context
 				this.securityContext = previousSecurityContext;
 			}
@@ -246,23 +246,12 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				logger.error("Could not create file", ex);
 				return;
 			}
-
-			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(checksum, FileHelper.getChecksum(FileBase.this));
-			changedProperties.put(version, 0);
-
-			long fileSize = FileHelper.getSize(FileBase.this);
-			if (fileSize > 0) {
-				changedProperties.put(size, fileSize);
-			}
-
-			unlockSystemPropertiesOnce();
-			setProperties(securityContext, changedProperties);
+			
+			FileHelper.updateMetadata(this, new PropertyMap(version, 0));
 
 		} catch (FrameworkException ex) {
 
 			logger.error("Could not create file", ex);
-
 		}
 
 	}
