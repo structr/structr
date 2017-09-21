@@ -49,6 +49,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
@@ -238,7 +239,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 		ctx.setDoTransactionNotifications(false);
 
-		final Path name = file.getFileName();
+		final String name = file.getFileName().toString();
 
 		try (final Tx tx = app.tx()) {
 
@@ -254,7 +255,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 			if (attrs.isDirectory()) {
 
 				final Folder newFolder = app.create(Folder.class,
-						new NodeAttribute(Folder.name, name.toString()),
+						new NodeAttribute(Folder.name, name),
 						new NodeAttribute(FileBase.parent, FileHelper.createFolderPath(securityContext, parentPath))
 				);
 
@@ -264,32 +265,56 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			} else if (attrs.isRegularFile()) {
 
-				final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, parentPath + name.toString()).getFirst();
+				final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, parentPath + name).getFirst();
 				if (existingFile != null) {
 
 					switch (existing) {
 
 						case SKIP:
-							logger.info("Skipping import of {}, file exists and mode is SKIP.", parentPath + name.toString());
+							logger.info("Skipping import of {}, file exists and mode is SKIP.", parentPath + name);
 							return FileVisitResult.CONTINUE;
 
 						case OVERWRITE:
-							logger.info("Overwriting {}, file exists and mode is OVERWRITE.", parentPath + name.toString());
+							logger.info("Overwriting {}, file exists and mode is OVERWRITE.", parentPath + name);
 							app.delete(existingFile);
 							break;
 
 						case RENAME:
-							logger.info("Renaming existing file {}, file exists and mode is RENAME.", parentPath + name.toString());
+							logger.info("Renaming existing file {}, file exists and mode is RENAME.", parentPath + name);
 							existingFile.setProperty(AbstractFile.name, existingFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString()));
 							break;
 					}
 
 				}
 
-				final FileBase newFile = app.create(org.structr.dynamic.File.class,
-						new NodeAttribute(FileBase.name, name.toString()),
+				final String contentType = FileHelper.getContentMimeType(file.toFile(), file.getFileName().toString());
+				
+				boolean isImage = (contentType != null && contentType.startsWith("image"));
+				boolean isVideo = (contentType != null && contentType.startsWith("video"));
+
+				Class cls = null;
+
+				if (isImage) {
+
+					cls = org.structr.dynamic.Image.class;
+
+				} else if (isVideo) {
+
+					cls = SchemaHelper.getEntityClassForRawType("VideoFile");
+					if (cls == null) {
+
+						logger.warn("Unable to create entity of type VideoFile, class is not defined.");
+					}
+
+				} else {
+
+					cls = org.structr.dynamic.File.class;
+				}
+
+				final FileBase newFile = (FileBase) app.create(cls,
+						new NodeAttribute(FileBase.name, name),
 						new NodeAttribute(FileBase.parent, FileHelper.createFolderPath(securityContext, parentPath)),
-						new NodeAttribute(AbstractNode.type, "File")
+						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 
 				final String uuid             = newFile.getUuid();
