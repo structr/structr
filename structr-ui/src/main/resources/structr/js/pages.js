@@ -266,6 +266,7 @@ var _Pages = {
 			pages.forEach(function(page) {
 				StructrModel.create(page);
 			});
+			_Pages.hideAllPreviews();
 		});
 		pPager.cleanupFunction = function () {
 			_Pages.clearPreviews();

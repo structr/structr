@@ -290,6 +290,15 @@ img.disabled {
 	margin: 4px 25px 0 25px;
 }
 
+#previews::before {
+	content: "- no preview selected -";
+	font-style: italic;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: -1;
+}
+
 .slideOutLeft {
 	margin: 3px 9px 6px 0;
 }
