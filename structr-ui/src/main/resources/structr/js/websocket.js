@@ -459,8 +459,8 @@ function wsConnect() {
 
 					if (command === 'CREATE' && entity.isPage) {
 						if (entity.createdBy === userId) {
-							var tab = $('#show_' + entity.id, previews);
 							setTimeout(function () {
+								var tab = $('#show_' + entity.id);
 								_Pages.activateTab(tab);
 							}, 1000);
 						}
