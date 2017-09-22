@@ -58,28 +58,4 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		//return QueryUtils.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
 		return QueryUtils.map(mapper, new NodeResultStream(tx, query));
 	}
-
-	/*
-	@Override
-	public QueryResult<Node> getResult(final CypherQuery query) {
-
-		final int queryHashCode  = query.getHashCode();
-		CachedQueryResult result = queryCache.get(queryHashCode);
-
-		if (result == null) {
-
-			final SessionTransaction tx = db.getCurrentTransaction();
-			final NodeNodeMapper mapper = new NodeNodeMapper(db);
-			final Iterable<Node> mapped = Iterables.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
-
-			result = new CachedQueryResult(mapped);
-			if (!result.isEmpty()) {
-
-				queryCache.put(queryHashCode, result);
-			}
-		}
-
-		return result;
-	}
-	*/
 }

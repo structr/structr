@@ -184,70 +184,72 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final Path parentPath    = basePath.relativize(path).getParent();
 			final Folder parent      = createFolders(parentPath);
 			final String fullPath    = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
-			FileBase file            = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
+			boolean skipFile         = false;
 
-			if (file != null) {
+			// load properties from files.json
+			final PropertyMap fileProperties = getPropertiesForFileOrFolder(fullPath);
+			if (fileProperties == null) {
 
-				final Long checksumOfExistingFile = file.getChecksum();
-				final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
-
-				if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
-
-//					logger.info("Checksum of {} is unmodified, skipping data import.", fullPath);
-
-				} else {
-
-					// remove existing file first!
-					app.delete(file);
-					file = null;
-				}
-			}
-
-			if (file == null) {
-
-				logger.info("Importing {}...", fullPath);
-
-				// close input stream
-				try (final FileInputStream fis = new FileInputStream(path.toFile())) {
-
-					// create file in folder structure
-					file                     = FileHelper.createFile(securityContext, fis, null, File.class, fileName);
-					final String contentType = file.getContentType();
-
-					final PropertyMap changedProperties = new PropertyMap();
-
-					// modify file type according to content
-					if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(file.getProperty(name))) {
-
-						changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
-					}
-
-					// move file to folder
-					file.setProperty(FileBase.parent, parent);
-
-					file.unlockSystemPropertiesOnce();
-					file.setProperties(securityContext, changedProperties);
-
-					newFileUuid = file.getUuid();
-				}
-			}
-
-			// set properties from files.json
-			final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getPath());
-			if (fileProperties != null) {
-
-				if (fileProperties.containsKey(AbstractMinifiedFile.minificationSources)) {
-					deferredFiles.add(file);
-				} else {
-					file.unlockSystemPropertiesOnce();
-					file.setProperties(securityContext, fileProperties);
-				}
+				logger.info("Ignoring {} (not in files.json)", fullPath);
 
 			} else {
 
-				logger.info(" -> No corresponding entry in files.json, ignoring {}", fileName);
-				return;
+				FileBase file = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
 
+				if (file != null) {
+
+					final Long checksumOfExistingFile = file.getChecksum();
+					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
+
+					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
+
+						skipFile = true;
+
+					} else {
+
+						// remove existing file first!
+						app.delete(file);
+					}
+				}
+
+				if (!skipFile) {
+
+					logger.info("Importing {}...", fullPath);
+
+					try (final FileInputStream fis = new FileInputStream(path.toFile())) {
+
+						// create file in folder structure
+						file                     = FileHelper.createFile(securityContext, fis, null, File.class, fileName);
+						final String contentType = file.getContentType();
+
+						final PropertyMap changedProperties = new PropertyMap();
+
+						// modify file type according to content
+						if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(file.getProperty(name))) {
+
+							changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
+						}
+
+						// move file to folder
+						file.setProperty(FileBase.parent, parent);
+
+						file.unlockSystemPropertiesOnce();
+						file.setProperties(securityContext, changedProperties);
+
+						newFileUuid = file.getUuid();
+					}
+				}
+
+				if (file != null) {
+
+					if (fileProperties.containsKey(AbstractMinifiedFile.minificationSources)) {
+						deferredFiles.add(file);
+					} else {
+						file.unlockSystemPropertiesOnce();
+						file.setProperties(securityContext, fileProperties);
+					}
+
+				}
 			}
 
 			tx.success();
