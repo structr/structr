@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -56,24 +55,25 @@ public class GetPropertiesCommand extends AbstractCommand {
 			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app          = StructrApp.getInstance(securityContext);
+		final String uuid      = webSocketData.getId();
+		final GraphObject node = this.getGraphObject(uuid);
 
-		try {
+		if (node != null) {
 
-			final GraphObject graphObject = (GraphObject) app.get(webSocketData.getId());
+			webSocketData.setResult(Arrays.asList(node));
 
-			webSocketData.setResult(Arrays.asList(graphObject));
+		} else {
 
-			// send only over local connection (no broadcast)
-			getWebSocket().send(webSocketData, true);
+			logger.warn("Entity with ID {} not found.", uuid);
 
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to get graph object", fex);
+			// 404. node not found
+			webSocketData.setCode(404);
 		}
 
+		// send only over local connection (no broadcast)
+		getWebSocket().send(webSocketData, true);
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

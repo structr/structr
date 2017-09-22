@@ -41,7 +41,6 @@ import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -170,17 +169,13 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 		try (final Tx tx = app.tx()) {
 
 			final List<ObjectParentData> data = new LinkedList<>();
-			final GraphObject graphObject     = app.get(objectId);
+			final AbstractFile graphObject    = app.get(AbstractFile.class, objectId);
+			final Folder parent               = graphObject.getProperty(AbstractFile.parent);
+			final ObjectData element          = parent != null ? CMISObjectWrapper.wrap(parent, propertyFilter, includeAllowableActions) : new CMISRootFolder(propertyFilter, includeAllowableActions);
+			final ObjectParentDataImpl impl   = new ObjectParentDataImpl(element);
 
-			if (graphObject instanceof AbstractFile) {
-
-				final Folder parent             = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
-				final ObjectData element        = parent != null ? CMISObjectWrapper.wrap(parent, propertyFilter, includeAllowableActions) : new CMISRootFolder(propertyFilter, includeAllowableActions);
-				final ObjectParentDataImpl impl = new ObjectParentDataImpl(element);
-
-				impl.setRelativePathSegment(graphObject.getProperty(AbstractNode.name));
-				data.add(impl);
-			}
+			impl.setRelativePathSegment(graphObject.getProperty(AbstractNode.name));
+			data.add(impl);
 
 			tx.success();
 
@@ -201,11 +196,10 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject graphObject = app.get(folderId);
+			final AbstractFile graphObject = app.get(AbstractFile.class, folderId);
+			if (graphObject != null) {
 
-			if (graphObject != null && graphObject instanceof AbstractFile) {
-
-				final Folder parent = ((AbstractFile)graphObject).getProperty(AbstractFile.parent);
+				final Folder parent = graphObject.getProperty(AbstractFile.parent);
 				if (parent != null) {
 
 					result = CMISObjectWrapper.wrap(parent, propertyFilter, false);

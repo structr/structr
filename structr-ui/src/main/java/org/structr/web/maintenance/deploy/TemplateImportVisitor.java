@@ -174,7 +174,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 			if (byId) {
 
-				final DOMNode existingTemplate = (DOMNode) app.get(templateName);
+				final DOMNode existingTemplate = app.get(DOMNode.class, templateName);
 				if (existingTemplate != null) {
 
 					deleteTemplate(app, existingTemplate);
