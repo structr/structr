@@ -37,6 +37,10 @@ public class SpatialQueryFactory extends AbstractQueryFactory {
 			final SpatialQuery spatial = (SpatialQuery)predicate;
 			final StringBuilder buf    = new StringBuilder();
 			final Double[] coords      = spatial.getCoords();
+			
+			if (coords == null || coords.length == 2)  {
+				return false;
+			}
 
 			buf.append("distance(point({latitude:");
 			buf.append(coords[0]);
