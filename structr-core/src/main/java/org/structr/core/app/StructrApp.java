@@ -167,32 +167,12 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public GraphObject get(final String uuid) throws FrameworkException {
-
-		if (uuid == null) {
-			return null;
-		}
-
-		final NodeInterface node = getNodeById(uuid);
-		if (node != null) {
-
-			return node;
-		}
-
-		logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time. Please examine the following stack trace and amend.");
-		Thread.dumpStack();
-
-		final RelationshipInterface rel = getRelationshipById(uuid);
-		if (rel != null) {
-
-			return rel;
-		}
-
-		return null;
+	public NodeInterface getNodeById(final String uuid) throws FrameworkException {
+		return getNodeById(null, uuid);
 	}
 
 	@Override
-	public NodeInterface getNodeById(final String uuid) throws FrameworkException {
+	public NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
 			return null;
@@ -201,8 +181,15 @@ public class StructrApp implements App {
 		final Long nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
-			final GraphObject entity = nodeQuery().uuid(uuid).includeDeletedAndHidden().getFirst();
-			if (entity != null && uuid.equals(entity.getUuid())) {
+			final Query query = nodeQuery().uuid(uuid);
+
+			// set type for faster query
+			if (type != null) {
+				query.andType(type);
+			}
+
+			final GraphObject entity = query.getFirst();
+			if (entity != null) {
 
 				nodeUuidMap.put(uuid, entity.getId());
 				return (NodeInterface)entity;
@@ -223,6 +210,11 @@ public class StructrApp implements App {
 
 	@Override
 	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException {
+		return getRelationshipById(null, uuid);
+	}
+
+	@Override
+	public RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
 			return null;
@@ -231,8 +223,19 @@ public class StructrApp implements App {
 		final Long id = getRelFromCache(uuid);
 		if (id == null) {
 
-			final GraphObject entity = relationshipQuery().uuid(uuid).getFirst();
-			if (entity != null && uuid.equals(entity.getUuid())) {
+			final Query query = relationshipQuery().uuid(uuid);
+
+			// set type for faster query
+			if (type != null) {
+				query.andType(type);
+			} else {
+
+				logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time. Please examine the following stack trace and amend.");
+				Thread.dumpStack();
+			}
+
+			final GraphObject entity = query.getFirst();
+			if (entity != null) {
 
 				relUuidMap.put(uuid, entity.getId());
 				return (RelationshipInterface)entity;
@@ -254,16 +257,23 @@ public class StructrApp implements App {
 	@Override
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException {
 
-		final GraphObject entity = get(uuid);
+		if (type != null) {
 
-		if (type != null && entity != null && type.isAssignableFrom(entity.getClass())) {
+			if (NodeInterface.class.isAssignableFrom(type)) {
 
-			return (T) entity;
+				return (T)getNodeById(type, uuid);
 
-		} else {
+			} else if (RelationshipInterface.class.isAssignableFrom(type)) {
 
-			return null;
+				return (T)getRelationshipById(type, uuid);
+
+			} else {
+
+				throw new IllegalStateException("Invalid type " + type + ", cannot be used in query.");
+			}
 		}
+
+		return null;
 	}
 
 	@Override

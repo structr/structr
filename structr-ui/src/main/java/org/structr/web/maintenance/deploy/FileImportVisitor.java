@@ -129,12 +129,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					file.setProperties(securityContext, fileProperties);
 
 					for (String positionString : sourcesConfig.keySet()) {
-						final Integer position = Integer.parseInt(positionString);
-						final String sourcePath = sourcesConfig.get(positionString);
 
+						final Integer position    = Integer.parseInt(positionString);
+						final String sourcePath   = sourcesConfig.get(positionString);
 						final AbstractFile source = FileHelper.getFileByAbsolutePath(securityContext, sourcePath);
+
 						if (source != null) {
-							app.create((AbstractMinifiedFile)app.get(file.getUuid()), (FileBase)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
+
+							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (FileBase)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
+
 						} else {
 							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
 						}
@@ -257,10 +260,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			if (newFileUuid != null) {
 
-				final FileBase createdFile = (FileBase) app.get(newFileUuid);
-				String type = createdFile.getType();
-				boolean isImage     = createdFile.getProperty(Image.isImage);
-				boolean isThumbnail = createdFile.getProperty(Image.isThumbnail);
+				final FileBase createdFile = app.get(FileBase.class, newFileUuid);
+				String type                = createdFile.getType();
+				boolean isImage            = createdFile.getProperty(Image.isImage);
+				boolean isThumbnail        = createdFile.getProperty(Image.isThumbnail);
 
 				logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
 

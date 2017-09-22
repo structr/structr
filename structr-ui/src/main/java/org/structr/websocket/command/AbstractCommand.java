@@ -111,19 +111,20 @@ public abstract class AbstractCommand {
 	 */
 	public GraphObject getGraphObject(final String id) {
 
-		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
+		final AbstractNode node = getNode(id);
+		if (node != null) {
 
-		try (final Tx tx = app.tx()) {
+			return node;
 
-			final GraphObject graphObject = (GraphObject) app.get(id);
+		} else {
 
-			tx.success();
+			logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
 
-			return graphObject;
+			final AbstractRelationship rel = getRelationship(id);
+			if (rel != null) {
 
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to get graph object", fex);
+				return rel;
+			}
 		}
 
 		return null;

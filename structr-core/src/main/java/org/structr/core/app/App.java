@@ -58,8 +58,9 @@ public interface App extends Closeable {
 
 	public void delete(final RelationshipInterface relationship);
 
-	public GraphObject get(final String uuid) throws FrameworkException;
+	public NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException;
 	public NodeInterface getNodeById(final String uuid) throws FrameworkException;
+	public RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException;
 	public RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
 	public <T extends GraphObject> List<T> get(final Class<T> type) throws FrameworkException;
 	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException;

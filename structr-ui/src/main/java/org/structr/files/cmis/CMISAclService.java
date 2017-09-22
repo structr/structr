@@ -34,11 +34,11 @@ import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 
 /**
@@ -60,7 +60,7 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject node = app.get(objectId);
+			final AbstractNode node = app.get(AbstractNode.class, objectId);
 			if (node != null) {
 
 				return CMISObjectWrapper.wrap(node, null, false);
@@ -91,30 +91,21 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject obj = app.get(objectId);
-			if (obj != null) {
+			final AbstractNode node = app.get(AbstractNode.class, objectId);
+			if (node != null) {
 
-				if (obj instanceof AbstractNode) {
+				node.revokeAll();
 
-					final AbstractNode node = (AbstractNode)obj;
-
-					node.revokeAll();
-
-					// process add ACL entries
-					for (final Ace toAdd : acl.getAces()) {
-						applyAce(node, toAdd, false);
-					}
-
-				} else {
-
-					throw new CmisInvalidArgumentException("Object with ID " + objectId + " is not access controllable");
+				// process add ACL entries
+				for (final Ace toAdd : acl.getAces()) {
+					applyAce(node, toAdd, false);
 				}
+
+				tx.success();
+
+				// return the wrapper which implements the Acl interface
+				return CMISObjectWrapper.wrap(node, null, false);
 			}
-
-			tx.success();
-
-			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
@@ -130,33 +121,24 @@ public class CMISAclService extends AbstractStructrCmisService implements AclSer
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject obj = app.get(objectId);
-			if (obj != null) {
+			final NodeInterface node = app.get(NodeInterface.class, objectId);
+			if (node != null) {
 
-				if (obj instanceof AccessControllable) {
-
-					final AccessControllable node = (AccessControllable)obj;
-
-					// process remove ACL entries first
-					for (final Ace toRemove : removeAces.getAces()) {
-						applyAce( node, toRemove, true);
-					}
-
-					// process add ACL entries
-					for (final Ace toAdd : addAces.getAces()) {
-						applyAce(node, toAdd, false);
-					}
-
-				} else {
-
-					throw new CmisInvalidArgumentException("Object with ID " + objectId + " is not access controllable");
+				// process remove ACL entries first
+				for (final Ace toRemove : removeAces.getAces()) {
+					applyAce( node, toRemove, true);
 				}
+
+				// process add ACL entries
+				for (final Ace toAdd : addAces.getAces()) {
+					applyAce(node, toAdd, false);
+				}
+
+				tx.success();
+
+				// return the wrapper which implements the Acl interface
+				return CMISObjectWrapper.wrap(node, null, false);
 			}
-
-			tx.success();
-
-			// return the wrapper which implements the Acl interface
-			return CMISObjectWrapper.wrap(obj, null, false);
 
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);

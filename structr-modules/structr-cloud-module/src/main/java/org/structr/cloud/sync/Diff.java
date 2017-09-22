@@ -57,7 +57,7 @@ public class Diff extends Message {
 		// this message arrives from the replication slave for each entity in the
 		// remote database, asking the master to update the corresponding node if
 		// necessary.
-		final GraphObject entityToBeCompared = StructrApp.getInstance().get(uuid);
+		final GraphObject entityToBeCompared = StructrApp.getInstance().get(null, uuid);
 		if (entityToBeCompared != null) {
 
 			final String localHash = contentHashCode(entityToBeCompared);
