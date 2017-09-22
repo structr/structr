@@ -38,7 +38,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory {
 			final StringBuilder buf    = new StringBuilder();
 			final Double[] coords      = spatial.getCoords();
 			
-			if (coords == null || coords.length == 2)  {
+			if (coords == null || coords.length != 2)  {
 				return false;
 			}
 
