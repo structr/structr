@@ -1661,7 +1661,7 @@ var _Crud = {
 					_Crud.crudDelete(id);
 				}
 			});
-			_Entities.bindAccessControl($('.actions .security', row), id);
+			_Entities.bindAccessControl($('.actions .security', row), item);
 		}
 	},
 	populateCell: function(id, key, type, value, cell) {

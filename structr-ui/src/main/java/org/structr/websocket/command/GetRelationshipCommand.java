@@ -46,7 +46,9 @@ public class GetRelationshipCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		final AbstractRelationship rel = getRelationship(webSocketData.getId());
+		final String nodeId            = (String) webSocketData.getNodeData().get("nodeId");
+		final AbstractRelationship rel = getRelationship(webSocketData.getId(), nodeId);
+		
 
 		if (rel != null) {
 			

@@ -280,8 +280,10 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, obj);
 
-			} else if (command === 'GET' || command === 'GET_PROPERTIES') {
+			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
+				_Logger.log(_LogType.WS[command], data);
+				
 				StructrModel.callCallback(data.callback, result[0]);
 
 			} else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'GET_SCHEMA_INFO' || command === 'CREATE_RELATIONSHIP') {

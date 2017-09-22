@@ -49,13 +49,15 @@ public class GetCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
+				
+		final String nodeId                    = (String) webSocketData.getNodeData().get("nodeId");
 		final String properties                = (String) webSocketData.getNodeData().get("properties");
 
 		if (properties != null) {
 			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
 
-		final GraphObject graphObject = getGraphObject(webSocketData.getId());
+		final GraphObject graphObject = getGraphObject(webSocketData.getId(), nodeId);
 
 
 		if (graphObject != null) {

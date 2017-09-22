@@ -103,13 +103,28 @@ public abstract class AbstractCommand {
 	}
 
 	/**
-	 * Returns the graph object to which the uuid parameter
-	 * of this command refers to.
+	 * Returns the graph object with the given id.
 	 *
 	 * @param id
 	 * @return the graph object
 	 */
 	public GraphObject getGraphObject(final String id) {
+
+		return getGraphObject(id, null);
+	}
+
+	/**
+	 * Returns the graph object with the given id.
+	 * 
+	 * If no node with the given id is found and nodeId is not null,
+	 * this method will search for a relationship in the list of relationships
+	 * of the node with the given nodeId.
+	 *
+	 * @param id
+	 * @param nodeId
+	 * @return the graph object
+	 */
+	public GraphObject getGraphObject(final String id, final String nodeId) {
 
 		final AbstractNode node = getNode(id);
 		if (node != null) {
@@ -118,9 +133,11 @@ public abstract class AbstractCommand {
 
 		} else {
 
-			logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
+			if (nodeId == null) {
+				logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
+			}
 
-			final AbstractRelationship rel = getRelationship(id);
+			final AbstractRelationship rel = getRelationship(id, nodeId);
 			if (rel != null) {
 
 				return rel;
@@ -131,8 +148,7 @@ public abstract class AbstractCommand {
 	}
 
 	/**
-	 * Returns the node to which the uuid parameter
-	 * of this command refers to.
+	 * Returns the node with the given id.
 	 *
 	 * @param id
 	 * @return the node
@@ -157,6 +173,53 @@ public abstract class AbstractCommand {
 		return null;
 	}
 
+	/**
+	 * Returns the relationship with the given id by looking up a node
+	 * with the given nodeId and filtering the relationships.
+	 *
+	 * This avoids the performance issues of getRelationshipById due to missing index support.
+	 * 
+	 * If nodeId is null, the method falls back to {@link getRelationship(id)}.
+	 * 
+	 *
+	 * @param id
+	 * @param nodeId
+	 * @return the node
+	 */
+	public AbstractRelationship getRelationship(final String id, final String nodeId) {
+
+		if (id == null) {
+			return null;
+		}
+		
+		if (nodeId == null) {
+			return getRelationship(id);
+		}
+		
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final AbstractNode node = (AbstractNode) app.getNodeById(nodeId);
+			
+			for (final AbstractRelationship rel : node.getRelationships()) {
+				
+				if (rel.getUuid().equals(id)) {
+					return rel;
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to get relationship", fex);
+		}
+
+		return null;
+		
+	}
+	
 	/**
 	 * Returns the relationship to which the uuid parameter
 	 * of this command refers to.

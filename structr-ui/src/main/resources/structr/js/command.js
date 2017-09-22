@@ -106,11 +106,19 @@ var Command = {
 	 * The server will return a single relationship with all properties
 	 * with the given id to the sending client (no broadcast).
 	 */
-	getRelationship: function(id, callback) {
+	getRelationship: function(id, nodeId, properties, callback) {
 		var obj = {
 			command: 'GET_RELATIONSHIP',
-			id: id
+			id: id,
+			data: {
+				nodeId: nodeId
+			}
 		};
+		if (properties !== null) {
+			obj.data = {
+				properties: properties
+			};
+		}
 		_Logger.log(_LogType.WS[obj.command], 'getRelationship()', obj, callback);
 		return sendObj(obj, callback);
 	},

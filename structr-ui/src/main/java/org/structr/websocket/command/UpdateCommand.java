@@ -62,8 +62,9 @@ public class UpdateCommand extends AbstractCommand {
 
 		final App app          = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
+		final String nodeId    = (String) webSocketData.getNodeData().get("nodeId");
 		final boolean rec      = recValue != null ? recValue : false;
-		final GraphObject obj  = getGraphObject(webSocketData.getId());
+		final GraphObject obj  = getGraphObject(webSocketData.getId(), nodeId);
 
 		if (obj == null) {
 

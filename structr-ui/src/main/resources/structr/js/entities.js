@@ -382,8 +382,8 @@ var _Entities = {
 	},
 	showProperties: function(obj, activeViewOverride) {
 
-		Command.get(obj.id, null, function (entity) {
-
+		var handleGraphObject = function(entity) {
+			
 			var views, activeView = 'ui';
 			var tabTexts = [];
 
@@ -453,8 +453,14 @@ var _Entities = {
 				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView, activeViewOverride);
 			}
 
-			Structr.resize();
-		});
+			Structr.resize();			
+		};
+
+		if (obj.relType) {
+			Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); });
+		} else {
+			Command.get(obj.id, null, function(entity) { handleGraphObject(entity); });
+		}
 	},
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback) {
 
@@ -972,7 +978,7 @@ var _Entities = {
 				input.data('changed', true);
 
 				if (pageId && pageId === activeTab) {
-					console.log('reloading previews')
+					//console.log('reloading previews')
 					_Pages.reloadPreviews();
 				}
 			});
@@ -1043,35 +1049,44 @@ var _Entities = {
 				keyIcon.addClass('donthide');
 			}
 
-			_Entities.bindAccessControl(keyIcon, entity.id);
+			_Entities.bindAccessControl(keyIcon, entity);
 		}
 	},
-	bindAccessControl: function(btn, id) {
+	bindAccessControl: function(btn, entity) {
 
 		btn.on('click', function(e) {
 			e.stopPropagation();
-			_Entities.showAccessControlDialog(id);
+			_Entities.showAccessControlDialog(entity);
 		});
 	},
-	showAccessControlDialog: function(id) {
+	showAccessControlDialog: function(entity) {
+
+		var id = entity.id;
 
 		var initialObj;
 
 		Structr.dialog('Access Control and Visibility', function() {
 		}, function() {
 			if (Structr.isModuleActive(_Crud)) {
-				Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) {
+				
+				var handleGraphObject = function(entity) {
 					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
 					_Crud.refreshCell(id, "visibleToPublicUsers", entity.visibleToPublicUsers, entity.type, initialObj.visibleToPublicUsers);
-					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
-				});
+					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);					
+				};
+				
+				if (entity.targetId) {
+					Command.getRelationship(id, entity.targetId, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity) });
+				} else {
+					Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity) });
+				}
 			}
 		});
-
-		Command.get(id, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) {
+		
+		var handleGraphObject = function(entity) {
 
 			initialObj = {
 				ownerId: entity.owner ? entity.owner.id : null,
@@ -1155,7 +1170,13 @@ var _Entities = {
 					_Entities.addPrincipal(entity, p, {'read': true});
 				});
 			});
-		});
+		};
+
+		if (entity.targetId) {
+			Command.getRelationship(id, entity.targetId, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+		} else {
+			Command.get(id, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+		}
 	},
 	addPrincipal: function (entity, principal, permissions) {
 		$('#newPrincipal option[value="' + principal.id + '"]').remove();
