@@ -58,6 +58,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -295,7 +296,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject obj = app.get(objectId);
+			final AbstractNode obj = app.get(AbstractNode.class, objectId);
 			if (obj != null) {
 
 				final ObjectData data = CMISObjectWrapper.wrap(obj, propertyFilter, includeAllowableActions);
@@ -398,7 +399,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject obj = app.get(id);
+			final AbstractNode obj = app.get(AbstractNode.class, id);
 			if (obj != null) {
 
 				final PropertyMap propertyMap = PropertyMap.cmisTypeToJavaType(securityContext, obj.getClass(), properties);
@@ -430,7 +431,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 			for (final BulkUpdateObjectIdAndChangeToken token : objectIdsAndChangeTokens) {
 
-				final GraphObject obj = app.get(token.getId());
+				final AbstractNode obj = app.get(AbstractNode.class, token.getId());
 				if (obj != null) {
 
 					final PropertyMap propertyMap = PropertyMap.cmisTypeToJavaType(securityContext, obj.getClass(), properties);
@@ -513,7 +514,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 			final Principal principal = securityContext.getUser(false);
 
-			final GraphObject obj = app.get(objectId);
+			final AbstractNode obj = app.get(AbstractNode.class, objectId);
 			if (obj != null) {
 
 				if (principal.isGranted(Permission.delete, securityContext)) {

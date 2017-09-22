@@ -23,7 +23,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
@@ -70,9 +69,8 @@ public class FavoritesCommand extends AbstractCommand {
 
 			try (final Tx tx = app.tx()) {
 
-				final GraphObject file = app.get(favoritableId);
-
-				if (file != null && file instanceof Favoritable) {
+				final Favoritable file = app.get(Favoritable.class, favoritableId);
+				if (file != null) {
 
 					switch (mode) {
 

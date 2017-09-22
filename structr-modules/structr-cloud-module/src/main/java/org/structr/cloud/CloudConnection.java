@@ -463,7 +463,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 	public void delete(final String uuid) throws FrameworkException {
 
-		final GraphObject obj = app.get(uuid);
+		final GraphObject obj = app.get(null, uuid);
 		if (obj != null) {
 
 			if (obj instanceof NodeInterface) {

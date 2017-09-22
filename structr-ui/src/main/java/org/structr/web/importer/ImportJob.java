@@ -325,8 +325,8 @@ abstract class ImportJob {
 
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = (FileBase)app.get(fileUuid);
-			is = file.getInputStream();
+			final FileBase file = app.get(FileBase.class, fileUuid);
+			is                  = file.getInputStream();
 
 			tx.success();
 
