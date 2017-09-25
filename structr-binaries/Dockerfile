@@ -1,25 +1,18 @@
-# Dockerizing Structr: Dockerfile for building Structr images
-# Based on ubuntu:latest, installs Structr following the instructions from:
-# http://docs.structr.org/installation-and-configuration-guide
+# Dockerfile for building Structr
 #
-# Start with:
-#
-# sudo docker run --name="structr" -ti -p 0.0.0.0:8082:8082 structr:2.1.4-SNAPSHOT
+# Start with: sudo docker run -ti -p 0.0.0.0:8082:8082 structr:$STRUCTR_VERSION
 
 FROM ubuntu:latest
 
 ARG STRUCTR_VERSION
 
-#ENV STRUCTR_VERSION 2.1.4-SNAPSHOT
 MAINTAINER Axel Morgner <axel.morgner@structr.com>
 
 # Install wget and Java 8 (OpenJDK)
 RUN	apt-get update && apt-get -y install wget openjdk-8-jdk
 
+# Copy locally built Debian package
 ADD ./target/structr-$STRUCTR_VERSION.deb /root/
-
-# Download Structr
-#RUN wget https://structr.org/repositories/snapshots/org/structr/structr/$STRUCTR_VERSION/structr-$STRUCTR_VERSION.deb
 
 # Install Structr Debian package
 RUN	dpkg -i /root/structr-$STRUCTR_VERSION.deb
