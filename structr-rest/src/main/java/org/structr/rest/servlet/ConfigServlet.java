@@ -31,7 +31,6 @@ import javax.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Setting;
-import org.structr.core.Services;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
 import org.structr.api.service.Service;
@@ -40,6 +39,7 @@ import org.structr.api.util.html.Document;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
+import org.structr.core.Services;
 
 /**
  *
@@ -383,6 +383,7 @@ public class ConfigServlet extends HttpServlet {
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
 		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));
 		head.block("script").attr(new Src("/structr/js/lib/jquery-ui-1.11.0.custom.min.js"));
+		head.block("script").attr(new Src("/structr/js/icons.js"));
 		head.block("script").attr(new Src("/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
