@@ -71,7 +71,17 @@ $(function() {
 		Structr.doLogout();
 	});
 
-	$('[data-activate-module]').on('click', function(e) {
+	$(document).on('mouseenter', '[data-toggle="popup"]', function () {
+		var target = $(this).data("target");
+		$(target).addClass('visible');
+	});
+
+	$(document).on('mouseleave', '[data-toggle="popup"]', function () {
+		var target = $(this).data("target");
+		$(target).removeClass('visible');
+	});
+
+	$(document).on('click', '[data-activate-module]', function(e) {
 		var module = $(this).data('activateModule');
 		_Logger.log(_LogType.INIT, 'Activating module ' + module);
 		Structr.activateModule(e, module);
@@ -261,6 +271,7 @@ var _Icons = {
 	edition_small_business_icon: 'icon/medal_silver_2.png',
 	edition_enterprise_icon: 'icon/medal_gold_2.png',
 	import_icon: 'icon/table_lightning.png',
+	hamburger_icon: 'icon/hamburger_white.png',
 
 
 	getFullSpriteClass: function (key) {
@@ -358,6 +369,7 @@ var _Icons = {
 			case _Icons.edition_small_business_icon:  return 'sprite-medal_silver_2';
 			case _Icons.edition_enterprise_icon:      return 'sprite-medal_gold_2';
 			case _Icons.import_icon:                  return 'sprite-table_lightning';
+			case _Icons.hamburger_icon:               return 'sprite-hamburger_white';
 
 			default:                                  return 'sprite-error';
 		}
@@ -1119,14 +1131,15 @@ var Structr = {
 	activateMenuEntry: function(name) {
 		Structr.blockMenu();
 		var menuEntry = $('#' + name + '_');
-		if (menuEntry.hasClass('active')) {
+		var li = menuEntry.parent();
+		if (li.hasClass('active')) {
 			return false;
 		}
 		lastMenuEntry = name;
-		$('.menu a').each(function(i, v) {
-			$(this).removeClass('active').addClass('inactive');
+		$('.menu li').each(function(i, v) {
+			$(this).removeClass('active');
 		});
-		menuEntry.addClass('active').removeClass('inactive');
+		li.addClass('active');
 		$('#title').text('Structr ' + menuEntry.text());
 		window.location.hash = lastMenuEntry;
 		if (lastMenuEntry && lastMenuEntry !== 'logout') {
@@ -1521,6 +1534,12 @@ var Structr = {
 
 					$('.structr-version').html(versionInfo);
 				}
+
+				var hamburger = $('#menu li.submenu-trigger');
+				var subMenu = $('#submenu');
+				envInfo.mainMenu.forEach(function (entry) {
+					$('li[data-name="' + entry + '"]', subMenu).insertBefore(hamburger);
+				});
 
 				Structr.activeModules = envInfo.modules;
 				Structr.adaptUiToPresentModules();

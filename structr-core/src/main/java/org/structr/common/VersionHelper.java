@@ -83,8 +83,12 @@ public class VersionHelper {
 		return Settings.InstanceName.getValue();
 	}
 
-	public static String  getInstanceStage() {
+	public static String getInstanceStage() {
 		return Settings.InstanceStage.getValue();
+	}
+
+	public static String[] getMenuEntries() {
+		return Settings.MenuEntries.getValue().split(",");
 	}
 
 	public static void updateModuleList () {

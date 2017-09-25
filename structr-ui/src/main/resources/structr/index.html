@@ -87,27 +87,33 @@
 		<div id="info-area"></div>
 		<div id="header">
 			<i class="logo sprite sprite-structr-logo"></i>
+			<div id="menu" class="menu">
+				<ul>
+					<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
+						<i class="sprite sprite-hamburger_white"></i>
+						<ul id="submenu">
+							<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
+							<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
+							<li data-name="Contents"><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
+							<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
+							<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
+							<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
+							<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
+							<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
+							<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
+							<li data-name="Crawler" class="module-dependend" data-structr-module="crawler"><a id="crawler_" href="#crawler" data-activate-module="crawler">Crawler</a></li>
+							<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
+							<li><a id="logout_" href="#">Login</a></li>
+						</ul>
+					</li>
+				</ul>
+
+			</div>
 			<div class="structr-instance-info">
 				<div class="structr-instance">
 					<span class="structr-instance-name"></span><span class="structr-instance-stage"></span>
 				</div>
 				<div class="structr-version"></div>
-			</div>
-			<div id="menu" class="menu">
-				<ul>
-					<li><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
-					<li><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
-					<li><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
-					<li><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
-					<li><a id="files_" href="#files" data-activate-module="files">Files</a></li>
-					<li><a id="security_" href="#security" data-activate-module="security">Security</a></li>
-					<li><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
-					<li><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
-					<li><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
-					<li class="module-dependend" data-structr-module="crawler"><a id="crawler_" href="#crawler" data-activate-module="crawler">Crawler</a></li>
-					<li><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
-					<li><a id="logout_" href="#">Login</a></li>
-				</ul>
 			</div>
 			<div id="main-help"><a target="_blank" href="https://support.structr.com/knowledge-graph"><i title="Help" class="sprite sprite-help"></i></a></div>
 		</div>

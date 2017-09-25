@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * The Structr configuration settings.
@@ -53,6 +53,7 @@ public class Settings {
 	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,   "Application", "application.title",          "Structr 2.1");
 	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,   "Application", "application.instance.name",  "");
 	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,   "Application", "application.instance.stage", "");
+	public static final Setting<String> MenuEntries           = new StringSetting(generalGroup,   "Application", "application.menu.main",      "Pages,Files,Security,Schema,Data", "The main menu entries - all other entries remain in the submenu");
 	public static final Setting<String> SuperUserName         = new StringSetting(generalGroup,   "Superuser",   "superuser.username",         "superadmin");
 	public static final Setting<String> SuperUserPassword     = new PasswordSetting(generalGroup, "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
 	public static final Setting<String> BasePath              = new StringSetting(generalGroup,   "Paths",       "base.path",                  ".");

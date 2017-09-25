@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
 import org.structr.core.Services;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -60,11 +61,12 @@ public class EnvResource extends Resource {
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
 		final GraphObjectMap info                         = new GraphObjectMap();
 
-		info.setProperty(new GenericProperty("modules"),      VersionHelper.getModules());
-		info.setProperty(new GenericProperty("components"),   VersionHelper.getComponents());
-		info.setProperty(new StringProperty("classPath"),     VersionHelper.getClassPath());
-		info.setProperty(new StringProperty("instanceName"),  VersionHelper.getInstanceName());
-		info.setProperty(new StringProperty("instanceStage"), VersionHelper.getInstanceStage());
+		info.setProperty(new GenericProperty("modules"),              VersionHelper.getModules());
+		info.setProperty(new GenericProperty("components"),           VersionHelper.getComponents());
+		info.setProperty(new StringProperty("classPath"),             VersionHelper.getClassPath());
+		info.setProperty(new StringProperty("instanceName"),          VersionHelper.getInstanceName());
+		info.setProperty(new StringProperty("instanceStage"),         VersionHelper.getInstanceStage());
+		info.setProperty(new ArrayProperty("mainMenu", String.class), VersionHelper.getMenuEntries());
 
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 		if (licenseManager != null) {

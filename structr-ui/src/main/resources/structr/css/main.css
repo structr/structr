@@ -194,16 +194,14 @@ input[type="checkbox"] {
 	left: 160px;
 }
 
-.menu ul {
+.menu > ul {
 	list-style-type: none;
 	padding: 0;
 	margin: 0;
-	float: left;
-	overflow: hidden;
 }
 
-.menu ul li {
-	display: inline;
+.menu > ul > li {
+	display: inline-block;
 	margin: 0 10px;
 }
 
@@ -213,17 +211,7 @@ input[type="checkbox"] {
 	color: #fff;
 }
 
-.menu .inactive {
-	color: #fff ! important;
-}
-
-.menu a:hover {
-	text-decoration: none;
-	font-weight: bold;
-	color: #81ce25;
-}
-
-.menu .active {
+.menu > ul > li.active a {
 	color: #333 ! important;
 	padding: 3px 6px 4px 6px;
 	border-radius: 3px;
@@ -232,8 +220,48 @@ input[type="checkbox"] {
 }
 
 .menu ul li a.disabled {
-	/*pointer-events: none;*/
 	cursor: default;
+}
+
+.menu .submenu-trigger i {
+	height: 13px;
+}
+
+ul#submenu {
+	z-index: 100;
+	display: none;
+	list-style: none;
+	position: relative;
+	float: right;
+	width: 140px;
+	padding: 0;
+	padding-top: 20px;
+	margin-left: -16px;
+}
+
+ul#submenu.visible {
+	display: block;
+}
+
+#submenu li {
+	border: 1px solid grey;
+	padding: 0 20px;
+	background: #363636;
+}
+
+#submenu li a {
+	text-decoration: none;
+	font-weight: bold;
+	color: #fff;
+}
+
+#submenu li.active {
+	background-color: #81ce25;
+	cursor: default;
+}
+
+#submenu li.active a {
+	color: #333 ! important;
 }
 
 img.disabled {
@@ -4248,146 +4276,150 @@ span.context-help-text {
 	background-position: -100px -100px;
 }
 
-.sprite-help {
+.sprite-hamburger_white {
 	background-position: -124px -100px;
+}
+
+.sprite-help {
+	background-position: -148px -100px;
 }
 
 .sprite-icon_microphone {
 	width: 20px;
 	height: 20px;
-	background-position: -148px -100px;
+	background-position: -172px -100px;
 }
 
 .sprite-image {
-	background-position: -176px -100px;
-}
-
-.sprite-information {
 	background-position: -200px -100px;
 }
 
-.sprite-key {
+.sprite-information {
 	background-position: -224px -100px;
 }
 
-.sprite-key_add {
+.sprite-key {
 	background-position: -248px -100px;
 }
 
-.sprite-layout {
+.sprite-key_add {
 	background-position: -272px -100px;
 }
 
-.sprite-layout_add {
+.sprite-layout {
 	background-position: -4px -124px;
 }
 
-.sprite-layout_content {
+.sprite-layout_add {
 	background-position: -28px -124px;
 }
 
-.sprite-layout_delete {
+.sprite-layout_content {
 	background-position: -52px -124px;
 }
 
-.sprite-layout_edit {
+.sprite-layout_delete {
 	background-position: -76px -124px;
 }
 
-.sprite-layout_yellow {
+.sprite-layout_edit {
 	background-position: -100px -124px;
 }
 
-.sprite-link {
+.sprite-layout_yellow {
 	background-position: -124px -124px;
 }
 
-.sprite-medal_bronze_2 {
-	background-position: -176px -124px;
+.sprite-link {
+	background-position: -148px -124px;
 }
 
-.sprite-medal_gold_2 {
+.sprite-medal_bronze_2 {
 	background-position: -200px -124px;
 }
 
-.sprite-medal_silver_2 {
+.sprite-medal_gold_2 {
 	background-position: -224px -124px;
 }
 
-.sprite-package {
+.sprite-medal_silver_2 {
 	background-position: -248px -124px;
 }
 
-.sprite-package_add {
+.sprite-package {
 	background-position: -272px -124px;
 }
 
-.sprite-package_delete {
+.sprite-package_add {
 	background-position: -4px -148px;
 }
 
-.sprite-package_green {
+.sprite-package_delete {
 	background-position: -28px -148px;
 }
 
-.sprite-page {
+.sprite-package_green {
 	background-position: -52px -148px;
 }
 
-.sprite-page_add {
+.sprite-page {
 	background-position: -76px -148px;
 }
 
-.sprite-page_copy {
+.sprite-page_add {
 	background-position: -100px -148px;
 }
 
-.sprite-page_delete {
+.sprite-page_copy {
 	background-position: -124px -148px;
 }
 
-.sprite-page_white {
+.sprite-page_delete {
 	background-position: -148px -148px;
 }
 
-.sprite-page_white_acrobat {
+.sprite-page_white {
 	background-position: -172px -148px;
 }
 
-.sprite-page_white_add {
+.sprite-page_white_acrobat {
 	background-position: -196px -148px;
 }
 
-.sprite-page_white_code {
+.sprite-page_white_add {
 	background-position: -220px -148px;
 }
 
-.sprite-page_white_delete {
+.sprite-page_white_code {
 	background-position: -244px -148px;
 }
 
-.sprite-page_white_get {
+.sprite-page_white_delete {
 	background-position: -268px -148px;
 }
 
-.sprite-page_white_put {
+.sprite-page_white_get {
 	background-position: -4px -172px;
 }
 
-.sprite-page_white_stack {
+.sprite-page_white_put {
 	background-position: -28px -172px;
 }
 
-.sprite-page_white_text {
+.sprite-page_white_stack {
 	background-position: -52px -172px;
 }
 
-.sprite-page_yellow {
+.sprite-page_white_text {
 	background-position: -76px -172px;
 }
 
-.sprite-pencil {
+.sprite-page_yellow {
 	background-position: -100px -172px;
+}
+
+.sprite-pencil {
+	background-position: -124px -172px;
 }
 
 .sprite-pencil_small_grey {
@@ -4397,23 +4429,23 @@ span.context-help-text {
 }
 
 .sprite-pull_page {
-	background-position: -124px -172px;
-}
-
-.sprite-script_lightning {
 	background-position: -148px -172px;
 }
 
-.sprite-script_palette {
+.sprite-script_lightning {
 	background-position: -172px -172px;
 }
 
-.sprite-star {
+.sprite-script_palette {
 	background-position: -196px -172px;
 }
 
-.sprite-star_delete {
+.sprite-star {
 	background-position: -220px -172px;
+}
+
+.sprite-star_delete {
+	background-position: -244px -172px;
 }
 
 .sprite-structr-logo {
@@ -4431,7 +4463,7 @@ span.context-help-text {
 .sprite-structr_gray_100x27 {
 	width: 100px;
 	height: 27px;
-	background-position: -4px -264px;
+	background-position: -198px -196px;
 }
 
 .sprite-structr_gray_200x54 {
