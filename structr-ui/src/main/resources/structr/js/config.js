@@ -104,8 +104,7 @@ $(function () {
 
 	$('label.has-comment').each(function(idx, label) {
 		appendInfoTextToElement($(label).data("comment"), $(label), {
-			marginLeft: '4px',
-			marginRight: '4px'
+			margin: '0 4px'
 		});
 	});
 
