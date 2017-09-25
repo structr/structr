@@ -166,7 +166,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 				// update metadata and parent as superuser
 				FileHelper.updateMetadata(this, new PropertyMap(hasParent, getProperty(parentId) != null));
-				
+
 				// restore previous security context
 				this.securityContext = previousSecurityContext;
 			}
@@ -246,7 +246,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				logger.error("Could not create file", ex);
 				return;
 			}
-			
+
 			FileHelper.updateMetadata(this, new PropertyMap(version, 0));
 
 		} catch (FrameworkException ex) {
@@ -278,6 +278,9 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public void notifyUploadCompletion() {
 
 		try {
+
+			FileHelper.updateMetadata(this, new PropertyMap());
+
 			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
 			indexer.addToFulltextIndex(this);
 

@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -31,11 +30,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicException;
-import net.sf.jmimemagic.MagicMatch;
-import net.sf.jmimemagic.MagicMatchNotFoundException;
-import net.sf.jmimemagic.MagicParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +51,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
-import static org.structr.web.entity.FileBase.checksum;
 import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.Folder;
 
@@ -238,21 +231,19 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final FileBase file, final PropertyMap map) throws FrameworkException {
-		
-		map.put(checksum, FileHelper.getChecksum(file));
 
 		// Don't overwrite existing MIME type
 		if (StringUtils.isBlank(file.getContentType())) {
-			
+
 			try {
-				
+
 				map.put(FileBase.contentType, getContentMimeType(file));
-				
+
 			} catch (IOException ex) {
 				logger.debug("Unable to detect content MIME type", ex);
 			}
 		}
-		
+
 		map.put(FileBase.checksum, FileHelper.getChecksum(file));
 
 		long fileSize = FileHelper.getSize(file);
@@ -263,7 +254,7 @@ public class FileHelper {
 		file.unlockSystemPropertiesOnce();
 		file.setProperties(file.getSecurityContext(), map);
 	}
-	
+
 	/**
 	 * Update checksum content type and size of the given file
 	 *
@@ -437,9 +428,9 @@ public class FileHelper {
 		}
 
 		final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
-		
+
 		mimeType = mediaType.toString();
-		
+
 //		// then file content
 //		mimeType = Files.probeContentType(file.toPath());
 //		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {

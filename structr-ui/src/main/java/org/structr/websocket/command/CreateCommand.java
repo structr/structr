@@ -29,9 +29,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -74,20 +72,7 @@ public class CreateCommand extends AbstractCommand {
 			// check for File node and store in WebSocket to receive chunks
 			if (newNode instanceof FileBase) {
 
-				Long size		= (Long)   webSocketData.getNodeData().get("size");
-				String contentType	= (String) webSocketData.getNodeData().get("contentType");
-				String name		= (String) webSocketData.getNodeData().get("name");
-
-				FileBase fileNode = (FileBase) newNode;
-				
-				final PropertyMap changedProperties = new PropertyMap();
-				changedProperties.put(File.size, size != null ? size : 0L);
-				changedProperties.put(File.contentType, contentType);
-				changedProperties.put(AbstractNode.name, name);
-				
-				FileHelper.updateMetadata(fileNode, changedProperties);
-
-				getWebSocket().createFileUploadHandler(fileNode);
+				getWebSocket().createFileUploadHandler((FileBase) newNode);
 
 			}
 
