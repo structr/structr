@@ -188,6 +188,7 @@
 				<configuration>
 					<repository>structr</repository>
 					<tag>${project.version}</tag>
+					<skip>${skipDocker}</skip>
 					<buildArgs>
 						<STRUCTR_VERSION>${project.version}</STRUCTR_VERSION>
 					</buildArgs>
