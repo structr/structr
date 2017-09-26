@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 NAME=$1
 HEAPSIZE=$2
@@ -11,7 +11,7 @@ if [ -z $HEAPSIZE ]; then
         HEAPSIZE=1
 fi
 
-BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 STRUCTR_SCRIPT=$BASE_DIR/run.sh
 
 $STRUCTR_SCRIPT $NAME $HEAPSIZE

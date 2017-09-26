@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 NAME=$1
 
@@ -6,9 +6,9 @@ if [ -z $NAME ]; then
         NAME="default"
 fi
 
-BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd $BASE_DIR
-PIDFILE=./structrdb-$NAME.pid
+PIDFILE=./structr-$NAME.pid
 LOGS_DIR=./logs
 SERVER_LOG=./logs/server.log
 

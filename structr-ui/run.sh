@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 NAME=$1
 HEAPSIZE=$2
@@ -11,7 +11,7 @@ if [ -z $HEAPSIZE ]; then
 	HEAPSIZE=1
 fi
 
-BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd $BASE_DIR
 JAVA=`which java`
 LATEST=`ls target/structr-ui-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
@@ -19,7 +19,7 @@ VERSION=${LATEST#target/structr-ui-};VERSION=${VERSION%%.jar}
 STRUCTR="-Djava.awt.headless=true -Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Djava.util.logging.config.file=logging.properties.debug -Dorg.apache.sshd.registerBouncyCastle=false -cp target/lib/*:$LATEST org.structr.Server"
 STRUCTR_ARGS="-server -d64 -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:+UseNUMA -XX:+UseG1GC -Dinstance=$NAME"
 
-PIDFILE=$BASE_DIR/structrdb-$NAME.pid
+PIDFILE=$BASE_DIR/structr-$NAME.pid
 LOGS_DIR=$BASE_DIR/logs
 SERVER_LOG=$BASE_DIR/logs/server.log
 
