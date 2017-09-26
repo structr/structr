@@ -21,6 +21,7 @@ package org.structr.csv.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.internal.RestAssuredResponseImpl;
+import java.util.List;
 import static junit.framework.TestCase.assertEquals;
 import org.apache.commons.lang3.StringEscapeUtils;
 import static org.junit.Assert.assertNotNull;
@@ -141,7 +142,7 @@ public class CsvTest extends StructrCsvTest {
 			+ "\"cd512cb9b7a44d65928794ac2dc9b383\";\"TestOne\";\"TestOne-3\";\"3\";\"30\";\"2012-09-18T02:33:12+0000\"\n"
 			+ "\"673a27250c204995b4ba6c72edb1df66\";\"TestOne\";\"TestOne-4\";\"4\";\"40\";\"2012-09-18T03:33:12+0000\"\n"
 			+ "\"9db92fff48df47db8ab81e0847f551ba\";\"TestOne\";\"TestOne-5\";\"5\";\"50\";\"2012-09-18T04:33:12+0000\"";
-	
+
 	@Test
 	public void test01InitServlet() {
 
@@ -304,6 +305,72 @@ public class CsvTest extends StructrCsvTest {
 
 			final int testOneCount = app.nodeQuery(TestOne.class).getAsList().size();
 			assertEquals(5, testOneCount);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail();
+		}
+
+	}
+
+	/**
+	 * Test CSV import with default settings and paging
+	 */
+	@Test
+	public void test03CsvImportDefaultSettingsAndPaging01() {
+
+		RestAssured
+			.given()
+				.contentType("text/csv; charset=UTF-8")
+				.header(CsvServlet.DEFAULT_RANGE_HEADER_NAME, "2-3")
+				.body(testOneCSVWithDefaultCharacters5EntriesNoError)
+			.expect()
+				.statusCode(201)
+			.when()
+			.post("http://" + host + ":" + httpPort + csvUrl + testOneResource);
+
+		try (final Tx tx = app.tx()) {
+
+
+			final List<TestOne> result = app.nodeQuery(TestOne.class).getAsList();
+
+			assertEquals(2, result.size());
+			assertEquals("a3e07672b1064c28a1093b7024c7087d", result.get(0).getUuid());
+			assertEquals("cd512cb9b7a44d65928794ac2dc9b383", result.get(1).getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail();
+		}
+
+	}
+
+	/**
+	 * Test CSV import with default settings and paging
+	 */
+	@Test
+	public void test03CsvImportDefaultSettingsAndPaging02() {
+
+		RestAssured
+			.given()
+				.contentType("text/csv; charset=UTF-8")
+				.header(CsvServlet.DEFAULT_RANGE_HEADER_NAME, "1,2,4")
+				.body(testOneCSVWithDefaultCharacters5EntriesNoError)
+			.expect()
+				.statusCode(201)
+			.when()
+			.post("http://" + host + ":" + httpPort + csvUrl + testOneResource);
+
+		try (final Tx tx = app.tx()) {
+
+			final List<TestOne> result = app.nodeQuery(TestOne.class).getAsList();
+
+			assertEquals(3, result.size());
+			assertEquals("0979aebeb9ae42a7b3594db3da12875e", result.get(0).getUuid());
+			assertEquals("a3e07672b1064c28a1093b7024c7087d", result.get(1).getUuid());
+			assertEquals("673a27250c204995b4ba6c72edb1df66", result.get(2).getUuid());
 
 			tx.success();
 
@@ -875,5 +942,5 @@ public class CsvTest extends StructrCsvTest {
 //		}
 //
 //	}
-//	
+//
 }

@@ -37,6 +37,7 @@ $(document).ready(function() {
 var Importer = {
 	_moduleName: 'importer',
 	appDataXMLKey: 'xml-import-config',
+	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
 
 	init: function() {
@@ -138,73 +139,28 @@ var Importer = {
 		return '<button class="import-job-action" data-action="' + action + '" data-job-id="' + jobId + '">' + content + '</button>';
 	},
 
-	initializeButtons: function(start, next, prev, cancel, configurations, configuration) {
+	initializeButtons: function(start, next, prev, close) {
 
-		dialogCancelButton.addClass('hidden');
-
-		if (start) {
-			dialogBtn.append('<button id="start-import">Start import</button>');
+		if (prev) {
+			dialogBtn.prepend('<button id="prev-element">Previous</button>');
 		}
 
 		if (next) {
-			dialogBtn.append('<button id="next-element">Next</button>');
+			dialogBtn.prepend('<button id="next-element">Next</button>');
 		}
 
-		if (prev) {
-			dialogBtn.append('<button id="prev-element">Previous</button>');
+		if (start) {
+			dialogBtn.prepend('<button id="start-import">Start import</button>');
 		}
 
-		if (cancel) {
-			dialogBtn.append('<button id="cancel-button">Cancel</button>');
-		}
+		if (!close) {
 
-		if (configurations) {
+			dialogCancelButton.addClass('hidden');
 
-			dialogBox.append(
-				'<div id="xml-configurations">' +
-				'<select id="load-xml-config-name">' +
-				'<option value="">--- Select configuration to load ---</option>' +
-				'</select>' +
-				'<button id="load-xml-config-button">Load</button>' +
-				'<input id="xml-config-name" type="text" placeholder="Enter name for configuration" />' +
-				'<button id="save-xml-config">Save</button>' +
-				'</div>');
+		} else {
 
-			Command.appData('list', Importer.appDataXMLKey, null, null, function(result) {
-
-				result[0].names.forEach(function(v) {
-					$('#load-xml-config-name').append('<option>' + v + '</option>');
-				});
-			});
-
-			$('#load-xml-config-button').on('click', function() {
-
-				var name = $('#load-xml-config-name').val();
-				if (name && name.length) {
-
-					Command.appData('get', Importer.appDataXMLKey, name, null, function(result) {
-						if (result && result.value) {
-							var config = JSON.parse(result.value);
-							Object.keys(config).forEach(function(k) {
-								configuration[k] = config[k];
-
-								switch (configuration[k].action) {
-									case 'createNode':
-										Importer.updateStructureSelector('', k, configuration[k].type);
-										break;
-
-									case 'setProperty':
-										Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
-										break;
-
-									default:
-										console.log("Unknown action: ", configuration[k].action);
-								}
-							});
-						}
-					});
-				}
-			});
+			// bind restore buttons event to existing cancel button
+			dialogCancelButton.on('click', Importer.restoreButtons);
 		}
 
 	},
@@ -213,27 +169,108 @@ var Importer = {
 		$('#start-import').remove();
 		$('#next-element').remove();
 		$('#prev-element').remove();
-		$('#cancel-button').remove();
 		$('#xml-configurations').remove();
 	},
 	importCSVDialog: function(file) {
 
 		Structr.dialog('Import CSV from ' + file.name, function() {}, function() {});
-
 		dialog.append('<div id="csv-import"><div id="sample"></div></div>');
-
 		Importer.initializeButtons(true, false, false, true);
 
-		$('#cancel-button').on('click', function() {
-			// close dialog
-			$.unblockUI({
-				fadeOut: 25
+		dialogBox.append(
+			'<div id="csv-configurations">' +
+			'<select id="load-csv-config-name">' +
+			'<option value="">--- Select configuration to load ---</option>' +
+			'</select>' +
+			'<button id="load-csv-config-button">Load</button>' +
+			'<button id="delete-csv-config-button">Delete</button>' +
+			'<input id="csv-config-name" type="text" placeholder="Enter name for configuration" />' +
+			'<button id="save-csv-config">Save</button>' +
+			'</div>');
+
+		Command.appData('list', Importer.appDataCSVKey, null, null, function(result) {
+
+			result[0].names.forEach(function(v) {
+				$('#load-csv-config-name').append('<option>' + v + '</option>');
 			});
-			Importer.restoreButtons();
 		});
 
-		var container       = $('#csv-import');
-		var sample          = $('#sample');
+		$('#load-csv-config-button').on('click', function() {
+
+			var name = $('#load-csv-config-name').val();
+			if (name && name.length) {
+
+				Command.appData('get', Importer.appDataCSVKey, name, null, function(result) {
+
+					if (result && result.value) {
+
+						var config = JSON.parse(result.value);
+
+						$('#delimiter').val(config.delimiter);
+						$('#quote-char').val(config.quoteChar);
+						$('#record-separator').val(config.recordSeparator);
+						$('#target-type-select').val(config.targetType).trigger('change', [config]);
+						$('#commit-interval').val(config.commitInterval)
+						$('#ignore-invalid').prop('checked', config.ignoreInvalid),
+						$('#range').val(config.range)
+					}
+				});
+			}
+		});
+
+		$('#save-csv-config').on('click', function() {
+
+			var name = $('#csv-config-name').val();
+			if (name && name.length) {
+
+				// collect mappings and transforms
+				var mappings   = {};
+				var transforms = {};
+
+				$('select.attr-mapping').each(function(i, elem) {
+
+					var e     = $(elem);
+					var name  = e.prop('name');
+					var value = e.val();
+
+					if (value && value.length) {
+						mappings[name] = value;
+					}
+
+					var transform = $('input#transform' + i).val();
+					if (transform && transform.length) {
+						transforms[name] = transform;
+					}
+				});
+
+				// mode, category, name, value, callback
+				Command.appData('add', Importer.appDataCSVKey, name, JSON.stringify({
+					delimiter: $('#delimiter').val(),
+					quoteChar: $('#quote-char').val(),
+					recordSeparator: $('#record-separator').val(),
+					targetType: $('#target-type-select').val(),
+					commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+					ignoreInvalid: $('#ignore-invalid').prop('checked'),
+					range: $('#range').val(),
+					mappings: mappings,
+					transforms: transforms
+				}));
+			}
+		});
+
+		$('#delete-csv-config-button').on('click', function() {
+
+			var name = $('#load-csv-config-name').val();
+			if (name && name.length) {
+
+				Command.appData('delete', Importer.appDataCSVKey, name, null, function(result) {
+					$('#load-csv-config-name option:selected').remove();
+				});
+			}
+		});
+
+		var container = $('#csv-import');
+		var sample    = $('#sample');
 
 		// load first lines to display a sample of the data
 		$.post(rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
@@ -249,10 +286,19 @@ var Importer = {
 
 				// import options
 				container.append('<h3>Import Options</h3>');
-				container.append('<label>Delimiter: <select id="delimiter" class="import-option"><option' + (delim === ',' ? ' selected' : '') + '>,</option><option' + (delim === ';' ? ' selected' : '') + '>;</option><option' + (delim === '|' ? ' selected' : '') + '>|</option></select></label>');
-				container.append('<label>Quote character: <select id="quote-char" class="import-option"><option' + (qc === '"' ? ' selected' : '') + '>&quot;</option><option' + (qc === '\'' ? ' selected' : '') + '>\'</option></select></label>');
-				container.append('<label>Record separator: <select id="record-separator" class="import-option"></select></label>');
-				container.append('<label>Commit Interval: <input type="number" id="commit-interval" value="1000" placeholder="1000"></label>');
+				container.append('<table id="csv-import"><tbody><tr id="options-row1"></tr><tr id="options-row2"></tr></tbody></table>');
+
+				var row1 = $('#options-row1');
+				var row2 = $('#options-row2');
+
+				row1.append('<td><label>Delimiter:</label><select id="delimiter" class="import-option"><option' + (delim === ',' ? ' selected' : '') + '>,</option><option' + (delim === ';' ? ' selected' : '') + '>;</option><option' + (delim === '|' ? ' selected' : '') + '>|</option></select></td>');
+				row1.append('<td><label>Quote character:</label><select id="quote-char" class="import-option"><option' + (qc === '"' ? ' selected' : '') + '>&quot;</option><option' + (qc === '\'' ? ' selected' : '') + '>\'</option></select></td>');
+				row1.append('<td><label>Record separator:</label><select id="record-separator" class="import-option"></select></td>');
+
+				row2.append('<td><label>Commit interval:</label><input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit."></td>');
+				row2.append('<td><label>Ignore invalid lines:</label><input type="checkbox" id="ignore-invalid" /></td>');
+				row2.append('<td><label>Line range:</label><input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" /></td>');
+				row2.append('</tr></tbody></table>');
 
 				// target selection
 				container.append('<h3>Select target type</h3>');
@@ -266,7 +312,6 @@ var Importer = {
 				);
 
 				var targetTypeSelector = $('#target-type-select');
-				var propertySelector   = $('#property-select');
 
 				$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
 
@@ -279,84 +324,91 @@ var Importer = {
 					}
 				});
 
-				var updateMapping = function() {
+				targetTypeSelector.on('change', function(e, data) { Importer.updateMapping(file, data) });
+				$(".import-option", container).on('change', function(e, data) { Importer.updateMapping(file, data) });
+			}
+		});
+	},
+	updateMapping: function(file, data) {
 
-					var type = targetTypeSelector.val();
-					if (!type) {
-						return;
-					};
+		var targetTypeSelector = $('#target-type-select');
+		var propertySelector   = $('#property-select');
+		var type               = targetTypeSelector.val();
 
-					propertySelector.empty();
+		// dont do anything if there is no type set
+		if (!type) {
+			return;
+		};
 
-					$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
-						delimiter: $('#delimiter').val(),
-						quoteChar: $('#quote-char').val(),
-						recordSeparator: $('#record-separator').val()
-					}), function(csvHeaders) {
+		// clear current mapping list
+		propertySelector.empty();
 
-						propertySelector.append('<h3>Select Mapping</h3>');
-						propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+		$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
 
-						var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
-						Structr.appendInfoTextToElement({
-							text: helpText,
-							element: $('th.transform-head', propertySelector),
-							css: {
-								marginLeft: "2px"
+			delimiter: $('#delimiter').val(),
+			quoteChar: $('#quote-char').val(),
+			recordSeparator: $('#record-separator').val()
+
+		}), function(csvHeaders) {
+
+			propertySelector.append('<h3>Select Mapping</h3>');
+			propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
+
+			var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
+			Structr.appendInfoTextToElement({
+				text: helpText,
+				element: $('th.transform-head', propertySelector),
+				css: {
+					marginLeft: "2px"
+				}
+			});
+
+			if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
+
+				var names      = [];
+				var typeConfig = {};
+
+				if (data) {
+					typeConfig['properties'] = data.mappings;
+					typeConfig['mappings']   = data.transforms;
+				};
+
+				Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, typeConfig, function() {
+
+					$('#start-import').on('click', function() {
+
+						var mappings   = {};
+						var transforms = {};
+
+						$('select.attr-mapping').each(function(i, elem) {
+
+							var e     = $(elem);
+							var name  = names[i];
+							var value = e.val();
+
+							// property mappings need to be from source type to target name
+							if (value && value.length) {
+								mappings[value] = name;
+							}
+
+							var transform = $('input#transform' + i).val();
+							if (transform && transform.length) {
+								transforms[value] = transform;
 							}
 						});
 
-						if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
-
-							var names = [];
-
-							Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, {}, function() {
-
-								$('#start-import').on('click', function() {
-
-									var mappings = {};
-									var transforms = {};
-
-									$('select.attr-mapping').each(function(i, elem) {
-
-										var e     = $(elem);
-										var name  = names[i];
-										var value = e.val();
-
-										// property mappings need to be from source type to target type
-										if (value && value.length) {
-											mappings[value] = name;
-										}
-
-										var transform = $('input#transform' + i).val();
-										if (transform && transform.length) {
-											transforms[value] = transform;
-										}
-									});
-
-									$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
-										targetType: type,
-										delimiter: $('#delimiter').val(),
-										quoteChar: $('#quote-char').val(),
-										commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
-										mappings: mappings,
-										transforms: transforms
-									}), function(data) {
-										$.unblockUI({
-											fadeOut: 25
-										});
-										Importer.restoreButtons();
-									});
-								});
-							});
-						}
+						$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
+							targetType: type,
+							delimiter: $('#delimiter').val(),
+							quoteChar: $('#quote-char').val(),
+							commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+							ignoreInvalid: $('#ignore-invalid').prop('checked'),
+							range: $('#range').val(),
+							mappings: mappings,
+							transforms: transforms
+						}));
 					});
-				};
-
-				targetTypeSelector.on('change', updateMapping);
-				$(".import-option", container).on('change', updateMapping);
-
-
+				});
 			}
 		});
 	},
@@ -384,7 +436,15 @@ var Importer = {
 					rowContainer.append(
 						'<tr>' +
 							'<td class="key">' + inputPropertyName + '</td>' +
-							(displayTransformInput ? '<td class="transform"><input type="text" id="transform' + i + '" /></td>' : '') +
+							(displayTransformInput ?
+								'<td class="transform"><input type="text" name="' +
+								inputPropertyName +
+								'" id="transform' +
+								i +
+								'" value="' +
+								(typeConfig && typeConfig.mappings && typeConfig.mappings[inputPropertyName] ? typeConfig.mappings[inputPropertyName] : '') +
+								'" /></td>' : ''
+							) +
 							'<td>' +
 								'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
 									'<option value="">-- skip --</option>' +
@@ -406,9 +466,9 @@ var Importer = {
 							// match with longest target property wins
 							if (Importer.checkSelection(typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
 
-								selectedString = ' selected="selected"';
-								longestMatch   = info.jsonName.length;
-								mapping[inputPropertyName]     = info.jsonName;
+								selectedString             = ' selected="selected"';
+								longestMatch               = info.jsonName.length;
+								mapping[inputPropertyName] = info.jsonName;
 
 							} else {
 								selectedString = '';
@@ -449,7 +509,56 @@ var Importer = {
 		var configuration = {};
 
 		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
-		Importer.initializeButtons(true, true, true, true, true, configuration);
+
+		Importer.initializeButtons(true, true, true, true, true);
+
+		dialogBox.append(
+			'<div id="xml-configurations">' +
+			'<select id="load-xml-config-name">' +
+			'<option value="">--- Select configuration to load ---</option>' +
+			'</select>' +
+			'<button id="load-xml-config-button">Load</button>' +
+			'<button id="delete-xml-config-button">Delete</button>' +
+			'<input id="xml-config-name" type="text" placeholder="Enter name for configuration" />' +
+			'<button id="save-xml-config">Save</button>' +
+			'</div>');
+
+		Command.appData('list', Importer.appDataXMLKey, null, null, function(result) {
+
+			result[0].names.forEach(function(v) {
+				$('#load-xml-config-name').append('<option>' + v + '</option>');
+			});
+		});
+
+		$('#load-xml-config-button').on('click', function() {
+
+			var name = $('#load-xml-config-name').val();
+			if (name && name.length) {
+
+				Command.appData('get', Importer.appDataXMLKey, name, null, function(result) {
+					if (result && result.value) {
+						var config = JSON.parse(result.value);
+						Object.keys(config).forEach(function(k) {
+							configuration[k] = config[k];
+
+							switch (configuration[k].action) {
+								case 'createNode':
+									Importer.updateStructureSelector('', k, configuration[k].type);
+									break;
+
+								case 'setProperty':
+									Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
+									break;
+
+								default:
+									console.log("Unknown action: ", configuration[k].action);
+							}
+						});
+					}
+				});
+			}
+		});
+
 		dialog.append('<div id="xml-import"></div>');
 
 		$('#cancel-button').on('click', function() {
@@ -478,18 +587,9 @@ var Importer = {
 
 		$('#start-import').on('click', function() {
 
-			$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {
-				$.unblockUI({
-					fadeOut: 25
-				});
-				Importer.restoreButtons();
-			});
+			$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
 		});
 
-		/*
-		'<input id="xml-config-name" type="text" placeholder="Enter name for configuration" />' +
-		'<button id="save-xml-config">Save</button>' +
-		*/
 		$('#save-xml-config').on('click', function() {
 
 			var name = $('#xml-config-name').val();
@@ -500,7 +600,16 @@ var Importer = {
 			}
 		});
 
+		$('#delete-xml-config-button').on('click', function() {
 
+			var name = $('#load-xml-config-name').val();
+			if (name && name.length) {
+
+				Command.appData('delete', Importer.appDataXMLKey, name, null, function(result) {
+					$('#load-xml-config-name option:selected').remove();
+				});
+			}
+		});
 
 		var container = $('#xml-import');
 
@@ -551,8 +660,6 @@ var Importer = {
 						);
 
 						$('td[data-name="' + localPath + '"]').on('click', function() {
-
-							console.log("HERE", localPath);
 
 							$('td.xml-mapping').removeClass('selected');
 							$(this).addClass('selected');

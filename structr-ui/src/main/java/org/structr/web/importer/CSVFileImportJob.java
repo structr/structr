@@ -53,9 +53,9 @@ public class CSVFileImportJob extends ImportJob {
 	@Override
 	public boolean runInitialChecks () throws FrameworkException {
 
-		final String targetType = getOrDefault(configuration.get("targetType"), null);
-		final String delimiter  = getOrDefault(configuration.get("delimiter"), ";");
-		final String quoteChar  = getOrDefault(configuration.get("quoteChar"), "\"");
+		final String targetType    = getOrDefault(configuration.get("targetType"), null);
+		final String delimiter     = getOrDefault(configuration.get("delimiter"), ";");
+		final String quoteChar     = getOrDefault(configuration.get("quoteChar"), "\"");
 
 		if (targetType == null || delimiter == null || quoteChar == null) {
 
@@ -85,6 +85,7 @@ public class CSVFileImportJob extends ImportJob {
 			final String targetType                  = getOrDefault(configuration.get("targetType"), null);
 			final String delimiter                   = getOrDefault(configuration.get("delimiter"), ";");
 			final String quoteChar                   = getOrDefault(configuration.get("quoteChar"), "\"");
+			final String range                       = getOrDefault(configuration.get("range"), "");
 			final Integer commitInterval             = parseInt(configuration.get("commitInterval"), 1000);
 
 			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
@@ -111,7 +112,7 @@ public class CSVFileImportJob extends ImportJob {
 				final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
 				final char fieldSeparator          = delimiter.charAt(0);
 				final char quoteCharacter          = quoteChar.charAt(0);
-				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, reverse(importMappings));
+				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings));
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
 				int overallCount                   = 0;

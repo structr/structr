@@ -4612,6 +4612,20 @@ div#xml-import {
 	padding-left: 12px;
 }
 
+table#csv-import,
+table#csv-import {
+	width: 100%;
+}
+
+table#csv-import td {
+	padding: 0 0 12px 0;
+}
+
+table#csv-import label {
+	display: inline-block;
+	min-width: 120px !important;
+}
+
 div#xml-import h2, div#xml-import h3 {
 	margin-bottom: 0;
 }
@@ -4669,8 +4683,9 @@ button#run-method {
 	margin-left: 24px;
 }
 
-button#cancel-button {
-	margin-right: 24px;
+button#start-import,
+button#prev-element {
+	margin-left: 36px;
 }
 
 div#xml-config p.hint {
@@ -4681,6 +4696,7 @@ div#xml-config label {
 	width: 55%;
 }
 
+div#csv-configurations,
 div#xml-configurations {
 	padding: 0;
 	margin: 0;
@@ -4690,12 +4706,15 @@ div#xml-configurations {
 	text-align: left;
 }
 
+div#csv-configurations input,
 div#xml-configurations input {
 	padding: 3px 2px 2px 4px;
 	width: 100px;
 	vertical-align: bottom;
+	margin-left: 36px;
 }
 
+div#csv-configurations select,
 div#xml-configurations select {
 	width: 100px;
 	vertical-align: bottom;
@@ -4705,9 +4724,10 @@ div#xml-configurations select {
 	border: 1px solid #ddd;
 }
 
+div#csv-configurations button,
 div#xml-configurations button {
 	padding-left: 8px;
-	margin: 0 24px 0 12px;
+	margin: 0 0 0 12px;
 }
 
 /**
