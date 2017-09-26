@@ -105,5 +105,9 @@
 			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/su</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
+		<file>
+			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/docker.sh</source>
+			<outputDirectory>/bin</outputDirectory>
+		</file>
 	</files>
 </assembly>
