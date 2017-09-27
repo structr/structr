@@ -83,6 +83,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String DEFAULT_QUOTE_CHARACTER_HEADER_NAME          = "X-CSV-Quote-Character";
 	public static final String DEFAULT_PERIODIC_COMMIT_HEADER_NAME          = "X-CSV-Periodic-Commit";
 	public static final String DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME = "X-CSV-Periodic-Commit-Interval";
+	public static final String DEFAULT_RANGE_HEADER_NAME                    = "X-CSV-Range";
 
 	public static final char DEFAULT_FIELD_SEPARATOR = ';';
 	public static final char DEFAULT_QUOTE_CHARACTER = '"';
@@ -287,6 +288,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 		final boolean doPeriodicCommit            = (doPeridicCommitHeader == null) ? DEFAULT_PERIODIC_COMMIT : Boolean.parseBoolean(doPeridicCommitHeader);
 		final String periodicCommitIntervalHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME);
 		final int periodicCommitInterval          = (periodicCommitIntervalHeader == null) ? DEFAULT_PERIODIC_COMMIT_INTERVAL : Integer.parseInt(periodicCommitIntervalHeader);
+		final String rangeHeader                  = request.getHeader(DEFAULT_RANGE_HEADER_NAME);
 		final List<RestMethodResult> results      = new LinkedList<>();
 
 		final Authenticator authenticator;
@@ -339,7 +341,7 @@ public class CsvServlet extends HttpServlet implements HttpServiceServlet {
 
 					retry = false;
 
-					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, resource.getEntityClass(), fieldSeparator, quoteCharacter);
+					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, resource.getEntityClass(), fieldSeparator, quoteCharacter, rangeHeader);
 
 					if (resource.createPostTransaction()) {
 

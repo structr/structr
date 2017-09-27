@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.RangesIterator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.logger;
@@ -39,11 +40,11 @@ import static org.structr.rest.servlet.CsvServlet.DEFAULT_QUOTE_CHARACTER_COLLEC
 
 public class CsvHelper {
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final char fieldSeparator, final char quoteCharacter) throws FrameworkException, IOException {
-		return cleanAndParseCSV(securityContext, input, type, fieldSeparator, quoteCharacter, null);
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final char fieldSeparator, final char quoteCharacter, final String range) throws FrameworkException, IOException {
+		return cleanAndParseCSV(securityContext, input, type, fieldSeparator, quoteCharacter, range, null);
 	}
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final char fieldSeparator, final char quoteCharacter, final Map<String, String> propertyMapping) throws FrameworkException, IOException {
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final char fieldSeparator, final char quoteCharacter, final String range, final Map<String, String> propertyMapping) throws FrameworkException, IOException {
 
 		final BufferedReader reader  = new BufferedReader(input);
 		final String headerLine      = reader.readLine();
@@ -55,93 +56,16 @@ public class CsvHelper {
 			@Override
 			public Iterator<JsonInput> iterator() {
 
-				return new Iterator<JsonInput>() {
+				final Iterator<JsonInput> iterator = new CsvIterator(reader, parser, propertyNames, propertyMapping, type, securityContext.getUser(false).getName());
 
-					String line = null;
+				if (StringUtils.isNotBlank(range)) {
 
-					@Override
-					public boolean hasNext() {
+					return new RangesIterator<>(iterator, range);
 
-						// return true if the line has not yet been consumed
-						// (calling hasNext() more than once may not alter the
-						// result of the next next() call!)
-						if (line != null) {
-							return true;
-						}
+				} else {
 
-						try {
-
-							line = reader.readLine();
-
-							return StringUtils.isNotBlank(line);
-
-						} catch (IOException ioex) {
-							logger.warn("", ioex);
-						}
-
-						return false;
-					}
-
-					@Override
-					public JsonInput next() {
-
-						try {
-
-							if (StringUtils.isNotBlank(line)) {
-
-								final JsonInput jsonInput = new JsonInput();
-								final String[] columns    = parser.parseLine(line);
-								final int len             = columns.length;
-
-								for (int i=0; i<len; i++) {
-
-									final String key = propertyNames[i];
-									String targetKey = key;
-
-									// map key name to its transformed name
-									if (propertyMapping != null && propertyMapping.containsKey(key)) {
-										targetKey = propertyMapping.get(key);
-									}
-
-									if (StructrApp.getConfiguration().getPropertyKeyForJSONName(type, targetKey).isCollection()) {
-
-										// if the current property is a collection, split it into its parts
-										jsonInput.add(key, extractArrayContentsFromArray(columns[i], key));
-
-									} else {
-										jsonInput.add(key, columns[i]);
-									}
-								}
-
-								return jsonInput;
-							}
-
-						} catch (IOException ioex) {
-							logger.warn("Exception in CSV line: {}", line);
-							logger.warn("", ioex);
-
-							final Map<String, Object> data = new LinkedHashMap();
-							data.put("type", "CSV_IMPORT_ERROR");
-							data.put("title", "CSV Import Error");
-							data.put("text", "Error occured with dataset: " + line);
-							data.put("username", securityContext.getUser(false).getName());
-							TransactionCommand.simpleBroadcastGenericMessage(data);
-
-						} finally {
-
-							// mark line as "consumed"
-							line = null;
-						}
-
-						return null;
-					}
-
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException("Removal not supported.");
-					}
-
-				};
+					return iterator;
+				}
 			}
 		};
 	}
@@ -175,7 +99,113 @@ public class CsvHelper {
 		} else {
 			return "";
 		}
-
 	}
 
+	// ----- nested classes -----
+	private static class CsvIterator implements Iterator<JsonInput> {
+
+		private Map<String, String> propertyMapping = null;
+		private BufferedReader reader               = null;
+		private CSVParser parser                    = null;
+		private String[] propertyNames              = null;
+		private String userName                     = null;
+		private String line                         = null;
+		private Class type                          = null;
+
+		public CsvIterator(final BufferedReader reader, final CSVParser parser, final String[] propertyNames, final Map<String, String> propertMapping, final Class type, final String userName) {
+
+			this.propertyMapping = propertMapping;
+			this.propertyNames   = propertyNames;
+			this.userName        = userName;
+			this.reader          = reader;
+			this.parser          = parser;
+			this.type            = type;
+		}
+
+		@Override
+		public boolean hasNext() {
+
+			// return true if the line has not yet been consumed
+			// (calling hasNext() more than once may not alter the
+			// result of the next next() call!)
+			if (line != null) {
+				return true;
+			}
+
+			try {
+
+				line = reader.readLine();
+
+				return StringUtils.isNotBlank(line);
+
+			} catch (IOException ioex) {
+				logger.warn("", ioex);
+			}
+
+			return false;
+		}
+
+		@Override
+		public JsonInput next() {
+
+			try {
+
+				if (StringUtils.isNotBlank(line)) {
+
+					final JsonInput jsonInput = new JsonInput();
+					final String[] columns    = parser.parseLine(line);
+					final int len             = columns.length;
+
+					for (int i=0; i<len; i++) {
+
+						final String key = propertyNames[i];
+						String targetKey = key;
+
+						// map key name to its transformed name
+						if (propertyMapping != null && propertyMapping.containsKey(key)) {
+							targetKey = propertyMapping.get(key);
+						}
+
+						if (StructrApp.getConfiguration().getPropertyKeyForJSONName(type, targetKey).isCollection()) {
+
+							// if the current property is a collection, split it into its parts
+							jsonInput.add(key, extractArrayContentsFromArray(columns[i], key));
+
+						} else {
+
+							jsonInput.add(key, columns[i]);
+						}
+					}
+
+					return jsonInput;
+				}
+
+			} catch (Throwable t) {
+
+				logger.warn("Exception in CSV line: {}", line);
+				logger.warn("", t);
+
+				final Map<String, Object> data = new LinkedHashMap();
+
+				data.put("type",     "CSV_IMPORT_ERROR");
+				data.put("title",    "CSV Import Error");
+				data.put("text",     "Error occured with dataset: " + line);
+				data.put("username", userName);
+
+				TransactionCommand.simpleBroadcastGenericMessage(data);
+
+			} finally {
+
+				// mark line as "consumed"
+				line = null;
+			}
+
+			return null;
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException("Removal not supported.");
+		}
+	}
 }

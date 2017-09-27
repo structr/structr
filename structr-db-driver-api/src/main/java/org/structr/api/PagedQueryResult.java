@@ -19,7 +19,7 @@
 package org.structr.api;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
+import org.structr.api.util.PagingIterator;
 
 public class PagedQueryResult<T> implements QueryResult<T> {
 	private final QueryResult<T> result;
@@ -41,68 +41,4 @@ public class PagedQueryResult<T> implements QueryResult<T> {
 	public Iterator<T> iterator() {
 		return new PagingIterator(result.iterator(), page, pageSize);
 	}
-
-	// Custom iterator for Query Results
-	private class PagingIterator<T> implements Iterator<T> {
-		
-		private final Iterator<T> iterator;
-		private final int page;
-		private final int pageSize;
-		private int currentIndex;
-
-		public PagingIterator(final Iterator<T> iterator, final int page, final int pageSize) {
-			this.currentIndex = 0;
-			this.iterator = iterator;
-			this.page = page;
-			this.pageSize = pageSize;
-			//On initialization forward iterator to page offset.
-			iterateToOffset();
-		}
-
-		private void iterateToOffset() {
-			while(currentIndex < getOffset() && iterator.hasNext()) {
-				iterator.next();
-				currentIndex++;
-			}
-		}
-
-		private int getOffset() {
-			if(page == 0) {
-				return 0;
-			} else if(page  > 0) {
-				return pageSize == Integer.MAX_VALUE ? 0 : (page - 1) * pageSize;
-			}
-			return 0;
-		}
-
-		private int getLimitOffset() {
-			//For positive paging, reverse paging needs an alternative implementation
-			return getOffset()+pageSize;
-		}
-
-		@Override
-		public boolean hasNext() {
-			//Iterator was exhausted before starting offset was reached.
-			if(currentIndex < getOffset() && !iterator.hasNext()) {
-				return false;
-			} else if(currentIndex >= getOffset() && currentIndex < getLimitOffset()) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-
-		@Override
-		public T next() {
-			if(hasNext()) {
-				T next = iterator.next();
-				currentIndex++;
-				return next;
-			} else {
-				throw new NoSuchElementException("No element available for next() call!");
-			}
-		}
-
-	}
-
 }
