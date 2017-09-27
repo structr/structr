@@ -176,17 +176,19 @@
 			<plugin>
 				<groupId>com.spotify</groupId>
 				<artifactId>dockerfile-maven-plugin</artifactId>
+				<version>1.3.6</version>
 				<executions>
 					<execution>
-						<id>default</id>
+						<id>package</id>
+						<phase>install</phase>
 						<goals>
 							<goal>build</goal>
-							<!--<goal>push</goal>-->
+							<goal>push</goal>
 						</goals>
 					</execution>
 				</executions>
 				<configuration>
-					<repository>structr</repository>
+					<repository>structr/structr</repository>
 					<tag>${project.version}</tag>
 					<skip>${skipDocker}</skip>
 					<buildArgs>
@@ -324,7 +326,7 @@
 		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
 	</scm>
 
-	<distributionManagement>
+<!--	<distributionManagement>
 		<repository>
 			<id>sonatype-nexus-staging</id>
 			<name>Maven Central Staging</name>
@@ -335,6 +337,6 @@
 			<name>Maven Central Snapshots</name>
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
-	</distributionManagement>
+	</distributionManagement>-->
 
 </project>
