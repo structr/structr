@@ -245,14 +245,21 @@ ul#submenu.visible {
 
 #submenu li {
 	border: 1px solid grey;
-	padding: 0 20px;
 	background: #363636;
+}
+
+#submenu li:not(.active):hover {
+	background: #444;
 }
 
 #submenu li a {
 	text-decoration: none;
 	font-weight: bold;
 	color: #fff;
+	display: block;
+	width: calc(100% - 20px);
+	height: 100%;
+	padding-left: 20px;
 }
 
 #submenu li.active {
