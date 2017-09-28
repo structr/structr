@@ -38,6 +38,7 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
@@ -157,6 +158,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		RelationshipWrapper.initialize(relCacheSize);
 		logger.info("Relationship cache size set to {}", relCacheSize);
+
+		// drop :NodeInterface index and create uniqueness constraint
+		// disabled, planned for Structr 2.4
+		//createUUIDConstraint();
 	}
 
 	@Override
@@ -441,6 +446,28 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	// ----- private methods -----
+	private void createUUIDConstraint() {
+
+		// add UUID uniqueness constraint
+		try (final Session session = driver.session()) {
+
+			// this call may fail silently (e.g. if the index does not exist yet)
+			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+
+				tx.run("DROP INDEX ON :NodeInterface(id)");
+				tx.success();
+
+			} catch (Throwable t) { }
+
+			// this call may NOT fail silently, hence we don't catch any exceptions
+			try (final org.neo4j.driver.v1.Transaction tx = session.beginTransaction()) {
+
+				tx.run("CREATE CONSTRAINT ON (node:NodeInterface) ASSERT node.id IS UNIQUE");
+				tx.success();
+			}
+		}
+	}
+
 	private Properties getProperties() {
 
 		if (globalGraphProperties == null) {

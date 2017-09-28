@@ -1266,8 +1266,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		boolean valid = true;
 
+		// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
 		valid &= ValidationHelper.isValidStringNotBlank(this, id, errorBuffer);
 		valid &= ValidationHelper.isValidGloballyUniqueProperty(this, id, errorBuffer);
+
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, id, "[a-fA-F0-9]{32}", errorBuffer);
 		valid &= ValidationHelper.isValidStringNotBlank(this, type, errorBuffer);
 

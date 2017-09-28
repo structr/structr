@@ -109,7 +109,7 @@ public class NodeService implements SingletonService {
 
 			} catch (Throwable t) {
 
-				logger.warn("Error while initializing indexes.");
+				logger.warn("Error while initializing indexes: {}", t.getMessage());
 			}
 
 			if (isInitialized) {

@@ -781,6 +781,9 @@ public class BasicTest extends StructrTest {
 			}
 
 		} catch (FrameworkException ex) {
+
+			// validate exception
+			ex.printStackTrace();
 		}
 
 	}

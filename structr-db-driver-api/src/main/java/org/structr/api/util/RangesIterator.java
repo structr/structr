@@ -23,7 +23,6 @@ import java.util.NoSuchElementException;
 
 /**
 */
-// Custom iterator for Query Results
 public class RangesIterator<T> implements Iterator<T> {
 
 	private final Iterator<T> iterator;

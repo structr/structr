@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
+import org.structr.api.ConstraintViolationException;
 import org.structr.api.graph.Node;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
@@ -160,7 +161,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 	}
 
 	// ----- private methods -----
-	private Node createNode(final DatabaseService graphDb, final Principal user, final Class nodeType, final Set<String> labels, final Map<String, Object> properties) {
+	private Node createNode(final DatabaseService graphDb, final Principal user, final Class nodeType, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
 		final Map<String, Object> parameters         = new HashMap<>();
 		final Map<String, Object> ownsProperties     = new HashMap<>();
@@ -218,12 +219,18 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		parameters.put("nodeProperties", properties);
 
 		final NativeResult result = graphDb.execute(buf.toString(), parameters);
-		if (result.hasNext()) {
+		try {
 
-			final Map<String, Object> data = result.next();
-			final Node newNode             = (Node)data.get("n");
+			if (result.hasNext()) {
 
-			return newNode;
+				final Map<String, Object> data = result.next();
+				final Node newNode             = (Node)data.get("n");
+
+				return newNode;
+			}
+
+		} catch (ConstraintViolationException qex) {
+			throw new FrameworkException(422, qex.getMessage());
 		}
 
 		throw new RuntimeException("Unable to create new node.");

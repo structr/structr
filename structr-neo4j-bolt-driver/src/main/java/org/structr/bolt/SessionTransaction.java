@@ -23,12 +23,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
+import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.exceptions.TransientException;
 import org.neo4j.driver.v1.types.Entity;
@@ -38,6 +40,7 @@ import org.structr.api.NativeResult;
 import org.structr.api.NotFoundException;
 import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
+import org.structr.api.ConstraintViolationException;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.mapper.RecordLongMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
@@ -137,11 +140,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public long getLong(final String statement) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			if (db.logQueries()) {
-				System.out.println(statement);
-			}
+		try {
 
 			return getLong(statement, Collections.EMPTY_MAP);
 
@@ -150,14 +151,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, t0);
 		}
 	}
 
 	public long getLong(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return tx.run(statement, map).next().get(0).asLong();
 
@@ -166,14 +169,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public Object getObject(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			final StatementResult result = tx.run(statement, map);
 			if (result.hasNext()) {
@@ -186,6 +191,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 
 		return null;
@@ -193,9 +200,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 	public Entity getEntity(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return tx.run(statement, map).next().get(0).asEntity();
 
@@ -204,14 +211,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public Node getNode(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return tx.run(statement, map).next().get(0).asNode();
 
@@ -220,14 +229,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public Relationship getRelationship(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return tx.run(statement, map).next().get(0).asRelationship();
 
@@ -236,14 +247,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public QueryResult<Node> getNodes(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return QueryUtils.map(new RecordNodeMapper(), new StatementIterable(tx.run(statement, map)));
 
@@ -252,14 +265,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, t0);
 		}
 	}
 
 	public QueryResult<Relationship> getRelationships(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return QueryUtils.map(new RecordRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
 
@@ -268,14 +283,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public QueryResult<Long> getIds(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return QueryUtils.map(new RecordLongMapper(), new StatementIterable(tx.run(statement, map)));
 
@@ -284,14 +301,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public QueryResult<String> getStrings(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			final StatementResult result = tx.run(statement, map);
 			final Record record = result.next();
@@ -315,14 +334,16 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public NativeResult run(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			return new StatementResultWrapper(db, tx.run(statement, map));
 
@@ -331,14 +352,18 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
 	public void set(final String statement, final Map<String, Object> map) {
 
-		try {
+		final long t0 = System.currentTimeMillis();
 
-			logQuery(statement, map);
+		try {
 
 			tx.run(statement, map).consume();
 
@@ -347,31 +372,35 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ClientException cex) {
+			throw SessionTransaction.translateClientException(cex);
+		} finally {
+			logQuery(statement, map, t0);
 		}
 	}
 
-	public void logQuery(final String statement) {
-
-		logQuery(statement, null);
-
+	public void logQuery(final String statement, final long t0) {
+		logQuery(statement, null, t0);
 	}
 
-	public void logQuery(final String statement, final Map<String, Object> map) {
+	public void logQuery(final String statement, final Map<String, Object> map, final long t0) {
 
 		if (db.logQueries()) {
 
+			final long time  = System.currentTimeMillis() - t0;
+			final String log = time + "ms";
+
 			if (map != null && map.size() > 0) {
 
+				System.out.print(StringUtils.leftPad(log, 5) + " ");
 				System.out.println(statement + "\t\t Parameters: " + map.toString());
 
 			} else {
 
+				System.out.print(StringUtils.leftPad(log, 5) + " ");
 				System.out.println(statement);
-
 			}
-
 		}
-
 	}
 
 	public void modified(final EntityWrapper wrapper) {
@@ -382,6 +411,20 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		modifiedEntities.add(wrapper);
 	}
 
+	// ----- public static methods -----
+	public static RuntimeException translateClientException(final ClientException cex) {
+
+		switch (cex.code()) {
+
+			case "Neo.ClientError.Schema.ConstraintValidationFailed":
+				throw new ConstraintViolationException(cex, cex.code(), cex.getMessage());
+		}
+
+		// re-throw existing exception if no other cause could be found
+		throw cex;
+	}
+
+	// ----- nested classes -----
 	private class StatementIterable implements QueryResult<Record> {
 
 		private StatementResult result = null;
