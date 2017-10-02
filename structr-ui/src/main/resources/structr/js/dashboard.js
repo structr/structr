@@ -56,67 +56,9 @@ var _Dashboard = {
 			_Dashboard.clearLocalStorageOnServer();
 		});
 
-		var aboutStructrBox = _Dashboard.appendBox('About Structr', 'about-structr');
-		var aboutStructrTable = $('<table class="props"></table>').appendTo(aboutStructrBox);
+		_Dashboard.appendAboutBox();
 
-		$.get(rootUrl + '/_env', function(data) {
-			var envInfo = data.result;
-
-			if (envInfo.edition) {
-				var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
-				var versionInfo = '<i title="' + tooltipText + '" class="' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i> (' + tooltipText + ')';
-
-				aboutStructrTable.append('<tr><td class="key">Edition</td><td>' + versionInfo + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">Licensee</td><td>' + (envInfo.licensee || 'Unlicensed') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">Host ID</td><td>' + (envInfo.hostId || '') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">License Start Date</td><td>' + (envInfo.startDate || '-') + '</td></tr>');
-				aboutStructrTable.append('<tr><td class="key">License End Date</td><td>' + (envInfo.endDate || '-') + '</td></tr>');
-			}
-		});
-
-		var maintenanceBox  = _Dashboard.appendBox('Global schema methods', 'maintenance');
-		var maintenanceList = $('<div></div>').appendTo(maintenanceBox);
-
-		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
-
-			data.result.forEach(function(result) {
-
-				maintenanceList.append('<div class="dashboard-info" style="border-bottom: 1px solid #ddd; padding-bottom: 2px;"><span style="line-height: 2em;">' + result.name + '</span><button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button></div>');
-				$('button#run-' + result.id).on('click', function() {
-
-					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
-						$('#run-method').remove();
-						$('#clear-log').remove();
-					});
-
-					dialogBtn.prepend('<button id="run-method">Run</button>');
-					dialogBtn.append('<button id="clear-log">Clear output</button>');
-
-					dialog.append('<h3>Method output</h3>');
-					dialog.append('<pre id="log-output"></pre>');
-
-					$('#run-method').on('click', function() {
-
-						$('#log-output').empty();
-						$('#log-output').append('Running method..\n');
-
-						$.ajax({
-							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
-							method: 'POST',
-							complete: function(data) {
-								console.log(data);
-								$('#log-output').append(data.responseText);
-								$('#log-output').append('Done.');
-							}
-						});
-					});
-
-					$('#clear-log').on('click', function() {
-						$('#log-output').empty();
-					});
-				});
-			});
-		});
+		_Dashboard.appendMaintenanceBox();
 
 		/*
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
@@ -206,5 +148,110 @@ var _Dashboard = {
 		} else {
 			clear(_Dashboard.meObj.id);
 		}
+	},
+	appendAboutBox: function () {
+
+		var aboutStructrBox = _Dashboard.appendBox('About Structr', 'about-structr');
+		var aboutStructrTable = $('<table class="props"></table>').appendTo(aboutStructrBox);
+
+		$.get(rootUrl + '/_env', function(data) {
+			var envInfo = data.result;
+
+			if (envInfo.edition) {
+				var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
+				var versionInfo = '<i title="' + tooltipText + '" class="' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i> (' + tooltipText + ')';
+
+				aboutStructrTable.append('<tr><td class="key">Edition</td><td>' + versionInfo + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">Licensee</td><td>' + (envInfo.licensee || 'Unlicensed') + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">Host ID</td><td>' + (envInfo.hostId || '') + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">License Start Date</td><td>' + (envInfo.startDate || '-') + '</td></tr>');
+				aboutStructrTable.append('<tr><td class="key">License End Date</td><td class="end-date">' + (envInfo.endDate || '-') + '</td></tr>');
+
+				_Dashboard.checkLicenseEnd(envInfo, $('.end-date', aboutStructrTable));
+			}
+		});
+
+	},
+	checkLicenseEnd:function (envInfo, element, cfg) {
+
+		if (envInfo && envInfo.endDate && element) {
+
+			var showMessage = true;
+			var daysLeft = Math.ceil((new Date(envInfo.endDate) - new Date()) / 86400000) + 1;
+
+			var config = {
+				element: element,
+				appendToElement: element
+			};
+			config = $.extend(config, cfg);
+
+			if (daysLeft <= 0) {
+
+				config.customToggleIcon = _Icons.exclamation_icon;
+				config.text = "Your Structr <b>license has expired</b>. Upon restart the Community edition will be loaded.";
+
+			} else if (daysLeft <= 7) {
+
+				config.customToggleIcon = _Icons.error_icon;
+				config.text = "Your Structr <b>license will expire in less than a week</b>. After that the Community edition will be loaded.";
+
+			} else {
+				showMessage = false;
+			}
+
+			if (showMessage) {
+
+				config.text += " Please get in touch via <b>licensing@structr.com</b> to renew your license.";
+				Structr.appendInfoTextToElement(config);
+			}
+
+		}
+	},
+	appendMaintenanceBox: function () {
+
+		var maintenanceBox  = _Dashboard.appendBox('Global schema methods', 'maintenance');
+		var maintenanceList = $('<div></div>').appendTo(maintenanceBox);
+
+		$.get(rootUrl + '/SchemaMethod?schemaNode=&sort=name', function(data) {
+
+			data.result.forEach(function(result) {
+
+				maintenanceList.append('<div class="dashboard-info" style="border-bottom: 1px solid #ddd; padding-bottom: 2px;"><span style="line-height: 2em;">' + result.name + '</span><button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button></div>');
+				$('button#run-' + result.id).on('click', function() {
+
+					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
+						$('#run-method').remove();
+						$('#clear-log').remove();
+					});
+
+					dialogBtn.prepend('<button id="run-method">Run</button>');
+					dialogBtn.append('<button id="clear-log">Clear output</button>');
+
+					dialog.append('<h3>Method output</h3>');
+					dialog.append('<pre id="log-output"></pre>');
+
+					$('#run-method').on('click', function() {
+
+						$('#log-output').empty();
+						$('#log-output').append('Running method..\n');
+
+						$.ajax({
+							url: rootUrl + '/maintenance/globalSchemaMethods/' + result.name,
+							method: 'POST',
+							complete: function(data) {
+								console.log(data);
+								$('#log-output').append(data.responseText);
+								$('#log-output').append('Done.');
+							}
+						});
+					});
+
+					$('#clear-log').on('click', function() {
+						$('#log-output').empty();
+					});
+				});
+			});
+		});
+
 	}
 };

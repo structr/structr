@@ -155,9 +155,12 @@ input[type="checkbox"] {
 	vertical-align: top;
 }
 
+#header .structr-version .sprite {
+	margin-top: -5px;
+}
+
 #header .structr-version .edition-icon {
 	margin-left: 5px;
-	margin-top: -5px;
 }
 
 #main-help {
