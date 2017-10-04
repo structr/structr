@@ -44,6 +44,8 @@ import org.structr.common.geo.GeoCodingResult.Type;
 public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(GoogleGeoCodingProvider.class.getName());
+	
+	private int count = 0;
 
 	@Override
 	public GeoCodingResult geocode(final String street, final String house, String postalCode, final String city, final String state, final String country, final String language) throws IOException {
@@ -72,21 +74,22 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 		Document xmlDoc;
 
 		try {
-                        StringBuilder urlBuffer = new StringBuilder("https://maps.google.com/maps/api/geocode/");
 
-                        // output format XML
-                        urlBuffer.append("xml");
+			StringBuilder urlBuffer = new StringBuilder("https://maps.google.com/maps/api/geocode/");
 
-                        // set the address
-                        urlBuffer.append("?address=").append(encodedAddress);
+			// output format XML
+			urlBuffer.append("xml");
 
-                        // set the ouput language
-                        urlBuffer.append("&language=").append(language);
+			// set the address
+			urlBuffer.append("?address=").append(encodedAddress);
 
-                        // set the api key if there is any
-                        if(apiKey != null && !apiKey.isEmpty()) {
-                            urlBuffer.append("&key=").append(apiKey);
-                        }
+			// set the ouput language
+			urlBuffer.append("&language=").append(language);
+
+			// set the api key if there is any
+			if (apiKey != null && !apiKey.isEmpty()) {
+				urlBuffer.append("&key=").append(apiKey);
+			}
 
 			URL mapsUrl                  = new URL(urlBuffer.toString());
 			HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
@@ -101,13 +104,13 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			connection.disconnect();
 			rd.close();
 
-		} catch (IOException ioe) {
+		} catch (final IOException ioe) {
 
 			logger.warn("Connection to geocoding service failed", ioe);
 
 			return null;
 
-		} catch (DocumentException de) {
+		} catch (final DocumentException de) {
 
 			logger.warn("Could not read result document", de);
 
@@ -118,16 +121,39 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 		// List<Element> rootChildren = root.elements();
 		String status = root.element("status").getTextTrim();
+		
 		if ("OK".equals(status)) {
 
 			try {
+				
 				return new GoogleGeoCodingResult(address, root);
 
-			} catch(Throwable t) {
+			} catch (final Throwable t) {
 
 				logger.warn("Unable to find geocoding for address {}: {}", new Object[] { address, t.getMessage() });
 			}
 
+		} else if ("OVER_QUERY_LIMIT".equals(status)) {
+			
+			if (count < 3) {
+			
+				count++;
+				
+				logger.warn("Status OVER_QUERY_LIMIT for address {}, trying again after 2 seconds.", new Object[] { address });
+
+				try {
+
+					Thread.sleep(2000L);
+
+				} catch (final InterruptedException ex) {}
+			
+				return geocode(street, house, postalCode, city, state, country, language);
+				
+			} else {
+				
+				logger.warn("Too many attempts with status OVER_QUERY_LIMIT for address {}, aborting.", new Object[] { address });
+			}
+			
 		} else {
 
 			logger.warn("Status not OK for address {}: {}", new Object[] { address, status });
@@ -137,7 +163,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 	}
 
 	//~--- inner classes --------------------------------------------------
-
+	
 	public static class GoogleGeoCodingResult implements GeoCodingResult {
 
 		private List<AddressComponent> addressComponents = new LinkedList<>();

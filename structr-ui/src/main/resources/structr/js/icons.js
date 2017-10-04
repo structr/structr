@@ -59,6 +59,7 @@ var _Icons = {
 	help_icon: 'icon/help.png',
 	refresh_icon: 'icon/arrow_refresh.png',
 	error_icon: 'icon/error.png',
+	exclamation_icon: 'icon/exclamation.png',
 	pull_page_icon: 'icon/pull_page.png',
 	wand_icon: 'icon/wand.png',
 	toggle_icon: 'icon/arrow_switch.png',
@@ -159,6 +160,7 @@ var _Icons = {
 			case _Icons.information_icon:             return 'sprite-information';
 			case _Icons.refresh_icon:                 return 'sprite-arrow_refresh';
 			case _Icons.error_icon:                   return 'sprite-error';
+			case _Icons.exclamation_icon:             return 'sprite-exclamation';
 			case _Icons.pull_page_icon:               return 'sprite-pull_page';
 			case _Icons.wand_icon:                    return 'sprite-wand';
 			case _Icons.toggle_icon:                  return 'sprite-arrow_switch';

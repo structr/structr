@@ -1207,9 +1207,21 @@ var Structr = {
 						}
 
 						versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
-					}
 
-					$('.structr-version').html(versionInfo);
+						$('.structr-version').html(versionInfo);
+
+						_Dashboard.checkLicenseEnd(envInfo, $('.structr-version .edition-icon'), {
+							offsetX: -300,
+							helpElementCss: {
+								color: "black",
+								fontSize: "8pt",
+								lineHeight: "1.7em"
+							}
+						});
+
+					} else {
+						$('.structr-version').html(versionInfo);
+					}
 				}
 
 				var hamburger = $('#menu li.submenu-trigger');
@@ -1380,6 +1392,7 @@ var Structr = {
 		var text              = config.text || 'No text supplied!';
 		var toggleElementCss  = config.css || {};
 		var elementCss        = config.elementCss || {};
+		var helpElementCss    = config.helpElementCss || {};
 		var customToggleIcon  = config.customToggleIcon || _Icons.information_icon;
 		var insertAfter       = config.insertAfter || false;
 		var offsetX           = config.offsetX || 0;
@@ -1419,6 +1432,8 @@ var Structr = {
 			}
 			appendToElement.append(helpElement);
 		}
+
+		helpElement.css(helpElementCss);
 	},
 	refreshPositionsForCurrentlyActiveSortable: function () {
 
