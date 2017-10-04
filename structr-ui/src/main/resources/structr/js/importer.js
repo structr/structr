@@ -169,6 +169,7 @@ var Importer = {
 		$('#start-import').remove();
 		$('#next-element').remove();
 		$('#prev-element').remove();
+		$('#csv-configurations').remove();
 		$('#xml-configurations').remove();
 	},
 	importCSVDialog: function(file) {
