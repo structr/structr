@@ -38,7 +38,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.rest.common.StructrRestTest;
+import org.structr.rest.common.IndexingTest;
 import org.structr.rest.common.TestEnum;
 import org.structr.rest.entity.TestThree;
 import org.structr.rest.entity.TestTwo;
@@ -48,7 +48,7 @@ import org.structr.rest.entity.TestUser;
  *
  *
  */
-public class AdvancedSearchTest extends StructrRestTest {
+public class AdvancedSearchTest extends IndexingTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSearchTest.class.getName());
 

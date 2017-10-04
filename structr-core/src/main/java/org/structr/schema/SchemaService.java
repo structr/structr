@@ -181,10 +181,13 @@ public class SchemaService implements Service {
 						// inject views in configuration provider
 						config.registerDynamicViews(dynamicViews);
 
-						// disable hierarchy calculation and automatic index creation for testing runs
-						if (!Services.isTesting()) {
+						if (Services.calculateHierarchy() || !Services.isTesting()) {
 
 							calculateHierarchy();
+						}
+						
+						if (Services.updateIndexConfiguration() || !Services.isTesting()) {
+							
 							updateIndexConfiguration(removedClasses);
 						}
 

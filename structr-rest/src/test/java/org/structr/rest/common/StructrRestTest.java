@@ -285,6 +285,12 @@ public class StructrRestTest {
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}
 
+	protected static void sleep(final Long millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException ex) {}
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	/**
@@ -386,8 +392,9 @@ public class StructrRestTest {
 
 		} while (!services.isInitialized());
 
-		securityContext		= SecurityContext.getSuperUserInstance();
-		app			= StructrApp.getInstance(securityContext);
+		securityContext = SecurityContext.getSuperUserInstance();
+		app             = StructrApp.getInstance(securityContext);
+		
 	}
 
 

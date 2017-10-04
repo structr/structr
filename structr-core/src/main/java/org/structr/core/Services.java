@@ -65,6 +65,8 @@ public class Services implements StructrServices {
 	// singleton instance
 	private static Services singletonInstance          = null;
 	private static boolean testingModeDisabled         = false;
+	private static boolean calculateHierarchy          = false;
+	private static boolean updateIndexConfiguration    = false;
 
 	// non-static members
 	private final List<InitializationCallback> callbacks       = new LinkedList<>();
@@ -649,11 +651,28 @@ public class Services implements StructrServices {
 		return "Community";
 	}
 
+	public static void enableCalculateHierarchy() {
+		calculateHierarchy = true;
+	}
+	
+	public static void enableUpdateIndexConfiguration() {
+		updateIndexConfiguration = true;
+	}
+	
 	public static void disableTestingMode() {
-		testingModeDisabled = true;
+		testingModeDisabled      = true;
+		calculateHierarchy       = true;
+		updateIndexConfiguration = true;
 	}
 
-	// ----- private methods -----
+	public static boolean calculateHierarchy() {
+		return calculateHierarchy;
+	}
+
+	public static boolean updateIndexConfiguration() {
+		return updateIndexConfiguration;
+	}
+	
 	public static boolean isTesting() {
 
 		if (testingModeDisabled) {
