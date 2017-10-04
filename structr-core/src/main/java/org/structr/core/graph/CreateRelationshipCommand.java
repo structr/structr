@@ -57,7 +57,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 	private synchronized <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap attributes) throws FrameworkException {
 
 		// disable updating access time when creating relationships
-		securityContext.preventModificationOfAccessTime();
+		securityContext.disableModificationOfAccessTime();
 
 		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
 		final PropertyMap properties         = new PropertyMap(attributes);

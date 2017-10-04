@@ -20,9 +20,12 @@ package org.structr.bolt.wrapper;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
@@ -148,6 +151,47 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
+	public boolean hasRelationshipTo(final RelationshipType type, final Node targetNode) {
+
+		assertNotStale();
+
+		AssociationList list = (AssociationList)getList(Direction.OUTGOING, type);
+		if (list != null) {
+
+			return list.containsAssociation(this, type, targetNode);
+
+		} else {
+
+			list = (AssociationList)getList(Direction.INCOMING, type);
+			if (list != null) {
+
+				return list.containsAssociation(targetNode, type, this);
+
+			} else {
+
+				final SessionTransaction tx      = db.getCurrentTransaction();
+				final Map<String, Object> params = new LinkedHashMap<>();
+
+				params.put("id1", getId());
+				params.put("id2", targetNode.getId());
+
+				try {
+
+					// try to fetch existing relationship by node ID(s)
+					tx.getLong("MATCH (n)-[r:" + type.name() + "]->(m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)", params);
+
+					// success
+					return true;
+
+				} catch (Throwable t) {
+
+					return false;
+				}
+			}
+		}
+	}
+
+	@Override
 	public Iterable<Relationship> getRelationships() {
 
 		assertNotStale();
@@ -162,7 +206,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			map.put("id", id);
 
-			list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-() WHERE ID(n) = {id} RETURN r", map)));
+			list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-() WHERE ID(n) = {id} RETURN r", map)));
 
 			// store in cache
 			setList(null, null, list);
@@ -192,11 +236,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					return getRelationships();
 
 				case OUTGOING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]->() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]->() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case INCOMING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r]-() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r]-() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 			}
 
@@ -225,15 +269,15 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			switch (direction) {
 
 				case BOTH:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case OUTGOING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 
 				case INCOMING:
-					list = Iterables.toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
 					break;
 			}
 
@@ -293,7 +337,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	// ----- private methods -----
 	private Map<String, List<Relationship>> getCache(final Direction direction) {
 
-		final String key              = direction != null ? direction.name() : "*";
+		final String key                      = direction != null ? direction.name() : "*";
 		Map<String, List<Relationship>> cache = relationshipCache.get(key);
 
 		if (cache == null) {
@@ -307,7 +351,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	private List<Relationship> getList(final Direction direction, final RelationshipType relType) {
 
-		final String key                    = relType != null ? relType.name() : "*";
+		final String key                            = relType != null ? relType.name() : "*";
 		final Map<String, List<Relationship>> cache = getCache(direction);
 
 		return cache.get(key);
@@ -315,9 +359,50 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	private void setList(final Direction direction, final RelationshipType relType, final List<Relationship> list) {
 
-		final String key                    = relType != null ? relType.name() : "*";
+		final String key                            = relType != null ? relType.name() : "*";
 		final Map<String, List<Relationship>> cache = getCache(direction);
 
 		cache.put(key, list);
+	}
+
+	private AssociationList toList(final Iterable<Relationship> source) {
+
+		final AssociationList list = new AssociationList();
+
+		Iterables.addAll(list, source);
+
+		return list;
+	}
+
+	// ----- nested classes -----
+	private class AssociationList extends LinkedList<Relationship> {
+
+		final Set<String> associations = new HashSet<>();
+
+		@Override
+		public boolean add(final Relationship toAdd) {
+
+			associations.add(cacheKey(toAdd.getStartNode(), toAdd.getType(), toAdd.getEndNode()));
+
+			return super.add(toAdd);
+		}
+
+		public boolean containsAssociation(final Node sourceNode, final RelationshipType relType, final Node targetNode) {
+			return associations.contains(cacheKey(sourceNode, relType, targetNode));
+		}
+
+		// ----- private methods -----
+		public String cacheKey(final Node sourceNode, final RelationshipType relType, final Node targetNode) {
+
+			final StringBuilder buf = new StringBuilder();
+
+			buf.append(sourceNode.getId());
+			buf.append("-");
+			buf.append(relType);
+			buf.append("-");
+			buf.append(targetNode.getId());
+
+			return buf.toString();
+		}
 	}
 }

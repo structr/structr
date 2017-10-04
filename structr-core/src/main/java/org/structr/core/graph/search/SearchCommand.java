@@ -671,6 +671,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		Set<String> allSubtypes = subtypeMapForType.get(type);
 		if (allSubtypes == null) {
 
+			logger.debug("Subtype map cache miss.");
+
 			allSubtypes = new LinkedHashSet<>();
 			subtypeMapForType.put(type, allSubtypes);
 
@@ -717,6 +719,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 					}
 				}
 			}
+
+		} else {
+
+			logger.debug("Subtype map cache hit.");
 		}
 
 		return Collections.unmodifiableSet(allSubtypes);

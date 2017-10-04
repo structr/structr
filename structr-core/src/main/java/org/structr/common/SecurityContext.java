@@ -59,8 +59,9 @@ public class SecurityContext {
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 	private boolean doTransactionNotifications           = true;
-	private boolean dontModifyAccessTime                 = false;
+	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
+	private boolean ensureCardinality                    = true;
 	private int serializationDepth                       = -1;
 
 	//~--- fields ---------------------------------------------------------
@@ -765,7 +766,7 @@ public class SecurityContext {
 		return "[No request available]";
 	}
 
-	public boolean isDoTransactionNotifications() {
+	public boolean doTransactionModifications() {
 		return doTransactionNotifications;
 	}
 
@@ -773,16 +774,16 @@ public class SecurityContext {
 		this.doTransactionNotifications = doTransactionNotifications;
 	}
 
-	public boolean dontModifyAccessTime() {
-		return dontModifyAccessTime;
+	public boolean modifyAccessTime() {
+		return modifyAccessTime;
 	}
 
-	public void preventModificationOfAccessTime() {
-		dontModifyAccessTime = true;
+	public void disableModificationOfAccessTime() {
+		modifyAccessTime = false;
 	}
 
 	public void enableModificationOfAccessTime() {
-		dontModifyAccessTime = false;
+		modifyAccessTime = true;
 	}
 
 	public void ignoreResultCount(final boolean doIgnore) {
@@ -791,6 +792,18 @@ public class SecurityContext {
 
 	public boolean ignoreResultCount() {
 		return ignoreResultCount;
+	}
+
+	public boolean doEnsureCardinality() {
+		return ensureCardinality;
+	}
+
+	public void disableEnsureCardinality() {
+		ensureCardinality = false;
+	}
+
+	public void enableEnsureCardinality() {
+		ensureCardinality = false;
 	}
 
 	public String getSessionId() {

@@ -28,6 +28,7 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
@@ -298,6 +299,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public boolean isDeleted() {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

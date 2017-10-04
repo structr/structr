@@ -26,6 +26,7 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -114,6 +115,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public boolean isDeleted() {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

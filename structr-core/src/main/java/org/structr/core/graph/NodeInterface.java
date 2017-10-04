@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.List;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -72,6 +73,8 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public String getName();
 
 	public boolean isDeleted();
+
+	public boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 
 	public <R extends AbstractRelationship> Iterable<R> getRelationships();
 	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();

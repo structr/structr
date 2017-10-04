@@ -19,6 +19,9 @@
 package org.structr.common;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +51,8 @@ public class ValidationHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(ValidationHelper.class.getName());
 
-	private static final PropertyKey UnknownType = new GenericProperty("unknown type");
+	private static final PropertyKey UnknownType       = new GenericProperty("unknown type");
+	private static final Map<String, Pattern> patterns = new ConcurrentHashMap<>();
 
 	// ----- public static methods -----
 	/**
@@ -160,8 +164,15 @@ public class ValidationHelper {
 	public static boolean isValidStringMatchingRegex(final GraphObject node, final PropertyKey<String> key, final String expression, final ErrorBuffer errorBuffer) {
 
 		final String value = node.getProperty(key);
+		Pattern pattern    = patterns.get(expression);
 
-		if (value != null && value.matches(expression)) {
+		if (pattern == null) {
+
+			pattern = Pattern.compile(expression);
+			patterns.put(expression, pattern);
+		}
+
+		if (value != null && pattern.matcher(value).matches()) {
 
 			return true;
 		}

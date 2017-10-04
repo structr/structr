@@ -33,6 +33,8 @@ public interface Node extends PropertyContainer {
 
 	Iterable<Label> getLabels();
 
+	boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode);
+
 	Iterable<Relationship> getRelationships();
 	Iterable<Relationship> getRelationships(final Direction direction);
 	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType);

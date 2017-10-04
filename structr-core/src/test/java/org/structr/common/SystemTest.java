@@ -562,6 +562,47 @@ public class SystemTest extends StructrTest {
 	}
 
 	@Test
+	public void testEnsureCardinalityPerformance() {
+
+		final List<TestOne> list = new LinkedList<>();
+		final int num            = 1000;
+
+		// test setup, create a supernode with 10000 relationships
+		try (final Tx tx = app.tx()) {
+
+			System.out.println("Creating supernode with " + num + " relationships.");
+
+			list.add(createTestNode(TestOne.class,
+				new NodeAttribute<>(TestOne.manyToManyTestSixs, createTestNodes(TestSix.class, num))
+			));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+
+		// actual test: test performance of node association on supernode
+		try (final Tx tx = app.tx()) {
+
+			for (int i=0; i<10; i++) {
+
+				final long t0 = System.currentTimeMillis();
+				createTestNode(TestSix.class, new NodeAttribute<>(TestSix.manyToManyTestOnes, list));
+				final long t1 = System.currentTimeMillis();
+
+				System.out.println((t1 - t0) + "ms");
+
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testConcurrentIdenticalRelationshipCreation() {
 
 		try {

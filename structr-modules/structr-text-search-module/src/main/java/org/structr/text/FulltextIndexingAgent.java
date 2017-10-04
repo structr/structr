@@ -129,7 +129,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 						try (Tx tx = StructrApp.getInstance().tx()) {
 
 							// don't modify access time when indexing is finished
-							file.getSecurityContext().preventModificationOfAccessTime();
+							file.getSecurityContext().disableModificationOfAccessTime();
 
 							// save raw extracted text
 							file.setProperty(Indexable.extractedContent, tokenizer.getRawText());
@@ -199,7 +199,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 						try (Tx tx = StructrApp.getInstance().tx()) {
 
 							// don't modify access time when indexing is finished
-							file.getSecurityContext().preventModificationOfAccessTime();
+							file.getSecurityContext().disableModificationOfAccessTime();
 
 							// store indexed words
 							file.setProperty(Indexable.indexedWords, (String[]) indexedWords.toArray(new String[indexedWords.size()]));

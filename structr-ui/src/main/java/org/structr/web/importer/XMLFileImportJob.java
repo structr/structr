@@ -83,9 +83,14 @@ public class XMLFileImportJob extends ImportJob {
 			logger.info("Importing XML from {} ({})..", filePath, fileUuid);
 
 			final SecurityContext threadContext = SecurityContext.getInstance(user, AccessMode.Backend);
-			threadContext.setDoTransactionNotifications(false);
 			final App app                       = StructrApp.getInstance(threadContext);
 			int overallCount                    = 0;
+
+			// disable transaction notifications
+			threadContext.disableModificationOfAccessTime();
+			threadContext.ignoreResultCount(true);
+			threadContext.setDoTransactionNotifications(false);
+			threadContext.disableEnsureCardinality();
 
 			try (final InputStream is = getFileInputStream(threadContext)) {
 
@@ -109,9 +114,7 @@ public class XMLFileImportJob extends ImportJob {
 
 							while (iterator.hasNext() && ++count <= batchSize) {
 
-								final PropertyMap map = PropertyMap.inputTypeToJavaType(threadContext, iterator.next());
-
-								app.create(AbstractNode.class, map);
+								app.create(AbstractNode.class, PropertyMap.inputTypeToJavaType(threadContext, iterator.next()));
 
 								overallCount++;
 							}

@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.RelationshipNotion;
 
@@ -69,20 +68,9 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	@Override
 	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
-		final Class<? extends ManyToMany> clazz = getClass();
+		if (securityContext.doEnsureCardinality() && targetNode != null && sourceNode.hasRelationshipTo(this, targetNode)) {
 
-		if (targetNode != null) {
-
-			// check existing relationships
-			final Iterable<? extends Relation<?, T, ?, ?>> incomingRels = targetNode.getIncomingRelationships(clazz);
-
-			// check existing relationships
-			for (final RelationshipInterface rel : incomingRels) {
-
-				if (rel.getSourceNode().equals(sourceNode)) {
-					throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists: " + rel.getUuid() + " from " + rel.getSourceNodeId() + " to " + rel.getTargetNodeId()));
-				}
-			}
+			throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists from " + sourceNode.getUuid()+ " to " + targetNode.getUuid()));
 		}
 	}
 

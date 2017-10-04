@@ -43,7 +43,7 @@ public class IterableAdapter<S, T> implements Iterable<T> {
 	public IterableAdapter(Iterable<S> source, Adapter<S, T> adapter)
 	{
 		this.sourceIterator = source.iterator();
-		this.adapter = adapter;
+		this.adapter        = adapter;
 
 		// try to obtain size in advance
 		if (source instanceof Collection) {

@@ -106,7 +106,10 @@ public class DeploymentTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			Page.createSimplePage(securityContext, "test01");
+			final Page page = Page.createSimplePage(securityContext, "test01");
+
+			// test special properties
+			page.setProperty(Page.showOnErrorCodes, "404");
 
 			tx.success();
 

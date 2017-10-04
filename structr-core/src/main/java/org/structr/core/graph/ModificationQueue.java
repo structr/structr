@@ -126,11 +126,18 @@ public class ModificationQueue {
 
 	public boolean doPostProcessing(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
+		long t0 = System.currentTimeMillis();
+
 		for (final TransactionPostProcess process : postProcesses.values()) {
 
 			if (!process.execute(securityContext, errorBuffer)) {
 				return false;
 			}
+		}
+
+		long t = System.currentTimeMillis() - t0;
+		if (t > 1000) {
+			logger.info("doPostProcessing: {} ms", t);
 		}
 
 		return true;

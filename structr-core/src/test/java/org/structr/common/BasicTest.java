@@ -57,7 +57,9 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.Security;
+import org.structr.core.entity.SixOneManyToMany;
 import org.structr.core.entity.SixOneOneToOne;
+import org.structr.core.entity.SixThreeOneToMany;
 import org.structr.core.entity.TestFour;
 import org.structr.core.entity.TestNine;
 import org.structr.core.entity.TestOne;
@@ -998,54 +1000,128 @@ public class BasicTest extends StructrTest {
 		}
 	}
 
-	/**
-	 * FIXME: this test is disabled, to be discussed!
-	 *
-	 * Creation of duplicate relationships is blocked.
-	 *
-	 * A relationship is considered duplicate if all of the following criteria are met:
-	 *
-	 * - same start node
-	 * - same end node
-	 * - same relationship type
-	 * - same set of property keys and values
-	 *
-	public void test06DuplicateRelationships() {
+	@Test
+	public void test06DuplicateRelationshipsOneToOne() {
 
-		try {
+		// Creating duplicate one-to-one relationships
+		// is silently ignored, the relationship will
+		// be replaced.
 
-			List<NodeInterface> nodes      = createTestNodes(GenericNode.class, 2);
-			final NodeInterface startNode  = nodes.get(0);
-			final NodeInterface endNode    = nodes.get(1);
-			final PropertyMap props        = new PropertyMap();
+		try (final Tx tx = app.tx()) {
 
-			props.put(new StringProperty("foo"), "bar");
-			props.put(new IntProperty("bar"), 123);
-			transactionCommand.execute(new StructrTransaction() {
+			final TestOne test1 = app.create(TestOne.class);
+			final TestTwo test2 = app.create(TestTwo.class);
 
-				@Override
-				public Object execute() throws FrameworkException {
+			// test duplicate prevention
+			app.create(test1, test2, OneTwoOneToOne.class);
+			app.create(test1, test2, OneTwoOneToOne.class);
 
-					LocationRelationship rel1 = createRelationshipCommand.execute(startNode, endNode, LocationRelationship.class, props);
+			tx.success();
 
-					assertTrue(rel1 != null);
+		} catch (FrameworkException ex) {
 
-					createRelationshipCommand.execute(startNode, endNode, LocationRelationship.class, props);
+			fail("Creating duplicate relationships via app.create() should NOT throw an exception.");
+		}
 
-					return null;
+		try (final Tx tx = app.tx()) {
 
-				}
+			final TestOne test1 = app.create(TestOne.class);
+			final TestTwo test2 = app.create(TestTwo.class);
 
-			});
+			test1.setProperty(TestOne.testTwo, test2);
+			test1.setProperty(TestOne.testTwo, test2);
 
-			fail("Creating a duplicate relationship should throw an exception.");
+			tx.success();
 
+		} catch (FrameworkException ex) {
+
+			fail("Creating duplicate relationships via setProperty() should NOT throw an exception.");
+		}
+	}
+
+	@Test
+	public void test06DuplicateRelationshipsOneToMany() {
+
+		try (final Tx tx = app.tx()) {
+
+			final TestSix test1   = app.create(TestSix.class);
+			final TestThree test2 = app.create(TestThree.class);
+
+			// test duplicate prevention
+			app.create(test1, test2, SixThreeOneToMany.class);
+			app.create(test1, test2, SixThreeOneToMany.class);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			fail("Creating duplicate relationships via app.create() should NOT throw an exception.");
+		}
+
+		// second test via setProperty will silently ignore
+		// the duplicates in the list
+		try (final Tx tx = app.tx()) {
+
+			final TestSix test1   = app.create(TestSix.class);
+			final TestThree test2 = app.create(TestThree.class);
+
+			// test duplicate prevention
+			final List<TestThree> list = new LinkedList<>();
+
+			list.add(test2);
+			list.add(test2);
+
+			test1.setProperty(TestSix.oneToManyTestThrees, list);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			fail("Creating duplicate relationships via setProperty() should NOT throw an exception.");
+		}
+	}
+
+	@Test
+	public void test06DuplicateRelationshipsManyToMany() {
+
+		try (final Tx tx = app.tx()) {
+
+			final TestSix test1 = app.create(TestSix.class);
+			final TestOne test2 = app.create(TestOne.class);
+
+			// test duplicate prevention
+			app.create(test1, test2, SixOneManyToMany.class);
+			app.create(test1, test2, SixOneManyToMany.class);
+
+			fail("Creating duplicate relationships should throw an exception.");
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 		}
 
+		// second test via setProperty() should throw an exception
+		// for manyToMany only.
+		try (final Tx tx = app.tx()) {
+
+			final TestSix test1 = app.create(TestSix.class);
+			final TestOne test2 = app.create(TestOne.class);
+
+			// test duplicate prevention
+			final List<TestOne> list = new LinkedList<>();
+
+			list.add(test2);
+			list.add(test2);
+
+			test1.setProperty(TestSix.manyToManyTestOnes, list);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			fail("Creating duplicate relationships via setProperty() should NOT throw an exception.");
+		}
 	}
-	 */
 
 	@Test
 	public void test01ModifyNode() {

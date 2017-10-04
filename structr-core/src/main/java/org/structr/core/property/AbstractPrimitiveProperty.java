@@ -232,7 +232,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 		try {
 
-			if (!securityContext.dontModifyAccessTime()) {
+			if (securityContext.modifyAccessTime()) {
 
 				final Principal user = securityContext.getUser(false);
 				String modifiedById  = null;
