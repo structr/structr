@@ -26,6 +26,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -36,8 +37,6 @@ import org.structr.core.TransactionSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Graph service command for database operations that need to be wrapped in
@@ -53,7 +52,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	private static final ThreadLocal<TransactionReference> transactions = new ThreadLocal<>();
 	private static final MultiSemaphore                    semaphore    = new MultiSemaphore();
 
-	public TransactionCommand beginTx() {
+	public TransactionCommand beginTx() throws FrameworkException {
 
 		final DatabaseService graphDb = (DatabaseService)arguments.get("graphDb");
 		TransactionReference tx       = transactions.get();
@@ -62,8 +61,13 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			if (tx == null) {
 
-				// start new transaction
-				tx = new TransactionReference(graphDb.beginTx());
+				try {
+					// start new transaction
+					tx = new TransactionReference(graphDb.beginTx());
+
+				} catch (NetworkException nex) {
+					throw new FrameworkException(503, nex.getMessage());
+				}
 
 				queues.set(new ModificationQueue());
 				buffers.set(new ErrorBuffer());
@@ -73,6 +77,10 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 			// increase depth
 			tx.begin();
+
+		} else {
+			
+			throw new FrameworkException(503, "Database service is not available");
 		}
 
 		return this;

@@ -126,7 +126,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Error while closing connection", fex);
+			logger.error("Error while closing connection: {}", fex.getMessage());
 
 		}
 
@@ -251,7 +251,7 @@ public class StructrWebSocket implements WebSocketListener {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.warn("", fex);
+					logger.warn("Unable to send websocket result: {}", fex.getMessage());
 				}
 
 				return;

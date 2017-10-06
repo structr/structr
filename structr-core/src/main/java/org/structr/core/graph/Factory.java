@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.NetworkException;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
 import org.structr.common.FactoryDefinition;
@@ -112,6 +113,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	public Result instantiate(final QueryResult<S> input) throws FrameworkException {
 
 		if (input != null) {
+
 			final int pageSize = factoryProfile.getPageSize();
 			final int page     = factoryProfile.getPage();
 			int fromIndex;
@@ -216,7 +218,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 			for (final S item : tmp) {
 
-				T n = instantiate(item);
+				final T n = instantiate(item);
 				if (n != null) {
 
 					overallCount++;
@@ -233,6 +235,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 					}
 				}
 			}
+
+		} catch (NetworkException nex) {
+			throw new FrameworkException(503, nex.getMessage());
 		}
 
 		// The overall count may be inaccurate

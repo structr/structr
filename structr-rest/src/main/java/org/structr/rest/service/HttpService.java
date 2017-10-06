@@ -149,7 +149,7 @@ public class HttpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
 
 		final LicenseManager licenseManager = services.getLicenseManager();
 		final boolean isTest                = Services.isTesting();
@@ -440,6 +440,8 @@ public class HttpService implements RunnableService {
 
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
+
+		return true;
 	}
 
 	@Override

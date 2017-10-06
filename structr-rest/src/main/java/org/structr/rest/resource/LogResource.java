@@ -1250,7 +1250,7 @@ public class LogResource extends Resource {
 		private int count       = 0;
 		private int commitCount = 0;
 
-		public Context(final int commitCount) {
+		public Context(final int commitCount) throws FrameworkException {
 
 			this.commitCount = commitCount;
 			this.tx          = app.tx(false, false, false);

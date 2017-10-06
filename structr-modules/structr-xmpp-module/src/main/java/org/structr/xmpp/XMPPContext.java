@@ -103,7 +103,7 @@ public class XMPPContext {
 					tx.success();
 
 				} catch (Throwable t) {
-					logger.warn("", t);
+					logger.error("Unable to access XMPP clients: {}", t.getMessage());
 				}
 			}
 		});

@@ -133,7 +133,7 @@ public class PaymentNode extends AbstractNode implements Payment {
 
 		} else {
 
-			throw new FrameworkException(422, "Payment provider " + providerName + " not found.");
+			throw new FrameworkException(422, "Payment provider " + providerName + " not found");
 		}
 	}
 
@@ -151,12 +151,12 @@ public class PaymentNode extends AbstractNode implements Payment {
 
 			} else {
 
-				throwErrors("Unable to confirm checkout.", response);
+				throwErrors("Unable to confirm checkout", response);
 			}
 
 		} else {
 
-			throw new FrameworkException(422, "Payment provider " + providerName + " not found.");
+			throw new FrameworkException(422, "Payment provider " + providerName + " not found");
 		}
 
 		return null;

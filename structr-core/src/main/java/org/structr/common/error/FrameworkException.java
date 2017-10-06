@@ -25,8 +25,6 @@ import com.google.gson.JsonPrimitive;
 import java.util.Iterator;
 import javax.servlet.http.HttpServletResponse;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * The base class for all structr exceptions. This class contains
  * a buffer that supports context-dependent, nested error

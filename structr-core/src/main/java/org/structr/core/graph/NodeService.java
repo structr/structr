@@ -75,41 +75,42 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String databaseDriver = Settings.DatabaseDriver.getValue();
 		graphDb = (DatabaseService)Class.forName(databaseDriver).newInstance();
 		if (graphDb != null) {
 
-			graphDb.initialize();
+			if (graphDb.initialize()) {
 
-			filesPath = Settings.FilesPath.getValue();
+				filesPath = Settings.FilesPath.getValue();
 
-			// check existence of files path
-			File files = new File(filesPath);
-			if (!files.exists()) {
+				// check existence of files path
+				File files = new File(filesPath);
+				if (!files.exists()) {
 
-				files.mkdir();
-			}
+					files.mkdir();
+				}
 
-			logger.info("Database driver loaded, initializing indexes..");
+				logger.info("Database driver loaded, initializing indexes..");
 
-			// index creation transaction
-			try ( final Transaction tx = graphDb.beginTx() ) {
+				// index creation transaction
+				try ( final Transaction tx = graphDb.beginTx() ) {
 
-				nodeIndex = graphDb.nodeIndex();
-				relIndex  = graphDb.relationshipIndex();
+					nodeIndex = graphDb.nodeIndex();
+					relIndex  = graphDb.relationshipIndex();
 
-				tx.success();
+					tx.success();
 
-				// if the above operations fail, the database is probably not available
-				isInitialized = true;
+					// if the above operations fail, the database is probably not available
+					isInitialized = true;
 
-				logger.info("Indexes successfully initialized.");
+					logger.info("Indexes successfully initialized.");
 
-			} catch (Throwable t) {
+				} catch (Throwable t) {
 
-				logger.warn("Error while initializing indexes: {}", t.getMessage());
+					logger.warn("Error while initializing indexes: {}", t.getMessage());
+				}
 			}
 
 			if (isInitialized) {
@@ -158,6 +159,8 @@ public class NodeService implements SingletonService {
 				}
 			}
 		}
+
+		return isInitialized;
 	}
 
 	@Override

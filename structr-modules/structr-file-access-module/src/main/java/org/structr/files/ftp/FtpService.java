@@ -84,8 +84,11 @@ public class FtpService implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		
 		port = Settings.FtpPort.getValue();
+
+		return true;
 	}
 
 	@Override

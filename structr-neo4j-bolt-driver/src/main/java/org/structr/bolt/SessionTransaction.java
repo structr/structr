@@ -32,6 +32,7 @@ import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.exceptions.ClientException;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
+import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.v1.exceptions.TransientException;
 import org.neo4j.driver.v1.types.Entity;
 import org.neo4j.driver.v1.types.Node;
@@ -41,6 +42,7 @@ import org.structr.api.NotFoundException;
 import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
 import org.structr.api.ConstraintViolationException;
+import org.structr.api.NetworkException;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.mapper.RecordLongMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
@@ -151,6 +153,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, t0);
 		}
@@ -169,6 +173,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -191,6 +197,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -211,6 +219,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -229,6 +239,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -247,6 +259,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -265,6 +279,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, t0);
 		}
@@ -283,6 +299,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -301,6 +319,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -334,6 +354,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
 			logQuery(statement, map, t0);
 		}
@@ -352,6 +374,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} catch (ClientException cex) {
 			throw SessionTransaction.translateClientException(cex);
 		} finally {
@@ -372,6 +396,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
 			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
 		} catch (ClientException cex) {
 			throw SessionTransaction.translateClientException(cex);
 		} finally {
@@ -445,7 +471,14 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 				@Override
 				public boolean hasNext() {
-					return result.hasNext();
+
+					try {
+						return result.hasNext();
+
+					} catch (ServiceUnavailableException ex) {
+						closed = true;
+						throw new NetworkException(ex.getMessage(), ex);
+					}
 				}
 
 				@Override
@@ -458,12 +491,15 @@ public class SessionTransaction implements org.structr.api.Transaction {
 					} catch (TransientException tex) {
 						closed = true;
 						throw new RetryException(tex);
+					} catch (ServiceUnavailableException ex) {
+						closed = true;
+						throw new NetworkException(ex.getMessage(), ex);
 					}
 				}
 
 				@Override
 				public void remove() {
-					throw new UnsupportedOperationException("Removal not supported.");
+					throw new UnsupportedOperationException("Removal not supported");
 				}
 			};
 		}

@@ -74,7 +74,7 @@ public class LDAPServerService implements SingletonService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("Initializing directory service");
 
@@ -107,8 +107,12 @@ public class LDAPServerService implements SingletonService {
 
 		} catch (Throwable t) {
 
-			logger.warn("", t);
+			logger.warn("Unable to start LDAP server: {}", t.getMessage());
+
+			return false;
 		}
+
+		return true;
 	}
 
 	@Override

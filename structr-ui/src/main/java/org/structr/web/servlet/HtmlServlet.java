@@ -197,12 +197,12 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-			
+
 				securityContext = auth.initializeAndExamineRequest(request, response);
 				tx.success();
-			
+
 			} catch (AuthenticationException aex) {
-				
+
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 				return;
 			}
@@ -563,12 +563,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.error("Exception while processing request", fex);
+				logger.error("Exception while processing request: {}", fex.getMessage());
 			}
 
-		} catch (IOException | FrameworkException t) {
+		} catch (FrameworkException fex) {
 
-			logger.error("Exception while processing request", t);
+			logger.error("Exception while processing request: {}", fex.getMessage());
+			UiAuthenticator.writeFrameworkException(response, fex);
+
+		} catch (IOException ioex) {
+
+			logger.error("Exception while processing request: {}", ioex.getMessage());
 			UiAuthenticator.writeInternalServerError(response);
 		}
 	}

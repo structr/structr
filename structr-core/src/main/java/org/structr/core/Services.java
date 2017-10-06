@@ -119,6 +119,15 @@ public class Services implements StructrServices {
 
 				// search for already running service..
 				Service service = serviceCache.get(serviceClass);
+				if (service == null) {
+
+					// start service
+					startService(serviceClass);
+
+					// reload service
+					service = serviceCache.get(serviceClass);
+
+				}
 				if (service != null) {
 
 					logger.debug("Initializing command ", commandType.getName());
@@ -439,27 +448,32 @@ public class Services implements StructrServices {
 				return;
 			}
 
-			service.initialize(this);
+			if (service.initialize(this)) {
 
-			if (service instanceof RunnableService) {
+				if (service instanceof RunnableService) {
 
-				RunnableService runnableService = (RunnableService) service;
+					RunnableService runnableService = (RunnableService) service;
 
-				if (runnableService.runOnStartup()) {
+					if (runnableService.runOnStartup()) {
 
-					// start RunnableService and cache it
-					runnableService.startService();
+						// start RunnableService and cache it
+						runnableService.startService();
+					}
 				}
+
+				if (service.isRunning()) {
+
+					// cache service instance
+					serviceCache.put(serviceClass, service);
+				}
+
+				// initialization callback
+				service.initialized();
+
+			} else {
+
+				logger.error("Service {} failed to start", serviceClass.getSimpleName());
 			}
-
-			if (service.isRunning()) {
-
-				// cache service instance
-				serviceCache.put(serviceClass, service);
-			}
-
-			// initialization callback
-			service.initialized();
 
 		} catch (Throwable t) {
 
@@ -654,11 +668,11 @@ public class Services implements StructrServices {
 	public static void enableCalculateHierarchy() {
 		calculateHierarchy = true;
 	}
-	
+
 	public static void enableUpdateIndexConfiguration() {
 		updateIndexConfiguration = true;
 	}
-	
+
 	public static void disableTestingMode() {
 		testingModeDisabled      = true;
 		calculateHierarchy       = true;
@@ -672,7 +686,7 @@ public class Services implements StructrServices {
 	public static boolean updateIndexConfiguration() {
 		return updateIndexConfiguration;
 	}
-	
+
 	public static boolean isTesting() {
 
 		if (testingModeDisabled) {

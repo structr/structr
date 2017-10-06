@@ -98,7 +98,7 @@ public class RelationshipDataContainer extends DataContainer implements Comparab
 
 	@Override
 	public int compareTo(RelationshipDataContainer t) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Not supported yet");
 	}
 
 	@Override

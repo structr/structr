@@ -100,25 +100,16 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	public void init() {
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		DiskFileItemFactory fileFactory = new DiskFileItemFactory();
+		fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 
-			DiskFileItemFactory fileFactory = new DiskFileItemFactory();
-			fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
-
-			filesDir = new File(Settings.TmpPath.getValue()); // new File(Services.getInstance().getTmpPath());
-			if (!filesDir.exists()) {
-				filesDir.mkdir();
-			}
-
-			fileFactory.setRepository(filesDir);
-			uploader = new ServletFileUpload(fileFactory);
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-
-			logger.warn("", t);
+		filesDir = new File(Settings.TmpPath.getValue());
+		if (!filesDir.exists()) {
+			filesDir.mkdir();
 		}
+
+		fileFactory.setRepository(filesDir);
+		uploader = new ServletFileUpload(fileFactory);
 	}
 
 	@Override
@@ -233,7 +224,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 					} else if (UPLOAD_FOLDER_PATH_PARAMETER.equals(fieldName)) {
 
 						path = item.getString();
-						
+
 					} else {
 
 						params.put(item.getFieldName(), item.getString());
@@ -258,7 +249,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 							cls = SchemaHelper.getEntityClassForRawType(type);
 
 						}
-						
+
 						if (cls == null) {
 
 							if (isImage) {
@@ -278,7 +269,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 								cls = org.structr.dynamic.File.class;
 							}
 						}
-						
+
 						if (cls != null) {
 							type = cls.getSimpleName();
 						}
@@ -300,24 +291,24 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 								changedProperties.put(AbstractNode.name, PathHelper.getName(name));
 								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
-								
+
 								// Update type as it could have changed
 								changedProperties.put(AbstractNode.type, type);
 
 								Folder uploadFolder = null;
 								final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
-								
+
 								// If a path attribute was sent, create all folders on the fly
 								if (path != null) {
-									
+
 									uploadFolder = FileHelper.createFolderPath(securityContext, path);
-								
+
 								} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
 
 									uploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
 
 								}
-								
+
 								// can only happen if the configuration value is invalid or maps to the root folder
 								if (uploadFolder != null) {
 

@@ -65,7 +65,7 @@ public class AuthHelper {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("Error while searching for principal", fex);
+				logger.warn("Error while searching for principal: {}", fex.getMessage());
 			}
 
 		}
@@ -220,7 +220,7 @@ public class AuthHelper {
 	public static void sendLogoutNotification (final Principal user) throws FrameworkException {
 
 		try {
-			
+
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 
 		} catch (UnlicensedException ex) {

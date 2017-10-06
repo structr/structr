@@ -138,7 +138,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		} else {
 
-			logger.error("Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class.");
+			logger.error("Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class");
 		}
 
 		// initialize variables
@@ -832,10 +832,10 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 			if (result == null) {
-				
-				throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection.");
+
+				throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
 			}
-			
+
 			if (returnContent) {
 
 				if (!(resource instanceof StaticRelationshipResource) && !result.isPrimitiveArray() && !result.isEmpty()) {
@@ -954,7 +954,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	private void assertInitialized() throws FrameworkException {
 
 		if (!Services.getInstance().isInitialized()) {
-			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet.");
+			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
 		}
 	}
 	// </editor-fold>

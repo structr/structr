@@ -280,12 +280,12 @@ public abstract class Message<T> {
 
 				logger.warn("Invalid CloudService message: unknown type {}", type);
 
-				throw new EOFException("Invalid type, aborting.");
+				throw new EOFException("Invalid type, aborting");
 			}
 
 		} else {
 
-			logger.warn("Invalid CloudService message: no type found.");
+			logger.warn("Invalid CloudService message: no type found");
 		}
 
 		return null;

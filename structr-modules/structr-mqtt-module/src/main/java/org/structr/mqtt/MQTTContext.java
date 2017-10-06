@@ -35,8 +35,8 @@ import org.structr.mqtt.entity.MQTTClient;
 
 public abstract class MQTTContext {
 
-	private static final Logger									logger			= LoggerFactory.getLogger(MQTTContext.class.getName());
-	private static final Map<String, MQTTClientConnection>		connections		= new HashMap<>();
+	private static final Logger logger                                 = LoggerFactory.getLogger(MQTTContext.class.getName());
+	private static final Map<String, MQTTClientConnection> connections = new HashMap<>();
 
 	static {
 
@@ -86,7 +86,7 @@ public abstract class MQTTContext {
 
 		} catch (MqttException ex) {
 
-			throw new FrameworkException(422, "Error while connecting to MQTT broker.");
+			throw new FrameworkException(422, "Error while connecting to MQTT broker");
 		}
 
 	}
@@ -133,7 +133,7 @@ public abstract class MQTTContext {
 				tx.success();
 
 			} catch (Throwable t) {
-				logger.warn("Could not connect to MQTT broker.");
+				logger.warn("Could not connect to MQTT broker: {}", t.getMessage());
 			}
 		}
 

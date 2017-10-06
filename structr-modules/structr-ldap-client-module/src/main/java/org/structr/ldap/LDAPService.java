@@ -314,7 +314,7 @@ public class LDAPService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		this.updateInterval = Settings.getOrCreateIntegerSetting(CONFIG_KEY_UPDATE_INTERVAL, Long.toString(TimeUnit.HOURS.toMillis(2))).getValue();
 
@@ -328,6 +328,8 @@ public class LDAPService extends Thread implements RunnableService {
 
 		this.port           = Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(339);
 		this.useSsl         = Settings.getBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(true);
+
+		return true;
 	}
 
 	@Override

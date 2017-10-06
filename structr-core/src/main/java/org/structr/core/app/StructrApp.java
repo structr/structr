@@ -304,22 +304,22 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public Tx tx() {
+	public Tx tx() throws FrameworkException {
 		return tx(true);
 	}
 
 	@Override
-	public Tx tx(final boolean doValidation) {
+	public Tx tx(final boolean doValidation) throws FrameworkException {
 		return tx(doValidation, true);
 	}
 
 	@Override
-	public Tx tx(final boolean doValidation, final boolean doCallbacks) {
+	public Tx tx(final boolean doValidation, final boolean doCallbacks) throws FrameworkException {
 		return new Tx(securityContext, this, doValidation, doCallbacks).begin();
 	}
 
 	@Override
-	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
+	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) throws FrameworkException {
 		return new Tx(securityContext, this, doValidation, doCallbacks, doNotifications).begin();
 	}
 

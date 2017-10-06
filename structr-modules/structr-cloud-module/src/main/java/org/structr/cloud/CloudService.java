@@ -77,10 +77,12 @@ public class CloudService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) {
+	public boolean initialize(final StructrServices services) {
 
 		tcpPort       = Settings.TcpPort.getValue();
 		DEBUG         = Settings.getBooleanSetting("sync.debug").getValue(false);
+
+		return true;
 	}
 
 	@Override

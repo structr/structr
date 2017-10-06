@@ -244,7 +244,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 			if (System.currentTimeMillis() > abortTime) {
 
-				throw new FrameworkException(401, "Authentication failed.");
+				throw new FrameworkException(401, "Authentication failed");
 			}
 
 			try {
@@ -273,7 +273,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 
 			if (System.currentTimeMillis() > transmissionAbortTime) {
 
-				throw new FrameworkException(504, "Timeout while waiting for response.");
+				throw new FrameworkException(504, "Timeout while waiting for response");
 			}
 
 			try {
@@ -484,7 +484,7 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 		app.delete((RelationshipInterface)app.getRelationshipById(uuid));
 	}
 
-	public void beginTransaction() {
+	public void beginTransaction() throws FrameworkException {
 
 		tx = app.tx();
 		tx.setSource(this);

@@ -31,7 +31,13 @@ import org.structr.api.index.Index;
 public interface DatabaseService {
 
 	// ----- lifecycle -----
-	void initialize();
+	/**
+	 * Initializes the service, returns true if the
+	 * service was initialized successfully.
+	 *
+	 * @return whether the service was initialized successfully
+	 */
+	boolean initialize();
 	boolean needsIndexRebuild();
 	void shutdown();
 

@@ -44,7 +44,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public class PushNodesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(PushNodesCommand.class.getName());
-	
+
 	static {
 
 		StructrWebSocket.addCommand(PushNodesCommand.class);
@@ -85,7 +85,7 @@ public class PushNodesCommand extends AbstractCommand {
 
 				} else {
 
-					getWebSocket().send(MessageBuilder.status().code(404).message("Entity with ID " + sourceId + " not found.").build(), true);
+					getWebSocket().send(MessageBuilder.status().code(404).message("Entity with ID " + sourceId + " not found").build(), true);
 				}
 
 				tx.success();

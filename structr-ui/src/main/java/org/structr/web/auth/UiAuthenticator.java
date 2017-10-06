@@ -93,8 +93,6 @@ public class UiAuthenticator implements Authenticator {
 	public static final long AUTH_USER_HEAD		= 1024;
 	public static final long NON_AUTH_USER_HEAD	= 2048;
 
-	//~--- methods --------------------------------------------------------
-
 	/**
 	 * Examine request and try to find a user.
 	 *
@@ -115,13 +113,11 @@ public class UiAuthenticator implements Authenticator {
 		if (user == null) {
 
 			user = checkExternalAuthentication(request, response);
-
 		}
 
 		if (user == null) {
 
 			user = getUser(request, true);
-
 		}
 
 		if (user == null) {
@@ -139,9 +135,7 @@ public class UiAuthenticator implements Authenticator {
 			} else {
 
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
-
 			}
-
 		}
 
 		securityContext.setAuthenticator(this);
@@ -189,14 +183,11 @@ public class UiAuthenticator implements Authenticator {
 		response.setHeader("X-Structr-Edition", Services.getInstance().getEdition());
 
 		return securityContext;
-
 	}
 
 	@Override
 	public boolean hasExaminedRequest() {
-
 		return examined;
-
 	}
 
 	@Override
@@ -229,13 +220,11 @@ public class UiAuthenticator implements Authenticator {
 					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_GET)) {
 
 						return;
-
 					}
 
 					if (validUser && resourceAccess.hasFlag(AUTH_USER_GET)) {
 
 						return;
-
 					}
 
 					break;
@@ -245,13 +234,11 @@ public class UiAuthenticator implements Authenticator {
 					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_PUT)) {
 
 						return;
-
 					}
 
 					if (validUser && resourceAccess.hasFlag(AUTH_USER_PUT)) {
 
 						return;
-
 					}
 
 					break;
@@ -261,13 +248,11 @@ public class UiAuthenticator implements Authenticator {
 					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_POST)) {
 
 						return;
-
 					}
 
 					if (validUser && resourceAccess.hasFlag(AUTH_USER_POST)) {
 
 						return;
-
 					}
 
 					break;
@@ -277,13 +262,11 @@ public class UiAuthenticator implements Authenticator {
 					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_DELETE)) {
 
 						return;
-
 					}
 
 					if (validUser && resourceAccess.hasFlag(AUTH_USER_DELETE)) {
 
 						return;
-
 					}
 
 					break;
@@ -293,13 +276,11 @@ public class UiAuthenticator implements Authenticator {
 					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_OPTIONS)) {
 
 						return;
-
 					}
 
 					if (validUser && resourceAccess.hasFlag(AUTH_USER_OPTIONS)) {
 
 						return;
-
 					}
 
 					break;
@@ -309,13 +290,11 @@ public class UiAuthenticator implements Authenticator {
 					if (!validUser && resourceAccess.hasFlag(NON_AUTH_USER_HEAD)) {
 
 						return;
-
 					}
 
 					if (validUser && resourceAccess.hasFlag(AUTH_USER_HEAD)) {
 
 						return;
-
 					}
 
 					break;
@@ -483,19 +462,23 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	public static void writeNotFound(final HttpServletResponse response) throws IOException {
-
 		response.sendError(HttpServletResponse.SC_NOT_FOUND);
-
 	}
 
 	public static void writeInternalServerError(final HttpServletResponse response) {
-
 		try {
-
 			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		} catch (IOException ioex) {
+			logger.warn("Unable to send error response: {}", ioex.getMessage());
+		}
+	}
 
-		} catch (IOException ignore) {}
-
+	public static void writeFrameworkException(final HttpServletResponse response, final FrameworkException fex) {
+		try {
+			response.sendError(fex.getStatus());
+		} catch (IOException ioex) {
+			logger.warn("Unable to send error response: {}", ioex.getMessage());
+		}
 	}
 
 	@Override

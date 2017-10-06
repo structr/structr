@@ -98,93 +98,101 @@ public class StructrDOMNodePath extends StructrPath {
 	@Override
 	public DirectoryStream<Path> getDirectoryStream(DirectoryStream.Filter<? super Path> filter) {
 
-		// this is called when a directory is opened, so we can safely begin our transaction here
-		final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx();
+		try {
 
-		return new DirectoryStream() {
+			// this is called when a directory is opened, so we can safely begin our transaction here
+			final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx();
 
-			boolean closed = false;
+			return new DirectoryStream() {
+				
+				boolean closed = false;
 
-			@Override
-			public Iterator iterator() {
+				@Override
+				public Iterator iterator() {
 
-				if (!closed) {
+					if (!closed) {
 
-					final StructrPath.HiddenFileEntry hiddenFiles = StructrPath.HIDDEN_PROPERTY_FILES.get(domNode.getUuid());
-					final List<StructrPath> nodes                 = new LinkedList<>();
-					int pos                                       = 0;
+						final StructrPath.HiddenFileEntry hiddenFiles = StructrPath.HIDDEN_PROPERTY_FILES.get(domNode.getUuid());
+						final List<StructrPath> nodes                 = new LinkedList<>();
+						int pos                                       = 0;
 
-					try {
+						try {
 
-						for (final DOMNode child : domNode.treeGetChildren()) {
+							for (final DOMNode child : domNode.treeGetChildren()) {
 
-							final int domPosition = getDomPosition(child, pos);
+								final int domPosition = getDomPosition(child, pos);
 
-							// store position just in case..
-							child.setProperty(DOMNode.domSortPosition, domPosition);
+								// store position just in case..
+								child.setProperty(DOMNode.domSortPosition, domPosition);
 
-							// add node to return set
-							nodes.add(new StructrDOMNodePath(fs, StructrDOMNodePath.this, ownerDocument, domNode, child, getName(null, child, pos)));
+								// add node to return set
+								nodes.add(new StructrDOMNodePath(fs, StructrDOMNodePath.this, ownerDocument, domNode, child, getName(null, child, pos)));
 
-							pos += 1;
-						}
-
-						final Set<PropertyKey> exportedKeys = new LinkedHashSet<>();
-
-						Iterables.addAll(exportedKeys, domNode.getPropertyKeys(PropertyView.Ui));
-						Iterables.addAll(exportedKeys, domNode.getPropertyKeys(PropertyView.Html));
-
-						hidePropertyKeys(hiddenFiles);
-
-						for (final PropertyKey key : exportedKeys) {
-
-							final Object value  = domNode.getProperty(key);
-							Object defaultValue = key.defaultValue();
-
-							// boolean properties with default value "false" should not be visible
-							if (key instanceof BooleanProperty) {
-								defaultValue = Boolean.FALSE;
+								pos += 1;
 							}
 
-							// do not export properties that return null or their default value
-							if (value != null && !(value.equals(defaultValue))) {
+							final Set<PropertyKey> exportedKeys = new LinkedHashSet<>();
 
-								final StructrPath path = resolveStructrPath(key.jsonName());
-								if (path != null) {
+							Iterables.addAll(exportedKeys, domNode.getPropertyKeys(PropertyView.Ui));
+							Iterables.addAll(exportedKeys, domNode.getPropertyKeys(PropertyView.Html));
 
-									if (hiddenFiles != null) {
-										hiddenFiles.remove(key.jsonName());
+							hidePropertyKeys(hiddenFiles);
+
+							for (final PropertyKey key : exportedKeys) {
+
+								final Object value  = domNode.getProperty(key);
+								Object defaultValue = key.defaultValue();
+
+								// boolean properties with default value "false" should not be visible
+								if (key instanceof BooleanProperty) {
+									defaultValue = Boolean.FALSE;
+								}
+
+								// do not export properties that return null or their default value
+								if (value != null && !(value.equals(defaultValue))) {
+
+									final StructrPath path = resolveStructrPath(key.jsonName());
+									if (path != null) {
+
+										if (hiddenFiles != null) {
+											hiddenFiles.remove(key.jsonName());
+										}
+
+										nodes.add(path);
 									}
-
-									nodes.add(path);
 								}
 							}
+
+						} catch (FrameworkException fex) {
+							logger.warn("", fex);
 						}
+
+						return nodes.iterator();
+					}
+
+					return Collections.emptyIterator();
+				}
+
+				@Override
+				public void close() throws IOException {
+
+					closed = true;
+
+					try {
+						tx.success();
+						tx.close();
 
 					} catch (FrameworkException fex) {
 						logger.warn("", fex);
 					}
-
-					return nodes.iterator();
 				}
+			};
 
-				return Collections.emptyIterator();
-			}
+		} catch (FrameworkException fex) {
+			logger.error("Unable to start transaction.", fex);
+		}
 
-			@Override
-			public void close() throws IOException {
-
-				closed = true;
-
-				try {
-					tx.success();
-					tx.close();
-
-				} catch (FrameworkException fex) {
-					logger.warn("", fex);
-				}
-			}
-		};
+		return null;
 	}
 
 	@Override

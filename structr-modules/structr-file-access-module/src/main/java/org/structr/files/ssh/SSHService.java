@@ -55,6 +55,7 @@ import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -82,7 +83,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("Setting up SSH server..");
 
@@ -110,14 +111,17 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			server.start();
 			running = true;
+
 			logger.info("Initialization complete.");
 
 		} catch (IOException ex) {
+
 			ex.printStackTrace();
-			//logger.error("", ex);
-			logger.info("Initialization failed.");
+
+			logger.warn("Initialization failed.");
 		}
 
+		return running;
 	}
 
 	@Override
@@ -281,7 +285,14 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		if (currentTransaction == null) {
 
-			currentTransaction = StructrApp.getInstance(securityContext).tx(true, false, false);
+			try {
+				currentTransaction = StructrApp.getInstance(securityContext).tx(true, false, false);
+
+			} catch (FrameworkException fex) {
+
+				// transaction can fail here (theoretically...)
+				logger.warn("Unable to begin transaction.", fex);
+			}
 		}
 	}
 

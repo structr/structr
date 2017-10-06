@@ -43,8 +43,10 @@ public interface Service extends Feature {
 	 * @throws ClassNotFoundException
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
+	 *
+	 * @returns whether the service was initialized successfully
 	 */
-	void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
+	boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

@@ -59,7 +59,7 @@ public class Tx implements AutoCloseable {
 		this.app             = app;
 	}
 
-	public Tx begin() {
+	public Tx begin() throws FrameworkException {
 
 		cmd = app.command(TransactionCommand.class).beginTx();
 

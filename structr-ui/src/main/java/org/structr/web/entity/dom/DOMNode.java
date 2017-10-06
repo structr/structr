@@ -19,6 +19,7 @@
 package org.structr.web.entity.dom;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -172,6 +173,11 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property[] rawProps = new Property[] {
 		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
 	};
+
+	private static final Set<PropertyKey> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new Property[] {
+		GraphObject.id, GraphObject.type, DOMNode.ownerDocument, DOMNode.pageId, DOMNode.parent, DOMNode.parentId, DOMElement.syncedNodes,
+		DOMNode.children, DOMNode.childrenIds, LinkSource.linkable, LinkSource.linkableId, Page.path
+	}));
 
 	// a simple cache for custom properties
 	private Set<PropertyKey> customProperties = null;
@@ -1526,14 +1532,13 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				final PropertyKey key = it.next();
 
-				// omit system properties (except type), parent/children and page relationships
-				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-					&& !key.equals(GraphObject.id)
-					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
-					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
-					&& !key.equals(DOMElement.syncedNodes)
-					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+				// skip blacklisted properties
+				if (cloneBlacklist.contains(key)) {
+					continue;
+				}
 
+
+				if (!key.isUnvalidated()) {
 					properties.put(key, getProperty(key));
 				}
 			}
@@ -1543,14 +1548,12 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				final PropertyKey key = it.next();
 
-				// omit system properties (except type), parent/children and page relationships
-				if (key.equals(GraphObject.type) || (!key.isUnvalidated()
-					&& !key.equals(GraphObject.id)
-					&& !key.equals(DOMNode.ownerDocument) && !key.equals(DOMNode.pageId)
-					&& !key.equals(DOMNode.parent) && !key.equals(DOMNode.parentId)
-					&& !key.equals(DOMElement.syncedNodes)
-					&& !key.equals(DOMNode.children) && !key.equals(DOMNode.childrenIds))) {
+				// skip blacklisted properties
+				if (cloneBlacklist.contains(key)) {
+					continue;
+				}
 
+				if (!key.isUnvalidated()) {
 					properties.put(key, getProperty(key));
 				}
 			}

@@ -80,7 +80,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 	}
 
 	@Override
-	public void initialize(final StructrServices services) {
+	public boolean initialize(final StructrServices services) {
 
 		active = Settings.getBooleanSetting("sync", "enabled").getValue(false);
 
@@ -91,7 +91,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			allowedMaster = Settings.getOrCreateStringSetting("sync", "master").getValue();
 
 			if (allowedMaster == null && SyncRole.slave.equals(role)) {
-				throw new IllegalStateException("no master address set for this slave, please set sync.master in structr.conf.");
+				throw new IllegalStateException("no master address set for this slave, please set sync.master in structr.conf");
 			}
 
 			final String minimum = Settings.getOrCreateStringSetting("sync.minimum").getValue("1");
@@ -105,19 +105,19 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 			if (SyncRole.master.equals(role)) {
 
 				if (StringUtils.isEmpty(hosts)) {
-					throw new IllegalStateException("no slave hosts set for this master, please set sync.hosts in structr.conf.");
+					throw new IllegalStateException("no slave hosts set for this master, please set sync.hosts in structr.conf");
 				}
 
 				if (StringUtils.isEmpty(users)) {
-					throw new IllegalStateException("no slave users set for this master, please set sync.users in structr.conf.");
+					throw new IllegalStateException("no slave users set for this master, please set sync.users in structr.conf");
 				}
 
 				if (StringUtils.isEmpty(pwds)) {
-					throw new IllegalStateException("no slave passwords set for this master, please set sync.passwords in structr.conf.");
+					throw new IllegalStateException("no slave passwords set for this master, please set sync.passwords in structr.conf");
 				}
 
 				if (StringUtils.isEmpty(ports)) {
-					throw new IllegalStateException("no slave ports set for this master, please set sync.ports in structr.conf.");
+					throw new IllegalStateException("no slave ports set for this master, please set sync.ports in structr.conf");
 				}
 
 				final String[] remoteHosts = hosts != null ? hosts.split("[, ]+") : new String[0];
@@ -174,6 +174,8 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			logger.info("Retry interval is set to {} seconds", retryInterval);
 		}
+
+		return true;
 	}
 
 	@Override
@@ -311,7 +313,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			} catch (FrameworkException fex) {
 
-				logger.error("Unable to store last modified date for current instance.", fex);
+				logger.error("Unable to store last modified date for current instance", fex);
 			}
 
 
@@ -382,7 +384,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 
 			if (!reachable) {
 
-				logger.warn("Synchronization slave {} not reachable, removing from list.", host);
+				logger.warn("Synchronization slave {} not reachable, removing from list", host);
 				it.remove();
 			}
 		}
@@ -392,7 +394,7 @@ public class SyncService extends Thread  implements RunnableService, StructrTran
 		requiredSyncCount       = Integer.valueOf(minimum);
 
 		if (numSyncHosts < requiredSyncCount) {
-			throw new IllegalStateException("synchronization policy requires at least " + requiredSyncCount + " hosts, but only " + numSyncHosts + " are reachable.");
+			throw new IllegalStateException("synchronization policy requires at least " + requiredSyncCount + " hosts, but only " + numSyncHosts + " are reachable");
 		}
 
 		logger.info("Synchronization to {} host{} required.", new Object[] { requiredSyncCount, requiredSyncCount == 1 ? "" : "s" } );

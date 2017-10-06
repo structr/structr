@@ -42,10 +42,10 @@ import org.structr.core.property.PropertyMap;
  */
 public interface App extends Closeable {
 
-	public Tx tx();
-	public Tx tx(final boolean doValidation);
-	public Tx tx(final boolean doValidation, final boolean doCallbacks);
-	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications);
+	public Tx tx() throws FrameworkException;
+	public Tx tx(final boolean doValidation) throws FrameworkException;
+	public Tx tx(final boolean doValidation, final boolean doCallbacks) throws FrameworkException;
+	public Tx tx(final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) throws FrameworkException;
 
 	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException;
 	public <T extends NodeInterface> T create(final Class<T> type, final PropertyMap properties) throws FrameworkException;

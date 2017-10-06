@@ -71,7 +71,7 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		services.registerInitializationCallback(new InitializationCallback() {
 
@@ -80,6 +80,8 @@ public class SchemaService implements Service {
 				reloadSchema(new ErrorBuffer(), null);
 			}
 		});
+
+		return true;
 	}
 
 	public static void registerBuiltinTypeOverride(final String type, final String fqcn) {
@@ -185,9 +187,9 @@ public class SchemaService implements Service {
 
 							calculateHierarchy();
 						}
-						
+
 						if (Services.updateIndexConfiguration() || !Services.isTesting()) {
-							
+
 							updateIndexConfiguration(removedClasses);
 						}
 
@@ -196,8 +198,7 @@ public class SchemaService implements Service {
 
 				} catch (Throwable t) {
 
-					logger.error("Unable to compile dynamic schema.", t);
-
+					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					success = false;
 				}
 

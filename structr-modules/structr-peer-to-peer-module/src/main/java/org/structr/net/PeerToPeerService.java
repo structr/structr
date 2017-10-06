@@ -107,7 +107,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		logger.info("Initializing..");
 
@@ -143,6 +143,8 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 		} catch (Throwable t) {
 			logger.warn("Unable to initialize PeerToPeerService", t);
 		}
+
+		return initialized;
 	}
 
 	@Override

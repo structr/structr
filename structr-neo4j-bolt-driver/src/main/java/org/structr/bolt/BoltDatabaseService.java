@@ -40,6 +40,7 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
@@ -48,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
+import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.QueryResult;
 import org.structr.api.Transaction;
@@ -89,7 +91,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private int queryCacheSize                                        = 1000;
 
 	@Override
-	public void initialize() {
+	public boolean initialize() {
 
 		this.databasePath = Settings.DatabasePath.getValue();
 
@@ -144,24 +146,36 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			}
 		}
 
-		driver = GraphDatabase.driver(databaseDriverUrl,
-			AuthTokens.basic(username, password),
-			Config.build().withEncryptionLevel(Config.EncryptionLevel.NONE).toConfig()
-		);
+		try {
 
-		final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
-		final int nodeCacheSize = Settings.NodeCacheSize.getValue();
-		this.queryCacheSize     = Settings.QueryCacheSize.getValue();
+			driver = GraphDatabase.driver(databaseDriverUrl,
+				AuthTokens.basic(username, password),
+				Config.build().withoutEncryption().toConfig()
+			);
 
-		NodeWrapper.initialize(nodeCacheSize);
-		logger.info("Node cache size set to {}", nodeCacheSize);
+			final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
+			final int nodeCacheSize = Settings.NodeCacheSize.getValue();
+			this.queryCacheSize     = Settings.QueryCacheSize.getValue();
 
-		RelationshipWrapper.initialize(relCacheSize);
-		logger.info("Relationship cache size set to {}", relCacheSize);
+			NodeWrapper.initialize(nodeCacheSize);
+			logger.info("Node cache size set to {}", nodeCacheSize);
 
-		// drop :NodeInterface index and create uniqueness constraint
-		// disabled, planned for Structr 2.4
-		//createUUIDConstraint();
+			RelationshipWrapper.initialize(relCacheSize);
+			logger.info("Relationship cache size set to {}", relCacheSize);
+
+			// drop :NodeInterface index and create uniqueness constraint
+			// disabled, planned for Structr 2.4
+			//createUUIDConstraint();
+
+			// signal success
+			return true;
+
+		} catch (ServiceUnavailableException ex) {
+			logger.error("Neo4j service is not available.");
+		}
+
+		// service failed to initialize
+		return false;
 	}
 
 	@Override
@@ -201,6 +215,8 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				session = new SessionTransaction(this, driver.session());
 				sessions.set(session);
 
+			} catch (ServiceUnavailableException ex) {
+				throw new NetworkException(ex.getMessage(), ex);
 			} catch (ClientException cex) {
 				logger.warn("Cannot connect to Neo4j database server at {}", databaseUrl);
 			}

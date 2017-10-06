@@ -137,7 +137,7 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public void initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final String taskList = Settings.CronTasks.getValue();
 		if (StringUtils.isNotBlank(taskList)) {
@@ -168,6 +168,8 @@ public class CronService extends Thread implements RunnableService {
 				}
 			}
 		}
+
+		return true;
 	}
 
 	@Override
