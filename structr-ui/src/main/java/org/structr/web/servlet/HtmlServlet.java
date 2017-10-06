@@ -181,7 +181,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			assertInitialized();
 
-			final String path = request.getPathInfo();
+			final String path = request.getPathInfo() != null ? request.getPathInfo() : "/";
 
 			// check for registration (has its own tx because of write access
 			if (checkRegistration(auth, request, response, path)) {
