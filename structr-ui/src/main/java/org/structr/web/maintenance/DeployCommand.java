@@ -193,8 +193,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final String path                        = (String) attributes.get("source");
 
 		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		ctx.setDoTransactionNotifications(false);
 		final App app                            = StructrApp.getInstance(ctx);
+
+		ctx.setDoTransactionNotifications(false);
+		ctx.disableEnsureCardinality();
+		ctx.disableModificationOfAccessTime();
 
 		final Map<String, Object> componentsConf = new HashMap<>();
 		final Map<String, Object> templatesConf  = new HashMap<>();
