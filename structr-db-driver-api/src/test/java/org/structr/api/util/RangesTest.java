@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 
 public class RangesTest {
@@ -53,9 +54,57 @@ public class RangesTest {
 		}
 
 		testRange(new RangesIterator<>(list.iterator(),         "x"));
-		testRange(new RangesIterator<>(list.iterator(),       "2-x"));
 		testRange(new RangesIterator<>(list.iterator(), "1,2,5-7,x"), 1, 2, 5, 6, 7);
-		testRange(new RangesIterator<>(list.iterator(),      "x-y"));
+		testRange(new RangesIterator<>(list.iterator(), "          1        ,       3,5,,,,,,,,7   "), 1, 3, 5, 7);
+		testRange(new RangesIterator<>(list.iterator(), ",          1"), 1);
+
+		try {
+			testRange(new RangesIterator<>(list.iterator(), "3-1"), 1);
+			fail("Wrong range boundary order should throw an exception.");
+
+		} catch (IllegalArgumentException iex) {
+			assertEquals("Invalid range specification error message", "Range boundaries must be in ascending order", iex.getMessage());
+		}
+
+		try {
+			testRange(new RangesIterator<>(list.iterator(),      "x-y"));
+			fail("Invalid range boundary should throw an exception.");
+
+		} catch (IllegalArgumentException iex) {
+			assertEquals("Invalid range specification error message", "Range must have two boundaries", iex.getMessage());
+		}
+
+		try {
+			testRange(new RangesIterator<>(list.iterator(),       "2-x"));
+			fail("Invalid range boundary should throw an exception.");
+
+		} catch (IllegalArgumentException iex) {
+			assertEquals("Invalid range specification error message", "Range must have two boundaries", iex.getMessage());
+		}
+
+		try {
+			testRange(new RangesIterator<>(list.iterator(), "-1"), 1);
+			fail("Negative range boundary should throw an exception.");
+
+		} catch (IllegalArgumentException iex) {
+			assertEquals("Invalid range specification error message", "Range must have two boundaries", iex.getMessage());
+		}
+
+		try {
+			testRange(new RangesIterator<>(list.iterator(), null), 1);
+			fail("Null range specification should throw an exception.");
+
+		} catch (IllegalArgumentException iex) {
+			assertEquals("Invalid range specification error message", "Range specification must not be empty", iex.getMessage());
+		}
+
+		try {
+			testRange(new RangesIterator<>(list.iterator(), ""), 1);
+			fail("Empty range specification should throw an exception.");
+
+		} catch (IllegalArgumentException iex) {
+			assertEquals("Invalid range specification error message", "Range specification must not be empty", iex.getMessage());
+		}
 	}
 
 	// ----- private methods -----

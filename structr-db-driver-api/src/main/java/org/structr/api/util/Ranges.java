@@ -20,6 +20,7 @@ package org.structr.api.util;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +35,15 @@ public class Ranges {
 
 	public Ranges(final String spec) {
 
-		for (final String range : spec.split("[,]+")) {
+		if (StringUtils.isBlank(spec)) {
+			throw new IllegalArgumentException("Range specification must not be empty");
+		}
 
-			handleRange(range);
+		for (final String range : spec.trim().split("[,]+")) {
+
+			if (StringUtils.isNotBlank(range)) {
+				handleRange(range);
+			}
 		}
 	}
 
@@ -75,6 +82,10 @@ public class Ranges {
 				if (first != null && last != null) {
 
 					ranges.add(new Range(first, last));
+
+				} else {
+
+					throw new IllegalArgumentException("Range must have two boundaries");
 				}
 				break;
 
@@ -87,7 +98,7 @@ public class Ranges {
 
 		try {
 
-			return Integer.parseInt(src);
+			return Integer.parseInt(src.trim());
 
 		} catch (NumberFormatException nex) {
 			logger.warn("Invalid range specification, unable to parse {}, ignoring.", src);
@@ -103,6 +114,14 @@ public class Ranges {
 		private int last  = 0;
 
 		public Range(final int first, final int last) {
+
+			if (first < 0 || last < 0) {
+				throw new IllegalArgumentException("Range boundary must not be negative");
+			}
+
+			if (first > last) {
+				throw new IllegalArgumentException("Range boundaries must be in ascending order");
+			}
 
 			this.first = first;
 			this.last  = last;
