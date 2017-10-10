@@ -199,17 +199,17 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.2.9.v20150224</version>
+			<version>9.4.7.v20170914</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>9.2.9.v20150224</version>
+			<version>9.4.7.v20170914</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-runner</artifactId>
-			<version>9.2.9.v20150224</version>
+			<version>9.4.7.v20170914</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>
@@ -219,7 +219,6 @@
 		<dependency>
 			<groupId>com.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
-			<version>3.9</version>
 		</dependency>
 	</dependencies>
 	<licenses>

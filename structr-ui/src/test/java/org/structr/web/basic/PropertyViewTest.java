@@ -84,6 +84,7 @@ public class PropertyViewTest extends StructrUiTest {
 		String resource = "/test_ones";
 
 		// first: test failures without resource access object
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
@@ -97,6 +98,7 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 0, true);
 
 		// failures with flags == 0
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
@@ -110,6 +112,7 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 1, true);
 
 		// failures with flags == 1 (AUTH_USER_GET)
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    200);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
@@ -123,6 +126,7 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 2, true);
 
 		// failures with flags == 2 (AUTH_USER_PUT)
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
@@ -149,6 +153,7 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 8, true);
 
 		// failures with flags == 8 (AUTH_USER_DELETE)
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
@@ -162,7 +167,8 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 16, true);
 
 		// failures with flags == 16 (NON_AUTH_USER_GET)
-		testGet(   resource, "", "",                                200);
+		testGet(   resource,                                        200);
+		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
 		testPut(   resource, username, password, "{'name':'test'}", 401);
@@ -175,9 +181,11 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 32, true);
 
 		// failures with flags == 32 (NON_AUTH_USER_PUT)
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
-		testPut(   resource, "", "", "{'name':'test'}",             400);
+		testPut(   resource,         "{'name':'test'}",             400);
+		testPut(   resource, "", "", "{'name':'test'}",             401);
 		testPut(   resource, username, password, "{'name':'test'}", 401);
 		testPost(  resource, "", "", "{'name':'test'}",             401);
 		testPost(  resource, username, password, "{'name':'test'}", 401);
@@ -188,11 +196,13 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 64, true);
 
 		// failures with flags == 64 (NON_AUTH_USER_POST)
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
 		testPut(   resource, username, password, "{'name':'test'}", 401);
-		testPost(  resource, "", "", "{'name':'test'}",             201);
+		testPost(  resource,         "{'name':'test'}",             201);
+		testPost(  resource, "", "", "{'name':'test'}",             401);
 		testPost(  resource, username, password, "{'name':'test'}", 401);
 		testDelete(resource, "", "",                                401);
 		testDelete(resource, username, password,                    401);
@@ -201,13 +211,15 @@ public class PropertyViewTest extends StructrUiTest {
 		grant("TestOne", 128, true);
 
 		// failures with flags == 128 (NON_AUTH_USER_DELETE)
+		testGet(   resource,                                        401);
 		testGet(   resource, "", "",                                401);
 		testGet(   resource, username, password,                    401);
 		testPut(   resource, "", "", "{'name':'test'}",             401);
 		testPut(   resource, username, password, "{'name':'test'}", 401);
 		testPost(  resource, "", "", "{'name':'test'}",             401);
 		testPost(  resource, username, password, "{'name':'test'}", 401);
-		testDelete(resource, "", "",                                200);
+		testDelete(resource,                                        200);
+		testDelete(resource, "", "",                                401);
 		testDelete(resource, username, password,                    401);
 
 

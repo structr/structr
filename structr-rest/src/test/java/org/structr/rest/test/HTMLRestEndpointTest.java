@@ -41,7 +41,7 @@ public class HTMLRestEndpointTest extends StructrRestTest {
 
 			.expect()
 				.statusCode(200)
-				.contentType("text/html; charset=UTF-8")
+				.contentType("text/html;charset=utf-8")
 				.header("Content-Encoding", "gzip")
 				.header("Transfer-Encoding", "chunked")
 

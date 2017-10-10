@@ -208,9 +208,10 @@ public class AuthHelper {
 	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
 		final HttpSession session = request.getSession(false);
+		
+		if (session == null) return;
 
 		SessionHelper.clearSession(session.getId());
-
 		SessionHelper.invalidateSession(session);
 
 		AuthHelper.sendLogoutNotification(user);

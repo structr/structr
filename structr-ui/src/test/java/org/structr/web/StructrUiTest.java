@@ -389,6 +389,21 @@ public abstract class StructrUiTest {
 				.post("/resource_access");
 	}
 
+	protected void testGet(final String resource, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.get(resource);
+
+	}
+
 	protected void testGet(final String resource, final String username, final String password, final int expectedStatusCode) {
 
 		RestAssured
@@ -404,6 +419,21 @@ public abstract class StructrUiTest {
 			.when()
 				.get(resource);
 
+	}
+
+	protected void testPost(final String resource, final String body, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(body)
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.post(resource);
 	}
 
 	protected void testPost(final String resource, final String username, final String password, final String body, final int expectedStatusCode) {
@@ -423,6 +453,21 @@ public abstract class StructrUiTest {
 				.post(resource);
 	}
 
+	protected void testPut(final String resource, final String body, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(body)
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.put(resource);
+	}
+
 	protected void testPut(final String resource, final String username, final String password, final String body, final int expectedStatusCode) {
 
 		RestAssured
@@ -438,6 +483,20 @@ public abstract class StructrUiTest {
 
 			.when()
 				.put(resource);
+	}
+
+	protected void testDelete(final String resource, final int expectedStatusCode) {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+
+			.expect()
+				.statusCode(expectedStatusCode)
+
+			.when()
+				.delete(resource);
 	}
 
 	protected void testDelete(final String resource, final String username, final String password, final int expectedStatusCode) {

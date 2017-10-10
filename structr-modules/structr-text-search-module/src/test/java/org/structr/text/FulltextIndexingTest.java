@@ -35,7 +35,6 @@ import org.structr.web.entity.FileBase;
 
 /**
  *
- * @author Christian Morgner
  */
 public class FulltextIndexingTest extends StructrTextSearchModuleTest {
 

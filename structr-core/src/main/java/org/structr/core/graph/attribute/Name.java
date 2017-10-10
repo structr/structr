@@ -23,7 +23,6 @@ import org.structr.core.graph.NodeAttribute;
 
 /**
  *
- * @author Christian Morgner
  */
 public class Name extends NodeAttribute<String> {
 
