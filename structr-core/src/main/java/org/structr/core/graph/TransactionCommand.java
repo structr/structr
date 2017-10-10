@@ -79,7 +79,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 			tx.begin();
 
 		} else {
-			
+
 			throw new FrameworkException(503, "Database service is not available");
 		}
 
@@ -377,10 +377,10 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	public static void simpleBroadcastException (final Exception ex, final Map<String, Object> data, final boolean printStackTrace) {
 
-		data.put("message", ex.toString());
+		data.put("message", ex.getMessage());
 
 		if (printStackTrace) {
-			ex.printStackTrace();
+			logger.warn("", ex);
 		}
 
 		simpleBroadcast("GENERIC_MESSAGE", data, null);
