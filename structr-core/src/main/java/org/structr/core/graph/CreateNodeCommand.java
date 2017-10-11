@@ -22,12 +22,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.graph.Node;
 import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
@@ -37,6 +39,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 import org.structr.schema.SchemaHelper;
@@ -83,6 +86,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 			final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
 			final PropertyMap properties     = new PropertyMap(attributes);
+			final PropertyMap toNotify       = new PropertyMap();
 			final Object typeObject          = properties.get(AbstractNode.type);
 			final Class nodeType             = getTypeOrGeneric(typeObject);
 			final Set<String> labels         = TypeProperty.getLabelsForType(nodeType);
@@ -106,10 +110,12 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			GraphObject.type.setProperty(securityContext, tmp, nodeType.getSimpleName());
 			AbstractNode.createdDate.setProperty(securityContext, tmp, now);
 			AbstractNode.lastModifiedDate.setProperty(securityContext, tmp, now);
-			AbstractNode.visibleToPublicUsers.setProperty(securityContext, tmp, false);
-			AbstractNode.visibleToAuthenticatedUsers.setProperty(securityContext, tmp, false);
-			AbstractNode.hidden.setProperty(securityContext, tmp, false);
-			AbstractNode.deleted.setProperty(securityContext, tmp, false);
+
+			// default property values
+			AbstractNode.visibleToPublicUsers.setProperty(securityContext, tmp,        getOrDefault(properties, AbstractNode.visibleToPublicUsers, false));
+			AbstractNode.visibleToAuthenticatedUsers.setProperty(securityContext, tmp, getOrDefault(properties, AbstractNode.visibleToAuthenticatedUsers, false));
+			AbstractNode.hidden.setProperty(securityContext, tmp,                      getOrDefault(properties, AbstractNode.hidden, false));
+			AbstractNode.deleted.setProperty(securityContext, tmp,                     getOrDefault(properties, AbstractNode.deleted, false));
 
 			if (user != null) {
 
@@ -122,17 +128,46 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			// prevent double setting of properties
 			properties.remove(AbstractNode.id);
 			properties.remove(AbstractNode.type);
+			properties.remove(AbstractNode.visibleToPublicUsers);
+			properties.remove(AbstractNode.visibleToAuthenticatedUsers);
+			properties.remove(AbstractNode.hidden);
+			properties.remove(AbstractNode.deleted);
 			properties.remove(AbstractNode.lastModifiedDate);
 			properties.remove(AbstractNode.lastModifiedBy);
 			properties.remove(AbstractNode.createdDate);
 			properties.remove(AbstractNode.createdBy);
+
+			// move properties to creation container that can be set directly on creation
+			tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
+
+			// collect default values and try to set them on creation
+			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(nodeType, PropertyView.All)) {
+
+				if (key.isPassivelyIndexed() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
+
+					key.setProperty(securityContext, tmp, key.getProperty(securityContext, tmp, true));
+				}
+			}
 
 			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, nodeType, labels, tmp.getData()), nodeType, null, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
 
+				securityContext.disableModificationOfAccessTime();
 				node.setProperties(securityContext, properties);
+				securityContext.enableModificationOfAccessTime();
+
+				// ensure modification callbacks are called (necessary for validation)
+				for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {
+
+					final PropertyKey key = entry.getKey();
+					final Object value    = entry.getValue();
+
+					if (!key.isUnvalidated()) {
+						TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)node, key, null, value);
+					}
+				}
 
 				properties.clear();
 
@@ -243,5 +278,16 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 
 		return StructrApp.getConfiguration().getFactoryDefinition().getGenericNodeType();
+	}
+
+	private <T> T getOrDefault(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
+
+		final T value = src.get(key);
+		if (value != null) {
+
+			return value;
+		}
+
+		return defaultValue;
 	}
 }

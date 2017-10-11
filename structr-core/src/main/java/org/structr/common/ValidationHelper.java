@@ -532,7 +532,6 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 							.nodeQuery(type)
 							.and(key, value)
-							.sortDescending(GraphObject.createdDate)
 							.getAsList();
 
 					} else {
@@ -540,7 +539,6 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 							.relationshipQuery(type)
 							.and(key, value)
-							.sortDescending(GraphObject.createdDate)
 							.getAsList();
 
 					}
@@ -616,7 +614,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.nodeQuery(type)
 						.and(properties)
-						.sortDescending(GraphObject.createdDate)
+						.disableSorting()
 						.getAsList();
 
 				} else {
@@ -624,7 +622,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.relationshipQuery(type)
 						.and(properties)
-						.sortDescending(GraphObject.createdDate)
+						.disableSorting()
 						.getAsList();
 
 				}
@@ -681,7 +679,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.nodeQuery()
 						.and(key, value)
-						.sortDescending(GraphObject.createdDate)
+						.disableSorting()
 						.getAsList();
 
 				} else if (object instanceof RelationshipInterface) {
@@ -689,7 +687,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.relationshipQuery()
 						.and(key, value)
-						.sortDescending(GraphObject.createdDate)
+						.disableSorting()
 						.getAsList();
 
 				} else {

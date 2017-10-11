@@ -40,6 +40,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public T getFirst() throws FrameworkException;
 
 	// ----- builder methods -----
+	public Query<T> disableSorting();
 	public Query<T> sort(final PropertyKey key);
 	public Query<T> sortAscending(final PropertyKey key);
 	public Query<T> sortDescending(final PropertyKey key);

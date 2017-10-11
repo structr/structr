@@ -450,7 +450,6 @@ public class ValidationTest extends StructrTest {
 
 		} catch (Throwable ex) {}
 
-
 		List<GraphObject> result = null;
 
 		try (final Tx tx = app.tx()) {

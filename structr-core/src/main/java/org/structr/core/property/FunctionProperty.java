@@ -69,7 +69,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 				final ActionContext actionContext = new ActionContext(securityContext);
 
-				// don't ignore predicate 
+				// don't ignore predicate
 				actionContext.setPredicate(predicate);
 
 				return (T)Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
@@ -81,6 +81,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
 			logger.warn("Exception while evaluating read function in Function property \"{}\"", jsonName());
 
 		}

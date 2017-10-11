@@ -249,9 +249,9 @@ public class DirectFileImportTest extends StructrUiTest {
 
 			tx.success();
 
-		} catch (FrameworkException | IOException fex) {
+		} catch (Throwable t) {
 
-			fex.printStackTrace();
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

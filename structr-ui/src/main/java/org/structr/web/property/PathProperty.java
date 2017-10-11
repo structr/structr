@@ -74,7 +74,13 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
-		return FileHelper.getFolderPath((AbstractFile) obj);
+
+		if (obj instanceof AbstractFile) {
+
+			return FileHelper.getFolderPath((AbstractFile) obj);
+		}
+
+		return null;
 	}
 
 	@Override
