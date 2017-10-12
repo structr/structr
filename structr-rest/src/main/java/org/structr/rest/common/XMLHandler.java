@@ -35,7 +35,6 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.JsonInput;
 
 /**
  *
@@ -202,10 +201,11 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		if (type != null) {
 
 			if (element.isRoot) {
-				// handle data for toplevel element
 
+				// handle data for toplevel element
 				// add config.properties to entityData
-				final Collection<Object> mappedProperties = ((JsonInput)config.get(PROPERTIES)).values();
+
+				final Collection<Object> mappedProperties = ((Map)config.get(PROPERTIES)).values();
 				element.data.forEach((String key, Object value) -> {
 					if (mappedProperties.contains(key)) {
 						entityData.put(key, value);
@@ -227,7 +227,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 					final Map<String, Object> childData = new LinkedHashMap<>();
 
 					// add config.properties to childData
-					final Collection<Object>  mappedProperties = ((JsonInput)config.get(PROPERTIES)).values();
+					final Collection<Object>  mappedProperties = ((Map)config.get(PROPERTIES)).values();
 					element.data.forEach((String key, Object value) -> {
 						if (mappedProperties.contains(key)) {
 							childData.put(key, value);

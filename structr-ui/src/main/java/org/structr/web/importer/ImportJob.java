@@ -170,6 +170,10 @@ abstract class ImportJob {
 		return configuration;
 	}
 
+	public void waitForExit() throws InterruptedException {
+		importThread.join();
+	}
+
 	protected void jobFinished() {
 		DataImportManager.getInstance().jobFinished(this);
 	}

@@ -677,7 +677,7 @@ public class ValidationHelper {
 				if (object instanceof NodeInterface) {
 
 					result = StructrApp.getInstance()
-						.nodeQuery()
+						.nodeQuery(NodeInterface.class)
 						.and(key, value)
 						.disableSorting()
 						.getAsList();
@@ -685,7 +685,7 @@ public class ValidationHelper {
 				} else if (object instanceof RelationshipInterface) {
 
 					result = StructrApp.getInstance()
-						.relationshipQuery()
+						.relationshipQuery(RelationshipInterface.class)
 						.and(key, value)
 						.disableSorting()
 						.getAsList();

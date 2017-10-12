@@ -103,6 +103,11 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				uuid = getNextUuid();
 
 				properties.put(GraphObject.id, uuid);
+
+			} else {
+
+				// enable UUID validation
+				securityContext.uuidWasSetManually(true);
 			}
 
 			// use property keys to set property values on creation dummy
