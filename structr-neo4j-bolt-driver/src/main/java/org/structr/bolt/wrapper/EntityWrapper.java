@@ -145,8 +145,8 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
+		final Map<String, Object> map = new HashMap<>();
 		final SessionTransaction tx   = db.getCurrentTransaction();
-		final Map<String, Object> map = new HashMap<>(values);
 		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties}";
 
 		// overwrite a potential "id" property

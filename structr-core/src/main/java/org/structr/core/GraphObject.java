@@ -19,6 +19,7 @@
 package org.structr.core;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -215,6 +216,7 @@ public interface GraphObject {
 		}
 
 		if (atLeastOnePropertyChanged) {
+
 			// set primitive values directly for better performance
 			getPropertyContainer().setProperties(container.getData());
 		}
@@ -245,6 +247,26 @@ public interface GraphObject {
 					// index unconverted value
 					key.index(this);
 				}
+			}
+		}
+	}
+
+	default void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {
+
+		for (final Iterator<Entry<PropertyKey, Object>> iterator = src.entrySet().iterator(); iterator.hasNext();) {
+
+			final Entry<PropertyKey, Object> attr = iterator.next();
+			final PropertyKey key                 = attr.getKey();
+			final Object value                    = attr.getValue();
+
+			if (key.indexable(value) && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
+
+				// value can be set directly, move to creation container
+				key.setProperty(securityContext, indexable, value);
+				iterator.remove();
+
+				// store value to do notifications later
+				filtered.put(key, value);
 			}
 		}
 	}

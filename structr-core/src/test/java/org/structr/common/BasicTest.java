@@ -1728,6 +1728,48 @@ public class BasicTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testCreateNodeWithAdditionalProperties() {
+
+		TestOne test = null;
+
+		// create object with user context
+		try (final Tx tx = app.tx()) {
+
+			test = app.create(TestOne.class,
+				new NodeAttribute<>(AbstractNode.name, "test"),
+				new NodeAttribute<>(GraphObject.visibleToPublicUsers, true),
+				new NodeAttribute<>(GraphObject.visibleToAuthenticatedUsers, true),
+				new NodeAttribute<>(AbstractNode.deleted, true),
+				new NodeAttribute<>(AbstractNode.hidden, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// create object with user context
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Invalid create node result", "test", test.getProperty(AbstractNode.name));
+			assertEquals("Invalid create node result", true, test.getProperty(GraphObject.visibleToPublicUsers));
+			assertEquals("Invalid create node result", true, test.getProperty(GraphObject.visibleToAuthenticatedUsers));
+			assertEquals("Invalid create node result", true, test.getProperty(AbstractNode.deleted));
+			assertEquals("Invalid create node result", true, test.getProperty(AbstractNode.hidden));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+
 
 	}
 

@@ -1575,6 +1575,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			} catch (FrameworkException ex) {
 
+				ex.printStackTrace();
+
 				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 
 			}

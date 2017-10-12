@@ -308,42 +308,37 @@ public class PageTest extends StructrUiTest {
 				Node h1 = page.createElement("h1");
 				Node div = page.createElement("div");
 				Node p = page.createElement("p");
-				try {
-					// add HTML element to page
-					page.appendChild(html);
 
-					// add HEAD and BODY elements to HTML
-					html.appendChild(head);
-					html.appendChild(body);
+				// add HTML element to page
+				page.appendChild(html);
 
-					// add TITLE element to HEAD
-					head.appendChild(title);
+				// add HEAD and BODY elements to HTML
+				html.appendChild(head);
+				html.appendChild(body);
 
-					// add H1 element to BODY
-					body.appendChild(h1);
+				// add TITLE element to HEAD
+				head.appendChild(title);
 
-					// add DIV element to BODY
-					body.appendChild(div);
-					div.appendChild(p);
+				// add H1 element to BODY
+				body.appendChild(h1);
 
-					// add text element to P
-					p.appendChild(page.createTextNode("First Paragraph"));
+				// add DIV element to BODY
+				body.appendChild(div);
+				div.appendChild(p);
 
-					Node clone = body.cloneNode(false);
+				// add text element to P
+				p.appendChild(page.createTextNode("First Paragraph"));
 
-					assertTrue(isClone(clone, body));
+				Node clone = body.cloneNode(false);
 
-					tx.success();
+				assertTrue(isClone(clone, body));
 
-				} catch (DOMException dex) {
-
-					throw new FrameworkException(422, dex.getMessage());
-				}
-
+				tx.success();
 			}
 
-		} catch (FrameworkException ex) {
+		} catch (Throwable t) {
 
+			t.printStackTrace();
 			fail("Unexpected exception");
 		}
 

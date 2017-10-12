@@ -33,6 +33,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 /**
  *
@@ -230,8 +231,15 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public Object evaluate(ActionContext actionContext, String key, String defaultValue) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException {
+
+		final Object value = data.get(key);
+		if (value != null) {
+
+			return value;
+		}
+
+		return Function.numberOrString(defaultValue);
 	}
 
 	@Override

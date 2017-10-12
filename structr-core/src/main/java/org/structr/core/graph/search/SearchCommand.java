@@ -342,6 +342,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	// ----- builder methods -----
 	@Override
+	public org.structr.core.app.Query<T> disableSorting() {
+		this.doNotSort = true;
+		return this;
+	}
+
+	@Override
 	public org.structr.core.app.Query<T> sort(final PropertyKey key) {
 		return sortAscending(key);
 	}

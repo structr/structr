@@ -414,22 +414,22 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public boolean isDynamic() {
 		return dynamic;
 	}
-	
+
 	/**
 	 * Default implementation of the existing index() method.
-	 * 
+	 *
 	 * Allows property classes to override the method and thus
 	 * to decide about the value to index.
-	 * 
+	 *
 	 * Default implementation
-	 * 
-	 * @param obj 
+	 *
+	 * @param obj
 	 */
 	@Override
 	public void index(final GraphObject obj) {
 		index(obj, obj.getProperty(this));
 	}
-	
+
 	@Override
 	public void index(final GraphObject entity, final Object value) {
 
