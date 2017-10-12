@@ -601,6 +601,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// config import order is "users, grants, pages, components, templates"
 			// data import order is "schema, files, templates, components, pages"
 
+			logger.info("Export finished.");
+
 		} catch (IOException ex) {
 			logger.warn("", ex);
 		}
@@ -942,6 +944,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
+		logger.info("Exporting resource access grants");
+
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final App app                          = StructrApp.getInstance();
 
@@ -969,6 +973,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	private void exportSchema(final Path target) throws FrameworkException {
+
+		logger.info("Exporting schema");
 
 		try {
 
@@ -1117,6 +1123,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportMailTemplates(final Path target) throws FrameworkException {
 
+		logger.info("Exporting mail templates");
+
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
@@ -1147,6 +1155,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	private void exportWidgets(final Path target) throws FrameworkException {
+
+		logger.info("Exporting widgets");
 
 		final List<Map<String, Object>> widgets = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
@@ -1182,6 +1192,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	private void exportLocalizations(final Path target) throws FrameworkException {
+
+		logger.info("Exporting localizations");
 
 		final List<Map<String, Object>> localizations = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
