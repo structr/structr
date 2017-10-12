@@ -39,6 +39,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
@@ -143,9 +144,13 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			// collect default values and try to set them on creation
 			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(nodeType, PropertyView.All)) {
 
-				if (key.isPassivelyIndexed() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
+				if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 
-					key.setProperty(securityContext, tmp, key.getProperty(securityContext, tmp, true));
+					final Object defaultValue = key.defaultValue();
+					if (defaultValue != null) {
+
+						key.setProperty(securityContext, tmp, defaultValue);
+					}
 				}
 			}
 
