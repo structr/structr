@@ -39,7 +39,6 @@ import org.structr.core.JsonInput;
 
 /**
  *
- * @author Christian Morgner
  */
 public class XMLHandler implements Iterator<Map<String, Object>> {
 

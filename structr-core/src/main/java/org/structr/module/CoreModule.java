@@ -155,7 +155,6 @@ import org.structr.schema.action.Actions;
 
 /**
  *
- * @author Christian Morgner
  */
 public class CoreModule implements StructrModule {
 

@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author Christian Morgner
  */
 public class XMLStructureAnalyzer {
 

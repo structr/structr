@@ -35,7 +35,6 @@ import static ucar.httpservices.CustomX509TrustManager.logger;
 
 /**
  *
- * @author Christian Morgner
  */
 public class RendererTest extends StructrUiTest {
 

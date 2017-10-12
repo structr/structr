@@ -44,6 +44,7 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -51,12 +52,13 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
+import org.eclipse.jetty.server.session.DefaultSessionCache;
+import org.eclipse.jetty.server.session.DefaultSessionIdManager;
+import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.AsyncGzipFilter;
-import org.eclipse.jetty.servlets.GzipFilter;
 import org.eclipse.jetty.util.resource.JarResource;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceCollection;
@@ -87,7 +89,8 @@ public class HttpService implements RunnableService {
 		Started, Stopped
 	}
 
-	private HashSessionManager hashSessionManager = null;
+	private DefaultSessionCache sessionCache      = null;
+	private GzipHandler gzipHandler               = null;
 	private HttpConfiguration httpConfig          = null;
 	private HttpConfiguration httpsConfig         = null;
 	private Server server                         = null;
@@ -206,6 +209,20 @@ public class HttpService implements RunnableService {
 		contexts.addHandler(new DefaultHandler());
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
+
+		if (enableGzipCompression) {
+			gzipHandler = new GzipHandler();
+			gzipHandler.setIncludedMimeTypes("text/html", "text/plain", "text/css", "text/javascript", "application/json");
+			gzipHandler.setInflateBufferSize(32768);
+			gzipHandler.setMinGzipSize(256);
+			gzipHandler.setCompressionLevel(9);
+			gzipHandler.setIncludedMethods("GET", "POST", "PUT", "HEAD", "DELETE");
+			gzipHandler.addIncludedPaths("/*");
+			gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
+		}
+
+		servletContext.setGzipHandler(gzipHandler);
+		
 		final List<Connector> connectors = new LinkedList<>();
 
 		// create resource collection from base path & source JAR
@@ -248,33 +265,34 @@ public class HttpService implements RunnableService {
 			}
 		}
 
-		hashSessionManager = new HashSessionManager();
-
-		try {
-			hashSessionManager.setStoreDirectory(new File(baseDir + "/sessions"));
-		} catch (IOException ex) {
-			logger.warn("Could not set custom session manager with session store directory {}/sessions", baseDir);
+		sessionCache = new DefaultSessionCache(servletContext.getSessionHandler());
+		
+		if (licenseManager != null) {
+			
+			final String hardwareId = licenseManager.getHardwareFingerprint();
+			
+			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server);
+			idManager.setWorkerName(hardwareId);
+			
+			sessionCache.getSessionHandler().setSessionIdManager(idManager);
+			
 		}
+		
+		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
+		//sessionDataStore.setSavePeriodSec(60);
+	
+		sessionCache.setSessionDataStore(sessionDataStore);
+		//sessionCache.setSaveOnCreate(true);
+		sessionCache.setSaveOnInactiveEviction(false);
+		sessionCache.setRemoveUnloadableSessions(true);
 
-		servletContext.getSessionHandler().setSessionManager(hashSessionManager);
+		servletContext.getSessionHandler().setSessionCache(sessionCache);
 
 		if (enableRewriteFilter) {
 
 			final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
 			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
-		}
-
-		if (enableGzipCompression) {
-
-			final FilterHolder gzipFilter = Settings.Async.getValue() ? new FilterHolder(AsyncGzipFilter.class) : new FilterHolder(GzipFilter.class);
-			gzipFilter.setInitParameter("mimeTypes", "text/html,text/plain,text/css,text/javascript,application/json");
-			gzipFilter.setInitParameter("bufferSize", "32768");
-			gzipFilter.setInitParameter("minGzipSize", "256");
-			gzipFilter.setInitParameter("deflateCompressionLevel", "9");
-			gzipFilter.setInitParameter("methods", "GET,POST,PUT,HEAD,DELETE");
-			servletContext.addFilter(gzipFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
-
 		}
 
 		contexts.addHandler(servletContext);
@@ -485,8 +503,8 @@ public class HttpService implements RunnableService {
 		return resourceProviders;
 	}
 
-	public HashSessionManager getHashSessionManager() {
-		return hashSessionManager;
+	public SessionCache getSessionCache() {
+		return sessionCache;
 	}
 
 	// ----- private methods -----
@@ -518,7 +536,7 @@ public class HttpService implements RunnableService {
 
 							resourceHandler.setResourceBase(resourceBase);
 							resourceHandler.setCacheControl("max-age=0");
-							resourceHandler.setEtags(true);
+							//resourceHandler.setEtags(true);
 
 							final ContextHandler staticResourceHandler = new ContextHandler();
 							staticResourceHandler.setContextPath(contextPath);

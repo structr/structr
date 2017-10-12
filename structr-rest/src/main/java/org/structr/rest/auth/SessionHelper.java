@@ -23,7 +23,7 @@ import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import org.eclipse.jetty.server.session.HashSessionManager;
+import org.eclipse.jetty.server.session.SessionCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -75,8 +75,15 @@ public class SessionHelper {
 
 	public static HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
 
-		return Services.getInstance().getService(HttpService.class).getHashSessionManager().getSession(sessionId);
-
+		try {
+		
+			return Services.getInstance().getService(HttpService.class).getSessionCache().get(sessionId);
+		
+		} catch (final Exception ex) {
+			logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
+		}
+		
+		return null;
 	}
 
 	public static HttpSession newSession(final HttpServletRequest request) {
@@ -140,23 +147,29 @@ public class SessionHelper {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
-		final HashSessionManager sessionManager = Services.getInstance().getService(HttpService.class).getHashSessionManager();
+		final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
 
 		final String[] sessionIds = user.getProperty(Principal.sessionIds);
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
-			for (String sessionId : sessionIds) {
-				final HttpSession session = sessionManager.getSession(sessionId);
+			for (final String sessionId : sessionIds) {
+				
+				HttpSession session = null;
+				try {
+					
+					session = sessionCache.get(sessionId);
+					
+				} catch (Exception ex) {
+					logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
+				}
 
 				if (session == null || SessionHelper.isSessionTimedOut(session)) {
 					SessionHelper.clearSession(sessionId);
 				}
 
 			}
-
 		}
-
 	}
 
 	public static void invalidateSession(final HttpSession session) {
@@ -172,9 +185,7 @@ public class SessionHelper {
 				logger.warn("Invalidating already invalidated session failed: {}", session.getId());
 
 			}
-
 		}
-
 	}
 
 	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
@@ -184,7 +195,7 @@ public class SessionHelper {
 		boolean sessionValid      = false;
 
 		if (requestedSessionId == null) {
-
+			
 			// No session id requested => create new session
 			SessionHelper.newSession(request);
 
@@ -199,6 +210,8 @@ public class SessionHelper {
 
 			// Existing session id, check if we have an existing session
 			if (session != null) {
+
+				requestedSessionId = Services.getInstance().getService(HttpService.class).getSessionCache().getSessionHandler().getSessionIdManager().getId(requestedSessionId);
 
 				if (session.getId().equals(requestedSessionId)) {
 

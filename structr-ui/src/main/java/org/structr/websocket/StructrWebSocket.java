@@ -41,6 +41,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.rest.service.HttpService;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
@@ -166,7 +167,7 @@ public class StructrWebSocket implements WebSocketListener {
 				if (sessionIdFromMessage != null) {
 
 					// try to authenticated this connection by sessionId
-					authenticate(sessionIdFromMessage);
+					authenticate(Services.getInstance().getService(HttpService.class).getSessionCache().getSessionHandler().getSessionIdManager().getId(sessionIdFromMessage));
 				}
 
 				// we only permit LOGIN commands if authentication based on sessionId was not successful

@@ -20,6 +20,7 @@ package org.structr.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.session.SessionFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import org.junit.Assert;
@@ -40,7 +41,6 @@ import org.structr.web.servlet.HtmlServlet;
 
 /**
  *
- * @author Christian Morgner
  */
 public class UserSelfRegistrationTest extends StructrUiTest {
 
@@ -214,7 +214,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			final String[] sessionIds  = user.getProperty(User.sessionIds);
 
 			Assert.assertEquals("Invalid number of sessions after user confirmation", 1, sessionIds.length);
-			Assert.assertEquals("Invalid session ID after user confirmation", sessionFilter.getSessionId(), sessionIds[0]);
+			Assert.assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(sessionFilter.getSessionId(), "."), sessionIds[0]);
 
 			tx.success();
 

@@ -41,6 +41,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final String ANYONE                            = "anyone";
 
 	public static final Property<String[]> sessionIds            = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty();
+	public static final Property<String> sessionData             = new StringProperty("sessionData");
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
 	public static final Property<Boolean> blocked                = new BooleanProperty("blocked");
 	public static final Property<String> eMail                   = new LowercaseStringProperty("eMail").cmis().indexed();
