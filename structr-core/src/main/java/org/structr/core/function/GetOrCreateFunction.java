@@ -123,7 +123,7 @@ public class GetOrCreateFunction extends Function<Object, Object> {
 				}
 			}
 
-			final GraphObject obj = app.nodeQuery(type).sort(GraphObject.createdDate).order(false).and(properties).getFirst();
+			final GraphObject obj = app.nodeQuery(type).disableSorting().pageSize(1).and(properties).getFirst();
 			if (obj != null) {
 
 				// return existing object
