@@ -132,7 +132,7 @@ public class Scripting {
 			// Replace ___NULL___ by empty string
 			value = StringUtils.replaceAll(value, Functions.NULL_STRING, "");
 		}
-		
+
 		return value;
 	}
 
@@ -149,11 +149,12 @@ public class Scripting {
 	 * @throws FrameworkException
 	 * @throws UnlicensedException
 	 */
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression, final String methodName) throws FrameworkException, UnlicensedException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedException {
 
-		boolean isJavascript   = expression.startsWith("${{") && expression.endsWith("}}");
-		final int prefixOffset = isJavascript ? 1 : 0;
-		String source          = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
+		final String expression = input.trim();
+		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");
+		final int prefixOffset  = isJavascript ? 1 : 0;
+		String source           = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
 
 		String engine = "";
 		boolean isScriptEngine = false;
@@ -351,9 +352,11 @@ public class Scripting {
 
 		final List<String> expressions = new LinkedList<>();
 		final int length               = source.length();
+		boolean inComment              = false;
 		boolean inSingleQuotes         = false;
 		boolean inDoubleQuotes         = false;
 		boolean inTemplate             = false;
+		boolean hasSlash               = false;
 		boolean hasBackslash           = false;
 		boolean hasDollar              = false;
 		int level                      = 0;
@@ -371,7 +374,7 @@ public class Scripting {
 					break;
 
 				case '\'':
-					if (inTemplate && !inDoubleQuotes && !hasBackslash) {
+					if (inTemplate && !inDoubleQuotes && !hasBackslash && !inComment) {
 						inSingleQuotes = !inSingleQuotes;
 					}
 					hasDollar = false;
@@ -379,7 +382,7 @@ public class Scripting {
 					break;
 
 				case '\"':
-					if (inTemplate && !inSingleQuotes && !hasBackslash) {
+					if (inTemplate && !inSingleQuotes && !hasBackslash && !inComment) {
 						inDoubleQuotes = !inDoubleQuotes;
 					}
 					hasDollar = false;
@@ -387,17 +390,19 @@ public class Scripting {
 					break;
 
 				case '$':
-					hasDollar = true;
-					hasBackslash = false;
+					if (!inComment) {
+						hasDollar = true;
+						hasBackslash = false;
+					}
 					break;
 
 				case '{':
-					if (!inTemplate && hasDollar) {
+					if (!inTemplate && hasDollar && !inComment) {
 
 						inTemplate = true;
 						start = i-1;
 
-					} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes) {
+					} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inComment) {
 						level++;
 					}
 
@@ -407,7 +412,7 @@ public class Scripting {
 
 				case '}':
 
-					if (!inSingleQuotes && !inDoubleQuotes && inTemplate && level-- == 0) {
+					if (!inSingleQuotes && !inDoubleQuotes && inTemplate && !inComment && level-- == 0) {
 
 						inTemplate = false;
 						end = i+1;
@@ -418,6 +423,27 @@ public class Scripting {
 					}
 					hasDollar = false;
 					hasBackslash = false;
+					break;
+
+				case '/':
+
+					if (inTemplate && !inComment && !inSingleQuotes && !inDoubleQuotes) {
+
+						if (hasSlash) {
+
+							inComment = true;
+							hasSlash  = false;
+
+						} else {
+
+							hasSlash = true;
+						}
+					}
+					break;
+
+				case '\r':
+				case '\n':
+					inComment = false;
 					break;
 
 				default:

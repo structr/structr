@@ -950,7 +950,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid is(equal()) result", "true",  Scripting.replaceVariables(ctx, testOne, "${is(equal(13, \"013\"), \"true\")}"));
 			assertEquals("Invalid is(equal()) result", null,    Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"013\"), \"true\")}"));
 			assertEquals("Invalid is(equal()) result", null,    Scripting.replaceVariables(ctx, testOne, "${is(equal(\"13\", \"00013\"), \"true\")}"));
-			
+
 			// if etc.
 			assertEquals("Invalid if() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${if(\"true\", \"true\", \"false\")}"));
 			assertEquals("Invalid if() result", "false", Scripting.replaceVariables(ctx, testOne,  "${if(\"false\", \"true\", \"false\")}"));
@@ -1330,7 +1330,7 @@ public class ScriptingTest extends StructrTest {
 			ctx.setLocale(Locale.GERMANY);
 			assertEquals("Invalid date_format() result", "01. Okt 2017", Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
 			ctx.setLocale(locale);
-			
+
 			// date_format with null
 			assertEquals("Invalid date_format() result with null value", "",                                           Scripting.replaceVariables(ctx, testOne, "${date_format(this.alwaysNull, \"yyyy\")}"));
 			assertEquals("Invalid date_format() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(\"10\", this.alwaysNull)}"));
@@ -1340,7 +1340,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
 			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
 			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
-			
+
 			// parse_date
 			assertEquals("Invalid parse_date() result", ParseDateFunction.ERROR_MESSAGE_PARSE_DATE, Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12')}"));
 			assertEquals("Invalid parse_date() result", "2015-12-12T00:00:00+0000", Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12', 'yyyy-MM-dd')}"));
@@ -1549,7 +1549,7 @@ public class ScriptingTest extends StructrTest {
 			// each expression
 			assertEquals("Invalid each() result", "abc", Scripting.replaceVariables(ctx, testOne, "${each(split('a,b,c', ','), print(data))}"));
 			assertEquals("Invalid each() result", "abc", Scripting.replaceVariables(ctx, testOne, "${each(this.aStringArray, print(data))}"));
-			
+
 			// complex each expression, sets the value of "testString" to the concatenated IDs of all testSixs that are linked to "this"
 			Scripting.replaceVariables(ctx, testOne, "${each(this.manyToManyTestSixs, set(this, \"testString\", concat(get(this, \"testString\"), data.id)))}");
 			assertEquals("Invalid each() result", "640", Scripting.replaceVariables(ctx, testOne, "${length(this.testString)}"));
@@ -2405,6 +2405,53 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext ctx  = new ActionContext(securityContext, null);
 			Scripting.evaluate(ctx, null, "${delete(find('TestOne'))}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testQuotesInScriptComments() {
+
+		final String script =  "${{\n" +
+				"\n" +
+				"	// test'\n" +
+				"	Structr.print('test');\n" +
+				"\n" +
+				"}}";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+
+			assertEquals("Single quotes in JavaScript comments should not prevent script evaluation.", "test", Scripting.evaluate(ctx, null, script, "test"));
+			assertEquals("Single quotes in JavaScript comments should not prevent script evaluation.", "test", Scripting.replaceVariables(ctx, null, script));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testNewlineAtEndOfScriptingCode() {
+
+		final String script =  "${{ return 'test'; }}\n";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+
+			assertEquals("Newline at end of JavaScript scripting should not prevent script evaluation.", "test", Scripting.evaluate(ctx, null, script, "test"));
+			assertEquals("Newline at end of JavaScript scripting should not prevent script evaluation.", "test\n", Scripting.replaceVariables(ctx, null, script));
 
 			tx.success();
 
