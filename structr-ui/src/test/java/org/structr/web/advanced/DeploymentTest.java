@@ -2052,6 +2052,15 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append(valueOrEmpty(node, DOMElement.xpathQuery));
 		buf.append(valueOrEmpty(node, DOMElement.functionQuery));
 
+		buf.append(valueOrEmpty(node, DOMElement._reload));
+		buf.append(valueOrEmpty(node, DOMElement._confirm));
+		buf.append(valueOrEmpty(node, DOMElement._action));
+		buf.append(valueOrEmpty(node, DOMElement._attributes));
+		buf.append(valueOrEmpty(node, DOMElement._attr));
+		buf.append(valueOrEmpty(node, DOMElement._fieldName));
+		buf.append(valueOrEmpty(node, DOMElement._hide));
+		buf.append(valueOrEmpty(node, DOMElement._rawValue));
+	
 		// Content
 		buf.append(valueOrEmpty(node, Content.contentType));
 		buf.append(valueOrEmpty(node, Content.content));

@@ -860,7 +860,20 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 				if (key.startsWith("data-")) {
 
-					customProperties.add(StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key));
+					final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key);
+					if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
+
+						final Object defaultValue = propertyKey.defaultValue();
+						final Object nodeValue    = dbNode.getProperty(key);
+
+						// don't export boolean false values (which is the default)
+						if (nodeValue != null && Boolean.FALSE.equals(nodeValue) && (defaultValue == null || nodeValue.equals(defaultValue))) {
+
+							continue;
+						}
+					}
+
+					customProperties.add(propertyKey);
 
 				} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
 
