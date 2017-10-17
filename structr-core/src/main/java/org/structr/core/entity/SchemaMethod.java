@@ -23,6 +23,7 @@ import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
@@ -38,6 +39,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             virtualFileName = new StringProperty("virtualFileName");
 	public static final Property<String>             source          = new StringProperty("source");
 	public static final Property<String>             comment         = new StringProperty("comment");
+	public static final Property<Boolean>            isJava          = new BooleanProperty("isJava");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
 		name, schemaNode, source, comment, isFavoritable
@@ -52,7 +54,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	);
 
 	public ActionEntry getActionEntry() {
-		return new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source));
+		return new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source), getProperty(SchemaMethod.isJava));
 	}
 
 	// ----- interface Favoritable -----

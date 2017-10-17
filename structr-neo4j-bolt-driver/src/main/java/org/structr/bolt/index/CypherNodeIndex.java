@@ -56,7 +56,6 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		final SessionTransaction tx = db.getCurrentTransaction();
 		final NodeNodeMapper mapper = new NodeNodeMapper(db);
 
-		//return QueryUtils.map(mapper, tx.getNodes(query.getStatement(), query.getParameters()));
 		return QueryUtils.map(mapper, new NodeResultStream(tx, query));
 	}
 }

@@ -965,6 +965,12 @@ public class SchemaHelper {
 
 			switch (type) {
 
+				case Java:
+					// java actions are exported java methods
+					// that can be called by POSTing on the entity
+					formatJavaActions(src, actionList);
+					break;
+
 				case Custom:
 					// active actions are exported stored functions
 					// that can be called by POSTing on the entity
@@ -1005,6 +1011,31 @@ public class SchemaHelper {
 						break;
 				}
 			}
+		}
+
+	}
+
+	public static void formatJavaActions(final StringBuilder src, final List<ActionEntry> actionList) {
+
+		for (final ActionEntry action : actionList) {
+
+			final String source = action.getSource("this", true);
+
+			src.append("\n\t@Export\n");
+			src.append("\tpublic Object ");
+			src.append(action.getName());
+			src.append("(final Map<String, Object> parameters) throws FrameworkException {\n\n");
+
+			if (StringUtils.isNotBlank(source)) {
+
+				src.append(source);
+
+			} else {
+
+				src.append("\t\treturn null;\n");
+			}
+
+			src.append("\t}\n");
 		}
 
 	}

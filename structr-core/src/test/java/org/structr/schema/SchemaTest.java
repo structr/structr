@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -32,17 +33,21 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.InvalidSchemaException;
 import org.structr.schema.json.JsonObjectType;
@@ -470,6 +475,92 @@ public class SchemaTest extends StructrTest {
 			// deletion of relationship should not fail
 
 			logger.warn("", t);
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testJavaSchemaMethod() {
+
+		Group group = null;
+
+		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
+
+			assertNotNull("Schema node Group should exist", schemaNode);
+
+			final StringBuilder source = new StringBuilder();
+
+			source.append("\t\tfinal Set<String> test = new LinkedHashSet<>();\n");
+			source.append("\t\ttest.add(\"one\");\n");
+			source.append("\t\ttest.add(\"two\");\n");
+			source.append("\t\ttest.add(\"three\");\n");
+			source.append("\t\treturn test;\n\n");
+
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
+				new NodeAttribute<>(SchemaMethod.name, "testJavaMethod"),
+				new NodeAttribute<>(SchemaMethod.source, source.toString()),
+				new NodeAttribute<>(SchemaMethod.isJava, true)
+			);
+
+			group = app.create(Group.class, "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Actions.execute(securityContext, null, "${first(find('Group')).testJavaMethod}", "test");
+
+			assertTrue("Result should be of type Set", result instanceof Set);
+
+			final Set<String> set = (Set)result;
+			final String[] array  = set.toArray(new String[0]);
+
+			assertEquals("Invalid Java schema method result", "one",   array[0]);
+			assertEquals("Invalid Java schema method result", "two",   array[1]);
+			assertEquals("Invalid Java schema method result", "three", array[2]);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testJavaSchemaMethodWithEmptySource() {
+
+		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode group = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
+
+			assertNotNull("Schema node Group should exist", group);
+
+			final String source = "";
+
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.schemaNode, group),
+				new NodeAttribute<>(SchemaMethod.name, "testJavaMethod"),
+				new NodeAttribute<>(SchemaMethod.source, source),
+				new NodeAttribute<>(SchemaMethod.isJava, true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

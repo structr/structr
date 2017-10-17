@@ -76,13 +76,13 @@ public class SessionHelper {
 	public static HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
 
 		try {
-		
+
 			return Services.getInstance().getService(HttpService.class).getSessionCache().get(sessionId);
-		
+
 		} catch (final Exception ex) {
 			logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
 		}
-		
+
 		return null;
 	}
 
@@ -119,7 +119,7 @@ public class SessionHelper {
 	public static void clearSession(final String sessionId) {
 
 		final App app = StructrApp.getInstance();
-		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{sessionId});
+		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{sessionId}).disableSorting();
 
 		try {
 			List<Principal> principals = query.getAsList();
@@ -154,12 +154,12 @@ public class SessionHelper {
 		if (sessionIds != null && sessionIds.length > 0) {
 
 			for (final String sessionId : sessionIds) {
-				
+
 				HttpSession session = null;
 				try {
-					
+
 					session = sessionCache.get(sessionId);
-					
+
 				} catch (Exception ex) {
 					logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
 				}
@@ -195,7 +195,7 @@ public class SessionHelper {
 		boolean sessionValid      = false;
 
 		if (requestedSessionId == null) {
-			
+
 			// No session id requested => create new session
 			SessionHelper.newSession(request);
 

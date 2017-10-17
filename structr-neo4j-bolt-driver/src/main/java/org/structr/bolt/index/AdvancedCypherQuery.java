@@ -46,7 +46,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 
 	public AdvancedCypherQuery(final AbstractCypherIndex<?> index) {
 		this.index    = index;
-		this.pageSize = 10000;
+		this.pageSize = 1000;
 	}
 
 	@Override

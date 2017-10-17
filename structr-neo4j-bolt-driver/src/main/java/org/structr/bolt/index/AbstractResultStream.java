@@ -27,10 +27,10 @@ import org.structr.bolt.SessionTransaction;
  */
 public abstract class AbstractResultStream<T> implements QueryResult<T> {
 
-	private QueryResult<T> result = null;
-	private PageableQuery query   = null;
-	private Iterator<T> current   = null;
-	private SessionTransaction tx = null;
+	private QueryResult<T> result             = null;
+	private PageableQuery query               = null;
+	private Iterator<T> current               = null;
+	private SessionTransaction tx             = null;
 
 	protected abstract QueryResult<T> fetchData(final SessionTransaction tx, final String statement, final Map<String, Object> data);
 

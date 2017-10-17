@@ -31,7 +31,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private String name        = null;
 	private int position       = 0;
 
-	public ActionEntry(final String sourceName, final String value) {
+	public ActionEntry(final String sourceName, final String value, final boolean isJava) {
 
 		int positionOffset = 0;
 
@@ -52,24 +52,28 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		} else {
 
-			this.type = Actions.Type.Custom;
+			this.type = isJava ? Actions.Type.Java : Actions.Type.Custom;
 			positionOffset = 3;
 		}
 
-		if (type.equals(Actions.Type.Custom)) {
+		switch (type) {
 
-			this.name = sourceName.substring(positionOffset);
+			case Custom:
+			case Java:
+				this.name = sourceName.substring(positionOffset);
+				break;
 
-		} else {
-			// try to identify a position
-			final String positionString = sourceName.substring(positionOffset);
-			if (!positionString.isEmpty()) {
+			default:
+				// try to identify a position
+				final String positionString = sourceName.substring(positionOffset);
+				if (!positionString.isEmpty()) {
 
-				try { position = Integer.parseInt(positionString); } catch (Throwable t) { /* ignore */ }
-			}
+					try { position = Integer.parseInt(positionString); } catch (Throwable t) { /* ignore */ }
+				}
+				break;
 		}
 
-		this.call       = value.trim();
+		this.call = value.trim();
 	}
 
 	public String getSource(final String objVariable) {
@@ -80,27 +84,34 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append(Actions.class.getSimpleName());
-		buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
-		buf.append(StringEscapeUtils.escapeJava(call));
-		buf.append("}\"");
+		if (Actions.Type.Java.equals(type)) {
 
-		if (includeParameters) {
-			buf.append(", parameters");
-		}
-
-		buf.append(", \"");
-
-		if (this.type.equals(Actions.Type.Custom)) {
-
-			buf.append(this.name);
+			buf.append(this.call);
 
 		} else {
 
-			buf.append(this.type.getLogName());
-		}
+			buf.append(Actions.class.getSimpleName());
+			buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
+			buf.append(StringEscapeUtils.escapeJava(call));
+			buf.append("}\"");
 
-		buf.append("\")");
+			if (includeParameters) {
+				buf.append(", parameters");
+			}
+
+			buf.append(", \"");
+
+			if (this.type.equals(Actions.Type.Custom)) {
+
+				buf.append(this.name);
+
+			} else {
+
+				buf.append(this.type.getLogName());
+			}
+
+			buf.append("\")");
+		}
 
 		return buf.toString();
 	}
@@ -124,17 +135,5 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public String getName() {
 		return name;
-	}
-
-	// ----- private methods -----
-	private String replaceQuotes(final String source) {
-
-		String result = source;
-
-		result = result.replaceAll("\"", "\\\\\"");
-		result = result.replaceAll("\'", "\\\\\'");
-		result = result.replaceAll("\n", "\\\\n");
-
-		return result;
 	}
 }

@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -151,7 +150,7 @@ public class SchemaMethodResource extends SortableResource {
 
 				for (final SchemaMethod method : schemaNode.getProperty(SchemaNode.schemaMethods)) {
 
-					if (methodName.equals(method.getName())) {
+					if (methodName.equals(method.getName()) && !method.getProperty(SchemaMethod.isJava)) {
 
 						return method.getProperty(SchemaMethod.source);
 					}
@@ -185,7 +184,7 @@ public class SchemaMethodResource extends SortableResource {
 		throw new IllegalPathException("Type and method name do not match the given path.");
 	}
 
-	public static void unwrapTo(final Object source, final RestMethodResult result) {
+	public static boolean unwrapTo(final Object source, final RestMethodResult result) {
 
 		if (source != null) {
 
@@ -193,41 +192,44 @@ public class SchemaMethodResource extends SortableResource {
 			if (unwrapped.getClass().isArray()) {
 
 				for (final Object element : (Object[])unwrapped) {
-					unwrapTo(element, result);
+				
+					// check if collection contains GraphObjects and
+					// return literal object if not
+					if (!unwrapTo(element, result)) {
+
+						result.setNonGraphObjectResult(unwrapped);
+						return false;
+					}
 				}
 
 			} else if (unwrapped instanceof Collection) {
 
 				for (final Object element : (Collection)unwrapped) {
-					unwrapTo(element, result);
+
+					// check if collection contains GraphObjects and
+					// return literal object if not
+					if (!unwrapTo(element, result)) {
+
+						result.setNonGraphObjectResult(unwrapped);
+						return false;
+					}
 				}
 
 			} else if (unwrapped instanceof GraphObject) {
 
 				result.addContent((GraphObject)unwrapped);
 
+				return true;
+
 			} else {
 
 				// cannot unwrap, pass literal
 				result.setNonGraphObjectResult(unwrapped);
+
+				return false;
 			}
 		}
-	}
 
-	private Method determineMethod(final Class type, final String methodName) throws IllegalPathException {
-
-		Method result = null;
-
-		try {
-			result = type.getMethod(methodName, Map.class);
-
-		} catch (NoSuchMethodException ignore) {
-
-			// fallback: check exported schema methods
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
-			result =  methods.get(methodName);
-		}
-
-		return result;
+		return false;
 	}
 }

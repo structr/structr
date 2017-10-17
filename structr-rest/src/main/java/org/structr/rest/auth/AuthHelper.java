@@ -61,7 +61,7 @@ public class AuthHelper {
 
 			try {
 
-				return StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).getFirst();
+				return StructrApp.getInstance().nodeQuery(Principal.class).and(key, value).disableSorting().getFirst();
 
 			} catch (FrameworkException fex) {
 
@@ -114,7 +114,7 @@ public class AuthHelper {
 
 			try {
 
-				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).getFirst();
+				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).disableSorting().getFirst();
 
 				if (principal == null) {
 
@@ -208,7 +208,7 @@ public class AuthHelper {
 	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
 		final HttpSession session = request.getSession(false);
-		
+
 		if (session == null) return;
 
 		SessionHelper.clearSession(session.getId());

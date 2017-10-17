@@ -142,7 +142,7 @@ public class Scripting {
 	 *
 	 * @param actionContext the action context
 	 * @param entity the entity - may not be null because internal functions will fetch the security context from it
-	 * @param expression the scripting expression
+	 * @param input the scripting input
 	 * @param methodName the name of the method for error logging
 	 *
 	 * @return

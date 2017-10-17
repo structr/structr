@@ -52,7 +52,8 @@ public class Actions {
 		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer", "onCreate"),
 		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue", "onSave"),
 		Delete("onDeletion", "SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties", "onDelete"),
-		Custom("", "", "", "custom");
+		Custom("", "", "", "custom"),
+		Java("", "", "", "java");
 
 		Type(final String method, final String signature, final String parameters, final String logName) {
 			this.method = method;
