@@ -378,6 +378,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 	public static void simpleBroadcastException (final Exception ex, final Map<String, Object> data, final boolean printStackTrace) {
 
 		data.put("message", ex.getMessage());
+		data.put("stringvalue", ex.toString());
 
 		if (printStackTrace) {
 			logger.warn("", ex);
