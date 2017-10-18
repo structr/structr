@@ -1530,9 +1530,14 @@ var Structr = {
 
 				if (me.username === data.username) {
 
+					var text = data.message;
+					if (data.message !== data.stringvalue) {
+						text += '<br>' + data.stringvalue;
+					}
+
 					new MessageBuilder()
 							.title("Exception while importing " + data.importtype)
-							.error("File: " + data.filepath + "<br>" + data.message)
+							.error("File: " + data.filepath + "<br>" + text)
 							.requiresConfirmation()
 							.show();
 
