@@ -28,7 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.eclipse.jetty.util.ConcurrentHashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.jetty.util.URIUtil;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketException;
@@ -61,37 +61,31 @@ public class WebsocketController implements StructrTransactionListener {
 	private static final Logger logger                 = LoggerFactory.getLogger(WebsocketController.class.getName());
 	private static final Set<String> BroadcastCommands = new HashSet<>(Arrays.asList(new String[] { "UPDATE", "ADD", "CREATE" } ));
 
-	private final Set<StructrWebSocket> clients = new ConcurrentHashSet<>();
-	private Gson gson = null;
+	private final Set<StructrWebSocket> clients = ConcurrentHashMap.newKeySet();
+	private Gson gson                           = null;
 
 	public WebsocketController(final Gson gson) {
 
 		this.gson = gson;
-
 	}
 
 	public void registerClient(final StructrWebSocket client) {
 
 		clients.add(client);
-
 	}
 
 	public void unregisterClient(final StructrWebSocket client) {
 
 		clients.remove(client);
-
 	}
 
-	// ----- private methods -----
 	private void broadcast(final WebSocketMessage webSocketData) {
 
 		broadcast(webSocketData, null);
-
 	}
 
 	private void broadcast(final WebSocketMessage webSocketData, final String exemptedSessionId) {
 
-		//logger.debug("Broadcasting message to {} clients..", clients.size());
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
 
@@ -171,9 +165,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 					logger.debug("Error sending message to client.", t);
 				}
-
 			}
-
 		}
 
 		for (StructrWebSocket s : clientsToRemove) {
@@ -182,7 +174,6 @@ public class WebsocketController implements StructrTransactionListener {
 
 			logger.warn("Client removed from broadcast list: {}", s);
 		}
-
 	}
 
 	private <T extends GraphObject> List<T> filter(final SecurityContext securityContext, final List<T> all) {

@@ -22,7 +22,6 @@ import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
@@ -64,10 +63,6 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
 	@Override
 	public QueryResult<Relationship> getResult(final PageableQuery query) {
-
-		final SessionTransaction tx                 = db.getCurrentTransaction();
-		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
-
-		return QueryUtils.map(mapper, new RelationshipResultStream(tx, query));
+		return QueryUtils.map(new RelationshipRelationshipMapper(db), new RelationshipResultStream(db, query));
 	}
 }

@@ -22,7 +22,9 @@ import java.util.Iterator;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -54,99 +56,92 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 			final Class type = SchemaHelper.getEntityClassForRawType(entityTypeName);
 			if (type != null) {
 
-				Iterator<AbstractNode> nodeIterator = null;
+				final DatabaseService db                  = StructrApp.getInstance(securityContext).getDatabaseService();
+				final NodeFactory factory                 = new NodeFactory(securityContext);
+				final Iterator<AbstractNode> nodeIterator = Iterables.map(factory, db.getNodesByLabel(entityTypeName)).iterator();
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				logger.info("Trying to fix properties of all {} nodes", type.getSimpleName() );
 
-					nodeIterator = StructrApp.getInstance(securityContext).nodeQuery(type).getAsList().iterator();
-					tx.success();
-				}
+				long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
-				if (type != null) {
+					private void fixProperty(AbstractNode node, Property propertyToFix) {
 
-					logger.info("Trying to fix properties of all {} nodes", type.getSimpleName() );
+						Node databaseNode = node.getNode();
 
-					long nodeCount = bulkGraphOperation(securityContext, nodeIterator, 100, "FixNodeProperties", new BulkGraphOperation<AbstractNode>() {
+						if (databaseNode.hasProperty(propertyToFix.dbName())) {
 
-						private void fixProperty(AbstractNode node, Property propertyToFix) {
+							// check value with property converter
+							PropertyConverter converter = propertyToFix.databaseConverter(securityContext, node);
+							if (converter != null) {
 
-							Node databaseNode = node.getNode();
+								try {
+									Object value = databaseNode.getProperty(propertyToFix.dbName());
+									converter.revert(value);
 
-							if (databaseNode.hasProperty(propertyToFix.dbName())) {
+								} catch (ClassCastException cce) {
 
-								// check value with property converter
-								PropertyConverter converter = propertyToFix.databaseConverter(securityContext, node);
-								if (converter != null) {
+									// exception, needs fix
+									String databaseName   = propertyToFix.dbName();
+									Object databaseValue  = databaseNode.getProperty(databaseName);
+									Object correctedValue = propertyToFix.fixDatabaseProperty(databaseValue);
 
-									try {
-										Object value = databaseNode.getProperty(propertyToFix.dbName());
-										converter.revert(value);
+									if (databaseValue != null && correctedValue != null) {
 
-									} catch (ClassCastException cce) {
+										try {
+											// try to set database value to corrected value
+											databaseNode.setProperty(databaseName, correctedValue);
 
-										// exception, needs fix
-										String databaseName   = propertyToFix.dbName();
-										Object databaseValue  = databaseNode.getProperty(databaseName);
-										Object correctedValue = propertyToFix.fixDatabaseProperty(databaseValue);
+										} catch (Throwable t) {
 
-										if (databaseValue != null && correctedValue != null) {
+											logger.warn("Unable to fix property {} of {} with UUID {} which is of type {}", new Object[] {
+												propertyToFix.dbName(),
+												type.getSimpleName(),
+												node.getUuid(),
+												databaseValue != null ? databaseValue.getClass() : "null"
+											});
 
-											try {
-												// try to set database value to corrected value
-												databaseNode.setProperty(databaseName, correctedValue);
-
-											} catch (Throwable t) {
-
-												logger.warn("Unable to fix property {} of {} with UUID {} which is of type {}", new Object[] {
-													propertyToFix.dbName(),
-													type.getSimpleName(),
-													node.getUuid(),
-													databaseValue != null ? databaseValue.getClass() : "null"
-												});
-
-											}
 										}
-
-									} catch (Throwable t) {
-
-										// log exceptions of other types
-										logger.warn("", t);
 									}
+
+								} catch (Throwable t) {
+
+									// log exceptions of other types
+									logger.warn("", t);
 								}
 							}
 						}
+					}
 
-						@Override
-						public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+					@Override
+					public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-							if (propertyName != null) {
+						if (propertyName != null) {
 
-								PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, propertyName);
-								if (key != null) {
+							PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, propertyName);
+							if (key != null) {
 
-									// needs type cast to Property to use fixDatabaseProperty method
-									if (key instanceof Property) {
-										fixProperty(node, (Property)key);
-									}
+								// needs type cast to Property to use fixDatabaseProperty method
+								if (key instanceof Property) {
+									fixProperty(node, (Property)key);
 								}
+							}
 
-							} else {
+						} else {
 
-								for(PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
+							for(PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
 
-									// needs type cast to Property to use fixDatabaseProperty method
-									if (key instanceof Property) {
-										fixProperty(node, (Property)key);
-									}
+								// needs type cast to Property to use fixDatabaseProperty method
+								if (key instanceof Property) {
+									fixProperty(node, (Property)key);
 								}
 							}
 						}
-					});
+					}
+				});
 
-					logger.info("Fixed {} nodes", nodeCount);
+				logger.info("Fixed {} nodes", nodeCount);
 
-					return;
-				}
+				return;
 			}
 		}
 

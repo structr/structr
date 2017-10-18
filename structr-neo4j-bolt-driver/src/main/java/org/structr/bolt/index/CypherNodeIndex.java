@@ -22,7 +22,6 @@ import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.NodeNodeMapper;
 
 /**
@@ -52,10 +51,6 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 	@Override
 	public QueryResult<Node> getResult(final PageableQuery query) {
-
-		final SessionTransaction tx = db.getCurrentTransaction();
-		final NodeNodeMapper mapper = new NodeNodeMapper(db);
-
-		return QueryUtils.map(mapper, new NodeResultStream(tx, query));
+		return QueryUtils.map(new NodeNodeMapper(db), new NodeResultStream(db, query));
 	}
 }

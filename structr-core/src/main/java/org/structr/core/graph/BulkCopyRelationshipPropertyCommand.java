@@ -60,14 +60,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 		if(graphDb != null) {
 
-			Iterator<AbstractRelationship> relIterator = null;
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
-				tx.success();
-			}
-
+			final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override

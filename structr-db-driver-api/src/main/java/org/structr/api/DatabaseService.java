@@ -38,7 +38,6 @@ public interface DatabaseService {
 	 * @return whether the service was initialized successfully
 	 */
 	boolean initialize();
-	boolean needsIndexRebuild();
 	void shutdown();
 
 	<T> T forName(final Class<T> type, final String name);

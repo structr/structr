@@ -52,14 +52,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 
 		if (graphDb != null) {
 
-			Iterator<AbstractNode> nodeIterator = null;
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes())).iterator();
-				tx.success();
-			}
-
+			final Iterator<AbstractNode> nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getAllNodes())).iterator();
 			final boolean erase;
 
 			if (properties.containsKey("erase") && properties.get("erase").equals("true")) {

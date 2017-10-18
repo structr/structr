@@ -47,7 +47,7 @@ public class Tx implements AutoCloseable {
 	}
 
 	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks) {
-		this(securityContext, app, doValidation, doCallbacks, ((securityContext == null) ? true : securityContext.doTransactionModifications()));
+		this(securityContext, app, doValidation, doCallbacks, ((securityContext == null) ? true : securityContext.doTransactionNotifications()));
 	}
 
 	public Tx(final SecurityContext securityContext, final StructrApp app, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
@@ -91,7 +91,7 @@ public class Tx implements AutoCloseable {
 						modificationQueue.doOuterCallbacks(securityContext);
 
 						// notify listeners if desired, and allow this setting to be overriden locally AND remotely
-						if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.doTransactionModifications() ) {
+						if ( (securityContext == null) ? doNotifications : doNotifications && securityContext.doTransactionNotifications() ) {
 
 							final Collection<ModificationEvent> modificationEvents = modificationQueue.getModificationEvents();
 							for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {

@@ -29,6 +29,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
@@ -67,25 +68,22 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 		if (graphDb != null) {
 
+			final App app                       = StructrApp.getInstance(securityContext);
 			Iterator<AbstractNode> nodeIterator = null;
 
 			if (properties.containsKey(AbstractNode.type.dbName())) {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 
-					nodeIterator = StructrApp.getInstance(securityContext).nodeQuery(cls).getResult().getResults().iterator();
+					nodeIterator = app.nodeQuery(cls).getResult().getResults().iterator();
+					properties.remove(AbstractNode.type.dbName());
+
 					tx.success();
 				}
-
-				properties.remove(AbstractNode.type.dbName());
 
 			} else {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
-
-					nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
-					tx.success();
-				}
+				nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
 			}
 
 			// remove "type" so it won't be set later

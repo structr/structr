@@ -48,6 +48,7 @@ import org.structr.core.entity.TestEleven;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.graph.BulkCreateLabelsCommand;
+import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
@@ -331,39 +332,15 @@ public class MaintenanceTest extends StructrTest {
 
 	}
 
-	/*
-	 * This test will fail with the new Neo4j 3.0 Bolt interface, because
-	 * there is no separation between a (Lucene-based) index and the
-	 * database values any more. Nodes are selected by their 'type'
-	 * property and will always be found even if NOT created using Structr
-	 * methods.
+	@Test
 	public void testBulkRebuildIndexCommand() {
 
 		try {
 
-			final DatabaseService graphDb = app.getDatabaseService();
-
-			// intentionally create raw Neo4j transaction and create nodes in there
-			try (Transaction tx = graphDb.beginTx()) {
-
-				for (int i=0; i<100; i++) {
-
-					final Node test = graphDb.createNode();
-
-					// set ID and type so that the rebuild index command identifies it as a Structr node.
-					test.setProperty("type", "TestOne");
-					test.setProperty("id", UUID.randomUUID().toString().replace("-", ""));
-				}
-
-				// this is important.... :)
-				tx.success();
-			}
-
 			// nodes should not be found yet..
 			try (final Tx tx = app.tx()) {
 
-				// check nodes, we should find 0 TestOnes here, and none TestTwos
-				assertEquals(0, app.nodeQuery(TestOne.class).getResult().size());
+				createTestNodes(TestOne.class, 100);
 				tx.success();
 			}
 
@@ -384,7 +361,6 @@ public class MaintenanceTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
-	*/
 
 	@Test
 	public void testBulkSetNodePropertiesCommand() {

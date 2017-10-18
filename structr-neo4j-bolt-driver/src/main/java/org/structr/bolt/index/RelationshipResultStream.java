@@ -21,18 +21,20 @@ package org.structr.bolt.index;
 import java.util.Map;
 import org.neo4j.driver.v1.types.Relationship;
 import org.structr.api.QueryResult;
+import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 
 /**
  */
 public class RelationshipResultStream extends AbstractResultStream<Relationship> {
 
-	public RelationshipResultStream(final SessionTransaction tx, final PageableQuery query) {
-		super(tx, query);
+	public RelationshipResultStream(final BoltDatabaseService db, final PageableQuery query) {
+		super(db, query);
 	}
 
 	@Override
-	protected QueryResult<Relationship> fetchData(final SessionTransaction tx, final String statement, final Map<String, Object> data) {
+	protected QueryResult<Relationship> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
+		final SessionTransaction tx = db.getCurrentTransaction();
 		return tx.getRelationships(statement, data);
 	}
 }

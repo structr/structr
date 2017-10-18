@@ -767,7 +767,7 @@ public class SecurityContext {
 		return "[No request available]";
 	}
 
-	public boolean doTransactionModifications() {
+	public boolean doTransactionNotifications() {
 		return doTransactionNotifications;
 	}
 

@@ -29,7 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -88,14 +87,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		final DatabaseService graphDb       = (DatabaseService) arguments.get("graphDb");
 		Iterator<AbstractNode> nodeIterator = null;
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Exception while creating all nodes iterator.", fex);
-		}
+		nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
 
 		if (entityType == null) {
 
@@ -129,20 +121,9 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private void rebuildRelationshipIndex(final String relType) {
 
-		final RelationshipFactory relFactory = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-		final DatabaseService graphDb        = (DatabaseService) arguments.get("graphDb");
-
-		Iterator<AbstractRelationship> relIterator = null;
-
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			relIterator = Iterables.map(relFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getRelationshipsByType(relType))).iterator();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Exception while creating all relationships iterator.", fex);
-		}
+		final RelationshipFactory relFactory             = new RelationshipFactory(SecurityContext.getSuperUserInstance());
+		final DatabaseService graphDb                    = (DatabaseService) arguments.get("graphDb");
+		final Iterator<AbstractRelationship> relIterator = Iterables.map(relFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getRelationshipsByType(relType))).iterator();
 
 		if (relType == null) {
 

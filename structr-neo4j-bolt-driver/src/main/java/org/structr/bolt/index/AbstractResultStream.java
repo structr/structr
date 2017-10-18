@@ -21,7 +21,7 @@ package org.structr.bolt.index;
 import java.util.Iterator;
 import java.util.Map;
 import org.structr.api.QueryResult;
-import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.BoltDatabaseService;
 
 /**
  */
@@ -30,14 +30,14 @@ public abstract class AbstractResultStream<T> implements QueryResult<T> {
 	private QueryResult<T> result             = null;
 	private PageableQuery query               = null;
 	private Iterator<T> current               = null;
-	private SessionTransaction tx             = null;
+	private BoltDatabaseService db            = null;
 
-	protected abstract QueryResult<T> fetchData(final SessionTransaction tx, final String statement, final Map<String, Object> data);
+	protected abstract QueryResult<T> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data);
 
-	public AbstractResultStream(final SessionTransaction tx, final PageableQuery query) {
+	public AbstractResultStream(final BoltDatabaseService db, final PageableQuery query) {
 
 		this.query  = query;
-		this.tx     = tx;
+		this.db     = db;
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public abstract class AbstractResultStream<T> implements QueryResult<T> {
 						final String statement            = query.getStatement();
 						final Map<String, Object> params  = query.getParameters();
 
-						result = fetchData(tx, statement, params);
+						result = fetchData(db, statement, params);
 						if (result != null) {
 
 							current = result.iterator();

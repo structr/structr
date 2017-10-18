@@ -19,7 +19,6 @@
 package org.structr.core.graph;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -32,12 +31,10 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.service.Command;
-import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.SingletonService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 
 
@@ -110,52 +107,6 @@ public class NodeService implements SingletonService {
 				} catch (Throwable t) {
 
 					logger.warn("Error while initializing indexes: {}", t.getMessage());
-				}
-			}
-
-			if (isInitialized) {
-
-				final boolean firstInitialization = graphDb.getGlobalProperties().getProperty("initialized") == null;
-				final boolean isTest              = Services.isTesting();
-
-				if (graphDb.needsIndexRebuild() || (firstInitialization && !isTest)) {
-
-					logger.info("Scheduling index rebuild to happen after startup..");
-
-					// schedule a low-priority index rebuild (must be executed AFTER
-					// SchemaService in order to include instances of dynamic types.
-
-					services.registerInitializationCallback(new InitializationCallback() {
-
-						@Override
-						public void initializationDone() {
-
-							// start index rebuild immediately after initialization
-							Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
-						}
-
-						@Override
-						public int priority() {
-							return 10;
-						}
-					});
-
-					services.registerInitializationCallback(new InitializationCallback() {
-
-						@Override
-						public void initializationDone() {
-
-							// initialize type labels for all nodes in the database
-							Services.getInstance().command(SecurityContext.getSuperUserInstance(), BulkCreateLabelsCommand.class).execute(Collections.EMPTY_MAP);
-
-							graphDb.getGlobalProperties().setProperty("initialized", true);
-						}
-
-						@Override
-						public int priority() {
-							return 20;
-						}
-					});
 				}
 			}
 		}

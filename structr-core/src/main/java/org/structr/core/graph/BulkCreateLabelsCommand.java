@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.TypeProperty;
 
@@ -40,21 +39,11 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public void execute(Map<String, Object> attributes) {
 
-		final String entityType                = (String) attributes.get("type");
-		final DatabaseService graphDb          = (DatabaseService) arguments.get("graphDb");
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-		final NodeFactory nodeFactory          = new NodeFactory(superUserContext);
-
-		Iterator<AbstractNode> nodeIterator = null;
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			warn("Exception while creating all nodes iterator.", fex);
-		}
+		final String entityType                   = (String) attributes.get("type");
+		final DatabaseService graphDb             = (DatabaseService) arguments.get("graphDb");
+		final SecurityContext superUserContext    = SecurityContext.getSuperUserInstance();
+		final NodeFactory nodeFactory             = new NodeFactory(superUserContext);
+		final Iterator<AbstractNode> nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
 
 		if (entityType == null) {
 

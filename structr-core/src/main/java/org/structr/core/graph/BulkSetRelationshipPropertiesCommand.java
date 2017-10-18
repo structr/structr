@@ -60,21 +60,12 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 			if (properties.containsKey(typeName)) {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
-
-					relIterator = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList().iterator();
-					tx.success();
-				}
-
+				relIterator = StructrApp.getInstance(securityContext).relationshipQuery(SchemaHelper.getEntityClassForRawType(typeName)).getAsList().iterator();
 				properties.remove(typeName);
 
 			} else {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
-
-					relIterator = Iterables.map(relationshipFactory, graphDb.getAllRelationships()).iterator();
-					tx.success();
-				}
+				relIterator = Iterables.map(relationshipFactory, graphDb.getAllRelationships()).iterator();
 			}
 
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {

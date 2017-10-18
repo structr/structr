@@ -20,19 +20,11 @@ package org.structr.web.common;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.MetadataException;
-import com.drew.metadata.Tag;
-import com.drew.metadata.TagDescriptor;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.exif.ExifSubIFDDescriptor;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.twelvemonkeys.image.AffineTransformOp;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -69,9 +61,6 @@ import org.structr.web.property.ThumbnailProperty;
 public abstract class ImageHelper extends FileHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImageHelper.class.getName());
-	//private static Thumbnail tn        = new Thumbnail();
-
-	//~--- methods --------------------------------------------------------
 
 	/**
 	 * Create a new image node from the given image data
@@ -142,25 +131,25 @@ public abstract class ImageHelper extends FileHelper {
 	}
 
 	public static void findAndReconnectThumbnails(final Image originalImage) {
-		
+
 		final App app = StructrApp.getInstance();
-		
+
 		final Integer origWidth  = originalImage.getWidth();
 		final Integer origHeight = originalImage.getHeight();
-		
+
 		if (origWidth == null || origHeight == null) {
 			logger.info("Could not determine width and heigth for {}", originalImage.getName());
 			return;
 		}
-		
+
 		for (ThumbnailProperty tnProp : new ThumbnailProperty[]{ (ThumbnailProperty) Image.tnSmall, (ThumbnailProperty) Image.tnMid }) {
-		
+
 			int maxWidth  = tnProp.getWidth();
 			int maxHeight = tnProp.getHeight();
 			boolean crop  = tnProp.getCrop();
 
 			final float scale = getScaleRatio(origWidth, origHeight, maxWidth, maxHeight, crop);
-			
+
 			final String tnName = ImageHelper.getThumbnailName(originalImage.getName(),
 					getThumbnailWidth(origWidth, scale),
 					getThumbnailHeight(origHeight, scale));
@@ -168,7 +157,7 @@ public abstract class ImageHelper extends FileHelper {
 			try {
 
 				final Image thumbnail = (Image) app.nodeQuery(Image.class).and(Image.path, PathHelper.getFolderPath(originalImage.getProperty(Image.path)) + PathHelper.PATH_SEP + tnName).getFirst();
-				
+
 				if (thumbnail != null) {
 					app.create(originalImage, thumbnail, org.structr.web.entity.relation.Thumbnails.class);
 				}
@@ -176,20 +165,20 @@ public abstract class ImageHelper extends FileHelper {
 			} catch (FrameworkException ex) {
 				logger.debug("Error reconnecting thumbnail " + tnName + " to original image " + originalImage.getName(), ex);
 			}
-		
+
 		}
 	}
-	
+
 	public static void findAndReconnectOriginalImage(final Image thumbnail) {
-		
+
 		final String originalImageName = thumbnail.getOriginalImageName();
 		try {
-			
+
 			final App app = StructrApp.getInstance();
 			final Image originalImage = (Image) app.nodeQuery(Image.class).and(Image.path, PathHelper.getFolderPath(thumbnail.getProperty(Image.path)) + PathHelper.PATH_SEP + originalImageName).getFirst();
-			
+
 			if (originalImage != null) {
-				
+
 				final PropertyMap relProperties = new PropertyMap();
 				relProperties.put(Image.width,                  thumbnail.getWidth());
 				relProperties.put(Image.height,                 thumbnail.getHeight());
@@ -197,15 +186,15 @@ public abstract class ImageHelper extends FileHelper {
 
 				app.create(originalImage, thumbnail, org.structr.web.entity.relation.Thumbnails.class, relProperties);
 			}
-			
+
 		} catch (FrameworkException ex) {
 			logger.debug("Error reconnecting thumbnail " + thumbnail.getName() + " to original image " + originalImageName, ex);
 		}
-		
+
 	}
 
 	public static float getScaleRatio(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
-		
+
 		// float aspectRatio = sourceWidth/sourceHeight;
 		final float scaleX = 1.0f * sourceWidth / maxWidth;
 		final float scaleY = 1.0f * sourceHeight / maxHeight;
@@ -219,14 +208,14 @@ public abstract class ImageHelper extends FileHelper {
 
 			scale = Math.max(scaleX, scaleY);
 		}
-	
+
 		return scale;
 	}
 
 	public static int getThumbnailWidth(final int sourceWidth, final float scale) {
 		return Math.max(4, Math.round(sourceWidth / scale));
 	}
-	
+
 	public static int getThumbnailHeight(final int sourceHeight, final float scale) {
 		return Math.max(4, Math.round(sourceHeight / scale));
 	}
@@ -234,7 +223,7 @@ public abstract class ImageHelper extends FileHelper {
 	public static int getThumbnailWidth(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 		return getThumbnailWidth(originalImage.getWidth(), getScaleRatio(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop));
 	}
-	
+
 	public static int getThumbnailHeight(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 		return getThumbnailHeight(originalImage.getHeight(), getScaleRatio(originalImage.getWidth(), originalImage.getHeight(), maxWidth, maxHeight, crop));
 	}
@@ -247,9 +236,9 @@ public abstract class ImageHelper extends FileHelper {
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final boolean crop) {
 		return createThumbnail(originalImage, maxWidth, maxHeight, null, crop, null, null);
 	}
-	
+
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
-		
+
 		final String imageFormatString = getImageFormatString(originalImage);
 		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
 
@@ -258,18 +247,18 @@ public abstract class ImageHelper extends FileHelper {
 		final Thumbnail tn               = new Thumbnail();
 
 		try (final InputStream in = originalImage.getInputStream()) {
-			
+
 			if (in == null || in.available() <= 0) {
 
 				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getId(), in != null ? in.available() : -1 });
 				return null;
 			}
-			
+
 			final long start = System.nanoTime();
 			BufferedImage source = getRotatedImage(originalImage);
 
 			if (source != null) {
-				
+
 				final int sourceWidth  = source.getWidth();
 				final int sourceHeight = source.getHeight();
 
@@ -294,7 +283,7 @@ public abstract class ImageHelper extends FileHelper {
 						final int offsetY = reqOffsetY != null ? reqOffsetY : Math.abs(maxHeight - destHeight) / 2;
 
 						final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
-						
+
 						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
 
 						Thumbnails.of(source)
@@ -354,7 +343,7 @@ public abstract class ImageHelper extends FileHelper {
 
 
 	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
-		
+
 		final String imageFormatString = getImageFormatString(originalImage);
 		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
 
@@ -374,7 +363,7 @@ public abstract class ImageHelper extends FileHelper {
 			final BufferedImage source = getRotatedImage(originalImage);
 
 			if (source != null) {
-				
+
 				final int sourceWidth  = source.getWidth();
 				final int sourceHeight = source.getHeight();
 
@@ -390,7 +379,7 @@ public abstract class ImageHelper extends FileHelper {
 				final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
 
 				final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
-				
+
 				logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
 
 				Thumbnails.of(source)
@@ -426,11 +415,11 @@ public abstract class ImageHelper extends FileHelper {
 
 		return null;
 	}
-	
+
 	public static BufferedImage getRotatedImage(final FileBase originalImage) {
 
 		try {
-		
+
 			final ImageInputStream in = ImageIO.createImageInputStream(originalImage.getInputStream());
 
 			final int           orientation = getOrientation(originalImage);
@@ -478,7 +467,7 @@ public abstract class ImageHelper extends FileHelper {
 					break;
 				default:
 					break;
-				}       
+				}
 
 				final AffineTransformOp op = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
 				BufferedImage destinationImage = op.createCompatibleDestImage(source, ColorModel.getRGBdefault());
@@ -488,16 +477,16 @@ public abstract class ImageHelper extends FileHelper {
 				g.clearRect(0, 0, destinationImage.getWidth(), destinationImage.getHeight());
 
 				destinationImage = op.filter(source, destinationImage);
-				
+
 				return destinationImage;
 			}
 		} catch (IOException ex) {
 			logger.warn("Unable to rotate image", ex);
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Let ImageIO read and write a JPEG image. This should normalize all types of weird
 	 * image sub formats, e.g. when extracting images from a flash file.
@@ -585,7 +574,7 @@ public abstract class ImageHelper extends FileHelper {
 			if (source != null) {
 
 				final int sourceWidth  = source.getWidth();
-				final int sourceHeight = source.getHeight();		
+				final int sourceHeight = source.getHeight();
 
 				final PropertyMap map = new PropertyMap();
 
@@ -596,7 +585,7 @@ public abstract class ImageHelper extends FileHelper {
 				image.setProperties(image.getSecurityContext(), map);
 
 			}
-			
+
 		} catch (IOException ex) {
 			logger.warn("Unable to read image data", ex);
 		}
@@ -605,23 +594,23 @@ public abstract class ImageHelper extends FileHelper {
 	//~--- static methods ----------------------------------------------------
 
 	public static Integer[] finalImageDimensions(final int offsetX, final int offsetY, final int requestedWidth, final int requestedHeight, final int sourceWidth, final int sourceHeight) {
-		
+
 		final Integer[] finalDimensions = new Integer[4];
-		
+
 		final int overhangLeftX   = Math.min(offsetX, 0); // negative value
 		final int overhangRightX  = Math.max(offsetX + requestedWidth - sourceWidth, 0); // positive value
 		final int overhangTopY    = Math.min(offsetY, 0); // negative value
 		final int overhangBottomY = Math.max(offsetY + requestedHeight - sourceHeight, 0); // positive value
-		
+
 		finalDimensions[0] = Math.min(Math.max(offsetX, 0), sourceWidth);
 		finalDimensions[1] = Math.min(Math.max(offsetY, 0), sourceHeight);
 		finalDimensions[2] = requestedWidth + overhangLeftX - overhangRightX;
 		finalDimensions[3] = requestedHeight + overhangTopY - overhangBottomY;
-		
+
 		return finalDimensions;
-		
+
 	}
-	
+
 	public static String getBase64String(final File file) {
 
 		try {
@@ -675,19 +664,19 @@ public abstract class ImageHelper extends FileHelper {
 
 	/**
 	 * Return image format string derived from last part of content type.
-	 * 
+	 *
 	 * @param img The image to get the format of.
 	 * @return the image format string
 	 */
 	public static String getImageFormatString(final Image img) {
-		
+
 		final String contentType = img.getContentType();
-		
+
 		if (contentType == null) return null;
-		
+
 		return StringUtils.substringAfterLast(contentType.toLowerCase(), "/");
 	}
-	
+
 	/**
 	 * Check if url points to an Flash object by extension
 	 *
@@ -718,15 +707,15 @@ public abstract class ImageHelper extends FileHelper {
 
 		return false;
 	}
-	
+
 	private static Metadata getMetadata(final FileBase originalImage) {
 
 		Metadata metadata = new Metadata();
-		
+
 		try {
-	
+
 			final InputStream in = originalImage.getInputStream();
-				
+
 			if (in != null && in.available() > 0) {
 
 				metadata = ImageMetadataReader.readMetadata(in);
@@ -735,18 +724,18 @@ public abstract class ImageHelper extends FileHelper {
 		} catch (ImageProcessingException | IOException ex) {
 			logger.debug("Unable to get metadata information from image stream", ex);
 		}
-		
+
 		return metadata;
 	}
 
 	public static int getOrientation(final FileBase originalImage) {
-	
+
 		try {
-			
+
 			final ExifIFD0Directory exifIFD0Directory = getMetadata(originalImage).getFirstDirectoryOfType(ExifIFD0Directory.class);
 
 			if (exifIFD0Directory != null && exifIFD0Directory.hasTagName(ExifIFD0Directory.TAG_ORIENTATION)) {
-				
+
 				final Integer orientation = exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
 				originalImage.setProperty(Image.orientation, orientation);
 
@@ -756,59 +745,59 @@ public abstract class ImageHelper extends FileHelper {
 		} catch (MetadataException | JSONException | FrameworkException ex) {
 			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getId() });
 		}
-		
+
 		return 1;
 	}
 
 	public static JSONObject getExifData(final FileBase originalImage) {
 
 		final JSONObject exifDataJson = new JSONObject();
-	
+
 		try {
-	
+
 			final Metadata metadata = getMetadata(originalImage);
-			
+
 			final ExifIFD0Directory   exifIFD0Directory   = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
 			final ExifSubIFDDirectory exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
 			final GpsDirectory        gpsDirectory        = metadata.getFirstDirectoryOfType(GpsDirectory.class);
 
-			
+
 			if (exifIFD0Directory != null) {
-				
+
 				final JSONObject exifIFD0DataJson = new JSONObject();
-				
+
 				exifIFD0Directory.getTags().forEach((tag) -> {
 					exifIFD0DataJson.put(tag.getTagName(), exifIFD0Directory.getDescription(tag.getTagType()));
 				});
-				
+
 				originalImage.setProperty(Image.exifIFD0Data, exifIFD0DataJson.toString());
 				exifDataJson.putOnce(Image.exifIFD0Data.jsonName(), exifIFD0DataJson);
 			}
 
 			if (exifSubIFDDirectory != null) {
-				
+
 				final JSONObject exifSubIFDDataJson = new JSONObject();
-				
+
 				exifSubIFDDirectory.getTags().forEach((tag) -> {
 					exifSubIFDDataJson.put(tag.getTagName(), exifSubIFDDirectory.getDescription(tag.getTagType()));
 				});
-				
+
 				originalImage.setProperty(Image.exifSubIFDData, exifSubIFDDataJson.toString());
 				exifDataJson.putOnce(Image.exifSubIFDData.jsonName(), exifSubIFDDataJson);
 			}
 
 			if (gpsDirectory != null) {
-			
+
 				final JSONObject exifGpsDataJson = new JSONObject();
-				
+
 				gpsDirectory.getTags().forEach((tag) -> {
 					exifGpsDataJson.put(tag.getTagName(), gpsDirectory.getDescription(tag.getTagType()));
 				});
-				
+
 				originalImage.setProperty(Image.gpsData, exifGpsDataJson.toString());
 				exifDataJson.putOnce(Image.gpsData.jsonName(), exifGpsDataJson);
 			}
-				
+
 			return exifDataJson;
 
 		} catch (Exception ex) {
@@ -817,12 +806,12 @@ public abstract class ImageHelper extends FileHelper {
 
 		return null;
 	}
-	
+
 	public static String getExifDataString(final FileBase originalImage) {
 		JSONObject data = getExifData(originalImage);
 		return data != null ? data.toString() : null;
 	}
-	
+
 	/**
 	 * @param originalImageName The filename of the original image
 	 * @param width The width of the new image variant
@@ -845,7 +834,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		return getVariantName(originalImageName, tnWidth, tnHeight, "_thumb_");
 	}
-		
+
 	//~--- inner classes --------------------------------------------------
 
 	public static class Base64URIData {
@@ -889,7 +878,7 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static class Thumbnail {
 
-		
+
 		public static enum Format {
 			png, jpg, jpeg, gif, tiff;
 		}
@@ -942,11 +931,11 @@ public abstract class ImageHelper extends FileHelper {
 		public int getHeight() {
 			return height;
 		}
-		
+
 		public Format getFormat() {
 			return format;
 		}
-		
+
 		public String getFormatAsString() {
 			return format.name();
 		}
@@ -964,11 +953,11 @@ public abstract class ImageHelper extends FileHelper {
 		public void setHeight(final int height) {
 			this.height = height;
 		}
-		
+
 		public void setFormat(final Format format) {
 			this.format = format;
 		}
-		
+
 		public void setFormatByString(final String formatString) {
 			this.format = Format.valueOf(formatString);
 		}

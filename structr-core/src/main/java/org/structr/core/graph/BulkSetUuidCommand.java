@@ -27,7 +27,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.TypeProperty;
@@ -64,25 +63,17 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			Iterator<AbstractNode> nodeIterator = null;
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			if (Boolean.TRUE.equals(allNodes)) {
 
-				if (Boolean.TRUE.equals(allNodes)) {
+				nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
 
-					nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
+				info("Start setting UUID on all nodes");
 
-					info("Start setting UUID on all nodes");
+			} else {
 
-				} else {
+				nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(nodeType)).iterator();
 
-					nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByTypeProperty(nodeType)).iterator();
-
-					info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
-				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				logger.warn("Exception while creating all nodes iterator.", fex);
+				info("Start setting UUID on nodes of type {}", new Object[] { nodeType });
 			}
 
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
@@ -132,25 +123,17 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 			Iterator<AbstractRelationship> relIterator = null;
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			if (Boolean.TRUE.equals(allRels)) {
 
-				if (Boolean.TRUE.equals(allRels)) {
+				relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
 
-					relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
+				info("Start setting UUID on all rels", new Object[] { relType });
 
-					info("Start setting UUID on all rels", new Object[] { relType });
+			} else {
 
-				} else {
+				relIterator = Iterables.map(relFactory, graphDb.getRelationshipsByType(relType)).iterator();
 
-					relIterator = Iterables.map(relFactory, graphDb.getRelationshipsByType(relType)).iterator();
-
-					info("Start setting UUID on rels of type {}", new Object[] { relType });
-				}
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				logger.warn("Exception while creating all nodes iterator.", fex);
+				info("Start setting UUID on rels of type {}", new Object[] { relType });
 			}
 
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {

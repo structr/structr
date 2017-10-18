@@ -24,12 +24,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -133,17 +130,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 				builder.loadPropertiesFromFile(confPath);
 			}
 
-			while (tryAgain) {
-
-				try {
-					graphDb  = builder.newGraphDatabase();
-					tryAgain = false;
-
-				} catch (Throwable t) {
-
-					tryAgain = handleMigration(t);
-				}
-			}
+			graphDb  = builder.newGraphDatabase();
 		}
 
 		try {
@@ -218,7 +205,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			} catch (ServiceUnavailableException ex) {
 				throw new NetworkException(ex.getMessage(), ex);
 			} catch (ClientException cex) {
-				logger.warn("Cannot connect to Neo4j database server at {}", databaseUrl);
+				logger.warn("Cannot connect to Neo4j database server at {}: {}", databaseUrl, cex.getMessage());
 			}
 		}
 
@@ -266,12 +253,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public QueryResult<Node> getAllNodes() {
-
-		final SessionTransaction tx = getCurrentTransaction();
-		final NodeNodeMapper mapper = new NodeNodeMapper(this);
-
-		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n) RETURN n", Collections.emptyMap()));
-		return QueryUtils.map(mapper, new NodeResultStream(tx, new SimpleCypherQuery("MATCH (n) RETURN n")));
+		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery("MATCH (n) RETURN n")));
 	}
 
 	@Override
@@ -281,11 +263,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			return getAllNodes();
 		}
 
-		final SessionTransaction tx = getCurrentTransaction();
-		final NodeNodeMapper mapper = new NodeNodeMapper(this);
-
-		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n:" + type + ") RETURN n", Collections.emptyMap()));
-		return QueryUtils.map(mapper, new NodeResultStream(tx, new SimpleCypherQuery("MATCH (n:" + type + ") RETURN n")));
+		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery("MATCH (n:" + type + ") RETURN n")));
 	}
 
 	@Override
@@ -295,24 +273,17 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			return getAllNodes();
 		}
 
-		final SessionTransaction tx   = getCurrentTransaction();
-		final NodeNodeMapper mapper   = new NodeNodeMapper(this);
 		final SimpleCypherQuery query = new SimpleCypherQuery("MATCH (n) WHERE n.type = {type} RETURN n");
 
 		query.getParameters().put("type", type);
 
 		//return QueryUtils.map(mapper, tx.getNodes("MATCH (n) WHERE n.type = {type} RETURN n", map));
-		return QueryUtils.map(mapper, new NodeResultStream(tx, query));
+		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, query));
 	}
 
 	@Override
 	public QueryResult<Relationship> getAllRelationships() {
-
-		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
-		final SessionTransaction tx                 = getCurrentTransaction();
-
-		//return QueryUtils.map(mapper, tx.getRelationships("MATCH ()-[r]->() RETURN r", Collections.emptyMap()));
-		return QueryUtils.map(mapper, new RelationshipResultStream(tx, new SimpleCypherQuery("MATCH ()-[r]->() RETURN r")));
+		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery("MATCH ()-[r]->() RETURN r")));
 	}
 
 	@Override
@@ -322,11 +293,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			return getAllRelationships();
 		}
 
-		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(this);
-		final SessionTransaction tx                 = getCurrentTransaction();
-
-		//return QueryUtils.map(mapper, tx.getRelationships("MATCH ()-[r:" + type + "]->() RETURN r", Collections.emptyMap()));
-		return QueryUtils.map(mapper, new RelationshipResultStream(tx, new SimpleCypherQuery("MATCH ()-[r:" + type + "]->() RETURN r")));
+		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery("MATCH ()-[r:" + type + "]->() RETURN r")));
 	}
 
 	@Override
@@ -432,11 +399,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return getProperties().getProperty(name);
 	}
 
-	@Override
-	public boolean needsIndexRebuild() {
-		return needsIndexRebuild;
-	}
-
 	public Label getOrCreateLabel(final String name) {
 
 		Label label = labelCache.get(name);
@@ -499,72 +461,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		}
 
 		return globalGraphProperties;
-	}
-
-	private boolean handleMigration(final Throwable t) {
-
-		final List<String> messages = collectMessages(t);
-		if (contains(messages, "Legacy index migration failed")) {
-
-			// try to remove index directory and try again
-			logger.info("Legacy index migration failed, moving offending index files out of the way.");
-
-			final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-			final File indexDbFile    = new File(databasePath + "/index.db");
-			final File indexDir       = new File(databasePath + "/index");
-
-			if (indexDbFile.exists()) {
-
-				indexDbFile.renameTo(new File(databasePath + "/index.db.orig-" + df.format(System.currentTimeMillis())));
-			}
-
-			if (indexDir.exists()) {
-
-				indexDir.renameTo(new File(databasePath + "/index.orig-" + df.format(System.currentTimeMillis())));
-			}
-
-			// raise rebuild index flag
-			this.needsIndexRebuild = true;
-
-			// signal the service to try again
-			return true;
-		}
-
-		// cannot handle error
-		throw new RuntimeException(t);
-	}
-
-	private boolean contains(final List<String> src, final String toFind) {
-
-		for (final String s : src) {
-
-			if (s.contains(toFind)) {
-
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private List<String> collectMessages(final Throwable t) {
-
-		final List<String> messages = new LinkedList<>();
-		Throwable current           = t;
-
-		// collect exception messages
-		while (current != null) {
-
-			final String message = current.getMessage();
-			if (message != null) {
-
-				messages.add(message);
-			}
-
-			current = current.getCause();
-		}
-
-		return messages;
 	}
 
 	// ----- nested classes -----

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
+import org.structr.api.RetryException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -192,6 +193,11 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 				}
 
 				updateAccessInformation(securityContext, propertyContainer);
+
+			} catch (final RetryException rex) {
+
+				// don't catch RetryException here
+				throw rex;
 
 			} catch (Throwable t) {
 

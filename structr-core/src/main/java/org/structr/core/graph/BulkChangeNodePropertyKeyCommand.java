@@ -32,7 +32,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -71,22 +70,13 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				type = (String) properties.get(AbstractNode.type.dbName());
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
-
-					// create iterator
-					nodeIterator = StructrApp.getInstance(securityContext).nodeQuery(SchemaHelper.getEntityClassForRawType(type)).getResult().getResults().iterator();
-					tx.success();
-				}
+				nodeIterator = Iterables.map(nodeFactory, graphDb.getNodesByLabel(type)).iterator();
 
 				properties.remove(AbstractNode.type.dbName());
 
 			} else {
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
-
-					nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
-					tx.success();
-				}
+				nodeIterator = Iterables.map(nodeFactory, graphDb.getAllNodes()).iterator();
 			}
 
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
