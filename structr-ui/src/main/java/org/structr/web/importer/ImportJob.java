@@ -276,29 +276,39 @@ abstract class ImportJob {
 		reportStatus(JobStatusMessageSubtype.RESUMED);
 	}
 
-	protected void chunkFinished(final int overallCount, final int currentChunkNo, final long chunkStartTime) {
+	protected void chunkFinished(final long chunkStartTime, final int currentChunkNo, final int chunkSize, final int overallCount) {
 
-		processedChunks = currentChunkNo;
+		processedChunks                   = currentChunkNo;
 
-		final String duration = getFormattedDuration(chunkStartTime, System.currentTimeMillis());
+		final long duration               = System.currentTimeMillis() - chunkStartTime;
+		final DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+		final String formattedDuration    = decimalFormat.format((duration / 1000.0)) + "s";
+		final String objectsPerSecond     = decimalFormat.format(chunkSize / (duration / 1000.0));
 
-		logger.info("{}: Finished importing chunk {}, commiting batch. Took {}. Imported {} objects overall.", getImportType(), currentChunkNo, duration, overallCount);
+		logger.info("{}: Committing chunk {}. (Objects: {} - Time: {} - Objects/s: {} - Objects overall: {})", getImportType(), currentChunkNo, chunkSize, formattedDuration, objectsPerSecond, overallCount);
 
 		final Map<String, Object> data = getWebsocketStatusData(JobStatusMessageSubtype.CHUNK);
-		data.put("currentChunkNo", currentChunkNo);
-		data.put("duration", duration);
+		data.put("currentChunkNo",   currentChunkNo);
+		data.put("objectsCreated",   chunkSize);
+		data.put("duration",         formattedDuration);
+		data.put("objectsPerSecond", objectsPerSecond);
 		TransactionCommand.simpleBroadcastGenericMessage(data);
 
 	}
 
-	protected void importFinished(final long startTime) {
+	protected void importFinished(final long startTime, final int objectCount) {
 
-		final String duration = getFormattedDuration(startTime, System.currentTimeMillis());
+		final long duration               = System.currentTimeMillis() - startTime;
+		final DecimalFormat decimalFormat = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+		final String formattedDuration    = decimalFormat.format((duration / 1000.0)) + "s";
+		final String objectsPerSecond     = decimalFormat.format(objectCount / (duration / 1000.0));
 
-		logger.info("{}: Finished importing {} data from '{}' (Time: {})", getImportType(), getImportType(), filePath, duration);
+		logger.info("{}: Finished importing file '{}' (Objects overall: {} - Time: {} - Objects/s: {})", getImportType(), filePath, objectCount, formattedDuration, objectsPerSecond);
 
 		final Map<String, Object> data = getWebsocketStatusData(JobStatusMessageSubtype.END);
-		data.put("duration", duration);
+		data.put("duration",         formattedDuration);
+		data.put("objectsCreated",   objectCount);
+		data.put("objectsPerSecond", objectsPerSecond);
 		TransactionCommand.simpleBroadcastGenericMessage(data);
 
 	}
@@ -312,13 +322,6 @@ abstract class ImportJob {
 		data.put("filepath",   filePath);
 		data.put("username",   username);
 		TransactionCommand.simpleBroadcastException(ex, data, true);
-	}
-
-	protected String getFormattedDuration (final long startTime, final long endTime) {
-
-		final DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-		return decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
-
 	}
 
 	protected InputStream getFileInputStream(final SecurityContext ctx) {

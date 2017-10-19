@@ -123,7 +123,7 @@ public class XMLFileImportJob extends ImportJob {
 
 							chunks++;
 
-							chunkFinished(overallCount, chunks, chunkStartTime);
+							chunkFinished(chunkStartTime, chunks, batchSize, overallCount);
 
 						}
 
@@ -135,7 +135,7 @@ public class XMLFileImportJob extends ImportJob {
 
 					}
 
-					importFinished(startTime);
+					importFinished(startTime, overallCount);
 
 				} catch (XMLStreamException | FrameworkException ex) {
 					reportException(ex);

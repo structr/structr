@@ -140,7 +140,7 @@ public class CSVFileImportJob extends ImportJob {
 
 						chunks++;
 
-						chunkFinished(overallCount, chunks, chunkStartTime);
+						chunkFinished(chunkStartTime, chunks, commitInterval, overallCount);
 
 					}
 
@@ -152,7 +152,7 @@ public class CSVFileImportJob extends ImportJob {
 
 				}
 
-				importFinished(startTime);
+				importFinished(startTime, overallCount);
 
 			} catch (IOException | FrameworkException fex) {
 

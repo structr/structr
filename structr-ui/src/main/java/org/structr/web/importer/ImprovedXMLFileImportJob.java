@@ -137,7 +137,7 @@ public class ImprovedXMLFileImportJob extends ImportJob {
 
 							chunks++;
 
-							chunkFinished(overallCount, chunks, chunkStartTime);
+							chunkFinished(chunkStartTime, chunks, batchSize, overallCount);
 
 						}
 
@@ -149,7 +149,7 @@ public class ImprovedXMLFileImportJob extends ImportJob {
 
 					}
 
-					importFinished(startTime);
+					importFinished(startTime, overallCount);
 
 				} catch (XMLStreamException | FrameworkException ex) {
 					reportException(ex);
