@@ -31,6 +31,7 @@ import org.neo4j.driver.v1.Transaction;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.Values;
 import org.neo4j.driver.v1.exceptions.ClientException;
+import org.neo4j.driver.v1.exceptions.DatabaseException;
 import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
 import org.neo4j.driver.v1.exceptions.TransientException;
@@ -42,6 +43,7 @@ import org.structr.api.NotFoundException;
 import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
 import org.structr.api.ConstraintViolationException;
+import org.structr.api.DataFormatException;
 import org.structr.api.NetworkException;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.mapper.RecordLongMapper;
@@ -376,6 +378,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
 			throw SessionTransaction.translateClientException(cex);
 		} finally {
@@ -398,6 +402,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
+		} catch (DatabaseException dex) {
+			throw SessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
 			throw SessionTransaction.translateClientException(cex);
 		} finally {
@@ -444,10 +450,26 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 			case "Neo.ClientError.Schema.ConstraintValidationFailed":
 				throw new ConstraintViolationException(cex, cex.code(), cex.getMessage());
+
+			// add handlers / translated exceptions for ClientExceptions here..
 		}
 
 		// re-throw existing exception if no other cause could be found
 		throw cex;
+	}
+
+	public static RuntimeException translateDatabaseException(final DatabaseException dex) {
+
+		switch (dex.code()) {
+
+			case "Neo.DatabaseError.General.UnknownError":
+				throw new DataFormatException(dex, dex.code(), dex.getMessage());
+
+			// add handlers / translated exceptions for DatabaseExceptions here..
+		}
+
+		// re-throw existing exception if no other cause could be found
+		throw dex;
 	}
 
 	// ----- nested classes -----

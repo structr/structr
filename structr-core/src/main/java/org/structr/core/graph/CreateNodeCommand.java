@@ -27,6 +27,7 @@ import java.util.Set;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.ConstraintViolationException;
+import org.structr.api.DataFormatException;
 import org.structr.api.graph.Node;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -274,6 +275,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				return newNode;
 			}
 
+		} catch (DataFormatException dex) {
+			throw new FrameworkException(422, dex.getMessage());
 		} catch (ConstraintViolationException qex) {
 			throw new FrameworkException(422, qex.getMessage());
 		}
