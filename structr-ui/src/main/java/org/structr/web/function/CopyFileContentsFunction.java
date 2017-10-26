@@ -21,7 +21,7 @@ package org.structr.web.function;
 import java.io.IOException;
 import org.python.google.common.io.Files;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import static org.structr.common.fulltext.Indexable.contentType;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
@@ -42,12 +42,12 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
-			final Object toCopy = sources[0];
+			final Object toCopy       = sources[0];
 			final Object toBeReplaced = sources[1];
 
 			if (toCopy instanceof FileBase && toBeReplaced instanceof FileBase) {
 
-				FileBase nodeToCopy = (FileBase) toCopy;
+				FileBase nodeToCopy       = (FileBase) toCopy;
 				FileBase nodeToBeReplaced = (FileBase) toBeReplaced;
 
 				try {
@@ -74,10 +74,11 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 					final PropertyMap changedProperties = new PropertyMap();
 					changedProperties.put(checksum, FileHelper.getChecksum(fileToBeReplaced));
 					changedProperties.put(version, 0);
-					changedProperties.put(new StringProperty("contentType"), nodeToCopy.getProperty(new StringProperty("contentType")));
+					changedProperties.put(contentType, nodeToCopy.getProperty(new StringProperty("contentType")));
 
-					long fileSize = FileHelper.getSize(nodeToBeReplaced);
+					long fileSize = FileHelper.getSize(fileToBeReplaced);
 					if (fileSize > 0) {
+
 						changedProperties.put(size, fileSize);
 					}
 

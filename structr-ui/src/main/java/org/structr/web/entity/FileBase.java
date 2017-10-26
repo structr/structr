@@ -22,7 +22,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,12 +29,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -105,7 +101,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
 
-	public static final Property<String> relativeFilePath                        = new StringProperty("relativeFilePath").systemInternal();
 	public static final Property<Long> size                                      = new LongProperty("size").indexed().systemInternal();
 	public static final Property<String> url                                     = new StringProperty("url");
 	public static final Property<Long> checksum                                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
@@ -122,7 +117,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	);
 
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
-		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
+		type, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
 	);
 
 	@Override
@@ -180,47 +175,20 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	}
 
 	@Override
-	public void onNodeCreation() {
-
-		final String uuid = getUuid();
-		final String filePath = getDirectoryPath(uuid) + "/" + uuid;
-
-		try {
-			unlockSystemPropertiesOnce();
-			setProperties(securityContext, new PropertyMap(relativeFilePath, filePath));
-
-		} catch (Throwable t) {
-
-			logger.warn("Exception while trying to set relative file path {}: {}", new Object[]{filePath, t});
-
-		}
-	}
-
-	@Override
 	public void onNodeDeletion() {
 
-		String filePath = null;
+		java.io.File toDelete = getFileOnDisk();
+
 		try {
-			final String path = getRelativeFilePath();
 
-			if (path != null) {
+			if (toDelete.exists() && toDelete.isFile()) {
 
-				filePath = FileHelper.getFilePath(path);
-
-				java.io.File toDelete = new java.io.File(filePath);
-
-				if (toDelete.exists() && toDelete.isFile()) {
-
-					toDelete.delete();
-				}
+				toDelete.delete();
 			}
 
 		} catch (Throwable t) {
-
-			logger.debug("Exception while trying to delete file {}: {}", new Object[]{filePath, t});
-
+			logger.debug("Exception while trying to delete file {}: {}", toDelete, t);
 		}
-
 	}
 
 	@Override
@@ -228,37 +196,13 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try {
 
-			final String filesPath        = Settings.FilesPath.getValue();
-			final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + getRelativeFilePath());
-
-			if (fileOnDisk.exists()) {
-				return;
-			}
-
-			fileOnDisk.getParentFile().mkdirs();
-
-			try {
-
-				fileOnDisk.createNewFile();
-
-			} catch (IOException ex) {
-
-				logger.error("Could not create file", ex);
-				return;
-			}
-
 			FileHelper.updateMetadata(this, new PropertyMap(version, 0));
 
 		} catch (FrameworkException ex) {
 
-			logger.error("Could not create file", ex);
+			logger.error("Could not update metadata of {}: {}", this, ex.getMessage());
 		}
 
-	}
-
-	@Override
-	public String getPath() {
-		return FileHelper.getFolderPath(this);
 	}
 
 	@Export
@@ -294,46 +238,30 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to index " + this, fex);
+			logger.warn("Unable to index {}: {}", this, fex.getMessage());
 		}
 	}
 
-	public String getRelativeFilePath() {
-
-		return getProperty(FileBase.relativeFilePath);
-
-	}
-
 	public String getUrl() {
-
 		return getProperty(FileBase.url);
-
 	}
 
 	@Override
 	public String getContentType() {
-
 		return getProperty(FileBase.contentType);
-
 	}
 
 	@Override
 	public Long getSize() {
-
 		return getProperty(size);
-
 	}
 
 	public Long getChecksum() {
-
 		return getProperty(checksum);
-
 	}
 
 	public String getFormattedSize() {
-
 		return FileUtils.byteCountToDisplaySize(getSize());
-
 	}
 
 	public static String getDirectoryPath(final String uuid) {
@@ -399,63 +327,44 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Override
 	public InputStream getInputStream() {
 
-		final String relativeFilePath = getRelativeFilePath();
+		final java.io.File fileOnDisk = getFileOnDisk();
 
-		if (relativeFilePath != null) {
+		try {
 
-			final String filePath = FileHelper.getFilePath(relativeFilePath);
+			final FileInputStream fis = new FileInputStream(fileOnDisk);
 
-			FileInputStream fis = null;
-			try {
+			if (getProperty(isTemplate)) {
 
-				java.io.File fileOnDisk = new java.io.File(filePath);
+				boolean editModeActive = false;
+				if (securityContext.getRequest() != null) {
 
-				// Return file input stream
-				fis = new FileInputStream(fileOnDisk);
+					final String editParameter = securityContext.getRequest().getParameter("edit");
+					if (editParameter != null) {
 
-				if (getProperty(isTemplate)) {
-
-					boolean editModeActive = false;
-					if (securityContext.getRequest() != null) {
-						final String editParameter = securityContext.getRequest().getParameter("edit");
-						if (editParameter != null) {
-							editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
-						}
-					}
-
-					if (!editModeActive) {
-
-						final String content = IOUtils.toString(fis, "UTF-8");
-
-						try {
-
-							final String result = Scripting.replaceVariables(new ActionContext(securityContext), this, content);
-							return IOUtils.toInputStream(result, "UTF-8");
-
-						} catch (Throwable t) {
-
-							logger.warn("Scripting error in {}:\n{}", getUuid(), content, t);
-						}
+						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
 					}
 				}
 
-				return fis;
+				if (!editModeActive) {
 
-			} catch (FileNotFoundException e) {
-				logger.debug("File not found: {}", new Object[]{relativeFilePath});
-
-				if (fis != null) {
+					final String content = IOUtils.toString(fis, "UTF-8");
 
 					try {
 
-						fis.close();
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), this, content);
+						return IOUtils.toInputStream(result, "UTF-8");
 
-					} catch (IOException ignore) {}
+					} catch (Throwable t) {
 
+						logger.warn("Scripting error in {}:\n{}", getUuid(), content, t);
+					}
 				}
-			} catch (IOException ex) {
-				java.util.logging.Logger.getLogger(FileBase.class.getName()).log(Level.SEVERE, null, ex);
 			}
+
+			return fis;
+
+		} catch (IOException ex) {
+			logger.warn("File not found: {}", fileOnDisk);
 		}
 
 		return null;
@@ -473,71 +382,13 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			return null;
 		}
 
-		final String path = getRelativeFilePath();
-		if (path != null) {
+		try {
 
-			final String filePath = FileHelper.getFilePath(path);
+			// Return file output stream and save checksum and size after closing
+			return new ClosingFileOutputStream(getFileOnDisk(), append, notifyIndexerAfterClosing);
 
-			try {
-
-				final java.io.File fileOnDisk = new java.io.File(filePath);
-				fileOnDisk.getParentFile().mkdirs();
-
-				// Return file output stream and save checksum and size after closing
-				final FileOutputStream fos = new FileOutputStream(fileOnDisk, append) {
-
-					private boolean closed = false;
-
-					@Override
-					public void close() throws IOException {
-
-						if (closed) {
-							return;
-						}
-
-						try (Tx tx = StructrApp.getInstance().tx()) {
-
-							super.close();
-
-							final String _contentType = FileHelper.getContentMimeType(FileBase.this);
-
-							final PropertyMap changedProperties = new PropertyMap();
-							changedProperties.put(checksum, FileHelper.getChecksum(FileBase.this));
-							changedProperties.put(size, FileHelper.getSize(FileBase.this));
-							changedProperties.put(contentType, _contentType);
-
-							if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
-								changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
-							}
-
-							unlockSystemPropertiesOnce();
-							setProperties(securityContext, changedProperties);
-
-							increaseVersion();
-
-							if (notifyIndexerAfterClosing) {
-								notifyUploadCompletion();
-							}
-
-							tx.success();
-
-						} catch (Throwable ex) {
-
-							logger.error("Could not determine or save checksum and size after closing file output stream", ex);
-
-						}
-
-						closed = true;
-					}
-				};
-
-				return fos;
-
-			} catch (FileNotFoundException e) {
-
-				logger.error("File not found: {}", path);
-			}
-
+		} catch (IOException e) {
+			logger.error("Unable to open file output stream for {}: {}", path, e.getMessage());
 		}
 
 		return null;
@@ -545,25 +396,33 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	}
 
 	public java.io.File getFileOnDisk() {
-
-		final String path = getRelativeFilePath();
-		if (path != null) {
-
-			return new java.io.File(FileHelper.getFilePath(path));
-		}
-
-		return null;
+		return getFileOnDisk(true);
 	}
 
-	public Path getPathOnDisk() {
+	public java.io.File getFileOnDisk(final boolean create) {
 
-		final String path = getRelativeFilePath();
-		if (path != null) {
+		final String uuid       = getUuid();
+		final String filePath   = Settings.FilesPath.getValue();
+		final String uuidPath   = FileBase.getDirectoryPath(uuid);
+		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
 
-			return Paths.get(FileHelper.getFilePath(path));
+		// create parent directory tree
+		file.getParentFile().mkdirs();
+
+		// create file only if requested
+		if (create && !file.exists()) {
+
+			try {
+
+				file.createNewFile();
+
+			} catch (IOException ioex) {
+
+				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
+			}
 		}
 
-		return null;
+		return file;
 	}
 
 	@Export
@@ -989,6 +848,63 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		public String getSeparator() {
 			return separator;
+		}
+	}
+
+	private class ClosingFileOutputStream extends FileOutputStream {
+
+		private boolean notifyIndexerAfterClosing = false;
+		private boolean closed                    = false;
+		private java.io.File file                 = null;
+
+		public ClosingFileOutputStream(final java.io.File file, final boolean append, final boolean notifyIndexerAfterClosing) throws IOException {
+
+			super(file, append);
+
+			this.notifyIndexerAfterClosing = notifyIndexerAfterClosing;
+			this.file                      = file;
+		}
+
+		@Override
+		public void close() throws IOException {
+
+			if (closed) {
+				return;
+			}
+
+			try (Tx tx = StructrApp.getInstance().tx()) {
+
+				super.close();
+
+				final String _contentType = FileHelper.getContentMimeType(FileBase.this);
+
+				final PropertyMap changedProperties = new PropertyMap();
+				changedProperties.put(checksum, FileHelper.getChecksum(file));
+				changedProperties.put(size, FileHelper.getSize(file));
+				changedProperties.put(contentType, _contentType);
+
+				if (StringUtils.startsWith(_contentType, "image") || ImageHelper.isImageType(getProperty(name))) {
+					changedProperties.put(NodeInterface.type, Image.class.getSimpleName());
+				}
+
+				unlockSystemPropertiesOnce();
+				setProperties(securityContext, changedProperties);
+
+				increaseVersion();
+
+				if (notifyIndexerAfterClosing) {
+					notifyUploadCompletion();
+				}
+
+				tx.success();
+
+			} catch (Throwable ex) {
+
+				logger.error("Could not determine or save checksum and size after closing file output stream", ex);
+
+			}
+
+			closed = true;
 		}
 	}
 }

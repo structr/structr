@@ -222,15 +222,15 @@ public class UiTest extends StructrUiTest {
 
 			Folder a = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a");
 			assertNotNull(a);
-			assertEquals(FileHelper.getFolderPath(a), "/a");
+			assertEquals(a.getFolderPath(), "/a");
 
 			Folder b = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b");
 			assertNotNull(b);
-			assertEquals(FileHelper.getFolderPath(b), "/a/b");
+			assertEquals(b.getFolderPath(), "/a/b");
 
 			Folder c = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 			assertNotNull(c);
-			assertEquals(FileHelper.getFolderPath(c), "/a/b/c");
+			assertEquals(c.getFolderPath(), "/a/b/c");
 
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
@@ -330,10 +330,10 @@ public class UiTest extends StructrUiTest {
 
 			FileBase file1 = (FileBase) app.create(File.class, "file1");
 			assertNotNull(file1);
-			assertEquals(FileHelper.getFolderPath(file1), "/file1");
+			assertEquals(file1.getFolderPath(), "/file1");
 
 			file1.setProperties(file1.getSecurityContext(), new PropertyMap(File.parent, folder1));
-			assertEquals(FileHelper.getFolderPath(file1), "/folder1/file1");
+			assertEquals(file1.getFolderPath(), "/folder1/file1");
 
 			tx.success();
 
@@ -345,10 +345,10 @@ public class UiTest extends StructrUiTest {
 
 			Image image1 = (Image) app.create(Image.class, "image1");
 			assertNotNull(image1);
-			assertEquals(FileHelper.getFolderPath(image1), "/image1");
+			assertEquals(image1.getFolderPath(), "/image1");
 
 			image1.setProperties(image1.getSecurityContext(), new PropertyMap(File.parent, folder1));
-			assertEquals(FileHelper.getFolderPath(image1), "/folder1/image1");
+			assertEquals(image1.getFolderPath(), "/folder1/image1");
 
 			tx.success();
 

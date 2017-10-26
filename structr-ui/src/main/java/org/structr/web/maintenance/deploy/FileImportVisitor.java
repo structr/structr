@@ -119,7 +119,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				try (final Tx tx = app.tx(true, false, false)) {
 
 					// set properties from files.json
-					final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getPath());
+					final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getFolderPath());
 
 					final PropertyKey<Map<String, String>> sourcesPropertyKey = new GenericProperty("minificationSources");
 					Map<String, String> sourcesConfig = fileProperties.get(sourcesPropertyKey);
@@ -139,7 +139,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (FileBase)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
 
 						} else {
-							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
+							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getFolderPath(), positionString);
 						}
 					}
 

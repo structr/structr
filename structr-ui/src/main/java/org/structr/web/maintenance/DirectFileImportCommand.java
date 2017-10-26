@@ -243,7 +243,6 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 		try (final Tx tx = app.tx()) {
 
-			final String filesPath    = Settings.FilesPath.getValue();
 			final String relativePath = PathHelper.getRelativeNodePath(path.toString(), file.toString());
 			String parentPath         = targetPath + PathHelper.getFolderPath(relativePath);
 
@@ -288,7 +287,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 				}
 
 				final String contentType = FileHelper.getContentMimeType(file.toFile(), file.getFileName().toString());
-				
+
 				boolean isImage = (contentType != null && contentType.startsWith("image"));
 				boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
@@ -317,11 +316,8 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 
-				final String uuid             = newFile.getUuid();
-				final String relativeFilePath = FileBase.getDirectoryPath(uuid) + "/" + uuid;
-				final Path fullFolderPath     = Paths.get(filesPath + "/" + relativeFilePath);
-
-				newFile.setProperty(FileBase.relativeFilePath, relativeFilePath);
+				final java.io.File fileOnDisk = newFile.getFileOnDisk(false);
+				final Path fullFolderPath     = fileOnDisk.toPath();
 
 				Files.createDirectories(fullFolderPath.getParent());
 

@@ -29,8 +29,6 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.html.relation.ResourceLink;
 
-//~--- interfaces -------------------------------------------------------------
-
 /**
  *
  *
@@ -43,5 +41,5 @@ public interface Linkable extends NodeInterface {
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements, enableBasicAuth, basicAuthRealm);
 
-	public String getPath();
+	public String getFolderPath();
 }

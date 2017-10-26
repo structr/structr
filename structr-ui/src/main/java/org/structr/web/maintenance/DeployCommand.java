@@ -708,7 +708,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(file, properties);
 
 		if (!properties.isEmpty()) {
-			config.put(file.getPath(), properties);
+			config.put(file.getFolderPath(), properties);
 		}
 	}
 
@@ -1056,7 +1056,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			Map<Integer, String> minifcationSources = new TreeMap<>();
 			for(MinificationSource minificationSourceRel : file.getOutgoingRelationships(MinificationSource.class)) {
-				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getPath());
+				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getFolderPath());
 			}
 			putIf(config, "minificationSources",     minifcationSources);
 

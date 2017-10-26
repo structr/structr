@@ -639,7 +639,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 			if (linkable != null) {
 
-				final String path = linkable.getPath();
+				final String path = linkable.getFolderPath();
 				if (path != null) {
 
 					instructions.add("@structr:link(" + path + ")");

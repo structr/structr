@@ -1004,7 +1004,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		for (Linkable node : entryPoints) {
 
-			if (node instanceof FileBase && (path.equals(node.getPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
+			if (node instanceof FileBase && (path.equals(node.getFolderPath()) || node.getUuid().equals(PathHelper.getName(path)))) {
 				return (FileBase) node;
 			}
 		}
@@ -1034,7 +1034,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		for (final Page page : pages) {
 
-			final String pagePath = page.getPath();
+			final String pagePath = page.getFolderPath();
 			if (pagePath != null && pagePath.equals(path) && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
 
 				return page;

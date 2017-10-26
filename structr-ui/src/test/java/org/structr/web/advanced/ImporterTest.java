@@ -62,7 +62,7 @@ public class ImporterTest extends StructrUiTest {
 			+ "		<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\n"
 			+ "		<meta name=\"description\" content=\"\">\n"
 			+ "		<meta name=\"author\" content=\"\">\n"
-			+ "		<link href=\"?\" rel=\"icon\">\n"
+			+ "		<link href=\"/favicon.ico?1\" rel=\"icon\">\n"
 			+ "		<title>Jumbotron Template for Bootstrap</title><!-- Bootstrap core CSS -->\n"
 			+ "		<link href=\"/dist/css/bootstrap.min.css?1\" rel=\"stylesheet\"><!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->\n"
 			+ "		<link href=\"/assets/css/ie10-viewport-bug-workaround.css?1\" rel=\"stylesheet\"><!-- Custom styles for this template -->\n"
@@ -132,11 +132,11 @@ public class ImporterTest extends StructrUiTest {
 		);
 
 		//assertFileExists("/favicon.ico", 1);
-		assertFileExists("/dist/css/bootstrap.min.css", 1);
-		assertFileExists("/assets/css/ie10-viewport-bug-workaround.css", 1);
-		assertFileExists("/jumbotron.css", 1);
-		assertFileExists("/assets/js/ie-emulation-modes-warning.js", 1);
-		assertFileExists("/assets/js/ie10-viewport-bug-workaround.js", 1);
+		assertFileExists("/dist/css/bootstrap.min.css", 0);
+		assertFileExists("/assets/css/ie10-viewport-bug-workaround.css", 0);
+		assertFileExists("/jumbotron.css", 0);
+		assertFileExists("/assets/js/ie-emulation-modes-warning.js", 0);
+		assertFileExists("/assets/js/ie10-viewport-bug-workaround.js", 0);
 
 		assertFileNotExists("html5shiv.min.js");
 		assertFileNotExists("respond.min.js");

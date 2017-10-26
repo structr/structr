@@ -30,6 +30,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
@@ -163,6 +164,24 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	@Override
 	public Class<FileSiblings> getSiblingLinkType() {
 		return FileSiblings.class;
+	}
+
+	public String getFolderPath() {
+
+		LinkedTreeNode parentFolder = getProperty(AbstractFile.parent);
+		String folderPath           = getProperty(AbstractFile.name);
+
+		if (folderPath == null) {
+			folderPath = getProperty(GraphObject.id);
+		}
+
+		while (parentFolder != null) {
+
+			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
+			parentFolder = parentFolder.getProperty(AbstractFile.parent);
+		}
+
+		return "/".concat(folderPath);
 	}
 
 	public boolean includeInFrontendExport() {
