@@ -95,8 +95,13 @@ public class CSVFileImportJob extends ImportJob {
 			final String importTypeName    = "ImportFromCsv" + df.format(System.currentTimeMillis());
 
 			final SecurityContext threadContext = SecurityContext.getInstance(user, AccessMode.Backend);
-			threadContext.setDoTransactionNotifications(false);
 			final App app                       = StructrApp.getInstance(threadContext);
+
+			// disable transaction notifications
+			threadContext.disableModificationOfAccessTime();
+			threadContext.ignoreResultCount(true);
+			threadContext.setDoTransactionNotifications(false);
+			threadContext.disableEnsureCardinality();
 
 			try (final InputStream is = getFileInputStream(threadContext)) {
 
