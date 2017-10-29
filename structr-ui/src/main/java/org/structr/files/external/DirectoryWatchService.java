@@ -31,31 +31,91 @@ import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
+import org.structr.web.entity.Folder;
 
 /**
  */
 public class DirectoryWatchService extends Thread implements RunnableService {
 
-	private static final Logger logger  = LoggerFactory.getLogger(DirectoryWatchService.class);
-	private WatchEventListener listener = null;
-	private WatchService watchService   = null;
-	private Path root                   = null;
-	private boolean running             = false;
+	private static final Logger logger             = LoggerFactory.getLogger(DirectoryWatchService.class);
+	private final Map<String, String> watchedRoots = new LinkedHashMap<>();
+	private final Map<WatchKey, Path> watchKeyMap  = new LinkedHashMap<>();
+	private WatchEventListener listener            = null;
+	private WatchService watchService              = null;
+	private boolean running                        = false;
 
 	public DirectoryWatchService() {
 		super("DirectoryWatchService");
 	}
 
+	public void mountFolder(final Folder folder) {
+
+		final String mountTarget = folder.getProperty(Folder.mountTarget);
+		final String folderPath  = folder.getProperty(Folder.path);
+		final String uuid        = folder.getUuid();
+		final String root        = watchedRoots.get(uuid);
+
+		if (root == null) {
+
+			// mount
+			if (mountTarget != null && mount(mountTarget, folderPath)) {
+
+				// remember mounted folder
+				watchedRoots.put(uuid, mountTarget);
+			}
+
+		} else {
+
+			if (mountTarget == null && unmount(folder, root)) {
+
+				// unmount
+				watchedRoots.remove(uuid);
+
+			} else if (!root.equals(mountTarget)) {
+
+				// remount
+				if (unmount(folder, root) && mount(mountTarget, folderPath)) {
+
+					watchedRoots.put(uuid, mountTarget);
+				}
+			}
+		}
+	}
+
+	public void unmountFolder(final Folder folder) {
+
+		final String uuid        = folder.getUuid();
+		final String root        = watchedRoots.get(uuid);
+
+		if (root != null && unmount(folder, root)) {
+
+			try {
+				folder.deleteRecursively(false);
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
+			watchedRoots.remove(uuid);
+		}
+	}
+
+	// ----- interface RunnableService -----
 	@Override
 	public void run() {
-
-		running = true;
 
 		while (running) {
 
@@ -63,6 +123,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				final WatchKey key = watchService.poll(100, TimeUnit.MILLISECONDS);
 				if (key != null) {
+
+					final Path root = watchKeyMap.get(key);
 
 					try {
 
@@ -74,7 +136,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 								continue;
 							}
 
-							handleWatchEvent((Path)key.watchable(), event);
+							handleWatchEvent(root, (Path)key.watchable(), event);
 						}
 
 					} catch (IOException ioex) {
@@ -100,13 +162,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		try {
 
-			this.root         = Paths.get("/home/chrisi/tmp");
-			this.watchService = root.getFileSystem().newWatchService();
-
-			logger.info("Watching {}..", this.root.toString());
-
-			// add watch services for each directory recursively
-			watchDirectoryTree(root);
+			final Path dir    = Paths.get(Settings.FilesPath.getValue());
+			this.watchService = dir.getFileSystem().newWatchService();
 
 			logger.info("Watch service successfully registered");
 
@@ -114,6 +171,20 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			ioex.printStackTrace();
 		}
 
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx(false, false, false)) {
+
+			// find all folders with mount targets and mount them
+			for (final Folder folder : app.nodeQuery(Folder.class).notBlank(Folder.mountTarget).getAsList()) {
+
+				mountFolder(folder);
+			}
+
+			tx.success();
+		}
+
+		running = true;
 
 		this.start();
 	}
@@ -164,50 +235,66 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private void handleWatchEvent(final Path parent, final WatchEvent event) throws IOException {
+	private void handleWatchEvent(final Path root, final Path parent, final WatchEvent event) throws IOException {
 
-		final Path path = parent.resolve((Path)event.context());
-		final Kind kind = event.kind();
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-		if (StandardWatchEventKinds.ENTRY_CREATE.equals(kind)) {
+			final Path path = parent.resolve((Path)event.context());
+			final Kind kind = event.kind();
 
-			if (Files.isDirectory(path)) {
+			if (StandardWatchEventKinds.ENTRY_CREATE.equals(kind)) {
 
-				watchDirectoryTree(path);
+				if (Files.isDirectory(path)) {
+
+					watchDirectoryTree(path);
+				}
+
+				listener.onCreate(root, parent, path);
+
+			} else if (StandardWatchEventKinds.ENTRY_DELETE.equals(kind)) {
+
+				listener.onDelete(root, parent, path);
+
+			} else if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kind)) {
+
+				listener.onModify(root, parent, path);
 			}
 
-			listener.onCreate(path);
-			return;
-		}
+			tx.success();
 
-		if (StandardWatchEventKinds.ENTRY_DELETE.equals(kind)) {
-
-			listener.onDelete(path);
-			return;
-		}
-
-		if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kind)) {
-
-			listener.onModify(path);
-			return;
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 	}
 
 
 	private void watchDirectoryTree(final Path root) throws IOException {
 
-		root.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+		final WatchKey key = root.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+		if (key != null) {
+
+			watchKeyMap.put(key, root);
+		}
 
 		Files.walkFileTree(root, new FileVisitor<Path>() {
 
 			@Override
 			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 
-				// notify listener of directory discovery
-				listener.onDiscover(dir);
+				try {
+					// notify listener of directory discovery
+					listener.onDiscover(root, root, dir);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
 
 				// register directory with watch service
-				dir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+				final WatchKey key = dir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+				if (key != null) {
+
+					watchKeyMap.put(key, root);
+				}
 
 				return FileVisitResult.CONTINUE;
 			}
@@ -215,8 +302,13 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 
-				// notify listener of file discovery
-				listener.onDiscover(file);
+				try {
+					// notify listener of file discovery
+					listener.onDiscover(root, root, file);
+
+				} catch (FrameworkException fex) {
+					fex.printStackTrace();
+				}
 
 				return FileVisitResult.CONTINUE;
 			}
@@ -231,6 +323,54 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 				return FileVisitResult.CONTINUE;
 			}
 		});
+	}
+
+	private boolean mount(final String absolutePath, final String targetPath) {
+
+		final Path root = Paths.get(absolutePath);
+
+		if (Files.exists(root)) {
+
+			if (Files.isDirectory(root)) {
+
+				logger.info("Mounting {} to {}..", absolutePath, targetPath);
+
+				try {
+
+					// add watch services for each directory recursively
+					watchDirectoryTree(root);
+
+					return true;
+
+				} catch (IOException ex) {
+
+					logger.warn("Unable to mount {}: {}", absolutePath, ex.getMessage());
+				}
+
+			} else {
+
+				logger.warn("Unable to mount {}, not a directory", absolutePath);
+			}
+
+		} else {
+
+			logger.warn("Unable to mount {}, directory does not exist", absolutePath);
+		}
+
+		return false;
+	}
+
+	private boolean unmount(final Folder folder, final String absolutePath) {
+
+		try {
+			folder.deleteRecursively(false);
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+
+		return true;
 	}
 }
 

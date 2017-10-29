@@ -18,13 +18,21 @@
  */
 package org.structr.files.external;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 
 /**
@@ -33,55 +41,117 @@ import org.structr.web.entity.Folder;
  */
 public class FileSyncWatchEventListener implements WatchEventListener {
 
-	@Override
-	public void onDiscover(final Path path) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	private static final Logger logger = LoggerFactory.getLogger(FileSyncWatchEventListener.class);
+	private App app                    = null;
+
+	public FileSyncWatchEventListener() {
+
+		this.app = StructrApp.getInstance();
 	}
 
 	@Override
-	public void onCreate(final Path path) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public void onDiscover(final Path root, final Path context, final Path path) throws FrameworkException {
+
+		// skip root directory
+		if (context.equals(path)) {
+			return;
+		}
+
+		handle(root, context.relativize(path), path, true);
 	}
 
 	@Override
-	public void onModify(final Path path) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public void onCreate(final Path root, final Path context, final Path path) throws FrameworkException {
+
+		handle(root, root.relativize(path), path, true);
 	}
 
 	@Override
-	public void onDelete(final Path path) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	public void onModify(final Path root, final Path context, final Path path) throws FrameworkException {
+
+		final Path relativePath = root.relativize(path);
+		final GraphObject obj   = handle(root, relativePath, path, true);
+
+		if (obj != null && obj instanceof FileBase) {
+
+			FileHelper.updateMetadata((FileBase)obj);
+		}
+	}
+
+	@Override
+	public void onDelete(final Path root, final Path context, final Path path) throws FrameworkException {
+
+		final Path relativePath = root.relativize(path);
+		final GraphObject obj   = handle(root, relativePath, path, false);
+
+		if (obj != null) {
+
+			StructrApp.getInstance().delete((NodeInterface)obj);
+		}
 	}
 
 	// ----- private methods -----
-	private <T extends NodeInterface> T getOrCreate(final Class<T> type, final Path path) throws FrameworkException {
+	private GraphObject handle(final Path root, final Path relativePath, final Path path, final boolean create) throws FrameworkException {
 
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		final Path parentFolder               = getFolder(path);
-		final Folder folder                   = FileHelper.createFolderPath(securityContext, parentFolder.toString());
+		// identify mounted folder object
+		final Folder folder = StructrApp.getInstance().nodeQuery(Folder.class).and(Folder.mountTarget, root.toString()).getFirst();
+		if (folder != null) {
 
-		if (folder != null && Files.isRegularFile(path)) {
+			final String mountFolderPath = folder.getProperty(Folder.path);
+			if (mountFolderPath != null) {
 
-			final T newFile = StructrApp.getInstance(securityContext).create(type, path.getFileName().toString());
+				final Path relativePathParent = relativePath.getParent();
+				if (relativePathParent == null) {
 
-			
+					return getOrCreate(folder, path, relativePath, create);
 
-			return newFile;
-		}
+				} else {
 
-		return (T)parentFolder;
-	}
+					final String pathRelativeToRoot = folder.getPath() + "/" + relativePathParent.toString();
+					final Folder parentFolder       = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathRelativeToRoot);
 
-	final Path getFolder(final Path path) {
-
-		if (Files.isDirectory(path)) {
-
-			return path;
+					return getOrCreate(parentFolder, path, relativePath, create);
+				}
+			}
 
 		} else {
 
-			return path.getParent();
+			logger.info("Folder for mount target {} NOT found, path was {}", folder, root, path);
 		}
+
+		return null;
 	}
 
+
+	private GraphObject getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate) throws FrameworkException {
+
+		final String fileName = relativePath.getFileName().toString();
+		final boolean isFile  = !Files.isDirectory(fullPath);
+		final Class type      = isFile ? File.class : Folder.class;
+
+		GraphObject file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(AbstractFile.parent, parentFolder).getFirst();
+		if (file == null && doCreate) {
+
+			file = app.create(type,
+				new NodeAttribute<>(Folder.name, fileName),
+				new NodeAttribute<>(Folder.parent, parentFolder)
+			);
+		}
+
+		return file;
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

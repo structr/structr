@@ -19,6 +19,7 @@
 package org.structr.web.entity;
 
 
+import java.io.IOException;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,5 +200,32 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		}
 
 		return false;
+	}
+
+	// ----- protected methods -----
+	protected static java.io.File defaultGetFileOnDisk(final FileBase fileBase, final boolean create) {
+
+		final String uuid       = fileBase.getUuid();
+		final String filePath   = Settings.FilesPath.getValue();
+		final String uuidPath   = FileBase.getDirectoryPath(uuid);
+		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
+
+		// create parent directory tree
+		file.getParentFile().mkdirs();
+
+		// create file only if requested
+		if (create && !file.exists()) {
+
+			try {
+
+				file.createNewFile();
+
+			} catch (IOException ioex) {
+
+				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
+			}
+		}
+
+		return file;
 	}
 }

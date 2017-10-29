@@ -25,26 +25,34 @@ import java.nio.file.Path;
 public class LoggingWatchEventListener implements WatchEventListener {
 
 	@Override
-	public void onDiscover(final Path path) {
+	public void onDiscover(final Path root, final Path context, final Path path) {
 
-		System.out.println("DISCOVER: " + path);
+		final Path relativePath = context.relativize(path);
+
+		System.out.println("DISCOVER(" + context + "): " + path + ", relative path: " + relativePath);
 	}
 
 	@Override
-	public void onCreate(final Path path) {
+	public void onCreate(final Path root, final Path context, final Path path) {
 
-		System.out.println("CREATE: " + path);
+		final Path relativePath = context.relativize(path);
+
+		System.out.println("CREATE(" + context + "): " + path + ", relative path: " + relativePath);
 	}
 
 	@Override
-	public void onModify(final Path path) {
+	public void onModify(final Path root, final Path context, final Path path) {
 
-		System.out.println("MODIFY: " + path);
+		final Path relativePath = context.relativize(path);
+
+		System.out.println("MODIFY(" + context + "): " + path + ", relative path: " + relativePath);
 	}
 
 	@Override
-	public void onDelete(final Path path) {
+	public void onDelete(final Path root, final Path context, final Path path) {
 
-		System.out.println("DELETE: " + path);
+		final Path relativePath = context.relativize(path);
+
+		System.out.println("DELETE(" + context + "): " + path + ", relative path: " + relativePath);
 	}
 }

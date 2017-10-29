@@ -18,7 +18,6 @@
  */
 package org.structr.web.advanced;
 
-import java.io.IOException;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -30,8 +29,8 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
 import org.structr.web.StructrUiTest;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
 public class FilesystemTest extends StructrUiTest {
@@ -119,19 +118,32 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+			final Folder mounted = app.create(Folder.class,
+				new NodeAttribute<>(Folder.name, "mounted"),
+				new NodeAttribute<>(Folder.mountTarget, "/home/chrisi/tmp/mount/")
+			);
+
+			final Folder folder = app.create(Folder.class,
+				new NodeAttribute<>(Folder.name, "folder"),
+				new NodeAttribute<>(File.parent, mounted)
+			);
+
+			final FileBase file1 = app.create(File.class,
+				new NodeAttribute<>(File.name, "test1.txt"),
+				new NodeAttribute<>(File.parent, mounted)
+			);
+
+			final FileBase file2 = app.create(File.class,
+				new NodeAttribute<>(File.name, "test2.txt"),
+				new NodeAttribute<>(File.parent, folder)
+			);
 
 			tx.success();
 
-		} catch (IOException fex) {
-			fail("Unexpected exception.");
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
-
-
 	}
-
 }
 
 

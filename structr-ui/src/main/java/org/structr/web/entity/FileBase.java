@@ -177,7 +177,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Override
 	public void onNodeDeletion() {
 
-		java.io.File toDelete = getFileOnDisk();
+		java.io.File toDelete = getFileOnDisk(false);
 
 		try {
 
@@ -401,28 +401,15 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 	public java.io.File getFileOnDisk(final boolean create) {
 
-		final String uuid       = getUuid();
-		final String filePath   = Settings.FilesPath.getValue();
-		final String uuidPath   = FileBase.getDirectoryPath(uuid);
-		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
+		final Folder parentFolder = getProperty(FileBase.parent);
+		if (parentFolder != null) {
 
-		// create parent directory tree
-		file.getParentFile().mkdirs();
+			return parentFolder.getFileOnDisk(this, "", create);
 
-		// create file only if requested
-		if (create && !file.exists()) {
+		} else {
 
-			try {
-
-				file.createNewFile();
-
-			} catch (IOException ioex) {
-
-				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
-			}
+			return defaultGetFileOnDisk(this, create);
 		}
-
-		return file;
 	}
 
 	@Export
@@ -804,10 +791,10 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try (final InputStream is = getInputStream()) {
 
-			return IOUtils.toString(is);
+			return IOUtils.toString(is, "utf-8");
 
 		} catch (IOException ioex) {
-			logger.warn("", ioex);
+			logger.warn("Unable to get favorite content from {}: {}", this, ioex.getMessage());
 		}
 
 		return null;
@@ -827,7 +814,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			os.flush();
 
 		} catch (IOException ioex) {
-			logger.warn("", ioex);
+			logger.warn("Unable to set favorite content from {}: {}", this, ioex.getMessage());
 		}
 	}
 
