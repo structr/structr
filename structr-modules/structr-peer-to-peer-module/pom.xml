@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>2.2.1</version>
+		<version>2.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-peer-to-peer-module</artifactId>
 	<packaging>jar</packaging>
