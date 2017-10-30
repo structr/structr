@@ -46,7 +46,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 
 	public AdvancedCypherQuery(final AbstractCypherIndex<?> index) {
 		this.index    = index;
-		this.pageSize = 1000;
+		this.pageSize = 100000;
 	}
 
 	@Override
@@ -138,27 +138,30 @@ public class AdvancedCypherQuery implements PageableQuery {
 
 		if (sortKey != null) {
 
-			buf.append(" ORDER BY COALESCE(n.`");
-			buf.append(sortKey);
-			buf.append("`, ");
-
-			// COALESCE needs a correctly typed minimum value,
-			// so we need to supply a value based on the sort
-			// type.
-
 			switch (sortType) {
 
 				case Default:
 					// default is "String"
-					buf.append("''");
+					// no COALESCE needed => much faster
+					buf.append(" ORDER BY n.`");
+					buf.append(sortKey);
+					buf.append("` ");
+					
 					break;
 
 				default:
 					// other types are numeric
+					buf.append(" ORDER BY COALESCE(n.`");
+					buf.append(sortKey);
+					buf.append("`, ");
+					
+					// COALESCE needs a correctly typed minimum value,
+					// so we need to supply a value based on the sort
+					// type.
+					
 					buf.append("-1");
+					buf.append(")");
 			}
-
-			buf.append(")");
 
 			if (sortDescending) {
 				buf.append(" DESC");
