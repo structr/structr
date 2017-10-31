@@ -18,6 +18,7 @@
  */
 package org.structr.web.datasource;
 
+import java.util.List;
 import java.util.Map;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -30,6 +31,7 @@ import org.structr.schema.action.Function;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.function.UiFunction;
 
 /**
  *
@@ -51,6 +53,10 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			if (result instanceof Iterable) {
 
 				return FunctionDataSource.map((Iterable)result);
+
+			} else if (result instanceof Object[]) {
+
+				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
 			}
 
 		} catch (UnlicensedException ex) {

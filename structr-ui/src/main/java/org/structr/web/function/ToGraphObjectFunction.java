@@ -19,15 +19,9 @@
 
 package org.structr.web.function;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import org.structr.common.SecurityContext;
-import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 
 public class ToGraphObjectFunction extends UiFunction {
@@ -51,7 +45,6 @@ public class ToGraphObjectFunction extends UiFunction {
 
 				final Value<String> view = new StaticValue<>("public");
 				if (sources.length > 1) {
-
 					view.set(securityContext, sources[1].toString());
 				}
 
@@ -60,58 +53,15 @@ public class ToGraphObjectFunction extends UiFunction {
 					outputDepth = ((Number)sources[2]).intValue();
 				}
 
-				if (sources[0] instanceof GraphObject) {
+				final Object converted = UiFunction.toGraphObject(sources[0], outputDepth);
 
-					return sources[0];
-
-				} else if (sources[0] instanceof List) {
-
-					final List list = (List)sources[0];
-					List<GraphObject> res = new ArrayList<>();
-
-					for(Object o : list){
-
-						if (o instanceof Map) {
-
-							GraphObjectMap newObj = new GraphObjectMap();
-
-							this.recursivelyConvertMapToGraphObjectMap(newObj, (Map)o, outputDepth);
-
-							res.add(newObj);
-
-						} else if (o instanceof GraphObject) {
-
-							res.add((GraphObject)o);
-
-						} else if (o instanceof String) {
-
-							final GraphObjectMap stringWrapperObject = new GraphObjectMap();
-
-							stringWrapperObject.put(new StringProperty("value"), o);
-
-							res.add(stringWrapperObject);
-
-						}
-
-					}
-
-					return res;
-
-
-				} else if (sources[0] instanceof Map) {
-
-					final GraphObjectMap map  = new GraphObjectMap();
-
-					this.recursivelyConvertMapToGraphObjectMap(map, (Map)sources[0], outputDepth);
-
-					return map;
-
+				if (converted != null) {
+					return converted;
 				}
 
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
-
 			}
 
 			return "";
@@ -119,11 +69,9 @@ public class ToGraphObjectFunction extends UiFunction {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return usage(ctx.isJavaScriptContext());
-
 	}
 
 	@Override
@@ -135,5 +83,4 @@ public class ToGraphObjectFunction extends UiFunction {
 	public String shortDescription() {
 		return "Converts the given entity to GraphObjectMap";
 	}
-
 }

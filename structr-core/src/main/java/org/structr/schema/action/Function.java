@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
@@ -524,6 +526,72 @@ public abstract class Function<S, T> extends Hint {
 		recursivelyConvertMapToGraphObjectMap(dest, src, 0);
 
 		return dest;
+	}
+
+	public static Object toGraphObject (final Object sourceObject, final Integer outputDepth) {
+
+		if (sourceObject instanceof GraphObject) {
+
+			return sourceObject;
+
+		} else if (sourceObject instanceof List) {
+
+			final List list = (List)sourceObject;
+			final List<GraphObject> res = new ArrayList<>();
+
+			for(final Object o : list){
+
+				if (o instanceof Map) {
+
+					final GraphObjectMap newObj = new GraphObjectMap();
+
+					Function.recursivelyConvertMapToGraphObjectMap(newObj, (Map)o, outputDepth);
+
+					res.add(newObj);
+
+				} else if (o instanceof GraphObject) {
+
+					res.add((GraphObject)o);
+
+				} else if (o instanceof String) {
+
+					res.add(Function.wrapStringInGraphObjectMap((String)o));
+
+				}
+			}
+
+			return res;
+
+		} else if (sourceObject instanceof Map) {
+
+			final GraphObjectMap map  = new GraphObjectMap();
+
+			Function.recursivelyConvertMapToGraphObjectMap(map, (Map)sourceObject, outputDepth);
+
+			return map;
+
+		} else if (sourceObject instanceof String[]) {
+
+			final List<GraphObject> res = new ArrayList<>();
+
+			for (final String s : (String[]) sourceObject) {
+
+				res.add(Function.wrapStringInGraphObjectMap(s));
+			}
+
+			return res;
+		}
+
+		return null;
+
+	}
+
+	public static GraphObjectMap wrapStringInGraphObjectMap (final String str) {
+
+		final GraphObjectMap stringWrapperObject = new GraphObjectMap();
+		stringWrapperObject.put(new StringProperty("value"), str);
+		return stringWrapperObject;
+
 	}
 
 	public static Object numberOrString(final String value) {
