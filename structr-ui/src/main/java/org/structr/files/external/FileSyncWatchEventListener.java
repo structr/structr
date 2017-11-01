@@ -50,24 +50,26 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	}
 
 	@Override
-	public void onDiscover(final Path root, final Path context, final Path path) throws FrameworkException {
+	public boolean onDiscover(final Path root, final Path context, final Path path) throws FrameworkException {
 
 		// skip root directory
 		if (context.equals(path)) {
-			return;
+			return true;
 		}
 
-		handle(root, context.relativize(path), path, true);
+		// return false if mounted file/folder cannot be found
+		return handle(root, context.relativize(path), path, true) != null;
 	}
 
 	@Override
-	public void onCreate(final Path root, final Path context, final Path path) throws FrameworkException {
+	public boolean onCreate(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		handle(root, root.relativize(path), path, true);
+		// return false if mounted file/folder cannot be found
+		return handle(root, root.relativize(path), path, true) != null;
 	}
 
 	@Override
-	public void onModify(final Path root, final Path context, final Path path) throws FrameworkException {
+	public boolean onModify(final Path root, final Path context, final Path path) throws FrameworkException {
 
 		final Path relativePath = root.relativize(path);
 		final GraphObject obj   = handle(root, relativePath, path, true);
@@ -76,10 +78,13 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 			FileHelper.updateMetadata((FileBase)obj);
 		}
+
+		// return false if mounted file/folder cannot be found
+		return obj != null;
 	}
 
 	@Override
-	public void onDelete(final Path root, final Path context, final Path path) throws FrameworkException {
+	public boolean onDelete(final Path root, final Path context, final Path path) throws FrameworkException {
 
 		final Path relativePath = root.relativize(path);
 		final GraphObject obj   = handle(root, relativePath, path, false);
@@ -88,6 +93,9 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 			StructrApp.getInstance().delete((NodeInterface)obj);
 		}
+
+		// return false if mounted file/folder cannot be found
+		return obj != null;
 	}
 
 	// ----- private methods -----
@@ -113,15 +121,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 					return getOrCreate(parentFolder, path, relativePath, create);
 				}
 			}
-
-		} else {
-
-			logger.info("Folder for mount target {} NOT found, path was {}", folder, root, path);
 		}
 
 		return null;
 	}
-
 
 	private GraphObject getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate) throws FrameworkException {
 

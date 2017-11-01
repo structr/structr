@@ -33,7 +33,7 @@ public interface WatchEventListener {
 	 * @param context the parent folder
 	 * @param path the newly discovered file
 	 */
-	void onDiscover(final Path root, final Path context, final Path path) throws FrameworkException;
+	boolean onDiscover(final Path root, final Path context, final Path path) throws FrameworkException;
 
 	/**
 	 * Called when a new file is created in one of the
@@ -42,7 +42,7 @@ public interface WatchEventListener {
 	 * @param context the parent folder
 	 * @param path the newly created file
 	 */
-	void onCreate(final Path root, final Path context, final Path path) throws FrameworkException;
+	boolean onCreate(final Path root, final Path context, final Path path) throws FrameworkException;
 
 	/**
 	 * Called when an existing file is modified in one of
@@ -51,7 +51,7 @@ public interface WatchEventListener {
 	 * @param context the parent folder
 	 * @param path the modified file
 	 */
-	void onModify(final Path root, final Path context, final Path path) throws FrameworkException;
+	boolean onModify(final Path root, final Path context, final Path path) throws FrameworkException;
 
 	/**
 	 * Called when a file is deleted in one of the
@@ -60,5 +60,5 @@ public interface WatchEventListener {
 	 * @param context the parent folder
 	 * @param path the deleted file
 	 */
-	void onDelete(final Path root, final Path context, final Path path) throws FrameworkException;
+	boolean onDelete(final Path root, final Path context, final Path path) throws FrameworkException;
 }

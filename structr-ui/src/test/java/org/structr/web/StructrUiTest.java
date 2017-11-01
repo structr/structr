@@ -124,7 +124,7 @@ public abstract class StructrUiTest {
 
 		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
-		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.Services.setValue("NodeService HttpService SchemaService DirectoryWatchService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup

@@ -136,7 +136,10 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 								continue;
 							}
 
-							handleWatchEvent(root, (Path)key.watchable(), event);
+							if (!handleWatchEvent(root, (Path)key.watchable(), event)) {
+
+								key.cancel();
+							}
 						}
 
 					} catch (IOException ioex) {
@@ -235,7 +238,9 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private void handleWatchEvent(final Path root, final Path parent, final WatchEvent event) throws IOException {
+	private boolean handleWatchEvent(final Path root, final Path parent, final WatchEvent event) throws IOException {
+
+		boolean result = true; // default is "don't cancel watch key"
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -249,15 +254,15 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 					watchDirectoryTree(path);
 				}
 
-				listener.onCreate(root, parent, path);
+				result = listener.onCreate(root, parent, path);
 
 			} else if (StandardWatchEventKinds.ENTRY_DELETE.equals(kind)) {
 
-				listener.onDelete(root, parent, path);
+				result = listener.onDelete(root, parent, path);
 
 			} else if (StandardWatchEventKinds.ENTRY_MODIFY.equals(kind)) {
 
-				listener.onModify(root, parent, path);
+				result = listener.onModify(root, parent, path);
 			}
 
 			tx.success();
@@ -265,6 +270,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
+
+		return result;
 	}
 
 
