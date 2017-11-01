@@ -376,12 +376,15 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 						break;
 
 					case XMLEvent.CHARACTERS:
+					case XMLEvent.CDATA:
 						characters(event.asCharacters());
 						break;
+
 				}
 
 			} catch (XMLStreamException strex) {
 				logger.warn(strex.getMessage());
+				break;
 			}
 		}
 

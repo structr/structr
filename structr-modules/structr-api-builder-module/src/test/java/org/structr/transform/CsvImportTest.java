@@ -137,7 +137,7 @@ public class CsvImportTest extends StructrApiModuleTest {
 			final Class type                 = conf.getNodeEntityClass("Item");
 			final List<NodeInterface> items  = app.nodeQuery(type).sort(conf.getPropertyKeyForJSONName(type, "originId")).getAsList();
 
-			assertEquals("Invalid CSV import result, expected 2 items to be created from CSV import. ", 3, items.size());
+			assertEquals("Invalid CSV import result, expected 3 items to be created from CSV import. ", 3, items.size());
 
 			final NodeInterface one   = items.get(0);
 			final NodeInterface two   = items.get(1);

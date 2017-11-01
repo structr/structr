@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -64,7 +65,7 @@ public class XMLFileImportJob extends ImportJob {
 
 			final StructrModule module = StructrApp.getConfiguration().getModules().get("xml");
 
-			if (module == null || !(module instanceof XMLModule) ) {
+			if (!Services.isTesting() && (module == null || !(module instanceof XMLModule))) {
 
 				throw new FrameworkException(400, "Cannot import XML, XML module is not available.");
 
