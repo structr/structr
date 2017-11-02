@@ -165,6 +165,7 @@ var _Dragndrop = {
 			forcePlaceholderSize: true,
 			placeholder: 'pages-sortable-placeholder',
 			distance: 5,
+			cancel: 'i, img, b, .content_, .id',
 			helper: function (event, helperEl) {
 				pages.append('<div id="collapse-offset"></div>');
 				$('#collapse-offset', pages).css('height', helperEl.height() - 17);

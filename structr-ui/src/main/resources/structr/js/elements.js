@@ -474,26 +474,6 @@ var _Elements = {
 
 		_Entities.appendExpandIcon(div, entity, hasChildren);
 
-		// Prevent type icon from being draggable
-		$('.typeIcon', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
-		// Prevent display name
-		$('b', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
-		// Prevent id from being draggable
-		$('#id', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
-		// Prevent icons from being draggable
-		$('img', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
 		_Entities.appendAccessControlIcon(div, entity);
 		div.append('<i title="Delete ' + displayName + ' element ' + entity.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />');
 		$('.delete_icon', div).on('click', function(e) {
