@@ -144,6 +144,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	// Edit-mode attributes
 	public static final Property<Boolean> _reload = new BooleanProperty("data-structr-reload");
 	public static final Property<Boolean> _confirm = new BooleanProperty("data-structr-confirm");
+	public static final Property<Boolean> _appendId = new BooleanProperty("data-structr-append-id");
 	public static final Property<String> _action = new StringProperty("data-structr-action");
 	public static final Property<String> _attributes = new StringProperty("data-structr-attributes");
 	public static final Property<String> _attr = new StringProperty("data-structr-attr");
@@ -182,7 +183,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
 		restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent, sharedComponentConfiguration,
 		isDOMNode, renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
-		_reload, _confirm, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id
+		_reload, _confirm, _appendId, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id
 	);
 
 	public static final org.structr.common.View htmlView = new org.structr.common.View(DOMElement.class, PropertyView.Html, _accesskey, _class, _contenteditable, _contextmenu, _dir,
