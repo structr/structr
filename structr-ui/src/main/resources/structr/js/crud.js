@@ -107,7 +107,7 @@ var _Crud = {
 	}),
 	getProperties: function(type, callback) {
 
-		// We need at least the type to do anything  
+		// We need at least the type to do anything
 		if (type === null) {
 			return;
 		}
@@ -344,15 +344,18 @@ var _Crud = {
 		_Crud.resize();
 	},
 	loadingMessageTimeout: undefined,
-	showLoadingMessageAfterDelay: function (type, delay) {
+	showLoadingMessageAfterDelay: function (message, delay) {
 
 		clearTimeout(_Crud.loadingMessageTimeout);
 
 		_Crud.loadingMessageTimeout = setTimeout(function() {
 			var crudRight = $('#crud-right');
-			crudRight.append('<div class="crud-loading"><div class="crud-centered"><img src="' + _Icons.getSpinnerImageAsData() + '"> Loading <b>' + type + '</b> - please stand by</div></div>');
+			crudRight.append('<div class="crud-loading"><div class="crud-centered"><img src="' + _Icons.getSpinnerImageAsData() + '"> ' + message + ' - please stand by</div></div>');
 		}, delay);
 
+	},
+	removeLoadingMessage: function() {
+		$('#crud-right .crud-loading').remove();
 	},
 	typeSelected: function (selectedType) {
 
@@ -362,7 +365,7 @@ var _Crud = {
 
 		var crudRight = $('#crud-right');
 		fastRemoveAllChildren(crudRight[0]);
-		_Crud.showLoadingMessageAfterDelay(selectedType, 500);
+		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + selectedType + '</b>', 500);
 
 		_Crud.getProperties(selectedType, function(type, properties) {
 
@@ -915,6 +918,8 @@ var _Crud = {
 	},
 	list: function(type, properties, url) {
 
+		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
+
 		$.ajax({
 			headers: {
 				Range: _Crud.ranges(type)
@@ -922,8 +927,11 @@ var _Crud = {
 			url: url,
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
-			//async: false,
 			success: function(data) {
+
+				clearTimeout(_Crud.loadingMessageTimeout);
+				_Crud.removeLoadingMessage();
+
 				if (!data) {
 					return;
 				}
@@ -955,6 +963,9 @@ var _Crud = {
 			},
 			error: function(a, b, c) {
 				console.log(a, b, c, type, url);
+
+				clearTimeout(_Crud.loadingMessageTimeout);
+				_Crud.removeLoadingMessage();
 			}
 		});
 	},
