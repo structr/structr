@@ -6,7 +6,7 @@ Structr is the leading Graph-based **Low-Code Development** and **Runtime** envi
 
 Among its many features are a **visual schema editor** tool to customize the data model at runtime, a **JSON/REST API** to access any data in form of **JSON documents**, an **IDE to create micro web apps**, a **Content Management System** featuring a **virtual file system** with **fulltext indexing/-search** and many file protocol connectors, a comprehensive **three-level security system** to define and manage users, groups, access rights and individual object permission, and last but not least a variety of technical interfaces to support **data exchange**, **report creation** and connecting to third-party systems.
 
-Structr (pronounce it like 'structure') is used a powerful application platform for **Enterprise Master Data Management**, **Product Data Management**, **Enterprise Content Management** and more.
+Structr (pronounced 'structure') is a powerful application platform for **Enterprise Master Data Management**, **Product Data Management**, **Enterprise Content Management** and more.
 
 ## Editions and Modules
 
