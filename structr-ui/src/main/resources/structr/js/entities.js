@@ -50,22 +50,22 @@ var _Entities = {
 	deleteNodes: function(button, entities, recursive, callback) {
 		buttonClicked = button;
 		if ( !Structr.isButtonDisabled(button) ) {
-			
+
 			var confirmationText = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>\n';
-			
+
 			var nodeIds = [];
-			
+
 			entities.forEach(function(entity) {
-			
+
 				confirmationText += '' + entity.name + ' [' + entity.id + ']<br>';
 				nodeIds.push(entity.id);
 			});
-			
+
 			confirmationText += '<br>';
-			
+
 			Structr.confirmation(confirmationText,
 				function() {
-					
+
 					Command.deleteNodes(nodeIds, recursive);
 					$.unblockUI({
 						fadeOut: 25
@@ -383,7 +383,7 @@ var _Entities = {
 	showProperties: function(obj, activeViewOverride) {
 
 		var handleGraphObject = function(entity) {
-			
+
 			var views, activeView = 'ui';
 			var tabTexts = [];
 
@@ -453,7 +453,7 @@ var _Entities = {
 				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView, activeViewOverride);
 			}
 
-			Structr.resize();			
+			Structr.resize();
 		};
 
 		if (obj.relType) {
@@ -537,6 +537,14 @@ var _Entities = {
 	},
 	listProperties: function (entity, view, tabView, typeInfo) {
 		var null_prefix = 'null_attr_';
+
+		var getNullIconForKey = function (key) {
+			return '<i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
+		};
+		var removeNullIconFromRow = function (row) {
+			$('i.nullIcon', row).remove();
+		};
+
 		$.ajax({
 			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
 			dataType: 'json',
@@ -593,36 +601,39 @@ var _Entities = {
 							}
 
 							if (display || key === '_html_class' || key === '_html_id') {
-								props.append('<tr><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
+								props.append('<tr><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td>' + getNullIconForKey(key) + '</td></tr>');
 							} else if (key !== 'id') {
-								props.append('<tr class="hidden"><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
+								props.append('<tr class="hidden"><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td>' + getNullIconForKey(key) + '</td></tr>');
 							}
+
 						} else if (view === 'in' || view === 'out') {
 							if (key === 'id') {
 								// set ID to rel ID
 								id = res[key];
 							}
-							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
+							props.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
+
 						} else {
 
-							props.append('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td><i id="' + null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
+							var type = typeInfo[key].type;
+
+							var isReadOnly   = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+							var isSystem     = typeInfo[key].system;
+							var isBoolean    = false;
+							var isDate       = false;
+							var isPassword   = false;
+							var isRelated    = false;
+							var isCollection = false;
+							var isMultiline  = false;
+
+							var row = $('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td>' + getNullIconForKey(key) + '</td></tr>');
+							props.append(row);
 							var cell = $('.value.' + key + '_', props);
 
 							if (!typeInfo[key]) {
 								cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 
 							} else {
-
-								var type = typeInfo[key].type;
-
-								var isReadOnly   = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-								var isSystem     = typeInfo[key].system;
-								var isBoolean    = false;
-								var isDate       = false;
-								var isPassword   = false;
-								var isRelated    = false;
-								var isCollection = false;
-								var isMultiline  = false;
 
 								if (type) {
 									isBoolean = (type === 'Boolean');
@@ -731,6 +742,10 @@ var _Entities = {
 									}
 
 								}
+							}
+
+							if (isSystem || isReadOnly || isBoolean) {
+								removeNullIconFromRow(row);
 							}
 						}
 
@@ -1068,24 +1083,24 @@ var _Entities = {
 		Structr.dialog('Access Control and Visibility', function() {
 		}, function() {
 			if (Structr.isModuleActive(_Crud)) {
-				
+
 				var handleGraphObject = function(entity) {
 					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
 
-					_Crud.refreshCell(id, "visibleToPublicUsers", entity.visibleToPublicUsers, entity.type, initialObj.visibleToPublicUsers);
-					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);					
+					_Crud.refreshCell(id, "visibleToPublicUsers",        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
+					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
 				};
-				
+
 				if (entity.targetId) {
-					Command.getRelationship(id, entity.targetId, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity) });
+					Command.getRelationship(id, entity.targetId, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
 				} else {
-					Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity) });
+					Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
 				}
 			}
 		});
-		
+
 		var handleGraphObject = function(entity) {
 
 			initialObj = {
