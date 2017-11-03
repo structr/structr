@@ -549,6 +549,10 @@ var _Pages = {
 		_Logger.log(_LogType.PAGES, 'store active tab', activeTab);
 		LSWrapper.setItem(_Pages.activeTabKey, activeTab);
 
+		if (LSWrapper.getItem(_Pages.activeTabLeftKey) === $('#activeElementsTab').prop('id')) {
+			_Pages.refreshActiveElements();
+		}
+
 	},
 	hideAllPreviews: function () {
 
@@ -559,14 +563,22 @@ var _Pages = {
 	},
 	refreshActiveElements: function() {
 		var id = activeTab;
-		$('#activeElements div.inner').empty().attr('id', 'id_' + id);
-		_Entities.activeElements = {};
+		if (_Pages.isPageTabPresent(id)) {
+			$('#activeElements div.inner').empty().attr('id', 'id_' + id);
+			_Entities.activeElements = {};
 
-		Command.listActiveElements(id, function(result) {
-			result.forEach(function(activeElement) {
-				_Entities.handleActiveElement(activeElement);
+			Command.listActiveElements(id, function(result) {
+				if (result.length > 0) {
+					result.forEach(function(activeElement) {
+						_Entities.handleActiveElement(activeElement);
+					});
+				} else {
+					$('#activeElements div.inner').empty().attr('id', 'id_' + id).append("<br><center>Page does not contain active elements</center>");
+				}
 			});
-		});
+		} else {
+			$('#activeElements div.inner').empty().attr('id', 'id_' + id).append('<br><center>Cannot show active elements - no preview loaded<br><br></center>');
+		}
 	},
 	/**
 	 * Load and display the preview iframe with the given id.
