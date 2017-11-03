@@ -563,9 +563,13 @@ var _Pages = {
 	},
 	refreshActiveElements: function() {
 		var id = activeTab;
+
+		_Entities.activeElements = {};
+
+		var activeElementsContainer = $('#activeElements div.inner');
+		activeElementsContainer.empty().attr('id', 'id_' + id);
+
 		if (_Pages.isPageTabPresent(id)) {
-			$('#activeElements div.inner').empty().attr('id', 'id_' + id);
-			_Entities.activeElements = {};
 
 			Command.listActiveElements(id, function(result) {
 				if (result.length > 0) {
@@ -573,11 +577,12 @@ var _Pages = {
 						_Entities.handleActiveElement(activeElement);
 					});
 				} else {
-					$('#activeElements div.inner').empty().attr('id', 'id_' + id).append("<br><center>Page does not contain active elements</center>");
+					activeElementsContainer.append("<br><center>Page does not contain active elements</center>");
 				}
 			});
+
 		} else {
-			$('#activeElements div.inner').empty().attr('id', 'id_' + id).append('<br><center>Cannot show active elements - no preview loaded<br><br></center>');
+			activeElementsContainer.append('<br><center>Cannot show active elements - no preview loaded<br><br></center>');
 		}
 	},
 	/**
