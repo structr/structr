@@ -108,6 +108,9 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		if (databaseUrl.length() >= 7 && databaseUrl.substring(0, 7).equalsIgnoreCase("bolt://")) {
 			databaseServerUrl = databaseUrl.substring(7);
 			databaseDriverUrl = databaseUrl;
+		} else if (databaseUrl.length() >= 15 && databaseUrl.substring(0, 15).equalsIgnoreCase("bolt+routing://")) {
+			databaseServerUrl = databaseUrl.substring(15);
+			databaseDriverUrl = databaseUrl;
 		} else {
 			databaseServerUrl = databaseUrl;
 			databaseDriverUrl = "bolt://" + databaseUrl;
