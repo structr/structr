@@ -39,7 +39,7 @@ import org.structr.rest.auth.SessionHelper;
  */
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
-	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
 	private final App app;
 	
@@ -48,7 +48,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 	
 	@Override
-	public void doStore(String id, SessionData data, long lastSaveTime) throws Exception {
+	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
 		
 		try (final Tx tx = app.tx(false, false, false)) {
 		
@@ -69,7 +69,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public Set<String> doGetExpired(Set<String> candidates) {
+	public Set<String> doGetExpired(final Set<String> candidates) {
 		return candidates;
 	}
 
@@ -79,7 +79,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public boolean exists(String id) throws Exception {
+	public boolean exists(final String id) throws Exception {
 		
 		try (final Tx tx = app.tx(false, false, false)) {
 
@@ -98,7 +98,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public SessionData load(String id) throws Exception {
+	public SessionData load(final String id) throws Exception {
 
 		SessionData sessionData = null;
 		
@@ -129,7 +129,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public boolean delete(String id) throws Exception {
+	public boolean delete(final String id) throws Exception {
 		
 		try (final Tx tx = app.tx(false, false, false)) {
 

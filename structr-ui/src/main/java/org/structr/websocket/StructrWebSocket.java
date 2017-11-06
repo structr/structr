@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.slf4j.Logger;
@@ -47,6 +49,7 @@ import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.FileUploadHandler;
 import org.structr.websocket.command.LoginCommand;
+import org.structr.websocket.command.PingCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -188,9 +191,10 @@ public class StructrWebSocket implements WebSocketListener {
 				logger.warn("Unable to parse message.", t);
 
 			}
-
+			
 			// process message
 			try {
+
 
 				AbstractCommand abstractCommand = (AbstractCommand) type.newInstance();
 
@@ -198,6 +202,25 @@ public class StructrWebSocket implements WebSocketListener {
 				abstractCommand.setSession(session);
 				abstractCommand.setCallback(webSocketData.getCallback());
 
+				if (!(abstractCommand instanceof PingCommand)) {
+					
+					//final HttpSession session = SessionHelper.getSessionBySessionId(StringUtils.substringBeforeLast(webSocketData.getSessionId(), "."));
+					//final HttpSession session = Services.getInstance().getService(HttpService.class).getSessionCache().getSessionHandler().getHttpSession(webSocketData.getSessionId());
+					//final HttpSession session = Services.getInstance().getService(HttpService.class).getSessionCache().getSessionHandler().getSession(webSocketData.getSessionId());
+
+					final SecurityContext securityContext = getSecurityContext();
+
+					if (securityContext != null) {
+						
+						final HttpSession session = SessionHelper.getSessionBySessionId(securityContext.getSessionId());
+
+						if (session != null) {
+							session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
+						}
+						
+					}
+				}
+				
 				// The below blocks allow a websocket command to manage its own
 				// transactions in case of bulk processing commands etc.
 				if (abstractCommand.requiresEnclosingTransaction()) {
