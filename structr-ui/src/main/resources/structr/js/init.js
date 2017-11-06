@@ -180,6 +180,20 @@ $(function() {
 			e.preventDefault();
 			_Favorites.toggleFavorites();
 		}
+		// Ctrl-Alt-p
+		if (k === 80 && altKey && ctrlKey) {
+			e.preventDefault();
+			var uuid = prompt('Enter the UUID for which you want to open the properties dialog');
+			if (uuid) {
+				if (uuid.length === 32) {
+					Command.get(uuid, null, function(obj) {
+						_Entities.showProperties(obj);
+					});
+				} else {
+					alert('That does not look like a UUID! length != 32');
+				}
+			}
+		}
 	});
 
 	$(window).on('resize', function() {
