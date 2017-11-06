@@ -179,6 +179,9 @@ var _Crud = {
 	},
 	init: function() {
 
+		// remove position: relative (which is set when 'Schema' is opened once). This gets rid of the issue that appending a new line in the builtin console causes the crud-right element to be pushed down
+		$('body').css('position', '');
+
 		main.append('<div class="searchBox"><input class="search" name="search" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
 		main.append('<div id="crud-main"><div class="column-resizer"></div><div id="crud-left">'
 				+ '<div id="crud-types" class="resourceBox"><h2>All Types</h2><i id="crudTypesFilterToggle" title="Auto-filter types" class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /><div id="crudTypeFilterSettings" class="hidden"></div><input placeholder="Filter types..." id="crudTypesSearch"><ul id="crud-types-list"></ul></div>'
