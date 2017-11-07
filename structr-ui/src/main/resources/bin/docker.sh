@@ -6,7 +6,7 @@ LOGS_DIR="logs"
 
 if [ -e $PID_FILE ]; then
 
-	$(ps aux | grep "org.structr.Server" | grep -v grep > /dev/null)
+	$(ps aux | grep "org.structr.Server" | grep -v grep)
 
 	result=$?
 
