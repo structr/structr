@@ -3507,10 +3507,6 @@ var _Schema = {
 
 		};
 
-		var actionsAvailableForClass = function(className) {
-			return (["AbstractNode", "ContentContainer", "ContentItem"].indexOf(className) === -1);
-		};
-
 		var printClassTree = function($elem, classTree) {
 			var classes = Object.keys(classTree).sort();
 
@@ -3519,17 +3515,15 @@ var _Schema = {
 				var $newUl = $('<ul></ul>').appendTo($elem);
 
 				classes.forEach(function(classname) {
+					var actionsAvailableForClass = !!(classnameToId[classname]);
 
-					var icons = (actionsAvailableForClass(classname) ? '<b class="delete_icon icon delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /><b class="edit_icon icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />' : '');
-					var classId = (actionsAvailableForClass(classname) ? ' data-id="' + classnameToId[classname] + '"' : '');
+					var icons = (actionsAvailableForClass ? '<b class="delete_icon icon delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /><b class="edit_icon icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />' : '');
+					var classId = (actionsAvailableForClass ? ' data-id="' + classnameToId[classname] + '"' : '');
 
 					var $newLi = $('<li data-jstree=\'{"opened":true}\'' + classId + '>' + classname + icons + '</li>').appendTo($newUl);
 					printClassTree($newLi, classTree[classname]);
-
 				});
-
 			}
-
 		};
 
 		schemaNodes.forEach(function(schemaNode) {
