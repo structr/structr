@@ -142,15 +142,22 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	public static final Property<String> _data = new HtmlProperty("data").indexed();
 
 	// Edit-mode attributes
-	public static final Property<Boolean> _reload = new BooleanProperty("data-structr-reload");
-	public static final Property<Boolean> _confirm = new BooleanProperty("data-structr-confirm");
-	public static final Property<Boolean> _appendId = new BooleanProperty("data-structr-append-id");
-	public static final Property<String> _action = new StringProperty("data-structr-action");
-	public static final Property<String> _attributes = new StringProperty("data-structr-attributes");
-	public static final Property<String> _attr = new StringProperty("data-structr-attr");
-	public static final Property<String> _fieldName = new StringProperty("data-structr-name");
-	public static final Property<String> _hide = new StringProperty("data-structr-hide");
-	public static final Property<String> _rawValue = new StringProperty("data-structr-raw-value");
+	public static final Property<Boolean> _reload = new BooleanProperty("data-structr-reload").hint("If active, the page will refresh after a successfull action.");
+	public static final Property<Boolean> _confirm = new BooleanProperty("data-structr-confirm").hint("If active, a user has to confirm the action.");
+	public static final Property<Boolean> _appendId = new BooleanProperty("data-structr-append-id").hint("On create, append ID of first created object to the return URI.");
+	public static final Property<String> _action = new StringProperty("data-structr-action").hint("The action of the dynamic form (e.g create:&lt;Type&gt; | delete:&lt;Type&gt; | edit | login | logout)");
+	public static final Property<String> _attributes = new StringProperty("data-structr-attributes").hint("The names of the properties that should be included in the request. (for create, edit/save, login or registration actions)");
+	public static final Property<String> _attr = new StringProperty("data-structr-attr").hint("If this is set, the input field is rendered in auto-edit mode");
+	public static final Property<String> _fieldName = new StringProperty("data-structr-name").hint("The name of the property (for create/save actions with custom form)");
+	public static final Property<String> _hide = new StringProperty("data-structr-hide").hint("Which mode (if any) the element should be hidden from the user (eg. edit | non-edit | edit,non-edit)");
+	public static final Property<String> _rawValue = new StringProperty("data-structr-raw-value").hint("The unformatted value of the element. Provide this if the value of the element is printed with a format applied (useful for Date or Number fields)");
+
+	public static final Property<String> _placeholder = new StringProperty("data-structr-placeholder").hint("used to display option labels (default: name)");
+	public static final Property<String> _type = new StringProperty("data-structr-type").hint("Type hint for the attribute (e.g. Date, Boolean; default: String)");
+	public static final Property<String> _customOptionsQuery = new StringProperty("data-structr-custom-options-query").hint("Custom REST query for value options (for collection properties)");
+	public static final Property<String> _optionsKey = new StringProperty("data-structr-options-key").hint("Key used to display option labels for collection properties (default: name)");
+	public static final Property<String> _editClass = new StringProperty("data-structr-edit-class").hint("Custom CSS class in edit mode");
+	public static final Property<String> _returnURI = new StringProperty("data-structr-return").hint("Return URI after successful action");
 
 	// Core attributes
 	public static final Property<String> _accesskey = new HtmlProperty("accesskey").indexed();
@@ -183,7 +190,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	public static final org.structr.common.View uiView = new org.structr.common.View(DOMElement.class, PropertyView.Ui, name, tag, pageId, path, parent, children, childrenIds, owner,
 		restQuery, cypherQuery, xpathQuery, functionQuery, partialUpdateKey, dataKey, syncedNodes, sharedComponent, sharedComponentConfiguration,
 		isDOMNode, renderDetails, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions,
-		_reload, _confirm, _appendId, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _class, _id
+		_reload, _confirm, _appendId, _action, _attributes, _attr, _fieldName, _hide, _rawValue, _placeholder, _customOptionsQuery, _optionsKey, _returnURI, _editClass, _type, dataStructrIdProperty, _class, _id
 	);
 
 	public static final org.structr.common.View htmlView = new org.structr.common.View(DOMElement.class, PropertyView.Html, _accesskey, _class, _contenteditable, _contextmenu, _dir,

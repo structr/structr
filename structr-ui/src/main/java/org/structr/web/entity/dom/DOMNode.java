@@ -150,8 +150,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property<Boolean> hideOnDetail                = new BooleanProperty("hideOnDetail").indexed();
 	public static final Property<String> showForLocales               = new StringProperty("showForLocales").indexed();
 	public static final Property<String> hideForLocales               = new StringProperty("hideForLocales").indexed();
-	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed();
-	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed();
+	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed().hint("Conditions which have to be met in order for the element to be shown. This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed().hint("Conditions which have to be met in order for the element to be hidden. This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 
 	public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class);
 	public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent);
@@ -165,7 +165,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property<String> pageId                       = new EntityIdProperty("pageId", ownerDocument);
 	public static final Property<Boolean> isDOMNode                   = new ConstantBooleanProperty("isDOMNode", true);
 
-	public static final Property<String> dataStructrIdProperty        = new StringProperty("data-structr-id");
+	public static final Property<String> dataStructrIdProperty        = new StringProperty("data-structr-id").hint("Set to ${current.id} most of the time");
 	public static final Property<String> dataHashProperty             = new StringProperty("data-structr-hash");
 
 	public static final Property<Integer> domSortPosition             = new IntProperty("domSortPosition");

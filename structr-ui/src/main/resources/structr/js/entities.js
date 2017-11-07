@@ -127,49 +127,37 @@ var _Entities = {
 		});
 
 	},
-	dataBindingDialog: function(entity, el) {
+	dataBindingDialog: function(entity, el, typeInfo) {
 
 		el.append('<table class="props"></table>');
 		var t = $('.props', el);
 
 		// General
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-id',                   'Element ID (set to ${this.id})');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr',                 'Attribute Key (if set, render input field in auto-edit mode)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-type',                 'Data type (e.g. Date, Boolean; default: String)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder',          'Placeholder text in edit mode');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query for value options');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Attribute key used to display option labels (default: name)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value',            'Raw value (unformatted value for Date or Number fields)');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide',                 'Hide [edit|non-edit|edit,non-edit]');
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class',           'Custom CSS class in edit mode');
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-id',                   'Element ID', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-attr',                 'Attribute Key', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-type',                 'Data type', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder',          'Placeholder text', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Attribute key', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value',            'Raw value', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
 
 		if (entity.type === 'Button' || entity.type === 'A') {
 
-			// Buttons
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-action',           'Action [create:&lt;Type&gt;|delete:&lt;Type&gt;|edit|login|logout]');
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes',       'Attributes (for create, edit/save, login or registration actions)');
-
-			t.append('<tr><td class="key">Reload</td><td class="value" id="reload"></td><td></td></tr>');
-			_Entities.appendBooleanSwitch($('#reload', t), entity, 'data-structr-reload', '', 'If active, the page will refresh after a successfull action.');
-
-			// Confirm action?
-			t.append('<tr><td class="key">Confirm action?</td><td class="value" id="confirmOnDel"></td><td></td></tr>');
-			_Entities.appendBooleanSwitch($('#confirmOnDel', t), entity, 'data-structr-confirm', '', 'If active, a user has to confirm the action.');
-
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-return',            'Return URI after successful action');
-
-			t.append('<tr><td class="key">Append ID on create</td><td class="value" id="append-id"></td><td></td></tr>');
-			_Entities.appendBooleanSwitch($('#append-id', t), entity, 'data-structr-append-id', '', 'On create, append ID of first created object to the return URI.');
-
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-action',           'Action', typeInfo);
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-attributes',       'Attributes', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-reload',        'Reload', '', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-confirm',       'Confirm action?', '', typeInfo);
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-return',           'Return URI', typeInfo);
+			_Entities.appendRowWithBooleanSwitch(entity, t, 'data-structr-append-id',     'Append ID on create', '', typeInfo);
 
 		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
-			// Input fields
-			_Entities.appendRowWithInputField(entity, t, 'data-structr-name',              'Field name (for create/save actions with custom form)');
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-name',             'Field name', typeInfo);
 
 		}
-
 	},
-	appendRowWithInputField: function(entity, el, key, label) {
+	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
 		var inp = $('[name="' + key + '"]', el);
 		_Entities.activateInput(inp, entity.id, entity.pageId);
@@ -181,6 +169,25 @@ var _Entities = {
 				Structr.showAndHideInfoBoxMessage('Property "' + key + '" was set to null.', 'success', 2000, 1000);
 			});
 		});
+
+		_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
+	},
+	appendRowWithBooleanSwitch: function (entity, el, key, label, text, typeInfo) {
+		el.append('<tr><td class="key">' + label + '</td><td class="value"></td><td></td></tr>');
+
+		_Entities.appendBooleanSwitch($('tr:last .value', el), entity, key, '', text);
+
+		_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
+	},
+	appendSchemaHint: function (el, key, typeInfo) {
+
+		if (typeInfo[key] && typeInfo[key].hint) {
+			Structr.appendInfoTextToElement({
+				element: el,
+				text: typeInfo[key].hint,
+				css: { float: "right" }
+			});
+		}
 
 	},
 	queryDialog: function(entity, el) {
@@ -384,76 +391,69 @@ var _Entities = {
 
 		var handleGraphObject = function(entity) {
 
-			var views, activeView = 'ui';
+			var views = ['ui'];
+			var activeView = 'ui';
 			var tabTexts = [];
 
 			if (activeViewOverride) {
 				activeView = activeViewOverride;
 			}
 
-			if (entity.hasOwnProperty('relType')) {
+			_Schema.getTypeInfo(entity.type, function(typeInfo) {
+				var dialogTitle;
 
-				views = ['ui'];//, 'sourceNode', 'targetNode'];
+				if (entity.hasOwnProperty('relType')) {
 
-				tabTexts.ui = 'Relationship Properties';
-				tabTexts.sourceNode = 'Source Node Properties';
-				tabTexts.targetNode = 'Target Node Properties';
+					tabTexts.ui = 'Relationship Properties';
+					tabTexts.sourceNode = 'Source Node Properties';
+					tabTexts.targetNode = 'Target Node Properties';
 
-				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id), function() {
-					return true;
-				}, function() {
-					return true;
-				});
+					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
 
-				var tabsdiv = dialogHead.append('<div id="tabs"></div>');
-				var mainTabs = tabsdiv.append('<ul></ul>');
-				var contentEl = dialog.append('<div></div>');
+				} else {
 
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView);
+					views = views.concat(['in', 'out']);
 
-			} else {
-
-				views = ['ui', 'in', 'out'];
-
-				var hasHtmlAttributes = entity.isDOMNode;
-
-				if (hasHtmlAttributes && !entity.isContent) {
-					views.unshift('_html_');
-					if (Structr.isModuleActive(_Pages)) {
-						activeView = '_html_';
+					if (entity.isDOMNode && !entity.isContent) {
+						views.unshift('_html_');
+						if (Structr.isModuleActive(_Pages)) {
+							activeView = '_html_';
+						}
 					}
+
+					tabTexts._html_ = 'HTML Attributes';
+					tabTexts.ui = 'Node Properties';
+					tabTexts['in'] = 'Incoming Relationships';
+					tabTexts.out = 'Outgoing Relationships';
+
+					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
+
 				}
 
-				tabTexts._html_ = 'HTML Attributes';
-				tabTexts.ui = 'Node Properties';
-				tabTexts['in'] = 'Incoming Relationships';
-				tabTexts.out = 'Outgoing Relationships';
-
-				Structr.dialog('Edit Properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id), function() {
-					return true;
-				}, function() {
-					return true;
-				});
+				Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
 
 				var tabsdiv = dialogHead.append('<div id="tabs"></div>');
 				var mainTabs = tabsdiv.append('<ul></ul>');
 				var contentEl = dialog.append('<div></div>');
 
-				if (hasHtmlAttributes) {
+				if (entity.isDOMNode) {
 
 					_Entities.appendPropTab(entity, mainTabs, contentEl, 'query', 'Query and Data Binding', true, function(c) {
-						_Entities.queryDialog(entity, c);
+						_Entities.queryDialog(entity, c, typeInfo);
 					});
 
 					_Entities.appendPropTab(entity, mainTabs, contentEl, 'editBinding', 'Edit Mode Binding', false, function(c) {
-						_Entities.dataBindingDialog(entity, c);
+						_Entities.dataBindingDialog(entity, c, typeInfo);
 					});
+
 				}
 
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView, activeViewOverride);
-			}
+				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView, activeViewOverride, typeInfo);
 
-			Structr.resize();
+				Structr.resize();
+
+			});
+
 		};
 
 		if (obj.relType) {
@@ -497,7 +497,7 @@ var _Entities = {
 		}
 		return content;
 	},
-	appendViews: function(entity, views, texts, tabsEl, contentEl, activeView, activeViewOverride) {
+	appendViews: function(entity, views, texts, tabsEl, contentEl, activeView, activeViewOverride, typeInfo) {
 
 		var ul = tabsEl.children('ul');
 
@@ -522,13 +522,7 @@ var _Entities = {
 				tabView.show();
 				LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, view);
 
-				Command.getSchemaInfo(entity.type, function(schemaInfo) {
-					var typeInfo = {};
-					$(schemaInfo).each(function(i, prop) {
-						typeInfo[prop.jsonName] = prop;
-					});
-					_Entities.listProperties(entity, view, tabView, typeInfo);
-				});
+				_Entities.listProperties(entity, view, tabView, typeInfo);
 			});
 		});
 		activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
@@ -615,10 +609,8 @@ var _Entities = {
 
 						} else {
 
-							var type = typeInfo[key].type;
-
-							var isReadOnly   = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-							var isSystem     = typeInfo[key].system;
+							var isReadOnly   = false;
+							var isSystem     = false;
 							var isBoolean    = false;
 							var isDate       = false;
 							var isPassword   = false;
@@ -635,17 +627,20 @@ var _Entities = {
 
 							} else {
 
+								var type = typeInfo[key].type;
+
+								isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+								isSystem = typeInfo[key].system;
+								isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
+								isMultiline = (typeInfo[key].format === 'multi-line');
+								isRelated = typeInfo[key].relatedType;
+								if (isRelated) {
+									isCollection = typeInfo[key].isCollection;
+								}
+
 								if (type) {
 									isBoolean = (type === 'Boolean');
 									isDate = (type === 'Date');
-									isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
-									isMultiline = (typeInfo[key].format === 'multi-line');
-
-									isRelated = typeInfo[key].relatedType;
-
-									if (isRelated) {
-										isCollection = typeInfo[key].isCollection;
-									}
 								}
 
 								if (!key.startsWith('_html_')) {
@@ -748,6 +743,8 @@ var _Entities = {
 								removeNullIconFromRow(row);
 							}
 						}
+
+						_Entities.appendSchemaHint($('.key:last', props), key, typeInfo);
 
 						var nullIcon = $('#' + null_prefix + key);
 						nullIcon.on('click', function() {
