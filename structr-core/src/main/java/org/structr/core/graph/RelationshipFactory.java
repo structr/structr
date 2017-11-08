@@ -102,23 +102,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		}
 
 		newRel.init(securityContext, relationship, relClass);
-
-		if (!isCreation && !TransactionCommand.isDeleted(relationship)) {
-
-			// try to set correct type property on relationship entity
-			final String type = newRel.getProperty(GraphObject.type);
-			if (type == null || (type != null && !type.equals(relClass.getSimpleName()))) {
-
-				try {
-					newRel.unlockSystemPropertiesOnce();
-					newRel.setProperty(GraphObject.type, relClass.getSimpleName());
-
-				} catch (FrameworkException fex) {
-					logger.warn("", fex);
-				}
-			}
-		}
-
 		newRel.onRelationshipInstantiation();
 
 		return newRel;
