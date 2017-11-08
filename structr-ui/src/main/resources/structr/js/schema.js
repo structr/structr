@@ -74,6 +74,9 @@ var _Schema = {
 		+ '<option value="Thumbnail">Thumbnail</option>',
 	currentNodeDialogId:null,
 	reload: function(callback) {
+
+		_Schema.clearTypeInfoCache();
+
 		if (reload) {
 			return;
 		}
@@ -426,6 +429,8 @@ var _Schema = {
 
 	},
 	processSchemaRecompileNotification: function () {
+
+		_Schema.clearTypeInfoCache();
 
 		if (Structr.isModuleActive(_Schema)) {
 
@@ -3750,5 +3755,35 @@ var _Schema = {
 			overlaps |= (Math.abs(position.left - offset.left) < 20 && Math.abs(position.top - offset.top) < 20);
 		});
 		return overlaps;
+	},
+
+	typeInfoCache: {},
+	clearTypeInfoCache: function () {
+		_Logger.log(_LogType.SCHEMA, 'Clear Schema Type Cache');
+		_Schema.typeInfoCache = {};
+	},
+	getTypeInfo: function (type, callback) {
+
+		if (_Schema.typeInfoCache[type] !== undefined) {
+
+			_Logger.log(_LogType.SCHEMA, 'Cache Hit: ', type);
+			callback(_Schema.typeInfoCache[type]);
+
+		} else {
+
+			_Logger.log(_LogType.SCHEMA, 'Cache MISS: ', type);
+
+			Command.getSchemaInfo(type, function(schemaInfo) {
+
+				var typeInfo = {};
+				$(schemaInfo).each(function(i, prop) {
+					typeInfo[prop.jsonName] = prop;
+				});
+
+				_Schema.typeInfoCache[type] = typeInfo;
+
+				callback(typeInfo);
+			});
+		}
 	}
 };

@@ -282,6 +282,15 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 */
 	public SortType getSortType();
 
+	/**
+	 * Returns the hint for the property (if any)
+	 *
+	 * @return property hint
+	 */
+	default public String hint() {
+		return null;
+	}
+
 	public void index(final GraphObject entity);
 	public void index(final GraphObject entity, final Object value);
 	public boolean indexable(final Object value);

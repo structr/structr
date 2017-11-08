@@ -56,12 +56,13 @@ public abstract class StreamingWriter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
 	private static final long MAX_SERIALIZATION_TIME     = TimeUnit.SECONDS.toMillis(300);
-	private static final Set<PropertyKey> idNameOnly     = new LinkedHashSet<>();
+	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>();
 
 	static {
 
-		idNameOnly.add(GraphObject.id);
-		idNameOnly.add(AbstractNode.name);
+		idTypeNameOnly.add(GraphObject.id);
+		idTypeNameOnly.add(AbstractNode.type);
+		idTypeNameOnly.add(AbstractNode.name);
 	}
 
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
@@ -468,7 +469,7 @@ public abstract class StreamingWriter {
 
 						// speciality for the Ui view: limit recursive rendering to (id, name)
 						if (compactNestedProperties && depth > 0 && PropertyView.Ui.equals(localPropertyView)) {
-							keys = idNameOnly;
+							keys = idTypeNameOnly;
 						}
 
 						for (final PropertyKey key : keys) {

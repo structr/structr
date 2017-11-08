@@ -76,6 +76,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String format                                = null;
 	protected String readFunction                          = null;
 	protected String writeFunction                         = null;
+	protected String hint                                  = null;
 
 	private boolean requiresSynchronization                = false;
 
@@ -210,6 +211,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.isCMISProperty = true;
 
 		return this;
+	}
+
+	public Property<T> hint(final String hint) {
+		this.hint = hint;
+		return this;
+	}
+
+	@Override
+	public String hint() {
+		return hint;
 	}
 
 	@Override
