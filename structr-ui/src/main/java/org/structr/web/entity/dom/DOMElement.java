@@ -209,7 +209,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		boolean valid = super.isValid(errorBuffer);
 
 		valid &= nonEmpty(tag, errorBuffer);
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, tag, "^[a-z][a-zA-Z0-9\\-]+$", errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, tag, "^[a-z][a-zA-Z0-9\\-]*$", errorBuffer);
 
 		return valid;
 	}
