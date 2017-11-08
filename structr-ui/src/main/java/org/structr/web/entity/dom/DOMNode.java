@@ -144,14 +144,14 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
 	public static final Property<DOMNode> sharedComponent             = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
-	public static final Property<String> sharedComponentConfiguration = new StringProperty("sharedComponentConfiguration").format("multi-line");
+	public static final Property<String> sharedComponentConfiguration = new StringProperty("sharedComponentConfiguration").format("multi-line").hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 
 	public static final Property<Boolean> hideOnIndex                 = new BooleanProperty("hideOnIndex").indexed();
 	public static final Property<Boolean> hideOnDetail                = new BooleanProperty("hideOnDetail").indexed();
 	public static final Property<String> showForLocales               = new StringProperty("showForLocales").indexed();
 	public static final Property<String> hideForLocales               = new StringProperty("hideForLocales").indexed();
-	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed().hint("Conditions which have to be met in order for the element to be shown. This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed().hint("Conditions which have to be met in order for the element to be hidden. This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed().hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed().hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 
 	public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class);
 	public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent);
