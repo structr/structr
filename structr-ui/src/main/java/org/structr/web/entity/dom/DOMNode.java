@@ -135,40 +135,40 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		listSources.add(new CypherGraphDataSource());
 		listSources.add(new XPathGraphDataSource());
 	}
-	public static final Property<String> dataKey                      = new StringProperty("dataKey").indexed();
-	public static final Property<String> cypherQuery                  = new StringProperty("cypherQuery");
-	public static final Property<String> xpathQuery                   = new StringProperty("xpathQuery");
-	public static final Property<String> restQuery                    = new StringProperty("restQuery");
-	public static final Property<String> functionQuery                = new StringProperty("functionQuery");
-	public static final Property<Boolean> renderDetails               = new BooleanProperty("renderDetails");
+	public static final Property<String> dataKey                      = new StringProperty("dataKey").indexed().category(QUERY_CATEGORY);
+	public static final Property<String> cypherQuery                  = new StringProperty("cypherQuery").category(QUERY_CATEGORY);
+	public static final Property<String> xpathQuery                   = new StringProperty("xpathQuery").category(QUERY_CATEGORY);
+	public static final Property<String> restQuery                    = new StringProperty("restQuery").category(QUERY_CATEGORY);
+	public static final Property<String> functionQuery                = new StringProperty("functionQuery").category(QUERY_CATEGORY);
+	public static final Property<Boolean> renderDetails               = new BooleanProperty("renderDetails").category(QUERY_CATEGORY);
 
-	public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id));
-	public static final Property<DOMNode> sharedComponent             = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id));
-	public static final Property<String> sharedComponentConfiguration = new StringProperty("sharedComponentConfiguration").format("multi-line").hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+	public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
+	public static final Property<DOMNode> sharedComponent             = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
+	public static final Property<String> sharedComponentConfiguration = new StringProperty("sharedComponentConfiguration").format("multi-line").hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}").category(PAGE_CATEGORY);
 
-	public static final Property<Boolean> hideOnIndex                 = new BooleanProperty("hideOnIndex").indexed();
-	public static final Property<Boolean> hideOnDetail                = new BooleanProperty("hideOnDetail").indexed();
-	public static final Property<String> showForLocales               = new StringProperty("showForLocales").indexed();
-	public static final Property<String> hideForLocales               = new StringProperty("hideForLocales").indexed();
-	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed().hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed().hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+	public static final Property<Boolean> hideOnIndex                 = new BooleanProperty("hideOnIndex").indexed().category(QUERY_CATEGORY);
+	public static final Property<Boolean> hideOnDetail                = new BooleanProperty("hideOnDetail").indexed().category(QUERY_CATEGORY);
+	public static final Property<String> showForLocales               = new StringProperty("showForLocales").indexed().category(VISIBILITY_CATEGORY);
+	public static final Property<String> hideForLocales               = new StringProperty("hideForLocales").indexed().category(VISIBILITY_CATEGORY);
+	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 
-	public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class);
-	public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent);
-	public static final Property<List<DOMNode>> children              = new EndNodes<>("children", DOMChildren.class);
-	public static final Property<List<String>> childrenIds            = new CollectionIdProperty("childrenIds", children);
-	public static final Property<DOMNode> previousSibling             = new StartNode<>("previousSibling", DOMSiblings.class);
-	public static final Property<DOMNode> nextSibling                 = new EndNode<>("nextSibling", DOMSiblings.class);
-	public static final Property<String> nextSiblingId                = new EntityIdProperty("nextSiblingId", nextSibling);
+	public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class).category(PAGE_CATEGORY);
+	public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent).category(PAGE_CATEGORY);
+	public static final Property<List<DOMNode>> children              = new EndNodes<>("children", DOMChildren.class).category(PAGE_CATEGORY);
+	public static final Property<List<String>> childrenIds            = new CollectionIdProperty("childrenIds", children).category(PAGE_CATEGORY);
+	public static final Property<DOMNode> previousSibling             = new StartNode<>("previousSibling", DOMSiblings.class).category(PAGE_CATEGORY);
+	public static final Property<DOMNode> nextSibling                 = new EndNode<>("nextSibling", DOMSiblings.class).category(PAGE_CATEGORY);
+	public static final Property<String> nextSiblingId                = new EntityIdProperty("nextSiblingId", nextSibling).category(PAGE_CATEGORY);
 
-	public static final Property<Page> ownerDocument                  = new EndNode<>("ownerDocument", PageLink.class);
-	public static final Property<String> pageId                       = new EntityIdProperty("pageId", ownerDocument);
-	public static final Property<Boolean> isDOMNode                   = new ConstantBooleanProperty("isDOMNode", true);
+	public static final Property<Page> ownerDocument                  = new EndNode<>("ownerDocument", PageLink.class).category(PAGE_CATEGORY);
+	public static final Property<String> pageId                       = new EntityIdProperty("pageId", ownerDocument).category(PAGE_CATEGORY);
+	public static final Property<Boolean> isDOMNode                   = new ConstantBooleanProperty("isDOMNode", true).category(PAGE_CATEGORY);
 
-	public static final Property<String> dataStructrIdProperty        = new StringProperty("data-structr-id").hint("Set to ${current.id} most of the time");
-	public static final Property<String> dataHashProperty             = new StringProperty("data-structr-hash");
+	public static final Property<String> dataStructrIdProperty        = new StringProperty("data-structr-id").hint("Set to ${current.id} most of the time").category(PAGE_CATEGORY);
+	public static final Property<String> dataHashProperty             = new StringProperty("data-structr-hash").category(PAGE_CATEGORY);
 
-	public static final Property<Integer> domSortPosition             = new IntProperty("domSortPosition");
+	public static final Property<Integer> domSortPosition             = new IntProperty("domSortPosition").category(PAGE_CATEGORY);
 
 	public static final Property[] rawProps = new Property[] {
 		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions

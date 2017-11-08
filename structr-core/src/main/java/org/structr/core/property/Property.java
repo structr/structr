@@ -77,6 +77,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String readFunction                          = null;
 	protected String writeFunction                         = null;
 	protected String hint                                  = null;
+	protected String category                              = null;
 
 	private boolean requiresSynchronization                = false;
 
@@ -222,6 +223,17 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public String hint() {
 		return hint;
 	}
+
+	public Property<T> category(final String category) {
+		this.category = category;
+		return this;
+	}
+
+	@Override
+	public String category() {
+		return category;
+	}
+
 
 	@Override
 	public boolean requiresSynchronization() {

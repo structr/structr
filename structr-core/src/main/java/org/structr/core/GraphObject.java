@@ -62,6 +62,12 @@ public interface GraphObject {
 
 	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
+	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
+	static final String QUERY_CATEGORY = "Query and Data Binding";
+	static final String VISIBILITY_CATEGORY = "Visibility";
+	static final String PAGE_CATEGORY = "Page Structure";
+
+
 	public static final Property<String>  base                        = new StringProperty("base");
 	public static final Property<String>  type                        = new TypeProperty();
 	public static final Property<String>  id                          = new UuidProperty();
@@ -72,10 +78,10 @@ public interface GraphObject {
 	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated();
 	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated();
 
-	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed();
-	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed();
-	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate");
-	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate");
+	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY);
+	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY);
+	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate").category(VISIBILITY_CATEGORY);
+	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate").category(VISIBILITY_CATEGORY);
 	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly();
 
 	// ----- methods common to both types -----

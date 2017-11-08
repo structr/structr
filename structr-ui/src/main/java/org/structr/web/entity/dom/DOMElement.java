@@ -79,7 +79,7 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
 	private static final String lowercaseBodyName = Body.class.getSimpleName().toLowerCase();
 
- 	public static final Property<String> tag              = new StringProperty("tag").indexed();
+	public static final Property<String> tag              = new StringProperty("tag").indexed().category(PAGE_CATEGORY);
  	public static final Property<String> path             = new StringProperty("path").indexed();
 	public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
 
@@ -142,22 +142,22 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	public static final Property<String> _data = new HtmlProperty("data").indexed();
 
 	// Edit-mode attributes
-	public static final Property<Boolean> _reload = new BooleanProperty("data-structr-reload").hint("If active, the page will refresh after a successfull action.");
-	public static final Property<Boolean> _confirm = new BooleanProperty("data-structr-confirm").hint("If active, a user has to confirm the action.");
-	public static final Property<Boolean> _appendId = new BooleanProperty("data-structr-append-id").hint("On create, append ID of first created object to the return URI.");
-	public static final Property<String> _action = new StringProperty("data-structr-action").hint("The action of the dynamic form (e.g create:&lt;Type&gt; | delete:&lt;Type&gt; | edit | login | logout)");
-	public static final Property<String> _attributes = new StringProperty("data-structr-attributes").hint("The names of the properties that should be included in the request. (for create, edit/save, login or registration actions)");
-	public static final Property<String> _attr = new StringProperty("data-structr-attr").hint("If this is set, the input field is rendered in auto-edit mode");
-	public static final Property<String> _fieldName = new StringProperty("data-structr-name").hint("The name of the property (for create/save actions with custom form)");
-	public static final Property<String> _hide = new StringProperty("data-structr-hide").hint("Which mode (if any) the element should be hidden from the user (eg. edit | non-edit | edit,non-edit)");
-	public static final Property<String> _rawValue = new StringProperty("data-structr-raw-value").hint("The unformatted value of the element. Provide this if the value of the element is printed with a format applied (useful for Date or Number fields)");
+	public static final Property<Boolean> _reload = new BooleanProperty("data-structr-reload").category(EDIT_MODE_BINDING_CATEGORY).hint("If active, the page will refresh after a successfull action.");
+	public static final Property<Boolean> _confirm = new BooleanProperty("data-structr-confirm").category(EDIT_MODE_BINDING_CATEGORY).hint("If active, a user has to confirm the action.");
+	public static final Property<Boolean> _appendId = new BooleanProperty("data-structr-append-id").category(EDIT_MODE_BINDING_CATEGORY).hint("On create, append ID of first created object to the return URI.");
+	public static final Property<String> _action = new StringProperty("data-structr-action").category(EDIT_MODE_BINDING_CATEGORY).hint("The action of the dynamic form (e.g create:&lt;Type&gt; | delete:&lt;Type&gt; | edit | login | logout)");
+	public static final Property<String> _attributes = new StringProperty("data-structr-attributes").category(EDIT_MODE_BINDING_CATEGORY).hint("The names of the properties that should be included in the request. (for create, edit/save, login or registration actions)");
+	public static final Property<String> _attr = new StringProperty("data-structr-attr").category(EDIT_MODE_BINDING_CATEGORY).hint("If this is set, the input field is rendered in auto-edit mode");
+	public static final Property<String> _fieldName = new StringProperty("data-structr-name").category(EDIT_MODE_BINDING_CATEGORY).hint("The name of the property (for create/save actions with custom form)");
+	public static final Property<String> _hide = new StringProperty("data-structr-hide").category(EDIT_MODE_BINDING_CATEGORY).hint("Which mode (if any) the element should be hidden from the user (eg. edit | non-edit | edit,non-edit)");
+	public static final Property<String> _rawValue = new StringProperty("data-structr-raw-value").category(EDIT_MODE_BINDING_CATEGORY).hint("The unformatted value of the element. Provide this if the value of the element is printed with a format applied (useful for Date or Number fields)");
 
-	public static final Property<String> _placeholder = new StringProperty("data-structr-placeholder").hint("used to display option labels (default: name)");
-	public static final Property<String> _type = new StringProperty("data-structr-type").hint("Type hint for the attribute (e.g. Date, Boolean; default: String)");
-	public static final Property<String> _customOptionsQuery = new StringProperty("data-structr-custom-options-query").hint("Custom REST query for value options (for collection properties)");
-	public static final Property<String> _optionsKey = new StringProperty("data-structr-options-key").hint("Key used to display option labels for collection properties (default: name)");
-	public static final Property<String> _editClass = new StringProperty("data-structr-edit-class").hint("Custom CSS class in edit mode");
-	public static final Property<String> _returnURI = new StringProperty("data-structr-return").hint("Return URI after successful action");
+	public static final Property<String> _placeholder = new StringProperty("data-structr-placeholder").category(EDIT_MODE_BINDING_CATEGORY).hint("used to display option labels (default: name)");
+	public static final Property<String> _type = new StringProperty("data-structr-type").category(EDIT_MODE_BINDING_CATEGORY).hint("Type hint for the attribute (e.g. Date, Boolean; default: String)");
+	public static final Property<String> _customOptionsQuery = new StringProperty("data-structr-custom-options-query").category(EDIT_MODE_BINDING_CATEGORY).hint("Custom REST query for value options (for collection properties)");
+	public static final Property<String> _optionsKey = new StringProperty("data-structr-options-key").category(EDIT_MODE_BINDING_CATEGORY).hint("Key used to display option labels for collection properties (default: name)");
+	public static final Property<String> _editClass = new StringProperty("data-structr-edit-class").category(EDIT_MODE_BINDING_CATEGORY).hint("Custom CSS class in edit mode");
+	public static final Property<String> _returnURI = new StringProperty("data-structr-return").category(EDIT_MODE_BINDING_CATEGORY).hint("Return URI after successful action");
 
 	// Core attributes
 	public static final Property<String> _accesskey = new HtmlProperty("accesskey").indexed();
