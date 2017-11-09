@@ -67,10 +67,10 @@ var _Schema = {
 		+ '<option value="Enum">Enum</option>'
 		+ '<option value="Date">Date</option>'
 		+ '<option value="Count">Count</option>'
-		+ '<option value="Function">Function</option>'
+		+ '<option value="Function" data-indexed="false">Function</option>'
 		+ '<option value="Notion">Notion</option>'
 		+ '<option value="Join">Join</option>'
-		+ '<option value="Cypher">Cypher</option>'
+		+ '<option value="Cypher" data-indexed="false">Cypher</option>'
 		+ '<option value="Thumbnail">Thumbnail</option>',
 	currentNodeDialogId:null,
 	reload: function(callback) {
@@ -1187,6 +1187,19 @@ var _Schema = {
 					+ '<i title="Save changes" class="create-icon create-property ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
 					+ '<i title="Discard changes" class="remove-icon remove-property ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 					+ '</td></div>');
+
+			$('.' + rowClass + ' .property-type', propertiesTable).on('change', function() {
+				var selectedOption = $('option:selected', this);
+				var shouldIndex = selectedOption.data('indexed');
+				if (shouldIndex === undefined) {
+					shouldIndex = true;
+				}
+				var indexedCb = $('.' + rowClass + ' .indexed');
+				if (indexedCb.prop('checked') !== shouldIndex) {
+					indexedCb.prop('checked', shouldIndex);
+					blink(indexedCb.closest('td'), '#fff', '#ffc04c');
+				}
+			});
 
 			$('.' + rowClass + ' .remove-property', propertiesTable).on('click', function() {
 				var self = $(this);
