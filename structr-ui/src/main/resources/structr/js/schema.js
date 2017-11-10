@@ -1197,7 +1197,9 @@ var _Schema = {
 				var indexedCb = $('.' + rowClass + ' .indexed');
 				if (indexedCb.prop('checked') !== shouldIndex) {
 					indexedCb.prop('checked', shouldIndex);
-					blink(indexedCb.closest('td'), '#fff', '#ffc04c');
+
+					blink(indexedCb.closest('td'), '#fff', '#bde5f8');
+					Structr.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
 				}
 			});
 
