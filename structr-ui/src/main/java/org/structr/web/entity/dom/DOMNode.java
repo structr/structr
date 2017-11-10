@@ -23,11 +23,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
@@ -1938,20 +1936,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		return cachedOwnerDocument;
 	}
 
-	private Map<String, Integer> cachedMostUsedTagNames = null;
-
-	public synchronized Map<String, Integer> getMostUsedElementNames() {
-
-		if (cachedMostUsedTagNames == null) {
-
-			cachedMostUsedTagNames = new LinkedHashMap<>();
-
-			getMostUsedElementNames(cachedMostUsedTagNames, this, 0);
-		}
-
-		return cachedMostUsedTagNames;
-	}
-
 	private String cachedPagePath = null;
 
 	public String getPagePath() {
@@ -1984,26 +1968,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	}
 
 	// ----- private methods -----
-	private void getMostUsedElementNames(final Map<String, Integer> mostUsedElements, final DOMNode parent, final int depth) {
-
-		for (final DOMNode node : parent.getProperty(DOMNode.children)) {
-
-			final String tag = node.getProperty(DOMElement.tag);
-
-			if (tag != null && !Page.nonBodyTags.contains(tag)) {
-
-				final Integer value = cachedMostUsedTagNames.get(tag);
-				if (value == null) {
-					cachedMostUsedTagNames.put(tag, 1);
-				} else {
-					cachedMostUsedTagNames.put(tag, value + 1);
-				}
-			}
-
-			getMostUsedElementNames(mostUsedElements, node, depth + 1);
-		}
-	}
-
 	private boolean checkName(final ErrorBuffer errorBuffer) {
 
 		final String _name = getProperty(AbstractNode.name);
