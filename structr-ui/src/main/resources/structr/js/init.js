@@ -1200,12 +1200,7 @@ var Structr = {
 					var version = ui.version;
 					var build = ui.build;
 					var date = ui.date;
-					var versionLink;
-					if (version.endsWith('SNAPSHOT')) {
-						versionLink = 'https://oss.sonatype.org/content/repositories/snapshots/org/structr/structr-ui/' + version;
-					} else {
-						versionLink = 'http://repo1.maven.org/maven2/org/structr/structr-ui/' + version;
-					}
+					var versionLink = 'https://structr.org/download';
 					var versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
 					if (build && date) {
 						versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
