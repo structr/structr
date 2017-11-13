@@ -1866,6 +1866,7 @@ button.add_property {
 }
 
 .schema-props td {
+	white-space: nowrap;
 	border: 1px solid #ccc;
 	padding: 2px 4px;
 }
