@@ -30,23 +30,22 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class HttpPostFunction extends Function<Object, Object> {
+public class HttpDeleteFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}";
-	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
+	public static final String ERROR_MESSAGE_DELETE    = "Usage: ${DELETE(URL[, contentType, charset])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json', 'utf-8')}";
+	public static final String ERROR_MESSAGE_DELETE_JS = "Usage: ${{Structr.DELETE(URL[, contentType, charset])}}. Example: ${{Structr.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json', 'utf-8')}}";
 
 	@Override
 	public String getName() {
-		return "POST()";
+		return "DELETE()";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
 			final String uri = sources[0].toString();
-			final String body = sources[1].toString();
 			String contentType = "application/json";
 			String charset = "utf-8";
 
@@ -60,7 +59,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders());
+			final Map<String, String> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders());
 
 			final int statusCode = Integer.parseInt(responseData.get("status"));
 			responseData.remove("status");
@@ -104,12 +103,12 @@ public class HttpPostFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
+		return (inJavaScriptContext ? ERROR_MESSAGE_DELETE_JS : ERROR_MESSAGE_DELETE);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Sends an HTTP POST request to the given URL and returns the response body";
+		return "Sends an HTTP DELETE request to the given URL and returns the response body";
 	}
 
 }

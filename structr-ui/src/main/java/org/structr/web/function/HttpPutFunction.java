@@ -30,14 +30,14 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class HttpPostFunction extends Function<Object, Object> {
+public class HttpPutFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}";
-	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
+	public static final String ERROR_MESSAGE_PUT    = "Usage: ${PUT(URL, body [, contentType, charset])}. Example: ${PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}";
+	public static final String ERROR_MESSAGE_PUT_JS = "Usage: ${{Structr.PUT(URL, body [, contentType, charset])}}. Example: ${{Structr.PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
 
 	@Override
 	public String getName() {
-		return "POST()";
+		return "PUT()";
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders());
+			final Map<String, String> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders());
 
 			final int statusCode = Integer.parseInt(responseData.get("status"));
 			responseData.remove("status");
@@ -104,12 +104,12 @@ public class HttpPostFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
+		return (inJavaScriptContext ? ERROR_MESSAGE_PUT_JS : ERROR_MESSAGE_PUT);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Sends an HTTP POST request to the given URL and returns the response body";
+		return "Sends an HTTP PUT request to the given URL and returns the response body";
 	}
 
 }

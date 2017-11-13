@@ -27,15 +27,16 @@ import org.structr.schema.action.Actions;
 import org.structr.web.function.AddHeaderFunction;
 import org.structr.web.function.CopyFileContentsFunction;
 import org.structr.web.function.EscapeHtmlFunction;
-import org.structr.web.function.UnescapeHtmlFunction;
 import org.structr.web.function.FromJsonFunction;
 import org.structr.web.function.FromXmlFunction;
 import org.structr.web.function.GetContentFunction;
 import org.structr.web.function.GetRequestHeaderFunction;
 import org.structr.web.function.GetSessionAttributeFunction;
+import org.structr.web.function.HttpDeleteFunction;
 import org.structr.web.function.HttpGetFunction;
 import org.structr.web.function.HttpHeadFunction;
 import org.structr.web.function.HttpPostFunction;
+import org.structr.web.function.HttpPutFunction;
 import org.structr.web.function.IncludeFunction;
 import org.structr.web.function.IsLocaleFunction;
 import org.structr.web.function.LogEventFunction;
@@ -50,6 +51,7 @@ import org.structr.web.function.SetSessionAttributeFunction;
 import org.structr.web.function.StripHtmlFunction;
 import org.structr.web.function.ToGraphObjectFunction;
 import org.structr.web.function.ToJsonFunction;
+import org.structr.web.function.UnescapeHtmlFunction;
 
 /**
  */
@@ -90,6 +92,8 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "GET",                      new HttpGetFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "HEAD",                     new HttpHeadFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "POST",                     new HttpPostFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "PUT",                      new HttpPutFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "DELETE",                   new HttpDeleteFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "add_header",               new AddHeaderFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "set_response_header",      new SetResponseHeaderFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "get_request_header",       new GetRequestHeaderFunction());

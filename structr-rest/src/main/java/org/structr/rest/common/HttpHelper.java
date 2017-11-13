@@ -36,9 +36,11 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.entity.ContentType;
@@ -144,6 +146,16 @@ public class HttpHelper {
 		}
 	}
 
+	private static String skipBOMIfPresent (final String content) {
+
+		// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
+		if (content.charAt(0) == 65279) {
+			return content.substring(1);
+		}
+
+		return content;
+	}
+
 	public static String get(final String address)
 	throws FrameworkException {
 		return get(address, null, null, null, null, Collections.EMPTY_MAP);
@@ -180,10 +192,7 @@ public class HttpHelper {
 
 			content = IOUtils.toString(resp.getEntity().getContent(), charset(resp));
 
-			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-			if (content.charAt(0) == 65279) {
-				content = content.substring(1);
-			}
+			content = skipBOMIfPresent(content);
 
 		} catch (final Throwable t) {
 			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage());
@@ -244,7 +253,7 @@ public class HttpHelper {
 
 	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
 
-		final Map<String, String> responseData = new HashMap<>();;
+		final Map<String, String> responseData = new HashMap<>();
 
 		try {
 
@@ -259,10 +268,7 @@ public class HttpHelper {
 
 			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
 
-			// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-			if (content.charAt(0) == 65279) {
-				content = content.substring(1);
-			}
+			content = skipBOMIfPresent(content);
 
 			responseData.put("body", content);
 
@@ -275,6 +281,97 @@ public class HttpHelper {
 		} catch (final Throwable t) {
 
 			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t.getMessage() });
+		}
+
+		return responseData;
+	}
+
+	public static Map<String, String> put(final String address, final String requestBody) {
+		return put(address, requestBody, null, null, null, null, Collections.EMPTY_MAP);
+	}
+
+	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers) {
+		return put(address, requestBody, username, password, null, null, null, null, headers);
+	}
+
+	public static Map<String, String> put(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+		return put(address, requestBody, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+	}
+
+	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+
+		final Map<String, String> responseData = new HashMap<>();
+
+		try {
+
+			final URI      url = URI.create(address);
+			final HttpPut req = new HttpPut(url);
+
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+
+			req.setEntity(new StringEntity(requestBody));
+
+			final CloseableHttpResponse response = client.execute(req);
+
+			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
+
+			content = skipBOMIfPresent(content);
+
+			responseData.put("body", content);
+
+			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
+			for (final Header header : response.getAllHeaders()) {
+
+				responseData.put(header.getName(), header.getValue());
+			}
+
+		} catch (final Throwable t) {
+
+			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t.getMessage() });
+		}
+
+		return responseData;
+	}
+
+	public static Map<String, String> delete(final String address) {
+		return delete(address, null, null, null, null, Collections.EMPTY_MAP);
+	}
+
+	public static Map<String, String> delete(final String address, final String username, final String password, final Map<String, String> headers) {
+		return delete(address, username, password, null, null, null, null, headers);
+	}
+
+	public static Map<String, String> delete(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+		return delete(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+	}
+
+	public static Map<String, String> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+
+		final Map<String, String> responseData = new HashMap<>();
+
+		try {
+
+			final URI     url = URI.create(address);
+			final HttpDelete req = new HttpDelete(url);
+
+			configure(req, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true);
+
+			final CloseableHttpResponse response = client.execute(req);
+
+			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
+
+			content = skipBOMIfPresent(content);
+
+			responseData.put("body", content);
+
+			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
+			for (final Header header : response.getAllHeaders()) {
+
+				responseData.put(header.getName(), header.getValue());
+			}
+		} catch (final Throwable t) {
+
+			logger.error("Unable to issue DELETE command to address {}, {}", new Object[] { address, t.getMessage() });
 		}
 
 		return responseData;
@@ -371,10 +468,7 @@ public class HttpHelper {
 
 				String content = IOUtils.toString(resp.getEntity().getContent(), HttpHelper.charset(resp));
 
-				// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-				if (content.charAt(0) == 65279) {
-					content = content.substring(1);
-				}
+				content = skipBOMIfPresent(content);
 
 				System.out.println("Response body: " + content);
 				logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{ address, statusCode });
