@@ -239,10 +239,15 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
 
-		final String imageFormatString = getImageFormatString(originalImage);
-		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
+		Thumbnail.Format format = Thumbnail.defaultFormat;
+		try {
+			final String imageFormatString = getImageFormatString(originalImage);
+			format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
+		} catch (IllegalArgumentException iae) {
+			logger.debug("Unsupported thumbnail format - using default");
+		}
 
-		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
+
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final Thumbnail tn               = new Thumbnail();
 
