@@ -279,7 +279,15 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 		try {
 
-			FileHelper.updateMetadata(this, new PropertyMap());
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				synchronized (tx) {
+
+					FileHelper.updateMetadata(this, new PropertyMap());
+
+					tx.success();
+				}
+			}
 
 			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
 			indexer.addToFulltextIndex(this);
