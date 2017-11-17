@@ -54,6 +54,9 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 	public static final String TARGET_TYPE   = "targetType";
 	public static final String TYPE_MAPPING  = "types";
 	public static final String TYPE          = "type";
+	public static final String CREATE_NODE   = "createNode";
+	public static final String SET_PROPERTY  = "setProperty";
+	public static final String IGNORE        = "ignore";
 
 	private final Map<String, Object> configuration = new LinkedHashMap<>();
 	private Map<String, Object> nextElement         = null;
@@ -94,29 +97,34 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 		if (typeHandler != null) {
 
 			final Map<String, Object> properties  = (Map)typeHandler.get(PROPERTIES);
+			final String action                   = (String)typeHandler.get(ACTION);
 			final Object isRoot                   = typeHandler.get(ISROOT);
 			final Map<String, Object> data        = new LinkedHashMap<>();
 
 			current.isRoot = Boolean.TRUE.equals(isRoot);
 
-			for (final Iterator it = element.getAttributes(); it.hasNext();) {
+			// only process attributes if createNode is selected,
+			if (CREATE_NODE.equals(action)) {
 
-				final Object attr = it.next();
+				for (final Iterator it = element.getAttributes(); it.hasNext();) {
 
-				if (attr instanceof Attribute) {
+					final Object attr = it.next();
 
-					final Attribute attribute = (Attribute)attr;
-					final String name         = attribute.getName().toString();
-					final String value        = attribute.getValue();
+					if (attr instanceof Attribute) {
 
-					if (properties != null && properties.containsKey(name))  {
+						final Attribute attribute = (Attribute)attr;
+						final String name         = attribute.getName().toString();
+						final String value        = attribute.getValue();
 
-						final String mappedName = (String)properties.get(name);
-						data.put(mappedName, value);
+						if (properties != null && properties.containsKey(name))  {
 
-					} else {
+							final String mappedName = (String)properties.get(name);
+							data.put(mappedName, value);
 
-						data.put(name, value);
+						} else {
+
+							data.put(name, value);
+						}
 					}
 				}
 			}
@@ -170,15 +178,15 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 
 				switch (action) {
 
-					case "createNode":
+					case CREATE_NODE:
 						handleCreateNode(element, entityData, config);
 						return;
 
-					case "setProperty":
+					case SET_PROPERTY:
 						handleSetProperty(element, entityData, config);
 						return;
 
-					case "ignore":
+					case IGNORE:
 						return;
 				}
 
