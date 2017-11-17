@@ -1268,4 +1268,124 @@ public class AdvancedSearchTest extends IndexingTest {
 			.when()
 				.get(concat(resource, "/all"));
 	}
+
+	@Test
+	public void testOutputNestingDepth() {
+
+		String test01 = createEntity("/test_ones", "{ name: test01, anInt: 1 }");
+		String test02 = createEntity("/test_ones", "{ name: test02, anInt: 2 }");
+		String test03 = createEntity("/test_ones", "{ name: test03, anInt: 3 }");
+		String test04 = createEntity("/test_ones", "{ name: test04, anInt: 4 }");
+		String test05 = createEntity("/test_ones", "{ name: test05, anInt: 5 }");
+		String test06 = createEntity("/test_ones", "{ name: test06, anInt: 6 }");
+		String test07 = createEntity("/test_ones", "{ name: test07, anInt: 7 }");
+		String test08 = createEntity("/test_ones", "{ name: test08, anInt: 8 }");
+
+		String test09 = createEntity("/test_twos", "{ name: test09, testOnes: [", test01, ",", test02, "], anInt: 9 }");
+		String test10 = createEntity("/test_twos", "{ name: test10, testOnes: [", test03, ",", test04, "], anInt: 10 }");
+		String test11 = createEntity("/test_twos", "{ name: test11, testOnes: [", test05, ",", test06, "], anInt: 11 }");
+		String test12 = createEntity("/test_twos", "{ name: test12, testOnes: [", test07, ",", test08, "], anInt: 12 }");
+
+		String test13 = createEntity("/test_elevens", "{ name: test13, testTwos: [", test09, ",", test10, "]}");
+		String test14 = createEntity("/test_elevens", "{ name: test14, testTwos: [", test11, ",", test12, "]}");
+
+		// test depth 0 wich should result only in the 2 TestEleven objects
+		String url = "/test_elevens?outputNestingDepth=0";
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("output_nesting_depth", equalTo(0))
+				.body("result", hasSize(2))
+				.body("result_count", equalTo(2))
+				.body("result[0].testTwos", hasSize(0))
+
+				.when()
+				.get(url);
+
+		// test depth 1 wich should result in a list with 2 TestEleven objects with each two TestTwo objects
+		url = "/test_elevens?outputNestingDepth=1";
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("output_nesting_depth", equalTo(1))
+				.body("result", hasSize(2))
+				.body("result_count", equalTo(2))
+				.body("result[0].testTwos", hasSize(2))
+				.body("result[0].testTwos[0].testOnes", hasSize(0))
+
+				.when()
+				.get(url);
+
+		// test depth 2 wich should result in a list with 2 TestEleven objects with each two TestTwo objects with each two TestOne objects
+		url = "/test_elevens?outputNestingDepth=2";
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("output_nesting_depth", equalTo(2))
+				.body("result", hasSize(2))
+				.body("result_count", equalTo(2))
+				.body("result[0].testTwos", hasSize(2))
+				.body("result[0].testTwos[0].testOnes", hasSize(2))
+
+				.when()
+				.get(url);
+
+		// test default depth value
+		url = "/test_elevens";
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("output_nesting_depth", nullValue())
+				.body("result", hasSize(2))
+				.body("result_count", equalTo(2))
+
+				.when()
+				.get(url);
+
+
+	}
 }

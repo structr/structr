@@ -18,6 +18,8 @@
  */
 package org.structr.core;
 
+import scala.Int;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,10 +46,11 @@ public class Result<T extends GraphObject> {
 	private String sortOrder          = null;
 	private String sortKey            = null;
 
-	private Integer resultCount       = null;
-	private Integer pageCount         = null;
-	private Integer pageSize          = null;
-	private Integer page              = null;
+	private Integer resultCount       	= null;
+	private Integer pageCount         	= null;
+	private Integer pageSize          	= null;
+	private Integer page              	= null;
+	private Integer outputNestingDepth	= null;
 
 	private GraphObject metaData      = null;
 	private Object nonGraphObject     = null;
@@ -147,6 +150,14 @@ public class Result<T extends GraphObject> {
 
 	public Integer getPage() {
 		return page;
+	}
+
+	public void setOutputNestingDepth(final Integer outputNestingDepth) {
+		this.outputNestingDepth = outputNestingDepth;
+	}
+
+	public Integer getOutputNestingDepth() {
+		return this.outputNestingDepth;
 	}
 
 	public void setPage(final Integer page) {
