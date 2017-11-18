@@ -18,10 +18,13 @@
  */
 package org.structr.schema;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,9 +33,11 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import javatools.parsers.PlingStemmer;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,9 +69,12 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
 import static org.structr.core.entity.SchemaMethod.source;
 import org.structr.core.entity.SchemaNode;
+import static org.structr.core.entity.SchemaNode.defaultSortKey;
+import static org.structr.core.entity.SchemaNode.defaultSortOrder;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
+import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -75,6 +83,7 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.module.StructrModule;
@@ -108,9 +117,11 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaHelper {
 
-	private static final Logger logger = LoggerFactory.getLogger(SchemaHelper.class.getName());
-
-	private static final String WORD_SEPARATOR = "_";
+	private static final Logger logger                   = LoggerFactory.getLogger(SchemaHelper.class.getName());
+	private static final String BeginStructrMixinComment = "----- begin structr mixin -----";
+	private static final String EndStructrMixinComment   = "----- end structr mixin -----";
+	private static final String StructrImportPrefix      = "import ";
+	private static final String WORD_SEPARATOR           = "_";
 
 	public enum Type {
 
@@ -369,8 +380,6 @@ public class SchemaHelper {
 
 					removeDynamicGrants(sig);
 				}
-
-
 			}
 
 		} catch (Throwable t) {
@@ -482,6 +491,220 @@ public class SchemaHelper {
 			logger.warn("", t);
 		}
 
+	}
+
+	public static String getSource(final AbstractSchemaNode schemaNode, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
+		final App app                                          = StructrApp.getInstance();
+		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
+		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
+		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
+		final Set<String> propertyNames                        = new LinkedHashSet<>();
+		final Set<Validator> validators                        = new LinkedHashSet<>();
+		final Set<Class> implementedInterfaces                 = new LinkedHashSet<>();
+		final List<String> importStatements                    = new LinkedList<>();
+		final Set<String> enums                                = new LinkedHashSet<>();
+		final StringBuilder src                                = new StringBuilder();
+		final StringBuilder mixinCodeBuffer                    = new StringBuilder();
+		final Class baseType                                   = AbstractNode.class;
+		final String _className                                = schemaNode.getProperty(SchemaNode.name);
+		final String _extendsClass                             = schemaNode.getProperty(SchemaNode.extendsClass);
+		final String superClass                                = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
+		final boolean extendsAbstractNode                      = _extendsClass == null;
+
+		// check superclass
+		if (!extendsAbstractNode && !SchemaHelper.hasType(superClass) && !superClass.startsWith("org.structr.dynamic.")) {
+
+			// we can only detect if a type is missing that is usually provided by a module; we
+			// can not detect whether a dynamic type is missing because those are only available
+			// after compiling the whole set of schema nodes
+			logger.warn("Dynamic type {} cannot be used, superclass {} not defined.", schemaNode.getName(), superClass);
+			return null;
+		}
+
+		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
+		if (!SchemaHelper.importMixins(schemaNode, implementedInterfaces, importStatements, mixinCodeBuffer)) {
+			logger.warn("Dynamic type {} cannot be used, mixin type not defined.", schemaNode.getName());
+			return null;
+		}
+
+		// package name
+		src.append("package org.structr.dynamic;\n\n");
+
+		// include import statements from mixins
+		SchemaHelper.formatImportStatements(schemaNode, src, baseType, importStatements);
+
+		src.append("public class ");
+		src.append(_className);
+		src.append(" extends ");
+		src.append(superClass);
+
+		// output implemented interfaces
+		if (!implementedInterfaces.isEmpty()) {
+
+			src.append(" implements ");
+			src.append(StringUtils.join(implementedInterfaces.stream().map(element -> element.getName()).iterator(), ", "));
+		}
+
+		src.append(" {\n\n");
+
+		// migrate schema relationships
+		for (final SchemaRelationship outRel : schemaNode.getOutgoingRelationships(SchemaRelationship.class)) {
+
+			final PropertyMap relNodeProperties = new PropertyMap();
+
+			relNodeProperties.put(SchemaRelationshipNode.sourceNode, outRel.getSourceNode());
+			relNodeProperties.put(SchemaRelationshipNode.targetNode, outRel.getTargetNode());
+			relNodeProperties.put(SchemaRelationshipNode.name, outRel.getProperty(SchemaRelationship.name));
+			relNodeProperties.put(SchemaRelationshipNode.sourceNotion, outRel.getProperty(SchemaRelationship.sourceNotion));
+			relNodeProperties.put(SchemaRelationshipNode.targetNotion, outRel.getProperty(SchemaRelationship.targetNotion));
+			relNodeProperties.put(SchemaRelationshipNode.extendsClass, outRel.getProperty(SchemaRelationship.extendsClass));
+			relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, outRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
+			relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, outRel.getProperty(SchemaRelationship.autocreationFlag));
+			relNodeProperties.put(SchemaRelationshipNode.relationshipType, outRel.getProperty(SchemaRelationship.relationshipType));
+			relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, outRel.getProperty(SchemaRelationship.sourceMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, outRel.getProperty(SchemaRelationship.targetMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, outRel.getProperty(SchemaRelationship.sourceJsonName));
+			relNodeProperties.put(SchemaRelationshipNode.targetJsonName, outRel.getProperty(SchemaRelationship.targetJsonName));
+
+			app.create(SchemaRelationshipNode.class, relNodeProperties);
+			app.delete(outRel);
+		}
+
+		for (final SchemaRelationship inRel : schemaNode.getIncomingRelationships(SchemaRelationship.class)) {
+
+			final PropertyMap relNodeProperties = new PropertyMap();
+
+			relNodeProperties.put(SchemaRelationshipNode.sourceNode, inRel.getSourceNode());
+			relNodeProperties.put(SchemaRelationshipNode.targetNode, inRel.getTargetNode());
+			relNodeProperties.put(SchemaRelationshipNode.name, inRel.getProperty(SchemaRelationship.name));
+			relNodeProperties.put(SchemaRelationshipNode.sourceNotion, inRel.getProperty(SchemaRelationship.sourceNotion));
+			relNodeProperties.put(SchemaRelationshipNode.targetNotion, inRel.getProperty(SchemaRelationship.targetNotion));
+			relNodeProperties.put(SchemaRelationshipNode.extendsClass, inRel.getProperty(SchemaRelationship.extendsClass));
+			relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, inRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
+			relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, inRel.getProperty(SchemaRelationship.autocreationFlag));
+			relNodeProperties.put(SchemaRelationshipNode.relationshipType, inRel.getProperty(SchemaRelationship.relationshipType));
+			relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, inRel.getProperty(SchemaRelationship.sourceMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, inRel.getProperty(SchemaRelationship.targetMultiplicity));
+			relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, inRel.getProperty(SchemaRelationship.sourceJsonName));
+			relNodeProperties.put(SchemaRelationshipNode.targetJsonName, inRel.getProperty(SchemaRelationship.targetJsonName));
+
+			app.create(SchemaRelationshipNode.class, relNodeProperties);
+			app.delete(inRel);
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
+
+			final String propertyName = outRel.getPropertyName(_className, existingPropertyNames, true);
+
+			src.append(outRel.getPropertySource(propertyName, true));
+
+			addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+
+		}
+
+		// output related node definitions, collect property views
+		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
+
+			final String propertyName = inRel.getPropertyName(_className, existingPropertyNames, false);
+
+			src.append(inRel.getPropertySource(propertyName, false));
+
+			SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+
+		}
+
+		src.append(SchemaHelper.extractProperties(schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, errorBuffer));
+
+		SchemaHelper.extractViews(schemaNode, viewProperties, errorBuffer);
+		SchemaHelper.extractMethods(schemaNode, saveActions);
+
+		// output possible enum definitions
+		for (final String enumDefition : enums) {
+			src.append(enumDefition);
+		}
+
+		for (Entry<String, Set<String>> entry : viewProperties.entrySet()) {
+
+			final String viewName  = entry.getKey();
+			final Set<String> view = entry.getValue();
+
+			if (!view.isEmpty()) {
+
+				schemaNode.addDynamicView(viewName);
+
+				SchemaHelper.formatView(src, _className, viewName, viewName, view);
+			}
+		}
+
+		if (schemaNode.getProperty(defaultSortKey) != null) {
+
+			String order = schemaNode.getProperty(defaultSortOrder);
+			if (order == null || "desc".equals(order)) {
+				order = "GraphObjectComparator.DESCENDING";
+			} else {
+				order = "GraphObjectComparator.ASCENDING";
+			}
+
+			src.append("\n\t@Override\n");
+			src.append("\tpublic PropertyKey getDefaultSortKey() {\n");
+			src.append("\t\treturn ").append(schemaNode.getProperty(defaultSortKey)).append("Property;\n");
+			src.append("\t}\n");
+
+			src.append("\n\t@Override\n");
+			src.append("\tpublic String getDefaultSortOrder() {\n");
+			src.append("\t\treturn ").append(order).append(";\n");
+			src.append("\t}\n");
+		}
+
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, implementedInterfaces, extendsAbstractNode);
+		SchemaHelper.formatSaveActions(schemaNode, src, saveActions, implementedInterfaces);
+
+		// after-Methods
+		src.append("\n\t@Override\n\tpublic void afterCreation(final SecurityContext securityContext) {\n\n");
+		src.append("\t\tsuper.afterCreation(securityContext);\n");
+
+		for (final Class iface : implementedInterfaces) {
+			if (hasMethod(iface, "afterCreation", SecurityContext.class)) {
+				src.append("\t\t").append(iface.getName()).append(".super.afterCreation(securityContext);\n");
+			}
+		}
+		src.append("\n\t}\n\n");
+
+		src.append("\t@Override\n\tpublic void afterModification(final SecurityContext securityContext) {\n\n");
+		src.append("\t\tsuper.afterModification(securityContext);\n");
+
+		for (final Class iface : implementedInterfaces) {
+			if (hasMethod(iface, "afterModification", SecurityContext.class)) {
+				src.append("\t\t").append(iface.getName()).append(".super.afterModification(securityContext);\n");
+			}
+		}
+		src.append("\n\t}\n\n");
+
+		src.append("\t@Override\n\tpublic void afterDeletion(final SecurityContext securityContext, final org.structr.core.property.PropertyMap properties) {\n\n");
+		src.append("\t\tsuper.afterDeletion(securityContext, properties);\n");
+
+		for (final Class iface : implementedInterfaces) {
+			if (hasMethod(iface, "afterDeletion", SecurityContext.class, PropertyMap.class)) {
+				src.append("\t\t").append(iface.getName()).append(".super.afterDeletion(securityContext, properties);\n");
+			}
+		}
+		src.append("\n\t}\n\n");
+
+		// insert dynamic code here
+		src.append(mixinCodeBuffer);
+
+		// insert source code from module
+		for (final StructrModule module : modules) {
+			module.insertSourceCode(schemaNode, src);
+		}
+
+		src.append("}\n");
+
+		return src.toString();
 	}
 
 	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -664,28 +887,14 @@ public class SchemaHelper {
 
 					for (final String propertyName : nonGraphProperties.split("[, ]+")) {
 
-						String extendedPropertyName = propertyName;
-						if (superClass != null) {
+						if (SchemaHelper.isDynamic(entity.getClassName(), propertyName)) {
 
-							final PropertyKey property = config.getPropertyKeyForJSONName(superClass, propertyName, false);
-							if (property != null) {
-
-								// property exists in superclass
-								if (property.isDynamic()) {
-									extendedPropertyName = extendedPropertyName + "Property";
-								}
-
-							} else {
-
-								extendedPropertyName = extendedPropertyName + "Property";
-							}
+							view.add(propertyName + "Property");
 
 						} else {
-							extendedPropertyName = extendedPropertyName + "Property";
 
+							view.add(propertyName);
 						}
-
-						view.add(extendedPropertyName);
 					}
 				}
 
@@ -833,7 +1042,7 @@ public class SchemaHelper {
 
 	}
 
-	public static void formatImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder src, final Class baseType) {
+	public static void formatImportStatements(final AbstractSchemaNode schemaNode, final StringBuilder src, final Class baseType, final List<String> importStatements) {
 
 		src.append("import ").append(baseType.getName()).append(";\n");
 		src.append("import ").append(ConfigurationProvider.class.getName()).append(";\n");
@@ -860,7 +1069,6 @@ public class SchemaHelper {
 		src.append("import ").append(Export.class.getName()).append(";\n");
 		src.append("import ").append(View.class.getName()).append(";\n");
 		src.append("import ").append(List.class.getName()).append(";\n");
-		src.append("import ").append(Map.class.getName()).append(";\n");
 		src.append("import ").append(Set.class.getName()).append(";\n");
 
 		if (hasRestClasses()) {
@@ -878,84 +1086,122 @@ public class SchemaHelper {
 		}
 
 		src.append("import org.structr.core.notion.*;\n");
-		src.append("import org.structr.core.entity.*;\n\n");
+		src.append("import org.structr.core.entity.*;\n");
+
+		// include imports from mixins
+		for (final String importLine : importStatements) {
+			src.append(importLine);
+			src.append("\n");
+		}
+
+		src.append("\n");
 
 	}
 
-	public static void formatInterfacesFromModules(final StringBuilder src, final SchemaNode schemaNode) {
+	public static boolean importMixins(final AbstractSchemaNode schemaInfo, final Set<Class> classes, final List<String> imports, final StringBuilder src) throws FrameworkException {
 
-		final Set<String> interfaces = new LinkedHashSet<>();
-		boolean firstInterface       = true;
+		final String _implementsInterfaces = schemaInfo.getProperty(SchemaNode.implementsInterfaces);
+		if (StringUtils.isNotBlank(_implementsInterfaces)) {
 
-		// collect all interfaces that a module wants to add to the given type
-		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+			final String[] parts = _implementsInterfaces.split("[, ]+");
+			for (final String part : parts) {
 
-			final Set<String> moduleInterfacesForType = module.getInterfacesForType(schemaNode);
-			if (moduleInterfacesForType != null) {
+				final String trimmed = part.trim();
+				if (StringUtils.isNotBlank(trimmed)) {
 
-				interfaces.addAll(moduleInterfacesForType);
+					final Class type = SchemaHelper.classForName(trimmed);
+					if (type != null) {
+
+						classes.add(type);
+
+						// load mixin source code
+						final InputStream resource = type.getResourceAsStream("/" + type.getName().replace(".", "/") + "Mixin.java");
+						if (resource != null) {
+
+							boolean include = false;
+
+							try (final InputStream is = resource) {
+
+								for (final String line : IOUtils.readLines(is, "utf-8")) {
+
+									final String lowerLine = line.toLowerCase();
+
+									// start mixin code import
+									if (lowerLine.contains(EndStructrMixinComment)) {
+										include = false;
+									}
+
+									// include import statements
+									if (line.trim().startsWith(StructrImportPrefix)) {
+										imports.add(line);
+									}
+
+									if (include) {
+										src.append(line);
+										src.append("\n");
+									}
+
+									// end mixin code import
+									if (lowerLine.contains(BeginStructrMixinComment)) {
+
+										include = true;
+
+										src.append("\t// ----- dynamic code from ");
+										src.append(type.getSimpleName());
+										src.append("Mixin.java -----\n");
+									}
+								}
+
+							} catch (IOException ioex) {
+								ioex.printStackTrace();
+							}
+						}
+
+					} else {
+
+						// ignore type
+						return false;
+					}
+				}
 			}
 		}
 
-		// add all interfaces dynamically
-		for (final String iface : interfaces) {
-
-			src.append(firstInterface ? " implements " : ", ");
-			src.append(iface);
-
-			firstInterface = false;
-		}
+		return true;
 	}
 
 	public static String cleanPropertyName(final String propertyName) {
 		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
-	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys) {
+	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<Class> implementedInterfaces, final boolean extendsAbstractNode) {
 
-		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
+		src.append("\n\t@Override\n");
+		src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
+		src.append("\t\tboolean valid = ");
+		src.append("super.isValid(errorBuffer);\n\n");
 
-			src.append("\n\t@Override\n");
-			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean valid = super.isValid(errorBuffer);\n\n");
+		// interfaces
+		for (final Class iface : implementedInterfaces) {
 
-			for (final Validator validator : validators) {
-				src.append("\t\tvalid &= ").append(validator.getSource("this", true)).append(";\n");
+			if (hasMethod(iface, "isValid", ErrorBuffer.class)) {
+				src.append("\t\tvalid &= ").append(iface.getName()).append(".super.isValid(errorBuffer);\n");
 			}
-
-			if (!compoundIndexKeys.isEmpty()) {
-
-				src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");\n");
-			}
-
-			src.append("\n\t\treturn valid;\n");
-			src.append("\t}\n");
 		}
 
-	}
-
-	public static void formatDynamicValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys) {
-
-		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
-
-			src.append("\tpublic static boolean isValid(final AbstractNode obj, final ErrorBuffer errorBuffer) {\n\n");
-			src.append("\t\tboolean valid = true;\n\n");
-
-			for (final Validator validator : validators) {
-				src.append("\t\tvalid &= ").append(validator.getSource("obj", false)).append(";\n");
-			}
-
-			if (!compoundIndexKeys.isEmpty()) {
-
-				src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(obj, errorBuffer, ").append(StringUtils.join(compoundIndexKeys)).append(");\n");
-			}
-
-			src.append("\n\t\treturn valid;\n");
-			src.append("\t}\n\n");
+		for (final Validator validator : validators) {
+			src.append("\t\tvalid &= ").append(validator.getSource("this", true)).append(";\n");
 		}
+
+		if (!compoundIndexKeys.isEmpty()) {
+
+			src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");\n");
+		}
+
+		src.append("\n\t\treturn valid;\n");
+		src.append("\t}\n");
 	}
 
-	public static void formatSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
+	public static void formatSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions, final Set<Class> implementedInterfaces) {
 
 		// save actions..
 		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
@@ -980,36 +1226,8 @@ public class SchemaHelper {
 				default:
 					// passive actions are actions that are executed
 					// automtatically on creation / modification etc.
-					formatPassiveSaveActions(schemaNode, src, type, actionList);
+					formatPassiveSaveActions(schemaNode, src, type, actionList, implementedInterfaces);
 					break;
-			}
-		}
-
-	}
-
-	public static void formatDynamicSaveActions(final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions) {
-
-		// save actions..
-		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
-
-			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type = entry.getKey();
-
-			if (!actionList.isEmpty()) {
-
-				switch (type) {
-
-					case Custom:
-						// active actions are exported stored functions
-						// that can be called by POSTing on the entity
-						//formatDynamicActiveActions(src, actionList);
-						break;
-					default:
-						// passive actions are actions that are executed
-						// automtatically on creation / modification etc.
-						formatDynamicPassiveSaveActions(src, type, actionList);
-						break;
-				}
 			}
 		}
 
@@ -1022,9 +1240,9 @@ public class SchemaHelper {
 			final String source = action.getSource("this", true);
 
 			src.append("\n\t@Export\n");
-			src.append("\tpublic Object ");
+			src.append("\tpublic java.lang.Object ");
 			src.append(action.getName());
-			src.append("(final Map<String, Object> parameters) throws FrameworkException {\n\n");
+			src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
 
 			if (StringUtils.isNotBlank(source)) {
 
@@ -1045,9 +1263,9 @@ public class SchemaHelper {
 		for (final ActionEntry action : actionList) {
 
 			src.append("\n\t@Export\n");
-			src.append("\tpublic Object ");
+			src.append("\tpublic java.lang.Object ");
 			src.append(action.getName());
-			src.append("(final Map<String, Object> parameters) throws FrameworkException {\n\n");
+			src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
 
 			src.append("\t\treturn ");
 			src.append(action.getSource("this", true));
@@ -1057,23 +1275,7 @@ public class SchemaHelper {
 
 	}
 
-	public static void formatDynamicActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
-
-		for (final ActionEntry action : actionList) {
-
-			src.append("\tpublic static Object ");
-			src.append(action.getName());
-			src.append("(final AbstractNode obj) throws FrameworkException {\n\n");
-
-			src.append("\t\treturn ");
-			src.append(action.getSource("obj"));
-			src.append(";\n\n");
-			src.append("\t}\n");
-		}
-
-	}
-
-	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
+	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList, final Set<Class> implementedInterfaces) {
 
 		src.append("\n\t@Override\n");
 		src.append("\tpublic boolean ");
@@ -1086,6 +1288,20 @@ public class SchemaHelper {
 		src.append("(");
 		src.append(type.getParameters());
 		src.append(");\n\n");
+
+		for (final Class iface : implementedInterfaces) {
+
+			if (hasMethod(iface, type.getMethod(), type.getParameterTypes())) {
+
+				src.append("\t\tvalid &= ");
+				src.append(iface.getName());
+				src.append(".super.");
+				src.append(type.getMethod());
+				src.append("(");
+				src.append(type.getParameters());
+				src.append(");\n");
+			}
+		}
 
 		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 			module.insertSaveAction(schemaNode, src, type);
@@ -1100,24 +1316,6 @@ public class SchemaHelper {
 		src.append("\t}\n");
 
 	}
-
-	public static void formatDynamicPassiveSaveActions(final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList) {
-
-		src.append("\tpublic static boolean ");
-		src.append(type.getMethod());
-		src.append("(final AbstractNode obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {\n\n");
-		src.append("\t\tboolean valid = obj.isValid(errorBuffer);\n\n");
-
-		for (final ActionEntry action : actionList) {
-
-			src.append("\t\t").append(action.getSource("obj")).append(";\n");
-		}
-
-		src.append("\n\t\treturn valid;\n");
-		src.append("\t}\n\n");
-
-	}
-
 
 	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 
@@ -1390,5 +1588,110 @@ public class SchemaHelper {
 
 	private static String uiViewResourceSignature(final String signature) {
 		return signature + "/_Ui";
+	}
+
+	private static Class classForName(final String fqcn) {
+
+		try {
+
+			return Class.forName(fqcn);
+
+		} catch (ClassNotFoundException ex) { }
+
+		return null;
+	}
+
+	private static boolean hasMethod(final Class type, final String name, final Class... parameters) {
+
+		try {
+
+			return type.getDeclaredMethod(name, parameters) != null;
+
+		} catch (NoSuchMethodException nex) {
+
+		}
+
+		return false;
+	}
+
+	private static boolean hasRelationshipNode(final SchemaNode schemaNode, final String propertyName) throws FrameworkException {
+
+		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
+			.and(SchemaRelationshipNode.sourceNode, schemaNode)
+			.and()
+				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
+				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
+
+			.getFirst() != null) {
+
+			return true;
+		}
+
+		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
+			.and(SchemaRelationshipNode.targetNode, schemaNode)
+			.and()
+				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
+				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
+
+			.getFirst() != null) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private static boolean isDynamic(final String typeName, final String propertyName) throws FrameworkException {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class type                   = config.getNodeEntityClass(typeName);
+
+		if (type != null) {
+
+			final PropertyKey property = config.getPropertyKeyForJSONName(type, propertyName, false);
+			if (property != null && property.isDynamic()) {
+
+				return true;
+			}
+
+		} else if (hasSchemaProperty(typeName, propertyName)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private static boolean hasSchemaProperty(final String typeName, final String propertyName) throws FrameworkException {
+
+		final App app        = StructrApp.getInstance();
+		String localTypeName = typeName;
+
+		while (StringUtils.isNotBlank(localTypeName) && !AbstractNode.class.getSimpleName().equals(localTypeName)) {
+
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(localTypeName).getFirst();
+			if (schemaNode != null) {
+
+				final SchemaProperty schemaProperty = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+				if (schemaProperty != null || hasRelationshipNode(schemaNode, propertyName)) {
+
+					return true;
+
+				} else {
+
+					localTypeName = schemaNode.getProperty(SchemaNode.extendsClass);
+					if (localTypeName != null) {
+
+						localTypeName = localTypeName.substring(localTypeName.lastIndexOf(".") + 1);
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static boolean hasType(final String fqcn) {
+		return SchemaHelper.classForName(fqcn) != null;
 	}
 }

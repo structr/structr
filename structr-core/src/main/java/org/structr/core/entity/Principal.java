@@ -37,7 +37,7 @@ import org.structr.schema.SchemaService;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
-	static class Impl { static { SchemaService.registerBuiltinTypeOverride("Principal", null); }}
+	static class Impl { static { SchemaService.registerMixinType(Principal.class); }}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";
 	public static final String SUPERUSER_ID                      = "00000000000000000000000000000000";
