@@ -19,7 +19,6 @@
 package org.structr.schema.json;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 
@@ -106,9 +105,9 @@ public interface JsonSchema {
 	public String getDescription();
 	public void setDescription(final String description);
 
-	public JsonObjectType addType(final String name) throws URISyntaxException;
+	public JsonObjectType addType(final String name);
 	public JsonType getType(final String name);
-	public void removeType(final String name) throws URISyntaxException;
+	public void removeType(final String name);
 
 	public void createDatabaseSchema(final App app, final ImportMode importMode) throws FrameworkException;
 

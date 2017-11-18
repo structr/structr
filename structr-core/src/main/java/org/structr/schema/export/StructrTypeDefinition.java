@@ -70,6 +70,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final TreeMap<String, Map<String, String>> methods  = new TreeMap<>();
+	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
 	protected String name                                         = null;
@@ -138,6 +139,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public URI getExtends() {
 		return baseTypeReference;
+	}
+
+	@Override
+	public JsonType setImplements(final URI uri) {
+
+		implementedInterfaces.add(uri);
+		return this;
+	}
+
+	@Override
+	public Set<URI> getImplements() {
+		return implementedInterfaces;
 	}
 
 	@Override
@@ -443,9 +456,22 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_METHODS, methods);
 		}
 
-		final URI ext = getExtends();
+		final Set<String> baseTypesAndInterfaces = new TreeSet<>();
+		final URI ext                            = getExtends();
+
 		if (ext != null) {
-			serializedForm.put(JsonSchema.KEY_EXTENDS, root.toJsonPointer(ext));
+			baseTypesAndInterfaces.add(root.toJsonPointer(ext));
+		}
+
+		if (!implementedInterfaces.isEmpty()) {
+
+			for (final URI uri : implementedInterfaces) {
+				baseTypesAndInterfaces.add(root.toJsonPointer(uri));
+			}
+		}
+
+		if (!baseTypesAndInterfaces.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_EXTENDS, baseTypesAndInterfaces);
 		}
 
 		return serializedForm;
@@ -455,13 +481,32 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
 
-			String jsonPointerFormat = (String)source.get(JsonSchema.KEY_EXTENDS);
-			if (jsonPointerFormat.startsWith("#")) {
+			final Object extendsValue = source.get(JsonSchema.KEY_EXTENDS);
+			if (extendsValue instanceof String) {
 
-				jsonPointerFormat = jsonPointerFormat.substring(1);
+				// "old" schema
+				String jsonPointerFormat = (String)extendsValue;
+				if (jsonPointerFormat.startsWith("#")) {
+
+					jsonPointerFormat = jsonPointerFormat.substring(1);
+				}
+
+				this.baseTypeReference = root.getId().relativize(URI.create(jsonPointerFormat));
+
+			} else if (extendsValue instanceof List) {
+
+				// "new" schema
+				final List<String> impl = (List<String>)extendsValue;
+				for (String jsonPointerFormat : impl) {
+
+					if (jsonPointerFormat.startsWith("#")) {
+
+						jsonPointerFormat = jsonPointerFormat.substring(1);
+					}
+
+					this.implementedInterfaces.add(root.getId().relativize(URI.create(jsonPointerFormat)));
+				}
 			}
-
-			this.baseTypeReference = root.getId().relativize(URI.create(jsonPointerFormat));
 		}
 	}
 
@@ -524,6 +569,28 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			} else {
 
 				this.baseTypeReference = StructrApp.getSchemaBaseURI().resolve("definitions/" + typeName);
+			}
+		}
+
+		// $implements
+		final String implementsInterfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
+		if (implementsInterfaces != null) {
+
+			for (final String impl : implementsInterfaces.split("[, ]+")) {
+
+				final String trimmed = impl.trim();
+				if (StringUtils.isNotEmpty(trimmed)) {
+
+					final String typeName = trimmed.substring(trimmed.lastIndexOf(".") + 1);
+					if (trimmed.startsWith("org.structr.dynamic.")) {
+
+						this.implementedInterfaces.add(root.getId().resolve("definitions/" + typeName));
+
+					} else {
+
+						this.implementedInterfaces.add(StructrApp.getSchemaBaseURI().resolve("definitions/" + typeName));
+					}
+				}
 			}
 		}
 	}
@@ -601,9 +668,44 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				final Class superclass = StructrApp.resolveSchemaId(baseTypeReference);
 				if (superclass != null) {
 
-					schemaNode.setProperty(SchemaNode.extendsClass, superclass.getName());
+					schemaNode.setProperty(SchemaNode.implementsInterfaces, superclass.getName());
+
+				} else if ("https://structr.org/v1.1/definitions/FileBase".equals(baseTypeReference.toString())) {
+
+					// FileBase doesn't exist any more, but we need to support it for some time..
+					schemaNode.setProperty(SchemaNode.implementsInterfaces, "org.structr.web.entity.File");
 				}
 			}
+		}
+
+		// implements
+		if (!implementedInterfaces.isEmpty()) {
+
+			final StringBuilder list = new StringBuilder();
+
+			for (final URI implementedInterface : implementedInterfaces) {
+
+				final Object def = root.resolveURI(implementedInterface);
+
+				if (def != null && def instanceof JsonType) {
+
+					final JsonType jsonType     = (JsonType)def;
+					final String superclassName = "org.structr.dynamic." + jsonType.getName();
+
+					schemaNode.setProperty(SchemaNode.extendsClass, superclassName);
+
+				} else {
+
+					final Class superclass = StructrApp.resolveSchemaId(implementedInterface);
+					if (superclass != null) {
+
+						list.append(superclass.getName());
+						list.append(", ");
+					}
+				}
+			}
+
+			schemaNode.setProperty(SchemaNode.implementsInterfaces, list.toString());
 		}
 
 		return schemaNode;

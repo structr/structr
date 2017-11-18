@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Set;
 import org.structr.common.AccessControllable;
@@ -36,7 +37,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	static class Impl { static {
 
-		SchemaService.getRuntimeSchema().addType("Principal").
+		SchemaService.getRuntimeSchema()
+			.addType("Principal")
+			.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
 	}}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";
