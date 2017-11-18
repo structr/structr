@@ -64,10 +64,11 @@ public class NodeExtender {
 	private Set<String> fqcns            = null;
 	private String initiatedBySessionId  = null;
 
-	public NodeExtender() {
+	public NodeExtender(final String initiatedBySessionId) {
 
-		jfiles      = new ArrayList<>();
-		fqcns       = new LinkedHashSet<>();
+		this.initiatedBySessionId = initiatedBySessionId;
+		this.jfiles               = new ArrayList<>();
+		this.fqcns                = new LinkedHashSet<>();
 	}
 
 	public static ClassLoader getClassLoader() {

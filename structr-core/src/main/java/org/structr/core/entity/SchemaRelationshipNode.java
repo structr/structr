@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -465,7 +466,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return propertyName;
 	}
 
-	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final Map<Actions.Type, List<ActionEntry>> actions = new LinkedHashMap<>();
@@ -483,7 +483,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		src.append("package org.structr.dynamic;\n\n");
 
-		SchemaHelper.formatImportStatements(this, src, baseType);
+		SchemaHelper.formatImportStatements(this, src, baseType, Collections.emptyList());
 
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
 
@@ -570,8 +570,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys);
-		SchemaHelper.formatSaveActions(this, src, actions);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, Collections.emptySet(), false);
+		SchemaHelper.formatSaveActions(this, src, actions, Collections.emptySet());
 
 		formatRelationshipFlags(src);
 
@@ -580,54 +580,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("}\n");
 
 		return src.toString();
-	}
-
-	@Override
-	public Set<String> getViews() {
-		return dynamicViews;
-	}
-
-	@Override
-	public String getAuxiliarySource() throws FrameworkException {
-
-		final Set<String> existingPropertyNames = new LinkedHashSet<>();
-		final String sourceNodeType             = getSchemaNodeSourceType();
-		final String targetNodeType             = getSchemaNodeTargetType();
-		final StringBuilder src                 = new StringBuilder();
-		final String _className                 = getClassName();
-		final Class baseType                    = AbstractRelationship.class;
-
-		if (!"File".equals(sourceNodeType) && !"File".equals(targetNodeType)) {
-			return null;
-		}
-
-		src.append("package org.structr.dynamic;\n\n");
-
-		SchemaHelper.formatImportStatements(this, src, baseType);
-
-		src.append("public class _").append(_className).append("Helper {\n\n");
-
-		src.append("\n\tstatic {\n\n");
-		src.append("\t\tfinal PropertyKey outKey = ");
-		src.append(getPropertySource(getPropertyName(sourceNodeType, existingPropertyNames, true), true, true));
-		src.append(";\n");
-		src.append("\t\toutKey.setDeclaringClass(").append(sourceNodeType).append(".class);\n\n");
-		src.append("\t\tfinal PropertyKey inKey = ");
-		src.append(getPropertySource(getPropertyName(targetNodeType, existingPropertyNames, false), false, true));
-		src.append(";\n");
-		src.append("\t\tinKey.setDeclaringClass(").append(targetNodeType).append(".class);\n\n");
-		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
-		src.append(sourceNodeType).append(".class, outKey);\n");
-		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
-		src.append(targetNodeType).append(".class, inKey);\n\n");
-		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(sourceNodeType).append(".class, PropertyView.Ui, outKey);\n");
-		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(targetNodeType).append(".class, PropertyView.Ui, inKey);\n");
-		src.append("\t}\n");
-		src.append("}\n");
-
-		return src.toString();
-
-//		return null;
 	}
 
 	// ----- public methods -----
@@ -879,21 +831,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		}
 
 		return cascade;
-	}
-
-	// ----- interface Syncable -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> syncables = super.getSyncData();
-
-		syncables.add(getSourceNode());
-		syncables.add(getTargetNode());
-
-		syncables.add(getIncomingRelationship(SchemaRelationshipSourceNode.class));
-		syncables.add(getOutgoingRelationship(SchemaRelationshipTargetNode.class));
-
-		return syncables;
 	}
 
 	// ----- private methods -----
