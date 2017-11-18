@@ -40,6 +40,9 @@ public interface JsonType extends Comparable<JsonType> {
 	public JsonType setExtends(final URI externalReference);
 	public URI getExtends();
 
+	public JsonType setImplements(final URI externalReference);
+	public Set<URI> getImplements();
+
 	public Set<JsonProperty> getProperties();
 	public Set<String> getRequiredProperties();
 	public Set<String> getViewNames();
