@@ -82,6 +82,8 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 		hiddenPropertyNames.add("deleted");
 	}
 
+	private final Set<String> dynamicViews = new LinkedHashSet<>();
+
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -127,6 +129,14 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 	public void createBuiltInSchemaEntities(final ErrorBuffer errorBuffer) throws FrameworkException {
 		new CreateBuiltInSchemaEntities(this).execute(securityContext, errorBuffer);
+	}
+
+	public void addDynamicView(final String view) {
+		dynamicViews.add(view);
+	}
+
+	public Set<String> getDynamicViews() {
+		return dynamicViews;
 	}
 
 	private static class CreateBuiltInSchemaEntities implements TransactionPostProcess {
