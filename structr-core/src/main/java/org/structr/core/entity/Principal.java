@@ -33,10 +33,14 @@ import org.structr.core.property.LowercaseStringProperty;
 import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaService;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
-	public static final String SUPERUSER_ID =                    "00000000000000000000000000000000";
+	static class Impl { static { SchemaService.registerBuiltinTypeOverride("Principal", null); }}
+
+	public static final Object HIDDEN                            = "****** HIDDEN ******";
+	public static final String SUPERUSER_ID                      = "00000000000000000000000000000000";
 	public static final String ANONYMOUS                         = "anonymous";
 	public static final String ANYONE                            = "anyone";
 
@@ -96,4 +100,191 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		return valid;
 	}
+
 }
+
+
+/*
+public abstract class AbstractUser extends AbstractNode implements Principal {
+
+	private static final Logger logger = LoggerFactory.getLogger(AbstractUser.class.getName());
+	private Boolean cachedIsAdminFlag  = null;
+
+	@Override
+	public boolean isValid(ErrorBuffer errorBuffer) {
+
+		boolean valid = true;
+
+		// call default method of principal
+		valid &= Principal.super.isValid(errorBuffer);
+		valid &= super.isValid(errorBuffer);
+
+		return valid;
+	}
+
+	@Override
+	public void addSessionId(final String sessionId) {
+
+		try {
+
+			final String[] ids = getProperty(Principal.sessionIds);
+			if (ids != null) {
+
+				if (!ArrayUtils.contains(ids, sessionId)) {
+
+					setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(getProperty(Principal.sessionIds), sessionId));
+
+				}
+
+			} else {
+
+				setProperty(Principal.sessionIds, new String[] {  sessionId } );
+			}
+
+
+		} catch (FrameworkException ex) {
+			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+		}
+	}
+
+	@Override
+	public void removeSessionId(final String sessionId) {
+
+		try {
+
+			final String[] ids = getProperty(Principal.sessionIds);
+			List<String> newSessionIds = new ArrayList<>();
+
+			if (ids != null) {
+
+				for (final String id : ids) {
+
+					if (!id.equals(sessionId)) {
+
+						newSessionIds.add(id);
+
+					}
+
+				}
+			}
+
+			setProperties(securityContext, new PropertyMap(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[newSessionIds.size()])));
+
+		} catch (FrameworkException ex) {
+			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
+		}
+	}
+
+	@Override
+	public boolean isAdmin() {
+
+		if (cachedIsAdminFlag == null) {
+
+			cachedIsAdminFlag = getProperty(Principal.isAdmin);
+			if (cachedIsAdminFlag == null) {
+
+				cachedIsAdminFlag = false;
+			}
+		}
+
+		return cachedIsAdminFlag;
+	}
+
+	@Override
+	public List<Principal> getParents() {
+
+		List<Principal> parents         = new LinkedList<>();
+
+		for (Groups rel : getIncomingRelationships(Groups.class)) {
+
+			if (rel != null && rel.getSourceNode() != null) {
+
+				parents.add(rel.getSourceNode());
+
+			}
+		}
+
+		return parents;
+	}
+
+	@Override
+	public boolean isValidPassword(final String password) {
+
+		final String encryptedPasswordFromDatabase = getEncryptedPassword();
+		if (encryptedPasswordFromDatabase != null) {
+
+			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt());
+
+			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public String getEncryptedPassword() {
+
+		boolean dbNodeHasProperty = dbNode.hasProperty(password.dbName());
+
+		if (dbNodeHasProperty) {
+
+			Object dbValue = dbNode.getProperty(password.dbName());
+
+			return (String) dbValue;
+
+		} else {
+
+			return null;
+		}
+	}
+
+	@Override
+	public String getSalt() {
+
+		boolean dbNodeHasProperty = dbNode.hasProperty(salt.dbName());
+
+		if (dbNodeHasProperty) {
+
+			Object dbValue = dbNode.getProperty(salt.dbName());
+
+			return (String) dbValue;
+
+		} else {
+
+			return null;
+		}
+	}
+
+	@Override
+	public <T> T getProperty(final PropertyKey<T> key, final Predicate<GraphObject> predicate) {
+
+		if (password.equals(key) || salt.equals(key)) {
+
+			return (T) HIDDEN;
+
+		} else {
+
+			return super.getProperty(key, predicate);
+
+		}
+
+	}
+
+	@Override
+	public Set<String> getAllowedPermissions() {
+		return null;
+	}
+
+	@Override
+	public Set<String> getDeniedPermissions() {
+		return null;
+	}
+
+	@Override
+	public boolean shouldSkipSecurityRelationships() {
+		return false;
+	}
+}
+*/

@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
@@ -114,7 +114,7 @@ public class AuthHelper {
 
 			try {
 
-				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).disableSorting().getFirst();
+				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractNode.name, value).disableSorting().getFirst();
 
 				if (principal == null) {
 

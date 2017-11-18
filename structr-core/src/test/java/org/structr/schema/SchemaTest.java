@@ -37,8 +37,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
-import org.structr.core.entity.Group;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaMethod;
@@ -46,6 +44,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -200,7 +199,7 @@ public class SchemaTest extends StructrTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
-			final JsonType contact  = sourceSchema.addType("Contact").setExtends(StructrApp.getSchemaId(AbstractUser.class));
+			final JsonType contact  = sourceSchema.addType("Contact").setExtends(sourceSchema.getType("Principal"));
 			final JsonType customer = sourceSchema.addType("Customer").setExtends(contact);
 
 			final String schema = sourceSchema.toString();
@@ -482,7 +481,8 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testJavaSchemaMethod() {
 
-		Group group = null;
+		final Class groupType = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		NodeInterface group   = null;
 
 		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
 
@@ -507,7 +507,7 @@ public class SchemaTest extends StructrTest {
 				new NodeAttribute<>(SchemaMethod.isJava, true)
 			);
 
-			group = app.create(Group.class, "test");
+			group = app.create(groupType, "test");
 
 			tx.success();
 

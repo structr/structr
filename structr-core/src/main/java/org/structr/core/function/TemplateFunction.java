@@ -22,7 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.MailTemplate;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -55,15 +55,18 @@ public class TemplateFunction extends Function<Object, Object> {
 				return null;
 			}
 
-			final App app                      = StructrApp.getInstance(ctx.getSecurityContext());
-			final String name                  = sources[0].toString();
-			final String locale                = sources[1].toString();
-			final MailTemplate template        = app.nodeQuery(MailTemplate.class).andName(name).and(MailTemplate.locale, locale).getFirst();
-			final GraphObject templateInstance = (GraphObject)sources[2];
+			final Class type                    = StructrApp.getConfiguration().getNodeEntityClass("MailTemplate");
+			final PropertyKey<String> localeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "locale");
+			final PropertyKey<String> textKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "text");
+			final App app                       = StructrApp.getInstance(ctx.getSecurityContext());
+			final String name                   = sources[0].toString();
+			final String locale                 = sources[1].toString();
+			final GraphObject template          = app.nodeQuery(type).andName(name).and(localeKey, locale).getFirst();
+			final GraphObject templateInstance  = (GraphObject)sources[2];
 
 			if (template != null) {
 
-				final String text = template.getProperty(MailTemplate.text);
+				final String text = template.getProperty(textKey);
 				if (text != null) {
 
 					// recursive replacement call, be careful here

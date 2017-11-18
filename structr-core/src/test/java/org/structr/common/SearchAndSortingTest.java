@@ -40,12 +40,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.SixOneManyToMany;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.entity.TestSix;
-import org.structr.core.entity.TestUser;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -1089,7 +1088,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			props.put(key, date);
 
-			AbstractNode node = createTestNode(type, props);
+			NodeInterface node = createTestNode(type, props);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1174,7 +1173,7 @@ public class SearchAndSortingTest extends StructrTest {
 			props.put(lon, 8.73923d);
 			props.put(AbstractNode.name, "TestSeven-0");
 
-			AbstractNode node = createTestNode(type, props);
+			NodeInterface node = createTestNode(type, props);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1788,8 +1787,8 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create non-admin user
-			tester1 = app.create(TestUser.class, "tester1");
-			tester2 = app.create(TestUser.class, "tester2");
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
 
 			tx.success();
 

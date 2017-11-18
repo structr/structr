@@ -48,10 +48,9 @@ import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.Location;
-import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.OneThreeOneToOne;
 import org.structr.core.entity.OneTwoOneToOne;
-import org.structr.core.entity.Person;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
@@ -68,7 +67,6 @@ import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestTen;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
-import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
@@ -852,13 +850,11 @@ public class BasicTest extends StructrTest {
 			assertTrue(entityList.contains(AbstractNode.class));
 			assertTrue(entityList.contains(GenericNode.class));
 			assertTrue(entityList.contains(Location.class));
-			assertTrue(entityList.contains(Person.class));
 			assertTrue(entityList.contains(ResourceAccess.class));
 
 			// Don't test these, it would fail due to violated constraints
 			entityList.remove(TestTwo.class);
 			entityList.remove(TestNine.class);
-			entityList.remove(MailTemplate.class);
 			entityList.remove(SchemaNode.class);
 			entityList.remove(SchemaRelationshipNode.class);
 
@@ -1243,9 +1239,11 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			final PropertyMap props = new PropertyMap();
-			final String type       = "Group";
-			final String name       = "TestGroup-1";
+			final Class groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
+			final PropertyKey<Boolean> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "isGroup");
+			final PropertyMap props        = new PropertyMap();
+			final String type              = "Group";
+			final String name              = "TestGroup-1";
 
 			NodeInterface node      = null;
 
@@ -1263,7 +1261,7 @@ public class BasicTest extends StructrTest {
 				// Check defaults
 				assertEquals(Group.class.getSimpleName(), node.getProperty(AbstractNode.type));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
-				assertTrue(node.getProperty(Group.isGroup));
+				assertTrue(node.getProperty(key));
 			}
 
 			final String name2 = "TestGroup-2";
@@ -1272,7 +1270,7 @@ public class BasicTest extends StructrTest {
 
 				// Modify values
 				node.setProperty(AbstractNode.name, name2);
-				node.setProperty(Group.isGroup, false);
+				node.setProperty(key, false);
 
 				fail("Should have failed with an exception: Group.isGroup is_read_only_property");
 
@@ -1563,7 +1561,7 @@ public class BasicTest extends StructrTest {
 			// create two OWNS relationships with different end node types
 			final TestOne testOne     = app.create(TestOne.class, "testone");
 			final TestThree testThree = app.create(TestThree.class, "testthree");
-			final TestUser testUser   = app.create(TestUser.class, "testuser");
+			final Principal testUser  = app.create(Principal.class, "testuser");
 
 			testOne.setProperty(TestOne.testThree, testThree);
 			testThree.setProperty(TestThree.owner, testUser);
@@ -1596,13 +1594,13 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testRelationshipsOnNodeCreation() {
 
-		TestUser user = null;
+		Principal user = null;
 		TestOne test  = null;
 
 		// create user
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(TestUser.class, "tester");
+			user = app.create(Principal.class, "tester");
 
 			tx.success();
 
@@ -1778,8 +1776,8 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			AbstractNode start       = createTestNode(type1);
-			AbstractNode end         = createTestNode(type2);
+			NodeInterface start      = createTestNode(type1);
+			NodeInterface end        = createTestNode(type2);
 			AbstractRelationship rel = createTestRelationship(start, end, NodeHasLocation.class);
 
 			rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);

@@ -43,7 +43,7 @@ import org.structr.core.entity.TestEight;
 import org.structr.core.entity.TestFive;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
-import org.structr.core.entity.TestUser;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -75,7 +75,7 @@ public class SystemTest extends StructrTest {
 
 		try {
 
-			TestUser person = this.createTestNode(TestUser.class);
+			Principal person = this.createTestNode(Principal.class);
 
 			final SecurityContext securityContext = SecurityContext.getInstance(person, null, AccessMode.Backend);
 			testCallbacks(securityContext);

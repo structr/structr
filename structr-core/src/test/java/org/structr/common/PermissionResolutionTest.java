@@ -26,12 +26,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaRelationshipNode.Direction;
 import org.structr.core.entity.SchemaRelationshipNode.Propagation;
-import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -53,14 +53,14 @@ public class PermissionResolutionTest extends StructrTest {
 
 		SchemaRelationshipNode rel = null;
 		PropertyKey key            = null;
-		TestUser user1             = null;
+		Principal user1             = null;
 		Class type1                = null;
 		Class type2                = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create a test user
-			user1 = app.create(TestUser.class, "user1");
+			user1 = app.create(Principal.class, "user1");
 
 			// create schema setup with permission propagation
 			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");

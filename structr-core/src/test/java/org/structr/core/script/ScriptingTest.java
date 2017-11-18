@@ -51,8 +51,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
-import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -64,7 +62,7 @@ import org.structr.core.entity.TestOne.Status;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
-import org.structr.core.entity.TestUser;
+import org.structr.core.entity.Principal;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
@@ -260,7 +258,7 @@ public class ScriptingTest extends StructrTest {
 
 			// create two nodes and associate them with each other
 			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
-			final SchemaMethod method    = createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.grant(Structr.find('TestUser')[0], 'read', 'write'); }"));
+			final SchemaMethod method    = createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.grant(Structr.find('Principal')[0], 'read', 'write'); }"));
 
 			sourceNode.setProperty(SchemaNode.schemaMethods, Arrays.asList(new SchemaMethod[] { method } ));
 
@@ -291,7 +289,7 @@ public class ScriptingTest extends StructrTest {
 		// create test user
 		try (final Tx tx = app.tx()) {
 
-			testUser = app.create(TestUser.class,
+			testUser = app.create(Principal.class,
 				new NodeAttribute<>(Principal.name,     "test"),
 				new NodeAttribute<>(Principal.password, "test")
 			);
@@ -480,19 +478,21 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testCollectionOperations() {
 
+		final Class groupType                      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<List<Principal>> members = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "members");
 		Group group            = null;
-		TestUser user1         = null;
-		TestUser user2         = null;
+		Principal user1         = null;
+		Principal user2         = null;
 		TestOne testOne        = null;
 
 		// setup phase
 		try (final Tx tx = app.tx()) {
 
 			group = app.create(Group.class, "Group");
-			user1  = app.create(TestUser.class, "Tester1");
-			user2  = app.create(TestUser.class, "Tester2");
+			user1  = app.create(Principal.class, "Tester1");
+			user2  = app.create(Principal.class, "Tester2");
 
-			group.setProperty(Group.members, Arrays.asList(new Principal[] { user1 } ));
+			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
 
 
 			testOne = app.create(TestOne.class);
@@ -512,22 +512,22 @@ public class ScriptingTest extends StructrTest {
 			final ActionContext actionContext = new ActionContext(securityContext);
 
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, group.getProperty(Group.members).size());
-			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('TestUser', { name: 'Tester2' })[0]; }}", "test"));
+			assertEquals("Invalid prerequisite",     1, group.getProperty(members).size());
+			assertEquals("Invalid prerequisite", user2, Scripting.evaluate(actionContext, group, "${{ return Structr.find('Principal', { name: 'Tester2' })[0]; }}", "test"));
 
 			// test scripting association
-			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, group.getProperty(Group.members).size());
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; var users = group.members; users.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
+			assertEquals("Invalid scripted array operation result", 2, group.getProperty(members).size());
 
 			// reset group
-			group.setProperty(Group.members, Arrays.asList(new Principal[] { user1 } ));
+			group.setProperty(members, Arrays.asList(new Principal[] { user1 } ));
 
 			// test prerequisites
-			assertEquals("Invalid prerequisite",     1, group.getProperty(Group.members).size());
+			assertEquals("Invalid prerequisite",     1, group.getProperty(members).size());
 
 			// test direct push on member property
-			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('TestUser', { name: 'Tester2' })[0]); }}", "test");
-			assertEquals("Invalid scripted array operation result", 2, group.getProperty(Group.members).size());
+			Scripting.evaluate(actionContext, group, "${{ var group = Structr.find('Group')[0]; group.members.push(Structr.find('Principal', { name: 'Tester2' })[0]); }}", "test");
+			assertEquals("Invalid scripted array operation result", 2, group.getProperty(members).size());
 
 
 
@@ -622,7 +622,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final TestUser testUser = createTestNode(TestUser.class, "testuser");
+			final Principal testUser = createTestNode(Principal.class, "testuser");
 			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Backend));
 
 			//assertEquals("Invalid python scripting evaluation result", "Hello World from Python!\n", Scripting.evaluate(ctx, null, "${python{print \"Hello World from Python!\"}}"));
@@ -654,8 +654,8 @@ public class ScriptingTest extends StructrTest {
 		final String numberString1        = numberFormat1.format(2.234);
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
-		MailTemplate template             = null;
-		MailTemplate template2            = null;
+		NodeInterface template            = null;
+		NodeInterface template2           = null;
 		TestOne testOne                   = null;
 		TestTwo testTwo                   = null;
 		TestThree testThree               = null;
@@ -683,16 +683,16 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			// create mail template
-			template = createTestNode(MailTemplate.class);
-			template.setProperty(MailTemplate.name, "TEST");
-			template.setProperty(MailTemplate.locale, "en_EN");
-			template.setProperty(MailTemplate.text, "This is a template for ${this.name}");
+			template = createTestNode(getType("MailTemplate"));
+			template.setProperty(getKey("MailTemplate", "name"), "TEST");
+			template.setProperty(getKey("MailTemplate", "locale"), "en_EN");
+			template.setProperty(getKey("MailTemplate", "text"), "This is a template for ${this.name}");
 
 			// create mail template
-			template2 = createTestNode(MailTemplate.class);
-			template2.setProperty(MailTemplate.name, "TEST2");
-			template2.setProperty(MailTemplate.locale, "en_EN");
-			template2.setProperty(MailTemplate.text, "${this.aDouble}");
+			template2 = createTestNode(getType("MailTemplate"));
+			template2.setProperty(getKey("MailTemplate", "name"), "TEST2");
+			template2.setProperty(getKey("MailTemplate", "locale"), "en_EN");
+			template2.setProperty(getKey("MailTemplate", "text"), "${this.aDouble}");
 
 			// check existance
 			assertNotNull(testOne);
@@ -1936,7 +1936,7 @@ public class ScriptingTest extends StructrTest {
 	public void testSystemProperties () {
 		try {
 
-			final TestUser user  = createTestNode(TestUser.class);
+			final Principal user  = createTestNode(Principal.class);
 
 			// create new node
 			TestOne t1 = createTestNode(TestOne.class, user);

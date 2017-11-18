@@ -42,16 +42,12 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.TestOne;
-import org.structr.core.entity.TestUser;
-import org.structr.core.entity.TestUserExtendsUser;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Test access control with different permission levels.
@@ -70,8 +66,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 1);
-			TestUser user = (TestUser) users.get(0);
+			List<Principal> users = createTestNodes(Principal.class, 1);
+			Principal user        = users.get(0);
 
 			// Create node with user context
 			Class type = TestOne.class;
@@ -104,8 +100,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 1);
-			TestUser user = (TestUser) users.get(0);
+			List<Principal> users = createTestNodes(Principal.class, 1);
+			Principal user = (Principal) users.get(0);
 
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -142,8 +138,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 1);
-			TestUser user = (TestUser) users.get(0);
+			List<Principal> users = createTestNodes(Principal.class, 1);
+			Principal user = (Principal) users.get(0);
 
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -184,9 +180,9 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
-			TestUser user1 = (TestUser) users.get(0);
-			TestUser user2 = (TestUser) users.get(1);
+			List<Principal> users = createTestNodes(Principal.class, 2);
+			Principal user1 = (Principal) users.get(0);
+			Principal user2 = (Principal) users.get(1);
 
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -226,9 +222,9 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
-			TestUser user1 = (TestUser) users.get(0);
-			TestUser user2 = (TestUser) users.get(1);
+			List<Principal> users = createTestNodes(Principal.class, 2);
+			Principal user1 = (Principal) users.get(0);
+			Principal user2 = (Principal) users.get(1);
 
 			PropertyMap props = new PropertyMap();
 			props.put(AbstractNode.visibleToPublicUsers, true);
@@ -269,9 +265,9 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
-			TestUser user1 = (TestUser) users.get(0);
-			TestUser user2 = (TestUser) users.get(1);
+			List<Principal> users = createTestNodes(Principal.class, 2);
+			Principal user1 = (Principal) users.get(0);
+			Principal user2 = (Principal) users.get(1);
 			Result result = null;
 
 			// Let user 1 create a node
@@ -421,8 +417,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final TestUser owner = createTestNode(TestUser.class);
-			final TestUser user  = createTestNode(TestUser.class);
+			final Principal owner = createTestNode(Principal.class);
 
 			// create new node
 			createTestNode(TestOne.class, owner);
@@ -461,8 +456,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final TestUser owner = createTestNode(TestUser.class);
-			final TestUser user  = createTestNode(TestUser.class);
+			final Principal owner = createTestNode(Principal.class);
+			final Principal user  = createTestNode(Principal.class);
 
 			// create new node
 			final TestOne t1     = createTestNode(TestOne.class, owner);
@@ -575,8 +570,8 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void testGroupMembershipVisibility() {
 
-		TestUser user1 = null;
-		TestUser user2 = null;
+		Principal user1 = null;
+		Principal user2 = null;
 		Group group    = null;
 
 		// ################################################################################################################
@@ -584,8 +579,8 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(TestUser.class, "user1");
-			user2 = createTestNode(TestUser.class, "user2");
+			user1 = createTestNode(Principal.class, "user1");
+			user2 = createTestNode(Principal.class, "user2");
 
 			tx.success();
 
@@ -748,8 +743,8 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void testGroupVisibilityForMembers() {
 
-		TestUser user1 = null;
-		TestUser user2 = null;
+		Principal user1 = null;
+		Principal user2 = null;
 		Group group    = null;
 
 		// ################################################################################################################
@@ -757,8 +752,8 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(TestUser.class, "user1");
-			user2 = createTestNode(TestUser.class, "user2");
+			user1 = createTestNode(Principal.class, "user1");
+			user2 = createTestNode(Principal.class, "user2");
 
 			tx.success();
 
@@ -840,12 +835,12 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void test00CreatePrincipal() {
 
-		TestUser user1 = null;
+		Principal user1 = null;
 
 		try (final Tx tx = app.tx()) {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 1);
-			user1 = (TestUser) users.get(0);
+			List<Principal> users = createTestNodes(Principal.class, 1);
+			user1 = (Principal) users.get(0);
 			user1.setProperty(AbstractNode.name, "user1");
 
 			tx.success();
@@ -856,8 +851,8 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<TestUser> users = createTestNodes(TestUser.class, 1);
-			final TestUser invalidUser = (TestUser) users.get(0);
+			List<Principal> users = createTestNodes(Principal.class, 1);
+			final Principal invalidUser = (Principal) users.get(0);
 			invalidUser.setProperty(Principal.name , "tester");
 			invalidUser.setProperty(Principal.eMail, "invalid");
 
@@ -870,7 +865,7 @@ public class AccessControlTest extends StructrTest {
 			final ErrorToken token = ex.getErrorBuffer().getErrorTokens().get(0);
 
 			assertEquals("Invalid error code", 422, ex.getStatus());
-			assertEquals("Invalid error code", "TestUser", token.getType());
+			assertEquals("Invalid error code", "Principal", token.getType());
 			assertEquals("Invalid error code", "eMail", token.getProperty());
 			assertEquals("Invalid error code", "must_contain_at_character", token.getToken());
 			assertEquals("Invalid error code", "invalid", token.getDetail());
@@ -881,7 +876,7 @@ public class AccessControlTest extends StructrTest {
 		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1, AccessMode.Frontend));
 		try (final Tx tx = user1App.tx()) {
 
-			final TestUserExtendsUser user2 = user1App.create(TestUserExtendsUser.class);
+			final Principal user2 = user1App.create(Principal.class);
 
 			assertNotNull(user2);
 
@@ -896,18 +891,18 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			TestUser user1 = null;
-			TestUser user2 = null;
+			Principal user1 = null;
+			Principal user2 = null;
 			TestOne t1 = null;
 			Class type = TestOne.class;
 
 			try (final Tx tx = app.tx()) {
 
-				List<TestUser> users = createTestNodes(TestUser.class, 2);
-				user1 = (TestUser) users.get(0);
+				List<Principal> users = createTestNodes(Principal.class, 2);
+				user1 = (Principal) users.get(0);
 				user1.setProperty(AbstractNode.name, "user1");
 
-				user2 = (TestUser) users.get(1);
+				user2 = (Principal) users.get(1);
 				user2.setProperty(AbstractNode.name, "user2");
 
 				t1 = createTestNode(TestOne.class);
@@ -968,8 +963,8 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<TestUser> users = createTestNodes(TestUser.class, 2);
-			final TestUser user1       = (TestUser) users.get(0);
+			final List<Principal> users = createTestNodes(Principal.class, 2);
+			final Principal user1       = (Principal) users.get(0);
 			final Group group1         = createTestNode(Group.class, "test group");
 			final TestOne t1           = createTestNode(TestOne.class);
 
@@ -1001,7 +996,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			TestUser nonAdmin = createTestNode(TestUser.class);
+			Principal nonAdmin = createTestNode(Principal.class);
 
 			final SecurityContext userContext = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
 			nonAdmin.setSecurityContext(userContext);
@@ -1011,7 +1006,7 @@ public class AccessControlTest extends StructrTest {
 
 				assertFalse(nonAdmin.isAdmin());
 
-				nonAdmin.setProperty(TestUser.isAdmin, true);
+				nonAdmin.setProperty(Principal.isAdmin, true);
 
 				fail("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!");
 
@@ -1028,7 +1023,7 @@ public class AccessControlTest extends StructrTest {
 				assertFalse(nonAdmin.isAdmin());
 
 				PropertyMap props = new PropertyMap();
-				props.put(TestUser.isAdmin, true);
+				props.put(Principal.isAdmin, true);
 				nonAdmin.setProperties(userContext, props);
 
 				fail("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!");
