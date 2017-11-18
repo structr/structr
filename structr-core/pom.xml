@@ -231,6 +231,7 @@
 				<directory>src/main/java</directory>
 				<includes>
 					<include>**/*.properties</include>
+					<include>**/*Mixin.java</include>
 				</includes>
 			</resource>
 			<resource>

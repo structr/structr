@@ -663,37 +663,6 @@ public class SchemaHelper {
 		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, implementedInterfaces, extendsAbstractNode);
 		SchemaHelper.formatSaveActions(schemaNode, src, saveActions, implementedInterfaces);
 
-		// after-Methods
-		src.append("\n\t@Override\n\tpublic void afterCreation(final SecurityContext securityContext) {\n\n");
-		src.append("\t\tsuper.afterCreation(securityContext);\n");
-
-		for (final Class iface : implementedInterfaces) {
-			if (hasMethod(iface, "afterCreation", SecurityContext.class)) {
-				src.append("\t\t").append(iface.getName()).append(".super.afterCreation(securityContext);\n");
-			}
-		}
-		src.append("\n\t}\n\n");
-
-		src.append("\t@Override\n\tpublic void afterModification(final SecurityContext securityContext) {\n\n");
-		src.append("\t\tsuper.afterModification(securityContext);\n");
-
-		for (final Class iface : implementedInterfaces) {
-			if (hasMethod(iface, "afterModification", SecurityContext.class)) {
-				src.append("\t\t").append(iface.getName()).append(".super.afterModification(securityContext);\n");
-			}
-		}
-		src.append("\n\t}\n\n");
-
-		src.append("\t@Override\n\tpublic void afterDeletion(final SecurityContext securityContext, final org.structr.core.property.PropertyMap properties) {\n\n");
-		src.append("\t\tsuper.afterDeletion(securityContext, properties);\n");
-
-		for (final Class iface : implementedInterfaces) {
-			if (hasMethod(iface, "afterDeletion", SecurityContext.class, PropertyMap.class)) {
-				src.append("\t\t").append(iface.getName()).append(".super.afterDeletion(securityContext, properties);\n");
-			}
-		}
-		src.append("\n\t}\n\n");
-
 		// insert dynamic code here
 		src.append(mixinCodeBuffer);
 
@@ -1175,30 +1144,24 @@ public class SchemaHelper {
 
 	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<Class> implementedInterfaces, final boolean extendsAbstractNode) {
 
-		src.append("\n\t@Override\n");
-		src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
-		src.append("\t\tboolean valid = ");
-		src.append("super.isValid(errorBuffer);\n\n");
+		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
 
-		// interfaces
-		for (final Class iface : implementedInterfaces) {
+			src.append("\n\t@Override\n");
+			src.append("\tpublic boolean isValid(final ErrorBuffer errorBuffer) {\n\n");
+			src.append("\t\tboolean valid = super.isValid(errorBuffer);\n\n");
 
-			if (hasMethod(iface, "isValid", ErrorBuffer.class)) {
-				src.append("\t\tvalid &= ").append(iface.getName()).append(".super.isValid(errorBuffer);\n");
+			for (final Validator validator : validators) {
+				src.append("\t\tvalid &= ").append(validator.getSource("this", true)).append(";\n");
 			}
+
+			if (!compoundIndexKeys.isEmpty()) {
+
+				src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");\n");
+			}
+
+			src.append("\n\t\treturn valid;\n");
+			src.append("\t}\n");
 		}
-
-		for (final Validator validator : validators) {
-			src.append("\t\tvalid &= ").append(validator.getSource("this", true)).append(";\n");
-		}
-
-		if (!compoundIndexKeys.isEmpty()) {
-
-			src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");\n");
-		}
-
-		src.append("\n\t\treturn valid;\n");
-		src.append("\t}\n");
 	}
 
 	public static void formatSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions, final Set<Class> implementedInterfaces) {

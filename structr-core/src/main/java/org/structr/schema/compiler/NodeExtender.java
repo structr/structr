@@ -192,7 +192,7 @@ public class NodeExtender {
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
 				// log also to log file
-				logger.warn("Unable to compile dynamic entity {}: {}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
+				logger.warn("Unable to compile dynamic entity {}:{}: {}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH));
 			}
 		}
 	}

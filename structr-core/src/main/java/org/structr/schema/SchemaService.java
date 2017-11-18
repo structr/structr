@@ -23,6 +23,8 @@
 
 package org.structr.schema;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,12 +52,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.compiler.NodeExtender;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -63,10 +66,10 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class SchemaService implements Service {
 
-	private static final Logger logger                           = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final AtomicBoolean compiling                 = new AtomicBoolean(false);
-	private static final AtomicBoolean updating                  = new AtomicBoolean(false);
-	private static final Map<String, VirtualSchemaInfo> mixinMap = new LinkedHashMap<>();
+	private static final Logger logger           = LoggerFactory.getLogger(SchemaService.class.getName());
+	private static final AtomicBoolean compiling = new AtomicBoolean(false);
+	private static final AtomicBoolean updating  = new AtomicBoolean(false);
+	private static JsonSchema runtimeSchema      = StructrSchema.newInstance(URI.create("https://structr.org/schema"));
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -86,16 +89,8 @@ public class SchemaService implements Service {
 		return true;
 	}
 
-	public static void registerMixinType(final Class<? extends NodeInterface> iface) {
-		registerMixinType(iface.getSimpleName(), (Class)null, iface);
-	}
-
-	public static void registerMixinType(final String type, final Class<? extends AbstractNode> baseClass, final Class... interfaces) {
-		registerMixinType(type, baseClass != null ?  baseClass.getName() : null, interfaces);
-	}
-
-	public static void registerMixinType(final String type, final String baseClass, final Class... interfaces) {
-		mixinMap.put(type, new VirtualSchemaInfo(type, baseClass, interfaces));
+	public static JsonSchema getRuntimeSchema() {
+		return runtimeSchema;
 	}
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
@@ -240,6 +235,16 @@ public class SchemaService implements Service {
 
 		final App app = StructrApp.getInstance();
 
+		try {
+
+			StructrSchema.extendDatabaseSchema(app, runtimeSchema);
+
+		} catch (URISyntaxException ex) {
+
+			ex.printStackTrace();
+		}
+
+		/*
 		for (final Entry<String, VirtualSchemaInfo> entry : mixinMap.entrySet()) {
 
 			final String typeName        = entry.getKey();
@@ -256,6 +261,7 @@ public class SchemaService implements Service {
 				);
 			}
 		}
+		*/
 	}
 
 	@Override

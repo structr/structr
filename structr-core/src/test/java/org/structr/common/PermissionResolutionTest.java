@@ -37,8 +37,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Test access control with different permission levels.
  *
@@ -53,7 +51,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		SchemaRelationshipNode rel = null;
 		PropertyKey key            = null;
-		Principal user1             = null;
+		Principal user1            = null;
 		Class type1                = null;
 		Class type2                = null;
 

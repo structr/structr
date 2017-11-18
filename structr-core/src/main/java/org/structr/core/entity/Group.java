@@ -18,9 +18,22 @@
  */
 package org.structr.core.entity;
 
+import java.net.URISyntaxException;
+import org.structr.schema.SchemaService;
+
 /**
  */
 public interface Group extends Principal {
+
+	static class Impl { static {
+
+			try {
+				SchemaService.getRuntimeSchema().addType("Group");
+
+			} catch (URISyntaxException ex) {
+				ex.printStackTrace();
+			}
+	}}
 
 	void addMember(final Principal member);
 	void removeMember(final Principal member);
