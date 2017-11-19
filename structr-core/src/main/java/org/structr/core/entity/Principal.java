@@ -19,9 +19,13 @@
 package org.structr.core.entity;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import org.apache.commons.lang3.ArrayUtils;
+import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
@@ -32,14 +36,43 @@ import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
 	static class Impl { static {
 
-		SchemaService.getRuntimeSchema()
-			.addType("Principal")
-			.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
+		final JsonSchema schema        = SchemaService.getDynamicSchema();
+		final JsonObjectType principal = schema.addType("Principal");
+		final JsonObjectType group     = (JsonObjectType)schema.getType("Group");
+
+		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
+
+		principal.addBooleanProperty("isAdmin");
+
+		principal.addStringProperty("sessionData");
+		principal.addStringProperty("eMail").isUnique();
+		principal.addPasswordProperty("password");
+		principal.addStringProperty("salt");
+		principal.addStringProperty("locale");
+		principal.addStringProperty("publicKey");
+		principal.addStringProperty("proxyUrl");
+		principal.addStringProperty("proxyUsername");
+		principal.addStringProperty("proxyPassword");
+
+		//type.addStringArrayProperty("sessionIds");
+		principal.addStringArrayProperty("publicKeys");
+
+		principal.addMethod("boolean", "shouldSkipSecurityRelationships", "", "return false;");
+		principal.addMethod("boolean", "isAdmin",                         "", "return getProperty(isAdminProperty);");
+
+		principal.addMethod("boolean", "isValidPassword",                 "String password",  "return org.structr.core.entity.Principal.isValidPassword(this, password);");
+		principal.addMethod("void",    "addSessionId",                    "String sessionId", "org.structr.core.entity.Principal.addSessionId(this, sessionId);");
+		principal.addMethod("void",    "removeSessionId",                 "String sessionId", "org.structr.core.entity.Principal.removeSessionId(this, sessionId);");
+
+		// create relationship
+		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "members", "groups");
 	}}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";
@@ -62,25 +95,130 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final Property<String> proxyUsername           = new StringProperty("proxyUsername");
 	public static final Property<String> proxyPassword           = new StringProperty("proxyPassword");
 
-	public List<Principal> getParents();
+	List<Principal> getParents();
 
-	public boolean isValidPassword(final String password);
-	public String getEncryptedPassword();
-	public String getSalt();
+	boolean isValidPassword(final String password);
+	void addSessionId(final String sessionId);
+	void removeSessionId(final String sessionId);
 
-	public void addSessionId(final String sessionId);
+	boolean isAdmin();
+	boolean shouldSkipSecurityRelationships();
 
-	public void removeSessionId(final String sessionId);
+	public static void addSessionId(final Principal principal, final String sessionId) {
 
-	public boolean isAdmin();
-	public boolean shouldSkipSecurityRelationships();
+		try {
 
-	public Set<String> getAllowedPermissions();
-	public Set<String> getDeniedPermissions();
+			final String[] ids = principal.getProperty(Principal.sessionIds);
+			if (ids != null) {
+
+				if (!ArrayUtils.contains(ids, sessionId)) {
+
+					principal.setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(principal.getProperty(Principal.sessionIds), sessionId));
+				}
+
+			} else {
+
+				principal.setProperty(Principal.sessionIds, new String[] {  sessionId } );
+			}
+
+
+		} catch (FrameworkException ex) {
+			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+		}
+	}
+
+	public static void removeSessionId(final Principal principal, final String sessionId) {
+
+		try {
+
+			final String[] ids         = principal.getProperty(Principal.sessionIds);
+			List<String> newSessionIds = new ArrayList<>();
+
+			if (ids != null) {
+
+				for (final String id : ids) {
+
+					if (!id.equals(sessionId)) {
+
+						newSessionIds.add(id);
+					}
+				}
+			}
+
+			principal.setProperty(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[0]));
+
+		} catch (FrameworkException ex) {
+			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
+		}
+	}
+
+	public static boolean isValidPassword(final Principal principal, final String password) {
+
+		final String encryptedPasswordFromDatabase = getEncryptedPassword(principal);
+		if (encryptedPasswordFromDatabase != null) {
+
+			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt(principal));
+
+			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static String getEncryptedPassword(final Principal principal) {
+
+		final Node dbNode = principal.getNode();
+		if (dbNode.hasProperty("password")) {
+
+			return (String)dbNode.getProperty("password");
+		}
+
+		return null;
+	}
+
+	public static String getSalt(final Principal principal) {
+
+		final Node dbNode = principal.getNode();
+		if (dbNode.hasProperty("salt")) {
+
+			return (String) dbNode.getProperty("salt");
+		}
+
+		return null;
+	}
 }
 
 
 /*
+
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = true;
+
+		valid &= ValidationHelper.isValidStringNotBlank(this, name, errorBuffer);
+		valid &= ValidationHelper.isValidUniqueProperty(this, eMail, errorBuffer);
+
+		final String _eMail = getProperty(eMail);
+		if (_eMail != null) {
+
+			// verify that the address contains at least the @ character,
+			// which is a requirement for it to be distinguishable from
+			// a user name, so email addresses can less easily interfere
+			// with user names.
+			if (!_eMail.contains("@")) {
+
+				valid = false;
+
+				errorBuffer.add(new SemanticErrorToken(getClass().getSimpleName(), eMail, "must_contain_at_character", _eMail));
+			}
+		}
+
+		return valid;
+	}
+
 public abstract class AbstractUser extends AbstractNode implements Principal {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractUser.class.getName());
@@ -96,59 +234,6 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		valid &= super.isValid(errorBuffer);
 
 		return valid;
-	}
-
-	@Override
-	public void addSessionId(final String sessionId) {
-
-		try {
-
-			final String[] ids = getProperty(Principal.sessionIds);
-			if (ids != null) {
-
-				if (!ArrayUtils.contains(ids, sessionId)) {
-
-					setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(getProperty(Principal.sessionIds), sessionId));
-
-				}
-
-			} else {
-
-				setProperty(Principal.sessionIds, new String[] {  sessionId } );
-			}
-
-
-		} catch (FrameworkException ex) {
-			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
-		}
-	}
-
-	@Override
-	public void removeSessionId(final String sessionId) {
-
-		try {
-
-			final String[] ids = getProperty(Principal.sessionIds);
-			List<String> newSessionIds = new ArrayList<>();
-
-			if (ids != null) {
-
-				for (final String id : ids) {
-
-					if (!id.equals(sessionId)) {
-
-						newSessionIds.add(id);
-
-					}
-
-				}
-			}
-
-			setProperties(securityContext, new PropertyMap(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[newSessionIds.size()])));
-
-		} catch (FrameworkException ex) {
-			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
-		}
 	}
 
 	@Override
@@ -181,56 +266,6 @@ public abstract class AbstractUser extends AbstractNode implements Principal {
 		}
 
 		return parents;
-	}
-
-	@Override
-	public boolean isValidPassword(final String password) {
-
-		final String encryptedPasswordFromDatabase = getEncryptedPassword();
-		if (encryptedPasswordFromDatabase != null) {
-
-			final String encryptedPasswordToCheck = HashHelper.getHash(password, getSalt());
-
-			if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	@Override
-	public String getEncryptedPassword() {
-
-		boolean dbNodeHasProperty = dbNode.hasProperty(password.dbName());
-
-		if (dbNodeHasProperty) {
-
-			Object dbValue = dbNode.getProperty(password.dbName());
-
-			return (String) dbValue;
-
-		} else {
-
-			return null;
-		}
-	}
-
-	@Override
-	public String getSalt() {
-
-		boolean dbNodeHasProperty = dbNode.hasProperty(salt.dbName());
-
-		if (dbNodeHasProperty) {
-
-			Object dbValue = dbNode.getProperty(salt.dbName());
-
-			return (String) dbValue;
-
-		} else {
-
-			return null;
-		}
 	}
 
 	@Override

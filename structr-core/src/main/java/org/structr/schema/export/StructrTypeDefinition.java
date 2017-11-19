@@ -19,7 +19,6 @@
 package org.structr.schema.export;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -122,6 +121,20 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonType addMethod(final String returnType, final String name, final String parameters, final String source) {
+
+		final TreeMap methodDefinition = new TreeMap();
+
+		methodDefinition.put(SchemaMethod.returnType.jsonName(), returnType);
+		methodDefinition.put(SchemaMethod.parameters.jsonName(), parameters);
+		methodDefinition.put(SchemaMethod.source.jsonName(), source);
+		methodDefinition.put(SchemaMethod.isJava.jsonName(), true);
+
+		methods.put(name, methodDefinition);
+		return this;
+	}
+
+	@Override
 	public JsonType setExtends(final JsonType superType) {
 
 		this.baseTypeReference = superType.getId();
@@ -197,7 +210,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonStringProperty addStringProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonStringProperty addStringProperty(final String name, final String... views) {
 
 		final StructrStringProperty stringProperty = new StructrStringProperty(this, name);
 
@@ -209,7 +222,19 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonStringProperty addPasswordProperty(final String name, final String... views) {
+
+		final StructrPasswordProperty passwordProperty = new StructrPasswordProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(passwordProperty);
+
+		return passwordProperty;
+	}
+
+	@Override
+	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) {
 
 		final StructrStringArrayProperty stringProperty = new StructrStringArrayProperty(this, name);
 
@@ -221,7 +246,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonDateProperty addDateProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonDateProperty addDateProperty(final String name, final String... views) {
 
 		final StructrDateProperty dateProperty = new StructrDateProperty(this, name);
 
@@ -234,7 +259,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonIntegerProperty addIntegerProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonIntegerProperty addIntegerProperty(final String name, final String... views) {
 
 		final StructrIntegerProperty numberProperty = new StructrIntegerProperty(this, name);
 
@@ -246,7 +271,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views) {
 
 		final StructrIntegerArrayProperty numberProperty = new StructrIntegerArrayProperty(this, name);
 
@@ -258,7 +283,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonLongProperty addLongProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonLongProperty addLongProperty(final String name, final String... views) {
 
 		final StructrLongProperty numberProperty = new StructrLongProperty(this, name);
 
@@ -270,7 +295,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonLongArrayProperty addLongArrayProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonLongArrayProperty addLongArrayProperty(final String name, final String... views) {
 
 		final StructrLongArrayProperty numberProperty = new StructrLongArrayProperty(this, name);
 
@@ -282,7 +307,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonNumberProperty addNumberProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonNumberProperty addNumberProperty(final String name, final String... views) {
 
 		final StructrNumberProperty numberProperty = new StructrNumberProperty(this, name);
 
@@ -294,7 +319,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views) {
 
 		final StructrNumberArrayProperty numberArrayProperty = new StructrNumberArrayProperty(this, name);
 
@@ -306,7 +331,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) {
 
 		final StructrBooleanProperty booleanProperty = new StructrBooleanProperty(this, name);
 
@@ -318,7 +343,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views) {
 
 		final StructrBooleanArrayProperty booleanArrayProperty = new StructrBooleanArrayProperty(this, name);
 
@@ -330,7 +355,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonScriptProperty addScriptProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonScriptProperty addScriptProperty(final String name, final String... views) {
 
 		final StructrScriptProperty scriptProperty = new StructrScriptProperty(this, name);
 
@@ -342,7 +367,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonFunctionProperty addFunctionProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonFunctionProperty addFunctionProperty(final String name, final String... views) {
 
 		final StructrFunctionProperty functionProperty = new StructrFunctionProperty(this, name);
 
@@ -354,7 +379,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonEnumProperty addEnumProperty(final String name, final String... views) throws URISyntaxException {
+	public JsonEnumProperty addEnumProperty(final String name, final String... views) {
 
 		final StructrEnumProperty enumProperty = new StructrEnumProperty(this, name);
 
@@ -550,11 +575,17 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final SchemaMethod method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
 
-			final String _name     = method.getName();
-			final String _source   = method.getProperty(SchemaMethod.source);
-			final String _comment  = method.getProperty(SchemaMethod.comment);
+			final String _name       = method.getName();
+			final String _returnType = method.getProperty(SchemaMethod.returnType);
+			final String _parameters = method.getProperty(SchemaMethod.parameters);
+			final String _source     = method.getProperty(SchemaMethod.source);
+			final String _comment    = method.getProperty(SchemaMethod.comment);
 
-			addMethod(_name, _source, _comment);
+			if (_returnType != null && _parameters != null) {
+				addMethod(_returnType, _name, _parameters, _source);
+			} else {
+				addMethod(_name, _source, _comment);
+			}
 		}
 
 		// $extends
@@ -646,8 +677,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			app.create(SchemaMethod.class,
 				new NodeAttribute(SchemaMethod.schemaNode,    schemaNode),
 				new NodeAttribute(AbstractNode.name,          method.getKey()),
+				new NodeAttribute(SchemaMethod.returnType,    methodDefinition.get(SchemaMethod.returnType.jsonName())),
+				new NodeAttribute(SchemaMethod.parameters,    methodDefinition.get(SchemaMethod.parameters.jsonName())),
 				new NodeAttribute(SchemaMethod.source,        methodDefinition.get(SchemaMethod.source.jsonName())),
-				new NodeAttribute(SchemaMethod.comment,       methodDefinition.get(SchemaMethod.comment.jsonName()))
+				new NodeAttribute(SchemaMethod.comment,       methodDefinition.get(SchemaMethod.comment.jsonName())),
+				new NodeAttribute(SchemaMethod.isJava,        methodDefinition.containsKey(SchemaMethod.returnType.jsonName()))
 			);
 		}
 

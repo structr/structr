@@ -283,6 +283,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					}
 					break;
 
+				case "password":
+					newProperty = new StructrPasswordProperty(parent, name);
+					break;
+
 				case "thumbnail":
 					newProperty = new StructrThumbnailProperty(parent, name);
 					break;
@@ -431,6 +435,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				notionProperty.deserialize(property);
 
 				return notionProperty;
+
+			case Password:
+				final StructrPasswordProperty pwd = new StructrPasswordProperty(parent, name);
+				pwd.deserialize(property);
+				pwd.setDefaultValue(property.getDefaultValue());
+				return pwd;
 
 			case String:
 				final StructrStringProperty str = new StructrStringProperty(parent, name);

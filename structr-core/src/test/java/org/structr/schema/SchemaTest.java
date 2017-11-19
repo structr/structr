@@ -406,7 +406,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(schema.toString());
 
 
-		} catch (FrameworkException | URISyntaxException t) {
+		} catch (FrameworkException t) {
 			logger.warn("", t);
 		}
 
@@ -426,7 +426,7 @@ public class SchemaTest extends StructrTest {
 
 			checkSchemaString(schema.toString());
 
-		} catch (FrameworkException | URISyntaxException t) {
+		} catch (FrameworkException t) {
 			logger.warn("", t);
 		}
 

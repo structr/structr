@@ -66,10 +66,10 @@ import org.structr.schema.json.JsonSchema;
  */
 public class SchemaService implements Service {
 
-	private static final Logger logger           = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final AtomicBoolean compiling = new AtomicBoolean(false);
-	private static final AtomicBoolean updating  = new AtomicBoolean(false);
-	private static JsonSchema runtimeSchema      = StructrSchema.newInstance(URI.create("https://structr.org/schema"));
+	private static final Logger logger            = LoggerFactory.getLogger(SchemaService.class.getName());
+	private static final JsonSchema dynamicSchema = StructrSchema.newInstance(URI.create("https://structr.org/v2.0/#"));
+	private static final AtomicBoolean compiling  = new AtomicBoolean(false);
+	private static final AtomicBoolean updating   = new AtomicBoolean(false);
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -89,8 +89,8 @@ public class SchemaService implements Service {
 		return true;
 	}
 
-	public static JsonSchema getRuntimeSchema() {
-		return runtimeSchema;
+	public static JsonSchema getDynamicSchema() {
+		return dynamicSchema;
 	}
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
@@ -237,7 +237,7 @@ public class SchemaService implements Service {
 
 		try {
 
-			StructrSchema.extendDatabaseSchema(app, runtimeSchema);
+			StructrSchema.extendDatabaseSchema(app, dynamicSchema);
 
 		} catch (URISyntaxException ex) {
 

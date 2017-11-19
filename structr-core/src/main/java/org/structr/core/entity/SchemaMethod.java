@@ -37,6 +37,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final Property<AbstractSchemaNode> schemaNode      = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 	public static final Property<String>             virtualFileName = new StringProperty("virtualFileName");
+	public static final Property<String>             returnType      = new StringProperty("returnType");
+	public static final Property<String>             parameters      = new StringProperty("parameters");
 	public static final Property<String>             source          = new StringProperty("source");
 	public static final Property<String>             comment         = new StringProperty("comment");
 	public static final Property<Boolean>            isJava          = new BooleanProperty("isJava");
@@ -54,7 +56,13 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	);
 
 	public ActionEntry getActionEntry() {
-		return new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source), getProperty(SchemaMethod.isJava));
+
+		final ActionEntry entry = new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source), getProperty(SchemaMethod.isJava));
+
+		entry.setReturnType(getProperty(returnType));
+		entry.setParameters(getProperty(parameters));
+
+		return entry;
 	}
 
 	// ----- interface Favoritable -----

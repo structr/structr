@@ -27,6 +27,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 public class ActionEntry implements Comparable<ActionEntry> {
 
 	private Actions.Type type  = null;
+	private String returnType  = null;
+	private String parameters  = null;
 	private String call        = null;
 	private String name        = null;
 	private int position       = 0;
@@ -73,7 +75,23 @@ public class ActionEntry implements Comparable<ActionEntry> {
 				break;
 		}
 
-		this.call = value.trim();
+		this.call = value;
+	}
+
+	public void setReturnType(final String returnType) {
+		this.returnType = returnType;
+	}
+
+	public String getReturnType() {
+		return this.returnType;
+	}
+
+	public void setParameters(final String parameters) {
+		this.parameters = parameters;
+	}
+
+	public String getParameters() {
+		return this.parameters;
 	}
 
 	public String getSource(final String objVariable) {
@@ -92,7 +110,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 			buf.append(Actions.class.getSimpleName());
 			buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
-			buf.append(StringEscapeUtils.escapeJava(call));
+			buf.append(StringEscapeUtils.escapeJava(call.trim()));
 			buf.append("}\"");
 
 			if (includeParameters) {

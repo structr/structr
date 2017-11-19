@@ -27,7 +27,7 @@ public interface Group extends Principal {
 
 	static class Impl { static {
 
-		SchemaService.getRuntimeSchema()
+		SchemaService.getDynamicSchema()
 			.addType("Group")
 			.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
 	}}

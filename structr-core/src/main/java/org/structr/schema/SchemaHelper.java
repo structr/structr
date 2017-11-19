@@ -104,6 +104,7 @@ import org.structr.schema.parser.JoinPropertyParser;
 import org.structr.schema.parser.LongArrayPropertyParser;
 import org.structr.schema.parser.LongPropertyParser;
 import org.structr.schema.parser.NotionPropertyParser;
+import org.structr.schema.parser.PasswordPropertySourceGenerator;
 import org.structr.schema.parser.PropertyDefinition;
 import org.structr.schema.parser.PropertySourceGenerator;
 import org.structr.schema.parser.StringArrayPropertyParser;
@@ -125,7 +126,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail;
+		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail, Password;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -141,6 +142,7 @@ public class SchemaHelper {
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
 		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
+		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
 		parserMap.put(Type.Integer, IntPropertyParser.class);
 		parserMap.put(Type.String, StringPropertySourceGenerator.class);
@@ -1200,16 +1202,33 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			final String source = action.getSource("this", true);
+			final String source     = action.getSource("this", true);
+			final String returnType = action.getReturnType();
+			final String parameters = action.getParameters();
 
-			src.append("\n\t@Export\n");
-			src.append("\tpublic java.lang.Object ");
-			src.append(action.getName());
-			src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
+			if (returnType != null && parameters != null) {
+
+				src.append("\n\tpublic ");
+				src.append(returnType);
+				src.append(" ");
+				src.append(action.getName());
+				src.append("(");
+				src.append(parameters);
+				src.append(") {\n");
+
+			} else {
+
+				src.append("\n\t@Export\n");
+				src.append("\tpublic java.lang.Object ");
+				src.append(action.getName());
+				src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
+			}
 
 			if (StringUtils.isNotBlank(source)) {
 
+				src.append("\t\t");
 				src.append(source);
+				src.append("\n");
 
 			} else {
 

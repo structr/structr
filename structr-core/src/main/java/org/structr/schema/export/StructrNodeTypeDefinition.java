@@ -19,7 +19,6 @@
 package org.structr.schema.export;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.TreeMap;
 import org.structr.common.error.FrameworkException;
@@ -43,12 +42,12 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
-	public JsonReferenceType relate(final JsonObjectType type) throws URISyntaxException {
+	public JsonReferenceType relate(final JsonObjectType type) {
 		return relate(type, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type.getName()));
 	}
 
 	@Override
-	public JsonReferenceType relate(URI externalTypeReference) throws URISyntaxException {
+	public JsonReferenceType relate(URI externalTypeReference) {
 
 		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
@@ -60,17 +59,17 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
-	public JsonReferenceType relate(final JsonObjectType type, final String relationship) throws URISyntaxException {
+	public JsonReferenceType relate(final JsonObjectType type, final String relationship) {
 		return relate(type, relationship, Cardinality.ManyToMany);
 	}
 
 	@Override
-	public JsonReferenceType relate(URI externalTypeReference, String relationship) throws URISyntaxException {
+	public JsonReferenceType relate(URI externalTypeReference, String relationship) {
 		return relate(externalTypeReference, relationship, Cardinality.ManyToMany);
 	}
 
 	@Override
-	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality) throws URISyntaxException {
+	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality) {
 
 		final String sourcePropertyName = getPropertyName(type.getName(), false,  relationship, cardinality);
 		final String targetPropertyName = getPropertyName(type.getName(), true, relationship, cardinality);
@@ -79,7 +78,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
-	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality) throws URISyntaxException {
+	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality) {
 
 		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
@@ -94,7 +93,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
-	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName) throws URISyntaxException {
+	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName) {
 
 		final String relationshipTypeName           = getName() + relationship + type.getName();
 		final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, relationshipTypeName);
@@ -113,7 +112,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
-	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality, String sourceAttributeName, String targetAttributeName) throws URISyntaxException {
+	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality, String sourceAttributeName, String targetAttributeName) {
 
 		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {

@@ -468,28 +468,8 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Set<String> getAllowedPermissions() {
-		return null;
-	}
-
-	@Override
-	public Set<String> getDeniedPermissions() {
-		return null;
-	}
-
-	@Override
 	public boolean isValidPassword(final String password) {
 		return false;
-	}
-
-	@Override
-	public String getEncryptedPassword() {
-		return null;
-	}
-
-	@Override
-	public String getSalt() {
-		return null;
 	}
 
 	@Override

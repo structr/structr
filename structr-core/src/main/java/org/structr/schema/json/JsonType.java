@@ -19,7 +19,6 @@
 package org.structr.schema.json;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
 
@@ -36,6 +35,8 @@ public interface JsonType extends Comparable<JsonType> {
 	public JsonType setName(final String name);
 
 	public JsonType addMethod(final String name, final String source, final String comment);
+	public JsonType addMethod(final String returnType, final String name, final String parameters, final String source);
+
 	public JsonType setExtends(final JsonType superType);
 	public JsonType setExtends(final URI externalReference);
 	public URI getExtends();
@@ -51,20 +52,21 @@ public interface JsonType extends Comparable<JsonType> {
 
 	public JsonType addViewProperty(final String viewName, final String propertyName);
 
-	public JsonStringProperty addStringProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonDateProperty addDateProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonIntegerProperty addIntegerProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonLongProperty addLongProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonNumberProperty addNumberProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonScriptProperty addScriptProperty(final String name, final String...views) throws URISyntaxException;
-	public JsonFunctionProperty addFunctionProperty(final String name, final String...views) throws URISyntaxException;
-	public JsonEnumProperty addEnumProperty(final String name, final String...views) throws URISyntaxException;
-	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonLongArrayProperty addLongArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views) throws URISyntaxException;
+	public JsonStringProperty addStringProperty(final String name, final String... views);
+	public JsonStringProperty addPasswordProperty(final String name, final String... views);
+	public JsonDateProperty addDateProperty(final String name, final String... views);
+	public JsonIntegerProperty addIntegerProperty(final String name, final String... views);
+	public JsonLongProperty addLongProperty(final String name, final String... views);
+	public JsonNumberProperty addNumberProperty(final String name, final String... views);
+	public JsonBooleanProperty addBooleanProperty(final String name, final String... views);
+	public JsonScriptProperty addScriptProperty(final String name, final String...views);
+	public JsonFunctionProperty addFunctionProperty(final String name, final String...views);
+	public JsonEnumProperty addEnumProperty(final String name, final String...views);
+	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
+	public JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
+	public JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
+	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);
+	public JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
 
 	public JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 }
