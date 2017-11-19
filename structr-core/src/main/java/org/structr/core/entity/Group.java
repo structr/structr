@@ -19,7 +19,13 @@
 package org.structr.core.entity;
 
 import java.net.URI;
+import java.util.List;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  */
@@ -27,11 +33,48 @@ public interface Group extends Principal {
 
 	static class Impl { static {
 
-		SchemaService.getDynamicSchema()
-			.addType("Group")
-			.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
+		final JsonSchema schema        = SchemaService.getDynamicSchema();
+		final JsonObjectType group     = schema.addType("Group");
+
+		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
+		group.setExtends(URI.create("#/definitions/Principal"));
+
+		group.addMethod("void", "addMember",    "org.structr.core.entity.Principal member", "org.structr.core.entity.Group.addMember(this, member);");
+		group.addMethod("void", "removeMember", "org.structr.core.entity.Principal member", "org.structr.core.entity.Group.removeMember(this, member);");
 	}}
 
 	void addMember(final Principal member);
 	void removeMember(final Principal member);
+
+
+	public static void addMember(final Principal principal, final Principal user) {
+
+		try {
+			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(Group.class, "members");
+			final List<Principal> _users           = principal.getProperty(key);
+
+			_users.add(user);
+
+			principal.setProperty(key, _users);
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+	}
+
+	public static void removeMember(final Principal principal, final Principal member) {
+
+		try {
+
+			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(Group.class, "members");
+			final List<Principal> _users           = principal.getProperty(key);
+
+			_users.remove(member);
+
+			principal.setProperty(key, _users);
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+	}
 }

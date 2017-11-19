@@ -41,6 +41,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             parameters      = new StringProperty("parameters");
 	public static final Property<String>             source          = new StringProperty("source");
 	public static final Property<String>             comment         = new StringProperty("comment");
+	public static final Property<Boolean>            throwsException = new BooleanProperty("throwsException");
 	public static final Property<Boolean>            isJava          = new BooleanProperty("isJava");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
@@ -61,6 +62,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		entry.setReturnType(getProperty(returnType));
 		entry.setParameters(getProperty(parameters));
+		entry.throwsException(getProperty(throwsException));
 
 		return entry;
 	}

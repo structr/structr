@@ -998,7 +998,9 @@ public class AccessControlTest extends StructrTest {
 
 			Principal nonAdmin = createTestNode(Principal.class);
 
-			final SecurityContext userContext = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
+			final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "isAdmin");
+			final SecurityContext userContext     = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
+
 			nonAdmin.setSecurityContext(userContext);
 			App userApp = StructrApp.getInstance(userContext);
 
@@ -1006,7 +1008,7 @@ public class AccessControlTest extends StructrTest {
 
 				assertFalse(nonAdmin.isAdmin());
 
-				nonAdmin.setProperty(Principal.isAdmin, true);
+				nonAdmin.setProperty(isAdminKey, true);
 
 				fail("Privilege escalation using setProperty()-method! Non-admin may not set an admin flag!");
 
@@ -1023,7 +1025,7 @@ public class AccessControlTest extends StructrTest {
 				assertFalse(nonAdmin.isAdmin());
 
 				PropertyMap props = new PropertyMap();
-				props.put(Principal.isAdmin, true);
+				props.put(isAdminKey, true);
 				nonAdmin.setProperties(userContext, props);
 
 				fail("Privilege escalation using setProperties()-method! Non-admin may not set an admin flag!");

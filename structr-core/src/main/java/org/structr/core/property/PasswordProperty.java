@@ -80,7 +80,9 @@ public class PasswordProperty extends StringProperty {
 
 			String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(Principal.salt, salt);
+			((Principal)obj).setSalt(salt);
+			//obj.setProperty(Principal.salt, salt);
+
 			return super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
 		} else {

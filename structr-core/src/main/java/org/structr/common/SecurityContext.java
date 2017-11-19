@@ -441,7 +441,7 @@ public class SecurityContext {
 
 		Principal user = getUser(false);
 
-		return ((user != null) && (user instanceof SuperUser || user.getProperty(Principal.isAdmin)));
+		return ((user != null) && (user instanceof SuperUser || user.isAdmin()));
 
 	}
 
@@ -687,9 +687,9 @@ public class SecurityContext {
 		if (cachedUser != null) {
 
 			// Priority 2: User locale
-			final String userLocaleString = cachedUser.getProperty(Principal.locale);
-
+			final String userLocaleString = cachedUser.getLocale();
 			if (userLocaleString != null) {
+				
 				userHasLocaleString = true;
 
 				try {

@@ -37,6 +37,9 @@ public interface JsonType extends Comparable<JsonType> {
 	public JsonType addMethod(final String name, final String source, final String comment);
 	public JsonType addMethod(final String returnType, final String name, final String parameters, final String source);
 
+	public JsonType addPropertyGetter(final String propertyName, final Class type);
+	public JsonType addPropertySetter(final String propertyName, final Class type);
+
 	public JsonType setExtends(final JsonType superType);
 	public JsonType setExtends(final URI externalReference);
 	public URI getExtends();

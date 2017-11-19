@@ -26,12 +26,13 @@ import org.apache.commons.lang3.StringEscapeUtils;
  */
 public class ActionEntry implements Comparable<ActionEntry> {
 
-	private Actions.Type type  = null;
-	private String returnType  = null;
-	private String parameters  = null;
-	private String call        = null;
-	private String name        = null;
-	private int position       = 0;
+	private Actions.Type type       = null;
+	private boolean throwsException = false;
+	private String returnType       = null;
+	private String parameters       = null;
+	private String call             = null;
+	private String name             = null;
+	private int position            = 0;
 
 	public ActionEntry(final String sourceName, final String value, final boolean isJava) {
 
@@ -84,6 +85,14 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public String getReturnType() {
 		return this.returnType;
+	}
+
+	public void throwsException(final boolean throwsException) {
+		this.throwsException = throwsException;
+	}
+
+	public boolean throwsException() {
+		return throwsException;
 	}
 
 	public void setParameters(final String parameters) {

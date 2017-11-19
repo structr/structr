@@ -1214,7 +1214,13 @@ public class SchemaHelper {
 				src.append(action.getName());
 				src.append("(");
 				src.append(parameters);
-				src.append(") {\n");
+				src.append(")");
+
+				if (action.throwsException()) {
+					src.append(" throws FrameworkException");
+				}
+
+				src.append(" {\n");
 
 			} else {
 

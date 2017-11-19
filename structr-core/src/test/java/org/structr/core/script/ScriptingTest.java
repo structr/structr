@@ -291,7 +291,7 @@ public class ScriptingTest extends StructrTest {
 
 			testUser = app.create(Principal.class,
 				new NodeAttribute<>(Principal.name,     "test"),
-				new NodeAttribute<>(Principal.password, "test")
+				new NodeAttribute<>(config.getPropertyKeyForJSONName(Principal.class, "password"), "test")
 			);
 
 			tx.success();

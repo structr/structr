@@ -495,4 +495,13 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public Class getEntityType() {
 		return SuperUser.class;
 	}
+
+	@Override
+	public void setSalt(String salt) {
+	}
+
+	@Override
+	public String getLocale() {
+		return null;
+	}
 }

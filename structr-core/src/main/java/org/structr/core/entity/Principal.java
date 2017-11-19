@@ -20,21 +20,20 @@ package org.structr.core.entity;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.LowercaseStringProperty;
-import org.structr.core.property.PasswordProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -50,6 +49,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
 
 		principal.addBooleanProperty("isAdmin");
+		principal.addBooleanProperty("blocked");
 
 		principal.addStringProperty("sessionData");
 		principal.addStringProperty("eMail").isUnique();
@@ -64,10 +64,16 @@ public interface Principal extends NodeInterface, AccessControllable {
 		//type.addStringArrayProperty("sessionIds");
 		principal.addStringArrayProperty("publicKeys");
 
+		principal.addMethod("List<org.structr.core.entity.Principal>", "getParents",              "", "return org.structr.core.entity.Principal.getParents(this);");
+
 		principal.addMethod("boolean", "shouldSkipSecurityRelationships", "", "return false;");
 		principal.addMethod("boolean", "isAdmin",                         "", "return getProperty(isAdminProperty);");
 
+		principal.addPropertyGetter("locale", String.class);
+		principal.addPropertySetter("salt", String.class);
+
 		principal.addMethod("boolean", "isValidPassword",                 "String password",  "return org.structr.core.entity.Principal.isValidPassword(this, password);");
+
 		principal.addMethod("void",    "addSessionId",                    "String sessionId", "org.structr.core.entity.Principal.addSessionId(this, sessionId);");
 		principal.addMethod("void",    "removeSessionId",                 "String sessionId", "org.structr.core.entity.Principal.removeSessionId(this, sessionId);");
 
@@ -81,28 +87,36 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final String ANYONE                            = "anyone";
 
 	public static final Property<String[]> sessionIds            = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty();
-	public static final Property<String> sessionData             = new StringProperty("sessionData");
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
-	public static final Property<Boolean> blocked                = new BooleanProperty("blocked");
 	public static final Property<String> eMail                   = new LowercaseStringProperty("eMail").cmis().indexed();
-	public static final Property<String> password                = new PasswordProperty("password");
-	public static final Property<String> salt                    = new StringProperty("salt");
-	public static final Property<Boolean> isAdmin                = new BooleanProperty("isAdmin").indexed().readOnly();
-	public static final Property<String> locale                  = new StringProperty("locale");
-	public static final Property<String> publicKey               = new StringProperty("publicKey");
-	public static final Property<String[]> publicKeys            = new ArrayProperty("publicKeys", String.class);
-	public static final Property<String> proxyUrl                = new StringProperty("proxyUrl");
-	public static final Property<String> proxyUsername           = new StringProperty("proxyUsername");
-	public static final Property<String> proxyPassword           = new StringProperty("proxyPassword");
 
 	List<Principal> getParents();
 
 	boolean isValidPassword(final String password);
+
 	void addSessionId(final String sessionId);
 	void removeSessionId(final String sessionId);
 
+	void setSalt(final String salt) throws FrameworkException;
+
 	boolean isAdmin();
 	boolean shouldSkipSecurityRelationships();
+
+	String getLocale();
+
+	public static List<Principal> getParents(final Principal principal) {
+
+		List<Principal> parents = new LinkedList<>();
+
+		for (final Principal parent : (List<Principal>)principal.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "groups"))) {
+
+			if (parent != null) {
+				parents.add(parent);
+			}
+		}
+
+		return parents;
+	}
 
 	public static void addSessionId(final Principal principal, final String sessionId) {
 

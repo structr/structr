@@ -135,6 +135,37 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonType addPropertyGetter(final String propertyName, final Class type) {
+
+		final TreeMap methodDefinition = new TreeMap();
+
+		methodDefinition.put(SchemaMethod.returnType.jsonName(), type.getName());
+		methodDefinition.put(SchemaMethod.parameters.jsonName(), "");
+		methodDefinition.put(SchemaMethod.source.jsonName(), "return getProperty(" + propertyName + "Property);");
+		methodDefinition.put(SchemaMethod.isJava.jsonName(), true);
+
+		methods.put("get" + StringUtils.capitalize(propertyName), methodDefinition);
+
+		return this;
+	}
+
+	@Override
+	public JsonType addPropertySetter(final String propertyName, final Class type) {
+
+		final TreeMap methodDefinition = new TreeMap();
+
+		methodDefinition.put(SchemaMethod.returnType.jsonName(), "void");
+		methodDefinition.put(SchemaMethod.parameters.jsonName(), "final " + type.getName() + " value");
+		methodDefinition.put(SchemaMethod.source.jsonName(), "setProperty(" + propertyName + "Property, value);");
+		methodDefinition.put(SchemaMethod.throwsException.jsonName(), true);
+		methodDefinition.put(SchemaMethod.isJava.jsonName(), true);
+
+		methods.put("set" + StringUtils.capitalize(propertyName), methodDefinition);
+
+		return this;
+	}
+
+	@Override
 	public JsonType setExtends(final JsonType superType) {
 
 		this.baseTypeReference = superType.getId();
@@ -675,13 +706,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			// create view node with parent and children
 			app.create(SchemaMethod.class,
-				new NodeAttribute(SchemaMethod.schemaNode,    schemaNode),
-				new NodeAttribute(AbstractNode.name,          method.getKey()),
-				new NodeAttribute(SchemaMethod.returnType,    methodDefinition.get(SchemaMethod.returnType.jsonName())),
-				new NodeAttribute(SchemaMethod.parameters,    methodDefinition.get(SchemaMethod.parameters.jsonName())),
-				new NodeAttribute(SchemaMethod.source,        methodDefinition.get(SchemaMethod.source.jsonName())),
-				new NodeAttribute(SchemaMethod.comment,       methodDefinition.get(SchemaMethod.comment.jsonName())),
-				new NodeAttribute(SchemaMethod.isJava,        methodDefinition.containsKey(SchemaMethod.returnType.jsonName()))
+				new NodeAttribute(SchemaMethod.schemaNode,      schemaNode),
+				new NodeAttribute(AbstractNode.name,            method.getKey()),
+				new NodeAttribute(SchemaMethod.returnType,      methodDefinition.get(SchemaMethod.returnType.jsonName())),
+				new NodeAttribute(SchemaMethod.parameters,      methodDefinition.get(SchemaMethod.parameters.jsonName())),
+				new NodeAttribute(SchemaMethod.source,          methodDefinition.get(SchemaMethod.source.jsonName())),
+				new NodeAttribute(SchemaMethod.comment,         methodDefinition.get(SchemaMethod.comment.jsonName())),
+				new NodeAttribute(SchemaMethod.isJava,          methodDefinition.containsKey(SchemaMethod.returnType.jsonName())),
+				new NodeAttribute(SchemaMethod.throwsException, methodDefinition.containsKey(SchemaMethod.throwsException.jsonName()))
 			);
 		}
 

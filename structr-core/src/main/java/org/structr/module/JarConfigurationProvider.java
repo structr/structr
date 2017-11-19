@@ -536,6 +536,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		final String simpleName = type.getSimpleName();
 		final String fqcn       = type.getName();
 
+		// do not register types that match org.structr.*Mixin (helpers)
+		if (fqcn.startsWith("org.structr.") && simpleName.endsWith("Mixin")) {
+			return;
+		}
+
 		if (AbstractNode.class.isAssignableFrom(type)) {
 
 			nodeEntityClassCache.put(simpleName, type);
@@ -548,6 +553,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			relationshipEntityClassCache.put(simpleName, type);
 			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
+		}
+
+		// interface that extends NodeInterface, must be stored
+		if (type.isInterface() && GraphObject.class.isAssignableFrom(type)) {
+			reverseInterfaceMap.put(type.getSimpleName(), type);
 		}
 
 		for (final Class interfaceClass : type.getInterfaces()) {
