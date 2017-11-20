@@ -86,6 +86,7 @@ import org.structr.core.function.IntSumFunction;
 import org.structr.core.function.IsAllowedFunction;
 import org.structr.core.function.IsCollectionFunction;
 import org.structr.core.function.IsEntityFunction;
+import org.structr.core.function.JdbcFunction;
 import org.structr.core.function.JoinFunction;
 import org.structr.core.function.KeysFunction;
 import org.structr.core.function.LastFunction;
@@ -205,6 +206,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licensed, LicenseManager.Basic, "inheriting_types", new InheritingTypesFunction());
 
 		Functions.put(licensed, LicenseManager.Basic, "template", new TemplateFunction());
+		Functions.put(licensed, LicenseManager.Basic, "jdbc", new JdbcFunction());
 
 		// Community Edition
 		Functions.put(true, LicenseManager.Community, "cypher", new CypherFunction());
