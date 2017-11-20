@@ -72,6 +72,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<Boolean>            compound          = new BooleanProperty("compound");
 	public static final Property<Boolean>            unique            = new BooleanProperty("unique");
 	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed");
+	public static final Property<Boolean>            readOnly          = new BooleanProperty("readOnly");
 	public static final Property<Boolean>            isDynamic         = new BooleanProperty("isDynamic");
 	public static final Property<Boolean>            isBuiltinProperty = new BooleanProperty("isBuiltinProperty");
 	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
@@ -81,19 +82,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             writeFunction     = new StringProperty("writeFunction");
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -185,6 +186,18 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
+	public boolean isReadOnly() {
+
+		final Boolean isReadOnly = getProperty(readOnly);
+		if (isReadOnly != null && isReadOnly) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public String getRawSource() {
 		return "";
 	}
@@ -252,6 +265,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(notNull,           _contentHash);
 		_contentHash = addContentHash(unique,            _contentHash);
 		_contentHash = addContentHash(indexed,           _contentHash);
+		_contentHash = addContentHash(readOnly,          _contentHash);
 		_contentHash = addContentHash(isDynamic,         _contentHash);
 		_contentHash = addContentHash(isBuiltinProperty, _contentHash);
 		_contentHash = addContentHash(isDefaultInUi,     _contentHash);

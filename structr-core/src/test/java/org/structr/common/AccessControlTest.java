@@ -996,9 +996,11 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			Principal nonAdmin = createTestNode(Principal.class);
+			final Class principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
 
-			final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "isAdmin");
+			Principal nonAdmin = (Principal)createTestNode(principalType);
+
+			final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(principalType, "isAdmin");
 			final SecurityContext userContext     = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
 
 			nonAdmin.setSecurityContext(userContext);

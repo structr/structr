@@ -48,7 +48,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
 
-		principal.addBooleanProperty("isAdmin");
+		principal.addBooleanProperty("isAdmin").setReadOnly(true);
 		principal.addBooleanProperty("blocked");
 
 		principal.addStringProperty("sessionData");
@@ -64,16 +64,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 		//type.addStringArrayProperty("sessionIds");
 		principal.addStringArrayProperty("publicKeys");
 
-		principal.addMethod("List<org.structr.core.entity.Principal>", "getParents",              "", "return org.structr.core.entity.Principal.getParents(this);");
-
-		principal.addMethod("boolean", "shouldSkipSecurityRelationships", "", "return false;");
-		principal.addMethod("boolean", "isAdmin",                         "", "return getProperty(isAdminProperty);");
-
 		principal.addPropertyGetter("locale", String.class);
 		principal.addPropertySetter("salt", String.class);
 
+		principal.addMethod("List<org.structr.core.entity.Principal>",    "getParents",   "", "return org.structr.core.entity.Principal.getParents(this);");
+		principal.addMethod("boolean", "shouldSkipSecurityRelationships", "",                 "return false;");
+		principal.addMethod("boolean", "isAdmin",                         "",                 "return getProperty(isAdminProperty);");
 		principal.addMethod("boolean", "isValidPassword",                 "String password",  "return org.structr.core.entity.Principal.isValidPassword(this, password);");
-
 		principal.addMethod("void",    "addSessionId",                    "String sessionId", "org.structr.core.entity.Principal.addSessionId(this, sessionId);");
 		principal.addMethod("void",    "removeSessionId",                 "String sessionId", "org.structr.core.entity.Principal.removeSessionId(this, sessionId);");
 

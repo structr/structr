@@ -214,6 +214,11 @@ public abstract class PropertySourceGenerator {
 			}
 		}
 
+		if (source.isReadOnly()) {
+
+			buf.append(".readOnly()");
+		}
+
 		buf.append(".dynamic()");
 
 		buf.append(";\n");

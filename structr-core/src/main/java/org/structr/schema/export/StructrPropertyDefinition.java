@@ -54,6 +54,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected boolean compound    = false;
 	protected boolean unique      = false;
 	protected boolean indexed     = false;
+	protected boolean readOnly    = false;
 
 	StructrPropertyDefinition(final JsonType parent, final String name) {
 		this.parent = parent;
@@ -119,6 +120,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public boolean isReadOnly() {
+		return readOnly;
+	}
+
+	@Override
 	public JsonProperty setFormat(final String format) {
 
 		this.format = format;
@@ -161,6 +167,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public JsonProperty setReadOnly(boolean readOnly) {
+
+		this.readOnly = readOnly;
+		return this;
+	}
+
+	@Override
 	public JsonProperty setDefaultValue(final String defaultValue) {
 
 		this.defaultValue = defaultValue;
@@ -187,6 +200,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			new NodeAttribute(SchemaProperty.unique, isUnique()),
 			new NodeAttribute(SchemaProperty.indexed, isIndexed()),
 			new NodeAttribute(SchemaProperty.notNull, isRequired()),
+			new NodeAttribute(SchemaProperty.readOnly, isReadOnly()),
 			new NodeAttribute(SchemaProperty.defaultValue, defaultValue)
 		);
 	}
@@ -206,6 +220,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			this.indexed = (Boolean)source.get(JsonSchema.KEY_INDEXED);
 		}
 
+		if (source.containsKey(JsonSchema.KEY_READ_ONLY)) {
+			this.readOnly = (Boolean)source.get(JsonSchema.KEY_READ_ONLY);
+		}
+
 		final Object _defaultValue = source.get(JsonSchema.KEY_DEFAULT);
 		if (_defaultValue != null) {
 
@@ -220,6 +238,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setRequired(property.isRequired());
 		setUnique(property.isUnique());
 		setIndexed(property.isIndexed());
+		setReadOnly(property.isReadOnly());
 	}
 
 	Map<String, Object> serialize() {
@@ -238,6 +257,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (indexed) {
 			map.put(JsonSchema.KEY_INDEXED, true);
+		}
+
+		if (readOnly) {
+			map.put(JsonSchema.KEY_READ_ONLY, true);
 		}
 
 		if (format != null) {

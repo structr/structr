@@ -1421,22 +1421,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			if (!key.equals(GraphObject.id)) {
 
-				if (dbNode != null && dbNode.hasProperty(key.dbName())) {
+				// check for system properties
+				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-					// check for system properties
-					if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+				}
 
-						throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+				// check for read-only properties
+				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-					}
-
-					// check for read-only properties
-					if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
-
-						throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
-
-					}
-
+					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 				}
 			}
 		}
@@ -1455,22 +1449,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		try {
-			if (dbNode != null && dbNode.hasProperty(key.dbName())) {
 
-				// check for system properties
-				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+			// check for system properties
+			if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+			}
 
-				}
+			// check for read-only properties
+			if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-				// check for read-only properties
-				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
-
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
-
-				}
-
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 			}
 
 			return key.setProperty(securityContext, this, value);

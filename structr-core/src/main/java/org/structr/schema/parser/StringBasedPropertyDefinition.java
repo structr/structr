@@ -39,6 +39,7 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private boolean compound       = false;
 	private boolean unique         = false;
 	private boolean indexed        = true;
+	private boolean readOnly       = false;
 	private String readFunction    = null;
 	private String writeFunction   = null;
 
@@ -155,6 +156,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	@Override
 	public boolean isIndexed() {
 		return indexed;
+	}
+
+	@Override
+	public boolean isReadOnly() {
+		return readOnly;
 	}
 
 	@Override

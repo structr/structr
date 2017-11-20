@@ -36,6 +36,7 @@ public interface PropertyDefinition {
 	public boolean isCompound();
 	public boolean isUnique();
 	public boolean isIndexed();
+	public boolean isReadOnly();
 	public String getDefaultValue();
 	public String getContentType();
 	public String getReadFunction();
