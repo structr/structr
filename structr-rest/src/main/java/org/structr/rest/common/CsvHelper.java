@@ -19,7 +19,7 @@
 package org.structr.rest.common;
 
 import com.opencsv.CSVParser;
-import java.io.BufferedReader;
+import com.opencsv.CSVReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -46,17 +46,16 @@ public class CsvHelper {
 
 	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final char fieldSeparator, final char quoteCharacter, final String range, final Map<String, String> propertyMapping) throws FrameworkException, IOException {
 
-		final BufferedReader reader  = new BufferedReader(input);
-		final String headerLine      = reader.readLine();
-		final CSVParser parser       = new CSVParser(fieldSeparator, quoteCharacter);
-		final String[] propertyNames = parser.parseLine(headerLine);
-
+		final CSVReader reader       = new CSVReader(input, fieldSeparator, quoteCharacter, true);
+		
+		final String[] propertyNames = reader.readNext();
+		
 		return new Iterable<JsonInput>() {
 
 			@Override
 			public Iterator<JsonInput> iterator() {
 
-				final Iterator<JsonInput> iterator = new CsvIterator(reader, parser, propertyNames, propertyMapping, type, securityContext.getUser(false).getName());
+				final Iterator<JsonInput> iterator = new CsvIterator(reader,  propertyNames, propertyMapping, type, securityContext.getUser(false).getName());
 
 				if (StringUtils.isNotBlank(range)) {
 
@@ -105,20 +104,18 @@ public class CsvHelper {
 	private static class CsvIterator implements Iterator<JsonInput> {
 
 		private Map<String, String> propertyMapping = null;
-		private BufferedReader reader               = null;
-		private CSVParser parser                    = null;
+		private CSVReader reader                    = null;
 		private String[] propertyNames              = null;
 		private String userName                     = null;
-		private String line                         = null;
+		private String[] fields                       = null;
 		private Class type                          = null;
 
-		public CsvIterator(final BufferedReader reader, final CSVParser parser, final String[] propertyNames, final Map<String, String> propertMapping, final Class type, final String userName) {
+		public CsvIterator(final CSVReader reader, final String[] propertyNames, final Map<String, String> propertMapping, final Class type, final String userName) {
 
 			this.propertyMapping = propertMapping;
 			this.propertyNames   = propertyNames;
 			this.userName        = userName;
 			this.reader          = reader;
-			this.parser          = parser;
 			this.type            = type;
 		}
 
@@ -128,15 +125,15 @@ public class CsvHelper {
 			// return true if the line has not yet been consumed
 			// (calling hasNext() more than once may not alter the
 			// result of the next next() call!)
-			if (line != null) {
+			if (fields != null) {
 				return true;
 			}
 
 			try {
 
-				line = reader.readLine();
+				fields = reader.readNext();
 
-				return StringUtils.isNotBlank(line);
+				return fields != null && fields.length > 0;
 
 			} catch (IOException ioex) {
 				logger.warn("", ioex);
@@ -149,47 +146,42 @@ public class CsvHelper {
 		public JsonInput next() {
 
 			try {
+				final JsonInput jsonInput = new JsonInput();
+				final int len             = fields.length;
 
-				if (StringUtils.isNotBlank(line)) {
+				for (int i=0; i<len; i++) {
 
-					final JsonInput jsonInput = new JsonInput();
-					final String[] columns    = parser.parseLine(line);
-					final int len             = columns.length;
+					final String key = propertyNames[i];
+					String targetKey = key;
 
-					for (int i=0; i<len; i++) {
-
-						final String key = propertyNames[i];
-						String targetKey = key;
-
-						// map key name to its transformed name
-						if (propertyMapping != null && propertyMapping.containsKey(key)) {
-							targetKey = propertyMapping.get(key);
-						}
-
-						if (StructrApp.getConfiguration().getPropertyKeyForJSONName(type, targetKey).isCollection()) {
-
-							// if the current property is a collection, split it into its parts
-							jsonInput.add(key, extractArrayContentsFromArray(columns[i], key));
-
-						} else {
-
-							jsonInput.add(key, columns[i]);
-						}
+					// map key name to its transformed name
+					if (propertyMapping != null && propertyMapping.containsKey(key)) {
+						targetKey = propertyMapping.get(key);
 					}
 
-					return jsonInput;
+					if (StructrApp.getConfiguration().getPropertyKeyForJSONName(type, targetKey).isCollection()) {
+
+						// if the current property is a collection, split it into its parts
+						jsonInput.add(key, extractArrayContentsFromArray(fields[i], key));
+
+					} else {
+
+						jsonInput.add(key, fields[i]);
+					}
 				}
+
+				return jsonInput;
 
 			} catch (Throwable t) {
 
-				logger.warn("Exception in CSV line: {}", line);
+				logger.warn("Exception in CSV line: {}", fields);
 				logger.warn("", t);
 
 				final Map<String, Object> data = new LinkedHashMap();
 
 				data.put("type",     "CSV_IMPORT_ERROR");
 				data.put("title",    "CSV Import Error");
-				data.put("text",     "Error occured with dataset: " + line);
+				data.put("text",     "Error occured with dataset: " + fields);
 				data.put("username", userName);
 
 				TransactionCommand.simpleBroadcastGenericMessage(data);
@@ -197,7 +189,7 @@ public class CsvHelper {
 			} finally {
 
 				// mark line as "consumed"
-				line = null;
+				fields = null;
 			}
 
 			return null;
