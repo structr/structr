@@ -54,9 +54,9 @@ var _Localization = {
 					'<button class="create"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Prepare new Localization</button>' +
 					'<table id="localizations-table">' +
 						'<thead><tr>' +
-							'<th><a class="sortByKey">Key</a></th>' +
-							'<th><a class="sortByDomain">Domain</a></th>' +
-							'<th>Actions</th>' +
+							'<th><a class="sort" data-sort="key">Key</a></th>' +
+							'<th><a class="sort" data-sort="domain">Domain</a></th>' +
+							'<th class="narrow">Actions</th>' +
 						'</tr></thead>' +
 						'<tbody></tbody>' +
 					'</table>' +
@@ -119,16 +119,12 @@ var _Localization = {
 		_Localization.keyAndDomainPager = _Pager.addPager('localizations', $('#localizations-pager'), false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
-		_Localization.keyAndDomainPager.pager.append('Filters: <input type="text" class="filter localization-key" data-attribute="name" placeholder="Key" />');
-		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter localization-domain" data-attribute="domain" placeholder="Domain" />');
+		_Localization.keyAndDomainPager.pager.append('<br>Filters: <input type="text" class="filter w100 localization-key" data-attribute="name" placeholder="Key" />');
+		_Localization.keyAndDomainPager.pager.append('<input type="text" class="filter w100 localization-domain" data-attribute="domain" placeholder="Domain" />');
 		_Localization.keyAndDomainPager.activateFilterElements();
 
-		$('#localizations-table .sortByKey').on('click', function () {
-			_Localization.keyAndDomainPager.setSortKey('name');
-		});
-
-		$('#localizations-table .sortByDomain').on('click', function () {
-			_Localization.keyAndDomainPager.setSortKey('domain');
+		$('#localizations-table .sort').on('click', function () {
+			_Localization.keyAndDomainPager.setSortKey($(this).data('sort'));
 		});
 	},
 	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {
