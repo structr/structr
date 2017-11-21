@@ -137,7 +137,7 @@ public abstract class StreamingWriter {
 
 		// result fields in alphabetical order
 		List<? extends GraphObject> results = result.getResults();
-		Integer outputNestingDepth 			= result.getOutputNestingDepth();
+		Integer outputNestingDepth          = result.getOutputNestingDepth();
 		Integer page                        = result.getPage();
 		Integer pageCount                   = result.getPageCount();
 		Integer pageSize                    = result.getPageSize();
