@@ -84,7 +84,7 @@ input {
 	border-radius: 3px;
 }
 
-input[type="text"]:disabled, input.disabled {
+input[type="text"]:disabled, input.disabled, textarea:disabled, textarea.disabled {
 	background-color: #f0f0f0;
 }
 
@@ -3627,11 +3627,16 @@ i.fa.ps {
 /**
  * L10N Styles
  */
+
+.resourceBox th.narrow {
+	min-width: initial;
+}
+
 #localizations-pager {
 	height: 42px;
 }
 
-#localizations-pager .pager input.filter[type="text"] {
+.pager input.filter.w100[type="text"] {
 	width: 100px;
 	border: 1px solid #a5a5a5;
 	font-size: 9pt;
@@ -3687,6 +3692,20 @@ i.fa.ps {
 	font-style: italic;
 	white-space: nowrap;
 	text-align: center;
+}
+
+/**
+ * Virtual Types
+ */
+
+#virtual-types-list {
+	width: 310px;
+	margin: 10px 5px 10px 10px;
+}
+
+#virtual-type-detail {
+	width: calc(100vw - 400px);
+	margin: 10px 10px 10px 5px;
 }
 
 /**

@@ -85,6 +85,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	public static final String REQUEST_PARAMETER_PAGE_SIZE              = "pageSize";
 	public static final String REQUEST_PARAMETER_SORT_KEY               = "sort";
 	public static final String REQUEST_PARAMETER_SORT_ORDER             = "order";
+	public static final String REQUEST_PARAMTER_OUTPUT_DEPTH            = "outputNestingDepth";
 	public static final Set<String> commonRequestParameters             = new LinkedHashSet<>();
 	private static final Logger logger                                  = LoggerFactory.getLogger(JsonRestServlet.class.getName());
 
@@ -95,6 +96,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(REQUEST_PARAMETER_PAGE_SIZE);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_KEY);
 		commonRequestParameters.add(REQUEST_PARAMETER_SORT_ORDER);
+		commonRequestParameters.add(REQUEST_PARAMTER_OUTPUT_DEPTH);
 		commonRequestParameters.add("debugLoggingEnabled");
 		commonRequestParameters.add("ignoreResultCount");
 
@@ -797,9 +799,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			String pageParameter     = request.getParameter(REQUEST_PARAMETER_PAGE_NUMBER);
 			String sortOrder         = request.getParameter(REQUEST_PARAMETER_SORT_ORDER);
 			String sortKeyName       = request.getParameter(REQUEST_PARAMETER_SORT_KEY);
+			String outputDepth       = request.getParameter(REQUEST_PARAMTER_OUTPUT_DEPTH);
 			boolean sortDescending   = (sortOrder != null && "desc".equals(sortOrder.toLowerCase()));
 			int pageSize             = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			int depth                = Services.parseInt(outputDepth, config.getOutputNestingDepth());
 			String baseUrl           = request.getRequestURI();
 			PropertyKey sortKey      = null;
 
@@ -859,11 +863,17 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 				DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 				result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
+				if (outputDepth != null) {
+
+					result.setOutputNestingDepth(depth);
+
+				}
+
 				String accept = request.getHeader("Accept");
 
 				if (accept != null && accept.contains("text/html")) {
 
-					final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
+					final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, depth);
 
 					// isolate write output
 					try (final Tx tx = app.tx()) {
@@ -881,7 +891,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				} else {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, config.getOutputNestingDepth());
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, depth);
 
 					// isolate write output
 					try (final Tx tx = app.tx()) {
