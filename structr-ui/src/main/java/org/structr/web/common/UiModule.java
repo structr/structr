@@ -19,6 +19,7 @@
 package org.structr.web.common;
 
 import java.util.Set;
+
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
@@ -26,6 +27,7 @@ import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
 import org.structr.web.function.AddHeaderFunction;
 import org.structr.web.function.CopyFileContentsFunction;
+import org.structr.web.function.CreateArchiveFunction;
 import org.structr.web.function.EscapeHtmlFunction;
 import org.structr.web.function.FromJsonFunction;
 import org.structr.web.function.FromXmlFunction;
@@ -99,6 +101,7 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "get_request_header",       new GetRequestHeaderFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "from_xml",                 new FromXmlFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse",                    new ParseFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "createArchive", 		new CreateArchiveFunction());
 	}
 
 	@Override
