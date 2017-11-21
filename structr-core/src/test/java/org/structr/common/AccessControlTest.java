@@ -61,13 +61,14 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void test01PublicAccessToNonPublicNode() {
 
+		final Class principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+
 		// remove auto-generated resource access objects
 		clearResourceAccess();
 
 		try {
 
-			List<Principal> users = createTestNodes(Principal.class, 1);
-			Principal user        = users.get(0);
+			Principal user = (Principal)createTestNode(principalType);
 
 			// Create node with user context
 			Class type = TestOne.class;
@@ -835,11 +836,13 @@ public class AccessControlTest extends StructrTest {
 	@Test
 	public void test00CreatePrincipal() {
 
-		Principal user1 = null;
+		final Class type                = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+		final PropertyKey<String> eMail = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "eMail");
+		Principal user1                 = null;
 
 		try (final Tx tx = app.tx()) {
 
-			List<Principal> users = createTestNodes(Principal.class, 1);
+			List<Principal> users = createTestNodes(type, 1);
 			user1 = (Principal) users.get(0);
 			user1.setProperty(AbstractNode.name, "user1");
 
@@ -851,10 +854,10 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<Principal> users = createTestNodes(Principal.class, 1);
+			List<Principal> users = createTestNodes(type, 1);
 			final Principal invalidUser = (Principal) users.get(0);
 			invalidUser.setProperty(Principal.name , "tester");
-			invalidUser.setProperty(Principal.eMail, "invalid");
+			invalidUser.setProperty(eMail, "invalid");
 
 			tx.success();
 
@@ -1043,6 +1046,36 @@ public class AccessControlTest extends StructrTest {
 		} catch (FrameworkException ex) {
 
 			fail("Unexpected Exception");
+		}
+	}
+
+	@Test
+	public void test10LowercaseEMail() {
+
+		final Class type                = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+		final PropertyKey<String> eMail = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "eMail");
+		Principal user1                 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user1 = (Principal)createTestNode(type);
+
+			user1.setProperty(AbstractNode.name, "user1");
+			user1.setProperty(eMail, "LOWERCASE@TEST.com");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error(ex.toString());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("EMail address was not converted to lowercase", "lowercase@test.com", user1.getProperty(eMail));
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error(ex.toString());
 		}
 
 	}

@@ -65,6 +65,22 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	}
 
 	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+
+		if (other instanceof StructrPropertyDefinition) {
+
+			return other.hashCode() == hashCode();
+		}
+
+		return false;
+	}
+
+	@Override
 	public String getRelationship() {
 		return relationshipType;
 	}
@@ -413,7 +429,11 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	@Override
 	SchemaRelationshipNode createSchemaNode(final App app) throws FrameworkException {
 
-		final SchemaRelationshipNode _schemaNode = app.create(SchemaRelationshipNode.class, getName());
+		SchemaRelationshipNode _schemaNode = app.nodeQuery(SchemaRelationshipNode.class).andName(getName()).getFirst();
+		if (_schemaNode == null) {
+
+			_schemaNode = app.create(SchemaRelationshipNode.class, getName());
+		}
 
 		_schemaNode.setProperty(SchemaRelationshipNode.relationshipType, getRelationship());
 		_schemaNode.setProperty(SchemaRelationshipNode.sourceJsonName, sourcePropertyName);

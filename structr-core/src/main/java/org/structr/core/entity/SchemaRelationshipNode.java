@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -475,6 +476,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _className                            = getClassName();
 		final String _sourceNodeType                       = getSchemaNodeSourceType();
 		final String _targetNodeType                       = getSchemaNodeTargetType();
+		final List<String> propertyValidators              = new LinkedList<>();
 		final Set<String> compoundIndexKeys                = new LinkedHashSet<>();
 		final Set<String> propertyNames                    = new LinkedHashSet<>();
 		final Set<Validator> validators                    = new LinkedHashSet<>();
@@ -516,7 +518,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
 		}
 
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
 		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
 		SchemaHelper.extractMethods(this, actions);
@@ -570,7 +572,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, Collections.emptySet(), false);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, Collections.emptySet(), false, propertyValidators);
 		SchemaHelper.formatSaveActions(this, src, actions, Collections.emptySet());
 
 		formatRelationshipFlags(src);

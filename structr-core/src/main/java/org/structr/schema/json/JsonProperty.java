@@ -19,6 +19,7 @@
 package org.structr.schema.json;
 
 import java.net.URI;
+import java.util.Set;
 
 /**
  *
@@ -41,6 +42,8 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	public boolean isUnique();
 	public boolean isIndexed();
 	public boolean isReadOnly();
+	public Set<String> getTransformators();
+	public Set<String> getValidators();
 
 	public JsonProperty setFormat(final String format);
 	public JsonProperty setName(final String name);
@@ -50,4 +53,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	public JsonProperty setIndexed(final boolean isIndexed);
 	public JsonProperty setReadOnly(final boolean isReadOnly);
 	public JsonProperty setDefaultValue(final String defaultValue);
+
+	public JsonProperty addValidator(final String fqcn);
+	public JsonProperty addTransformer(final String fqcn);
 }

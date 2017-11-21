@@ -243,25 +243,6 @@ public class SchemaService implements Service {
 
 			ex.printStackTrace();
 		}
-
-		/*
-		for (final Entry<String, VirtualSchemaInfo> entry : mixinMap.entrySet()) {
-
-			final String typeName        = entry.getKey();
-			final VirtualSchemaInfo type = entry.getValue();
-
-			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(typeName).getFirst();
-			if (schemaNode == null) {
-
-				app.create(SchemaNode.class,
-					new NodeAttribute<>(SchemaNode.name, typeName),
-					new NodeAttribute<>(SchemaNode.extendsClass, type.baseClass),
-					new NodeAttribute<>(SchemaNode.implementsInterfaces, type.getImplementedInterfaces()),
-					new NodeAttribute<>(SchemaNode.isBuiltinType, true)
-				);
-			}
-		}
-		*/
 	}
 
 	@Override

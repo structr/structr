@@ -34,6 +34,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.schema.Transformer;
 
 
 /**
@@ -46,8 +47,8 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPrimitiveProperty.class.getName());
 
-	protected GraphObject entity;
-	protected SecurityContext securityContext;
+	protected SecurityContext securityContext = null;
+	protected GraphObject entity              = null;
 
 
 	public AbstractPrimitiveProperty(final String name) {
@@ -104,6 +105,18 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			}
 		}
 
+		// use transformators from property
+		for (final String fqcn : transformators) {
+
+			// first test, use caching here later..
+			final Transformer transformator = getTransformator(fqcn);
+			if (transformator != null) {
+
+				value = transformator.getProperty(entity, this, value);
+			}
+
+		}
+
 		// no value found, use schema default
 		if (value == null) {
 			value = defaultValue();
@@ -116,15 +129,23 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
 
 		final PropertyConverter converter = databaseConverter(securityContext, PropertyMap.unwrap(obj));
-		final Object convertedValue;
+		Object convertedValue             = value;
 
 		if (converter != null) {
 
 			convertedValue = converter.convert(value);
+		}
 
-		} else {
+		// use transformators from property
+		for (final String fqcn : transformators) {
 
-			convertedValue = value;
+			// first test, use caching here later..
+			final Transformer transformator = getTransformator(fqcn);
+			if (transformator != null) {
+
+				convertedValue = transformator.setProperty(entity, this, convertedValue);
+			}
+
 		}
 
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
@@ -267,5 +288,17 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			// fail without throwing an exception here
 			logger.warn("", t);
 		}
+	}
+
+	private Transformer getTransformator(final String fqcn) {
+
+		try {
+
+			return (Transformer)Class.forName(fqcn).newInstance();
+
+		} catch (Throwable t) {
+		}
+
+		return null;
 	}
 }

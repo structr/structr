@@ -16,31 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.parser;
+package org.structr.schema;
 
-import org.structr.schema.SchemaHelper.Type;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.graph.NodeInterface;
 
 /**
- *
- *
  */
-public interface PropertyDefinition {
+public interface Validator {
 
-	String getPropertyName();
-	Type getPropertyType();
-	String getRawSource();
-	String getSource();
-	String getDbName();
-	String getFormat();
-	boolean isNotNull();
-	boolean isCompound();
-	boolean isUnique();
-	boolean isIndexed();
-	boolean isReadOnly();
-	String getDefaultValue();
-	String getContentType();
-	String getReadFunction();
-	String getWriteFunction();
-	String[] getTransformators();
-	String[] getValidators();
+	boolean isValid(final NodeInterface node, final ErrorBuffer errorBuffer);
 }

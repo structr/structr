@@ -16,31 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.parser;
+package org.structr.schema;
 
-import org.structr.schema.SchemaHelper.Type;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.property.PropertyKey;
 
 /**
- *
- *
  */
-public interface PropertyDefinition {
 
-	String getPropertyName();
-	Type getPropertyType();
-	String getRawSource();
-	String getSource();
-	String getDbName();
-	String getFormat();
-	boolean isNotNull();
-	boolean isCompound();
-	boolean isUnique();
-	boolean isIndexed();
-	boolean isReadOnly();
-	String getDefaultValue();
-	String getContentType();
-	String getReadFunction();
-	String getWriteFunction();
-	String[] getTransformators();
-	String[] getValidators();
+public interface Transformer<T> {
+
+	T getProperty(final GraphObject entity, final PropertyKey<T> key, final T value);
+	T setProperty(final GraphObject entity, final PropertyKey<T> key, final T value) throws FrameworkException;
 }

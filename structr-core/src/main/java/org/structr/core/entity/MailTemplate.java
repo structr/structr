@@ -16,31 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.parser;
+package org.structr.core.entity;
 
-import org.structr.schema.SchemaHelper.Type;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonType;
 
 /**
  *
- *
  */
-public interface PropertyDefinition {
 
-	String getPropertyName();
-	Type getPropertyType();
-	String getRawSource();
-	String getSource();
-	String getDbName();
-	String getFormat();
-	boolean isNotNull();
-	boolean isCompound();
-	boolean isUnique();
-	boolean isIndexed();
-	boolean isReadOnly();
-	String getDefaultValue();
-	String getContentType();
-	String getReadFunction();
-	String getWriteFunction();
-	String[] getTransformators();
-	String[] getValidators();
+public interface MailTemplate extends NodeInterface {
+
+	static class Impl { static {
+
+		final JsonType type = SchemaService.getDynamicSchema().addType("MailTemplate");
+
+		type.addStringProperty("text");
+		type.addStringProperty("locale");
+
+		type.addPropertyGetter("text", String.class);
+		type.addPropertyGetter("locale", String.class);
+		type.addPropertySetter("locale", String.class);
+	}}
+
+	String getText();
+	String getLocale();
+	void setLocale(final String locale) throws FrameworkException;
 }

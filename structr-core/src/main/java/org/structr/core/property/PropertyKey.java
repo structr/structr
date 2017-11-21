@@ -322,6 +322,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public PropertyKey<T> dynamic();
 	public PropertyKey<T> readFunction(final String readFunction);
 	public PropertyKey<T> writeFunction(final String writeFunction);
+	public PropertyKey<T> transformators(final String... transformators);
 
 	// ----- CMIS support -----
 	public PropertyType getDataType();

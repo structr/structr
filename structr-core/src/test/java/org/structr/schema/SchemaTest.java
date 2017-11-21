@@ -206,11 +206,11 @@ public class SchemaTest extends StructrTest {
 
 			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
 
-			mapPathValue(map, "definitions.Contact.type",      "object");
-			mapPathValue(map, "definitions.Contact.$extends",  "https://structr.org/v1.1/definitions/AbstractUser");
+			mapPathValue(map, "definitions.Contact.type",        "object");
+			mapPathValue(map, "definitions.Contact.$extends.0",  "#/definitions/Principal");
 
-			mapPathValue(map, "definitions.Customer.type",      "object");
-			mapPathValue(map, "definitions.Customer.$extends",  "#/definitions/Contact");
+			mapPathValue(map, "definitions.Customer.type",       "object");
+			mapPathValue(map, "definitions.Customer.$extends.0", "#/definitions/Contact");
 
 
 			// advanced: test schema roundtrip

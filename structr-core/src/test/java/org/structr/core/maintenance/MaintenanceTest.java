@@ -250,6 +250,7 @@ public class MaintenanceTest extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
@@ -266,7 +267,6 @@ public class MaintenanceTest extends StructrTest {
 			expectedLabels.add(graphDb.forName(Label.class, "Principal"));
 			expectedLabels.add(graphDb.forName(Label.class, "Group"));
 			expectedLabels.add(graphDb.forName(Label.class, "AccessControllable"));
-			expectedLabels.add(graphDb.forName(Label.class, "AbstractUser"));
 			expectedLabels.add(graphDb.forName(Label.class, "AbstractNode"));
 			expectedLabels.add(graphDb.forName(Label.class, "NodeInterface"));
 			expectedLabels.add(graphDb.forName(Label.class, "CMISInfo"));
@@ -317,7 +317,7 @@ public class MaintenanceTest extends StructrTest {
 
 					final Set<Label> labels = Iterables.toSet(group.getNode().getLabels());
 
-					assertEquals("Invalid number of labels", 8, labels.size());
+					assertEquals("Invalid number of labels", 7, labels.size());
 					assertTrue("Invalid labels found", labels.containsAll(expectedLabels));
 				}
 

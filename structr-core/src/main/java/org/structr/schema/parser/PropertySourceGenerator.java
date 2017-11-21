@@ -144,12 +144,14 @@ public abstract class PropertySourceGenerator {
 				new NodeAttribute<>(SchemaProperty.dbName,         source.getDbName()),
 				new NodeAttribute<>(SchemaProperty.defaultValue,   source.getDefaultValue()),
 				new NodeAttribute<>(SchemaProperty.format,         source.getFormat()),
-				new NodeAttribute<>(SchemaProperty.compound, source.isCompound()),
+				new NodeAttribute<>(SchemaProperty.compound,       source.isCompound()),
 				new NodeAttribute<>(SchemaProperty.unique,         source.isUnique()),
 				new NodeAttribute<>(SchemaProperty.indexed,        source.isIndexed()),
 				new NodeAttribute<>(SchemaProperty.notNull,        source.isNotNull()),
 				new NodeAttribute<>(SchemaProperty.readFunction,   source.getReadFunction()),
-				new NodeAttribute<>(SchemaProperty.writeFunction,  source.getWriteFunction())
+				new NodeAttribute<>(SchemaProperty.writeFunction,  source.getWriteFunction()),
+				new NodeAttribute<>(SchemaProperty.transformers, source.getTransformators()),
+				new NodeAttribute<>(SchemaProperty.validators,     source.getValidators())
 			);
 
 			schemaNode.removeProperty(new StringProperty(underscorePropertyName));
@@ -217,6 +219,14 @@ public abstract class PropertySourceGenerator {
 		if (source.isReadOnly()) {
 
 			buf.append(".readOnly()");
+		}
+
+		final String[] transformators = source.getTransformators();
+		if (transformators != null && transformators.length > 0) {
+
+			buf.append(".transformators(\"");
+			buf.append(StringUtils.join(transformators, "\", \""));
+			buf.append("\")");
 		}
 
 		buf.append(".dynamic()");

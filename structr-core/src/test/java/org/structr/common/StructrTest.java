@@ -243,7 +243,7 @@ public class StructrTest {
 
 		} catch (Throwable t) {
 
-			logger.warn("", t);
+			logger.warn("Unable to create test nodes of type {}: {}", type, t.getMessage());
 		}
 
 		return null;

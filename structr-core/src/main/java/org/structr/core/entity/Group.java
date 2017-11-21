@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.net.URI;
 import java.util.List;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -39,6 +40,8 @@ public interface Group extends Principal {
 		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
 		group.setExtends(URI.create("#/definitions/Principal"));
 
+		group.addBooleanProperty("isGroup").addTransformer(ConstantBooleanTrue.class.getName());
+
 		group.addMethod("void", "addMember",    "org.structr.core.entity.Principal member", "org.structr.core.entity.Group.addMember(this, member);");
 		group.addMethod("void", "removeMember", "org.structr.core.entity.Principal member", "org.structr.core.entity.Group.removeMember(this, member);");
 	}}
@@ -47,31 +50,31 @@ public interface Group extends Principal {
 	void removeMember(final Principal member);
 
 
-	public static void addMember(final Principal principal, final Principal user) {
+	public static void addMember(final Group group, final Principal user) {
 
 		try {
-			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(Group.class, "members");
-			final List<Principal> _users           = principal.getProperty(key);
+			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(group.getClass(), "members");
+			final List<Principal> _users           = group.getProperty(key);
 
 			_users.add(user);
 
-			principal.setProperty(key, _users);
+			group.setProperty(key, _users);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
 	}
 
-	public static void removeMember(final Principal principal, final Principal member) {
+	public static void removeMember(final Group group, final Principal member) {
 
 		try {
 
-			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(Group.class, "members");
-			final List<Principal> _users           = principal.getProperty(key);
+			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(group.getClass(), "members");
+			final List<Principal> _users           = group.getProperty(key);
 
 			_users.remove(member);
 
-			principal.setProperty(key, _users);
+			group.setProperty(key, _users);
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();

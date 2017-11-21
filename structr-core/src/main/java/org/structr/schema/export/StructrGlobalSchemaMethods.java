@@ -18,9 +18,9 @@
  */
 package org.structr.schema.export;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -32,7 +32,7 @@ import org.structr.schema.json.JsonSchema;
 
 public class StructrGlobalSchemaMethods {
 
-	private List<Map<String, Object>> globalMethods   = new LinkedList<>();
+	private Set<Map<String, Object>> globalMethods   = new LinkedHashSet<>();
 
 	void deserialize(final App app) throws FrameworkException {
 
@@ -56,13 +56,13 @@ public class StructrGlobalSchemaMethods {
 
 	}
 
-	List<Map<String, Object>> serialize() {
+	Set<Map<String, Object>> serialize() {
 
 		return globalMethods;
 
 	}
 
-	void deserialize(final List<Map<String, Object>> source) {
+	void deserialize(final Set<Map<String, Object>> source) {
 
 		globalMethods = source;
 

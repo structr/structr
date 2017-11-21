@@ -65,6 +65,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public JsonObjectType addType(final String name) {
 
+		final JsonType type = getType(name);
+		if (type != null) {
+
+			return (JsonObjectType)type;
+		}
+
 		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, name);
 
 		typeDefinitions.add(def);

@@ -25,15 +25,16 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
+import org.structr.common.EMailValidator;
+import org.structr.common.LowercaseTransformator;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.EndNodes;
-import org.structr.core.property.LowercaseStringProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -51,8 +52,16 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addBooleanProperty("isAdmin").setReadOnly(true);
 		principal.addBooleanProperty("blocked");
 
+		// FIXME: indexedWhenEmpty() is not possible here, but needed?
+		principal.addStringArrayProperty("sessionIds").setIndexed(true);
+
 		principal.addStringProperty("sessionData");
-		principal.addStringProperty("eMail").isUnique();
+
+		principal.addStringProperty("eMail")
+			.setUnique(true)
+			.addValidator(EMailValidator.class.getName())
+			.addTransformer(LowercaseTransformator.class.getName());
+
 		principal.addPasswordProperty("password");
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");
@@ -75,7 +84,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addMethod("void",    "removeSessionId",                 "String sessionId", "org.structr.core.entity.Principal.removeSessionId(this, sessionId);");
 
 		// create relationship
-		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "members", "groups");
+		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
 	}}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";
@@ -83,9 +92,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static final String ANONYMOUS                         = "anonymous";
 	public static final String ANYONE                            = "anyone";
 
-	public static final Property<String[]> sessionIds            = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty();
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
-	public static final Property<String> eMail                   = new LowercaseStringProperty("eMail").cmis().indexed();
 
 	List<Principal> getParents();
 
@@ -103,9 +110,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public static List<Principal> getParents(final Principal principal) {
 
-		List<Principal> parents = new LinkedList<>();
+		final List<Principal> parents          = new LinkedList<>();
+		final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(principal.getClass(), "groups");
+		final List<Principal> list             = principal.getProperty(key);
 
-		for (final Principal parent : (List<Principal>)principal.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "groups"))) {
+		for (final Principal parent : list) {
 
 			if (parent != null) {
 				parents.add(parent);
@@ -119,17 +128,19 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			final String[] ids = principal.getProperty(Principal.sessionIds);
+			final PropertyKey<String[]> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(principal.getClass(), "sessionIds");
+			final String[] ids              = principal.getProperty(key);
+
 			if (ids != null) {
 
 				if (!ArrayUtils.contains(ids, sessionId)) {
 
-					principal.setProperty(Principal.sessionIds, (String[]) ArrayUtils.add(principal.getProperty(Principal.sessionIds), sessionId));
+					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), sessionId));
 				}
 
 			} else {
 
-				principal.setProperty(Principal.sessionIds, new String[] {  sessionId } );
+				principal.setProperty(key, new String[] {  sessionId } );
 			}
 
 
@@ -142,8 +153,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			final String[] ids         = principal.getProperty(Principal.sessionIds);
-			List<String> newSessionIds = new ArrayList<>();
+			final PropertyKey<String[]> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(principal.getClass(), "sessionIds");
+			final String[] ids              = principal.getProperty(key);
+			List<String> newSessionIds      = new ArrayList<>();
 
 			if (ids != null) {
 
@@ -156,7 +168,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 				}
 			}
 
-			principal.setProperty(Principal.sessionIds, (String[]) newSessionIds.toArray(new String[0]));
+			principal.setProperty(key, (String[]) newSessionIds.toArray(new String[0]));
 
 		} catch (FrameworkException ex) {
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);

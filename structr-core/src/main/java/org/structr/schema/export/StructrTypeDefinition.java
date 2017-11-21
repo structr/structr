@@ -27,11 +27,11 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
@@ -39,6 +39,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.json.JsonBooleanArrayProperty;
 import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonDateProperty;
@@ -82,6 +83,22 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	abstract T createSchemaNode(final App app) throws FrameworkException;
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+
+		if (other instanceof StructrPropertyDefinition) {
+
+			return other.hashCode() == hashCode();
+		}
+
+		return false;
+	}
 
 	@Override
 	public URI getId() {
@@ -675,7 +692,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		for (final Entry<String, Set<String>> view : views.entrySet()) {
 
 			final List<SchemaProperty> viewProperties = new LinkedList<>();
-			final List<String> nonGraphProperties = new LinkedList<>();
+			final List<String> nonGraphProperties     = new LinkedList<>();
 
 			for (final String propertyName : view.getValue()) {
 
@@ -690,13 +707,26 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				}
 			}
 
-			// create view node with parent and children
-			app.create(SchemaView.class,
-				new NodeAttribute(SchemaView.schemaNode, schemaNode),
-				new NodeAttribute(AbstractNode.name, view.getKey()),
-				new NodeAttribute(SchemaView.schemaProperties, viewProperties),
-				new NodeAttribute(SchemaView.nonGraphProperties, StringUtils.join(nonGraphProperties, ", "))
-			);
+			SchemaView viewNode = app.nodeQuery(SchemaView.class)
+				.and(SchemaView.schemaNode, schemaNode)
+				.and(SchemaView.name, view.getKey())
+				.getFirst();
+
+			if (viewNode == null) {
+
+				viewNode = app.create(SchemaView.class,
+					new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
+					new NodeAttribute<>(SchemaView.name, view.getKey())
+				);
+			}
+
+			final PropertyMap updateProperties = new PropertyMap();
+
+			updateProperties.put(SchemaView.schemaProperties, viewProperties);
+			updateProperties.put(SchemaView.nonGraphProperties, StringUtils.join(nonGraphProperties, ", "));
+
+			// update properties of existing or new schema view node
+			viewNode.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 		}
 
 		// create methods
@@ -704,17 +734,30 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			final Map methodDefinition = method.getValue();
 
-			// create view node with parent and children
-			app.create(SchemaMethod.class,
-				new NodeAttribute(SchemaMethod.schemaNode,      schemaNode),
-				new NodeAttribute(AbstractNode.name,            method.getKey()),
-				new NodeAttribute(SchemaMethod.returnType,      methodDefinition.get(SchemaMethod.returnType.jsonName())),
-				new NodeAttribute(SchemaMethod.parameters,      methodDefinition.get(SchemaMethod.parameters.jsonName())),
-				new NodeAttribute(SchemaMethod.source,          methodDefinition.get(SchemaMethod.source.jsonName())),
-				new NodeAttribute(SchemaMethod.comment,         methodDefinition.get(SchemaMethod.comment.jsonName())),
-				new NodeAttribute(SchemaMethod.isJava,          methodDefinition.containsKey(SchemaMethod.returnType.jsonName())),
-				new NodeAttribute(SchemaMethod.throwsException, methodDefinition.containsKey(SchemaMethod.throwsException.jsonName()))
-			);
+			SchemaMethod methodNode = app.nodeQuery(SchemaMethod.class)
+				.and(SchemaMethod.schemaNode, schemaNode)
+				.and(SchemaMethod.name, method.getKey())
+				.getFirst();
+
+			if (methodNode == null) {
+
+				methodNode = app.create(SchemaMethod.class,
+					new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
+					new NodeAttribute<>(SchemaMethod.name, method.getKey())
+				);
+			}
+
+			final PropertyMap updateProperties = new PropertyMap();
+
+			updateProperties.put(SchemaMethod.returnType,      (String)methodDefinition.get(SchemaMethod.returnType.jsonName()));
+			updateProperties.put(SchemaMethod.parameters,      (String)methodDefinition.get(SchemaMethod.parameters.jsonName()));
+			updateProperties.put(SchemaMethod.source,          (String)methodDefinition.get(SchemaMethod.source.jsonName()));
+			updateProperties.put(SchemaMethod.comment,         (String)methodDefinition.get(SchemaMethod.comment.jsonName()));
+			updateProperties.put(SchemaMethod.isJava,          (Boolean)methodDefinition.containsKey(SchemaMethod.returnType.jsonName()));
+			updateProperties.put(SchemaMethod.throwsException, (Boolean)methodDefinition.containsKey(SchemaMethod.throwsException.jsonName()));
+
+			// update schema method node
+			methodNode.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 		}
 
 		// extends

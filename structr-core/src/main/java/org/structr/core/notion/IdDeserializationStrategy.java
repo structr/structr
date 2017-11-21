@@ -250,6 +250,6 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> implements De
 	}
 
 	private boolean isIdentifying(final Class actualType, final PropertyKey key) {
-		return (Principal.class.isAssignableFrom(actualType) && (Principal.name.equals(key) || Principal.eMail.equals(key)));
+		return (Principal.class.isAssignableFrom(actualType) && ("name".equals(key.jsonName()) || "eMail".equals(key.jsonName())));
 	}
 }

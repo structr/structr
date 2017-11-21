@@ -250,7 +250,7 @@ public class Reference<T> implements PropertyKey<T> {
 	public void index(GraphObject entity) {
 		propertyKey.index(entity, entity.getProperty(propertyKey));
 	}
-	
+
 	@Override
 	public void index(GraphObject entity, Object value) {
 		propertyKey.index(entity, value);
@@ -364,5 +364,10 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public boolean indexable(Object value) {
 		return propertyKey.indexable(value);
+	}
+
+	@Override
+	public PropertyKey<T> transformators(String... transformators) {
+		return propertyKey.transformators(transformators);
 	}
 }

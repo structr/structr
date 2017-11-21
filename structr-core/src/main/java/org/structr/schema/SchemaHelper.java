@@ -501,6 +501,7 @@ public class SchemaHelper {
 		final App app                                          = StructrApp.getInstance();
 		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
+		final List<String> propertyValidators                  = new LinkedList<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
 		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
@@ -619,7 +620,7 @@ public class SchemaHelper {
 
 		}
 
-		src.append(SchemaHelper.extractProperties(schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
 		SchemaHelper.extractViews(schemaNode, viewProperties, errorBuffer);
 		SchemaHelper.extractMethods(schemaNode, saveActions);
@@ -662,7 +663,7 @@ public class SchemaHelper {
 			src.append("\t}\n");
 		}
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, implementedInterfaces, extendsAbstractNode);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, implementedInterfaces, extendsAbstractNode, propertyValidators);
 		SchemaHelper.formatSaveActions(schemaNode, src, saveActions, implementedInterfaces);
 
 		// insert dynamic code here
@@ -678,7 +679,7 @@ public class SchemaHelper {
 		return src.toString();
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final List<String> propertyValidators, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final StringBuilder src                   = new StringBuilder();
@@ -746,6 +747,12 @@ public class SchemaHelper {
 						// register property in default view
 						addPropertyToView(PropertyView.Ui, propertyName, views);
 					}
+				}
+
+				final String[] propertyValidatorsArray = schemaProperty.getProperty(SchemaProperty.validators);
+				if (propertyValidatorsArray != null) {
+
+					propertyValidators.addAll(Arrays.asList(propertyValidatorsArray));
 				}
 			}
 		}
@@ -1144,7 +1151,7 @@ public class SchemaHelper {
 		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
-	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<Class> implementedInterfaces, final boolean extendsAbstractNode) {
+	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<Class> implementedInterfaces, final boolean extendsAbstractNode, final List<String> propertyValidators) {
 
 		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
 
@@ -1159,6 +1166,13 @@ public class SchemaHelper {
 			if (!compoundIndexKeys.isEmpty()) {
 
 				src.append("\t\tvalid &= ValidationHelper.areValidCompoundUniqueProperties(this, errorBuffer, ").append(StringUtils.join(compoundIndexKeys, ", ")).append(");\n");
+			}
+
+			for (final String propertyValidator : propertyValidators) {
+
+				src.append("\t\tvalid &= new ");
+				src.append(propertyValidator);
+				src.append("().isValid(this, errorBuffer);\n");
 			}
 
 			src.append("\n\t\treturn valid;\n");

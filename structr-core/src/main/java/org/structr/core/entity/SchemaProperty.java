@@ -35,6 +35,7 @@ import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -59,8 +60,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
-	public static final Property<AbstractSchemaNode> schemaNode                   = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<List<SchemaView>>   schemaViews                  = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode        = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<List<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
 	public static final Property<String>             declaringClass    = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue      = new StringProperty("defaultValue");
@@ -80,21 +81,23 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             contentHash       = new StringProperty("contentHash");
 	public static final Property<String>             readFunction      = new StringProperty("readFunction");
 	public static final Property<String>             writeFunction     = new StringProperty("writeFunction");
+	public static final Property<String[]>           validators        = new ArrayProperty("validators", String.class);
+	public static final Property<String[]>           transformers      = new ArrayProperty("transformers", String.class);
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -272,6 +275,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(isDefaultInPublic, _contentHash);
 		_contentHash = addContentHash(readFunction,      _contentHash);
 		_contentHash = addContentHash(writeFunction,     _contentHash);
+		_contentHash = addContentHash(transformers,    _contentHash);
+		_contentHash = addContentHash(validators,        _contentHash);
 
 		return Integer.toHexString(_contentHash);
 	}
@@ -391,6 +396,16 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return _writeFunction;
+	}
+
+	@Override
+	public String[] getTransformators() {
+		return getProperty(SchemaProperty.transformers);
+	}
+
+	@Override
+	public String[] getValidators() {
+		return getProperty(SchemaProperty.validators);
 	}
 
 	// ----- private methods -----

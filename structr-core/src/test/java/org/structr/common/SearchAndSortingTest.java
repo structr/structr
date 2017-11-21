@@ -391,6 +391,7 @@ public class SearchAndSortingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 1000;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int expectedNumber        = 1039;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
@@ -402,20 +403,13 @@ public class SearchAndSortingTest extends StructrTest {
 
 				long t1 = System.currentTimeMillis();
 				logger.info("Query with inexact type took {} ms", t1-t0);
-				assertEquals(1006, result.size());
+				assertEquals(expectedNumber, result.size());
 
 				result = app.nodeQuery(NodeInterface.class).getResult();
 
 				long t2 = System.currentTimeMillis();
 				logger.info("Query with exact type took {} ms", t2-t1);
-				assertEquals(1006, result.size());
-
-				// TODO: Implement app.nodeQuery() to return all nodes in the system as an alternative to the (slow) app.nodeQuery(NodeInterface.class)
-//				result = app.nodeQuery().getResult();
-//
-//				long t3 = System.currentTimeMillis();
-//				logger.info("Query without type took {} ms", t3-t2);
-//				assertEquals(1012, result.size());
+				assertEquals(expectedNumber, result.size());
 
 				tx.success();
 			}

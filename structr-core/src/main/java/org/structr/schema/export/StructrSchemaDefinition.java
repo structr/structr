@@ -195,7 +195,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			throw new IllegalStateException("Invalid JSON object for schema definitions, missing value for 'definitions'.");
 		}
 
-		final List<Map<String, Object>> globalSchemaMethods = (List<Map<String, Object>>) source.get(JsonSchema.KEY_METHODS);
+		final Set<Map<String, Object>> globalSchemaMethods = new LinkedHashSet<>((List<Map<String, Object>>) source.get(JsonSchema.KEY_METHODS));
 		if (globalSchemaMethods != null) {
 
 			globalMethods.deserialize(globalSchemaMethods);

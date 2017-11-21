@@ -29,7 +29,6 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.LongProperty;
@@ -141,16 +140,6 @@ public class ResourceAccess extends AbstractNode {
 		}
 
 		return 0;
-	}
-
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) {
-		return isValid(errorBuffer);
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) {
-		return isValid(errorBuffer);
 	}
 
 	@Override

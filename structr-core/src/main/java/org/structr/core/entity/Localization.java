@@ -20,31 +20,32 @@ package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
+import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonType;
 
-public class Localization extends AbstractNode {
+public interface Localization extends NodeInterface {
 
-	public static final Property<String>  localizedName = new StringProperty("localizedName").cmis().indexed();
-	public static final Property<String>  description   = new StringProperty("description");
-	public static final Property<String>  domain        = new StringProperty("domain").cmis().indexed();
-	public static final Property<String>  locale        = new StringProperty("locale").notNull().cmis().indexed();
-	public static final Property<Boolean> imported      = new BooleanProperty("imported").cmis().indexed();
+	static class Impl { static {
 
-	public static final View defaultView = new View(Localization.class, PropertyView.Public,
-		domain, name, locale, localizedName, description, imported
-	);
+		final JsonType type = SchemaService.getDynamicSchema().addType("Localizaton");
 
-	public static final View uiView = new View(Localization.class, PropertyView.Ui,
-		domain, name, locale, localizedName, description, imported
-	);
+		type.addStringProperty("localizedName", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("description",   PropertyView.Public);
+		type.addStringProperty("domain",        PropertyView.Public).setIndexed(true);
+		type.addStringProperty("locale",        PropertyView.Public).setRequired(true).setIndexed(true);
+		type.addBooleanProperty("imported",     PropertyView.Public).setIndexed(true);
+
+
+		type.addMethod("boolean", "onCreation", "final SecurityContext securityContext, final ErrorBuffer errorBuffer",
+
+	}}
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -74,6 +75,7 @@ public class Localization extends AbstractNode {
 		return false;
 	}
 
+	/*
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
@@ -84,4 +86,5 @@ public class Localization extends AbstractNode {
 
 		return valid;
 	}
+	*/
 }
