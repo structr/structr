@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -115,8 +116,8 @@ public class CSVFileImportJob extends ImportJob {
 
 				final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
 				final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
-				final char fieldSeparator          = delimiter.charAt(0);
-				final char quoteCharacter          = quoteChar.charAt(0);
+				final Character fieldSeparator     = delimiter.charAt(0);
+				final Character quoteCharacter     = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
 				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings));
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;

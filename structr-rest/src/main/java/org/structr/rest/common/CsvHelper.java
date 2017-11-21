@@ -40,13 +40,22 @@ import static org.structr.rest.servlet.CsvServlet.DEFAULT_QUOTE_CHARACTER_COLLEC
 
 public class CsvHelper {
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final char fieldSeparator, final char quoteCharacter, final String range) throws FrameworkException, IOException {
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range) throws FrameworkException, IOException {
 		return cleanAndParseCSV(securityContext, input, type, fieldSeparator, quoteCharacter, range, null);
 	}
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final char fieldSeparator, final char quoteCharacter, final String range, final Map<String, String> propertyMapping) throws FrameworkException, IOException {
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range, final Map<String, String> propertyMapping) throws FrameworkException, IOException {
 
-		final CSVReader reader       = new CSVReader(input, fieldSeparator, quoteCharacter, true);
+		final CSVReader reader;
+		
+		if (quoteCharacter == null) {
+			
+			reader = new CSVReader(input, fieldSeparator);
+
+		} else {
+		
+			reader = new CSVReader(input, fieldSeparator, quoteCharacter, true);
+		}
 		
 		final String[] propertyNames = reader.readNext();
 		

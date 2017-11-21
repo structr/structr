@@ -293,7 +293,7 @@ var Importer = {
 				var row2 = $('#options-row2');
 
 				row1.append('<td><label>Delimiter:</label><select id="delimiter" class="import-option"><option' + (delim === ',' ? ' selected' : '') + '>,</option><option' + (delim === ';' ? ' selected' : '') + '>;</option><option' + (delim === '|' ? ' selected' : '') + '>|</option></select></td>');
-				row1.append('<td><label>Quote character:</label><select id="quote-char" class="import-option"><option' + (qc === '"' ? ' selected' : '') + '>&quot;</option><option' + (qc === '\'' ? ' selected' : '') + '>\'</option></select></td>');
+				row1.append('<td><label>Quote character:</label><select id="quote-char" class="import-option"><option' + (qc === '' ? ' selected' : '') + '></option><option' + (qc === '"' ? ' selected' : '') + '>&quot;</option><option' + (qc === '\'' ? ' selected' : '') + '>\'</option></select></td>');
 				row1.append('<td><label>Record separator:</label><select id="record-separator" class="import-option"></select></td>');
 
 				row2.append('<td><label>Commit interval:</label><input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit."></td>');
