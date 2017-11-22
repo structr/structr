@@ -1675,7 +1675,12 @@ var _Crud = {
 					_Crud.crudDelete(id);
 				}
 			});
-			_Entities.bindAccessControl($('.actions .security', row), item);
+
+			if (_Crud.types[type] && _Crud.types[type].isRel === true) {
+				$('.actions .security', row).hide();
+			} else {
+				_Entities.bindAccessControl($('.actions .security', row), item);
+			}
 		}
 	},
 	populateCell: function(id, key, type, value, cell) {
