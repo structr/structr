@@ -28,6 +28,7 @@ var _VirtualTypes = {
 	virtualTypeDetail: undefined,
 	virtualTypeDetailTableRow: undefined,
 	virtualPropertiesTableBody: undefined,
+	resourceLink: undefined,
 
 	init: function() {},
 	unload: function() {},
@@ -50,16 +51,17 @@ var _VirtualTypes = {
 					'</table>' +
 				'</div>' +
 				'<div id="virtual-type-detail" class="resourceBox full-height-box">' +
-					'<h2>Virtual Type</h2>' +
+					'<div class="resource-link hide-in-create-mode"><a target="_blank" href="">/</a></div>' +
+					'<h2><span class="show-in-create-mode">New </span>Virtual Type</h2>' +
 					'<table id="virtual-type-detail-table">' +
 						'<thead><tr>' +
-							'<th>Position</th>' +
-							'<th>Name</th>' +
-							'<th>Source Type</th>' +
-							'<th>Filter Expression</th>' +
+							'<th class="position">Position</th>' +
+							'<th class="name">Name</th>' +
+							'<th class="sourceType">Source Type</th>' +
+							'<th class="filterExpression">Filter Expression</th>' +
 							'<th>Visible To Public Users</th>' +
 							'<th>Visible To Authenticated Users</th>' +
-							'<th class="show-in-create-mode hidden"></th>' +
+							'<th class="show-in-create-mode"></th>' +
 						'</tr></thead>' +
 						'<tbody><tr>' +
 							'<td><input class="property" data-property="position" size="3" /></td>' +
@@ -75,13 +77,13 @@ var _VirtualTypes = {
 						'<h3>Virtual Properties</h3>' +
 						'<table id="virtual-properties-table">' +
 							'<thead><tr>' +
-								'<th>position</th>' +
-								'<th>sourceName</th>' +
-								'<th>targetName</th>' +
-								'<th>inputFunction</th>' +
-								'<th>outputFunction</th>' +
-								'<th>visibleToPublicUsers</th>' +
-								'<th>visibleToAuthenticatedUsers</th>' +
+								'<th class="position">position</th>' +
+								'<th class="sourceName">sourceName</th>' +
+								'<th class="targetName">targetName</th>' +
+								'<th class="inputFunction">inputFunction</th>' +
+								'<th class="outputFunction">outputFunction</th>' +
+								'<th>Visible To Public Users</th>' +
+								'<th>Visible To Authenticated Users</th>' +
 								'<th>Actions</th>' +
 							'</tr></thead>' +
 							'<tbody></tbody>' +
@@ -102,6 +104,7 @@ var _VirtualTypes = {
 		_VirtualTypes.listVirtualTypes();
 
 		_VirtualTypes.virtualTypeDetail = $('#virtual-type-detail').hide();
+		_VirtualTypes.resourceLink = $('.resource-link a', _VirtualTypes.virtualTypeDetail);
 		_VirtualTypes.virtualTypeDetailTableRow = $('#virtual-type-detail-table tbody tr');
 		_VirtualTypes.virtualPropertiesTableBody = $('#virtual-properties-table tbody');
 
@@ -120,6 +123,7 @@ var _VirtualTypes = {
 			_VirtualTypes.saveVirtualObject('VirtualType', data, _VirtualTypes.virtualTypeDetailTableRow, function (data) {
 				var createdId = data.result[0];
 				_VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id', createdId);
+				_VirtualTypes.updateResourceLink(_VirtualTypes.getVirtualObjectDataFromRow(_VirtualTypes.virtualTypeDetailTableRow));
 
 				_VirtualTypes.disableCreateMode();
 				_VirtualTypes.virtualTypesPager.refresh();
@@ -133,6 +137,25 @@ var _VirtualTypes = {
 			_VirtualTypes.virtualTypeDetail.hide();
 		}).appendTo(actionsCol);
 
+		Structr.appendInfoTextToElement({
+			element: $('.resource-link'),
+			text: "Preview the virtual type in a new window/tab.<br>The request parameter pageSize=1 is automatically appended to reduce the number of results in the preview.",
+			css: { marginLeft: "5px" },
+			offsetX: -300,
+			offsetY: 10
+		});
+
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-type-detail-table th.position'),         "The position attribute for virtual types is mostly for sorting them in the left column");
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-type-detail-table th.name'),             "The name under which the virtual type can be queried via REST");
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-type-detail-table th.sourceType'),       "Specifies the source type of the type mapping");
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-type-detail-table th.filterExpression'), "Can be used to remove entities from the target collection, e.g. filter entities with invalid names etc. The filter expression is a StructrScript (JavaScript may severely impact performance) expression that will be called for every entity in the source collection, with the current entity being available under the keyword <code>this</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-properties-table th.position'),       "Specifies the position of the property in the output JSON document");
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-properties-table th.sourceName'),     "Specifies the property key of the source entity");
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-properties-table th.targetName'),     "The desired target property name. If left empty, the source property name is used");
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-properties-table th.inputFunction'),  "An optional input transformation when writing to this virtual property. The input data is made available via the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		_VirtualTypes.appendInfoTextToColumnHeader($('#virtual-properties-table th.outputFunction'), "An optional scripting expression that creates or transforms the output value for the current property. It can be either a constant value, or a function that transforms the input value, which is provided using the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+
 		$(window).off('resize');
 		$(window).on('resize', function() {
 			Structr.resize();
@@ -140,13 +163,20 @@ var _VirtualTypes = {
 
 		Structr.unblockMenu(100);
 	},
+	appendInfoTextToColumnHeader: function(el, text) {
+		Structr.appendInfoTextToElement({
+			element: el,
+			text: text,
+			css: { marginLeft: "5px" }
+		});
+	},
 	enableCreateMode: function() {
-		$('.show-in-create-mode', _VirtualTypes.virtualTypeDetail).removeClass('hidden');
-		$('.hide-in-create-mode', _VirtualTypes.virtualTypeDetail).addClass('hidden');
+		$('.show-in-create-mode', _VirtualTypes.virtualTypeDetail).show();
+		$('.hide-in-create-mode', _VirtualTypes.virtualTypeDetail).hide();
 	},
 	disableCreateMode: function() {
-		$('.show-in-create-mode', _VirtualTypes.virtualTypeDetail).addClass('hidden');
-		$('.hide-in-create-mode', _VirtualTypes.virtualTypeDetail).removeClass('hidden');
+		$('.show-in-create-mode', _VirtualTypes.virtualTypeDetail).hide();
+		$('.hide-in-create-mode', _VirtualTypes.virtualTypeDetail).show();
 	},
 	registerChangeListeners: function() {
 
@@ -158,6 +188,7 @@ var _VirtualTypes = {
 				var data = _VirtualTypes.getVirtualObjectDataFromRow(row);
 				_VirtualTypes.updateVirtualObject('VirtualType', typeId, data, el, el.closest('td'), function() {
 					var rowInList = $('#virtual-type-' + typeId, _VirtualTypes.virtualTypesList);
+					_VirtualTypes.updateResourceLink(data);
 					_VirtualTypes.populateVirtualTypeRow(rowInList, data);
 				});
 			}
@@ -238,9 +269,9 @@ var _VirtualTypes = {
 
 	},
 	populateVirtualTypeRow: function(row, virtualTypeData) {
-		$('.position', row).text(virtualTypeData.position);
-		$('.name', row).text(virtualTypeData.name);
-		$('.sourceType', row).text(virtualTypeData.sourceType);
+		$('.position', row).text(virtualTypeData.position !== null ? virtualTypeData.position : "");
+		$('.name', row).text(virtualTypeData.name !== null ? virtualTypeData.name : "");
+		$('.sourceType', row).text(virtualTypeData.sourceType !== null ? virtualTypeData.sourceType : "");
 	},
 	deleteVirtualType: function(id) {
 
@@ -285,10 +316,15 @@ var _VirtualTypes = {
 				}
 			});
 
+			_VirtualTypes.updateResourceLink(vt);
 			_VirtualTypes.listVirtualProperties(vt.properties);
 			_VirtualTypes.disableCreateMode();
 			_VirtualTypes.virtualTypeDetail.show();
 		});
+	},
+	updateResourceLink: function (virtualType) {
+		_VirtualTypes.resourceLink.attr('href' , '/structr/rest/' + virtualType.name + '?pageSize=1');
+		_VirtualTypes.resourceLink.text('/' + virtualType.name);
 	},
 	clearVirtualTypeDetails: function() {
 
