@@ -144,7 +144,7 @@ public class CreateArchiveFunction extends UiFunction {
 
 	private void addFileToZipArchive(String path, AbstractFile file, ArchiveOutputStream aps) throws IOException {
 
-		logger.info("Adding File \"" + path + "\" to new archive...");
+		logger.info("Adding File \"{}\" to new archive...", path);
 
 		ZipArchiveEntry entry = new ZipArchiveEntry(path);
 		aps.putArchiveEntry(entry);
@@ -165,7 +165,7 @@ public class CreateArchiveFunction extends UiFunction {
 
 	private void addFilesToArchive(String path, List<FileBase> list, ArchiveOutputStream aps) throws IOException {
 
-		for(AbstractFile fileForArchive : list) {
+		for(FileBase fileForArchive : list) {
 
 			addFileToZipArchive(path + fileForArchive.getProperty(AbstractFile.name), fileForArchive,  aps);
 		}
@@ -173,7 +173,7 @@ public class CreateArchiveFunction extends UiFunction {
 
 	private void addFoldersToArchive(String path, List<Folder> list, ArchiveOutputStream aps) throws IOException {
 
-		for(AbstractFile folder : list) {
+		for(Folder folder : list) {
 
 			addFilesToArchive(path + folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.files), aps);
 			addFoldersToArchive(path + folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.folders), aps);
