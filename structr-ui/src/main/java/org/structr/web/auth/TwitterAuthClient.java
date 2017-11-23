@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.User;
 import twitter4j.Twitter;
@@ -167,7 +168,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 
 	@Override
 	public PropertyKey getCredentialKey() {
-		return User.twitterName;
+		return StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "twitterName", false);
 	}
 
 	@Override

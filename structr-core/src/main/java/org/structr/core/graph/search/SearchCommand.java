@@ -91,6 +91,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private boolean includeDeletedAndHidden      = true;
 	private boolean sortDescending               = false;
 	private boolean doNotSort                    = false;
+	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
 
@@ -428,6 +429,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> andType(final Class type) {
 
+		this.type = type;
+
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
@@ -435,12 +438,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> orType(final Class type) {
 
+		this.type = type;
+
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> andTypes(final Class type) {
+
+		this.type = type;
 
 		andType(type);
 
@@ -450,9 +457,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> orTypes(final Class type) {
 
+		this.type = type;
+
 		orType(type);
 
 		return this;
+	}
+
+	@Override
+	public Class getType() {
+		return this.type;
 	}
 
 	@Override

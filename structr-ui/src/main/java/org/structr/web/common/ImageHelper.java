@@ -51,7 +51,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.util.Base64;
 import static org.structr.web.common.FileHelper.setFileData;
 import org.structr.web.entity.FileBase;

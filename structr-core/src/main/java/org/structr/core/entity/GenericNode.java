@@ -41,7 +41,7 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 
 	@Override
 	public int hashCode() {
-		return getNodeId().hashCode();
+		return Long.valueOf(getId()).hashCode();
 	}
 
 	@Override

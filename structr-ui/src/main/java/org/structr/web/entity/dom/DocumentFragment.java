@@ -18,22 +18,53 @@
  */
 package org.structr.web.entity.dom;
 
+import java.net.URI;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.NonIndexed;
-import org.structr.web.common.RenderContext;
-import org.structr.web.entity.Renderable;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  *
  *
  */
 
-public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment, NonIndexed {
+public interface DocumentFragment extends DOMNode, org.w3c.dom.DocumentFragment, NonIndexed {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("DocumentFragment");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DocumentFragment"));
+		type.setExtends(URI.create("#/definitions/DOMNode"));
+
+		// ----- interface org.w3c.dom.Node -----
+		type.addMethod("getNodeName").setSource("return \"#document-fragment\";");
+		type.addMethod("getLocalName").setSource("return null");
+		type.addMethod("getNodeValue").setSource("return null").addException(DOMException.class.getName());
+		type.addMethod("hasAttributes").setSource("return false").setReturnType("boolean");
+		type.addMethod("getAttributes").setSource("return null").setReturnType("NamedNodeMap");
+		type.addMethod("getNodeType").setSource("return DOCUMENT_FRAGMENT_NODE;");
+		type.addMethod("setNodeValue").addException(DOMException.class.getName()).addParameter("value", "String");
+
+		// ----- interface DOMNode -----
+		type.addMethod("getContextName").setSource("return \"DocumentFragment\";").setReturnType("String");
+		type.addMethod("isSynced").setSource("return false").setReturnType("boolean");
+		type.addMethod("contentEquals").setSource("return false;").addParameter("otherNode", DOMNode.class.getName());
+		type.addMethod("updateFromNode").addException(FrameworkException.class.getName()).addParameter("otherNode", DOMNode.class.getName());
+
+		// ----- interface Renderable -----
+
+		/*
+		public void render(RenderContext renderContext, int depth) throws FrameworkException;
+		public void renderContent(RenderContext renderContext, int depth) throws FrameworkException;
+		*/
+	}}
+
+	/*
 	@Override
 	public String getContextName() {
 		return "DocumentFragment";
@@ -126,4 +157,5 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 		// will be done by the Page method if deep importing is enabled.
 		return newPage.createDocumentFragment();
 	}
+i	*/
 }

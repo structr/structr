@@ -97,12 +97,8 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Abstract base class for all node entities in structr.
- *
- *
- *
+ * Abstract base class for all node entities in Structr.
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
@@ -356,7 +352,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		String name = getProperty(AbstractNode.name);
 		if (name == null) {
 
-			name = getNodeId().toString();
+			name = getIdString();
 		}
 
 		return name;
@@ -385,11 +381,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		return cachedUuid;
-	}
-
-	public final Long getNodeId() {
-		return getId();
-
 	}
 
 	public final String getIdString() {

@@ -36,7 +36,8 @@ import org.apache.oltu.oauth2.common.utils.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.core.entity.Person;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -275,9 +276,7 @@ public class StructrOAuthClient {
 	}
 
 	public PropertyKey getCredentialKey() {
-
-		return Person.eMail;
-
+		return StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
 	}
 
 	public String getCredential(final HttpServletRequest request) {

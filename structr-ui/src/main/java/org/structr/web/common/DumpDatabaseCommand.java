@@ -30,7 +30,6 @@ import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.FileBase;
 
@@ -58,10 +57,10 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 			try (final Tx tx = app.tx()) {
 
-				final FileBase file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName);
+				final FileBase file = FileHelper.createFile(securityContext, new byte[0], "application/zip", FileBase.class, fileName);
 
 				// make file visible for auth. users
-				file.setProperties(securityContext, new PropertyMap(File.visibleToAuthenticatedUsers, true));
+				file.setProperties(securityContext, new PropertyMap(FileBase.visibleToAuthenticatedUsers, true));
 
 				// Don't include files
 				SyncCommand.exportToStream(

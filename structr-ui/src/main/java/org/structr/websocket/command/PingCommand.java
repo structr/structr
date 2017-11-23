@@ -50,7 +50,7 @@ public class PingCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
-		
+
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("PING received from session {}", sessionId);
 
@@ -61,7 +61,7 @@ public class PingCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status()
 				.callback(webSocketData.getCallback())
 				.data("username", currentUser.getProperty(AbstractNode.name))
-				.data("isAdmin", currentUser.getProperty(Principal.isAdmin))
+				.data("isAdmin", currentUser.isAdmin())
 				.code(100).build(), true);
 
 		} else {

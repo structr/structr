@@ -19,10 +19,7 @@
 package org.structr.web.entity;
 
 /**
- * Trash folder
- *
- *
- *
+ * Trash folder.
  */
 public class Trash extends Folder {
 //

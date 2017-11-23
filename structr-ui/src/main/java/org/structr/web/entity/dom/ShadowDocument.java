@@ -18,11 +18,10 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.List;
-import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.web.entity.relation.PageLink;
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Shadow document.
@@ -32,24 +31,14 @@ import org.structr.web.entity.relation.PageLink;
  *
  *
  */
-public class ShadowDocument extends Page {
+public interface ShadowDocument extends Page {
 
-	public static final org.structr.common.View publicView = new org.structr.common.View(ShadowDocument.class, PropertyView.Public, type, name, id);
+	static class Impl { static {
 
-	public ShadowDocument() { }
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("ShadowDocument");
 
-	// ----- interface Syncable -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> data = super.getSyncData();
-
-		for (final PageLink pageLink : getIncomingRelationships(PageLink.class)) {
-
-			data.add(pageLink.getSourceNode());
-			data.add(pageLink);
-		}
-
-		return data;
-	}
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ShadowDocument"));
+		type.setExtends(URI.create("#/definitions/Page"));
+	}}
 }

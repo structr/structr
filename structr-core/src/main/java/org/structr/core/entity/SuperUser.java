@@ -44,14 +44,9 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.action.ActionContext;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * The SuperUser entity. Please note that this class is not persitent but will
  * be instantiated when needed.
- *
- *
- *
  */
 public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
@@ -110,9 +105,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public long getId() {
-
 		return -1L;
-
 	}
 
 	public String getRealName() {

@@ -41,6 +41,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
@@ -92,22 +93,25 @@ public class ResetPasswordResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		if (propertySet.containsKey(User.eMail.jsonName())) {
+		if (propertySet.containsKey("eMail")) {
 
-			final String emailString  = (String) propertySet.get(User.eMail.jsonName());
+			final String emailString  = (String) propertySet.get("eMail");
 
 			if (StringUtils.isEmpty(emailString)) {
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 			}
 
-			final String localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
-			final String confKey      = UUID.randomUUID().toString();
-			final Principal user      = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getFirst();
+			final ConfigurationProvider config        = StructrApp.getConfiguration();
+			final PropertyKey<String> confirmationKey = config.getPropertyKeyForJSONName(Principal.class, "confirmationKey");
+			final PropertyKey<String> eMail           = config.getPropertyKeyForJSONName(Principal.class, "eMail");
+			final String localeString                 = (String) propertySet.get("locale");
+			final String confKey                      = UUID.randomUUID().toString();
+			final Principal user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();
 
 			if (user != null) {
 
 				// update confirmation key
-				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(User.confirmationKey, confKey));
+				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(confirmationKey, confKey));
 
 				if (!sendResetPasswordLink(user, propertySet, localeString, confKey)) {
 
@@ -155,11 +159,11 @@ public class ResetPasswordResource extends Resource {
 		// WARNING! This is unchecked user input!!
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
-		final String userEmail = user.getProperty(User.eMail);
+		final String userEmail = user.getProperty("eMail");
 		final String appHost   = Settings.ApplicationHost.getValue();
 		final Integer httpPort = Settings.HttpPort.getValue();
 
-		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
+		replacementMap.put(toPlaceholder("eMail"), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, "http://" + appHost + ":" + httpPort, localeString, confKey)
 			      + getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString, confKey)
@@ -198,13 +202,13 @@ public class ResetPasswordResource extends Resource {
 			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
 
 			if (localeString != null) {
-				query.and(MailTemplate.locale, localeString);
+				query.and("locale", localeString);
 			}
 
 			MailTemplate template = query.getFirst();
 			if (template != null) {
 
-				final String text = template.getProperty(MailTemplate.text);
+				final String text = template.getProperty("text");
 				return text != null ? text : defaultValue;
 
 			} else {

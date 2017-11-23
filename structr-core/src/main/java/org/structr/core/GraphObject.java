@@ -277,6 +277,24 @@ public interface GraphObject {
 		}
 	}
 
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key.
+	 *
+	 * @param <T>
+	 * @param propertyName the property key to retrieve the value for
+	 * @return the converted, validated, transformed property value
+	 */
+	default public <T> T getProperty(final String propertyName) {
+
+		final PropertyKey<T> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), propertyName, false);
+		if (key != null) {
+
+			return getProperty(key);
+		}
+
+		throw new IllegalArgumentException("Invalid property key " + propertyName + " for type " + getClass().getSimpleName());
+	}
 
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given

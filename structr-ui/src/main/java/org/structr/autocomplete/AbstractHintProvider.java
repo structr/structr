@@ -40,11 +40,11 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -269,7 +269,7 @@ public abstract class AbstractHintProvider {
 				break;
 
 			case "link":
-				currentObjectType = File.class;
+				currentObjectType = FileBase.class;
 				break;
 
 			case "template":

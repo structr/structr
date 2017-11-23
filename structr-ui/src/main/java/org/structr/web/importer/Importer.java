@@ -69,7 +69,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.dynamic.File;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.Actions;
@@ -99,12 +98,8 @@ import org.structr.web.entity.html.Input;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
- *
- *
- *
  */
 public class Importer {
 
@@ -1057,7 +1052,7 @@ public class Importer {
 	 * Check whether a file with given path and checksum already exists
 	 */
 	private FileBase fileExists(final String path, final long checksum) throws FrameworkException {
-		return app.nodeQuery(FileBase.class).and(FileBase.path, path).and(File.checksum, checksum).getFirst();
+		return app.nodeQuery(FileBase.class).and(FileBase.path, path).and(FileBase.checksum, checksum).getFirst();
 	}
 
 	private Linkable downloadFile(final String downloadAddress, final URL base) {
@@ -1071,7 +1066,7 @@ public class Importer {
 		String contentType;
 
 		// Create temporary file with new uuid
-		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
+		final String relativeFilePath = FileBase.getDirectoryPath(uuid) + "/" + uuid;
 		final String filePath = FileHelper.getFilePath(relativeFilePath);
 		final java.io.File fileOnDisk = new java.io.File(filePath);
 
@@ -1238,16 +1233,16 @@ public class Importer {
 
 	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
 
-		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
+		final String relativeFilePath = FileBase.getDirectoryPath(uuid) + "/" + uuid;
 
-		final FileBase fileNode = app.create(fileClass != null ? fileClass : File.class,
+		final FileBase fileNode = app.create(fileClass != null ? fileClass : FileBase.class,
 			new NodeAttribute(GraphObject.id, uuid),
 			new NodeAttribute(AbstractNode.name, PathHelper.getName(path)),
-			new NodeAttribute(File.relativeFilePath, relativeFilePath),
-			new NodeAttribute(File.contentType, contentType),
-			new NodeAttribute(File.size, size),
-			new NodeAttribute(File.checksum, checksum),
-			new NodeAttribute(File.version, 1),
+			new NodeAttribute(FileBase.relativeFilePath, relativeFilePath),
+			new NodeAttribute(FileBase.contentType, contentType),
+			new NodeAttribute(FileBase.size, size),
+			new NodeAttribute(FileBase.checksum, checksum),
+			new NodeAttribute(FileBase.version, 1),
 			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
 

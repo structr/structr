@@ -18,58 +18,29 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.apache.commons.collections.map.LRUMap;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.Result;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
+import java.net.URI;
 import org.structr.schema.NonIndexed;
-import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.HtmlProperty;
-import org.structr.web.common.RenderContext;
-import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.entity.dom.relationship.DOMChildren;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.relation.PageLink;
-import org.structr.web.entity.relation.Sync;
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.TypeInfo;
 
-//~--- classes ----------------------------------------------------------------
-/**
- *
- *
- *
- */
-public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonIndexed {
+public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("DOMElement");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
+		type.setExtends(URI.create("#/definitions/DOMNode"));
+
+	}}
+
+	String getOffsetAttributeName(final String name, final int offset);
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
@@ -343,7 +314,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	 * @param renderContext
 	 * @param depth
 	 * @throws FrameworkException
-	 */
 	@Override
 	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
 
@@ -864,7 +834,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 		return newElement;
 	}
 
-	// ----- nested classes -----
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -919,7 +888,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	 * Make sure it happens only once per page.
 	 *
 	 * @param out
-	 */
 	private void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
 
 		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
@@ -953,7 +921,6 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 	 *
 	 * @param propertyView
 	 * @return property key
-	 */
 	@Override
 	public Set<PropertyKey> getPropertyKeys(String propertyView) {
 
@@ -994,4 +961,5 @@ public class DOMElement extends DOMNode implements Element, NamedNodeMap, NonInd
 
 		return data;
 	}
+	*/
 }

@@ -18,100 +18,93 @@
  */
 package org.structr.web.entity.dom;
 
-import java.io.FileInputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.NodeAttribute;
-import static org.structr.core.graph.NodeInterface.owner;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.RelationProperty;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.Linkable;
-import static org.structr.web.entity.Linkable.linkingElements;
-import org.structr.web.entity.Site;
-import static org.structr.web.entity.dom.DOMNode.children;
-import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.relation.ResourceLink;
-import org.structr.web.entity.relation.PageLink;
-import org.structr.web.entity.relation.Pages;
-import org.structr.web.importer.Importer;
-import org.structr.web.property.UiNotion;
-import org.w3c.dom.Attr;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.Comment;
-import org.w3c.dom.DOMConfiguration;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentFragment;
-import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
-import org.w3c.dom.EntityReference;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.ProcessingInstruction;
-import org.w3c.dom.Text;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Represents a page resource
- *
- *
- *
+ * Represents a page resource.
  */
-public class Page extends DOMNode implements Linkable, Document, DOMImplementation {
+public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Page");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
+		type.setExtends(URI.create("#/definitions/DOMNode"));
+
+		type.addBooleanProperty("isPage",    PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("dontCache", PropertyView.Public).setDefaultValue("false");
+
+		// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
+		type.addBooleanProperty("pageCreatesRawData", PropertyView.Public).setDefaultValue("false");
+
+		type.addIntegerProperty("version",         PropertyView.Public).setIndexed(true).setReadOnly(true);
+		type.addIntegerProperty("position",        PropertyView.Public).setIndexed(true);
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
+
+		type.addStringProperty("path",             PropertyView.Public).setIndexed(true);
+		type.addStringProperty("showOnErrorCodes", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("contentType",      PropertyView.Public).setIndexed(true);
+
+		// category is part of a special view named "category"
+		type.addStringProperty("category", PropertyView.Public, "category" ).setIndexed(true);
+
+
+		type.addMethod("getContent").setReturnType("String").setSource("return org.structr.web.entity.dom.Page.getContent(this, editMode);").addParameter("editMode", "RenderContext.EditMode");
+	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
-	private static final Logger logger          = LoggerFactory.getLogger(Page.class.getName());
-
-	public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
-	public static final Property<Integer> position = new IntProperty("position").indexed();
-	public static final Property<String> contentType = new StringProperty("contentType").indexed();
-	public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
-	public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
-	public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
-	public static final Property<Boolean> isPage = new ConstantBooleanProperty("isPage", true);
-	public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
-	public static final Property<String> category = new StringProperty("category").indexed();
-
-	// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
-	public static final Property<Boolean> pageCreatesRawData = new BooleanProperty("pageCreatesRawData").defaultValue(false);
 
 
-	public static final Property<String> path = new StringProperty("path").indexed();
-	public static final Property<Site> site  = new StartNode<>("site", Pages.class, new UiNotion()).indexedWhenEmpty();
 
+
+	String getContent(final RenderContext.EditMode editMode) throws FrameworkException;
+	Element createElement (final String tag, final boolean suppressException);
+
+
+
+
+
+	//public static final Property<Integer> version = new IntProperty("version").indexed().readOnly();
+	//public static final Property<Integer> position = new IntProperty("position").indexed();
+	//public static final Property<String> contentType = new StringProperty("contentType").indexed();
+	//public static final Property<Integer> cacheForSeconds = new IntProperty("cacheForSeconds");
+	//public static final Property<String> showOnErrorCodes = new StringProperty("showOnErrorCodes").indexed();
+
+	// TODO:
+	//          public static final Property<List<DOMNode>> elements = new StartNodes<>("elements", PageLink.class);
+	//          public static final Property<Site> site  = new StartNode<>("site", Pages.class, new UiNotion()).indexedWhenEmpty();
+
+	//public static final Property<Boolean> isPage = new ConstantBooleanProperty("isPage", true);
+	//public static final Property<Boolean> dontCache = new BooleanProperty("dontCache").defaultValue(false);
+	//public static final Property<String> category = new StringProperty("category").indexed();
+	//public static final Property<Boolean> pageCreatesRawData = new BooleanProperty("pageCreatesRawData").defaultValue(false);
+	//public static final Property<String> path = new StringProperty("path").indexed();
+
+	/*
 	public static final org.structr.common.View publicView = new org.structr.common.View(Page.class, PropertyView.Public,
 		name, path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
 	);
@@ -119,17 +112,10 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	public static final org.structr.common.View uiView = new org.structr.common.View(Page.class, PropertyView.Ui,
 		name, path, children, linkingElements, contentType, owner, cacheForSeconds, version, position, showOnErrorCodes, isPage, site, dontCache, pageCreatesRawData, enableBasicAuth, basicAuthRealm, category
 	);
+	*/
 
-	public static final org.structr.common.View categoryView = new org.structr.common.View(Page.class, "category",
-		category
-	);
-
+	/*
 	private Html5DocumentType docTypeNode               = null;
-
-	// register this type as an overridden builtin type
-	static {
-		SchemaService.registerBuiltinTypeOverride("Page", Page.class.getName());
-	}
 
 	public Page() {
 
@@ -161,6 +147,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		return valid;
 	}
+	*/
 
 	/**
 	 * Creates a new Page entity with the given name in the database.
@@ -189,16 +176,19 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	 */
 	public static Page createNewPage(final SecurityContext securityContext, final String uuid, final String name) throws FrameworkException {
 
-		final App app                = StructrApp.getInstance(securityContext);
-		final PropertyMap properties = new PropertyMap();
+		final PropertyKey<String> contentTypeKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "contentType");
+		final PropertyKey<Boolean> hideOnDetailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnDetail");
+		final PropertyKey<Boolean> hideOnIndexKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnIndex");
+		final App app                              = StructrApp.getInstance(securityContext);
+		final PropertyMap properties               = new PropertyMap();
 
 		// set default values for properties on creation to avoid them
 		// being set separately when indexing later
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
-		properties.put(Page.contentType, "text/html");
-		properties.put(Page.hideOnDetail, false);
-		properties.put(Page.hideOnIndex, false);
+		properties.put(contentTypeKey, "text/html");
+		properties.put(hideOnDetailKey, false);
+		properties.put(hideOnIndexKey, false);
 		properties.put(Page.enableBasicAuth, false);
 
 		if (uuid != null) {
@@ -261,6 +251,18 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 		return page;
 	}
 
+	static String getContent(final Page page, final RenderContext.EditMode editMode) throws FrameworkException {
+
+		final RenderContext ctx = new RenderContext(page.getSecurityContext(), null, null, editMode);
+		final StringRenderBuffer buffer = new StringRenderBuffer();
+		ctx.setBuffer(buffer);
+		page.render(ctx, 0);
+
+		// extract source
+		return buffer.getBuffer().toString();
+	}
+
+	/*
 	@Override
 	protected void checkHierarchy(Node otherNode) throws DOMException {
 
@@ -588,25 +590,6 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 	@Override
 	public Document createDocument(String string, String string1, DocumentType dt) throws DOMException {
 		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	/**
-	 * Return the content of this page depending on edit mode
-	 *
-	 * @param editMode
-	 * @return content
-	 * @throws FrameworkException
-	 */
-	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
-
-		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode);
-		final StringRenderBuffer buffer = new StringRenderBuffer();
-		ctx.setBuffer(buffer);
-		render(ctx, 0);
-
-		// extract source
-		return buffer.getBuffer().toString();
-
 	}
 
 	@Override
@@ -953,4 +936,5 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 		return null;
 	}
+	*/
 }

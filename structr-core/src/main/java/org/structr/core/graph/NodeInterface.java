@@ -62,34 +62,34 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 		id, name, type
 	);
 
-	public void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
+	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
 
-	public void onNodeCreation();
-	public void onNodeInstantiation(final boolean isCreation);
-	public void onNodeDeletion();
+	void onNodeCreation();
+	void onNodeInstantiation(final boolean isCreation);
+	void onNodeDeletion();
 
-	public Node getNode();
+	Node getNode();
 
-	public String getName();
+	String getName();
 
-	public boolean isDeleted();
+	boolean isDeleted();
 
-	public boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 
-	public <R extends AbstractRelationship> Iterable<R> getRelationships();
-	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
+	<R extends AbstractRelationship> Iterable<R> getRelationships();
+	<R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
 
-	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
-	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
+	<R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
+	<R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
 
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type);
 
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type);
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type);
 
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type);
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
 
-	public void setRawPathSegment(final Relationship pathSegment);
-	public Relationship getRawPathSegment();
+	void setRawPathSegment(final Relationship pathSegment);
+	Relationship getRawPathSegment();
 }

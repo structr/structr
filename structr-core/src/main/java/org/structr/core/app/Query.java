@@ -56,6 +56,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> orType(final Class<T> type);
 	public Query<T> andTypes(final Class<T> type);
 	public Query<T> orTypes(final Class<T> type);
+	public Class getType();
 
 	public Query<T> andName(final String name);
 	public Query<T> orName(final String name);
@@ -64,6 +65,18 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> location(final String street, final String postalCode, final String city, final String country, final double distance);
 	public Query<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance);
 	public Query<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance);
+
+	default public <P> Query<T> and(final String name, final P value) {
+
+		final PropertyKey<P> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getType(), name, false);
+		if (key != null) {
+
+			return and(key, value);
+		}
+
+		throw new IllegalArgumentException("Invalid property key " + name + " for type " + getClass().getSimpleName());
+	}
+
 	public <P> Query<T> and(final PropertyKey<P> key, final P value);
 	public <P> Query<T> and(final PropertyKey<P> key, final P value, final boolean exact);
 	public <P> Query<T> and(final PropertyMap attributes);

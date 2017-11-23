@@ -312,7 +312,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
-			additionalData.put(Localization.imported, false);
+			additionalData.put(StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "imported"), false);
 
 			info("Reading {}", localizationsConf);
 			publishDeploymentProgressMessage("Importing localizations");
@@ -1125,6 +1125,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting mail templates");
 
+		final PropertyKey<String> textKey             = StructrApp.getConfiguration().getPropertyKeyForJSONName(MailTemplate.class, "text");
+		final PropertyKey<String> localeKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(MailTemplate.class, "text");
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
@@ -1136,8 +1138,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				mailTemplates.add(entry);
 
 				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
-				entry.put("text",   mailTemplate.getProperty(MailTemplate.text));
-				entry.put("locale", mailTemplate.getProperty(MailTemplate.locale));
+				entry.put("text",   mailTemplate.getProperty(textKey));
+				entry.put("locale", mailTemplate.getProperty(localeKey));
 				entry.put("visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers", mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
 			}
@@ -1195,6 +1197,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting localizations");
 
+		final PropertyKey<String> localizedNameKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "localizedName");
+		final PropertyKey<String> domainKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "domain");
+		final PropertyKey<String> localeKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "locale");
+		final PropertyKey<String> importedKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "imported");
 		final List<Map<String, Object>> localizations = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
@@ -1206,10 +1212,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				localizations.add(entry);
 
 				entry.put("name",                        localization.getProperty(Localization.name));
-				entry.put("localizedName",               localization.getProperty(Localization.localizedName));
-				entry.put("domain",                      localization.getProperty(Localization.domain));
-				entry.put("locale",                      localization.getProperty(Localization.locale));
-				entry.put("imported",                    localization.getProperty(Localization.imported));
+				entry.put("localizedName",               localization.getProperty(localizedNameKey));
+				entry.put("domain",                      localization.getProperty(domainKey));
+				entry.put("locale",                      localization.getProperty(localeKey));
+				entry.put("imported",                    localization.getProperty(importedKey));
 				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
 			}

@@ -51,7 +51,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
-import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.Folder;
 
 /**

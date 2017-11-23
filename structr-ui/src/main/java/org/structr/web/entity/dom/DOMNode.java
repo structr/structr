@@ -18,109 +18,67 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
-import org.structr.api.util.Iterables;
-import org.structr.common.CaseHelper;
-import org.structr.common.Filter;
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Security;
-import org.structr.core.graph.ModificationQueue;
+import static org.structr.core.GraphObject.PAGE_CATEGORY;
+import static org.structr.core.GraphObject.QUERY_CATEGORY;
+import static org.structr.core.GraphObject.VISIBILITY_CATEGORY;
+import static org.structr.core.GraphObject.id;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionIdProperty;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
-import org.structr.web.common.AsyncBuffer;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
-import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.datasource.CypherGraphDataSource;
-import org.structr.web.datasource.FunctionDataSource;
-import org.structr.web.datasource.IdRequestParameterGraphDataSource;
-import org.structr.web.datasource.NodeGraphDataSource;
-import org.structr.web.datasource.RestDataSource;
-import org.structr.web.datasource.XPathGraphDataSource;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.dom.relationship.DOMChildren;
-import org.structr.web.entity.dom.relationship.DOMSiblings;
-import org.structr.web.entity.relation.PageLink;
-import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.entity.relation.Sync;
-import org.structr.web.property.CustomHtmlAttributeProperty;
-import org.structr.websocket.command.CreateComponentCommand;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-import org.w3c.dom.UserDataHandler;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
  *
  *
  */
-public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, DOMNode> implements Node, Renderable, DOMAdoptable, DOMImportable {
+public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable {
 
-	private static final Logger logger = LoggerFactory.getLogger(DOMNode.class.getName());
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("DOMNode");
+
+		type.addMethod("getIdHash").setSource("return getUuid();").setReturnType("String");
+
+	}}
 
 	// ----- error messages for DOMExceptions -----
-	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
-	protected static final String INVALID_ACCESS_ERR_MESSAGE              = "Permission denied.";
-	protected static final String INDEX_SIZE_ERR_MESSAGE                  = "Index out of range.";
-	protected static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT        = "Cannot split text element without parent and/or owner document.";
-	protected static final String WRONG_DOCUMENT_ERR_MESSAGE              = "Node does not belong to this document.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE = "A node cannot accept itself as a child.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR  = "A node cannot accept its own ancestor as child.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT  = "A document may only have one html element.";
-	protected static final String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT   = "A document may only accept an html element as its document element.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE               = "Node type not supported.";
-	protected static final String NOT_FOUND_ERR_MESSAGE                   = "Node is not a child.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC    = "Document nodes cannot be imported into another document.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC     = "Document nodes cannot be adopted by another document.";
-	protected static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
+	public static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
+	public static final String INVALID_ACCESS_ERR_MESSAGE              = "Permission denied.";
+	public static final String INDEX_SIZE_ERR_MESSAGE                  = "Index out of range.";
+	public static final String CANNOT_SPLIT_TEXT_WITHOUT_PARENT        = "Cannot split text element without parent and/or owner document.";
+	public static final String WRONG_DOCUMENT_ERR_MESSAGE              = "Node does not belong to this document.";
+	public static final String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE = "A node cannot accept itself as a child.";
+	public static final String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR  = "A node cannot accept its own ancestor as child.";
+	public static final String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT  = "A document may only have one html element.";
+	public static final String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT   = "A document may only accept an html element as its document element.";
+	public static final String NOT_SUPPORTED_ERR_MESSAGE               = "Node type not supported.";
+	public static final String NOT_FOUND_ERR_MESSAGE                   = "Node is not a child.";
+	public static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC    = "Document nodes cannot be imported into another document.";
+	public static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC     = "Document nodes cannot be adopted by another document.";
+	public static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
-	private static final List<GraphDataSource<Iterable<GraphObject>>> listSources = new LinkedList<>();
+	public static final List<GraphDataSource<Iterable<GraphObject>>> listSources = new LinkedList<>();
+
+	/*
 	private Page cachedOwnerDocument;
 
 	static {
@@ -133,6 +91,8 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		listSources.add(new CypherGraphDataSource());
 		listSources.add(new XPathGraphDataSource());
 	}
+	*/
+
 	public static final Property<String> dataKey                      = new StringProperty("dataKey").indexed().category(QUERY_CATEGORY);
 	public static final Property<String> cypherQuery                  = new StringProperty("cypherQuery").category(QUERY_CATEGORY);
 	public static final Property<String> xpathQuery                   = new StringProperty("xpathQuery").category(QUERY_CATEGORY);
@@ -151,6 +111,7 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 
+	/*
 	public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class).category(PAGE_CATEGORY);
 	public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent).category(PAGE_CATEGORY);
 	public static final Property<List<DOMNode>> children              = new EndNodes<>("children", DOMChildren.class).category(PAGE_CATEGORY);
@@ -179,12 +140,46 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	// a simple cache for custom properties
 	private Set<PropertyKey> customProperties = null;
+	*/
 
-	public abstract boolean isSynced();
-	public abstract boolean contentEquals(final DOMNode otherNode);
-	public abstract String getContextName();
-	public abstract void updateFromNode(final DOMNode otherNode) throws FrameworkException;
+	boolean isSynced();
+	boolean isSharedComponent();
+	boolean contentEquals(final DOMNode otherNode);
+	boolean inTrash();
 
+	String getContextName();
+	String getIdHash();
+	String getIdHashOrProperty();
+
+	Template getClosestTemplate(final Page page);
+
+	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
+	void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException;
+	void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException;
+
+	// ----- static methods -----
+	public static String escapeForHtml(final String raw) {
+		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
+	}
+
+	public static String escapeForHtmlAttributes(final String raw) {
+		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
+	}
+
+	public static String unescapeForHtmlAttributes(final String raw) {
+		return StringUtils.replaceEach(raw, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"}, new String[]{"&", "<", ">", "\""});
+	}
+
+	public static String objectToString(final Object source) {
+
+		if (source != null) {
+			return source.toString();
+		}
+
+		return null;
+	}
+
+	/*
 	public String getIdHash() {
 
 		return getUuid();
@@ -300,7 +295,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * @param renderContext
 	 * @param depth
 	 * @throws FrameworkException
-	 */
 	@Override
 	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
 
@@ -428,7 +422,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * @param editMode
 	 * @return content
 	 * @throws FrameworkException
-	 */
 	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
 
 		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode);
@@ -514,7 +507,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * Get all ancestors of this node
 	 *
 	 * @return list of ancestors
-	 */
 	private List<Node> getAncestors() {
 
 		List<Node> ancestors = new ArrayList();
@@ -535,7 +527,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * This method will be called by the DOM logic when this node gets a new child. Override this method if you need to set properties on the child depending on its type etc.
 	 *
 	 * @param newChild
-	 */
 	protected void handleNewChild(Node newChild) {
 
 		final Page page = (Page)getOwnerDocument();
@@ -945,7 +936,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * A {@link Page} is a {@link DOMNode} as well, so we have to check 'this' as well.
 	 *
 	 * @throws FrameworkException
-	 */
 	protected void increasePageVersion() throws FrameworkException {
 
 		Page page = null;
@@ -1122,7 +1112,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 *
 	 * @param renderContext
 	 * @return true if node should be displayed
-	 */
 	protected boolean displayForConditions(final RenderContext renderContext) {
 
 		// In raw or widget mode, render everything
@@ -1166,7 +1155,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 *
 	 * @param renderContext
 	 * @return true if node should be displayed
-	 */
 	protected boolean displayForLocale(final RenderContext renderContext) {
 
 		// In raw or widget mode, render everything
@@ -1197,21 +1185,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		return true;
 
-	}
-
-	public static String escapeForHtml(final String raw) {
-		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
-
-	}
-
-	public static String escapeForHtmlAttributes(final String raw) {
-		//return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\"", "'"}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;", "&#39;"});
-		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
-	}
-
-	public static String unescapeForHtmlAttributes(final String raw) {
-		//return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\"", "'"}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;", "&#39;"});
-		return StringUtils.replaceEach(raw, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"}, new String[]{"&", "<", ">", "\""});
 	}
 
 	protected void collectNodesByPredicate(Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
@@ -1805,7 +1778,6 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 	 * @param securityContext
 	 * @param nodeToClone
 	 * @return
-	 */
 	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
 
 		final DOMNode newNode = (DOMNode)nodeToClone.cloneNode(false);
@@ -1907,20 +1879,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 		}
 	}
 
-	public static String objectToString(final Object source) {
-
-		if (source != null) {
-			return source.toString();
-		}
-
-		return null;
-	}
-
 	/**
 	 * Returns the owner document of this DOMNode, following an OUTGOING "PAGE" relationship.
 	 *
 	 * @return the owner node of this node
-	 */
 	public Document getOwnerDocumentAsSuperUser() {
 
 		if (cachedOwnerDocument == null) {
@@ -1980,4 +1942,5 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 		return true;
 	}
+	*/
 }

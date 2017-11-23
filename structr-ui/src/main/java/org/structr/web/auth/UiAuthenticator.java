@@ -307,13 +307,14 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
+		final PropertyKey<String> confKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "confirmationKey");
 		final PropertyKey<String> eMailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
-			if (user.getProperty(User.confirmationKey) != null && !allowLoginBeforeConfirmation) {
+			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as {} not allowed before confirmation.", user);
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);

@@ -24,9 +24,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 
 /**
  * Abstract base class for a multi-dimensional linked list data structure.
@@ -36,9 +34,6 @@ import org.structr.core.property.StringProperty;
  * @param <T>
  */
 public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T extends LinkedListNode> extends ValidatedNode {
-
-	// this is not used for the node itself but for the relationship(s) this node maintains
-	public static final PropertyKey<String>      keyProperty     = new StringProperty("key");
 
 	public abstract Class<R> getSiblingLinkType();
 

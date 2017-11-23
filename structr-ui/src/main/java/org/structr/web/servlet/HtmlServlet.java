@@ -77,8 +77,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -97,12 +95,8 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Main servlet for content rendering.
- *
- *
- *
  */
 public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
@@ -1115,8 +1109,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		final String targetPage = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
-		final String errorPage  = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
+		final PropertyKey<String> confirmationKeyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "confirmationKey");
+		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
+		final String errorPage                       = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1125,7 +1120,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			Result<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
+				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResult();
 
 				tx.success();
 			}
@@ -1137,7 +1132,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 
 					// Clear confirmation key and set session id
-					user.setProperties(user.getSecurityContext(), new PropertyMap(User.confirmationKey, null));
+					user.setProperty(confirmationKeyKey, null);
 
 					if (Settings.RestUserAutologin.getValue()) {
 
@@ -1187,7 +1182,8 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		final String targetPage = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
+		final PropertyKey<String> confirmationKeyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "confirmationKey");
+		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 
@@ -1196,7 +1192,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			Result<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(User.confirmationKey, key).getResult();
+				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getResult();
 
 				tx.success();
 			}
@@ -1208,7 +1204,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				try (final Tx tx = app.tx()) {
 
 					// Clear confirmation key and set session id
-					user.setProperties(user.getSecurityContext(), new PropertyMap(User.confirmationKey, null));
+					user.setProperty(confirmationKeyKey, null);
 
 					if (Settings.RestUserAutologin.getValue()) {
 
@@ -1667,11 +1663,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(File.path, path).and(File.enableBasicAuth, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(FileBase.class).and(FileBase.path, path).and(File.enableBasicAuth, true).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(File.class).and(File.name, PathHelper.getName(path)).and(File.enableBasicAuth, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(FileBase.class).and(FileBase.name, PathHelper.getName(path)).and(File.enableBasicAuth, true).getFirst();
 		}
 
 		if (possiblePage != null) {

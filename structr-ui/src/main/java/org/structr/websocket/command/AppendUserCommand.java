@@ -21,7 +21,6 @@ package org.structr.websocket.command;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
@@ -34,7 +33,7 @@ import org.structr.websocket.message.WebSocketMessage;
  *
  */
 public class AppendUserCommand extends AbstractCommand {
-		
+
 	private static final Logger logger     = LoggerFactory.getLogger(AppendUserCommand.class.getName());
 
 	static {
@@ -81,18 +80,12 @@ public class AppendUserCommand extends AbstractCommand {
 		if (parentNode instanceof Group) {
 
 			Group group = (Group) parentNode;
-			
-			Principal user = (Principal) getNode(id);
 
+			Principal user = (Principal) getNode(id);
 			if (user != null) {
-				try {
-					group.addMember(user);
-				} catch (FrameworkException ex) {
-					logger.error("", ex);
-					getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append file").build(), true);
-				}
+
+				group.addMember(user);
 			}
-			
 
 		} else {
 

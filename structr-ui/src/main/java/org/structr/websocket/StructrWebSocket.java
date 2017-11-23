@@ -20,11 +20,9 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.eclipse.jetty.websocket.api.Session;
@@ -193,7 +191,7 @@ public class StructrWebSocket implements WebSocketListener {
 				logger.warn("Unable to parse message.", t);
 
 			}
-			
+
 			// process message
 			try {
 
@@ -205,28 +203,28 @@ public class StructrWebSocket implements WebSocketListener {
 				abstractCommand.setCallback(webSocketData.getCallback());
 
 				if (!(abstractCommand instanceof PingCommand)) {
-					
+
 					if (securityContext != null) {
-						
+
 						final HttpSession session = SessionHelper.getSessionBySessionId(securityContext.getSessionId());
 
 						if (session != null) {
-							
+
 							session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
-							
+
 							try {
 								// Workaround to update lastAccessedTime() in Jetty's session via reflection
 								final Method accessMethod = ((org.eclipse.jetty.server.session.Session) session).getClass().getDeclaredMethod("access", long.class);
 								accessMethod.setAccessible(true);
 								accessMethod.invoke((org.eclipse.jetty.server.session.Session) session, System.currentTimeMillis());
-								
+
 							} catch (Exception ex) {
 								logger.error("Access to method Session.access() via reflection failed: ", ex);
 							}
 						}
 					}
 				}
-				
+
 				// The below blocks allow a websocket command to manage its own
 				// transactions in case of bulk processing commands etc.
 				if (abstractCommand.requiresEnclosingTransaction()) {
@@ -507,7 +505,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public boolean isPrivilegedUser(Principal user) {
 
-		return (user != null && (user.getProperty(Principal.isAdmin) || user.getProperty(User.backendUser)));
+		return (user != null && (user.isAdmin() || (user instanceof User && ((User)user).isBackendUser())));
 
 	}
 

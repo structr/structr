@@ -18,20 +18,30 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.List;
+import java.net.URI;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.RenderContext;
-import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.entity.dom.relationship.DOMChildren;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
+public interface Template extends Content {
 
+	static class Impl { static {
 
-public class Template extends Content {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Template");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Template"));
+		type.setExtends(URI.create("#/definitions/Content"));
+
+		type.addBooleanProperty("isContent", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addStringProperty("contentType").setIndexed(true);
+		type.addStringProperty("content").setIndexed(true);
+
+	}}
+
+	/*
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
 		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		showForLocales, hideForLocales, showConditions, hideConditions, isContent
@@ -104,4 +114,5 @@ public class Template extends Content {
 			super.renderContent(renderContext, depth);
 		}
 	}
+	*/
 }

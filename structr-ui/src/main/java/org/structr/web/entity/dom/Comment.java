@@ -18,19 +18,50 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
+import java.net.URI;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.RenderContext;
 
 /**
  *
  *
  */
-public class Comment extends Content implements org.w3c.dom.Comment, NonIndexed {
+public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Comment");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Comment"));
+		type.setExtends(URI.create("#/definitions/Content"));
+
+		type.overrideMethod("onCreation", true, "setProperty(contentTypeProperty, \"text/html\");");
+
+		// call static method below
+		type.overrideMethod("render", false, "org.structr.web.entity.dom.Comment.render(this, renderContext, depth);");
+	}}
+
+	static void render(final Comment comment, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		final String _content = comment.getProperty("content");
+
+		// Avoid rendering existing @structr comments since those comments are
+		// created depending on the visiblity settings of individual nodes. If
+		// those comments are rendered, there will be duplicates in a round-
+		// trip export/import test.
+		if (!_content.contains("@structr:")) {
+
+			renderContext.getBuffer().append("<!--").append(_content).append("-->");
+		}
+
+	}
+
+	/*
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -58,4 +89,5 @@ public class Comment extends Content implements org.w3c.dom.Comment, NonIndexed 
 		}
 
 	}
+	*/
 }

@@ -18,67 +18,41 @@
  */
 package org.structr.web.entity.dom;
 
-import com.vladsch.flexmark.html.HtmlRenderer;
-import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.profiles.pegdown.Extensions;
-import com.vladsch.flexmark.profiles.pegdown.PegdownOptionsAdapter;
-import com.vladsch.flexmark.util.options.MutableDataSet;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import net.java.textilej.parser.MarkupParser;
-import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
-import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
-import net.java.textilej.parser.markup.textile.TextileDialect;
-import net.java.textilej.parser.markup.trac.TracWikiDialect;
-import org.apache.commons.lang3.StringUtils;
-import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.Asciidoctor.Factory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.Permission;
+import java.net.URI;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Adapter;
 import org.structr.core.entity.Favoritable;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
-import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.RenderContext;
-import org.structr.web.common.RenderContext.EditMode;
-import static org.structr.web.entity.dom.DOMNode.hideOnDetail;
-import static org.structr.web.entity.dom.DOMNode.hideOnIndex;
-import static org.structr.web.entity.dom.DOMNode.sharedComponentConfiguration;
-import org.structr.web.entity.html.Textarea;
-import org.structr.web.entity.relation.Sync;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.w3c.dom.Text;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
  * All methods in the W3C Text interface are based on the raw database content.
- *
- *
  */
-public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
+public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
-	private static final Logger logger                                                   = LoggerFactory.getLogger(Content.class.getName());
-	public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
-	public static final Property<String> content                                         = new StringProperty("content").indexed();
-	public static final Property<Boolean> isContent                                      = new ConstantBooleanProperty("isContent", true);
+	static class Impl { static {
 
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Content");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Content"));
+		type.setExtends(URI.create("#/definitions/DOMNode"));
+
+		type.addBooleanProperty("isContent", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addStringProperty("contentType").setIndexed(true);
+		type.addStringProperty("content").setIndexed(true);
+
+	}}
+
+	//public static final Property<String> contentType                                     = new StringProperty("contentType").indexed();
+	//public static final Property<String> content                                         = new StringProperty("content").indexed();
+	//public static final Property<Boolean> isContent                                      = new ConstantBooleanProperty("isContent", true);
+
+	/*
 	private static final Map<String, Adapter<String, String>> contentConverters          = new LinkedHashMap<>();
 
 	private static final ThreadLocalAsciiDocProcessor asciiDocProcessor                  = new ThreadLocalAsciiDocProcessor();
@@ -350,8 +324,9 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 				} else if ("text/css".equals(_contentType)) {
 
 					// CSS will only be given some local vars
-					out.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
-
+	*/
+	//				out.append("/* data-structr-type='").append(getType()).append("'*/\n/* data-structr-id='").append(id).append("'*/\n");
+	/*
 				} else {
 
 					// In edit mode, add an artificial comment tag around content nodes within body to make them editable
@@ -814,4 +789,5 @@ public class Content extends DOMNode implements Text, NonIndexed, Favoritable {
 			this.renderer = renderer;
 		}
 	}
+	*/
 }

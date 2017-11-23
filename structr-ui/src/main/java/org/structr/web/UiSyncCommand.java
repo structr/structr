@@ -38,6 +38,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.FileBase;
@@ -142,14 +143,15 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 			final List<ShadowDocument> shadowDocuments = app.nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
-				final List<DOMNode> collectiveChildren = new LinkedList<>();
+				final PropertyKey<List<DOMNode>> elementsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "elements");
+				final List<DOMNode> collectiveChildren       = new LinkedList<>();
 
 				// sort by node id (higher node ID is newer entity)
 				Collections.sort(shadowDocuments, new Comparator<ShadowDocument>() {
 
 					@Override
 					public int compare(final ShadowDocument t1, final ShadowDocument t2) {
-						return t2.getNodeId().compareTo(t1.getNodeId());
+						return Long.valueOf(t2.getId()).compareTo(t1.getId());
 					}
 				});
 
@@ -157,14 +159,14 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 				final ShadowDocument newShadowDoc      = shadowDocuments.get(1);
 
 				// collect children of both shadow documents
-				collectiveChildren.addAll(previousShadowDoc.getProperty(Page.elements));
-				collectiveChildren.addAll(newShadowDoc.getProperty(Page.elements));
+				collectiveChildren.addAll(previousShadowDoc.getProperty(elementsKey));
+				collectiveChildren.addAll(newShadowDoc.getProperty(elementsKey));
 
 				// delete old shadow document
 				app.delete(previousShadowDoc);
 
 				// add children to new shadow document
-				newShadowDoc.setProperties(securityContext, new PropertyMap(Page.elements, collectiveChildren));
+				newShadowDoc.setProperties(securityContext, new PropertyMap(elementsKey, collectiveChildren));
 			}
 
 			tx.success();

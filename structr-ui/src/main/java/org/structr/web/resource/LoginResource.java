@@ -27,12 +27,14 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.User;
 
 //~--- classes ----------------------------------------------------------------
@@ -65,10 +67,11 @@ public class LoginResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
-		final String name            = properties.get(User.name);
-		final String email           = properties.get(User.eMail);
-		final String password        = properties.get(User.password);
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final PropertyMap properties       = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
+		final String name                  = properties.get((PropertyKey<String>)config.getPropertyKeyForJSONName(User.class, "name"));
+		final String email                 = properties.get((PropertyKey<String>)config.getPropertyKeyForJSONName(User.class, "eMail"));
+		final String password              = properties.get((PropertyKey<String>)config.getPropertyKeyForJSONName(User.class, "password"));
 
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
 

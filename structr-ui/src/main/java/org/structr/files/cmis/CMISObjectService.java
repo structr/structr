@@ -63,7 +63,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.files.cmis.wrapper.CMISContentStream;
 import org.structr.files.cmis.wrapper.CMISPagingListWrapper;
 import org.structr.web.common.FileHelper;

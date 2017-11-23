@@ -24,20 +24,15 @@ import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -66,9 +61,17 @@ public interface User extends Principal {
 		user.addBooleanProperty("isUser", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
 		user.addBooleanProperty("skipSecurityRelationships").setDefaultValue("false").setIndexed(true);
 
+		user.addPropertySetter("localStorage", String.class);
+		user.addPropertyGetter("localStorage", String.class);
 
 		user.overrideMethod("shouldSkipSecurityRelationships", false, "return getProperty(skipSecurityRelationshipsProperty);");
 
+		user.overrideMethod("onCreation",     true, "org.structr.web.entity.User.checkAndCreateHomeDirectory(this, securityContext);");
+		user.overrideMethod("onModification", true, "org.structr.web.entity.User.checkAndCreateHomeDirectory(this, securityContext);");
+		user.overrideMethod("onDeletion",     true, "org.structr.web.entity.User.checkAndRemoveHomeDirectory(this, securityContext);");
+
+		user.addMethod("isFrontendUser").setReturnType("boolean").setSource("return getProperty(frontendUserProperty);");
+		user.addMethod("isBackendUser").setReturnType("boolean").setSource("return getProperty(backendUserProperty);");
 
 	}}
 
@@ -84,8 +87,9 @@ public interface User extends Principal {
 	//public static final Property<String>            twitterName               = new StringProperty("twitterName").cmis().indexed();
 	//public static final Property<String>            localStorage              = new StringProperty("localStorage");
 	public static final Property<List<Favoritable>> favorites                 = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
-	public static final Property<Boolean>           skipSecurityRelationships = new BooleanProperty("skipSecurityRelationships").defaultValue(Boolean.FALSE).indexed().readOnly();
+	//public static final Property<Boolean>           skipSecurityRelationships = new BooleanProperty("skipSecurityRelationships").defaultValue(Boolean.FALSE).indexed().readOnly();
 
+	/*
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
 
@@ -97,60 +101,27 @@ public interface User extends Principal {
 
 		return super.isValid(errorBuffer);
 	}
+	*/
 
+	String getLocalStorage();
+	void setLocalStorage(final String localStorage) throws FrameworkException;
 
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	boolean isBackendUser();
+	boolean isFrontendUser();
 
-		if (super.onCreation(securityContext, errorBuffer)) {
-
-			checkAndCreateHomeDirectory(securityContext);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			checkAndCreateHomeDirectory(securityContext);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
-		if (super.onDeletion(securityContext, errorBuffer, properties)) {
-
-			checkAndRemoveHomeDirectory(securityContext);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	// ----- private methods -----
-	private void checkAndCreateHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
+	// ----- public static methods -----
+	public static void checkAndCreateHomeDirectory(final User user, final SecurityContext securityContext) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
 			// use superuser context here
-			final SecurityContext storedContext = this.securityContext;
+			final SecurityContext storedContext = user.getSecurityContext();
 
 			try {
 
-				this.securityContext = SecurityContext.getSuperUserInstance();
-				Folder homeDir = getProperty(User.homeDirectory);
+				user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
+				Folder homeDir = user.getProperty(User.homeDirectory);
 				if (homeDir == null) {
 
 					// create home directory
@@ -167,11 +138,11 @@ public interface User extends Principal {
 					}
 
 					app.create(Folder.class,
-						new NodeAttribute(Folder.name, getUuid()),
-						new NodeAttribute(Folder.owner, this),
+						new NodeAttribute(Folder.name, user.getUuid()),
+						new NodeAttribute(Folder.owner, user),
 						new NodeAttribute(AbstractFile.parent, homeFolder),
 						new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
-						new NodeAttribute(Folder.homeFolderOfUser, this)
+						new NodeAttribute(Folder.homeFolderOfUser, user)
 					);
 				}
 
@@ -181,23 +152,23 @@ public interface User extends Principal {
 			} finally {
 
 				// restore previous context
-				this.securityContext = storedContext;
+				user.setSecurityContext(storedContext);
 			}
 		}
 	}
 
-	private void checkAndRemoveHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
+	public static void checkAndRemoveHomeDirectory(final User user, final SecurityContext securityContext) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
 			// use superuser context here
-			final SecurityContext storedContext = this.securityContext;
+			final SecurityContext storedContext = user.getSecurityContext();
 
 			try {
 
-				this.securityContext = SecurityContext.getSuperUserInstance();
+				user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-				final Folder homeDir = getProperty(User.homeDirectory);
+				final Folder homeDir = user.getProperty(User.homeDirectory);
 				if (homeDir != null) {
 
 					StructrApp.getInstance().delete(homeDir);
@@ -205,11 +176,12 @@ public interface User extends Principal {
 
 			} catch (Throwable t) {
 
+				t.printStackTrace();
 
 			} finally {
 
 				// restore previous context
-				this.securityContext = storedContext;
+				user.setSecurityContext(storedContext);
 			}
 
 		}
