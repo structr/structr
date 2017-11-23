@@ -16,33 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.entity;
+package org.structr.core.entity;
 
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractUser;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.relationship.SchemaMethodParameters;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 
 /**
- *
- *
+ * The typed parameter of a schema method.
  */
-public class TestUser extends AbstractUser implements Principal {
+public class SchemaMethodParameter extends SchemaReloadingNode {
 
-	@Override
-	public void onNodeCreation() {
+	public static final Property<SchemaMethod> schemaMethod = new StartNode<>("schemaMethod", SchemaMethodParameters.class);
+	public static final Property<String> parameterType      = new StringProperty("parameterType");
 
-		try {
-
-			if (getProperty(AbstractNode.name) == null) {
-
-				// validation needs user name
-				setProperty(AbstractNode.name, "testuser" + System.currentTimeMillis());
-			}
-
-		} catch (FrameworkException fex) {
-			LoggerFactory.getLogger(TestUser.class).warn("Unable to set default name for TestUser: {}", fex.getMessage());
-		}
+	public String getParameterType() {
+		return getProperty(parameterType);
 	}
+
 }

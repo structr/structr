@@ -32,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.service.HttpService;
 
 /**
@@ -118,8 +119,9 @@ public class SessionHelper {
 	 */
 	public static void clearSession(final String sessionId) {
 
-		final App app = StructrApp.getInstance();
-		final Query<Principal> query = app.nodeQuery(Principal.class).and(Principal.sessionIds, new String[]{sessionId}).disableSorting();
+		final App app                            = StructrApp.getInstance();
+		final PropertyKey<String[]> sessionIdKey = (PropertyKey<String[]>)StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "sessionIds");
+		final Query<Principal> query             = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
 			List<Principal> principals = query.getAsList();
@@ -147,9 +149,10 @@ public class SessionHelper {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
-		final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
+		final PropertyKey<String[]> sessionIdKey = (PropertyKey<String[]>)StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "sessionIds");
+		final SessionCache sessionCache          = Services.getInstance().getService(HttpService.class).getSessionCache();
 
-		final String[] sessionIds = user.getProperty(Principal.sessionIds);
+		final String[] sessionIds = user.getProperty(sessionIdKey);
 
 		if (sessionIds != null && sessionIds.length > 0) {
 

@@ -19,7 +19,9 @@
 package org.structr.core.entity;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -42,8 +44,11 @@ public interface Group extends Principal {
 
 		group.addBooleanProperty("isGroup").addTransformer(ConstantBooleanTrue.class.getName());
 
-		group.addMethod("void", "addMember",    "org.structr.core.entity.Principal member", "org.structr.core.entity.Group.addMember(this, member);");
-		group.addMethod("void", "removeMember", "org.structr.core.entity.Principal member", "org.structr.core.entity.Group.removeMember(this, member);");
+		final Map<String, String> params = new LinkedHashMap<>();
+		params.put("member", Principal.class.getName());
+
+		group.addMethod("addMember").setSource("org.structr.core.entity.Group.addMember(this, member);").addParameter("member", Principal.class.getName());
+		group.addMethod("removeMember").setSource("org.structr.core.entity.Group.removeMember(this, member);").addParameter("member", Principal.class.getName());
 	}}
 
 	void addMember(final Principal member);

@@ -30,10 +30,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
-import org.structr.rest.entity.TestUser;
 
 /**
  *
@@ -260,22 +261,24 @@ public class AdvancedPagingTest extends StructrRestTest {
 	@Test
 	public void test01PagingWithDeletedNodes() {
 
-
-		List<TestOne> testOnes = new LinkedList<>();
+		final Class testUserType              = createTestUserType();
+		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
+		final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "isAdmin");
+		List<TestOne> testOnes                = null;
 
 		// Create two User and ten TestOne nodes
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			createEntityAsSuperUser("/resource_access", "{'signature': 'TestOne', 'flags': 4095}");
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			List<Principal> users = createTestNodes(testUserType, 2);
 
-			users.get(0).setProperty(TestUser.name, "user1");
-			users.get(0).setProperty(TestUser.password, "user1");
+			users.get(0).setProperty(Principal.name, "user1");
+			users.get(0).setProperty(passwordKey, "user1");
 
-			users.get(1).setProperty(TestUser.name, "user2");
-			users.get(1).setProperty(TestUser.password, "user2");
-			users.get(1).setProperty(TestUser.isAdmin, true);
+			users.get(1).setProperty(Principal.name, "user2");
+			users.get(1).setProperty(passwordKey, "user2");
+			users.get(1).setProperty(isAdminKey, true);
 
 			testOnes = createTestNodes(TestOne.class, 3);
 
@@ -366,22 +369,24 @@ public class AdvancedPagingTest extends StructrRestTest {
 	@Test
 	public void test02PagingWithSoftDeletedNodes() {
 
-
-		List<TestOne> testOnes = null;
+		final Class testUserType              = createTestUserType();
+		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
+		final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "isAdmin");
+		List<TestOne> testOnes                = null;
 
 		// Create two User and ten TestOne nodes
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			createEntityAsSuperUser("/resource_access", "{'signature': 'TestOne', 'flags': 4095}");
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			List<Principal> users = createTestNodes(testUserType, 2);
 
-			users.get(0).setProperty(TestUser.name, "user1");
-			users.get(0).setProperty(TestUser.password, "user1");
+			users.get(0).setProperty(Principal.name, "user1");
+			users.get(0).setProperty(passwordKey, "user1");
 
-			users.get(1).setProperty(TestUser.name, "user2");
-			users.get(1).setProperty(TestUser.password, "user2");
-			users.get(1).setProperty(TestUser.isAdmin, true);
+			users.get(1).setProperty(Principal.name, "user2");
+			users.get(1).setProperty(passwordKey, "user2");
+			users.get(1).setProperty(isAdminKey, true);
 
 			testOnes = createTestNodes(TestOne.class, 3);
 

@@ -49,6 +49,7 @@ import org.structr.schema.json.JsonIntegerArrayProperty;
 import org.structr.schema.json.JsonIntegerProperty;
 import org.structr.schema.json.JsonLongArrayProperty;
 import org.structr.schema.json.JsonLongProperty;
+import org.structr.schema.json.JsonMethod;
 import org.structr.schema.json.JsonNumberArrayProperty;
 import org.structr.schema.json.JsonNumberProperty;
 import org.structr.schema.json.JsonProperty;
@@ -69,7 +70,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
-	protected final TreeMap<String, Map<String, String>> methods  = new TreeMap<>();
+	protected final Set<StructrMethodDefinition> methods          = new TreeSet<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
@@ -127,59 +128,72 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonType addMethod(final String name, final String source, final String comment) {
+	public JsonMethod addMethod(final String name, final String source, final String comment) {
 
-		final TreeMap methodDefinition = new TreeMap();
-		methodDefinition.put(SchemaMethod.source.jsonName(), source);
-		methodDefinition.put(SchemaMethod.comment.jsonName(), comment);
+		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
-		methods.put(name, methodDefinition);
-		return this;
+		newMethod.setSource(source);
+		newMethod.setComment(comment);
+
+		methods.add(newMethod);
+
+		return newMethod;
 	}
 
 	@Override
-	public JsonType addMethod(final String returnType, final String name, final String parameters, final String source) {
+	public JsonMethod addMethod(final String name) {
 
-		final TreeMap methodDefinition = new TreeMap();
+		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
-		methodDefinition.put(SchemaMethod.returnType.jsonName(), returnType);
-		methodDefinition.put(SchemaMethod.parameters.jsonName(), parameters);
-		methodDefinition.put(SchemaMethod.source.jsonName(), source);
-		methodDefinition.put(SchemaMethod.isJava.jsonName(), true);
+		newMethod.setCodeType("java");
 
-		methods.put(name, methodDefinition);
-		return this;
+		methods.add(newMethod);
+
+		return newMethod;
 	}
 
 	@Override
-	public JsonType addPropertyGetter(final String propertyName, final Class type) {
+	public JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation) {
 
-		final TreeMap methodDefinition = new TreeMap();
+		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
-		methodDefinition.put(SchemaMethod.returnType.jsonName(), type.getName());
-		methodDefinition.put(SchemaMethod.parameters.jsonName(), "");
-		methodDefinition.put(SchemaMethod.source.jsonName(), "return getProperty(" + propertyName + "Property);");
-		methodDefinition.put(SchemaMethod.isJava.jsonName(), true);
+		newMethod.setSource(implementation);
+		newMethod.setOverridesExisting(true);
+		newMethod.setCallSuper(callSuper);
+		newMethod.setCodeType("java");
 
-		methods.put("get" + StringUtils.capitalize(propertyName), methodDefinition);
+		methods.add(newMethod);
 
-		return this;
+		return newMethod;
 	}
 
 	@Override
-	public JsonType addPropertySetter(final String propertyName, final Class type) {
+	public JsonMethod addPropertyGetter(final String propertyName, final Class type) {
 
-		final TreeMap methodDefinition = new TreeMap();
+		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "get" + StringUtils.capitalize(propertyName));
 
-		methodDefinition.put(SchemaMethod.returnType.jsonName(), "void");
-		methodDefinition.put(SchemaMethod.parameters.jsonName(), "final " + type.getName() + " value");
-		methodDefinition.put(SchemaMethod.source.jsonName(), "setProperty(" + propertyName + "Property, value);");
-		methodDefinition.put(SchemaMethod.throwsException.jsonName(), true);
-		methodDefinition.put(SchemaMethod.isJava.jsonName(), true);
+		newMethod.setSource("return getProperty(" + propertyName + "Property);");
+		newMethod.setReturnType(type.getName());
+		newMethod.setCodeType("java");
 
-		methods.put("set" + StringUtils.capitalize(propertyName), methodDefinition);
+		methods.add(newMethod);
 
-		return this;
+		return newMethod;
+	}
+
+	@Override
+	public JsonMethod addPropertySetter(final String propertyName, final Class type) {
+
+		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "set" + StringUtils.capitalize(propertyName));
+
+		newMethod.setSource("setProperty(" + propertyName + "Property, value);");
+		newMethod.addParameter("value", type.getName());
+		newMethod.setCodeType("java");
+		newMethod.addException("FrameworkException");
+
+		methods.add(newMethod);
+
+		return newMethod;
 	}
 
 	@Override
@@ -220,8 +234,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public Map<String, Map<String, String>> getMethods() {
-		return methods;
+	public Set<JsonMethod> getMethods() {
+		return (Set)methods;
 	}
 
 	@Override
@@ -500,10 +514,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		final Map<String, Object> serializedForm       = new TreeMap<>();
 		final Map<String, Object> serializedProperties = new TreeMap<>();
+		final Map<String, Object> serializedMethods    = new TreeMap<>();
 
 		// populate properties
 		for (final StructrPropertyDefinition property : properties) {
 			serializedProperties.put(property.getName(), property.serialize());
+		}
+
+		// populate methods
+		for (final StructrMethodDefinition method : methods) {
+			serializedMethods.put(method.getName(), method.serialize());
 		}
 
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
@@ -525,8 +545,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		// methods
-		if (!methods.isEmpty()) {
-			serializedForm.put(JsonSchema.KEY_METHODS, methods);
+		if (!serializedMethods.isEmpty()) {
+			serializedForm.put(JsonSchema.KEY_METHODS, serializedMethods);
 		}
 
 		final Set<String> baseTypesAndInterfaces = new TreeSet<>();
@@ -623,16 +643,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final SchemaMethod method : schemaNode.getProperty(AbstractSchemaNode.schemaMethods)) {
 
-			final String _name       = method.getName();
-			final String _returnType = method.getProperty(SchemaMethod.returnType);
-			final String _parameters = method.getProperty(SchemaMethod.parameters);
-			final String _source     = method.getProperty(SchemaMethod.source);
-			final String _comment    = method.getProperty(SchemaMethod.comment);
+			final StructrMethodDefinition newMethod = StructrMethodDefinition.deserialize(this, method);
+			if (newMethod != null) {
 
-			if (_returnType != null && _parameters != null) {
-				addMethod(_returnType, _name, _parameters, _source);
-			} else {
-				addMethod(_name, _source, _comment);
+				methods.add(newMethod);
 			}
 		}
 
@@ -677,6 +691,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
 
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
+		final Map<String, SchemaMethod> schemaMethods      = new TreeMap<>();
 		final T schemaNode                                 = createSchemaNode(app);
 
 		for (final StructrPropertyDefinition property : properties) {
@@ -729,35 +744,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			viewNode.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 		}
 
-		// create methods
-		for (final Entry<String, Map<String, String>> method : getMethods().entrySet()) {
+		for (final StructrMethodDefinition method : methods) {
 
-			final Map methodDefinition = method.getValue();
+			final SchemaMethod schemaMethod = method.createDatabaseSchema(app, schemaNode);
+			if (schemaMethod != null) {
 
-			SchemaMethod methodNode = app.nodeQuery(SchemaMethod.class)
-				.and(SchemaMethod.schemaNode, schemaNode)
-				.and(SchemaMethod.name, method.getKey())
-				.getFirst();
-
-			if (methodNode == null) {
-
-				methodNode = app.create(SchemaMethod.class,
-					new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
-					new NodeAttribute<>(SchemaMethod.name, method.getKey())
-				);
+				schemaMethods.put(schemaMethod.getName(), schemaMethod);
 			}
-
-			final PropertyMap updateProperties = new PropertyMap();
-
-			updateProperties.put(SchemaMethod.returnType,      (String)methodDefinition.get(SchemaMethod.returnType.jsonName()));
-			updateProperties.put(SchemaMethod.parameters,      (String)methodDefinition.get(SchemaMethod.parameters.jsonName()));
-			updateProperties.put(SchemaMethod.source,          (String)methodDefinition.get(SchemaMethod.source.jsonName()));
-			updateProperties.put(SchemaMethod.comment,         (String)methodDefinition.get(SchemaMethod.comment.jsonName()));
-			updateProperties.put(SchemaMethod.isJava,          (Boolean)methodDefinition.containsKey(SchemaMethod.returnType.jsonName()));
-			updateProperties.put(SchemaMethod.throwsException, (Boolean)methodDefinition.containsKey(SchemaMethod.throwsException.jsonName()));
-
-			// update schema method node
-			methodNode.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 		}
 
 		// extends
@@ -843,6 +836,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final String name, final Map<String, Object> source) {
 
 		final Map<String, StructrPropertyDefinition> deserializedProperties = new TreeMap<>();
+		final Map<String, StructrMethodDefinition> deserializedMethods      = new TreeMap<>();
 		final StructrTypeDefinition typeDefinition                          = StructrTypeDefinition.determineType(root, name, source);
 		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
 		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
@@ -915,17 +909,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				final String methodName = entry.getKey();
 				final Object value      = entry.getValue();
 
-				if (value instanceof String) {
+				if (value instanceof Map) {
 
-					final TreeMap methodDefinition = new TreeMap();
-					methodDefinition.put(SchemaMethod.source.jsonName(), value.toString());
-					methodDefinition.put(SchemaMethod.comment.jsonName(), "");
+					final StructrMethodDefinition method = StructrMethodDefinition.deserialize(typeDefinition, methodName, (Map)value);
+					if (method != null) {
 
-					typeDefinition.getMethods().put(methodName, methodDefinition);
-
-				} else if (value instanceof Map) {
-
-					typeDefinition.getMethods().put(methodName, value);
+						deserializedMethods.put(method.getName(), method);
+						typeDefinition.getMethods().add(method);
+					}
 
 				} else {
 

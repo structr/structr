@@ -920,7 +920,7 @@ public class SchemaHelper {
 
 			for (final SchemaMethod schemaMethod : schemaMethods) {
 
-				final ActionEntry entry      = schemaMethod.getActionEntry();
+				final ActionEntry entry      = schemaMethod.getActionEntry(entity);
 				List<ActionEntry> actionList = actions.get(entry.getType());
 
 				if (actionList == null) {
@@ -1216,22 +1216,44 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			final String source     = action.getSource("this", true);
-			final String returnType = action.getReturnType();
-			final String parameters = action.getParameters();
+			final String source                  = action.getSource("this", true);
+			final String returnType              = action.getReturnType();
+			final Map<String, String> parameters = action.getParameters();
 
 			if (returnType != null && parameters != null) {
+
+				if (action.overrides()) {
+					src.append("\n\t@Override");
+				}
 
 				src.append("\n\tpublic ");
 				src.append(returnType);
 				src.append(" ");
 				src.append(action.getName());
 				src.append("(");
-				src.append(parameters);
+
+				// output parameters
+				for (final Iterator<Entry<String, String>> it = parameters.entrySet().iterator(); it.hasNext();) {
+
+					final Entry<String, String> entry = it.next();
+
+					src.append("final ");
+					src.append(entry.getValue());
+					src.append(" ");
+					src.append(entry.getKey());
+
+					if (it.hasNext()) {
+						src.append(", ");
+					}
+				}
+
 				src.append(")");
 
-				if (action.throwsException()) {
-					src.append(" throws FrameworkException");
+				final List<String> exceptions = action.getExceptions();
+				if (!exceptions.isEmpty()) {
+
+					src.append(" throws ");
+					src.append(StringUtils.join(exceptions, ", "));
 				}
 
 				src.append(" {\n");
@@ -1244,13 +1266,22 @@ public class SchemaHelper {
 				src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
 			}
 
+			if (action.callSuper()) {
+
+				src.append("\t\tsuper.");
+				src.append(action.getName());
+				src.append("(");
+				src.append(StringUtils.join(parameters.keySet(), ", "));
+				src.append(");\n\n");
+			}
+
 			if (StringUtils.isNotBlank(source)) {
 
 				src.append("\t\t");
 				src.append(source);
 				src.append("\n");
 
-			} else {
+			} else if (!"void".equals(returnType)) {
 
 				src.append("\t\treturn null;\n");
 			}
@@ -1280,12 +1311,12 @@ public class SchemaHelper {
 	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList, final Set<Class> implementedInterfaces) {
 
 		src.append("\n\t@Override\n");
-		src.append("\tpublic boolean ");
+		src.append("\tpublic void ");
 		src.append(type.getMethod());
 		src.append("(");
 		src.append(type.getSignature());
 		src.append(") throws FrameworkException {\n\n");
-		src.append("\t\tboolean valid = super.");
+		src.append("\t\tsuper.");
 		src.append(type.getMethod());
 		src.append("(");
 		src.append(type.getParameters());
@@ -1295,7 +1326,7 @@ public class SchemaHelper {
 
 			if (hasMethod(iface, type.getMethod(), type.getParameterTypes())) {
 
-				src.append("\t\tvalid &= ");
+				src.append("\t\t");
 				src.append(iface.getName());
 				src.append(".super.");
 				src.append(type.getMethod());
@@ -1314,7 +1345,6 @@ public class SchemaHelper {
 			src.append("\t\t").append(action.getSource("this")).append(";\n");
 		}
 
-		src.append("\n\t\treturn valid;\n");
 		src.append("\t}\n");
 
 	}

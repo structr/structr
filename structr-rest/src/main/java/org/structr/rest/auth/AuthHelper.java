@@ -124,7 +124,7 @@ public class AuthHelper {
 
 				} else {
 
-					if (principal.getProperty(Principal.blocked)) {
+					if (principal.isBlocked()) {
 
 						logger.info("Principal {} is blocked", principal);
 
@@ -174,8 +174,7 @@ public class AuthHelper {
 	 * @return principal
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
-
-		return getPrincipalForCredential(Principal.sessionIds, new String[]{ sessionId });
+		return getPrincipalForCredential(StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "sessionIds"), new String[]{ sessionId });
 
 	}
 

@@ -26,13 +26,9 @@ import java.util.function.Function;
 import org.structr.api.graph.Node;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 
 /**
@@ -56,21 +52,6 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 		}
 
 		return false;
-	}
-
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		return true;
-	}
-
-	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		return true;
 	}
 
 	@Override

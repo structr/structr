@@ -48,10 +48,7 @@ import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class UiAuthenticator implements Authenticator {
@@ -200,7 +197,7 @@ public class UiAuthenticator implements Authenticator {
 		final boolean validUser             = (user != null);
 
 		// super user is always authenticated
-		if (validUser && (user instanceof SuperUser || user.getProperty(Principal.isAdmin))) {
+		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
 			return;
 		}
 
@@ -310,7 +307,9 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		final Principal user = AuthHelper.getPrincipalForPassword(Principal.eMail, emailOrUsername, password);
+		final PropertyKey<String> eMailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
+		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
+
 		if  (user != null) {
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();

@@ -264,17 +264,17 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

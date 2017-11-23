@@ -19,7 +19,6 @@
 package org.structr.schema.json;
 
 import java.net.URI;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,11 +33,13 @@ public interface JsonType extends Comparable<JsonType> {
 	public String getName();
 	public JsonType setName(final String name);
 
-	public JsonType addMethod(final String name, final String source, final String comment);
-	public JsonType addMethod(final String returnType, final String name, final String parameters, final String source);
+	public JsonMethod addMethod(final String name, final String source, final String comment);
+	public JsonMethod addMethod(final String name);
 
-	public JsonType addPropertyGetter(final String propertyName, final Class type);
-	public JsonType addPropertySetter(final String propertyName, final Class type);
+	public JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);
+
+	public JsonMethod addPropertyGetter(final String propertyName, final Class type);
+	public JsonMethod addPropertySetter(final String propertyName, final Class type);
 
 	public JsonType setExtends(final JsonType superType);
 	public JsonType setExtends(final URI externalReference);
@@ -51,7 +52,7 @@ public interface JsonType extends Comparable<JsonType> {
 	public Set<String> getRequiredProperties();
 	public Set<String> getViewNames();
 	public Set<String> getViewPropertyNames(final String viewName);
-	public Map<String, Map<String, String>> getMethods();
+	public Set<JsonMethod> getMethods();
 
 	public JsonType addViewProperty(final String viewName, final String propertyName);
 

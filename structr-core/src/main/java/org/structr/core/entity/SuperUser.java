@@ -71,18 +71,15 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public void unlockReadOnlyPropertiesOnce() {}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		return true;
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		return true;
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 	}
 
 	@Override
@@ -497,11 +494,33 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setSalt(String salt) {
+	public String getLocale() {
+		return null;
 	}
 
 	@Override
-	public String getLocale() {
+	public String getSessionData() {
 		return null;
+	}
+
+	@Override
+	public void setSessionData(String sessionData) throws FrameworkException {
+	}
+
+	@Override
+	public boolean isBlocked() {
+		return false;
+	}
+
+	@Override
+	public void setIsAdmin(boolean isAdmin) throws FrameworkException {
+	}
+
+	@Override
+	public void setEMail(String eMail) throws FrameworkException {
+	}
+
+	@Override
+	public void setSalt(String salt) throws FrameworkException {
 	}
 }

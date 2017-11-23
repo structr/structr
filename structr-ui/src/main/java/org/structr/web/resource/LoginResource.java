@@ -65,17 +65,16 @@ public class LoginResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
-
-		String name          = properties.get(User.name);
-		String email         = properties.get(User.eMail);
-		String password      = properties.get(User.password);
+		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
+		final String name            = properties.get(User.name);
+		final String email           = properties.get(User.eMail);
+		final String password        = properties.get(User.password);
 
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
 
 		if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 
-			Principal user = (Principal) securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+			Principal user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 
 			if (user != null) {
 

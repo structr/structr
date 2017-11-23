@@ -221,7 +221,9 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
 
 		// automatically add new property to the ui view..
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
@@ -241,19 +243,17 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				}
 			}
 		}
-
-		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		// prevent modification of properties using a content hash value
 		if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
 			throw new FrameworkException(403, "Modification of built-in properties not permitted.");
 		}
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	public String getContentHash() {

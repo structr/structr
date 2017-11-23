@@ -32,6 +32,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
@@ -39,6 +40,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.property.PropertyKey;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -193,7 +195,7 @@ public class RestAuthenticator implements Authenticator {
 		final boolean validUser             = (user != null);
 
 		// super user is always authenticated
-		if (validUser && (user instanceof SuperUser || user.getProperty(Principal.isAdmin))) {
+		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
 			return;
 		}
 
@@ -315,7 +317,8 @@ public class RestAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		final Principal user = AuthHelper.getPrincipalForPassword(Principal.eMail, emailOrUsername, password);
+		final PropertyKey<String> eMailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
+		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		SessionHelper.clearInvalidSessions(user);
 

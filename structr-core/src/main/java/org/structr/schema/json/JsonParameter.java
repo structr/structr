@@ -16,23 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.schema.json;
 
-import org.structr.common.error.ErrorBuffer;
+import java.net.URI;
 
 /**
- * An interface that locatable classes can implement to be notified
- * when properties of the Location entity change.
- *
- *
- *
  */
-public interface Locatable {
+public interface JsonParameter extends Comparable<JsonParameter> {
 
-	/**
-	 * Notify object of a location change.
-	 *
-	 * @param errorBuffer
-	 */
-	public void locationChanged(final ErrorBuffer errorBuffer);
+	public URI getId();
+	public JsonMethod getParent();
+
+	public String getName();
+	public JsonParameter setName(final String name);
+
+	public String getType();
+	public JsonParameter setType(final String type);
 }

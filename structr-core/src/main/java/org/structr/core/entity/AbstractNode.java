@@ -1221,20 +1221,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		clearPermissionResolutionCache();
-		return true;
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		clearPermissionResolutionCache();
-		return true;
 	}
 
 	@Override
@@ -1419,18 +1416,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		for (final PropertyKey key : properties.keySet()) {
 
-			if (!key.equals(GraphObject.id)) {
+			final Object value    = properties.get(key);
+			final Object oldValue = getProperty(key);
 
-				// check for system properties
-				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+			// no old value exists  OR  old value exists and is NOT equal => set property
+			if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
-				}
+				if (!key.equals(GraphObject.id)) {
 
-				// check for read-only properties
-				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+					// check for system properties
+					if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+						throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+					}
+
+					// check for read-only properties
+					if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
+
+						throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					}
 				}
 			}
 		}

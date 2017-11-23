@@ -353,10 +353,9 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the creation takes place
 	 * @param errorBuffer the error buffer to put error tokens into
-	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is modified. This method can cause the underlying
@@ -366,10 +365,9 @@ public interface GraphObject {
 	 * @param securityContext the context in which the modification takes place
 	 * @param errorBuffer the error buffer to put error tokens into
 	 * @param modificationQueue the modification queue that triggered this call to onModification
-	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is deleted. This method can cause the underlying
@@ -379,10 +377,9 @@ public interface GraphObject {
 	 * @param securityContext the context in which the deletion takes place
 	 * @param errorBuffer the error buffer to put error tokens into
 	 * @param properties
-	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException;
+	public void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully created. Please note that this method

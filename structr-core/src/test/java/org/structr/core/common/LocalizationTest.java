@@ -25,9 +25,11 @@ import org.junit.Test;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -39,33 +41,37 @@ public class LocalizationTest extends StructrTest {
 	@Test
 	public void testLocalizationWithoutDomain() {
 
+		final PropertyKey<String> localizedName = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "localizedName");
+		final PropertyKey<String> domain        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "domain");
+		final PropertyKey<String> locale        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "locale");
+
 		// create
 		try (final Tx tx = app.tx()) {
 
 			app.create(Localization.class,
 				new NodeAttribute<>(Localization.name, "test1"),
-				new NodeAttribute<>(Localization.locale, "de"),
-				new NodeAttribute<>(Localization.localizedName, "test1-de-no_domain")
+				new NodeAttribute<>(locale, "de"),
+				new NodeAttribute<>(localizedName, "test1-de-no_domain")
 			);
 
 			app.create(Localization.class,
 				new NodeAttribute<>(Localization.name, "test2"),
-				new NodeAttribute<>(Localization.locale, "de"),
-				new NodeAttribute<>(Localization.domain, "ExistingDomain"),
-				new NodeAttribute<>(Localization.localizedName, "test2-de-ExistingDomain")
+				new NodeAttribute<>(locale, "de"),
+				new NodeAttribute<>(domain, "ExistingDomain"),
+				new NodeAttribute<>(localizedName, "test2-de-ExistingDomain")
 			);
 
 			app.create(Localization.class,
 				new NodeAttribute<>(Localization.name, "test3"),
-				new NodeAttribute<>(Localization.locale, "de_DE"),
-				new NodeAttribute<>(Localization.localizedName, "test3-de_DE-no_domain")
+				new NodeAttribute<>(locale, "de_DE"),
+				new NodeAttribute<>(localizedName, "test3-de_DE-no_domain")
 			);
 
 			app.create(Localization.class,
 				new NodeAttribute<>(Localization.name, "test4"),
-				new NodeAttribute<>(Localization.locale, "de_DE"),
-				new NodeAttribute<>(Localization.domain, "ExistingDomain"),
-				new NodeAttribute<>(Localization.localizedName, "test4-de_DE-ExistingDomain")
+				new NodeAttribute<>(locale, "de_DE"),
+				new NodeAttribute<>(domain, "ExistingDomain"),
+				new NodeAttribute<>(localizedName, "test4-de_DE-ExistingDomain")
 			);
 
 			tx.success();

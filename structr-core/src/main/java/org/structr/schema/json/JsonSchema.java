@@ -67,6 +67,14 @@ public interface JsonSchema {
 	public static final String KEY_MIN_ITEMS               = "minItems";
 	public static final String KEY_MAX_ITEMS               = "maxItems";
 	public static final String KEY_SOURCE                  = "source";
+	public static final String KEY_CODE_TYPE               = "codeType";
+	public static final String KEY_OVERRIDES_EXISTING      = "overridesExisting";
+	public static final String KEY_RETURN_TYPE             = "returnType";
+	public static final String KEY_EXCEPTIONS              = "exceptions";
+	public static final String KEY_CALL_SUPER              = "callSuper";
+	public static final String KEY_PARAMETERS              = "parameters";
+	public static final String KEY_PARAMETER_TYPE          = "parameterType";
+	public static final String KEY_COMMENT                 = "comment";
 	public static final String KEY_CONTENT_TYPE            = "contentType";
 	public static final String KEY_RELATIONSHIP            = "rel";
 	public static final String KEY_DIRECTION               = "direction";

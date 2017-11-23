@@ -143,9 +143,8 @@ public class ResourceAccess extends AbstractNode {
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) {
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) {
 		grantCache.clear();
-		return true;
 	}
 
 	@Override

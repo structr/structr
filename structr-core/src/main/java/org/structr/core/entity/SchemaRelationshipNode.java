@@ -178,43 +178,33 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if (super.onCreation(securityContext, errorBuffer)) {
+		super.onCreation(securityContext, errorBuffer);
 
-			// store old property names
-			setProperty(previousSourceJsonName, getProperty(sourceJsonName));
-			setProperty(previousTargetJsonName, getProperty(targetJsonName));
+		// store old property names
+		setProperty(previousSourceJsonName, getProperty(sourceJsonName));
+		setProperty(previousTargetJsonName, getProperty(targetJsonName));
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-			return true;
-		}
-
-		return false;
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-			checkClassName();
+		checkClassName();
 
-			checkAndRenameSourceAndTargetJsonNames();
+		checkAndRenameSourceAndTargetJsonNames();
 
-			// store old property names
-			setProperty(previousSourceJsonName, getProperty(sourceJsonName));
-			setProperty(previousTargetJsonName, getProperty(targetJsonName));
+		// store old property names
+		setProperty(previousSourceJsonName, getProperty(sourceJsonName));
+		setProperty(previousTargetJsonName, getProperty(targetJsonName));
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-			return true;
-		}
-
-		return false;
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 	}
 
 	@Override
@@ -233,19 +223,12 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 
-		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+		super.onDeletion(securityContext, errorBuffer, properties);
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-			return true;
-
-		}
-
-		return false;
-
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 	}
 
 	public SchemaNode getSourceNode() {

@@ -20,6 +20,7 @@ package org.structr.web.entity;
 
 import java.util.List;
 import org.structr.api.config.Settings;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.KeyAndClass;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -28,61 +29,62 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.Group;
-import static org.structr.core.entity.Principal.eMail;
-import org.structr.core.entity.relationship.Groups;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.relation.UserFavoriteFavoritable;
 import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
 import org.structr.web.property.ImageDataProperty;
-import org.structr.web.property.UiNotion;
 
-public class User extends AbstractUser {
+public interface User extends Principal {
 
-	public static final Property<String>            confirmationKey           = new StringProperty("confirmationKey").indexed();
-	public static final Property<Boolean>           backendUser               = new BooleanProperty("backendUser").indexed();
-	public static final Property<Boolean>           frontendUser              = new BooleanProperty("frontendUser").indexed();
+	static class Impl { static {
+
+		final JsonSchema schema    = SchemaService.getDynamicSchema();
+		final JsonObjectType user  = schema.addType("User");
+
+		user.setExtends(schema.getType("Principal"));
+
+		user.addStringProperty("confirmationKey").setIndexed(true);
+		user.addStringProperty("twitterName").setIndexed(true);
+		user.addStringProperty("localStorage");
+
+		user.addBooleanProperty("backendUser").setIndexed(true);
+		user.addBooleanProperty("frontendUser").setIndexed(true);
+		user.addBooleanProperty("isUser", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		user.addBooleanProperty("skipSecurityRelationships").setDefaultValue("false").setIndexed(true);
+
+
+		user.overrideMethod("shouldSkipSecurityRelationships", false, "return getProperty(skipSecurityRelationshipsProperty);");
+
+
+	}}
+
+	//public static final Property<String>            confirmationKey           = new StringProperty("confirmationKey").indexed();
+	//public static final Property<Boolean>           backendUser               = new BooleanProperty("backendUser").indexed();
+	//public static final Property<Boolean>           frontendUser              = new BooleanProperty("frontendUser").indexed();
 	public static final Property<Image>             img                       = new StartNode<>("img", UserImage.class);
 	public static final ImageDataProperty           imageData                 = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
 	public static final Property<Folder>            homeDirectory             = new EndNode<>("homeDirectory", UserHomeDir.class);
 	public static final Property<Folder>            workingDirectory          = new EndNode<>("workingDirectory", UserWorkDir.class);
-	public static final Property<List<Group>>       groups                    = new StartNodes<>("groups", Groups.class, new UiNotion());
-	public static final Property<Boolean>           isUser                    = new ConstantBooleanProperty("isUser", true);
-	public static final Property<String>            twitterName               = new StringProperty("twitterName").cmis().indexed();
-	public static final Property<String>            localStorage              = new StringProperty("localStorage");
+	//public static final Property<List<Group>>       groups                    = new StartNodes<>("groups", Groups.class, new UiNotion());
+	//public static final Property<Boolean>           isUser                    = new ConstantBooleanProperty("isUser", true);
+	//public static final Property<String>            twitterName               = new StringProperty("twitterName").cmis().indexed();
+	//public static final Property<String>            localStorage              = new StringProperty("localStorage");
 	public static final Property<List<Favoritable>> favorites                 = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
 	public static final Property<Boolean>           skipSecurityRelationships = new BooleanProperty("skipSecurityRelationships").defaultValue(Boolean.FALSE).indexed().readOnly();
-
-	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser,
-			groups, img, homeDirectory, workingDirectory, isUser, locale, favorites,
-			proxyUrl, proxyUsername, proxyPassword, skipSecurityRelationships
-	);
-
-	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name, isUser
-	);
-
-	static {
-
-		// register this type as an overridden builtin type
-		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
-	}
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -211,10 +213,5 @@ public class User extends AbstractUser {
 			}
 
 		}
-	}
-
-	@Override
-	public boolean shouldSkipSecurityRelationships() {
-		return getProperty(User.skipSecurityRelationships);
 	}
 }

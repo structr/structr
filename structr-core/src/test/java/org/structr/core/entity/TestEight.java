@@ -45,24 +45,18 @@ public class TestEight extends AbstractNode {
 	private long afterModificationTimestamp = 0L;
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext1, ErrorBuffer errorBuffer) throws FrameworkException {
-
+	public void onCreation(SecurityContext securityContext1, ErrorBuffer errorBuffer) throws FrameworkException {
 		this.onCreationTimestamp = System.currentTimeMillis();
-		return true;
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext1, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
+	public void onModification(SecurityContext securityContext1, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		this.onModificationTimestamp = System.currentTimeMillis();
-		return true;
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext1, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
+	public void onDeletion(SecurityContext securityContext1, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		this.onDeletionTimestamp = System.currentTimeMillis();
-		return true;
 	}
 
 	@Override

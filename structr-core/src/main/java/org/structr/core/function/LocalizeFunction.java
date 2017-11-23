@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -192,10 +193,14 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 	private static String getLocalizedNameFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
 
+		final PropertyKey<String> localizedNameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "localizedName");
+		final PropertyKey<String> domainKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "domain");
+		final PropertyKey<String> localeKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "locale");
+
 		final List<Localization> localizations = StructrApp.getInstance().nodeQuery(Localization.class)
 			.and(Localization.name,   key)
-			.and(Localization.domain, domain)
-			.and(Localization.locale, locale)
+			.and(domainKey, domain)
+			.and(localeKey, locale)
 			.getAsList();
 
 		// nothing found
@@ -211,6 +216,6 @@ public class LocalizeFunction extends Function<Object, Object> {
 		}
 
 		// return first
-		return localizations.get(0).getProperty(Localization.localizedName);
+		return localizations.get(0).getProperty(localizedNameKey);
 	}
 }

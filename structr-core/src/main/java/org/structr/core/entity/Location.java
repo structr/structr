@@ -52,23 +52,23 @@ public class Location extends AbstractNode {
 	);
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return isValid(errorBuffer);
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		notifyLocatables(errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		return isValid(errorBuffer);
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		notifyLocatables(errorBuffer);
 	}
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
-		notifyLocatables();
+		notifyLocatables(null);
 	}
 
 	@Override
 	public void afterModification(SecurityContext securityContext) {
-		notifyLocatables();
+		notifyLocatables(null);
 
 	}
 
@@ -77,17 +77,13 @@ public class Location extends AbstractNode {
 
 		boolean valid = super.isValid(errorBuffer);
 
-		valid &= notifyLocatables();
+		notifyLocatables(errorBuffer);
 
 		return valid;
 
 	}
 
-	private boolean notifyLocatables() {
-
-		// FIXME: LocationRelationship has a direction. but it is ignored here
-
-		boolean allLocatablesAreValid = true;
+	private void notifyLocatables(final ErrorBuffer errorBuffer) {
 
 		for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
 
@@ -95,11 +91,9 @@ public class Location extends AbstractNode {
 			if(otherNode != null && otherNode instanceof Locatable) {
 
 				// notify other node of location change
-				allLocatablesAreValid &= !((Locatable)otherNode).locationChanged();
+				((Locatable)otherNode).locationChanged(errorBuffer);
 			}
 		}
-
-		return allLocatablesAreValid;
 	}
 
 }

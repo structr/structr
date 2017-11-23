@@ -74,14 +74,24 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addStringArrayProperty("publicKeys");
 
 		principal.addPropertyGetter("locale", String.class);
+
+		principal.addPropertyGetter("sessionData", String.class);
+		principal.addPropertySetter("sessionData", String.class);
+
+		principal.addPropertySetter("password", String.class);
+		principal.addPropertySetter("isAdmin", Boolean.TYPE);
+		principal.addPropertySetter("eMail", String.class);
 		principal.addPropertySetter("salt", String.class);
 
-		principal.addMethod("List<org.structr.core.entity.Principal>",    "getParents",   "", "return org.structr.core.entity.Principal.getParents(this);");
-		principal.addMethod("boolean", "shouldSkipSecurityRelationships", "",                 "return false;");
-		principal.addMethod("boolean", "isAdmin",                         "",                 "return getProperty(isAdminProperty);");
-		principal.addMethod("boolean", "isValidPassword",                 "String password",  "return org.structr.core.entity.Principal.isValidPassword(this, password);");
-		principal.addMethod("void",    "addSessionId",                    "String sessionId", "org.structr.core.entity.Principal.addSessionId(this, sessionId);");
-		principal.addMethod("void",    "removeSessionId",                 "String sessionId", "org.structr.core.entity.Principal.removeSessionId(this, sessionId);");
+		principal.addMethod("isAdmin").setReturnType("boolean").setSource("return getProperty(isAdminProperty);");
+		principal.addMethod("isBlocked").setReturnType("boolean").setSource("return getProperty(blockedProperty);");
+		principal.addMethod("getParents").setReturnType("List<org.structr.core.entity.Principal>").setSource("return org.structr.core.entity.Principal.getParents(this);");
+		principal.addMethod("shouldSkipSecurityRelationships").setReturnType("boolean").setSource("return false;");
+		principal.addMethod("isValidPassword").setReturnType("boolean").setSource("return org.structr.core.entity.Principal.isValidPassword(this, password);").addParameter("password", "String");
+		principal.addMethod("addSessionId").setSource("org.structr.core.entity.Principal.addSessionId(this, sessionId);").addParameter("sessionId", "String");
+		principal.addMethod("removeSessionId").setSource("org.structr.core.entity.Principal.removeSessionId(this, sessionId);").addParameter("sessionId", "String");
+
+		principal.overrideMethod("getProperty", false, "if (propertyKey.equals(passwordProperty) || propertyKey.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(propertyKey); }");
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
@@ -101,10 +111,17 @@ public interface Principal extends NodeInterface, AccessControllable {
 	void addSessionId(final String sessionId);
 	void removeSessionId(final String sessionId);
 
-	void setSalt(final String salt) throws FrameworkException;
+	String getSessionData();
+	void setSessionData(final String sessionData) throws FrameworkException;
 
 	boolean isAdmin();
+	boolean isBlocked();
 	boolean shouldSkipSecurityRelationships();
+
+	void setIsAdmin(final boolean isAdmin) throws FrameworkException;
+	void setPassword(final String password) throws FrameworkException;
+	void setEMail(final String eMail) throws FrameworkException;
+	void setSalt(final String salt) throws FrameworkException;
 
 	String getLocale();
 

@@ -899,9 +899,10 @@ public class BasicTest extends StructrTest {
 					// For Localization, fill mandatory fields
 					if (type.equals(Localization.class)) {
 
+						/*
 						props.put(Localization.name, "localizationKey");
 						props.put(Localization.locale, "de_DE");
-
+						*/
 					}
 
 					// For Location, set coordinates
@@ -1629,13 +1630,13 @@ public class BasicTest extends StructrTest {
 
 			final List<? extends RelationshipInterface> rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels1.get(1).getClass());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels1.get(0).getClass());
+			assertEquals("Invalid relationship type after object creation", Security.class, rels1.get(0).getClass());
+			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels1.get(1).getClass());
 
 			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels2.get(1).getClass());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels2.get(0).getClass());
+			assertEquals("Invalid relationship type after object creation", Security.class, rels2.get(0).getClass());
+			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels2.get(1).getClass());
 
 			final List<? extends RelationshipInterface> rels3 = Iterables.toList(test.getIncomingRelationships());
 			assertEquals("Invalid number of relationships after object creation", 2, rels3.size());

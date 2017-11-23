@@ -37,9 +37,9 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.attribute.Name;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
-import org.structr.rest.entity.TestUser;
 
 /**
  *
@@ -375,11 +375,13 @@ public class PagingAndSortingTest extends StructrRestTest {
 	@Test
 	public void testRelationshipResourcePagingOnCollectionResource() {
 
-		TestUser tester = null;
+		final Class testUserType              = createTestUserType();
+		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
+		Principal tester                      = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester = app.create(TestUser.class, new Name("tester"), new NodeAttribute<>(Principal.password, "test"));
+			tester = app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -422,11 +424,13 @@ public class PagingAndSortingTest extends StructrRestTest {
 	@Test
 	public void testRelationshipResourcePagingOnEntityResource() {
 
-		TestUser tester = null;
+		final Class testUserType              = createTestUserType();
+		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
+		Principal tester = null;
 
 		try (final Tx tx = app.tx()) {
 
-			tester = app.create(TestUser.class, new Name("tester"), new NodeAttribute<>(Principal.password, "test"));
+			tester = app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
 			tx.success();
 
 		} catch (FrameworkException fex) {

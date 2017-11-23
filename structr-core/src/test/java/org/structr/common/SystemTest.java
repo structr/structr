@@ -48,6 +48,7 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
@@ -598,6 +599,42 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testPasswordAndHashSecurity() {
+
+		final Class userType                  = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(userType, "password");
+		final PropertyKey<String> saltKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(userType, "salt");
+
+		// actual test: test performance of node association on supernode
+		try (final Tx tx = app.tx()) {
+
+			app.create(Principal.class,
+				new NodeAttribute<>(Principal.name, "tester"),
+				new NodeAttribute<>(passwordKey, "password")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception");
+		}
+
+		// actual test: test performance of node association on supernode
+		try (final Tx tx = app.tx()) {
+
+			final Principal user = app.nodeQuery(Principal.class).getFirst();
+
+			assertEquals("Password hash IS NOT SECURE!", Principal.HIDDEN, user.getProperty(passwordKey));
+			assertEquals("Password salt IS NOT SECURE!", Principal.HIDDEN, user.getProperty(saltKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
 			fail("Unexpected exception");
 		}
 	}

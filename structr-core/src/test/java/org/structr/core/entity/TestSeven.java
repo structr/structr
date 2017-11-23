@@ -19,11 +19,9 @@
 package org.structr.core.entity;
 
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;
 
@@ -41,16 +39,6 @@ public class TestSeven extends AbstractNode {
 	public static final View publicView = new View(TestSeven.class, PropertyView.Public,
 		latitude, longitude
 	);
-
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) {
-		return isValid(errorBuffer);
-	}
-
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) {
-		return isValid(errorBuffer);
-	}
 
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {

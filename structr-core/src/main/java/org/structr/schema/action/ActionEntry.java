@@ -18,6 +18,11 @@
  */
 package org.structr.schema.action;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 /**
@@ -26,15 +31,17 @@ import org.apache.commons.lang3.StringEscapeUtils;
  */
 public class ActionEntry implements Comparable<ActionEntry> {
 
-	private Actions.Type type       = null;
-	private boolean throwsException = false;
-	private String returnType       = null;
-	private String parameters       = null;
-	private String call             = null;
-	private String name             = null;
-	private int position            = 0;
+	private final Map<String, String> parameters = new LinkedHashMap<>();
+	private final List<String> exceptions        = new LinkedList<>();
+	private Actions.Type type                    = null;
+	private boolean overrides                    = false;
+	private boolean callSuper                    = false;
+	private String returnType                    = null;
+	private String call                          = null;
+	private String name                          = null;
+	private int position                         = 0;
 
-	public ActionEntry(final String sourceName, final String value, final boolean isJava) {
+	public ActionEntry(final String sourceName, final String value, final String codeType) {
 
 		int positionOffset = 0;
 
@@ -55,7 +62,15 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		} else {
 
-			this.type = isJava ? Actions.Type.Java : Actions.Type.Custom;
+			if (codeType != null && "java".equals(codeType)) {
+
+				this.type = Actions.Type.Java;
+
+			} else {
+
+				this.type = Actions.Type.Custom;
+			}
+
 			positionOffset = 3;
 		}
 
@@ -87,20 +102,36 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		return this.returnType;
 	}
 
-	public void throwsException(final boolean throwsException) {
-		this.throwsException = throwsException;
+	public void addException(final String exception) {
+		this.exceptions.add(exception);
 	}
 
-	public boolean throwsException() {
-		return throwsException;
+	public List<String>  getExceptions() {
+		return exceptions;
 	}
 
-	public void setParameters(final String parameters) {
-		this.parameters = parameters;
+	public void addParameter(final String type, final String name) {
+		this.parameters.put(name, type);
 	}
 
-	public String getParameters() {
+	public Map<String, String> getParameters() {
 		return this.parameters;
+	}
+
+	public void setCallSuper(final boolean callSuper) {
+		this.callSuper = callSuper;
+	}
+
+	public boolean callSuper() {
+		return callSuper;
+	}
+
+	public void setOverrides(final boolean overrides) {
+		this.overrides = overrides;
+	}
+
+	public boolean overrides() {
+		return overrides;
 	}
 
 	public String getSource(final String objVariable) {
@@ -162,5 +193,22 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public String getName() {
 		return name;
+	}
+
+	public void copy(final ActionEntry template) {
+
+		this.name       = template.name;
+		this.type       = template.type;
+		this.returnType = template.returnType;
+
+		// copy parameters
+		for (final Entry<String, String> entry : template.getParameters().entrySet()) {
+			this.parameters.put(entry.getKey(), entry.getValue());
+		}
+
+		// copy exceptions
+		for (final String exception : template.getExceptions()) {
+			this.exceptions.add(exception);
+		}
 	}
 }

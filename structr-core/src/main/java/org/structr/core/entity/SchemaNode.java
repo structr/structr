@@ -92,21 +92,21 @@ public class SchemaNode extends AbstractSchemaNode {
 	);
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
 
 		throwExceptionIfTypeAlreadyExists();
-
-		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		if (modificationQueue.isPropertyModified(this, name)) {
 			throwExceptionIfTypeAlreadyExists();
 		}
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	@Override

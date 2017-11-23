@@ -85,31 +85,21 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if (super.onCreation(securityContext, errorBuffer)) {
+		super.onCreation(securityContext, errorBuffer);
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
-
-			return true;
-		}
-
-		return false;
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
-
-			return true;
-		}
-
-		return false;
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
 	}
 
 	@Override

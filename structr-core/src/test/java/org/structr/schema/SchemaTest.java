@@ -502,9 +502,9 @@ public class SchemaTest extends StructrTest {
 
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
-				new NodeAttribute<>(SchemaMethod.name, "testJavaMethod"),
-				new NodeAttribute<>(SchemaMethod.source, source.toString()),
-				new NodeAttribute<>(SchemaMethod.isJava, true)
+				new NodeAttribute<>(SchemaMethod.name,       "testJavaMethod"),
+				new NodeAttribute<>(SchemaMethod.source,     source.toString()),
+				new NodeAttribute<>(SchemaMethod.codeType,   "java")
 			);
 
 			group = app.create(groupType, "test");
@@ -552,9 +552,9 @@ public class SchemaTest extends StructrTest {
 
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.schemaNode, group),
-				new NodeAttribute<>(SchemaMethod.name, "testJavaMethod"),
-				new NodeAttribute<>(SchemaMethod.source, source),
-				new NodeAttribute<>(SchemaMethod.isJava, true)
+				new NodeAttribute<>(SchemaMethod.name,       "testJavaMethod"),
+				new NodeAttribute<>(SchemaMethod.source,     source),
+				new NodeAttribute<>(SchemaMethod.codeType,   "java")
 			);
 
 			tx.success();

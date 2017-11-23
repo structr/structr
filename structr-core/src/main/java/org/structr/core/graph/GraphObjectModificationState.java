@@ -263,8 +263,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 	 */
 	public boolean doInnerCallback(ModificationQueue modificationQueue, SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
-		boolean valid = true;
-
 		// check for modification propagation along the relationships
 		if ((status & STATE_PROPAGATING_MODIFICATION) == STATE_PROPAGATING_MODIFICATION && object instanceof AbstractNode) {
 
@@ -297,26 +295,26 @@ public class GraphObjectModificationState implements ModificationEvent {
 				break;
 
 			case 6: // created, modified => only creation callback will be called
-				valid &= object.onCreation(securityContext, errorBuffer);
+				object.onCreation(securityContext, errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
 				break;
 
 			case 4: // created => creation callback
-				valid &= object.onCreation(securityContext, errorBuffer);
+				object.onCreation(securityContext, errorBuffer);
 				break;
 
 			case 3: // modified, deleted => deletion callback
-				valid &= object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(securityContext, errorBuffer, removedProperties);
 				break;
 
 			case 2: // modified => modification callback
-				valid &= object.onModification(securityContext, errorBuffer, modificationQueue);
+				object.onModification(securityContext, errorBuffer, modificationQueue);
 				break;
 
 			case 1: // deleted => deletion callback
-				valid &= object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(securityContext, errorBuffer, removedProperties);
 				break;
 
 			case 0:	// no action, no callback
@@ -329,7 +327,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		// mark as finished
 		modified = false;
 
-		return valid;
+		return !errorBuffer.hasError();
 	}
 
 	/**

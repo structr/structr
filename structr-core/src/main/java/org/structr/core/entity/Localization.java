@@ -18,14 +18,12 @@
  */
 package org.structr.core.entity;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
-import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.function.LocalizeFunction;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonType;
@@ -34,7 +32,9 @@ public interface Localization extends NodeInterface {
 
 	static class Impl { static {
 
-		final JsonType type = SchemaService.getDynamicSchema().addType("Localizaton");
+		final JsonType type = SchemaService.getDynamicSchema().addType("Localization");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Localization"));
 
 		type.addStringProperty("localizedName", PropertyView.Public).setIndexed(true);
 		type.addStringProperty("description",   PropertyView.Public);
@@ -42,11 +42,20 @@ public interface Localization extends NodeInterface {
 		type.addStringProperty("locale",        PropertyView.Public).setRequired(true).setIndexed(true);
 		type.addBooleanProperty("imported",     PropertyView.Public).setIndexed(true);
 
-
-		type.addMethod("boolean", "onCreation", "final SecurityContext securityContext, final ErrorBuffer errorBuffer",
+		type.overrideMethod("onCreation",     true, "org.structr.core.entity.Localization.onCreation(this, securityContext, errorBuffer);");
+		type.overrideMethod("onModification", true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
 
 	}}
 
+	public static void onCreation(final Localization localization, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		localization.setProperty(visibleToPublicUsers, true);
+		localization.setProperty(visibleToAuthenticatedUsers, true);
+
+		LocalizeFunction.invalidateCache();
+	}
+
+	/*
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -75,7 +84,6 @@ public interface Localization extends NodeInterface {
 		return false;
 	}
 
-	/*
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
