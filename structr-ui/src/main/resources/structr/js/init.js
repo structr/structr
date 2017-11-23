@@ -1396,16 +1396,17 @@ var Structr = {
 	},
 	appendInfoTextToElement: function (config) {
 
-		var element           = config.element;
-		var appendToElement   = config.appendToElement || element;
-		var text              = config.text || 'No text supplied!';
-		var toggleElementCss  = config.css || {};
-		var elementCss        = config.elementCss || {};
-		var helpElementCss    = config.helpElementCss || {};
-		var customToggleIcon  = config.customToggleIcon || _Icons.information_icon;
-		var insertAfter       = config.insertAfter || false;
-		var offsetX           = config.offsetX || 0;
-		var offsetY           = config.offsetY || 0;
+		var element            = config.element;
+		var appendToElement    = config.appendToElement || element;
+		var text               = config.text || 'No text supplied!';
+		var toggleElementCss   = config.css || {};
+		var toggleElementClass = config.class || undefined;
+		var elementCss         = config.elementCss || {};
+		var helpElementCss     = config.helpElementCss || {};
+		var customToggleIcon   = config.customToggleIcon || _Icons.information_icon;
+		var insertAfter        = config.insertAfter || false;
+		var offsetX            = config.offsetX || 0;
+		var offsetY            = config.offsetY || 0;
 
 		var customToggleElement = true;
 		var toggleElement = config.toggleElement;
@@ -1414,6 +1415,9 @@ var Structr = {
 			toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(customToggleIcon) + '"></span>');
 		}
 
+		if (toggleElementClass) {
+			toggleElement.addClass(toggleElementClass);
+		}
 		toggleElement.css(toggleElementCss);
 		appendToElement.css(elementCss);
 
