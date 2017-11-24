@@ -41,6 +41,7 @@
 		<module>structr-xml-module</module>
 		<module>structr-mqtt-module</module>
 		<module>structr-knowledge-module</module>
+		<module>structr-java-parser-module</module>
 	</modules>
 
 	<profiles>
