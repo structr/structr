@@ -186,7 +186,7 @@ var _Entities = {
 			Structr.appendInfoTextToElement({
 				element: el,
 				text: typeInfo[key].hint,
-				css: { float: "right" }
+				class: 'hint'
 			});
 		}
 

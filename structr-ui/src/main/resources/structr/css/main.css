@@ -613,8 +613,14 @@ img.disabled {
 }
 
 .props td.key {
+	position: relative;
 	width: 50%;
 	font-weight: bold;
+}
+
+.props td.key .hint {
+	position: absolute;
+	right: 2px;
 }
 
 .props tr td.value {
