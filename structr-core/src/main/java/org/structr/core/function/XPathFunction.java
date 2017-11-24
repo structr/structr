@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import javax.xml.namespace.QName;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -32,7 +33,7 @@ import org.w3c.dom.Document;
  */
 public class XPathFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
+	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
 
 	@Override
 	public String getName() {
@@ -43,15 +44,24 @@ public class XPathFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document)) {
+			if (!(arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof Document)) {
 				
 				return null;
 			}
 
 			try {
 
-				XPath xpath = XPathFactory.newInstance().newXPath();
-				return xpath.evaluate(sources[1].toString(), sources[0], XPathConstants.STRING);
+				final XPath xpath = XPathFactory.newInstance().newXPath();
+				QName returnType  = XPathConstants.STRING;
+				
+				if (sources.length == 3 && sources[2] instanceof String) {
+					
+					returnType = new QName("http://www.w3.org/1999/XSL/Transform", (String) sources[2]);
+				}
+				
+				
+				
+				return xpath.evaluate(sources[1].toString(), sources[0], returnType);
 
 			} catch (XPathExpressionException ioex) {
 
@@ -76,7 +86,7 @@ public class XPathFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the value of the given XPath expression from the given XML DOM";
+		return "Returns the value of the given XPath expression from the given XML DOM. The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING.";
 	}
 
 }
