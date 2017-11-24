@@ -139,7 +139,7 @@ var _Entities = {
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-type',                 'Data type', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder',          'Placeholder text', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Attribute key', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Options attribute key', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value',            'Raw value', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
