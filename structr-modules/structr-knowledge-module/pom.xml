@@ -59,7 +59,7 @@
 						<manifestSection>
 							<Name>Structr</Name>
 							<manifestEntries>
-								<Structr-Module-Name>text-search</Structr-Module-Name>
+								<Structr-Module-Name>knowledge</Structr-Module-Name>
 							</manifestEntries>
 						</manifestSection>
 					</archive>

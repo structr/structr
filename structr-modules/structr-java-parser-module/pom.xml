@@ -53,7 +53,7 @@
 						<manifestSection>
 							<Name>Structr</Name>
 							<manifestEntries>
-								<Structr-Module-Name>csv</Structr-Module-Name>
+								<Structr-Module-Name>java-parser</Structr-Module-Name>
 							</manifestEntries>
 						</manifestSection>
 					</archive>

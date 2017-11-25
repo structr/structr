@@ -65,7 +65,7 @@
 						<manifestSection>
 							<Name>Structr</Name>
 							<manifestEntries>
-								<Structr-Module-Name>text-search</Structr-Module-Name>
+								<Structr-Module-Name>translation</Structr-Module-Name>
 							</manifestEntries>
 						</manifestSection>
 					</archive>
