@@ -29,8 +29,8 @@ import org.structr.web.function.UiFunction;
 
 public class TranslateFunction extends UiFunction {
 
-	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text[, sourceLanguage[, targetLanguage]])}. Example: ${translate(\"Hello world!\", \"en\", \"ru\")}";
-	public static final String ERROR_MESSAGE_TRANSLATE_JS = "Usage: ${{Structr.translate(text[, sourceLanguage[, targetLanguage]])}}. Example: ${{Structr.translate(\"Hello world!\", \"en\", \"ru\"))}";
+	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage)}. Example: ${translate(\"Hello world!\", \"en\", \"ru\")}";
+	public static final String ERROR_MESSAGE_TRANSLATE_JS = "Usage: ${{Structr.translate(text, sourceLanguage, targetLanguage)}}. Example: ${{Structr.translate(\"Hello world!\", \"en\", \"ru\"))}";
 
 	@Override
 	public String getName() {
