@@ -18,110 +18,95 @@
  */
 package org.structr.web.entity;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.nio.charset.Charset;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import javax.xml.stream.XMLStreamException;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
+import java.net.URI;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
-import org.structr.cmis.info.CMISFolderInfo;
-import org.structr.cmis.info.CMISItemInfo;
-import org.structr.cmis.info.CMISPolicyInfo;
-import org.structr.cmis.info.CMISRelationshipInfo;
-import org.structr.cmis.info.CMISSecondaryInfo;
-import org.structr.common.Permission;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
-import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
-import static org.structr.common.fulltext.Indexable.extractedContent;
-import org.structr.core.Export;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.Principal;
-import org.structr.core.function.Functions;
-import org.structr.core.graph.ModificationEvent;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
-import org.structr.files.cmis.config.StructrFileActions;
-import org.structr.rest.common.XMLStructureAnalyzer;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
+import org.structr.schema.SchemaService;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.web.common.FileHelper;
-import org.structr.web.common.ImageHelper;
-import org.structr.web.common.RenderContext;
-import org.structr.web.entity.relation.Folders;
-import org.structr.web.entity.relation.MinificationSource;
-import org.structr.web.entity.relation.UserFavoriteFile;
-import org.structr.web.importer.CSVFileImportJob;
-import org.structr.web.importer.DataImportManager;
-import org.structr.web.importer.XMLFileImportJob;
-import org.structr.web.property.FileDataProperty;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  *
  *
  */
-public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable {
+public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable {
 
-	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
+	static class Impl { static {
 
-	public static final Property<String> relativeFilePath                        = new StringProperty("relativeFilePath").systemInternal();
-	public static final Property<Long> size                                      = new LongProperty("size").indexed().systemInternal();
-	public static final Property<String> url                                     = new StringProperty("url");
-	public static final Property<Long> checksum                                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
-	public static final Property<Integer> cacheForSeconds                        = new IntProperty("cacheForSeconds").cmis();
-	public static final Property<Integer> version                                = new IntProperty("version").indexed().systemInternal();
-	public static final Property<String> base64Data                              = new FileDataProperty<>("base64Data");
-	public static final Property<Boolean> isFile                                 = new ConstantBooleanProperty("isFile", true);
-	public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
-	public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
-	public static final Property<Boolean> isTemplate                             = new BooleanProperty("isTemplate");
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("File");
 
-	public static final View publicView = new View(FileBase.class, PropertyView.Public,
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
+		type.setExtends(URI.create("#/definitions/AbstractFile"));
+
+		type.addStringProperty("relativeFilePath", PropertyView.Public);
+		type.addStringProperty("url", PropertyView.Public);
+
+		type.addBooleanProperty("isFile").addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isTemplate", PropertyView.Public);
+
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
+		type.addIntegerProperty("version", PropertyView.Public).setIndexed(true);
+		type.addIntegerProperty("position", PropertyView.Public).setIndexed(true);
+
+		type.addLongProperty("size", PropertyView.Public).setIndexed(true);
+		type.addLongProperty("checksum", PropertyView.Public).setIndexed(true);
+	}}
+
+	FileOutputStream getOutputStream();
+	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
+
+	java.io.File getFileOnDisk();
+
+	boolean isImage();
+	boolean isThumbnail();
+
+	void notifyUploadCompletion();
+	void increaseVersion() throws FrameworkException;
+
+	String getRelativeFilePath();
+
+	Integer getCacheForSeconds();
+
+	Long getChecksum();
+
+	// ----- static methods -----
+	public static String getDirectoryPath(final String uuid) {
+
+		return (uuid != null)
+			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			: null;
+
+	}
+
+	/* TODO:
+		public static final Property<String> base64Data                              = new FileDataProperty<>("base64Data");
+		public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
+		public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
+	*/
+
+	//public static final Property<String> relativeFilePath                        = new StringProperty("relativeFilePath").systemInternal();
+	//public static final Property<Long> size                                      = new LongProperty("size").indexed().systemInternal();
+	//public static final Property<String> url                                     = new StringProperty("url");
+	//public static final Property<Long> checksum                                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
+	//public static final Property<Integer> cacheForSeconds                        = new IntProperty("cacheForSeconds").cmis();
+	//public static final Property<Integer> version                                = new IntProperty("version").indexed().systemInternal();
+	//public static final Property<Boolean> isTemplate                             = new BooleanProperty("isTemplate");
+	//public static final Property<Boolean> isFile                                 = new ConstantBooleanProperty("isFile", true);
+
+	/*
+	public static final View publicView = new View(File.class, PropertyView.Public,
 		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable, isTemplate
 	);
 
-	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
+	public static final View uiView = new View(File.class, PropertyView.Ui,
 		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
 	);
 
@@ -333,14 +318,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public String getFormattedSize() {
 
 		return FileUtils.byteCountToDisplaySize(getSize());
-
-	}
-
-	public static String getDirectoryPath(final String uuid) {
-
-		return (uuid != null)
-			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
-			: null;
 
 	}
 
@@ -701,7 +678,6 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	 * Returns the Folder entity for the current working directory,
 	 * or the user's home directory as a fallback.
 	 * @return
-	 */
 	private Folder getCurrentWorkingDir() {
 
 		final Principal _owner  = getProperty(owner);
@@ -991,4 +967,5 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 			return separator;
 		}
 	}
+	*/
 }

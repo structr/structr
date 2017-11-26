@@ -383,10 +383,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return cachedUuid;
 	}
 
-	public final String getIdString() {
-		return Long.toString(getId());
-	}
-
 	/**
 	 * Indicates whether this node is visible to public users.
 	 *
@@ -1788,6 +1784,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
+	@Override
 	public List<Security> getSecurityRelationships() {
 
 		final List<Security> grants = Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));

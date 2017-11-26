@@ -18,23 +18,11 @@
  */
 package org.structr.console;
 
-import java.util.Collections;
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.console.Console.ConsoleMode;
-import org.structr.core.entity.Principal;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.StructrUiTest;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 
 public class ConsoleTest extends StructrUiTest {
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(ConsoleTest.class.getName());
 
@@ -286,5 +274,7 @@ public class ConsoleTest extends StructrUiTest {
 			logger.warn("", fex);
 		}
 	}
+
+	*/
 
 }

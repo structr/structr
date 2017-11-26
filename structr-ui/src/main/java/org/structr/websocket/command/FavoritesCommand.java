@@ -28,8 +28,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -72,28 +70,20 @@ public class FavoritesCommand extends AbstractCommand {
 				final Favoritable file = app.get(Favoritable.class, favoritableId);
 				if (file != null) {
 
+					final List<Favoritable> favorites = currentUser.getFavorites();
+
 					switch (mode) {
 
 						case "add": {
 
-							final List<Favoritable> favorites = currentUser.getProperty(User.favorites);
 							favorites.add((Favoritable)file);
-							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favorites, favorites));
-
-							getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
-
 							break;
 
 						}
 
 						case "remove": {
 
-							final List<Favoritable> favorites = currentUser.getProperty(User.favorites);
 							favorites.remove((Favoritable)file);
-							currentUser.setProperties(currentUser.getSecurityContext(), new PropertyMap(User.favorites, favorites));
-
-							getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
-
 							break;
 
 						}
@@ -101,8 +91,12 @@ public class FavoritesCommand extends AbstractCommand {
 						default:
 
 							getWebSocket().send(MessageBuilder.status().code(422).message("Favorites Command: Invalid mode '" + mode + "'. Valid modes: add, remove").build(), true);
+							return;
 
 					}
+
+					currentUser.setFavorites(favorites);
+					getWebSocket().send(MessageBuilder.finished().callback(callback).build(), true);
 
 				} else {
 

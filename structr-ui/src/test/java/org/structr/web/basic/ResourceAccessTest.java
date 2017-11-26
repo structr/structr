@@ -19,23 +19,7 @@
 package org.structr.web.basic;
 
 import org.structr.web.StructrUiTest;
-import com.jayway.restassured.RestAssured;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.ResourceAccess;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -44,6 +28,7 @@ import org.structr.web.entity.User;
  *
  */
 public class ResourceAccessTest extends StructrUiTest {
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(ResourceAccessTest.class.getName());
 
@@ -395,7 +380,6 @@ public class ResourceAccessTest extends StructrUiTest {
 	 *
 	 * @return the new resource access node
 	 * @throws FrameworkException
-	 */
 	public static ResourceAccess createResourceAccess(String signature, long flags) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();
@@ -435,4 +419,5 @@ public class ResourceAccessTest extends StructrUiTest {
 			logger.warn("", t);
 		}
 	}
+	*/
 }

@@ -18,15 +18,19 @@
  */
 package org.structr.web.entity.html;
 
-
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Ul extends DOMElement {
 
-/**
- *
- */
-public class Ul extends DOMElement {
+	static class Impl { static {
 
-//	public static final EndNodes<Li> lis = new EndNodes<Li>("lis", Li.class, RelType.CONTAINS, false);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Ul");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+	}}
 }

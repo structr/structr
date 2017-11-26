@@ -18,27 +18,21 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Strong extends DOMElement {
-//
-//	static {
-//
-//		StructrApp.getConfiguration().registerPropertySet(Strong.class, PropertyView.All, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Strong.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Strong.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
+public interface Strong extends DOMElement {
 
-	//~--- methods --------------------------------------------------------
+	static class Impl { static {
 
-	@Override
-	public boolean avoidWhitespace() {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Strong");
 
-		return true;
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	}
+		type.overrideMethod("avoidWhitespace", false, "return true;");
+	}}
 }

@@ -42,22 +42,18 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.web.entity.File;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command for un-archiving archive files.
- *
- *
  */
 public class UnarchiveCommand extends AbstractCommand {
 
@@ -66,10 +62,8 @@ public class UnarchiveCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(UnarchiveCommand.class);
-
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -92,11 +86,11 @@ public class UnarchiveCommand extends AbstractCommand {
 			final String id = (String) webSocketData.getId();
 			final String parentFolderId = (String) webSocketData.getNodeData().get("parentFolderId");
 
-			final FileBase file;
+			final File file;
 
 			try (final Tx tx = app.tx()) {
 
-				file = app.get(FileBase.class, id);
+				file = app.get(File.class, id);
 
 				if (file == null) {
 					getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
@@ -141,7 +135,7 @@ public class UnarchiveCommand extends AbstractCommand {
 		return false;
 	}
 
-	private void unarchive(final SecurityContext securityContext, final FileBase file, final String parentFolderId) throws ArchiveException, IOException, FrameworkException {
+	private void unarchive(final SecurityContext securityContext, final File file, final String parentFolderId) throws ArchiveException, IOException, FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		final InputStream is;
@@ -178,26 +172,26 @@ public class UnarchiveCommand extends AbstractCommand {
 		}
 
 		final BufferedInputStream bufferedIs = new BufferedInputStream(is);
-		
+
 		switch (ArchiveStreamFactory.detect(bufferedIs)) {
 
 			// 7z doesn't support streaming
 			case ArchiveStreamFactory.SEVEN_Z:
-				
+
 				SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
-				
+
 				SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
-				
+
 				int overallCount = 0;
-				
+
 				while (sevenZEntry != null) {
-					
+
 					try (final Tx tx = app.tx(true, true, false)) {
-						
+
 						int count = 0;
 
 						while (sevenZEntry != null && count++ < 50) {
-						
+
 							final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
 							logger.info("Entry path: {}", entryPath);
 
@@ -214,27 +208,27 @@ public class UnarchiveCommand extends AbstractCommand {
 
 								handleFile(securityContext, in, existingParentFolder, entryPath);
 							}
-							
+
 							sevenZEntry = sevenZFile.getNextEntry();
 
 							overallCount++;
 						}
-						
+
 						logger.info("Committing transaction after {} entries.", overallCount);
-						
+
 						tx.success();
-						
+
 					}
-					
+
 				}
 
 				logger.info("Unarchived {} files.", overallCount);
-				
+
 				break;
-			
+
 			// ZIP needs special treatment to support "unsupported feature data descriptor"
 			case ArchiveStreamFactory.ZIP:
-				
+
 				try (final ZipArchiveInputStream in = new ZipArchiveInputStream(bufferedIs, null, false, true)) {
 
 					ArchiveEntry entry = in.getNextEntry();
@@ -273,10 +267,10 @@ public class UnarchiveCommand extends AbstractCommand {
 				}
 
 				logger.info("Unarchived {} entries.", overallCount);
-				
+
 				break;
 			default:
-		
+
 				try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(bufferedIs)) {
 
 					ArchiveEntry entry = in.getNextEntry();
@@ -301,7 +295,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 									handleFile(securityContext, in, existingParentFolder, entryPath);
 								}
-								
+
 								entry = in.getNextEntry();
 
 								overallCount++;
@@ -321,21 +315,19 @@ public class UnarchiveCommand extends AbstractCommand {
 	}
 
 	private void handleDirectory(final SecurityContext securityContext, final Folder existingParentFolder, final String entryPath) throws FrameworkException {
-		
+
 		final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
 		final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
 		logger.info("Created folder {} with path {}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
-		
+
 	}
-	
+
 	private void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
-		
-		final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
 
-		final String name = PathHelper.getName(entryPath);
-
-		AbstractFile newFile = ImageHelper.isImageType(name)
+		final String filePath      = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
+		final String name          = PathHelper.getName(entryPath);
+		final AbstractFile newFile = ImageHelper.isImageType(name)
 					? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
 					: FileHelper.createFile(securityContext, in, null, File.class, name);
 
@@ -343,15 +335,19 @@ public class UnarchiveCommand extends AbstractCommand {
 		final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
 		if (parentFolder != null) {
-			final PropertyMap properties = new PropertyMap(AbstractFile.parent, parentFolder);
-			properties.put(AbstractFile.hasParent, true);
+
+			final PropertyMap properties = new PropertyMap();
+
+			properties.put(StructrApp.key(AbstractFile.class, "parent"), parentFolder);
+			properties.put(StructrApp.key(AbstractFile.class, "hasParent"), true);
+
 			newFile.setProperties(securityContext, properties);
 		}
 
 		logger.info("Created {} file {} with path {}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
-		
+
 	}
-	
+
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {

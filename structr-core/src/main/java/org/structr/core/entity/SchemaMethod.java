@@ -19,11 +19,15 @@
 package org.structr.core.entity;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Queue;
+import java.util.Set;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -38,7 +42,6 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.Schema;
 import org.structr.schema.action.ActionEntry;
 
 /**
@@ -70,7 +73,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		id, type, schemaNode, name, source, comment
 	);
 
-	public ActionEntry getActionEntry(final Schema schemaEntity) {
+	public ActionEntry getActionEntry(final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
 		final ActionEntry entry  = new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
 
@@ -103,75 +106,89 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	}
 
 	// ----- private methods -----
-	private void determineSignature(final Schema schemaEntity, final ActionEntry entry, final String methodName) {
+	private void addType(final Queue<String> typeQueue, final AbstractSchemaNode schemaNode) {
 
-		// try to find a method with a signature in one of the superclasses
-		final String superclass = schemaEntity.getSuperclassName();
-		final App app           = StructrApp.getInstance();
+		typeQueue.add(schemaNode.getProperty(SchemaNode.extendsClass));
 
-		if (superclass != null && !AbstractNode.class.getSimpleName().equals(superclass)) {
+		final String _interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
+		if (_interfaces != null) {
 
-			try {
+			for (final String iface : _interfaces.split("[, ]+")) {
 
-				// try to find superclass in schema nodes
-				final SchemaNode _schemaNode = app.nodeQuery(SchemaNode.class).andName(superclass).getFirst();
-				if (_schemaNode != null) {
+				typeQueue.add(iface);
+			}
+		}
+	}
 
+	private void determineSignature(final AbstractSchemaNode schemaEntity, final ActionEntry entry, final String methodName) throws FrameworkException {
+
+		final App app                  = StructrApp.getInstance();
+		final Set<String> visitedTypes = new LinkedHashSet<>();
+		final Queue<String> typeQueue  = new LinkedList<>();
+		final String structrPackage    = "org.structr.dynamic.";
+
+		// initial type
+		addType(typeQueue, schemaEntity);
+
+		while (!typeQueue.isEmpty()) {
+
+			final String typeName = typeQueue.poll();
+			String shortTypeName  = typeName;
+
+			if (typeName != null && !visitedTypes.contains(typeName)) {
+
+				visitedTypes.add(typeName);
+
+				if (typeName.startsWith(structrPackage)) {
+					shortTypeName = typeName.substring(structrPackage.length());
+				}
+
+				// try to find schema node for the given type
+				final SchemaNode typeNode = app.nodeQuery(SchemaNode.class).andName(shortTypeName).getFirst();
+				if (typeNode != null) {
+
+					// try to identify overridden schema method from database
 					final SchemaMethod superMethod = app.nodeQuery(SchemaMethod.class)
-						.and(SchemaMethod.schemaNode, _schemaNode)
+						.and(SchemaMethod.schemaNode, typeNode)
 						.and(SchemaMethod.name, methodName)
 						.getFirst();
 
 					if (superMethod != null) {
 
-						final ActionEntry superEntry = superMethod.getActionEntry(_schemaNode);
+						final ActionEntry superEntry = superMethod.getActionEntry(typeNode);
 
 						entry.copy(superEntry);
 
-					}
-				}
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-			}
-
-		} else {
-
-			// superclass is AbstractNode
-			for (final Method method : AbstractNode.class.getMethods()) {
-
-				if (methodName.equals(method.getName())) {
-
-					final Type returnType = method.getGenericReturnType();
-
-					// check for generic return type, and if the method defines its own generic type
-					if (returnType instanceof TypeVariable && ((TypeVariable)returnType).getGenericDeclaration().equals(method)) {
-
-						// method defines its own generic type
-						entry.setReturnType("<" + returnType.getTypeName() + "> " + returnType.getTypeName());
-
-					} else {
-
-						// non-generic return type
-						entry.setReturnType(returnType.getTypeName());
+						// done
+						return;
 					}
 
-					for (final Parameter parameter : method.getParameters()) {
+					// next type in queue
+					addType(typeQueue, typeNode);
 
-						final String type = parameter.getParameterizedType().getTypeName();
-						final String name = parameter.getType().getSimpleName();
+				} else {
 
-						// convention: parameter name is lowercase type name
-						entry.addParameter(type, StringUtils.uncapitalize(name));
+					// no schema node for the given type found, try internal types
+					final Class internalType = getClass(typeName);
+					if (internalType != null) {
+
+						if (getSignature(internalType, methodName, entry)) {
+
+							return;
+						}
+
+						final Class superclass = internalType.getSuperclass();
+						if (superclass != null) {
+
+							// examine superclass as well
+							typeQueue.add(superclass.getName());
+
+							// collect interfaces
+							for (final Class iface : internalType.getInterfaces()) {
+								typeQueue.add(iface.getName());
+							}
+						}
 					}
-
-					for (final Class exception : method.getExceptionTypes()) {
-						entry.addException(exception.getName());
-					}
-
-					entry.setOverrides(getProperty(overridesExisting));
-					entry.setCallSuper(getProperty(callSuper));
-					break;
 				}
 			}
 		}
@@ -207,5 +224,74 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	@Override
 	public void setFavoriteContent(String content) throws FrameworkException {
 		setProperty(SchemaMethod.source, content);
+	}
+
+	private boolean getSignature(final Class type, final String methodName, final ActionEntry entry) {
+
+		// superclass is AbstractNode
+		for (final Method method : type.getMethods()) {
+
+			if (methodName.equals(method.getName()) && (method.getModifiers() & Modifier.STATIC) == 0) {
+
+				final Type returnType = method.getGenericReturnType();
+
+				// check for generic return type, and if the method defines its own generic type
+				if (returnType instanceof TypeVariable && ((TypeVariable)returnType).getGenericDeclaration().equals(method)) {
+
+					// method defines its own generic type
+					entry.setReturnType("<" + returnType.getTypeName() + "> " + returnType.getTypeName());
+
+				} else {
+
+					// non-generic return type
+					final Class returnClass = method.getReturnType();
+					if (returnClass.isArray()) {
+					
+						entry.setReturnType(returnClass.getComponentType().getName() + "[]");
+
+					} else {
+
+						entry.setReturnType(method.getReturnType().getName());
+					}
+				}
+
+				for (final Parameter parameter : method.getParameters()) {
+
+					String typeName = parameter.getParameterizedType().getTypeName();
+					String name     = parameter.getType().getSimpleName();
+
+					if (typeName.contains("$")) {
+						typeName = typeName.replace("$", ".");
+					}
+
+					entry.addParameter(typeName, parameter.getName());
+				}
+
+				for (final Class exception : method.getExceptionTypes()) {
+					entry.addException(exception.getName());
+				}
+
+				entry.setOverrides(getProperty(overridesExisting));
+				entry.setCallSuper(getProperty(callSuper));
+
+				// success
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private Class getClass(final String name) {
+
+		try {
+
+			return Class.forName(name);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return null;
 	}
 }

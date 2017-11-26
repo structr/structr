@@ -18,27 +18,27 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Object extends DOMElement {
+public interface Object extends DOMElement {
 
-	//public static final Property<String> _data		= new HtmlProperty("data");
-	public static final Property<String> _type		= new HtmlProperty("type");
-	public static final Property<String> _typemustmatch	= new HtmlProperty("typemustmatch");
-	public static final Property<String> _usemap		= new HtmlProperty("usemap");
-	public static final Property<String> _form		= new HtmlProperty("form");
-	public static final Property<String> _width		= new HtmlProperty("width");
-	public static final Property<String> _height		= new HtmlProperty("height");
+	static class Impl { static {
 
-	public static final org.structr.common.View htmlView	= new org.structr.common.View(Object.class, PropertyView.Html,
-		_data, _type, _typemustmatch, _usemap, _form, _width, _height
-	);
-	
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Object");
 
+		type.addStringProperty("_html_type",          PropertyView.Html);
+		type.addStringProperty("_html_typemustmatch", PropertyView.Html);
+		type.addStringProperty("_html_usemap",        PropertyView.Html);
+		type.addStringProperty("_html_form",          PropertyView.Html);
+		type.addStringProperty("_html_width",         PropertyView.Html);
+		type.addStringProperty("_html_height",        PropertyView.Html);
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+	}}
 }

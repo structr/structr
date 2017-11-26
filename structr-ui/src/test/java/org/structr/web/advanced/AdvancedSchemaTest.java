@@ -18,40 +18,12 @@
  */
 package org.structr.web.advanced;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedList;
-import java.util.List;
-import static junit.framework.TestCase.fail;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import org.junit.Assert;
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
-import org.structr.core.function.TypeInfoFunction;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
-import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.basic.FrontendTest;
-import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
 
 
 
 public class AdvancedSchemaTest extends FrontendTest {
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSchemaTest.class.getName());
 
@@ -997,4 +969,5 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 	}
+	*/
 }

@@ -45,8 +45,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A resource to reset a user's password
  *

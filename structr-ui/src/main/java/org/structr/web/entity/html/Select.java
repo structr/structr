@@ -18,27 +18,29 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Select extends DOMElement {
+public interface Select extends DOMElement {
 
-	public static final Property<String> _name       = new HtmlProperty("name");
-	public static final Property<String> _disabled   = new HtmlProperty("disabled");
-	public static final Property<String> _accept     = new HtmlProperty("accept");
-	public static final Property<String> _form       = new HtmlProperty("form");
-	public static final Property<String> _size       = new HtmlProperty("size");
-	public static final Property<String> _multiple   = new HtmlProperty("multiple");
-	public static final Property<String> _autofocus  = new HtmlProperty("autofocus");
-	public static final Property<String> _required   = new HtmlProperty("required");
+	static class Impl { static {
 
-	public static final View htmlView = new View(Select.class, PropertyView.Html,
-		_name, _disabled, _accept, _form, _size, _multiple, _autofocus, _required
-	);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Select");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_name",      PropertyView.Html);
+		type.addStringProperty("_html_disabled",  PropertyView.Html);
+		type.addStringProperty("_html_accept",    PropertyView.Html);
+		type.addStringProperty("_html_form",      PropertyView.Html);
+		type.addStringProperty("_html_size",      PropertyView.Html);
+		type.addStringProperty("_html_multiple",  PropertyView.Html);
+		type.addStringProperty("_html_autofocus", PropertyView.Html);
+		type.addStringProperty("_html_required",  PropertyView.Html);
+	}}
 }

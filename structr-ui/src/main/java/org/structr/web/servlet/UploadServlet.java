@@ -18,7 +18,6 @@
  */
 package org.structr.web.servlet;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -59,14 +58,12 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Image;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Simple upload servlet.
- *
- *
  */
 public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
@@ -79,9 +76,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	private static final int MEMORY_THRESHOLD                      = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
 	// non-static fields
-	private ServletFileUpload uploader = null;
-	private File filesDir = null;
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	private ServletFileUpload uploader            = null;
+	private java.io.File filesDir                 = null;
 
 	public UploadServlet() {
 	}
@@ -103,8 +100,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 		DiskFileItemFactory fileFactory = new DiskFileItemFactory();
 		fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
 
-		filesDir = new File(Settings.TmpPath.getValue());
+		filesDir = new java.io.File(Settings.TmpPath.getValue());
 		if (!filesDir.exists()) {
+
 			filesDir.mkdir();
 		}
 
@@ -254,7 +252,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							if (isImage) {
 
-								cls = org.structr.dynamic.Image.class;
+								cls = Image.class;
 
 							} else if (isVideo) {
 
@@ -266,7 +264,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							} else {
 
-								cls = org.structr.dynamic.File.class;
+								cls = File.class;
 							}
 						}
 
@@ -275,7 +273,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						}
 
 						final String name = item.getName().replaceAll("\\\\", "/");
-						FileBase newFile  = null;
+						File newFile  = null;
 						String uuid       = null;
 						boolean retry     = true;
 
@@ -312,8 +310,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 								// can only happen if the configuration value is invalid or maps to the root folder
 								if (uploadFolder != null) {
 
-									changedProperties.put(FileBase.hasParent, true);
-									changedProperties.put(FileBase.parent, uploadFolder);
+									changedProperties.put(StructrApp.key(File.class, "hasParent"), true);
+									changedProperties.put(StructrApp.key(File.class, "parent"),    uploadFolder);
 								}
 
 								newFile.setProperties(securityContext, changedProperties);
@@ -443,9 +441,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					if (node instanceof org.structr.web.entity.AbstractFile) {
+					if (node instanceof org.structr.web.entity.File) {
 
-						final org.structr.dynamic.File file = (org.structr.dynamic.File) node;
+						final File file = (File) node;
 						if (file.isGranted(Permission.write, securityContext)) {
 
 							FileHelper.writeToFile(file, fileItem.getInputStream());

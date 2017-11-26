@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 
 /**
  *
@@ -85,7 +85,7 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 		if (node == null) {
 			return;
 		}
-		
+
 		Integer pos  = childIndexMap.get(depth);
 		if (pos == null) {
 
@@ -100,7 +100,7 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 		indexMappedNodes.put(hash, node);
 
 		// store node with its data hash
-		String dataHash = node.getProperty(DOMNode.dataHashProperty);
+		String dataHash = node.getDataHash();
 		if (dataHash == null) {
 			dataHash = node.getIdHash();
 		}
@@ -109,9 +109,9 @@ public abstract class InvertibleModificationOperation implements Comparable<Inve
 		depthMap.put(node, depth);
 
 		// recurse
-		for (final DOMChildren childRel : node.getChildRelationships()) {
+		for (final RelationshipInterface childRel : node.getChildRelationships()) {
 
-			collectNodes(childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depthMap, depth+1, childIndexMap);
+			collectNodes((DOMNode)childRel.getTargetNode(), indexMappedNodes, hashMappedNodes, depthMap, depth+1, childIndexMap);
 		}
 
 	}

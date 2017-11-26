@@ -22,9 +22,9 @@ import java.util.LinkedList;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.relation.RenderNode;
 
 /**
@@ -34,7 +34,7 @@ import org.structr.web.entity.relation.RenderNode;
 public class NodeGraphDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	@Override
-	public Iterable<GraphObject> getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, final DOMNode referenceNode) throws FrameworkException {
 
 		List<GraphObject> data = new LinkedList<>();
 

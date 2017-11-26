@@ -19,43 +19,48 @@
 package org.structr.web.entity;
 
 
+import java.net.URI;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UniqueToken;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.LinkedTreeNode;
-import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionIdProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.web.common.FileHelper;
-import org.structr.web.entity.relation.FileChildren;
-import org.structr.web.entity.relation.FileSiblings;
-import org.structr.web.entity.relation.FolderChildren;
-import org.structr.web.property.PathProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
- * Base class for filesystem objects in structr.
- *
- *
+ * Base class for filesystem objects in Structr.
  */
-public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, AbstractFile> {
+public interface AbstractFile extends NodeInterface {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractFile.class.getName());
+	static class Impl { static {
 
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("AbstractFile");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
+		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNode"));
+
+		type.addBooleanProperty("includeInFrontendExport").setIndexed(true);
+		type.addBooleanProperty("hasParent").setIndexed(true);
+
+	}}
+
+	boolean isTemplate();
+
+	String getPath();
+
+	Folder getParent();
+	void setParent(final Folder folder) throws FrameworkException;
+
+	List<AbstractFile> getChildren();
+
+	// ----- test -----
+	AbstractFile treeGetParent();
+	void treeRemoveChild(final AbstractFile file) throws FrameworkException;
+	void treeAppendChild(final AbstractFile file) throws FrameworkException;
+
+
+	/*
 	public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);
 	public static final Property<List<AbstractFile>> children      = new EndNodes<>("children", FileChildren.class);
 	public static final Property<AbstractFile> previousSibling     = new StartNode<>("previousSibling", FileSiblings.class);
@@ -64,8 +69,8 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final Property<String> nextSiblingId             = new EntityIdProperty("nextSiblingId", nextSibling);
 	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
 	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
-	public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
-	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
+	//public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
+	//public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
 	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
@@ -182,4 +187,5 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 
 		return false;
 	}
+	*/
 }

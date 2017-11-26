@@ -29,7 +29,6 @@ import org.structr.core.graph.Tx;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to delete multiple nodes in one transaction.
  */
@@ -40,10 +39,8 @@ public class DeleteNodesCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(DeleteNodesCommand.class);
-
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -57,14 +54,14 @@ public class DeleteNodesCommand extends AbstractCommand {
 			final App app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
-				
+
 				for (final String id : nodeIds) {
 
 					DeleteNodeCommand.deleteNode(getWebSocket(), app.getNodeById(id), recursive);
 				}
-				
+
 				tx.success();
-			
+
 			} catch (FrameworkException ex) {
 				logger.warn("", ex);
 			}

@@ -18,34 +18,33 @@
  */
 package org.structr.web.entity;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
-import org.structr.core.graph.ModificationEvent;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
-import org.structr.web.entity.relation.MinificationSource;
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  * Base class for minifiable files in structr
  *
  */
-public abstract class AbstractMinifiedFile extends File {
+public interface AbstractMinifiedFile extends File {
+
+	static class Impl { static {
+
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("AbstractMinifiedFile");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractMinifiedFile"));
+		type.setExtends(URI.create("#/definitions/File"));
+	}}
+
+	int getMaxPosition();
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMinifiedFile.class.getName());
 
-	public static final Property<List<FileBase>> minificationSources = new EndNodes<>("minificationSources", MinificationSource.class);
+	public static final Property<List<File>> minificationSources = new EndNodes<>("minificationSources", MinificationSource.class);
 
 	@Override
 	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -97,7 +96,7 @@ public abstract class AbstractMinifiedFile extends File {
 
 		for (MinificationSource rel : getSortedRelationships()) {
 
-			final FileBase src = rel.getTargetNode();
+			final File src = rel.getTargetNode();
 
 			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk()));
 
@@ -128,7 +127,6 @@ public abstract class AbstractMinifiedFile extends File {
 	 * @param from The position from where the minification source is moved
 	 * @param to The position where to move the minification source
 	 * @throws FrameworkException
-	 */
 	@Export
 	public void moveMinificationSource(final int from, final int to) throws FrameworkException {
 
@@ -161,4 +159,5 @@ public abstract class AbstractMinifiedFile extends File {
 
 	}
 
+	*/
 }

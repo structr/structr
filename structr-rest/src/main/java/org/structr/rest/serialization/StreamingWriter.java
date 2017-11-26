@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -69,7 +69,7 @@ public abstract class StreamingWriter {
 	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root            = new RootSerializer();
 	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
-	private final Set<Integer> visitedObjects             = new ConcurrentHashSet<>();
+	private final Set<Integer> visitedObjects             = ConcurrentHashMap.newKeySet();
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                          = "result";
 	private boolean renderSerializationTime               = true;

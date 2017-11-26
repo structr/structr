@@ -18,48 +18,36 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Textarea extends DOMElement {
 
-/**
- *
- */
-public class Textarea extends DOMElement {
+	static class Impl { static {
 
-	public static final Property<String> _name        = new HtmlProperty("name");
-	public static final Property<String> _disabled    = new HtmlProperty("disabled");
-	public static final Property<String> _form        = new HtmlProperty("form");
-	public static final Property<String> _readonly    = new HtmlProperty("readonly");
-	public static final Property<String> _maxlenght   = new HtmlProperty("maxlenght");
-	public static final Property<String> _autofocus   = new HtmlProperty("autofocus");
-	public static final Property<String> _required    = new HtmlProperty("required");
-	public static final Property<String> _placeholder = new HtmlProperty("placeholder");
-	public static final Property<String> _dirname     = new HtmlProperty("dirname");
-	public static final Property<String> _rows        = new HtmlProperty("rows");
-	public static final Property<String> _wrap        = new HtmlProperty("wrap");
-	public static final Property<String> _cols        = new HtmlProperty("cols");
-	
-	public static final View htmlView = new View(Textarea.class, PropertyView.Html,
-	    _name, _disabled, _form, _readonly, _maxlenght, _autofocus, _required, _placeholder, _dirname, _rows, _wrap, _cols
-	);
-	
-	@Override
-	public boolean avoidWhitespace() {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Textarea");
 
-		return true;
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	}
+		type.addStringProperty("_html_name",        PropertyView.Html);
+		type.addStringProperty("_html_disabled",    PropertyView.Html);
+		type.addStringProperty("_html_form",        PropertyView.Html);
+		type.addStringProperty("_html_readonly",    PropertyView.Html);
+		type.addStringProperty("_html_maxlenght",   PropertyView.Html);
+		type.addStringProperty("_html_autofocus",   PropertyView.Html);
+		type.addStringProperty("_html_required",    PropertyView.Html);
+		type.addStringProperty("_html_placeholder", PropertyView.Html);
+		type.addStringProperty("_html_dirname",     PropertyView.Html);
+		type.addStringProperty("_html_rows",        PropertyView.Html);
+		type.addStringProperty("_html_wrap",        PropertyView.Html);
+		type.addStringProperty("_html_cols",        PropertyView.Html);
 
-	@Override
-	public Property[] getHtmlAttributes() {
-
-		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
-
-	}
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+		type.overrideMethod("avoidWhitespace",   false, "return true;");
+	}}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.web.property.ThumbnailProperty;
 
@@ -28,7 +29,7 @@ import org.structr.web.property.ThumbnailProperty;
  *
  *
  */
-public class TestImage extends Image {
+public abstract class TestImage extends AbstractNode implements Image {
 
 	public static final Property<Image> thumbnail = new ThumbnailProperty("thumbnail").format("200, 100, false");
 }

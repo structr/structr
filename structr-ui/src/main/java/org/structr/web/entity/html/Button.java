@@ -18,17 +18,35 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Button extends DOMElement {
-	
+public interface Button extends DOMElement {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Button");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_autofocus",      PropertyView.Html);
+		type.addStringProperty("_html_disabled",       PropertyView.Html);
+		type.addStringProperty("_html_form",           PropertyView.Html);
+		type.addStringProperty("_html_formaction",     PropertyView.Html);
+		type.addStringProperty("_html_formenctype",    PropertyView.Html);
+		type.addStringProperty("_html_formmethod",     PropertyView.Html);
+		type.addStringProperty("_html_formnovalidate", PropertyView.Html);
+		type.addStringProperty("_html_formtarget",     PropertyView.Html);
+		type.addStringProperty("_html_type",           PropertyView.Html);
+		type.addStringProperty("_html_value",          PropertyView.Html);
+	}}
+
+	/*
 	public static final Property<String> _autofocus      = new HtmlProperty("autofocus");
 	public static final Property<String> _disabled       = new HtmlProperty("disabled");
 	public static final Property<String> _form           = new HtmlProperty("form");
@@ -41,9 +59,9 @@ public class Button extends DOMElement {
 	public static final Property<String> _value          = new HtmlProperty("value");
 
 	public static final View htmlView = new View(Button.class, PropertyView.Html,
-	    
+
 		_autofocus, _disabled, _form, _formaction, _formenctype, _formmethod,
 		_formnovalidate, _formtarget, _type, _value
 	 );
-	
+	*/
 }

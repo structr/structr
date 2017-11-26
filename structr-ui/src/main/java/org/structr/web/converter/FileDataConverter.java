@@ -36,7 +36,7 @@ import org.structr.core.graph.CreationContainer;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.FileHelper.Base64URIData;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -66,7 +66,7 @@ public class FileDataConverter extends PropertyConverter {
 			return false;
 		}
 
-		final FileBase currentFile = (FileBase)getCurrentObject();
+		final File currentFile = (File)getCurrentObject();
 
 		if (source instanceof byte[]) {
 
@@ -113,9 +113,9 @@ public class FileDataConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		if (currentObject instanceof FileBase) {
+		if (currentObject instanceof File) {
 
-			final FileBase currentFile = (FileBase)currentObject;
+			final File currentFile = (File)currentObject;
 			return ImageHelper.getBase64String(currentFile);
 
 		} else {
@@ -124,13 +124,13 @@ public class FileDataConverter extends PropertyConverter {
 	}
 
 	// ----- private methods -----
-	private FileBase getCurrentObject() {
+	private File getCurrentObject() {
 
 		if (currentObject instanceof CreationContainer) {
 
-			return (FileBase)((CreationContainer)currentObject).getWrappedObject();
+			return (File)((CreationContainer)currentObject).getWrappedObject();
 		}
 
-		return (FileBase)currentObject;
+		return (File)currentObject;
 	}
 }

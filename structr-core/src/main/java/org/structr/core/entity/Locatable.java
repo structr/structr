@@ -23,9 +23,6 @@ import org.structr.common.error.ErrorBuffer;
 /**
  * An interface that locatable classes can implement to be notified
  * when properties of the Location entity change.
- *
- *
- *
  */
 public interface Locatable {
 

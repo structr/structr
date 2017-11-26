@@ -215,7 +215,7 @@ public class ActionContext {
 			// special HttpServletRequest handling
 			if (data instanceof HttpServletRequest) {
 				value = ((HttpServletRequest)data).getParameterValues(key);
-				
+
 				if (value != null && ((String[]) value).length == 1) {
 					value = ((String[]) value)[0];
 				}
@@ -390,7 +390,10 @@ public class ActionContext {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class).and(JavaScriptSource.name, fileName).and(JavaScriptSource.useAsJavascriptLibrary, true).getAsList();
+			final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
+				.and(JavaScriptSource.name, fileName)
+				.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+				.getAsList();
 
 			if (jsFiles.isEmpty()) {
 				logger.warn("No JavaScript library found with fileName: {}", fileName );

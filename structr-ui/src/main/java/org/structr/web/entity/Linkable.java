@@ -18,18 +18,11 @@
  */
 package org.structr.web.entity;
 
-import java.util.List;
-import org.structr.common.PropertyView;
-import org.structr.core.GraphObject;
+import java.net.URI;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
-import org.structr.web.entity.html.relation.ResourceLink;
-
-//~--- interfaces -------------------------------------------------------------
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -37,11 +30,28 @@ import org.structr.web.entity.html.relation.ResourceLink;
  */
 public interface Linkable extends NodeInterface {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Linkable");
+
+		type.setAbstract();
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Linkable"));
+
+		type.addBooleanProperty("enableBasicAuth").setDefaultValue("false").setIndexed(true);
+		type.addStringProperty("basicAuthRealm");
+	}}
+
+	boolean getEnableBasicAuth();
+	String getBasicAuthRealm();
+
+	public String getPath();
+
+	/*
 	public static final Property<List<LinkSource>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(GraphObject.id));
 	public static final Property<Boolean> enableBasicAuth          = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
 	public static final Property<String> basicAuthRealm            = new StringProperty("basicAuthRealm");
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements, enableBasicAuth, basicAuthRealm);
-
-	public String getPath();
+	*/
 }

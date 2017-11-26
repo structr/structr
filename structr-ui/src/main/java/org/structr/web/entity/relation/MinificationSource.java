@@ -27,9 +27,9 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.AbstractMinifiedFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
-public class MinificationSource extends ManyToMany<AbstractMinifiedFile, FileBase> {
+public class MinificationSource extends ManyToMany<AbstractMinifiedFile, File> {
 
 	public static final Property<Integer> position = new IntProperty("position").defaultValue(0).indexed();
 
@@ -41,8 +41,8 @@ public class MinificationSource extends ManyToMany<AbstractMinifiedFile, FileBas
 	}
 
 	@Override
-	public Class<FileBase> getTargetType() {
-		return FileBase.class;
+	public Class<File> getTargetType() {
+		return File.class;
 	}
 
 	@Override

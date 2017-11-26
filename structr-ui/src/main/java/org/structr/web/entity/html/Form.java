@@ -18,20 +18,35 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Form extends DOMElement {
 
-/**
- *
- */
-public class Form extends DOMElement {
+	static class Impl { static {
 
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Form");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_acceptCharset", PropertyView.Html);
+		type.addStringProperty("_html_action",        PropertyView.Html);
+		type.addStringProperty("_html_autocomplete",  PropertyView.Html);
+		type.addStringProperty("_html_enctype",       PropertyView.Html);
+		type.addStringProperty("_html_method",        PropertyView.Html);
+		type.addStringProperty("_html_name",          PropertyView.Html);
+		type.addStringProperty("_html_novalidate",    PropertyView.Html);
+		type.addStringProperty("_html_target",        PropertyView.Html);
+
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+	}}
+
+	/*
 	public static final Property<String> _acceptCharset = new HtmlProperty("accept-charset");
 	public static final Property<String> _action        = new HtmlProperty("action");
 	public static final Property<String> _autocomplete  = new HtmlProperty("autocomplete");
@@ -40,7 +55,7 @@ public class Form extends DOMElement {
 	public static final Property<String> _name          = new HtmlProperty("name");
 	public static final Property<String> _novalidate    = new HtmlProperty("novalidate");
 	public static final Property<String> _target        = new HtmlProperty("target");
-	
+
 //	public static final EndNodes<Div>      divParents = new EndNodes<Div>("divParents", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
 //	public static final EndNodes<P>        pParents   = new EndNodes<P>("pParents", P.class, RelType.CONTAINS, Direction.INCOMING, false);
 //	public static final EndNodes<Content>  contents   = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
@@ -61,4 +76,5 @@ public class Form extends DOMElement {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
+	*/
 }

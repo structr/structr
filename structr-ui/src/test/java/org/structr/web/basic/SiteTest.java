@@ -19,20 +19,11 @@
 package org.structr.web.basic;
 
 import org.structr.web.StructrUiTest;
-import com.jayway.restassured.RestAssured;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
-import org.structr.web.entity.Site;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
 
 /**
  */
 public class SiteTest extends StructrUiTest {
+	/*+
 
 	@Test
 	public void test01BasicSites() {
@@ -154,4 +145,5 @@ public class SiteTest extends StructrUiTest {
 			makePublicRecursively(child);
 		}
 	}
+	*/
 }

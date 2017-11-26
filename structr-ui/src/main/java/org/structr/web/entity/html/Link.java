@@ -18,42 +18,51 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.Linkable;
-import org.structr.web.entity.html.relation.ResourceLink;
+import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Link extends LinkSource {
 
-/**
- *
- */
-public class Link extends LinkSource {
+	static class Impl { static {
 
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Link");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_href",     PropertyView.Html);
+		type.addStringProperty("_html_rel",      PropertyView.Html);
+		type.addStringProperty("_html_media",    PropertyView.Html);
+		type.addStringProperty("_html_hreflang", PropertyView.Html);
+		type.addStringProperty("_html_type",     PropertyView.Html);
+		type.addStringProperty("_html_sizes",    PropertyView.Html);
+
+		type.overrideMethod("isVoidElement",     false, "return true;");
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+	}}
+
+	/*
 	public static final Property<String> _href     = new HtmlProperty("href");
 	public static final Property<String> _rel      = new HtmlProperty("rel");
 	public static final Property<String> _media    = new HtmlProperty("media");
 	public static final Property<String> _hreflang = new HtmlProperty("hreflang");
 	public static final Property<String> _type     = new HtmlProperty("type");
 	public static final Property<String> _sizes    = new HtmlProperty("sizes");
-	
+
 //	public static final EndNodes<Head> heads      = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
-	
+
 	public static final Property<Linkable> linkable   = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
 	public static final Property<String>   linkableId = new EntityIdProperty("linkableId", linkable);
 
 	public static final View uiView = new View(Link.class, PropertyView.Ui,
 		linkableId, linkable
 	);
-	
+
 	public static final View htmlView = new View(Link.class, PropertyView.Html,
 		_href, _rel, _media, _hreflang, _type, _sizes
 	);
@@ -71,41 +80,5 @@ public class Link extends LinkSource {
 		return true;
 
 	}
-	
-//	@Override
-//	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-//		
-//		Linkable target = getProperty(linkable);
-//		
-//		if (target instanceof FileBase) {
-//			
-//			File file = (File) target;
-//			
-//			String contentType = file.getProperty(File.contentType);
-//			
-//			if (contentType != null) {
-//				
-//				setProperty(_type, contentType);
-//				
-//				if ("text/css".equals(contentType)) {
-//				
-//					setProperty(_rel, "stylesheet");
-//					setProperty(_media, "screen");
-//					
-//				}
-//				
-//			}
-//			
-//			if (getProperty(_href) == null) {
-//				
-//				setProperty(_href, "${link.path}");
-//				
-//			}
-//			
-//		}
-//		
-//		return true;
-//		
-//	}
-	
+	*/
 }

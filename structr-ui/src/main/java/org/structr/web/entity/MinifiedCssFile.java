@@ -18,27 +18,36 @@
  */
 package org.structr.web.entity;
 
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.ModificationEvent;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.web.common.FileHelper;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
-public class MinifiedCssFile extends AbstractMinifiedFile {
+public interface MinifiedCssFile extends AbstractMinifiedFile {
+
+	static class Impl { static {
+
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("MinifiedCssFile");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MinifiedCssFile"));
+		type.setExtends(URI.create("#/definitions/AbstractMinifiedFile"));
+
+		type.addIntegerProperty("lineBreak", PropertyView.Public).setDefaultValue("-1");
+	}}
+
+	Integer getLineBreak();
+
+
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(MinifiedCssFile.class.getName());
 
@@ -73,6 +82,7 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 		}
 	}
 
+	*/
 
 
 
@@ -93,7 +103,7 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 	 * The copyrights embodied in the content of this file are licensed
 	 * by Yahoo! Inc. under the BSD (revised) open source license.
 	 */
-	private class CssCompressor {
+	class CssCompressor {
 
 		private StringBuffer srcsb = new StringBuffer();
 
@@ -541,5 +551,4 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 			out.write(css);
 		}
 	}
-
 }

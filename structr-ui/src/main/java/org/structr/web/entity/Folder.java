@@ -18,201 +18,81 @@
  */
 package org.structr.web.entity;
 
+import java.net.URI;
 import java.util.List;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
-import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.cmis.info.CMISFolderInfo;
-import org.structr.cmis.info.CMISItemInfo;
-import org.structr.cmis.info.CMISPolicyInfo;
-import org.structr.cmis.info.CMISRelationshipInfo;
-import org.structr.cmis.info.CMISSecondaryInfo;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StartNode;
-import org.structr.files.cmis.config.StructrFolderActions;
+import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.relation.Files;
-import org.structr.web.entity.relation.Folders;
-import org.structr.web.entity.relation.Images;
-import org.structr.web.entity.relation.UserHomeDir;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 
-public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
+public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
-	public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
-	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
-	public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>        isFolder                = new ConstantBooleanProperty("isFolder", true);
-	public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
+	static class Impl { static {
 
-	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("Folder");
 
-	public static final View publicView = new View(Folder.class, PropertyView.Public,
-			id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers
-	);
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Folder"));
+		type.setExtends(URI.create("#/definitions/AbstractFile"));
 
-	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-			parent, owner, folders, files, images, isFolder, includeInFrontendExport
-	);
+		type.addBooleanProperty("isFolder").addTransformer(ConstantBooleanTrue.class.getName());
+		type.addIntegerProperty("position", PropertyView.Public).setIndexed(true);
 
-	// register this type as an overridden builtin type
-	static {
-		SchemaService.registerBuiltinTypeOverride("Folder", Folder.class.getName());
-	}
+		type.overrideMethod("onCreation",     true, "org.structr.web.entity.Folder.setHasParent(this);");
+		type.overrideMethod("onModification", true, "org.structr.web.entity.Folder.setHasParent(this);");
 
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		// ----- CMIS support -----
+		type.overrideMethod("getCMISInfo",         false, "return this;");
+		type.overrideMethod("getBaseTypeId",       false, "return BaseTypeId.CMIS_FOLDER;");
+		type.overrideMethod("getFolderInfo",       false, "return this;");
+		type.overrideMethod("getDocumentInfo",     false, "return null;");
+		type.overrideMethod("getItemInfo",         false, "return null;");
+		type.overrideMethod("getRelationshipInfo", false, "return null;");
+		type.overrideMethod("getPolicyInfo",       false, "return null;");
+		type.overrideMethod("getSecondaryInfo",    false, "return null;");
+		type.overrideMethod("getParentId",         false, "return getProperty(parentIdProperty);");
+		type.overrideMethod("getPath",             false, "return getProperty(pathProperty);");
+		type.overrideMethod("getAllowableActions", false, "return StructrFolderActions.getInstance();");
+		type.overrideMethod("getChangeToken",      false, "return null;");
 
-		if (super.onCreation(securityContext, errorBuffer)) {
+	}}
 
-			setHasParent();
+	List<Folder> getFolders();
+	List<File> getFiles();
 
-			return true;
-		}
+	static void setHasParent(final Folder folder) throws FrameworkException {
 
-		return false;
-	}
-
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			setHasParent();
-
-			return true;
-		}
-
-		return false;
-	}
-
-	// ----- interface Syncable -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> data = super.getSyncData();
-
-		// add full folder structure when resource sync is requested
-		//if (state.hasFlag(SyncState.Flag.Images)) {
-
-			data.addAll(getProperty(images));
-			data.addAll(Iterables.toList(getOutgoingRelationships(Images.class)));
-		//}
-
-		// add full folder structure when resource sync is requested
-		//if (state.hasFlag(SyncState.Flag.Files)) {
-
-			data.addAll(getProperty(files));
-			data.addAll(Iterables.toList(getOutgoingRelationships(Files.class)));
-		//}
-
-		// add full folder structure when resource sync is requested
-		//if (state.hasFlag(SyncState.Flag.Folders)) {
-
-			data.addAll(getProperty(folders));
-			data.addAll(Iterables.toList(getOutgoingRelationships(Folders.class)));
-		//}
-
-		// parent only
-		//data.add(getProperty(parent));
-		//data.add(getIncomingRelationship(Folders.class));
-
-		return data;
-	}
-
-	// ----- CMIS support -----
-	@Override
-	public CMISInfo getCMISInfo() {
-		return this;
-	}
-
-	@Override
-	public BaseTypeId getBaseTypeId() {
-		return BaseTypeId.CMIS_FOLDER;
-	}
-
-	@Override
-	public CMISFolderInfo getFolderInfo() {
-		return this;
-	}
-
-	@Override
-	public CMISDocumentInfo getDocumentInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISItemInfo geItemInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISRelationshipInfo getRelationshipInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISPolicyInfo getPolicyInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISSecondaryInfo getSecondaryInfo() {
-		return null;
-	}
-
-	@Override
-	public String getParentId() {
-		return getProperty(FileBase.parentId);
-	}
-
-	@Override
-	public String getPath() {
-		return getProperty(AbstractFile.path);
-	}
-
-	@Override
-	public AllowableActions getAllowableActions() {
-		return StructrFolderActions.getInstance();
-	}
-
-	@Override
-	public String getChangeToken() {
-
-		// versioning not supported yet.
-		return null;
-	}
-
-	// ----- private methods -----
-	private void setHasParent() throws FrameworkException {
-
-		synchronized (this) {
+		synchronized (folder) {
 
 			// save current security context
-			final SecurityContext previousSecurityContext = securityContext;
+			final SecurityContext previousSecurityContext = folder.getSecurityContext();
+			final PropertyKey<Boolean> hasParentKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(Folder.class, "hasParent");
+			final PropertyKey<String> parentIdKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(Folder.class, "parentId");
 
 			// replace with SU context
-			this.securityContext = SecurityContext.getSuperUserInstance();
+			folder.setSecurityContext(SecurityContext.getSuperUserInstance());
 
 			// set property as super user
-			setProperties(this.securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
+			folder.setProperty(hasParentKey, folder.getProperty(parentIdKey) != null);
 
 			// restore previous security context
-			this.securityContext = previousSecurityContext;
+			folder.setSecurityContext(previousSecurityContext);
 		}
 	}
+
+	/*TODO:
+
+		public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+		public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+		public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
+		public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
+	*/
 }

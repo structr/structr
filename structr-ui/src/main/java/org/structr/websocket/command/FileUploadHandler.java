@@ -25,32 +25,21 @@ import java.nio.channels.FileChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
+import org.structr.core.app.StructrApp;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
-//~--- classes ----------------------------------------------------------------
-
-/**
- *
- *
- */
 public class FileUploadHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
-	private FileBase file                  = null;
+	private File file                      = null;
 	private FileChannel privateFileChannel = null;
 	private Long size                      = 0L;
 
-	//~--- constructors ---------------------------------------------------
+	public FileUploadHandler(final File file) {
 
-	public FileUploadHandler(final FileBase file) {
-
-		this.size = file.getProperty(File.size);
+		this.size = file.getSize();
 		this.file = file;
 
 		if (this.size == null) {
@@ -70,8 +59,6 @@ public class FileUploadHandler {
 		}
 
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
@@ -109,7 +96,7 @@ public class FileUploadHandler {
 		try {
 
 			file.unlockSystemPropertiesOnce();
-			file.setProperties(file.getSecurityContext(), new PropertyMap(File.size, size));
+			file.setProperty(StructrApp.key(File.class, "size"), size);
 
 		} catch (FrameworkException ex) {
 

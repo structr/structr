@@ -46,6 +46,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.files.cmis.repository.CMISRootFolder;
 import org.structr.files.cmis.wrapper.CMISObjectInFolderWrapper;
 import org.structr.web.entity.AbstractFile;
@@ -115,6 +116,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	@Override
 	public List<ObjectInFolderContainer> getFolderTree(final String repositoryId, final String folderId, final BigInteger depth, final String filter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final ExtensionsData extension) {
 
+		final PropertyKey<Folder> parentKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
 		final List<ObjectInFolderContainer> result = new LinkedList<>();
 		final App app                              = StructrApp.getInstance();
 
@@ -128,7 +130,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 			if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
 
-				for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(AbstractNode.name).getAsList()) {
+				for (final Folder folder : app.nodeQuery(Folder.class).and(parentKey, null).sort(AbstractNode.name).getAsList()) {
 
 					recursivelyCollectFolderTree(result, folder, maxDepth, 1, includeAllowableActions);
 				}
@@ -138,7 +140,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				final Folder folder = app.get(Folder.class, folderId);
 				if (folder != null) {
 
-					final List<Folder> children = folder.getProperty(Folder.folders);
+					final List<Folder> children = folder.getFolders();
 					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
 
 					for (final Folder child : children) {
@@ -170,7 +172,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 			final List<ObjectParentData> data = new LinkedList<>();
 			final AbstractFile graphObject    = app.get(AbstractFile.class, objectId);
-			final Folder parent               = graphObject.getProperty(AbstractFile.parent);
+			final Folder parent               = graphObject.getParent();
 			final ObjectData element          = parent != null ? CMISObjectWrapper.wrap(parent, propertyFilter, includeAllowableActions) : new CMISRootFolder(propertyFilter, includeAllowableActions);
 			final ObjectParentDataImpl impl   = new ObjectParentDataImpl(element);
 
@@ -199,7 +201,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			final AbstractFile graphObject = app.get(AbstractFile.class, folderId);
 			if (graphObject != null) {
 
-				final Folder parent = graphObject.getProperty(AbstractFile.parent);
+				final Folder parent = graphObject.getParent();
 				if (parent != null) {
 
 					result = CMISObjectWrapper.wrap(parent, propertyFilter, false);
@@ -243,7 +245,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 		list.add(impl);
 
 		// fetch and sort children
-		final List<Folder> children = child.getProperty(Folder.folders);
+		final List<Folder> children = child.getFolders();
 		Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
 
 		// descend into children
@@ -259,6 +261,9 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			return;
 		}
 
+		final PropertyKey<Folder> parent                       = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
+		final PropertyKey<Boolean> hasParent                   = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "hasParent");
+		final PropertyKey<Boolean> isThumbnail                 = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "isThumbnail");
 		final CMISObjectInFolderWrapper wrapper                = new CMISObjectInFolderWrapper(includeAllowableActions);
 		final ObjectInFolderContainerImpl impl                 = new ObjectInFolderContainerImpl();
 		final List<ObjectInFolderContainer> childContainerList = new LinkedList<>();
@@ -272,41 +277,39 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 
 		if (child.getProperty(AbstractNode.type).equals("Folder")) {
 
-			final App app     = StructrApp.getInstance();
+			final App app = StructrApp.getInstance();
 
 			// descend into children
-			for (final AbstractFile folderChild : app.nodeQuery(AbstractFile.class).sort(AbstractNode.name).and(AbstractFile.parent, (Folder)child).and(Image.isThumbnail, false).getAsList()) {
+			for (final AbstractFile folderChild : app.nodeQuery(AbstractFile.class).sort(AbstractNode.name).and(parent, (Folder)child).and(isThumbnail, false).getAsList()) {
 				recursivelyCollectDescendants(childContainerList, folderChild, maxDepth, depth+1, includeAllowableActions);
 			}
-
 		}
 	}
 
 	public Query<AbstractFile> getChildrenQuery (final App app, final String folderId) throws FrameworkException {
 
-		final Query<AbstractFile> query = app.nodeQuery(AbstractFile.class).sort(AbstractNode.name);
+		final Query<AbstractFile> query        = app.nodeQuery(AbstractFile.class).sort(AbstractNode.name);
+		final PropertyKey<Folder> parent       = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
+		final PropertyKey<Boolean> hasParent   = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "hasParent");
+		final PropertyKey<Boolean> isThumbnail = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "isThumbnail");
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
 
-			query.and(AbstractFile.hasParent, false).and(Image.isThumbnail, false);
+			query.and(hasParent, false).and(isThumbnail, false);
 
 		} else {
 
 			final Folder folder = app.get(Folder.class, folderId);
-
 			if (folder != null) {
 
-				query.and(AbstractFile.parent, folder).and(Image.isThumbnail, false);
+				query.and(parent, folder).and(isThumbnail, false);
 
 			} else {
 
 				throw new CmisObjectNotFoundException("Folder with ID " + folderId + " does not exist");
-
 			}
-
 		}
 
 		return query;
-
 	}
 }

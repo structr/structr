@@ -29,12 +29,13 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.File;
 
 /**
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
@@ -60,10 +61,11 @@ public class IncludeFunction extends Function<Object, Object> {
 				return null;
 			}
 
-			final SecurityContext securityContext = ctx.getSecurityContext();
-			final App app = StructrApp.getInstance(securityContext);
-			final RenderContext innerCtx = new RenderContext((RenderContext)ctx);
-			final List<DOMNode> nodeList = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
+			final PropertyKey<DOMNode> sharedCompKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "sharedComponent");
+			final SecurityContext securityContext    = ctx.getSecurityContext();
+			final App app                            = StructrApp.getInstance(securityContext);
+			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
+			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
 
 			DOMNode node = null;
 
@@ -86,7 +88,7 @@ public class IncludeFunction extends Function<Object, Object> {
 				}
 
 				// IGNORE everything that REFERENCES a shared component!
-				if (n.getProperty(DOMNode.sharedComponent) == null) {
+				if (n.getProperty(sharedCompKey) == null) {
 
 					// the DOMNode is either a shared component OR a named node in the pages tree
 					if (node == null) {
@@ -124,14 +126,14 @@ public class IncludeFunction extends Function<Object, Object> {
 
 			} else {
 
-				final FileBase file = app.nodeQuery(FileBase.class).andName((String)sources[0]).getFirst();
+				final File file = app.nodeQuery(File.class).andName((String)sources[0]).getFirst();
 
 				if (file != null) {
 
-					final String name = file.getProperty(NodeInterface.name);
-					final String contentType = file.getProperty(FileBase.contentType);
-					final String charset = StringUtils.substringAfterLast(contentType, "charset=");
-					final String extension = StringUtils.substringAfterLast(name, ".");
+					final String name        = file.getProperty(NodeInterface.name);
+					final String contentType = file.getContentType();
+					final String charset     = StringUtils.substringAfterLast(contentType, "charset=");
+					final String extension   = StringUtils.substringAfterLast(name, ".");
 
 					if (contentType == null || StringUtils.isBlank(extension)) {
 

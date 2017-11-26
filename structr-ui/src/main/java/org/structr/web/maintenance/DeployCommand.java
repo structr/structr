@@ -80,7 +80,6 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.AbstractMinifiedFile;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.MinifiedCssFile;
@@ -107,6 +106,7 @@ import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -312,7 +312,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
-			additionalData.put(StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "imported"), false);
+			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
 
 			info("Reading {}", localizationsConf);
 			publishDeploymentProgressMessage("Importing localizations");
@@ -612,23 +612,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting files (unchanged files will be skipped)");
 
-		final Map<String, Object> config = new TreeMap<>();
-		final App app                    = StructrApp.getInstance();
+		final PropertyKey<Boolean> inclKey  = StructrApp.key(AbstractFile.class, "includeInFrontendExport");
+		final PropertyKey<Boolean> jsKey    = StructrApp.key(AbstractFile.class, "useAsJavascriptLibrary");
+		final PropertyKey<Folder> parentKey = StructrApp.key(AbstractFile.class, "parent");
+		final Map<String, Object> config    = new TreeMap<>();
+		final App app                       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(Folder.name).and(AbstractFile.includeInFrontendExport, true).getAsList()) {
+			for (final Folder folder : app.nodeQuery(Folder.class).and(parentKey, null).sort(Folder.name).and(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final FileBase file : app.nodeQuery(FileBase.class)
-				.and(Folder.parent, null)
-				.sort(FileBase.name)
+			for (final File file : app.nodeQuery(File.class)
+				.and(parentKey, null)
+				.sort(File.name)
 				.and()
-					.or(AbstractFile.includeInFrontendExport, true)
-					.or(FileBase.useAsJavascriptLibrary, true)
+					.or(inclKey, true)
+					.or(jsKey, true)
 				.getAsList()) {
 
 				exportFile(target, file, config);
@@ -669,22 +672,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		final List<Folder> folders = folder.getProperty(Folder.folders);
+		final List<Folder> folders = folder.getFolders();
 		Collections.sort(folders, new GraphObjectComparator(AbstractNode.name, false));
 
 		for (final Folder child : folders) {
 			exportFilesAndFolders(path, child, config);
 		}
 
-		final List<FileBase> files = folder.getProperty(Folder.files);
+		final List<File> files = folder.getFiles();
 		Collections.sort(files, new GraphObjectComparator(AbstractNode.name, false));
 
-		for (final FileBase file : files) {
+		for (final File file : files) {
 			exportFile(path, file, config);
 		}
 	}
 
-	private void exportFile(final Path target, final FileBase file, final Map<String, Object> config) throws IOException {
+	private void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
 
 		if (!DeployCommand.okToExport(file)) {
 			return;
@@ -799,9 +802,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
 			if (shadowDocument != null) {
 
-				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
+				for (final DOMNode node : shadowDocument.getElements()) {
 
-					final boolean hasParent = node.getProperty(DOMNode.parent) != null;
+					final boolean hasParent = node.getParent() != null;
 					final boolean inTrash   = node.inTrash();
 					boolean doExport        = true;
 
@@ -875,8 +878,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// export template nodes anywhere in the pages tree which are not related to shared components
 			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
 
+				final boolean isShared    = template.getProperty(StructrApp.key(DOMNode.class, "sharedComponent")) != null;
 				final boolean inTrash     = template.inTrash();
-				final boolean isShared    = template.getProperty(DOMNode.sharedComponent) != null;
 
 				if (inTrash || isShared) {
 					continue;
@@ -902,7 +905,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Map<String, Object> properties = new TreeMap<>();
 		boolean doExport                     = true;
 
-		final String content = template.getProperty(Template.content);
+		final String content = template.getProperty(StructrApp.key(Template.class, "content"));
 		if (content != null) {
 
 			// name or uuid
@@ -1000,25 +1003,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (node.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
 		if (node.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
 
-		putIf(config, "contentType",             node.getProperty(Content.contentType));
+		putIf(config, "contentType",             node.getProperty(StructrApp.key(Content.class, "contentType")));
 
 		if (node instanceof Template) {
 
 			// mark this template as being shared
-			putIf(config, "shared", Boolean.toString(node.isSharedComponent() && node.getProperty(DOMNode.parent) == null));
+			putIf(config, "shared", Boolean.toString(node.isSharedComponent() && node.getParent() == null));
 		}
 
 		if (node instanceof Page) {
-			putIf(config, "position",                node.getProperty(Page.position));
-			putIf(config, "category",                node.getProperty(Page.category));
-			putIf(config, "showOnErrorCodes",        node.getProperty(Page.showOnErrorCodes));
-			putIf(config, "showConditions",          node.getProperty(Page.showConditions));
-			putIf(config, "hideConditions",          node.getProperty(Page.hideConditions));
-			putIf(config, "dontCache",               node.getProperty(Page.dontCache));
-			putIf(config, "cacheForSeconds",         node.getProperty(Page.cacheForSeconds));
-			putIf(config, "pageCreatesRawData",      node.getProperty(Page.pageCreatesRawData));
-			putIf(config, "basicAuthRealm",          node.getProperty(Page.basicAuthRealm));
-			putIf(config, "enableBasicAuth",         node.getProperty(Page.enableBasicAuth));
+			putIf(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
+			putIf(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
+			putIf(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
+			putIf(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
+			putIf(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
+			putIf(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
+			putIf(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
+			putIf(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
+			putIf(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
+			putIf(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
 		}
 
 		// export all dynamic properties
@@ -1036,32 +1039,40 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (file.isVisibleToPublicUsers())         { putIf(config, "visibleToPublicUsers", true); }
 		if (file.isVisibleToAuthenticatedUsers())  { putIf(config, "visibleToAuthenticatedUsers", true); }
-		if (file.getProperty(FileBase.isTemplate)) { putIf(config, "isTemplate", true); }
+		if (file.isTemplate())                     { putIf(config, "isTemplate", true); }
 
-		putIf(config, "type",                        file.getProperty(FileBase.type));
-		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
-		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
-		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
-		putIf(config, "includeInFrontendExport",     file.getProperty(FileBase.includeInFrontendExport));
-		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
-		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
+		putIf(config, "type",                        file.getProperty(File.type));
+		putIf(config, "contentType",                 file.getProperty(StructrApp.key(File.class, "contentType")));
+		putIf(config, "cacheForSeconds",             file.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+		putIf(config, "useAsJavascriptLibrary",      file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		putIf(config, "includeInFrontendExport",     file.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
+		putIf(config, "basicAuthRealm",              file.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
+		putIf(config, "enableBasicAuth",             file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
 
 		if (file instanceof Image) {
-			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
-			putIf(config, "isImage",                 file.getProperty(Image.isImage));
-			putIf(config, "width",                   file.getProperty(Image.width));
-			putIf(config, "height",                  file.getProperty(Image.height));
+
+			final Image image = (Image)file;
+
+			putIf(config, "isThumbnail",             image.isThumbnail());
+			putIf(config, "isImage",                 image.isImage());
+			putIf(config, "width",                   image.getWidth());
+			putIf(config, "height",                  image.getHeight());
 		}
 
 		if (file instanceof AbstractMinifiedFile) {
 
 			if (file instanceof MinifiedCssFile) {
-				putIf(config, "lineBreak",               file.getProperty(MinifiedCssFile.lineBreak));
+
+				final MinifiedCssFile mcf = (MinifiedCssFile)file;
+
+				putIf(config, "lineBreak", mcf.getLineBreak());
 			}
 
 			if (file instanceof MinifiedJavaScriptFile) {
-				putIf(config, "optimizationLevel",       file.getProperty(MinifiedJavaScriptFile.optimizationLevel));
-				putIf(config, "minificationSources",     file.getProperty(MinifiedJavaScriptFile.minificationSources));
+
+				final MinifiedJavaScriptFile mjf = (MinifiedJavaScriptFile)file;
+
+				putIf(config, "optimizationLevel",    mjf.getOptimizationLevel());
 			}
 
 			Map<Integer, String> minifcationSources = new TreeMap<>();
@@ -1085,7 +1096,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportOwnershipAndSecurity(file, config);
 	}
 
-	private void exportOwnershipAndSecurity(final AbstractNode node, final Map<String, Object> config) {
+	private void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
 
 		// export unique name of owner node to pages.json
 		final Principal owner = node.getOwnerNode();
@@ -1125,8 +1136,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting mail templates");
 
-		final PropertyKey<String> textKey             = StructrApp.getConfiguration().getPropertyKeyForJSONName(MailTemplate.class, "text");
-		final PropertyKey<String> localeKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(MailTemplate.class, "text");
+		final PropertyKey<String> textKey             = StructrApp.key(MailTemplate.class, "text");
+		final PropertyKey<String> localeKey           = StructrApp.key(MailTemplate.class, "text");
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
@@ -1170,15 +1181,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				widgets.add(entry);
 
-				entry.put("name",   widget.getProperty(Widget.name));
-				entry.put("source",   widget.getProperty(Widget.source));
-				entry.put("description",   widget.getProperty(Widget.description));
-				entry.put("isWidget",   widget.getProperty(Widget.isWidget));
-				entry.put("treePath",   widget.getProperty(Widget.treePath));
-				entry.put("pictures",   widget.getProperty(Widget.pictures));
-				entry.put("configuration", widget.getProperty(Widget.configuration));
+				entry.put("name",                        widget.getProperty(Widget.name));
 				entry.put("visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers", widget.getProperty(Widget.visibleToPublicUsers));
+				entry.put("visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
+				entry.put("source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
+				entry.put("description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
+				entry.put("isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
+				entry.put("treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
+				entry.put("pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
+				entry.put("configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
 			}
 
 			tx.success();
@@ -1197,10 +1208,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting localizations");
 
-		final PropertyKey<String> localizedNameKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "localizedName");
-		final PropertyKey<String> domainKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "domain");
-		final PropertyKey<String> localeKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "locale");
-		final PropertyKey<String> importedKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "imported");
+		final PropertyKey<String> localizedNameKey    = StructrApp.key(Localization.class, "localizedName");
+		final PropertyKey<String> domainKey           = StructrApp.key(Localization.class, "domain");
+		final PropertyKey<String> localeKey           = StructrApp.key(Localization.class, "locale");
+		final PropertyKey<String> importedKey         = StructrApp.key(Localization.class, "imported");
 		final List<Map<String, Object>> localizations = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 

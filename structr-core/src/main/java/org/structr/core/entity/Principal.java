@@ -43,9 +43,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	static class Impl { static {
 
-		final JsonSchema schema        = SchemaService.getDynamicSchema();
-		final JsonObjectType principal = schema.addType("Principal");
-		final JsonObjectType group     = (JsonObjectType)schema.getType("Group");
+		final JsonSchema schema          = SchemaService.getDynamicSchema();
+		final JsonObjectType principal   = schema.addType("Principal");
+		final JsonObjectType group       = (JsonObjectType)schema.getType("Group");
+		final JsonObjectType favoritable = (JsonObjectType)schema.getType("Favoritable");
 
 		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
 
@@ -63,6 +64,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.addTransformer(LowercaseTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
+
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");
 		principal.addStringProperty("publicKey");
@@ -74,10 +76,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addStringArrayProperty("publicKeys");
 
 		principal.addPropertyGetter("locale", String.class);
-
 		principal.addPropertyGetter("sessionData", String.class);
-		principal.addPropertySetter("sessionData", String.class);
+		principal.addPropertyGetter("favorites", List.class);
 
+		principal.addPropertySetter("sessionData", String.class);
+		principal.addPropertySetter("favorites", List.class);
 		principal.addPropertySetter("password", String.class);
 		principal.addPropertySetter("isAdmin", Boolean.TYPE);
 		principal.addPropertySetter("eMail", String.class);
@@ -95,6 +98,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
+		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
 	}}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";
@@ -104,6 +108,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
 
+	List<Favoritable> getFavorites();
 	List<Principal> getParents();
 
 	boolean isValidPassword(final String password);
@@ -118,6 +123,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	boolean isBlocked();
 	boolean shouldSkipSecurityRelationships();
 
+	void setFavorites(final List<Favoritable> favorites) throws FrameworkException;
 	void setIsAdmin(final boolean isAdmin) throws FrameworkException;
 	void setPassword(final String password) throws FrameworkException;
 	void setEMail(final String eMail) throws FrameworkException;

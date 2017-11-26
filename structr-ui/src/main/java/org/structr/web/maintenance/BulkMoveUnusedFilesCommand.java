@@ -40,12 +40,10 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Move all files on disk which are not referenced by a node to a special folder
- *
+ * Move all files on disk which are not referenced by a node to a special folder.
  */
 public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -57,7 +55,6 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
@@ -83,17 +80,17 @@ public class BulkMoveUnusedFilesCommand extends NodeServiceCommand implements Ma
 
 		if (graphDb != null) {
 
-			List<FileBase> fileNodes = null;
+			List<File> fileNodes = null;
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				fileNodes = app.nodeQuery(FileBase.class).getAsList();
+				fileNodes = app.nodeQuery(File.class).getAsList();
 
-				for (final FileBase fileNode : fileNodes) {
+				for (final File fileNode : fileNodes) {
 
-					final String relativeFilePath = fileNode.getProperty(FileBase.relativeFilePath);
-
+					final String relativeFilePath = fileNode.getRelativeFilePath();
 					if (relativeFilePath != null) {
+
 						filePaths.add(relativeFilePath);
 					}
 				}

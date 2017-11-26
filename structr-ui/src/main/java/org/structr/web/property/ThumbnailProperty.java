@@ -27,12 +27,8 @@ import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.Property;
 import org.structr.web.entity.Image;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * A property that automatically created a thumbnail for an image. (?)
- *
- *
+ * A property that automatically creates a thumbnail for an image.
  */
 public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
@@ -57,7 +53,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	@Override
 	public Image getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
 
-		if (obj.getProperty(Image.isThumbnail)) {
+		if (obj instanceof Image && ((Image)obj).isThumbnail()) {
 			return null;
 		}
 
@@ -90,7 +86,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 		if (StringUtils.isNotBlank(format) && format.contains(",")) {
 
 			final String[] parts = format.split("[, ]+");
-			
+
 			if (parts.length >= 1) {
 
 				width    = Integer.parseInt(parts[0].trim());
@@ -105,7 +101,7 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 
 		return this;
 	}
-	
+
 	public int getWidth() {
 		return width;
 	}
@@ -121,5 +117,5 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	@Override
 	public void index(final GraphObject entity) {
 		// noop, don't index thumbnail properties
-	}	
+	}
 }

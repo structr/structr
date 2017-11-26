@@ -41,11 +41,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -113,7 +113,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// collect folders that are marked for export
-			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.includeInFrontendExport, true).getAsList()) {
+			for (final Folder folder : app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "includeInFrontendExport"), true).getAsList()) {
 
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}
@@ -178,7 +178,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		if (root.isNode()) {
 
 			final NodeInterface node = root.getSyncNode();
-			if (node instanceof FileBase) {
+			if (node instanceof File) {
 
 				final String fileUuid = node.getUuid();
 				files.add(fileUuid);

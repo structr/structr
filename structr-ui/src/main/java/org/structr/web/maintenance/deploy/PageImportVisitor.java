@@ -125,7 +125,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 		final Page page = app.nodeQuery(Page.class).andName(name).getFirst();
 		if (page != null) {
 
-			for (final DOMNode child : page.getProperty(Page.elements)) {
+			for (final DOMNode child : page.getElements()) {
 				app.delete(child);
 			}
 
@@ -184,8 +184,9 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final PropertyMap properties = getPropertiesForPage(name);
-			final Page existingPage      = getExistingPage(name);
+			final PropertyKey<String> contentTypeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "contentType");
+			final PropertyMap properties             = getPropertiesForPage(name);
+			final Page existingPage                  = getExistingPage(name);
 
 			if (existingPage != null) {
 
@@ -193,7 +194,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 			}
 
 			final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
-			final String contentType = get(properties, Page.contentType, "text/html");
+			final String contentType = get(properties, contentTypeKey, "text/html");
 
 			boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 			boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);

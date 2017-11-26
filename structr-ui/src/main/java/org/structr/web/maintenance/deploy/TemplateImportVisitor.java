@@ -131,7 +131,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
-		for (DOMNode child : node.treeGetChildren()) {
+		for (DOMNode child : node.getChildren()) {
 			deleteRecursively(app, child);
 		}
 
@@ -194,7 +194,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 				properties.put(Template.name, name);
 			}
 
-			properties.put(Template.content, src);
+			properties.put(StructrApp.getConfiguration().getPropertyKeyForJSONName(Template.class, "content"), src);
 
 			// insert "shared" templates into ShadowDocument
 			final Object value = properties.get(internalSharedTemplateKey);
@@ -202,7 +202,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 				if ("true".equals(value)) {
 
-					template.setProperty(DOMNode.ownerDocument, CreateComponentCommand.getOrCreateHiddenDocument());
+					template.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
 				}
 
 				properties.remove(internalSharedTemplateKey);

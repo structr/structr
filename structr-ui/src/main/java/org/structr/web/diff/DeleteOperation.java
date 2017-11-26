@@ -22,7 +22,6 @@ import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.Node;
@@ -51,7 +50,7 @@ public class DeleteOperation extends InvertibleModificationOperation {
 
 		} else {
 
-			return "Delete " + existingNode.getProperty(DOMElement.tag) + "(" + existingNode.getIdHash();
+			return "Delete " + existingNode.getTag() + "(" + existingNode.getIdHash();
 		}
 	}
 

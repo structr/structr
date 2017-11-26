@@ -18,19 +18,10 @@
  */
 package org.structr.web.advanced;
 
-import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
-import org.structr.web.entity.Image;
 
 public class ImageUploadTest extends StructrUiTest {
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(ImageUploadTest.class.getName());
 
@@ -110,4 +101,5 @@ public class ImageUploadTest extends StructrUiTest {
 		}
 	}
 
+	*/
 }

@@ -18,31 +18,14 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.LinkedList;
-import java.util.List;
-import static junit.framework.TestCase.fail;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import org.junit.Test;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.relationship.AbstractChildren;
-import org.structr.core.graph.Tx;
 import org.structr.web.advanced.DOMTest;
-import org.structr.web.entity.dom.relationship.DOMChildren;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
 
 /**
  *
  *
  */
 public class DOMNodeTest extends DOMTest {
+	/*
 
 	@Test
 	public void testAppendChild() {
@@ -843,4 +826,5 @@ public class DOMNodeTest extends DOMTest {
 		return list;
 	}
 
+	*/
 }

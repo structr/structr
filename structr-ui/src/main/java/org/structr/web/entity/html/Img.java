@@ -18,58 +18,33 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Img extends LinkSource {
 
-/**
- *
- */
-public class Img extends LinkSource {
+	static class Impl { static {
 
-	public static final Property<String> _alt         = new HtmlProperty("alt");
-	public static final Property<String> _src         = new HtmlProperty("src");
-	public static final Property<String> _crossorigin = new HtmlProperty("crossorigin");
-	public static final Property<String> _usemap      = new HtmlProperty("usemap");
-	public static final Property<String> _ismap       = new HtmlProperty("ismap");
-	public static final Property<String> _width       = new HtmlProperty("width");
-	public static final Property<String> _height      = new HtmlProperty("height");
-	
-//	public static final EndNodes<Div> divs = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.INCOMING, false);
-//	public static final EndNodes<P>   ps   = new EndNodes<P>("ps", P.class, RelType.CONTAINS, Direction.INCOMING, false);
-//	public static final EndNodes<A>   as   = new EndNodes<A>("as", A.class, RelType.CONTAINS, Direction.INCOMING, false);
-	
-	public static final View htmlView = new View(Img.class, PropertyView.Html,
-	    _alt, _src, _crossorigin, _usemap, _ismap, _width, _height
-	);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Img");
 
-	//~--- methods --------------------------------------------------------
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	@Override
-	public boolean avoidWhitespace() {
+		type.addStringProperty("_html_alt",         PropertyView.Html);
+		type.addStringProperty("_html_src",         PropertyView.Html);
+		type.addStringProperty("_html_crossorigin", PropertyView.Html);
+		type.addStringProperty("_html_usemap",      PropertyView.Html);
+		type.addStringProperty("_html_ismap",       PropertyView.Html);
+		type.addStringProperty("_html_width",       PropertyView.Html);
+		type.addStringProperty("_html_height",      PropertyView.Html);
 
-		return true;
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	@Override
-	public boolean isVoidElement() {
-
-		return true;
-
-	}
-
-	@Override
-	public Property[] getHtmlAttributes() {
-
-		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
-
-	}
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+		type.overrideMethod("avoidWhitespace",   false, "return true;");
+		type.overrideMethod("isVoidElement",     false, "return true;");
+	}}
 }

@@ -43,16 +43,15 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.AbstractMinifiedFile;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.entity.relation.Thumbnails;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -64,7 +63,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	private SecurityContext securityContext = null;
 	private Path basePath                   = null;
 	private App app                         = null;
-	private List<FileBase> deferredFiles    = null;
+	private List<File> deferredFiles    = null;
 
 	public FileImportVisitor(final Path basePath, final Map<String, Object> config) {
 
@@ -114,15 +113,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		if (!this.deferredFiles.isEmpty()) {
 
-			for (FileBase file : this.deferredFiles) {
+			for (File file : this.deferredFiles) {
 
 				try (final Tx tx = app.tx(true, false, false)) {
 
 					// set properties from files.json
-					final PropertyMap fileProperties = getPropertiesForFileOrFolder(file.getPath());
-
+					final PropertyMap fileProperties                          = getPropertiesForFileOrFolder(file.getPath());
 					final PropertyKey<Map<String, String>> sourcesPropertyKey = new GenericProperty("minificationSources");
-					Map<String, String> sourcesConfig = fileProperties.get(sourcesPropertyKey);
+					Map<String, String> sourcesConfig                         = fileProperties.get(sourcesPropertyKey);
+
 					fileProperties.remove(sourcesPropertyKey);
 
 					file.unlockSystemPropertiesOnce();
@@ -136,7 +135,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 						if (source != null) {
 
-							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (FileBase)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
+							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (File)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
 
 						} else {
 							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
@@ -181,10 +180,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		String newFileUuid = null;
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final Path parentPath    = basePath.relativize(path).getParent();
-			final Folder parent      = createFolders(parentPath);
-			final String fullPath    = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
-			boolean skipFile         = false;
+			final PropertyKey<Folder> parentKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "parent");
+			final Path parentPath               = basePath.relativize(path).getParent();
+			final Folder parent                 = createFolders(parentPath);
+			final String fullPath               = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
+			boolean skipFile                    = false;
 
 			// load properties from files.json
 			final PropertyMap fileProperties = getPropertiesForFileOrFolder(fullPath);
@@ -194,7 +194,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				FileBase file = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
+				File file = app.nodeQuery(File.class).and(parentKey, parent).and(File.name, fileName).getFirst();
 
 				if (file != null) {
 
@@ -231,7 +231,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						}
 
 						// move file to folder
-						file.setProperty(FileBase.parent, parent);
+						file.setProperty(parentKey, parent);
 
 						file.unlockSystemPropertiesOnce();
 						file.setProperties(securityContext, changedProperties);
@@ -242,7 +242,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (file != null) {
 
-					if (fileProperties.containsKey(AbstractMinifiedFile.minificationSources)) {
+					if (fileProperties.containsKey(StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractMinifiedFile.class, "minificationSources"))) {
 						deferredFiles.add(file);
 					} else {
 						file.unlockSystemPropertiesOnce();
@@ -262,10 +262,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			if (newFileUuid != null) {
 
-				final FileBase createdFile = app.get(FileBase.class, newFileUuid);
-				String type                = createdFile.getType();
-				boolean isImage            = createdFile.getProperty(Image.isImage);
-				boolean isThumbnail        = createdFile.getProperty(Image.isThumbnail);
+				final File createdFile = app.get(File.class, newFileUuid);
+				String type            = createdFile.getType();
+				boolean isImage        = createdFile.isImage();
+				boolean isThumbnail    = createdFile.isThumbnail();
 
 				logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
 
@@ -292,8 +292,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private void handleThumbnails(final Image img) {
 
-
-		if (img.getProperty(Image.isThumbnail)) {
+		if (img.isThumbnail()) {
 
 			// thumbnail image
 			if (img.getIncomingRelationship(Thumbnails.class) == null) {
@@ -328,21 +327,22 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		if (folder != null) {
 
-			final App app  = StructrApp.getInstance();
-			Folder current = null;
-			Folder parent  = null;
+			final PropertyKey<Folder> parentKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "parent");
+			final App app                       = StructrApp.getInstance();
+			Folder current                      = null;
+			Folder parent                       = null;
 
 			for (final Iterator<Path> it = folder.iterator(); it.hasNext(); ) {
 
 				final Path part   = it.next();
 				final String name = part.toString();
 
-				current = app.nodeQuery(Folder.class).andName(name).and(FileBase.parent, parent).getFirst();
+				current = app.nodeQuery(Folder.class).andName(name).and(parentKey, parent).getFirst();
 				if (current == null) {
 
 					current = app.create(Folder.class,
 						new NodeAttribute(AbstractNode.name, name),
-						new NodeAttribute(Folder.parent, parent)
+						new NodeAttribute(parentKey, parent)
 					);
 
 					// set properties from files.json, but only when the folder is created

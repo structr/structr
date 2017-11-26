@@ -43,7 +43,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 		type.overrideMethod("onCreation", true, "setProperty(contentTypeProperty, \"text/html\");");
 
 		// call static method below
-		type.overrideMethod("render", false, "org.structr.web.entity.dom.Comment.render(this, renderContext, depth);");
+		type.overrideMethod("render", false, "org.structr.web.entity.dom.Comment.render(this, arg0, arg1);");
 	}}
 
 	static void render(final Comment comment, final RenderContext renderContext, final int depth) throws FrameworkException {

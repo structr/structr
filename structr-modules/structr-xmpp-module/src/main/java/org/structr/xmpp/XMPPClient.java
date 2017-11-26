@@ -47,7 +47,6 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.SchemaService;
 
 /**
  *
@@ -68,10 +67,12 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 	public static final Property<Boolean>           isEnabled       = new BooleanProperty("isEnabled");
 	public static final Property<Boolean>           isConnected     = new BooleanProperty("isConnected");
 
+	/*
 	static {
 
 		SchemaService.registerBuiltinTypeOverride("XMPPClient", XMPPClient.class.getName());
 	}
+	*/
 
 	public static final View publicView = new View(XMPPClient.class, PropertyView.Public,
 		xmppHandle, xmppUsername, xmppPassword, xmppService, xmppHost, xmppPort, presenceMode, isEnabled, isConnected, pendingRequests
@@ -82,17 +83,19 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 	);
 
 	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
 
 		if (getProperty(isEnabled)) {
 			XMPPContext.connect(this);
 		}
-
-		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
 		boolean enabled                 = getProperty(isEnabled);
@@ -122,12 +125,12 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 				}
 			}
 		}
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	@Override
-	public boolean onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+	public void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+		super.onDeletion(securityContext, errorBuffer, properties);
 
 		final String uuid = properties.get(id);
 		if (uuid != null) {
@@ -138,8 +141,6 @@ public class XMPPClient extends AbstractNode implements XMPPInfo {
 				connection.disconnect();
 			}
 		}
-
-		return super.onDeletion(securityContext, errorBuffer, properties);
 	}
 
 	@Override

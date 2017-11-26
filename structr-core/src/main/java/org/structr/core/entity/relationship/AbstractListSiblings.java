@@ -18,14 +18,14 @@
  */
 package org.structr.core.entity.relationship;
 
-import org.structr.core.entity.LinkedListNode;
 import org.structr.core.entity.OneToOne;
+import org.structr.core.graph.NodeInterface;
 
 /**
  *
  *
  */
-public abstract class AbstractListSiblings<S extends LinkedListNode, T extends LinkedListNode> extends OneToOne<S, T> {
+public abstract class AbstractListSiblings<S extends NodeInterface, T extends NodeInterface> extends OneToOne<S, T> {
 
 	@Override
 	public String name() {

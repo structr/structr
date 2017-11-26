@@ -19,6 +19,12 @@
 package org.structr.web.entity.dom;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
+import org.structr.core.property.Property;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -28,6 +34,10 @@ import org.w3c.dom.NamedNodeMap;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
+	public static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
+
+	public static final int HtmlPrefixLength            = PropertyView.Html.length();
+
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
@@ -36,9 +46,61 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
+		/*
+			public static final Property<String> tag              = new StringProperty("tag").indexed().category(PAGE_CATEGORY);
+		 	public static final Property<String> path             = new StringProperty("path").indexed();
+			public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
+		*/
+
+		type.addStringProperty("tag",              PropertyView.Html).setIndexed(true);
+		type.addStringProperty("path",             PropertyView.Html).setIndexed(true);
+		type.addStringProperty("partialUpdateKey", PropertyView.Html).setIndexed(true);
+
+		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
+		type.overrideMethod("getOffsetAttributeName", false, "return org.structr.web.entity.dom.DOMElement.getOffsetAttributeName(this, arg0, arg1);");
+
 	}}
 
 	String getOffsetAttributeName(final String name, final int offset);
+	Property[] getHtmlAttributes();
+
+	// ----- static methods -----
+	public static String getOffsetAttributeName(final DOMElement elem, final String name, final int offset) {
+
+		int namePosition = -1;
+		int index = 0;
+
+		List<String> keys = Iterables.toList(elem.getNode().getPropertyKeys());
+		Collections.sort(keys);
+
+		List<String> names = new ArrayList<>(10);
+
+		for (String key : keys) {
+
+			// use html properties only
+			if (key.startsWith(PropertyView.Html)) {
+
+				String htmlName = key.substring(HtmlPrefixLength);
+
+				if (name.equals(htmlName)) {
+
+					namePosition = index;
+				}
+
+				names.add(htmlName);
+
+				index++;
+			}
+		}
+
+		int offsetIndex = namePosition + offset;
+		if (offsetIndex >= 0 && offsetIndex < names.size()) {
+
+			return names.get(offsetIndex);
+		}
+
+		return null;
+	}
 
 	/*
 
@@ -49,10 +111,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
 	private static final String lowercaseBodyName = Body.class.getSimpleName().toLowerCase();
-
-	public static final Property<String> tag              = new StringProperty("tag").indexed().category(PAGE_CATEGORY);
- 	public static final Property<String> path             = new StringProperty("path").indexed();
-	public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
 
 	// Event-handler attributes
 	public static final Property<String> _onabort = new HtmlProperty("onabort");

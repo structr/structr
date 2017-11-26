@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.AbstractFile;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -50,9 +51,9 @@ public class FindDuplicateFilesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		final PropertyKey<String> path        = StructrApp.key(AbstractFile.class, "path");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).sort(AbstractFile.path);
+		final Query query                     = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).sort(path);
 
 		try {
 
@@ -70,7 +71,7 @@ public class FindDuplicateFilesCommand extends AbstractCommand {
 				try {
 
 					final AbstractFile file = (AbstractFile)node;
-					final String currentFilepath = file.getProperty(AbstractFile.path);
+					final String currentFilepath = file.getProperty(path);
 
 					// skip the first file as we can not compare it to the previous one
 					if (lastFile != null) {

@@ -18,27 +18,21 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Keygen extends DOMElement {
-//
-//	static {
-//
-//		StructrApp.getConfiguration().registerPropertySet(Keygen.class, PropertyView.All, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Keygen.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Keygen.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
+public interface Keygen extends DOMElement {
 
-	//~--- get methods ----------------------------------------------------
+	static class Impl { static {
 
-	@Override
-	public boolean isVoidElement() {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Keygen");
 
-		return true;
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	}
+		type.overrideMethod("isVoidElement", false, "return true;");
+	}}
 }

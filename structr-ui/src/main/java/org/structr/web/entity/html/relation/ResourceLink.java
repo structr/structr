@@ -25,12 +25,6 @@ import org.structr.core.property.Property;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 
-//~--- classes ----------------------------------------------------------------
-
-/**
- *
- *
- */
 public class ResourceLink extends ManyToOne<LinkSource, Linkable> {
 
 	public static final View uiView = new View(ResourceLink.class, PropertyView.Ui,

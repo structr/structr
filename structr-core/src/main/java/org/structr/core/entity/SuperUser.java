@@ -516,4 +516,33 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public void setSalt(String salt) throws FrameworkException {
 	}
+
+	@Override
+	public List<Security> getSecurityRelationships() {
+		return null;
+	}
+
+	@Override
+	public List<Favoritable> getFavorites() {
+		return null;
+	}
+
+	@Override
+	public void setFavorites(List<Favoritable> favorites) throws FrameworkException {
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
+		return false;
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
+		return false;
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
+		return false;
+	}
 }

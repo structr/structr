@@ -20,8 +20,8 @@ package org.structr.core.entity.relationship;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.OneToMany;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 
@@ -29,7 +29,7 @@ import org.structr.core.property.Property;
  *
  *
  */
-public abstract class AbstractChildren<S extends LinkedTreeNode, T extends LinkedTreeNode> extends OneToMany<S, T> {
+public abstract class AbstractChildren<S extends NodeInterface, T extends NodeInterface> extends OneToMany<S, T> {
 
 	public static final Property<Integer> position = new IntProperty("position").indexed();
 

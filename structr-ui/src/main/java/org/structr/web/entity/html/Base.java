@@ -18,38 +18,36 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Base extends DOMElement {
 
-/**
- *
- */
-public class Base extends DOMElement {
+	static class Impl { static {
 
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Base");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_href",   PropertyView.Html);
+		type.addStringProperty("_html_target", PropertyView.Html);
+
+		type.overrideMethod("isVoidElement", false, "return true;");
+		type.overrideMethod("getHtmlAttributes", false, "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());");
+	}}
+
+	/*
 	public static final Property<String> _href   = new HtmlProperty("href");
 	public static final Property<String> _target = new HtmlProperty("target");
 
 	public static final View htmlView = new View(Base.class, PropertyView.Html,
 		_href, _target
 	);
-
-//	//~--- static initializers --------------------------------------------
-//
-//	static {
-//
-//		StructrApp.getConfiguration().registerPropertySet(Base.class, PropertyView.All, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Base.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Base.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public Property[] getHtmlAttributes() {
@@ -64,4 +62,5 @@ public class Base extends DOMElement {
 		return true;
 
 	}
+	*/
 }

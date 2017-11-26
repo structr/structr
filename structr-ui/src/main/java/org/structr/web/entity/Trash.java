@@ -18,14 +18,22 @@
  */
 package org.structr.web.entity;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
+
 /**
  * Trash folder.
  */
-public class Trash extends Folder {
-//
-//	static {
-//
-//		StructrApp.getConfiguration().registerPropertySet(Trash.class, PropertyView.All, Key.values());
-//	}
-//
+public interface Trash extends Folder {
+
+	static class Impl { static {
+
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("Trash");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Trash"));
+		type.setExtends(URI.create("#/definitions/Folder"));
+	}}
 }

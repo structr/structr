@@ -18,36 +18,42 @@
  */
 package org.structr.web.entity;
 
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import static org.structr.core.entity.SchemaMethod.source;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.relation.ImageWidget;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
-import org.structr.web.property.UiNotion;
 
 /**
  *
  *
  */
-public class Widget extends AbstractNode {
+public interface Widget extends NodeInterface {
 
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
+	static class Impl { static {
+
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("Widget");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
+	}}
+
+	static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
+
+	/*
 
 	public static final Property<String>      source        = new StringProperty("source").cmis();
 	public static final Property<String>      description   = new StringProperty("description").cmis();
@@ -69,7 +75,8 @@ public class Widget extends AbstractNode {
 		SchemaService.registerBuiltinTypeOverride("Widget", Widget.class.getName());
 	}
 
-	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
+	*/
+	public static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
 		String _source          = (String)parameters.get("source");
 		ErrorBuffer errorBuffer = new ErrorBuffer();
@@ -81,7 +88,7 @@ public class Widget extends AbstractNode {
 		} else {
 
 			// check source for mandatory parameters
-			Matcher matcher  = threadLocalTemplateMatcher.get();
+			Matcher matcher = threadLocalTemplateMatcher.get();
 
 			// initialize with source
 			matcher.reset(_source);

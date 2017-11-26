@@ -18,78 +18,17 @@
  */
 package org.structr.web.basic;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.web.StructrUiTest;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.security.Principal;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.Part;
-import static junit.framework.TestCase.assertTrue;
-import static junit.framework.TestCase.fail;
-import org.apache.commons.lang.StringUtils;
-import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.web.common.RenderContext;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.TestOne;
-import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Table;
-import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
  *
  */
 public class UiScriptingTest extends StructrUiTest {
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(UiScriptingTest.class.getName());
- 
+
 	@Test
 	public void testSingleRequestParameters() {
 
@@ -98,9 +37,9 @@ public class UiScriptingTest extends StructrUiTest {
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 			template.setProperty(Template.content, "${request.param}");
-			
+
 			page.appendChild(template);
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -128,7 +67,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.get("http://localhost:8875/test?param=a");
 
 			tx.success();
-		
+
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
@@ -143,9 +82,9 @@ public class UiScriptingTest extends StructrUiTest {
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 			template.setProperty(Template.content, "${each(request.param, print(data))}");
-			
+
 			page.appendChild(template);
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -173,13 +112,13 @@ public class UiScriptingTest extends StructrUiTest {
 				.get("http://localhost:8875/test?param=a&param=b&param=c");
 
 			tx.success();
-		
+
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
 		}
 	}
-	
+
 	@Test
 	public void testScripting() {
 
@@ -522,11 +461,11 @@ public class UiScriptingTest extends StructrUiTest {
 			final Page page       = Page.createSimplePage(securityContext, "test");
 			final Div div         = (Div) page.getElementsByTagName("div").item(0);
 			final Content content = (Content) div.getFirstChild();
-			
+
 			// Create second div without children
 			Div div2 = (Div) div.cloneNode(false);
 			div.getUuid();
-			
+
 			// setup scripting repeater to repeat over (non-existing) children of second div
 			content.setProperty(Content.restQuery, "/Div/" + div2.getUuid()+ "/children");
 			content.setProperty(Content.dataKey, "test");
@@ -1140,4 +1079,5 @@ public class UiScriptingTest extends StructrUiTest {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 	}
+*/
 }

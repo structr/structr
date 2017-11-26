@@ -18,27 +18,21 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Hr extends DOMElement {
-//
-//	static {
-//
-//		StructrApp.getConfiguration().registerPropertySet(Hr.class, PropertyView.All, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Hr.class, PropertyView.Public, HtmlElement.UiKey.values());
-//		StructrApp.getConfiguration().registerPropertySet(Hr.class, PropertyView.Html, PropertyView.Html, htmlAttributes);
-//
-//	}
+public interface Hr extends DOMElement {
 
-	//~--- get methods ----------------------------------------------------
+	static class Impl { static {
 
-	@Override
-	public boolean isVoidElement() {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Hr");
 
-		return true;
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	}
+		type.overrideMethod("isVoidElement", false, "return true;");
+	}}
 }

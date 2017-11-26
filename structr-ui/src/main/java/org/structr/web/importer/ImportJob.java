@@ -36,7 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 abstract class ImportJob {
 
@@ -67,7 +67,7 @@ abstract class ImportJob {
 	protected JobStatus currentStatus;
 	protected Integer processedChunks = 0;
 
-	public ImportJob (final FileBase file, final Principal user, final Map<String, Object> configuration) {
+	public ImportJob (final File file, final Principal user, final Map<String, Object> configuration) {
 
 		this.fileUuid = file.getUuid();
 		this.filePath = file.getPath();
@@ -332,7 +332,7 @@ abstract class ImportJob {
 
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = app.get(FileBase.class, fileUuid);
+			final File file = app.get(File.class, fileUuid);
 			is                  = file.getInputStream();
 
 			tx.success();

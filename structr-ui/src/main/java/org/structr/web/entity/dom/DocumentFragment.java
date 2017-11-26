@@ -19,7 +19,6 @@
 package org.structr.web.entity.dom;
 
 import java.net.URI;
-import org.structr.common.error.FrameworkException;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -43,18 +42,19 @@ public interface DocumentFragment extends DOMNode, org.w3c.dom.DocumentFragment,
 
 		// ----- interface org.w3c.dom.Node -----
 		type.addMethod("getNodeName").setSource("return \"#document-fragment\";");
-		type.addMethod("getLocalName").setSource("return null");
-		type.addMethod("getNodeValue").setSource("return null").addException(DOMException.class.getName());
-		type.addMethod("hasAttributes").setSource("return false").setReturnType("boolean");
-		type.addMethod("getAttributes").setSource("return null").setReturnType("NamedNodeMap");
+		type.addMethod("getLocalName").setSource("return null;");
+		type.addMethod("getNodeValue").setSource("return null;").addException(DOMException.class.getName());
+		type.addMethod("hasAttributes").setSource("return false;").setReturnType("boolean");
+		type.addMethod("getAttributes").setSource("return null;").setReturnType("org.w3c.dom.NamedNodeMap");
 		type.addMethod("getNodeType").setSource("return DOCUMENT_FRAGMENT_NODE;");
-		type.addMethod("setNodeValue").addException(DOMException.class.getName()).addParameter("value", "String");
+		type.addMethod("setNodeValue").setSource("").addException(DOMException.class.getName()).addParameter("value", "String");
 
 		// ----- interface DOMNode -----
 		type.addMethod("getContextName").setSource("return \"DocumentFragment\";").setReturnType("String");
-		type.addMethod("isSynced").setSource("return false").setReturnType("boolean");
+		type.addMethod("isSynced").setSource("return false;").setReturnType("boolean");
 		type.addMethod("contentEquals").setSource("return false;").addParameter("otherNode", DOMNode.class.getName());
-		type.addMethod("updateFromNode").addException(FrameworkException.class.getName()).addParameter("otherNode", DOMNode.class.getName());
+
+		//type.addMethod("updateFromNode").setSource("error").addException(FrameworkException.class.getName()).addParameter("otherNode", DOMNode.class.getName());
 
 		// ----- interface Renderable -----
 

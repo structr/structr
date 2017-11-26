@@ -539,16 +539,33 @@ public class SchemaHelper {
 		// include import statements from mixins
 		SchemaHelper.formatImportStatements(schemaNode, src, baseType, importStatements);
 
-		src.append("public class ");
-		src.append(_className);
-		src.append(" extends ");
-		src.append(superClass);
+		if (schemaNode.getProperty(SchemaNode.isAbstract)) {
 
-		// output implemented interfaces
-		if (!implementedInterfaces.isEmpty()) {
+			// create interface
+			src.append("public interface ");
+			src.append(_className);
 
-			src.append(" implements ");
-			src.append(StringUtils.join(implementedInterfaces.stream().map(element -> element.getName()).iterator(), ", "));
+			// output implemented interfaces
+			if (!implementedInterfaces.isEmpty()) {
+
+				src.append(" extends ");
+				src.append(StringUtils.join(implementedInterfaces.stream().map(element -> element.getName()).iterator(), ", "));
+			}
+
+		} else {
+
+			// create class
+			src.append("public class ");
+			src.append(_className);
+			src.append(" extends ");
+			src.append(superClass);
+
+			// output implemented interfaces
+			if (!implementedInterfaces.isEmpty()) {
+
+				src.append(" implements ");
+				src.append(StringUtils.join(implementedInterfaces.stream().map(element -> element.getName()).iterator(), ", "));
+			}
 		}
 
 		src.append(" {\n\n");
@@ -885,7 +902,7 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void extractMethods(final Schema entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
+	public static void extractMethods(final AbstractSchemaNode entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 
@@ -1005,7 +1022,8 @@ public class SchemaHelper {
 			String propertyName = it.next();
 
 			// convert _-prefixed property names to "real" name
-			if (propertyName.startsWith("_")) {
+			// FIXME: this is a workaround and had to be disabled
+			if (false && propertyName.startsWith("_")) {
 				propertyName = propertyName.substring(1) + "Property";
 			}
 

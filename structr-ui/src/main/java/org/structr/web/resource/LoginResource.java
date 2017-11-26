@@ -37,18 +37,12 @@ import org.structr.rest.resource.Resource;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.User;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Resource that handles user logins
- *
- *
+ * Resource that handles user logins.
  */
 public class LoginResource extends Resource {
 
 	private static final Logger logger       = LoggerFactory.getLogger(LoginResource.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -61,7 +55,6 @@ public class LoginResource extends Resource {
 		}
 
 		return false;
-
 	}
 
 	@Override
@@ -97,7 +90,6 @@ public class LoginResource extends Resource {
 		logger.info("Invalid credentials (name, email, password): {}, {}, {}", new Object[]{ name, email, password });
 
 		return new RestMethodResult(401);
-
 	}
 
 	@Override

@@ -18,23 +18,21 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Em extends DOMElement {
 
-/**
- *
- */
-public class Em extends DOMElement {
+	static class Impl { static {
 
-//	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Em");
 
-	//~--- methods --------------------------------------------------------
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	@Override
-	public boolean avoidWhitespace() {
-
-		return true;
-
-	}
+		type.overrideMethod("avoidWhitespace", true, "return true;");
+	}}
 }

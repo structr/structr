@@ -18,16 +18,31 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Embed extends DOMElement {
+public interface Embed extends DOMElement {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Embed");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_src",    PropertyView.Html);
+		type.addStringProperty("_html_type",   PropertyView.Html);
+		type.addStringProperty("_html_width",  PropertyView.Html);
+		type.addStringProperty("_html_height", PropertyView.Html);
+
+		type.overrideMethod("isVoidElement", false, "return true;");
+	}}
+
+	/*
 	public static final Property<String> _src		= new HtmlProperty("src");
 	public static final Property<String> _type		= new HtmlProperty("type");
 	public static final Property<String> _width		= new HtmlProperty("width");
@@ -36,7 +51,7 @@ public class Embed extends DOMElement {
 	public static final org.structr.common.View htmlView	= new org.structr.common.View(Embed.class, PropertyView.Html,
 		_src, _type, _width, _height
 	);
-	
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
@@ -45,4 +60,5 @@ public class Embed extends DOMElement {
 		return true;
 
 	}
+	*/
 }

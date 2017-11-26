@@ -19,10 +19,10 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.entity.ManyToMany;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
+import org.structr.web.entity.File;
 
-public class UserFavoriteFile extends ManyToMany<User, FileBase> {
+public class UserFavoriteFile extends ManyToMany<User, File> {
 
 	@Override
 	public Class<User> getSourceType() {
@@ -30,8 +30,8 @@ public class UserFavoriteFile extends ManyToMany<User, FileBase> {
 	}
 
 	@Override
-	public Class<FileBase> getTargetType() {
-		return FileBase.class;
+	public Class<File> getTargetType() {
+		return File.class;
 	}
 
 	@Override

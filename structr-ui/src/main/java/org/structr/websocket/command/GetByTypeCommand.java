@@ -34,24 +34,19 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket command to a list of nodes by type.
- * 
+ *
  * Supports paging and ignores thumbnails.
- *
- *
- *
  */
 public class GetByTypeCommand extends AbstractCommand {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(GetByTypeCommand.class.getName());
-	
+
 	static {
-		
+
 		StructrWebSocket.addCommand(GetByTypeCommand.class);
-		
+
 	}
 
 	@Override
@@ -71,21 +66,20 @@ public class GetByTypeCommand extends AbstractCommand {
 		if (properties != null) {
 			securityContext.setCustomView(StringUtils.split(properties, ","));
 		}
-		
+
 		final String sortOrder   = webSocketData.getSortOrder();
 		final String sortKey     = webSocketData.getSortKey();
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
 		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
 
-		
+
 		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden(includeDeletedAndHidden).sort(sortProperty).order("desc".equals(sortOrder));
 
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
-			query.and(Image.isThumbnail, false);
+			query.and(StructrApp.key(Image.class, "isThumbnail"), false);
 		}
-
 
 		try {
 

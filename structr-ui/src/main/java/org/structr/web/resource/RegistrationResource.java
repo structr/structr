@@ -55,12 +55,8 @@ import org.structr.rest.resource.Resource;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * A resource to register new users
- *
- *
+ * A resource to register new users.
  */
 public class RegistrationResource extends Resource {
 

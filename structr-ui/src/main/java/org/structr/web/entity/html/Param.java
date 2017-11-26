@@ -18,28 +18,24 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Param extends DOMElement {
+public interface Param extends DOMElement {
 
-	public static final Property<String> _value		= new HtmlProperty("value");
+	static class Impl { static {
 
-	public static final org.structr.common.View htmlView	= new org.structr.common.View(Param.class, PropertyView.Html,
-		_value
-	);
-	
-	//~--- get methods ----------------------------------------------------
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Param");
 
-	@Override
-	public boolean isVoidElement() {
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		return true;
+		type.addStringProperty("_html_value", PropertyView.Html);
 
-	}
+		type.overrideMethod("isVoidElement",   false, "return true;");
+	}}
 }

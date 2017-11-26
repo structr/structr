@@ -29,21 +29,18 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.web.entity.File;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to retrieve nodes of a given type which are on root level,
  * i.e. not children of another node.
  *
  * To get all nodes of a certain type, see the {@link GetCommand}.
- *
- *
  *
  */
 public class ListCommand extends AbstractCommand {
@@ -53,7 +50,6 @@ public class ListCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(ListCommand.class);
-
 	}
 
 	@Override
@@ -83,21 +79,21 @@ public class ListCommand extends AbstractCommand {
 		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
 		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type)/*.includeDeletedAndHidden()*/.sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
-		if (FileBase.class.isAssignableFrom(type)) {
+		if (File.class.isAssignableFrom(type)) {
 
 			if (rootOnly) {
-				query.and(FileBase.hasParent, false);
+				query.and(StructrApp.key(File.class, "hasParent"), false);
 			}
 
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-			query.not().and(Image.isThumbnail, true);
+			query.not().and(StructrApp.key(Image.class, "isThumbnail"), true);
 
 		}
 
 		// important
 		if (Folder.class.isAssignableFrom(type) && rootOnly) {
 
-			query.and(Folder.hasParent, false);
+			query.and(StructrApp.key(Folder.class, "hasParent"), false);
 		}
 
 		try {

@@ -19,6 +19,8 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Relation;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -26,19 +28,25 @@ import org.structr.web.entity.dom.DOMElement;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
- *
- *
  */
 public interface LinkSource extends DOMElement {
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("LinkSource");
+		final JsonSchema schema       = SchemaService.getDynamicSchema();
+		final JsonObjectType type     = schema.addType("LinkSource");
+		final JsonObjectType linkable = (JsonObjectType)schema.getType("Linkable");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LinkSource"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
+
+		//type.addPropertySetter("linkable", Linkable.class);
+		type.addMethod("setLinkable").setSource("setProperty(linkableProperty, linkable);").addParameter("linkable", "org.structr.web.entity.Linkable");
 	}}
+
+	void setLinkable(final Linkable linkable) throws FrameworkException;
 
 	//public static final Property<Linkable> linkable = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
 	//public static final Property<String> linkableId = new EntityIdProperty("linkableId", linkable);

@@ -18,33 +18,30 @@
  */
 package org.structr.web.entity;
 
-import com.google.javascript.jscomp.BasicErrorManager;
-import com.google.javascript.jscomp.CheckLevel;
-import com.google.javascript.jscomp.CommandLineRunner;
-import com.google.javascript.jscomp.CompilationLevel;
-import com.google.javascript.jscomp.Compiler;
-import com.google.javascript.jscomp.CompilerOptions;
-import com.google.javascript.jscomp.JSError;
-import com.google.javascript.jscomp.SourceFile;
-import com.google.javascript.jscomp.parsing.parser.util.format.SimpleFormat;
-import java.io.IOException;
-import java.util.ArrayList;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.ModificationEvent;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.web.common.FileHelper;
-import org.structr.web.entity.relation.MinificationSource;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
-public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
+public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
+
+	static class Impl { static {
+
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("MinifiedJavaScriptFile");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MinifiedJavaScriptFile"));
+		type.setExtends(URI.create("#/definitions/AbstractMinifiedFile"));
+
+		type.addEnumProperty("optimizationLevel", PropertyView.Public).setEnums("WHITESPACE_ONLY", "SIMPLE_OPTIMIZATIONS", "ADVANCED_OPTIMIZATIONS");
+		type.addStringProperty("warnings", PropertyView.Public);
+		type.addStringProperty("errors",   PropertyView.Public);
+	}}
+
+	String getOptimizationLevel();
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(MinifiedJavaScriptFile.class.getName());
 
@@ -111,9 +108,9 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 		int cnt = 0;
 		for (MinificationSource rel : getSortedRelationships()) {
 
-			final FileBase src = rel.getTargetNode();
+			final File src = rel.getTargetNode();
 
-			sourceList.add(SourceFile.fromCode(src.getProperty(FileBase.name), FileUtils.readFileToString(src.getFileOnDisk())));
+			sourceList.add(SourceFile.fromCode(src.getProperty(File.name), FileUtils.readFileToString(src.getFileOnDisk())));
 
 			// compact the relationships (if necessary)
 			if (rel.getProperty(MinificationSource.position) != cnt) {
@@ -124,4 +121,5 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 		return sourceList;
 	}
+	*/
 }

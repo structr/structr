@@ -44,12 +44,12 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.File;
 
 
 
@@ -269,7 +269,7 @@ public abstract class AbstractHintProvider {
 				break;
 
 			case "link":
-				currentObjectType = FileBase.class;
+				currentObjectType = File.class;
 				break;
 
 			case "template":
@@ -382,14 +382,14 @@ public abstract class AbstractHintProvider {
 
 		if (entity != null) {
 
-			final String dataKey = entity.getProperty(DOMNode.dataKey);
+			final String dataKey = entity.getProperty("dataKey");
 			if (dataKey != null) {
 
 				final DataKey key = new DataKey(entity);
 				dataKeys.put(key.getDataKey(), key);
 			}
 
-			recursivelyFindDataKeys(entity.getProperty(DOMNode.parent), dataKeys);
+			recursivelyFindDataKeys(entity.getProperty("parent"), dataKeys);
 		}
 	}
 
@@ -450,21 +450,21 @@ public abstract class AbstractHintProvider {
 
 		public DataKey(final GraphObject entity) {
 
-			dataKey = entity.getProperty(DOMNode.dataKey);
-			query   = entity.getProperty(DOMNode.restQuery);
+			dataKey = entity.getProperty("dataKey");
+			query   = entity.getProperty("restQuery");
 
 			if (query == null) {
-				query = entity.getProperty(DOMNode.cypherQuery);
+				query = entity.getProperty("cypherQuery");
 				queryType = QueryType.Cypher;
 			}
 
 			if (query == null) {
-				query = entity.getProperty(DOMNode.xpathQuery);
+				query = entity.getProperty("xpathQuery");
 				queryType = QueryType.XPath;
 			}
 
 			if (query == null) {
-				query = entity.getProperty(DOMNode.functionQuery);
+				query = entity.getProperty("functionQuery");
 				queryType = QueryType.Function;
 			}
 		}

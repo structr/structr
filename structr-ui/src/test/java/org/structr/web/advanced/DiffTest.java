@@ -18,33 +18,14 @@
  */
 package org.structr.web.advanced;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Function;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
-import org.structr.web.common.RenderContext;
-import org.structr.web.diff.InvertibleModificationOperation;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Div;
-import org.structr.web.importer.Importer;
-import org.w3c.dom.NodeList;
 
 /**
  *
  *
  */
 public class DiffTest extends StructrUiTest {
+	/*+
 
 	private static final Logger logger = LoggerFactory.getLogger(DiffTest.class.getName());
 
@@ -718,4 +699,5 @@ public class DiffTest extends StructrUiTest {
 
 		return list;
 	}
+	*/
 }

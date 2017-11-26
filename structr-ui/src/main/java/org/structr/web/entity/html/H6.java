@@ -18,16 +18,19 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface H6 extends DOMElement {
 
-/**
- *
- */
-public class H6 extends DOMElement {
+	static class Impl { static {
 
-//	public static final EndNodes<Content> contents = new EndNodes<Content>("contents", Content.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<B>       bs       = new EndNodes<B>("bs", B.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<Span>    spans    = new EndNodes<Span>("spans", Span.class, RelType.CONTAINS, Direction.OUTGOING, false);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("H6");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+	}}
 }

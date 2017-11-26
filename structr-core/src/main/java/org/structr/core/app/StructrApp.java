@@ -60,6 +60,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
@@ -494,6 +495,10 @@ public class StructrApp implements App {
 		}
 	}
 
+	public static <T> PropertyKey<T> key(final Class type, final String name) {
+		return getConfiguration().getPropertyKeyForJSONName(type, name);
+	}
+
 	// ----- private static methods -----
 	private static void initializeSchemaIds() {
 
@@ -501,10 +506,17 @@ public class StructrApp implements App {
 		for (final Class type : StructrApp.getConfiguration().getInterfaces().values()) {
 
 			// only register node types
-			if (type.isInterface() && NodeInterface.class.isAssignableFrom(type)) {
+			//if (type.isInterface() && NodeInterface.class.isAssignableFrom(type)) {
+			if (NodeInterface.class.isAssignableFrom(type)) {
 
 				registerType(type);
 			}
+		}
+
+		// add Structr interfaces here
+		for (final Class type : StructrApp.getConfiguration().getNodeEntities().values()) {
+
+			registerType(type);
 		}
 	}
 

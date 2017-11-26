@@ -26,10 +26,10 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -78,9 +78,8 @@ public class ChunkCommand extends AbstractCommand {
 
 			}
 
-			final FileBase file = (FileBase) getNode(uuid);
-
-			if (file.getProperty(FileBase.isTemplate)) {
+			final File file = (File) getNode(uuid);
+			if (file.isTemplate()) {
 
 				logger.warn("No write permission, file is in template mode: {}", new Object[] {file.toString()});
 				getWebSocket().send(MessageBuilder.status().message("No write permission, file is in template mode").code(400).build(), true);

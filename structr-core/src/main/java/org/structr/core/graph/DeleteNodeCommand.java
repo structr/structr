@@ -31,11 +31,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Deletes a node.
- *
- *
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
@@ -43,12 +40,10 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
-	//~--- methods --------------------------------------------------------
 	public void execute(NodeInterface node) {
 
 		doDeleteNode(node);
 		deletedNodes.clear();
-
 	}
 
 	private AbstractNode doDeleteNode(final NodeInterface node) {
@@ -108,8 +103,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				// deleted rels can be null
 				if (rel != null) {
 
-					int cascadeDelete = rel.cascadeDelete();
-					NodeInterface startNode = rel.getSourceNode();
+					final int cascadeDelete       = rel.cascadeDelete();
+					final NodeInterface startNode = rel.getSourceNode();
 
 					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
 

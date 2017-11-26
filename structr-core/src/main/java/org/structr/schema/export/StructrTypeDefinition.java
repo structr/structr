@@ -72,6 +72,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Set<StructrMethodDefinition> methods          = new TreeSet<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
+	protected boolean isAbstract                                  = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
 	protected String name                                         = null;
@@ -124,6 +125,17 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	public JsonType setName(final String name) {
 
 		this.name = name;
+		return this;
+	}
+
+	@Override
+	public boolean isAbstract() {
+		return isAbstract;
+	}
+
+	@Override
+	public JsonType setAbstract() {
+		this.isAbstract = true;
 		return this;
 	}
 
@@ -527,6 +539,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
+		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 
 		// properties
 		if (!serializedProperties.isEmpty()) {
@@ -571,6 +584,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	void deserialize(final Map<String, Object> source) {
+
+		if (source.containsKey(JsonSchema.KEY_IS_ABSTRACT)) {
+			this.isAbstract = (Boolean)source.get(JsonSchema.KEY_IS_ABSTRACT);
+		}
 
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
 
@@ -686,6 +703,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				}
 			}
 		}
+
+		this.isAbstract = schemaNode.getProperty(SchemaNode.isAbstract);
 	}
 
 	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
@@ -770,7 +789,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				final Class superclass = StructrApp.resolveSchemaId(baseTypeReference);
 				if (superclass != null) {
 
-					schemaNode.setProperty(SchemaNode.implementsInterfaces, superclass.getName());
+					if (superclass.isInterface()) {
+
+						schemaNode.setProperty(SchemaNode.implementsInterfaces, superclass.getName());
+
+					} else {
+
+						schemaNode.setProperty(SchemaNode.extendsClass, superclass.getName());
+					}
 
 				} else if ("https://structr.org/v1.1/definitions/FileBase".equals(baseTypeReference.toString())) {
 
@@ -809,6 +835,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			schemaNode.setProperty(SchemaNode.implementsInterfaces, list.toString());
 		}
+
+		schemaNode.setProperty(SchemaNode.isAbstract, isAbstract);
 
 		return schemaNode;
 	}
@@ -923,6 +951,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					throw new IllegalStateException("Method definition " + methodName + " must be of type string or map.");
 				}
 			}
+		}
+
+		final Object isAbstractValue = source.get(JsonSchema.KEY_IS_ABSTRACT);
+		if (isAbstractValue != null && Boolean.TRUE.equals(isAbstractValue)) {
+
+			typeDefinition.setAbstract();
 		}
 
 		return typeDefinition;

@@ -19,14 +19,14 @@
 package org.structr.web.entity.relation;
 
 import org.structr.core.entity.relationship.AbstractChildren;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.File;
 
 /**
  *
  *
  */
-public class Files extends AbstractChildren<Folder, FileBase> {
+public class Files extends AbstractChildren<Folder, File> {
 
 	@Override
 	public Class<Folder> getSourceType() {
@@ -34,7 +34,7 @@ public class Files extends AbstractChildren<Folder, FileBase> {
 	}
 
 	@Override
-	public Class<FileBase> getTargetType() {
-		return FileBase.class;
+	public Class<File> getTargetType() {
+		return File.class;
 	}
 }

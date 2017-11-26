@@ -141,11 +141,11 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
-		for (DOMNode child : node.treeGetChildren()) {
+		for (DOMNode child : node.getChildren()) {
 			deleteRecursively(app, child);
 		}
 
-		for (DOMNode sync : node.getProperty(DOMNode.syncedNodes)) {
+		for (DOMNode sync : node.getSyncedNodes()) {
 
 			deleteRecursively(app, sync);
 		}
@@ -198,8 +198,11 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 				if (existingComponent instanceof Template) {
 
-					properties.put(Template.content, existingComponent.getProperty(Template.content));
-					existingComponent.setProperty(Template.ownerDocument, null);
+					final PropertyKey<String> contentKey = StructrApp.key(Template.class, "content");
+
+					properties.put(contentKey, existingComponent.getProperty(contentKey));
+					
+					existingComponent.setOwnerDocument(null);
 
 				} else {
 

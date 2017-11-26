@@ -21,7 +21,9 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -29,14 +31,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
+import org.structr.web.entity.Site;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
@@ -72,17 +77,19 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		// category is part of a special view named "category"
 		type.addStringProperty("category", PropertyView.Public, "category" ).setIndexed(true);
 
-
-		type.addMethod("getContent").setReturnType("String").setSource("return org.structr.web.entity.dom.Page.getContent(this, editMode);").addParameter("editMode", "RenderContext.EditMode");
+		type.overrideMethod("getContent",    false, "return org.structr.web.entity.dom.Page.getContent(this, editMode);");
+		type.overrideMethod("createElement", false, "return org.structr.web.entity.dom.Page.createElement(this, tag, suppressException);");
 	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
 
+	Integer getCacheForSeconds();
 
-
-
-	String getContent(final RenderContext.EditMode editMode) throws FrameworkException;
 	Element createElement (final String tag, final boolean suppressException);
+
+	List<DOMNode> getElements();
+
+	Site getSite();
 
 
 
@@ -176,20 +183,21 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	 */
 	public static Page createNewPage(final SecurityContext securityContext, final String uuid, final String name) throws FrameworkException {
 
-		final PropertyKey<String> contentTypeKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "contentType");
-		final PropertyKey<Boolean> hideOnDetailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnDetail");
-		final PropertyKey<Boolean> hideOnIndexKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnIndex");
-		final App app                              = StructrApp.getInstance(securityContext);
-		final PropertyMap properties               = new PropertyMap();
+		final PropertyKey<String> contentTypeKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "contentType");
+		final PropertyKey<Boolean> hideOnDetailKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnDetail");
+		final PropertyKey<Boolean> hideOnIndexKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnIndex");
+		final PropertyKey<Boolean> enableBasicAuthKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "enableBasicAuth");
+		final App app                                 = StructrApp.getInstance(securityContext);
+		final PropertyMap properties                  = new PropertyMap();
 
 		// set default values for properties on creation to avoid them
 		// being set separately when indexing later
 		properties.put(AbstractNode.name, name != null ? name : "page");
 		properties.put(AbstractNode.type, Page.class.getSimpleName());
-		properties.put(contentTypeKey, "text/html");
-		properties.put(hideOnDetailKey, false);
-		properties.put(hideOnIndexKey, false);
-		properties.put(Page.enableBasicAuth, false);
+		properties.put(contentTypeKey,     "text/html");
+		properties.put(hideOnDetailKey,    false);
+		properties.put(hideOnIndexKey,     false);
+		properties.put(enableBasicAuthKey, false);
 
 		if (uuid != null) {
 			properties.put(Page.id, uuid);
@@ -260,6 +268,50 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 		// extract source
 		return buffer.getBuffer().toString();
+	}
+
+	static Element createElement (final Page page, final String tag, final boolean suppressException) {
+
+		final String elementType = StringUtils.capitalize(tag);
+		final App app            = StructrApp.getInstance(page.getSecurityContext());
+
+		String c = Content.class.getSimpleName();
+
+		// Avoid creating an (invalid) 'Content' DOMElement
+		if (elementType == null || c.equals(elementType)) {
+
+			logger.warn("Blocked attempt to create a DOMElement of type {}", c);
+
+			return null;
+
+		}
+
+		try {
+
+			final Class entityClass = Class.forName("org.structr.web.entity.html." + elementType);
+			if (entityClass != null) {
+
+				final ConfigurationProvider config = StructrApp.getConfiguration();
+
+				final DOMElement element = (DOMElement) app.create(entityClass,
+					new NodeAttribute(config.getPropertyKeyForJSONName(entityClass, "tag"),          tag),
+					new NodeAttribute(config.getPropertyKeyForJSONName(entityClass, "hideOnDetail"), false),
+					new NodeAttribute(config.getPropertyKeyForJSONName(entityClass, "hideOnIndex"),  false)
+				);
+
+				element.doAdopt(page);
+
+				return element;
+			}
+
+		} catch (Throwable t) {
+
+			if (!suppressException) {
+				logger.error("Unable to instantiate element of type " + elementType, t);
+			}
+		}
+
+		return null;
 	}
 
 	/*

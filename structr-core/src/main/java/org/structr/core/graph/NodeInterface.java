@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -28,6 +29,7 @@ import org.structr.common.View;
 import org.structr.core.GraphObject;
 import static org.structr.core.GraphObject.id;
 import static org.structr.core.GraphObject.type;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.ManyEndpoint;
 import org.structr.core.entity.ManyStartpoint;
@@ -42,6 +44,7 @@ import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EntityIdProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
@@ -82,6 +85,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	<R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
 	<R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
 
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type);
+
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type);
 
 	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type);
@@ -92,4 +99,10 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	void setRawPathSegment(final Relationship pathSegment);
 	Relationship getRawPathSegment();
+
+	List<Security> getSecurityRelationships();
+
+	public static <T> PropertyKey<T> getKey(final String name) {
+		return StructrApp.getConfiguration().getPropertyKeyForJSONName(MethodHandles.lookup().lookupClass(), name, false);
+	}
 }

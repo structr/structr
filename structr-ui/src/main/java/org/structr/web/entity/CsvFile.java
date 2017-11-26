@@ -18,18 +18,24 @@
  */
 package org.structr.web.entity;
 
-import org.structr.dynamic.File;
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  *
  *
  *
  */
-public class CsvFile extends File {
-//
-//	static {
-//
-//		StructrApp.getConfiguration().registerPropertySet(CsvFile.class, PropertyView.All, Key.values());
-//	}
-//
+public interface CsvFile extends File {
+
+	static class Impl { static {
+
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("CsvFile");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CsvFile"));
+		type.setExtends(URI.create("#/definitions/File"));
+	}}
 }

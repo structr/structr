@@ -18,29 +18,37 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.dom.Content;
-import org.w3c.dom.Node;
+import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Script extends LinkSource {
+public interface Script extends LinkSource {
 
-	private static final Logger logger = LoggerFactory.getLogger(Script.class.getName());
+	static class Impl { static {
 
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Script");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Script"));
+		type.setExtends(URI.create("#/definitions/LinkSource"));
+
+		type.addStringProperty("_html_src",     PropertyView.Html);
+		type.addStringProperty("_html_async",   PropertyView.Html);
+		type.addStringProperty("_html_defer",   PropertyView.Html);
+		type.addStringProperty("_html_type",    PropertyView.Html);
+		type.addStringProperty("_html_charset", PropertyView.Html);
+
+		//type.overrideMethod("onCreation",        false, "error");
+		//type.overrideMethod("handleNewChild",    false, "error");
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+	}}
+
+
+	/*
 	public static final Property<String> _src     = new HtmlProperty("src");
 	public static final Property<String> _async   = new HtmlProperty("async");
 	public static final Property<String> _defer   = new HtmlProperty("defer");
@@ -95,5 +103,5 @@ public class Script extends LinkSource {
 			}
 		}
 	}
-
+	*/
 }

@@ -63,10 +63,10 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.dynamic.File;
 import org.structr.files.cmis.config.StructrRepositoryInfo;
 import org.structr.files.cmis.wrapper.CMISTypeDefinitionListWrapper;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**

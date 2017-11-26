@@ -65,9 +65,11 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	private static final Logger logger = LoggerFactory.getLogger(RestDataSource.class.getName());
 
 	@Override
-	public Iterable<GraphObject> getData(final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, DOMNode referenceNode) throws FrameworkException {
 
-		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, DOMNode.restQuery);
+		final PropertyKey<String> restQueryKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "restQuery");
+		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
+
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
 		}

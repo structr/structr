@@ -98,12 +98,12 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		final App app                    = StructrApp.getInstance(securityContext);
 		final SourceSearchAttribute attr = new SourceSearchAttribute(occur);
+		final Query<AbstractFile> q      = app.nodeQuery(AbstractFile.class).and(AbstractFile.name, PathHelper.getName(searchValue));
 
-		final Query<AbstractFile> q = app.nodeQuery(AbstractFile.class).and(AbstractFile.name, PathHelper.getName(searchValue));
 		try {
 			for (final AbstractFile fileOrFolder : q.getAsList()) {
 
-				if (fileOrFolder != null && fileOrFolder.getProperty(AbstractFile.path).equals(searchValue)) {
+				if (fileOrFolder != null && fileOrFolder.getPath().equals(searchValue)) {
 
 					attr.addToResult(fileOrFolder);
 				}

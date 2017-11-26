@@ -21,16 +21,14 @@ package org.structr.web.function;
 import java.io.IOException;
 import org.python.google.common.io.Files;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
-import static org.structr.web.entity.FileBase.checksum;
-import static org.structr.web.entity.FileBase.size;
-import static org.structr.web.entity.FileBase.version;
+import org.structr.web.entity.File;
 
 public class CopyFileContentsFunction extends Function<Object, Object> {
 
@@ -45,10 +43,10 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 			final Object toCopy = sources[0];
 			final Object toBeReplaced = sources[1];
 
-			if (toCopy instanceof FileBase && toBeReplaced instanceof FileBase) {
+			if (toCopy instanceof File && toBeReplaced instanceof File) {
 
-				FileBase nodeToCopy = (FileBase) toCopy;
-				FileBase nodeToBeReplaced = (FileBase) toBeReplaced;
+				File nodeToCopy = (File) toCopy;
+				File nodeToBeReplaced = (File) toBeReplaced;
 
 				try {
 
@@ -71,14 +69,19 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 					Files.copy(fileToCopy, fileToBeReplaced);
 
-					final PropertyMap changedProperties = new PropertyMap();
-					changedProperties.put(checksum, FileHelper.getChecksum(fileToBeReplaced));
-					changedProperties.put(version, 0);
+					final PropertyKey<Integer> versionKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "version");
+					final PropertyKey<Long> checksumKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "checksum");
+					final PropertyKey<Long> sizeKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "size");
+					final PropertyMap changedProperties   = new PropertyMap();
+
+					changedProperties.put(checksumKey, FileHelper.getChecksum(fileToBeReplaced));
+					changedProperties.put(versionKey, 0);
 					changedProperties.put(new StringProperty("contentType"), nodeToCopy.getProperty(new StringProperty("contentType")));
 
 					long fileSize = FileHelper.getSize(nodeToBeReplaced);
 					if (fileSize > 0) {
-						changedProperties.put(size, fileSize);
+						
+						changedProperties.put(sizeKey, fileSize);
 					}
 
 					nodeToBeReplaced.unlockSystemPropertiesOnce();

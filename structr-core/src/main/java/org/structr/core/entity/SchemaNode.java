@@ -74,21 +74,22 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Integer>                      hierarchyLevel       = new IntProperty("hierarchyLevel").indexed();
 	public static final Property<Integer>                      relCount             = new IntProperty("relCount").indexed();
 	public static final Property<Boolean>                      shared               = new BooleanProperty("shared").indexed();
+	public static final Property<Boolean>                      isAbstract           = new BooleanProperty("isAbstract").indexed();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isAbstract
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isAbstract
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isAbstract
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
-		extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isAbstract
 	);
 
 	@Override
@@ -286,6 +287,10 @@ public class SchemaNode extends AbstractSchemaNode {
 
 				removeProperty(extendsClass);
 				setProperty(implementsInterfaces, "org.structr.web.entity.File");
+
+			} else if (_extendsClass.equals("org.structr.core.entity.LinkedTreeNode")) {
+
+				// do nothing
 
 			} else if (_extendsClass.startsWith("org.structr.") && !_extendsClass.startsWith("org.structr.dynamic.") && !AbstractNode.class.getName().equals(_extendsClass)) {
 

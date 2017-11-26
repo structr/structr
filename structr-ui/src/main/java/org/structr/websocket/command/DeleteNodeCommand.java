@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -37,7 +36,6 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to delete a single node.
  */
@@ -51,7 +49,6 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -61,20 +58,13 @@ public class DeleteNodeCommand extends AbstractCommand {
 		if (obj != null) {
 
 			deleteNode(getWebSocket(), obj, recursive);
-
-		} else {
-			// Don't throw a 404. If node doesn't exist, it doesn't need to be removed,
-			// and everything is fine!.
-			//logger.warn("Node with id {} not found.", webSocketData.getId());
-			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
 		}
 	}
 
 	protected static void deleteNode(final StructrWebSocket ws, final NodeInterface obj, final Boolean recursive) {
 
 		final SecurityContext securityContext = ws.getSecurityContext();
-		
+
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
@@ -98,7 +88,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 			// Remove all child nodes first
 			try {
 
-				final List<AbstractNode> filteredResults = new LinkedList();
+				final List<NodeInterface> filteredResults = new LinkedList<>();
 				if (obj instanceof DOMNode) {
 
 					DOMNode node = (DOMNode) obj;
@@ -110,7 +100,6 @@ public class DeleteNodeCommand extends AbstractCommand {
 					LinkedTreeNode node = (LinkedTreeNode) obj;
 
 					filteredResults.addAll(node.getAllChildNodes());
-
 				}
 
 				for (NodeInterface node : filteredResults) {
@@ -138,7 +127,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 			logger.warn("Unable to delete node(s)", fex);
 		}
 	}
-	
+
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {

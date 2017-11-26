@@ -57,13 +57,8 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Base class for all structr UI tests
- *
- * All tests are executed in superuser context
- *
- *
+ * Base class for all structr UI tests.
  */
 public abstract class StructrUiTest {
 
@@ -143,6 +138,8 @@ public abstract class StructrUiTest {
 		Settings.HttpPort.setValue(httpPort);
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
+
+		Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 

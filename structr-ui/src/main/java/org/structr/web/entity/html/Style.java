@@ -18,38 +18,31 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.web.common.HtmlProperty;
-import org.structr.web.entity.dom.Content;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
-import org.w3c.dom.Node;
 
-//~--- classes ----------------------------------------------------------------
+public interface Style extends DOMElement {
 
-/**
- *
- */
-public class Style extends DOMElement {
+	static class Impl { static {
 
-	private static final Logger logger = LoggerFactory.getLogger(Style.class.getName());
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Style");
 
-	public static final Property<String> _media  = new HtmlProperty("media");
-	public static final Property<String> _type   = new HtmlProperty("type");
-	public static final Property<String> _scoped = new HtmlProperty("scoped");
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	public static final View htmlView = new View(Style.class, PropertyView.Html,
-		_media, _type, _scoped
-	);
+		type.addStringProperty("_html_media",  PropertyView.Html);
+		type.addStringProperty("_html_type",   PropertyView.Html);
+		type.addStringProperty("_html_scoped", PropertyView.Html);
 
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+		//type.overrideMethod("handleNewChild",    false, "error");
+	}}
+
+	/*
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -93,5 +86,5 @@ public class Style extends DOMElement {
 			}
 		}
 	}
-
+	*/
 }

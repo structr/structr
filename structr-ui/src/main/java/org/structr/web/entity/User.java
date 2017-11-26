@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity;
 
-import java.util.List;
 import org.structr.api.config.Settings;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.KeyAndClass;
@@ -27,17 +26,15 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.web.entity.relation.UserFavoriteFavoritable;
 import org.structr.web.entity.relation.UserHomeDir;
 import org.structr.web.entity.relation.UserImage;
 import org.structr.web.entity.relation.UserWorkDir;
@@ -86,7 +83,7 @@ public interface User extends Principal {
 	//public static final Property<Boolean>           isUser                    = new ConstantBooleanProperty("isUser", true);
 	//public static final Property<String>            twitterName               = new StringProperty("twitterName").cmis().indexed();
 	//public static final Property<String>            localStorage              = new StringProperty("localStorage");
-	public static final Property<List<Favoritable>> favorites                 = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
+	//public static final Property<List<Favoritable>> favorites                 = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
 	//public static final Property<Boolean>           skipSecurityRelationships = new BooleanProperty("skipSecurityRelationships").defaultValue(Boolean.FALSE).indexed().readOnly();
 
 	/*
@@ -114,6 +111,9 @@ public interface User extends Principal {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
+			final PropertyKey<Folder> homeFolderKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "homeFolderOfUser");
+			final PropertyKey<Folder> parentKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
+
 			// use superuser context here
 			final SecurityContext storedContext = user.getSecurityContext();
 
@@ -126,7 +126,7 @@ public interface User extends Principal {
 
 					// create home directory
 					final App app     = StructrApp.getInstance();
-					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(Folder.parent, null).getFirst();
+					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(parentKey, null).getFirst();
 
 					if (homeFolder == null) {
 
@@ -140,9 +140,9 @@ public interface User extends Principal {
 					app.create(Folder.class,
 						new NodeAttribute(Folder.name, user.getUuid()),
 						new NodeAttribute(Folder.owner, user),
-						new NodeAttribute(AbstractFile.parent, homeFolder),
 						new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
-						new NodeAttribute(Folder.homeFolderOfUser, user)
+						new NodeAttribute(parentKey, homeFolder),
+						new NodeAttribute(homeFolderKey, user)
 					);
 				}
 

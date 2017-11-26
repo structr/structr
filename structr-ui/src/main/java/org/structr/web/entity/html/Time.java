@@ -18,28 +18,24 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Time extends DOMElement {
+public interface Time extends DOMElement {
 
-	public static final Property<String> _datetime = new HtmlProperty("datetime");
+	static class Impl { static {
 
-	public static final org.structr.common.View htmlView	= new org.structr.common.View(Time.class, PropertyView.Html,
-		_datetime
-	);
-	
-	//~--- methods --------------------------------------------------------
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Time");
 
-	@Override
-	public boolean avoidWhitespace() {
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		return false;
+		type.addStringProperty("_html_datetime", PropertyView.Html);
 
-	}
+		type.overrideMethod("avoidWhitespace", false, "return true;");
+	}}
 }

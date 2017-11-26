@@ -452,4 +452,24 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	public Class getEntityType() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
+
+	@Override
+	public List<Security> getSecurityRelationships() {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
 }

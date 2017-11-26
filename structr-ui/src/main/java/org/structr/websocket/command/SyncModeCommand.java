@@ -30,7 +30,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- *
  */
 public class SyncModeCommand extends AbstractCommand {
 

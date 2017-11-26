@@ -25,18 +25,16 @@ import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch.Patch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.dom.Content;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class PatchCommand extends AbstractCommand {
@@ -44,27 +42,28 @@ public class PatchCommand extends AbstractCommand {
 	private static final Logger logger = LoggerFactory.getLogger(PatchCommand.class.getName());
 
 	static {
+
 		StructrWebSocket.addCommand(PatchCommand.class);
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		final AbstractNode node        = getNode(webSocketData.getId());
-		Map<String, Object> properties = webSocketData.getNodeData();
-		String patch                   = (String) properties.get("patch");
+		final PropertyKey<String> contentKey = StructrApp.key(Content.class, "content");
+		final AbstractNode node              = getNode(webSocketData.getId());
+		Map<String, Object> properties       = webSocketData.getNodeData();
+		String patch                         = (String) properties.get("patch");
 
 		if (node != null) {
 
 			final DiffMatchPatch dmp        = new DiffMatchPatch();
-			final String oldText            = node.getProperty(Content.content);
+			final String oldText            = node.getProperty(contentKey);
 			final LinkedList<Patch> patches = new LinkedList<>(dmp.patchFromText(patch));
 			final Object[] results          = dmp.patchApply(patches, oldText);
 
 			try {
-				node.setProperties(node.getSecurityContext(), new PropertyMap(Content.content, results[0].toString()));
+
+				node.setProperty(contentKey, results[0].toString());
 
 				TransactionCommand.registerNodeCallback(node, callback);
 
@@ -72,25 +71,18 @@ public class PatchCommand extends AbstractCommand {
 
 				logger.warn("Could not apply patch {}", patch);
 				getWebSocket().send(MessageBuilder.status().code(400).message("Could not apply patch. " + t.getMessage()).build(), true);
-
 			}
 
 		} else {
 
 			logger.warn("Node with uuid {} not found.", webSocketData.getId());
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node with uuid " + webSocketData.getId() + " not found.").build(), true);
-
 		}
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
 
 		return "PATCH";
-
 	}
-
 }

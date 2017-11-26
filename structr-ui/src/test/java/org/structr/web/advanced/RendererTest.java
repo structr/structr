@@ -18,25 +18,13 @@
  */
 package org.structr.web.advanced;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.hamcrest.Matchers;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
-import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.Page;
-import org.w3c.dom.Element;
-import static ucar.httpservices.CustomX509TrustManager.logger;
 
 /**
  *
  */
 public class RendererTest extends StructrUiTest {
+	/*
 
 	@Test
 	public void testMarkdownRenderer() {

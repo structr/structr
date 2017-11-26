@@ -37,8 +37,6 @@ import org.structr.websocket.message.WebSocketMessage;
 
 /**
  *
- *
- *
  */
 public class SaveNodeCommand extends AbstractCommand {
 

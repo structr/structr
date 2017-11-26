@@ -31,24 +31,20 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.structr.web.entity.html.Input;
 import org.structr.web.entity.html.Link;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to retrieve DOM nodes which are not attached to a parent element
- *
- *
+ * Websocket command to retrieve DOM nodes which are not attached to a parent element.
  */
 public class ListActiveElementsCommand extends AbstractCommand {
 
@@ -62,7 +58,6 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(ListActiveElementsCommand.class);
-
 	}
 
 	public enum ActiveElementState {
@@ -114,7 +109,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	// ----- private methods -----
 	private void collectActiveElements(final List<GraphObject> resultList, final DOMNode root, final Set<String> parentDataKeys, final String parent, final int depth) {
 
-		final String childDataKey  = root.getProperty(DOMElement.dataKey);
+		final String childDataKey  = root.getDataKey();
 		final Set<String> dataKeys = new LinkedHashSet<>(parentDataKeys);
 		String parentId            = parent;
 		int dataCentricDepth       = depth;
@@ -135,9 +130,8 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			}
 		}
 
-		for (final DOMChildren children : root.getChildRelationships()) {
+		for (final DOMNode child : root.getChildren()) {
 
-			final DOMNode child = children.getTargetNode();
 			collectActiveElements(resultList, child, dataKeys, parentId, dataCentricDepth);
 		}
 
@@ -145,21 +139,24 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 	private GraphObject extractActiveElement(final DOMNode node, final Set<String> dataKeys, final String parentId, final ActiveElementState state, final int depth) {
 
-		final GraphObjectMap activeElement = new GraphObjectMap();
+		final PropertyKey<String> actionKey  = StructrApp.key(DOMElement.class, "data-structr-action");
+		final PropertyKey<String> hrefKey    = StructrApp.key(Link.class,       "_html_href");
+		final PropertyKey<String> contentKey = StructrApp.key(Content.class,    "content");
+		final GraphObjectMap activeElement   = new GraphObjectMap();
 
 		activeElement.put(GraphObject.id, node.getUuid());
 		activeElement.put(GraphObject.type, node.getType());
-		activeElement.put(DOMElement.dataKey, StringUtils.join(dataKeys, ","));
-		activeElement.put(Content.content, node.getProperty(Content.content));
+		activeElement.put(StructrApp.key(DOMElement.class, "dataKey"), StringUtils.join(dataKeys, ","));
+		activeElement.put(contentKey, node.getProperty(contentKey));
 
 		switch (state) {
 
 			case Button:
-				activeElement.put(actionProperty, node.getProperty(DOMElement._action));
+				activeElement.put(actionProperty, node.getProperty(actionKey));
 				break;
 
 			case Link:
-				activeElement.put(actionProperty, node.getProperty(Link._href));
+				activeElement.put(actionProperty, node.getProperty(hrefKey));
 				break;
 
 			case Query:
@@ -177,23 +174,23 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 	private ActiveElementState isActive(final DOMNode node, final Set<String> dataKeys) {
 
-		if (!StringUtils.isEmpty(node.getProperty(DOMElement.dataKey))) {
+		if (!StringUtils.isEmpty(node.getDataKey())) {
 			return ActiveElementState.Query;
 		}
 
-		if (!StringUtils.isEmpty(node.getProperty(DOMElement.restQuery))) {
+		if (!StringUtils.isEmpty(node.getRestQuery())) {
 			return ActiveElementState.Query;
 		}
 
-		if (!StringUtils.isEmpty(node.getProperty(DOMElement.cypherQuery))) {
+		if (!StringUtils.isEmpty(node.getCypherQuery())) {
 			return ActiveElementState.Query;
 		}
 
-		if (!StringUtils.isEmpty(node.getProperty(DOMElement.xpathQuery))) {
+		if (!StringUtils.isEmpty(node.getXPathQuery())) {
 			return ActiveElementState.Query;
 		}
 
-		if (!StringUtils.isEmpty(node.getProperty(DOMElement.functionQuery))) {
+		if (!StringUtils.isEmpty(node.getFunctionQuery())) {
 			return ActiveElementState.Query;
 		}
 
@@ -203,53 +200,61 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		  - data-structr-attributes
 		  - data-structr-raw-value
 		*/
-		if (node.getProperty(DOMElement._action) != null || node.getProperty(DOMElement._attributes) != null || node.getProperty(DOMElement._rawValue) != null) {
+		final PropertyKey<String> actionKey  = StructrApp.key(DOMElement.class, "data-structr-action");
+		final PropertyKey<String> attrKey    = StructrApp.key(DOMElement.class, "data-structr-attributes");
+		final PropertyKey<String> rawKey     = StructrApp.key(DOMElement.class, "data-structr-raw-value");
+		final PropertyKey<String> idKey      = StructrApp.key(DOMElement.class, "_html_id");
+		final PropertyKey<String> valueKey   = StructrApp.key(Input.class,      "_html_value");
+		final PropertyKey<String> hrefKey    = StructrApp.key(Link.class,       "_html_href");
+		final PropertyKey<String> contentKey = StructrApp.key(Content.class,    "content");
+
+		if (node.getProperty(actionKey) != null || node.getProperty(attrKey) != null || node.getProperty(rawKey) != null) {
 			return ActiveElementState.Button;
 		}
 
-		if (node.getProperty(Content.content) != null && !dataKeys.isEmpty()) {
+		if (node.getProperty(contentKey) != null && !dataKeys.isEmpty()) {
 
-			if (containsDataKeyReference(node.getProperty(Content.content), dataKeys)) {
+			if (containsDataKeyReference(node.getProperty(contentKey), dataKeys)) {
 				return ActiveElementState.Content;
 			}
 		}
 
-		if (node.getProperty(DOMElement._id) != null && !dataKeys.isEmpty()) {
+		if (node.getProperty(idKey) != null && !dataKeys.isEmpty()) {
 
-			if (containsDataKeyReference(node.getProperty(DOMElement._id), dataKeys)) {
+			if (containsDataKeyReference(node.getProperty(idKey), dataKeys)) {
 				return ActiveElementState.Content;
 			}
 		}
 
-		if (node.getProperty(Link._href) != null && !dataKeys.isEmpty()) {
+		if (node.getProperty(hrefKey) != null && !dataKeys.isEmpty()) {
 
-			if (containsDataKeyReference(node.getProperty(Link._href), dataKeys)) {
+			if (containsDataKeyReference(node.getProperty(hrefKey), dataKeys)) {
 				return ActiveElementState.Link;
 			}
 		}
 
-		if (node.getProperty(Input._value) != null && !dataKeys.isEmpty()) {
+		if (node.getProperty(valueKey) != null && !dataKeys.isEmpty()) {
 
-			if (containsDataKeyReference(node.getProperty(Input._value), dataKeys)) {
+			if (containsDataKeyReference(node.getProperty(valueKey), dataKeys)) {
 
 				return ActiveElementState.Input;
 			}
 		}
 
 		// last option: just some hidden element..
-		if (!StringUtils.isEmpty(node.getProperty(DOMNode.hideConditions))) {
+		if (!StringUtils.isEmpty(node.getHideConditions())) {
 			return ActiveElementState.Hidden;
 		}
 
-		if (!StringUtils.isEmpty(node.getProperty(DOMNode.showConditions))) {
+		if (!StringUtils.isEmpty(node.getShowConditions())) {
 			return ActiveElementState.Hidden;
 		}
 
-		if (node.getProperty(DOMNode.hideOnIndex)) {
+		if (node.hideOnIndex()) {
 			return ActiveElementState.Hidden;
 		}
 
-		if (node.getProperty(DOMNode.hideOnDetail)) {
+		if (node.hideOnDetail()) {
 			return ActiveElementState.Hidden;
 		}
 
@@ -270,20 +275,20 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 	private void extractQueries(final GraphObjectMap activeElement, final DOMNode node) {
 
-		if (extractQuery(activeElement, node, DOMElement.restQuery)) {
+		if (extractQuery(activeElement, node, StructrApp.key(DOMElement.class, "restQuery"))) {
 			return;
 		}
 
-		if (extractQuery(activeElement, node, DOMElement.cypherQuery)) {
+		if (extractQuery(activeElement, node, StructrApp.key(DOMElement.class, "cypherQuery"))) {
 			return;
 		}
 
-		if (extractQuery(activeElement, node, DOMElement.xpathQuery)) {
+		if (extractQuery(activeElement, node, StructrApp.key(DOMElement.class, "xpathQuery"))) {
 			return;
 		}
 	}
 
-	private boolean extractQuery(final GraphObjectMap activeElement, final DOMNode node, final Property<String> queryKey) {
+	private boolean extractQuery(final GraphObjectMap activeElement, final DOMNode node, final PropertyKey<String> queryKey) {
 
 		if (!StringUtils.isEmpty(node.getProperty(queryKey))) {
 

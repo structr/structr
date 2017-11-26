@@ -40,9 +40,9 @@ public interface Cdata extends Content, CDATASection, NonIndexed {
 		type.setExtends(URI.create("#/definitions/Content"));
 
 		type.overrideMethod("render", false,
-			"renderContext.getBuffer().append((\"<!CDATA[\"));\n" +
-			"\t\tsuper.render(renderContext, depth);\n" +
-			"renderContext.getBuffer().append(\"]]>\");\n"
+			"arg0.getBuffer().append((\"<!CDATA[\"));\n" +
+			"\t\tsuper.render(arg0, arg1);\n" +
+			"arg0.getBuffer().append(\"]]>\");\n"
 		);
 	}}
 

@@ -18,30 +18,26 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Source extends DOMElement {
+public interface Source extends DOMElement {
 
-	public static final Property<String> _src		= new HtmlProperty("src");
-	public static final Property<String> _type		= new HtmlProperty("type");
-	public static final Property<String> _media		= new HtmlProperty("media");
-	
-	public static final org.structr.common.View htmlView	= new org.structr.common.View(Source.class, PropertyView.Html,
-		_src, _type, _media
-	);
+	static class Impl { static {
 
-	//~--- get methods ----------------------------------------------------
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Source");
 
-	@Override
-	public boolean isVoidElement() {
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		return true;
+		type.addStringProperty("_html_src",   PropertyView.Html);
+		type.addStringProperty("_html_type",  PropertyView.Html);
+		type.addStringProperty("_html_media", PropertyView.Html);
 
-	}
+		type.overrideMethod("isVoidElement",   false, "return true;");
+	}}
 }

@@ -18,7 +18,9 @@
  */
 package org.structr.core.entity;
 
+import java.net.URI;
 import org.structr.api.Predicate;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -29,8 +31,23 @@ import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 public interface Favoritable extends NodeInterface {
+
+	static class Impl { static {
+
+		final JsonSchema schema        = SchemaService.getDynamicSchema();
+		final JsonObjectType type      = schema.addType("Favoritable");
+
+		type.setAbstract();
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
+
+		type.addBooleanProperty("isFavoritable").addTransformer(ConstantBooleanTrue.class.getName());
+	}}
+
 
 	public static final Property<String>  favoriteContentType = new FavoriteContentTypeProperty("favoriteContentType");
 	public static final Property<String>  favoriteContent     = new FavoriteContentProperty("favoriteContent");

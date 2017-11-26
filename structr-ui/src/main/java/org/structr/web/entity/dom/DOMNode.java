@@ -18,30 +18,25 @@
  */
 package org.structr.web.entity.dom;
 
+import java.net.URI;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.PAGE_CATEGORY;
-import static org.structr.core.GraphObject.QUERY_CATEGORY;
-import static org.structr.core.GraphObject.VISIBILITY_CATEGORY;
-import static org.structr.core.GraphObject.id;
+import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.relation.Sync;
 import org.w3c.dom.Node;
 
 /**
@@ -54,10 +49,63 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType page = (JsonObjectType)schema.getType("Page");
 		final JsonObjectType type = schema.addType("DOMNode");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
+		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNode"));
+
+		type.addStringProperty("dataKey").setIndexed(true);
+		type.addStringProperty("cypherQuery");
+		type.addStringProperty("xpathQuery");
+		type.addStringProperty("restQuery");
+		type.addStringProperty("functionQuery");
+
+		type.addStringProperty("showForLocales");
+		type.addStringProperty("hideForLocales");
+		type.addStringProperty("showConditions");
+		type.addStringProperty("hideConditions");
+
+		type.addStringProperty("sharedComponentConfiguration").setFormat("multi-line");
+
+		type.addStringProperty("data-structr-id");
+		type.addStringProperty("data-structr-hash");
+
+		type.addBooleanProperty("renderDetails");
+		type.addBooleanProperty("hideOnIndex");
+		type.addBooleanProperty("hideOnDetail");
+
+		type.addIntegerProperty("domSortPosition");
 
 		type.addMethod("getIdHash").setSource("return getUuid();").setReturnType("String");
 
+		type.overrideMethod("getSiblingLinkType",    false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
+		type.overrideMethod("getChildLinkType",      false, "return DOMNodeCONTAINSDOMNode.class;");
+		type.overrideMethod("getChildRelationships", false, "return treeGetChildRelationships();");
+		type.overrideMethod("renderNodeList",        false, DOMNode.class.getName() + ".renderNodeList(this, arg0, arg1, arg2);");
+
+		fixme
+		type.overrideMethod("setVisibilty",          false, "fixme");
+
+		/*
+			public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
+			public static final Property<DOMNode> sharedComponent             = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
+
+			public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class).category(PAGE_CATEGORY);
+			public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent).category(PAGE_CATEGORY);
+			public static final Property<List<DOMNode>> children              = new EndNodes<>("children", DOMChildren.class).category(PAGE_CATEGORY);
+			public static final Property<List<String>> childrenIds            = new CollectionIdProperty("childrenIds", children).category(PAGE_CATEGORY);
+
+			public static final Property<DOMNode> previousSibling             = new StartNode<>("previousSibling", DOMSiblings.class).category(PAGE_CATEGORY);
+			public static final Property<DOMNode> nextSibling                 = new EndNode<>("nextSibling", DOMSiblings.class).category(PAGE_CATEGORY);
+			public static final Property<String> nextSiblingId                = new EntityIdProperty("nextSiblingId", nextSibling).category(PAGE_CATEGORY);
+
+		*/
+
+		type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToMany, "previousSibling", "nextSibling");
+		type.relate(type, "CONTAINS",              Cardinality.OneToMany, "parent",          "children");     // DOMChildren
+		type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
+		type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
 	}}
 
 	// ----- error messages for DOMExceptions -----
@@ -93,41 +141,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}
 	*/
 
-	public static final Property<String> dataKey                      = new StringProperty("dataKey").indexed().category(QUERY_CATEGORY);
-	public static final Property<String> cypherQuery                  = new StringProperty("cypherQuery").category(QUERY_CATEGORY);
-	public static final Property<String> xpathQuery                   = new StringProperty("xpathQuery").category(QUERY_CATEGORY);
-	public static final Property<String> restQuery                    = new StringProperty("restQuery").category(QUERY_CATEGORY);
-	public static final Property<String> functionQuery                = new StringProperty("functionQuery").category(QUERY_CATEGORY);
-	public static final Property<Boolean> renderDetails               = new BooleanProperty("renderDetails").category(QUERY_CATEGORY);
-
-	public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
-	public static final Property<DOMNode> sharedComponent             = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
-	public static final Property<String> sharedComponentConfiguration = new StringProperty("sharedComponentConfiguration").format("multi-line").hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}").category(PAGE_CATEGORY);
-
-	public static final Property<Boolean> hideOnIndex                 = new BooleanProperty("hideOnIndex").indexed().category(QUERY_CATEGORY);
-	public static final Property<Boolean> hideOnDetail                = new BooleanProperty("hideOnDetail").indexed().category(QUERY_CATEGORY);
-	public static final Property<String> showForLocales               = new StringProperty("showForLocales").indexed().category(VISIBILITY_CATEGORY);
-	public static final Property<String> hideForLocales               = new StringProperty("hideForLocales").indexed().category(VISIBILITY_CATEGORY);
-	public static final Property<String> showConditions               = new StringProperty("showConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-	public static final Property<String> hideConditions               = new StringProperty("hideConditions").indexed().category(VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-
 	/*
-	public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class).category(PAGE_CATEGORY);
-	public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent).category(PAGE_CATEGORY);
-	public static final Property<List<DOMNode>> children              = new EndNodes<>("children", DOMChildren.class).category(PAGE_CATEGORY);
-	public static final Property<List<String>> childrenIds            = new CollectionIdProperty("childrenIds", children).category(PAGE_CATEGORY);
-	public static final Property<DOMNode> previousSibling             = new StartNode<>("previousSibling", DOMSiblings.class).category(PAGE_CATEGORY);
-	public static final Property<DOMNode> nextSibling                 = new EndNode<>("nextSibling", DOMSiblings.class).category(PAGE_CATEGORY);
-	public static final Property<String> nextSiblingId                = new EntityIdProperty("nextSiblingId", nextSibling).category(PAGE_CATEGORY);
 
 	public static final Property<Page> ownerDocument                  = new EndNode<>("ownerDocument", PageLink.class).category(PAGE_CATEGORY);
 	public static final Property<String> pageId                       = new EntityIdProperty("pageId", ownerDocument).category(PAGE_CATEGORY);
 	public static final Property<Boolean> isDOMNode                   = new ConstantBooleanProperty("isDOMNode", true).category(PAGE_CATEGORY);
-
-	public static final Property<String> dataStructrIdProperty        = new StringProperty("data-structr-id").hint("Set to ${current.id} most of the time").category(PAGE_CATEGORY);
-	public static final Property<String> dataHashProperty             = new StringProperty("data-structr-hash").category(PAGE_CATEGORY);
-
-	public static final Property<Integer> domSortPosition             = new IntProperty("domSortPosition").category(PAGE_CATEGORY);
 
 	public static final Property[] rawProps = new Property[] {
 		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
@@ -145,17 +163,58 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	boolean isSynced();
 	boolean isSharedComponent();
 	boolean contentEquals(final DOMNode otherNode);
+	boolean isVoidElement();
+	boolean avoidWhitespace();
 	boolean inTrash();
+	boolean dontCache();
+	boolean hideOnIndex();
+	boolean hideOnDetail();
 
 	String getContextName();
 	String getIdHash();
 	String getIdHashOrProperty();
+	String getShowConditions();
+	String getHideConditions();
+	String getContent(final RenderContext.EditMode editMode) throws FrameworkException;
+	String getDataHash();
+	String getDataKey();
+	String getTag();
+	String getPositionPath();
+
+	String getCypherQuery();
+	String getRestQuery();
+	String getXPathQuery();
+	String getFunctionQuery();
+
+	@Override
+	DOMNode getPreviousSibling();
+
+	@Override
+	DOMNode getNextSibling();
+
+	DOMNode getParent();
+	List<DOMNode> getChildren();
+	List<DOMNode> getSyncedNodes();
+
+	@Override
+	Page getOwnerDocument();
+	Page getClosestPage();
+
+	void setOwnerDocument(final Page page) throws FrameworkException;
+	void setSharedComponent(final DOMNode page) throws FrameworkException;
 
 	Template getClosestTemplate(final Page page);
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 	void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException;
 	void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException;
+
+	List<RelationshipInterface> getChildRelationships();
+
+	// ----- test -----
+	LinkedTreeNode treeGetFirstChild();
+	Class getChildLinkType();
+
 
 	// ----- static methods -----
 	public static String escapeForHtml(final String raw) {
@@ -177,6 +236,78 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 
 		return null;
+	}
+
+	/**
+	 * Recursively clone given node, all its direct children and connect the cloned child nodes to the clone parent node.
+	 *
+	 * @param securityContext
+	 * @param nodeToClone
+	 * @return
+	 */
+	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
+
+		final DOMNode newNode               = (DOMNode)nodeToClone.cloneNode(false);
+		final List<DOMNode> childrenToClone = (List<DOMNode>)nodeToClone.getChildNodes();
+
+		for (final DOMNode childNodeToClone : childrenToClone) {
+
+			newNode.appendChild((DOMNode)cloneAndAppendChildren(securityContext, childNodeToClone));
+		}
+
+		return newNode;
+	}
+
+	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
+
+		Set<DOMNode> allChildNodes = new HashSet<>();
+
+		getAllChildNodes(node, allChildNodes);
+
+		return allChildNodes;
+	}
+
+	public static void getAllChildNodes(final DOMNode node, final Set<DOMNode> allChildNodes) {
+
+		Node n = node.getFirstChild();
+
+		while (n != null) {
+
+			if (n instanceof DOMNode) {
+
+				DOMNode domNode = (DOMNode)n;
+
+				if (!allChildNodes.contains(domNode)) {
+
+					allChildNodes.add(domNode);
+					allChildNodes.addAll(getAllChildNodes(domNode));
+
+				} else {
+
+					// break loop!
+					break;
+				}
+			}
+
+			n = n.getNextSibling();
+		}
+	}
+
+	public static void renderNodeList(final DOMNode node, final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException {
+
+		final Iterable<GraphObject> listSource = renderContext.getListSource();
+		if (listSource != null) {
+
+			for (final GraphObject dataObject : listSource) {
+
+				// make current data object available in renderContext
+				renderContext.putDataObject(dataKey, dataObject);
+				node.renderContent(renderContext, depth + 1);
+
+			}
+
+			renderContext.clearDataObject(dataKey);
+		}
 	}
 
 	/*
@@ -887,23 +1018,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			// allow only one data tree to be rendered for now
 			break;
-		}
-	}
-
-	public void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException {
-
-		final Iterable<GraphObject> listSource = renderContext.getListSource();
-		if (listSource != null) {
-
-			for (final GraphObject dataObject : listSource) {
-
-				// make current data object available in renderContext
-				renderContext.putDataObject(dataKey, dataObject);
-				renderContent(renderContext, depth + 1);
-
-			}
-
-			renderContext.clearDataObject(dataKey);
 		}
 	}
 
@@ -1733,65 +1847,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 
 		return map;
-	}
-
-	// ----- static methods -----
-
-	public static Set<DOMNode> getAllChildNodes(final DOMNode node) {
-
-		Set<DOMNode> allChildNodes = new HashSet();
-
-		getAllChildNodes(node, allChildNodes);
-
-		return allChildNodes;
-	}
-
-	private static void getAllChildNodes(final DOMNode node, final Set<DOMNode> allChildNodes) {
-
-		Node n = node.getFirstChild();
-
-		while (n != null) {
-
-			if (n instanceof DOMNode) {
-
-				DOMNode domNode = (DOMNode)n;
-
-				if (!allChildNodes.contains(domNode)) {
-
-					allChildNodes.add(domNode);
-					allChildNodes.addAll(getAllChildNodes(domNode));
-
-				} else {
-
-					// break loop!
-					break;
-				}
-			}
-
-			n = n.getNextSibling();
-		}
-	}
-
-	/**
-	 * Recursively clone given node, all its direct children and connect the cloned child nodes to the clone parent node.
-	 *
-	 * @param securityContext
-	 * @param nodeToClone
-	 * @return
-	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) {
-
-		final DOMNode newNode = (DOMNode)nodeToClone.cloneNode(false);
-
-		final List<DOMNode> childrenToClone = (List<DOMNode>)nodeToClone.getChildNodes();
-
-		for (final DOMNode childNodeToClone : childrenToClone) {
-
-			final DOMNode newChildNode = (DOMNode)cloneAndAppendChildren(securityContext, childNodeToClone);
-			newNode.appendChild(newChildNode);
-
-		}
-
-		return newNode;
 	}
 
 	// ----- interface Syncable -----

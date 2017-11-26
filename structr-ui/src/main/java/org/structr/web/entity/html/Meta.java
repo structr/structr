@@ -18,44 +18,28 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Meta extends DOMElement {
 
-/**
- *
- */
-public class Meta extends DOMElement {
+	static class Impl { static {
 
-	public static final Property<String> _name      = new HtmlProperty("name");
-	public static final Property<String> _httpEquiv = new HtmlProperty("http-equiv");
-	public static final Property<String> _content   = new HtmlProperty("content");
-	public static final Property<String> _charset   = new HtmlProperty("charset");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Meta");
 
-//	public static final EndNodes<Head> heads = new EndNodes<Head>("heads", Head.class, RelType.CONTAINS, Direction.INCOMING, false);
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	public static final View htmlView = new View(Meta.class, PropertyView.Html,
-		_name, _httpEquiv, _content, _charset
-	);
-	
-	//~--- get methods ----------------------------------------------------
+		type.addStringProperty("_html_name",      PropertyView.Html);
+		type.addStringProperty("_html_httpEquiv", PropertyView.Html);
+		type.addStringProperty("_html_content",   PropertyView.Html);
+		type.addStringProperty("_html_charset",   PropertyView.Html);
 
-	@Override
-	public Property[] getHtmlAttributes() {
-
-		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
-
-	}
-
-	@Override
-	public boolean isVoidElement() {
-
-		return true;
-
-	}
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+		type.overrideMethod("isVoidElement",     false, "return true;");
+	}}
 }

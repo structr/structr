@@ -18,31 +18,14 @@
  */
 package org.structr.web.advanced;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.session.SessionFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
-import org.junit.Assert;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import org.structr.api.config.Settings;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
-import org.structr.web.auth.UiAuthenticator;
-import org.structr.web.entity.User;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.servlet.HtmlServlet;
 
 /**
  *
  */
 public class UserSelfRegistrationTest extends StructrUiTest {
+
+	/*
 
 	@Test
 	public void testUserSelfRegistration() {
@@ -325,4 +308,6 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		return src;
 	}
+
+	*/
 }

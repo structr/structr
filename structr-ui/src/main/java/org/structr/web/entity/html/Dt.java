@@ -18,10 +18,19 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Dt extends DOMElement {
+public interface Dt extends DOMElement {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Dt");
+
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+	}}
 }

@@ -27,50 +27,53 @@ import java.util.Set;
  */
 public interface JsonType extends Comparable<JsonType> {
 
-	public URI getId();
-	public JsonSchema getSchema();
+	URI getId();
+	JsonSchema getSchema();
 
-	public String getName();
-	public JsonType setName(final String name);
+	String getName();
+	JsonType setName(final String name);
 
-	public JsonMethod addMethod(final String name, final String source, final String comment);
-	public JsonMethod addMethod(final String name);
+	boolean isAbstract();
+	JsonType setAbstract();
 
-	public JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);
+	JsonMethod addMethod(final String name, final String source, final String comment);
+	JsonMethod addMethod(final String name);
 
-	public JsonMethod addPropertyGetter(final String propertyName, final Class type);
-	public JsonMethod addPropertySetter(final String propertyName, final Class type);
+	JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);
 
-	public JsonType setExtends(final JsonType superType);
-	public JsonType setExtends(final URI externalReference);
-	public URI getExtends();
+	JsonMethod addPropertyGetter(final String propertyName, final Class type);
+	JsonMethod addPropertySetter(final String propertyName, final Class type);
 
-	public JsonType setImplements(final URI externalReference);
-	public Set<URI> getImplements();
+	JsonType setExtends(final JsonType superType);
+	JsonType setExtends(final URI externalReference);
+	URI getExtends();
 
-	public Set<JsonProperty> getProperties();
-	public Set<String> getRequiredProperties();
-	public Set<String> getViewNames();
-	public Set<String> getViewPropertyNames(final String viewName);
-	public Set<JsonMethod> getMethods();
+	JsonType setImplements(final URI externalReference);
+	Set<URI> getImplements();
 
-	public JsonType addViewProperty(final String viewName, final String propertyName);
+	Set<JsonProperty> getProperties();
+	Set<String> getRequiredProperties();
+	Set<String> getViewNames();
+	Set<String> getViewPropertyNames(final String viewName);
+	Set<JsonMethod> getMethods();
 
-	public JsonStringProperty addStringProperty(final String name, final String... views);
-	public JsonStringProperty addPasswordProperty(final String name, final String... views);
-	public JsonDateProperty addDateProperty(final String name, final String... views);
-	public JsonIntegerProperty addIntegerProperty(final String name, final String... views);
-	public JsonLongProperty addLongProperty(final String name, final String... views);
-	public JsonNumberProperty addNumberProperty(final String name, final String... views);
-	public JsonBooleanProperty addBooleanProperty(final String name, final String... views);
-	public JsonScriptProperty addScriptProperty(final String name, final String...views);
-	public JsonFunctionProperty addFunctionProperty(final String name, final String...views);
-	public JsonEnumProperty addEnumProperty(final String name, final String...views);
-	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
-	public JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
-	public JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
-	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);
-	public JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
+	JsonType addViewProperty(final String viewName, final String propertyName);
 
-	public JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
+	JsonStringProperty addStringProperty(final String name, final String... views);
+	JsonStringProperty addPasswordProperty(final String name, final String... views);
+	JsonDateProperty addDateProperty(final String name, final String... views);
+	JsonIntegerProperty addIntegerProperty(final String name, final String... views);
+	JsonLongProperty addLongProperty(final String name, final String... views);
+	JsonNumberProperty addNumberProperty(final String name, final String... views);
+	JsonBooleanProperty addBooleanProperty(final String name, final String... views);
+	JsonScriptProperty addScriptProperty(final String name, final String...views);
+	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
+	JsonEnumProperty addEnumProperty(final String name, final String...views);
+	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
+	JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
+	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
+	JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);
+	JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
+
+	JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 }
