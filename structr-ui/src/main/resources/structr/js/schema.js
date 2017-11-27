@@ -1237,6 +1237,7 @@ var _Schema = {
 					+ '<i title="Save changes" class="create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
 					+ '<i title="Discard changes" class="discard-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 					+ '<i title="Remove view" class="remove-icon remove-action hidden ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
+					+ '<a class="preview-action hidden" target="_blank"><i title="Preview (with pageSize=1)" class="preview-icon ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" /></a>'
 					+ '</td></tr>');
 
 			var tr = viewsTable.find('tr').last();
@@ -1259,6 +1260,7 @@ var _Schema = {
 				+ '<i title="Save changes" class="create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
 				+ '<i title="Discard changes" class="discard-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
 				+ (view.isBuiltinView ? '<i title="Reset built-in view" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.arrow_undo_icon) + '" />' : '<i title="Remove view" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />')
+				+ '<a class="preview-action" target="_blank"><i title="Preview (with pageSize=1)" class="preview-icon ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" /></a>'
 				+ '</td></tr>');
 
 		var tr = el.find('tr').last();
@@ -1306,18 +1308,25 @@ var _Schema = {
 			_Schema.confirmRemoveSchemaEntity(view, $(this).attr('title'), function() { _Schema.openEditDialog(entity.id, 'views'); } );
 		});
 
+		_Schema.updateViewPreviewLink(tr, entity.name, view.name);
+
+	},
+	updateViewPreviewLink:function(tr, typeName, viewName) {
+		$('.preview-action', tr).attr('href', '/structr/rest/' + typeName + '/' + viewName + '?pageSize=1');
 	},
 	activateViewRow: function(tr) {
 		$('.save-action', tr).removeClass('hidden');
 		$('.cancel-action', tr).removeClass('hidden');
 		$('.remove-action', tr).addClass('hidden');
 		$('.reset-action', tr).addClass('hidden');
+		$('.preview-action', tr).addClass('hidden');
 	},
 	deactivateViewRow: function(tr) {
 		$('.save-action', tr).addClass('hidden');
 		$('.cancel-action', tr).addClass('hidden');
 		$('.remove-action', tr).removeClass('hidden');
 		$('.reset-action', tr).removeClass('hidden');
+		$('.preview-action', tr).removeClass('hidden');
 	},
 	appendViewSelectionElement: function(tr, view, schemaEntity) {
 
@@ -1384,6 +1393,7 @@ var _Schema = {
 
 					// we saved a view
 					blinkGreen(tr);
+					_Schema.updateViewPreviewLink(tr, entity.name, name);
 
 					var oldName = view.name;
 					view.schemaProperties = obj.schemaProperties;

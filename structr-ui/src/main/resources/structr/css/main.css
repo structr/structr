@@ -2092,12 +2092,17 @@ input.property-name:disabled {
 	margin-top: 4px;
 }
 
+.schema-details .preview-icon {
+	margin-left: 2px;
+}
+
 .schema-details .add-icon:hover,
 .schema .toggle-view:hover,
 .schema-details .remove-icon:hover,
 .schema-details .discard-icon:hover,
 .schema-details .create-icon:hover,
-.schema-details .edit-icon:hover {
+.schema-details .edit-icon:hover,
+.schema-details .preview-icon:hover {
 	opacity: .6;
 	cursor: pointer;
 }
