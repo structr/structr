@@ -23,16 +23,17 @@
 			<optional>true</optional>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.opennlp</groupId>
-			<artifactId>opennlp-tools</artifactId>
-			<version>1.8.3</version>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>gcloud-java-translate</artifactId>
+			<version>0.2.9-SNAPSHOT</version>
+			<type>jar</type>
+			<exclusions>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>servlet-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-	 <dependency>
-	  <groupId>com.google.cloud</groupId>
-	  <artifactId>gcloud-java-translate</artifactId>
-	  <version>0.2.9-SNAPSHOT</version>
-	  <type>jar</type>
-	 </dependency>
 	</dependencies>
 
 	<build>
