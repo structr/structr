@@ -1233,14 +1233,10 @@ var _Schema = {
 		$('.add-view', el).on('click', function() {
 			viewsTable.append('<tr><td style="width:20%;"><input size="15" type="text" class="view property-name" placeholder="Enter view name"></td>'
 					+ '<td class="view-properties-select"></td>'
-					+ '<td>'
-					+ '<i title="Save changes" class="create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
-					+ '<i title="Discard changes" class="discard-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
-					+ '<i title="Remove view" class="remove-icon remove-action hidden ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
-					+ '<a class="preview-action hidden" target="_blank"><i title="Preview (with pageSize=1)" class="preview-icon ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" /></a>'
-					+ '</td></tr>');
+					+ '<td>' + _Schema.getActionsForSchemaView() + '</td></tr>');
 
 			var tr = viewsTable.find('tr').last();
+			_Schema.activateEditModeForViewRow(tr);
 			_Schema.appendViewSelectionElement(tr, {name: 'new'}, entity);
 
 			$('.save-action', tr).on('click', function() {
@@ -1256,12 +1252,7 @@ var _Schema = {
 
 		el.append('<tr><td style="width:20%;"><input size="15" type="text" class="view property-name" placeholder="Enter view name" value="' + escapeForHtmlAttributes(view.name) + '"' + (view.isBuiltinView ? 'disabled' : '') + '></td>'
 				+ '<td class="view-properties-select"></td>'
-				+ '<td>'
-				+ '<i title="Save changes" class="create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
-				+ '<i title="Discard changes" class="discard-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
-				+ (view.isBuiltinView ? '<i title="Reset built-in view" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.arrow_undo_icon) + '" />' : '<i title="Remove view" class="remove-icon remove-action ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />')
-				+ '<a class="preview-action" target="_blank"><i title="Preview (with pageSize=1)" class="preview-icon ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" /></a>'
-				+ '</td></tr>');
+				+ '<td>' + _Schema.getActionsForSchemaView(view) + '</td></tr>');
 
 		var tr = el.find('tr').last();
 		_Schema.appendViewSelectionElement(tr, view, entity);
@@ -1269,17 +1260,25 @@ var _Schema = {
 		_Schema.initViewRow(tr, entity, view);
 
 	},
+	getActionsForSchemaView:function(view) {
+		var deleteTitle = (view && view.isBuiltinView ? 'Reset built-in view' : 'Remove view');
+		var deleteIcon  = (view && view.isBuiltinView ? _Icons.arrow_undo_icon : _Icons.delete_icon);
+
+		return '<i title="Save changes" class="visible-in-edit-mode create-icon save-action ' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />'
+				+ '<i title="Discard changes" class="visible-in-edit-mode discard-icon cancel-action ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />'
+				+ '<i title="' + deleteTitle + '" class="hidden-in-edit-mode remove-icon remove-action ' + _Icons.getFullSpriteClass(deleteIcon) + '" />'
+				+ '<a class="hidden-in-edit-mode preview-action" target="_blank"><i title="Preview (with pageSize=1)" class="preview-icon ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" /></a>';
+	},
 	initViewRow: function(tr, entity, view) {
 
 		var activate = function() {
-			_Schema.activateViewRow(tr);
+			_Schema.activateEditModeForViewRow(tr);
 		};
 
-		_Schema.deactivateViewRow(tr);
+		_Schema.deactivateEditModeForViewRow(tr);
 
 		$('.view.property-name', tr).on('change', activate).on('keyup', activate);
 		$('.view.property-attrs', tr).on('change', activate);
-
 
 		$('.save-action', tr).off('click').on('click', function() {
 			_Schema.createOrSaveView(tr, entity, view);
@@ -1300,8 +1299,7 @@ var _Schema = {
 				select.trigger('chosen:updated');
 			});
 
-			_Schema.deactivateViewRow(tr);
-
+			_Schema.deactivateEditModeForViewRow(tr);
 		});
 
 		$('.remove-action', tr).off('click').on('click', function() {
@@ -1314,19 +1312,13 @@ var _Schema = {
 	updateViewPreviewLink:function(tr, typeName, viewName) {
 		$('.preview-action', tr).attr('href', '/structr/rest/' + typeName + '/' + viewName + '?pageSize=1');
 	},
-	activateViewRow: function(tr) {
-		$('.save-action', tr).removeClass('hidden');
-		$('.cancel-action', tr).removeClass('hidden');
-		$('.remove-action', tr).addClass('hidden');
-		$('.reset-action', tr).addClass('hidden');
-		$('.preview-action', tr).addClass('hidden');
+	activateEditModeForViewRow: function(tr) {
+		$('.hidden-in-edit-mode', tr).addClass('hidden');
+		$('.visible-in-edit-mode', tr).removeClass('hidden');
 	},
-	deactivateViewRow: function(tr) {
-		$('.save-action', tr).addClass('hidden');
-		$('.cancel-action', tr).addClass('hidden');
-		$('.remove-action', tr).removeClass('hidden');
-		$('.reset-action', tr).removeClass('hidden');
-		$('.preview-action', tr).removeClass('hidden');
+	deactivateEditModeForViewRow: function(tr) {
+		$('.hidden-in-edit-mode', tr).removeClass('hidden');
+		$('.visible-in-edit-mode', tr).addClass('hidden');
 	},
 	appendViewSelectionElement: function(tr, view, schemaEntity) {
 
@@ -1367,7 +1359,7 @@ var _Schema = {
 			});
 
 			viewSelectElem.chosen({ search_contains: true, width: '100%' }).chosenSortable(function() {
-				_Schema.activateViewRow(tr);
+				_Schema.activateEditModeForViewRow(tr);
 			});
 
 		});
@@ -1401,7 +1393,7 @@ var _Schema = {
 
 					tr.removeClass(oldName).addClass(view.name);
 
-					_Schema.deactivateViewRow(tr);
+					_Schema.deactivateEditModeForViewRow(tr);
 
 				} else {
 
