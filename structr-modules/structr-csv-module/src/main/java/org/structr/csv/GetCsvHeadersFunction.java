@@ -59,7 +59,12 @@ public class GetCsvHeadersFunction extends UiFunction {
 				}
 
 				CSVFormat format = CSVFormat.newFormat(delimiter.charAt(0)).withHeader();
-				format = format.withQuote(quoteChar.charAt(0));
+				if (quoteChar.length() > 0) {
+					format = format.withQuote(quoteChar.charAt(0));
+				} else {
+					format = format.withQuote(null);
+				}
+
 				format = format.withRecordSeparator(recordSeparator);
 				format = format.withIgnoreEmptyLines(true);
 				format = format.withIgnoreSurroundingSpaces(true);
