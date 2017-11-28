@@ -29,7 +29,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
@@ -57,34 +56,48 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			return true;
 		}
 
-		// return false if mounted file/folder cannot be found
-		return handle(root, context.relativize(path), path, true) != null;
+		final GraphObject obj = handle(root, root.relativize(path), path, true);
+		if (obj != null && obj instanceof FileBase) {
+
+			//((FileBase)obj).notifyUploadCompletion();
+			FileHelper.updateMetadata((FileBase)obj);
+		}
+
+		return true;
 	}
 
 	@Override
 	public boolean onCreate(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		// return false if mounted file/folder cannot be found
-		return handle(root, root.relativize(path), path, true) != null;
+		final GraphObject obj = handle(root, root.relativize(path), path, true);
+		if (obj != null && obj instanceof FileBase) {
+
+			//((FileBase)obj).notifyUploadCompletion();
+			FileHelper.updateMetadata((FileBase)obj);
+		}
+
+		return true;
 	}
 
 	@Override
 	public boolean onModify(final Path root, final Path context, final Path path) throws FrameworkException {
 
 		final Path relativePath = root.relativize(path);
-		final GraphObject obj   = handle(root, relativePath, path, true);
+		final GraphObject obj   = handle(root, relativePath, path, false);
 
 		if (obj != null && obj instanceof FileBase) {
 
+			//((FileBase)obj).notifyUploadCompletion();
 			FileHelper.updateMetadata((FileBase)obj);
 		}
 
-		// return false if mounted file/folder cannot be found
-		return obj != null;
+		return true;
 	}
 
 	@Override
 	public boolean onDelete(final Path root, final Path context, final Path path) throws FrameworkException {
+
+		/** dont delete anything right now..
 
 		final Path relativePath = root.relativize(path);
 		final GraphObject obj   = handle(root, relativePath, path, false);
@@ -93,9 +106,9 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 			StructrApp.getInstance().delete((NodeInterface)obj);
 		}
+		*/
 
-		// return false if mounted file/folder cannot be found
-		return obj != null;
+		return true;
 	}
 
 	// ----- private methods -----
@@ -120,7 +133,15 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 					return getOrCreate(parentFolder, path, relativePath, create);
 				}
+
+			} else {
+
+				logger.warn("Cannot handle watch event, folder {} has no path", folder.getUuid());
 			}
+
+		} else {
+
+			logger.warn("Cannot find Folder object for mount target {}, folder not found.", root);
 		}
 
 		return null;
@@ -136,8 +157,9 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		if (file == null && doCreate) {
 
 			file = app.create(type,
-				new NodeAttribute<>(Folder.name, fileName),
-				new NodeAttribute<>(Folder.parent, parentFolder)
+				new NodeAttribute<>(AbstractFile.name,       fileName),
+				new NodeAttribute<>(AbstractFile.parent,     parentFolder),
+				new NodeAttribute<>(AbstractFile.isExternal, true)
 			);
 		}
 

@@ -327,35 +327,38 @@ public class FileHelper {
 	 */
 	public static void updateMetadata(final FileBase file, final PropertyMap map) throws FrameworkException {
 
-		final java.io.File fileOnDisk = file.getFileOnDisk();
+		final java.io.File fileOnDisk = file.getFileOnDisk(false);
 
-		try {
+		if (fileOnDisk != null && fileOnDisk.exists()) {
 
-			// Don't overwrite existing MIME type
-			if (StringUtils.isBlank(file.getContentType())) {
+			try {
 
-				try {
+				// Don't overwrite existing MIME type
+				if (StringUtils.isBlank(file.getContentType())) {
 
-					map.put(FileBase.contentType, getContentMimeType(file));
+					try {
 
-				} catch (IOException ex) {
-					logger.debug("Unable to detect content MIME type", ex);
+						map.put(FileBase.contentType, getContentMimeType(file));
+
+					} catch (IOException ex) {
+						logger.debug("Unable to detect content MIME type", ex);
+					}
 				}
+
+				map.put(FileBase.checksum, FileHelper.getChecksum(fileOnDisk));
+
+				long fileSize = FileHelper.getSize(fileOnDisk);
+				if (fileSize > 0) {
+
+					map.put(size, fileSize);
+				}
+
+				file.unlockSystemPropertiesOnce();
+				file.setProperties(file.getSecurityContext(), map);
+
+			} catch (IOException ioex) {
+				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
 			}
-
-			map.put(FileBase.checksum, FileHelper.getChecksum(fileOnDisk));
-
-			long fileSize = FileHelper.getSize(fileOnDisk);
-			if (fileSize > 0) {
-
-				map.put(size, fileSize);
-			}
-
-			file.unlockSystemPropertiesOnce();
-			file.setProperties(file.getSecurityContext(), map);
-
-		} catch (IOException ioex) {
-			logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
 		}
 	}
 
@@ -554,7 +557,8 @@ public class FileHelper {
 			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(AbstractFile.path, absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
-			logger.warn("File not found: {}", new Object[] { absolutePath });
+			ex.printStackTrace();
+			logger.warn("File not found: {}", absolutePath);
 		}
 
 		return null;

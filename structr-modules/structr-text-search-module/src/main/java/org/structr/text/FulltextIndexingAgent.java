@@ -21,11 +21,16 @@ package org.structr.text;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -37,20 +42,17 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.bouncycastle.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
-import org.structr.api.graph.Node;
-import org.structr.api.index.Index;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import static org.structr.core.graph.NodeInterface.owner;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 
 /**
@@ -62,6 +64,9 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 	private static final Logger logger = LoggerFactory.getLogger(FulltextIndexingAgent.class.getName());
 	private static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
 	public static final String TASK_NAME                              = "FulltextIndexing";
+
+	private static final int maxStringLength = 32700;
+	private static final int maxTopWords     = 10000;
 
 	@Override
 	public ReturnValue processTask(final Task<Indexable> task) throws Throwable {
@@ -132,7 +137,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 							file.getSecurityContext().disableModificationOfAccessTime();
 
 							// save raw extracted text
-							file.setProperty(Indexable.extractedContent, tokenizer.getRawText());
+							file.setProperty(Indexable.extractedContent, trimToLength(tokenizer.getRawText(), maxStringLength));
 
 							// tokenize name
 							tokenizer.write(getName());
@@ -164,30 +169,21 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 						}
 
 						// index document excluding stop words
-						final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
-						final Index<Node> fulltextIndex     = nodeService.getNodeIndex();
-						final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
-						final String indexKeyName           = Indexable.indexedWords.jsonName();
-						final Iterator<String> wordIterator = tokenizer.getWords().iterator();
-						final Node node                     = file.getNode();
-						final Set<String> indexedWords      = new TreeSet<>();
+						final Set<String> stopWords             = languageStopwordMap.get(tokenizer.getLanguage());
+						final Iterator<String> wordIterator     = tokenizer.getWords().iterator();
+						final Map<String, Integer> indexedWords = new LinkedHashMap<>();
 
 						while (wordIterator.hasNext()) {
 
 							try (Tx tx = StructrApp.getInstance().tx()) {
 
-								// remove node from index (in case of previous indexing runs)
-								fulltextIndex.remove(node, indexKeyName);
-
 								while (wordIterator.hasNext()) {
 
 									// strip double quotes
 									final String word = StringUtils.strip(wordIterator.next(), "\"");
-
 									if (!stopWords.contains(word)) {
 
-										indexedWords.add(word);
-										fulltextIndex.add(node, indexKeyName, word, String.class);
+										add(indexedWords, word);
 									}
 								}
 
@@ -202,20 +198,83 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 							file.getSecurityContext().disableModificationOfAccessTime();
 
 							// store indexed words
-							file.setProperty(Indexable.indexedWords, (String[]) indexedWords.toArray(new String[indexedWords.size()]));
+							file.setProperty(Indexable.indexedWords, getFrequencySortedTopWords(indexedWords, maxTopWords));
 
 							tx.success();
 						}
 
-						logger.info("Indexing of {} finished, {} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
+						logger.debug("Indexing of {} finished, {} words extracted", new Object[] { fileName, tokenizer.getWordCount() } );
 					}
 				}
 			}
 
 		} catch (final Throwable t) {
 
-			logger.warn("Indexing of {} failed", fileName, t);
+			logger.warn("Indexing of {} failed", fileName, t.getMessage());
 		}
+	}
+
+	private void add(final Map<String, Integer> frequencyMap, final String word) {
+
+		Integer count = frequencyMap.get(word);
+		if (count == null) {
+
+			frequencyMap.put(word, 1);
+
+		} else {
+
+			frequencyMap.put(word, count + 1);
+		}
+	}
+
+	private String[] getFrequencySortedTopWords(final Map<String, Integer> frequency, int maxWords) {
+
+		final Map<Integer, Set<String>> words = new TreeMap<>(Collections.reverseOrder());
+		final ArrayList<String> resultList    = new ArrayList<>();
+
+		for (final Entry<String, Integer> frequencyEntry : frequency.entrySet()) {
+
+			final String word   = frequencyEntry.getKey();
+			final Integer count = frequencyEntry.getValue();
+
+			Set<String> wordSet = words.get(count);
+			if (wordSet == null) {
+
+				wordSet = new TreeSet<>();
+				words.put(count, wordSet);
+			}
+
+			wordSet.add(word);
+		}
+
+		for (final Set<String> set : words.values()) {
+
+			for (final String word : set) {
+
+				resultList.add(word);
+
+				if (resultList.size() == maxWords) {
+					break;
+				}
+			}
+		}
+
+		return resultList.toArray(new String[0]);
+	}
+
+	private String trimToLength(final String source, final int maxLength) {
+
+		final Charset utf = Charset.forName("utf-8");
+		final byte[] data = source.getBytes(utf);
+
+		if (data.length > maxLength) {
+
+			// this might corrupt the last character of the string if
+			// it is a multi-byte value..
+			return new String(Arrays.copyOfRange(data, 0, maxLength), utf);
+		}
+
+		return source;
 	}
 
 	static {

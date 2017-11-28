@@ -33,8 +33,10 @@ import org.structr.web.entity.Folder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import org.apache.commons.compress.utils.IOUtils;
 
 public class CreateArchiveFunction extends UiFunction {
 
@@ -142,24 +144,18 @@ public class CreateArchiveFunction extends UiFunction {
 
 	}
 
-	private void addFileToZipArchive(String path, AbstractFile file, ArchiveOutputStream aps) throws IOException {
+	private void addFileToZipArchive(String path, FileBase file, ArchiveOutputStream aps) throws IOException {
 
 		logger.info("Adding File \"{}\" to new archive...", path);
 
 		ZipArchiveEntry entry = new ZipArchiveEntry(path);
 		aps.putArchiveEntry(entry);
 
-		String uuid = file.getUuid();
-		String filePath = FileHelper.getFilePath(FileBase.getDirectoryPath(uuid)  + "/" + uuid);
-		FileInputStream in = new FileInputStream(new File(filePath));
+		try (final InputStream in = file.getInputStream()) {
 
-		byte buf[] = new byte [1024 * 1024];
-		int n;
-		while ((n = in.read(buf)) > -1) {
-			aps.write(buf,0,n);
+			IOUtils.copy(in, aps);
 		}
 
-		in.close();
 		aps.closeArchiveEntry();
 	}
 

@@ -113,11 +113,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<Boolean> isTemplate                             = new BooleanProperty("isTemplate");
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
-		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable, isTemplate
+		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable, isTemplate, isExternal
 	);
 
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
-		type, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
+		type, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate, isExternal
 	);
 
 	@Override
@@ -177,17 +177,21 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	@Override
 	public void onNodeDeletion() {
 
-		java.io.File toDelete = getFileOnDisk(false);
+		// only delete mounted files
+		if (!isExternal()) {
 
-		try {
+			java.io.File toDelete = getFileOnDisk(false);
 
-			if (toDelete.exists() && toDelete.isFile()) {
+			try {
 
-				toDelete.delete();
+				if (toDelete.exists() && toDelete.isFile()) {
+
+					toDelete.delete();
+				}
+
+			} catch (Throwable t) {
+				logger.debug("Exception while trying to delete file {}: {}", toDelete, t);
 			}
-
-		} catch (Throwable t) {
-			logger.debug("Exception while trying to delete file {}: {}", toDelete, t);
 		}
 	}
 

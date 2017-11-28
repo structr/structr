@@ -72,11 +72,11 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
 
 	public static final View publicView = new View(Folder.class, PropertyView.Public,
-			id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers, mountTarget
+			id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers, mountTarget, isExternal
 	);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-			parent, owner, folders, files, images, isFolder, includeInFrontendExport, mountTarget
+			parent, owner, folders, files, images, isFolder, includeInFrontendExport, mountTarget, isExternal
 	);
 
 	// register this type as an overridden builtin type
@@ -90,7 +90,12 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 		if (super.onCreation(securityContext, errorBuffer)) {
 
 			setHasParent();
-			updateWatchService(true);
+
+			// only update watch service for root folder of mounted hierarchy
+			if (getProperty(mountTarget) != null || !isMounted()) {
+
+				updateWatchService(true);
+			}
 
 			return true;
 		}
@@ -104,7 +109,12 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
 
 			setHasParent();
-			updateWatchService(true);
+
+			// only update watch service for root folder of mounted hierarchy
+			if (getProperty(mountTarget) != null || !isMounted()) {
+
+				updateWatchService(true);
+			}
 
 			return true;
 		}
@@ -117,7 +127,11 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 		if (super.onDeletion(securityContext, errorBuffer, properties)) {
 
-			updateWatchService(false);
+			// only update watch service for root folder of mounted hierarchy
+			if (getProperty(mountTarget) != null || !isMounted()) {
+
+				updateWatchService(false);
+			}
 
 			return true;
 		}
@@ -194,7 +208,7 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 			fileOnDisk.getParentFile().mkdirs();
 
-			if (create) {
+			if (create && !isExternal()) {
 
 				try {
 

@@ -31,6 +31,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
+import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
@@ -66,6 +67,7 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
 	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
 	public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
+	public static final Property<Boolean> isExternal               = new BooleanProperty("isExternal").writeOnce();
 	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
@@ -202,6 +204,26 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		return false;
 	}
 
+	public boolean isMounted() {
+
+		final Folder parent = getProperty(AbstractFile.parent);
+		if (parent != null) {
+
+			return parent.isMounted();
+		}
+
+		return getProperty(Folder.mountTarget) != null;
+	}
+
+	public boolean isExternal() {
+		return getProperty(isExternal);
+	}
+
+	@Export
+	public boolean isBinaryDataAccessible() {
+		return !isExternal() || isMounted();
+	}
+
 	// ----- protected methods -----
 	protected static java.io.File defaultGetFileOnDisk(final FileBase fileBase, final boolean create) {
 
@@ -214,7 +236,7 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		file.getParentFile().mkdirs();
 
 		// create file only if requested
-		if (create && !file.exists()) {
+		if (create && !file.exists() && !fileBase.isExternal()) {
 
 			try {
 
