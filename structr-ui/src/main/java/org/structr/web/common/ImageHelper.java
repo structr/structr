@@ -76,9 +76,18 @@ public abstract class ImageHelper extends FileHelper {
 	 * @throws IOException
 	 */
 	public static Image createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
-		throws FrameworkException, IOException {
+			throws FrameworkException, IOException {
 
-		return createImageNode(securityContext, IOUtils.toByteArray(imageStream), contentType, imageType, name, markAsThumbnail);
+		final PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
+		props.put(Image.isThumbnail, markAsThumbnail);
+		props.put(AbstractNode.name, name);
+
+		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
+		setFileData(newImage, imageStream, contentType);
+
+		return newImage;
 
 	}
 
