@@ -63,9 +63,9 @@ import org.structr.core.property.PropertyMap;
 /**
  *
  */
-public class StructrTextSearchModuleTest {
+public class TextSearchModuleTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrTextSearchModuleTest.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(TextSearchModuleTest.class.getName());
 
 	protected static SecurityContext securityContext = null;
 	protected static String basePath                 = null;

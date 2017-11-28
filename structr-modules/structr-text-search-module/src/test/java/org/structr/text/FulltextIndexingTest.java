@@ -36,7 +36,7 @@ import org.structr.web.entity.FileBase;
 /**
  *
  */
-public class FulltextIndexingTest extends StructrTextSearchModuleTest {
+public class FulltextIndexingTest extends TextSearchModuleTest {
 
 	private static final List<String> testWords = Arrays.asList(new String[] {
 		"adipiscing", "aenean", "aliquam", "aliquet", "amet", "ante", "arcu", "augue", "blandit", "commodo", "condimentum", "consectetuer", "consequat", "cras", "curabitur",
