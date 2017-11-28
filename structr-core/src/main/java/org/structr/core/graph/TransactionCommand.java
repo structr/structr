@@ -30,6 +30,8 @@ import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.common.error.DatabaseServiceNetworkException;
+import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
@@ -66,7 +68,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 					tx = new TransactionReference(graphDb.beginTx());
 
 				} catch (NetworkException nex) {
-					throw new FrameworkException(503, nex.getMessage());
+					throw new DatabaseServiceNetworkException(503, nex.getMessage());
 				}
 
 				queues.set(new ModificationQueue());
@@ -80,7 +82,7 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 		} else {
 
-			throw new FrameworkException(503, "Database service is not available");
+			throw new DatabaseServiceNotAvailableException(503, "Database service is not available, ensure the database is running and that there is a working network connection to it");
 		}
 
 		return this;
