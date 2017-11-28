@@ -396,11 +396,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			final StringBuilder buf = new StringBuilder();
 
-			buf.append(sourceNode.getId());
-			buf.append("-");
-			buf.append(relType);
-			buf.append("-");
-			buf.append(targetNode.getId());
+			if (sourceNode != null && targetNode != null) {
+
+				buf.append(sourceNode.getId());
+				buf.append("-");
+				buf.append(relType);
+				buf.append("-");
+				buf.append(targetNode.getId());
+			}
 
 			return buf.toString();
 		}
