@@ -18,9 +18,8 @@
  */
 package org.structr.javaparser;
 
-import com.github.javaparser.JavaParser;
 import com.github.javaparser.ParseProblemException;
-import com.github.javaparser.ast.CompilationUnit;
+import com.google.gson.GsonBuilder;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -49,10 +48,11 @@ public class ParseJavaFunction extends Function<Object, Object> {
 
 			try {
 			
-				// parse it
-				CompilationUnit cu = JavaParser.parse((String) sources[0]);
-
-				return cu;
+				// Parse string as Java code
+				final String resultJson = new GsonBuilder().setPrettyPrinting().create()
+					.toJson(new JavaParserModule().parse((String) sources[0]).get());
+				
+				return resultJson;
 				
 			} catch (final ParseProblemException ex) {
 				
@@ -78,6 +78,6 @@ public class ParseJavaFunction extends Function<Object, Object> {
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given string as Java file into an object representation of the Java model declared by the given source code.";
+		return "Parses the given string as Java file into an JSON representation of the Java model declared by the given source code.";
 	}
 }

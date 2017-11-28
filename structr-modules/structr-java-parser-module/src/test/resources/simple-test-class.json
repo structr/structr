@@ -1,0 +1,131 @@
+{
+  "name": "SimpleTestClass",
+  "modifiers": [
+    "public",
+    "abstract"
+  ],
+  "package": "org.structr.javaparser.test",
+  "members": [
+    {
+      "name": "anInt",
+      "type": "int",
+      "modifiers": [
+        "public"
+      ]
+    },
+    {
+      "name": "aLong",
+      "type": "long",
+      "modifiers": [
+        "public"
+      ]
+    },
+    {
+      "name": "aBoolean",
+      "type": "boolean",
+      "modifiers": [
+        "public"
+      ]
+    },
+    {
+      "name": "aString",
+      "type": "String",
+      "modifiers": [
+        "public"
+      ]
+    },
+    {
+      "name": "SimpleTestClass",
+      "type": "constructor",
+      "modifiers": [
+        "public"
+      ],
+      "parameters": [
+        {
+          "name": "anInt",
+          "type": "int",
+          "modifiers": [
+            "final"
+          ]
+        },
+        {
+          "name": "aLong",
+          "type": "long",
+          "modifiers": []
+        },
+        {
+          "name": "aBoolean",
+          "type": "boolean",
+          "modifiers": []
+        },
+        {
+          "name": "aString",
+          "type": "String",
+          "modifiers": []
+        }
+      ]
+    },
+    {
+      "name": "setAnInt",
+      "type": "method",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "parameters": [
+        {
+          "name": "newValue",
+          "type": "int",
+          "modifiers": []
+        }
+      ]
+    },
+    {
+      "name": "setALong",
+      "type": "method",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "parameters": [
+        {
+          "name": "newValue",
+          "type": "long",
+          "modifiers": []
+        }
+      ]
+    },
+    {
+      "name": "setABoolean",
+      "type": "method",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "parameters": [
+        {
+          "name": "newValue",
+          "type": "boolean",
+          "modifiers": []
+        }
+      ]
+    },
+    {
+      "name": "setAString",
+      "type": "method",
+      "returnType": "void",
+      "modifiers": [
+        "public"
+      ],
+      "parameters": [
+        {
+          "name": "newValue",
+          "type": "String",
+          "modifiers": [
+            "final"
+          ]
+        }
+      ]
+    }
+  ]
+}
