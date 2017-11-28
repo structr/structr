@@ -33,7 +33,6 @@ import org.structr.common.error.UniqueToken;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -88,7 +87,7 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		boolean valid = true;
 
 		if (Settings.UniquePaths.getValue()) {
-			valid = validatePath(securityContext, errorBuffer);
+			valid = validateAndRenameFileOnce(securityContext, errorBuffer);
 		}
 
 		return valid && super.onModification(securityContext, errorBuffer, modificationQueue);

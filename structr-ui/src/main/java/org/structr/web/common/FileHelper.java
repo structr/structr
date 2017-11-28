@@ -21,6 +21,7 @@ package org.structr.web.common;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -129,10 +130,59 @@ public class FileHelper {
 	 * @throws IOException
 	 */
 	public static <T extends org.structr.web.entity.FileBase> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
+			throws FrameworkException, IOException {
+
+		PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.name, name);
+
+		T newFile = (T) StructrApp.getInstance(securityContext).create(fileType, props);
+
+		setFileData(newFile, fileStream, contentType);
+
+		// schedule indexing
+		newFile.notifyUploadCompletion();
+
+		return newFile;
+
+	}
+
+	/**
+	 * Create a new file node from the given input stream and sets the parentFolder
+	 *
+	 * @param <T>
+	 * @param securityContext
+	 * @param fileStream
+	 * @param contentType
+	 * @param fileType defaults to File.class if null
+	 * @param name
+	 * @param parentFolder
+	 * @return file
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static <T extends org.structr.web.entity.FileBase> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name, final Folder parentFolder)
 		throws FrameworkException, IOException {
 
-		final byte[] data = IOUtils.toByteArray(fileStream);
-		return createFile(securityContext, data, contentType, fileType, name);
+		PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.name, name);
+
+		if (parentFolder != null) {
+
+			props.put(FileBase.hasParent, true);
+			props.put(FileBase.parent, parentFolder);
+
+		}
+
+		T newFile = (T) StructrApp.getInstance(securityContext).create(fileType, props);
+
+		setFileData(newFile, fileStream, contentType);
+
+		// schedule indexing
+		newFile.notifyUploadCompletion();
+
+		return newFile;
 
 	}
 
@@ -201,7 +251,7 @@ public class FileHelper {
 	}
 
 	/**
-	 * Write image data to the given file node and set checksum and size.
+	 * Write image data from the given byte[] to the given file node and set checksum and size.
 	 *
 	 * @param file
 	 * @param fileData
@@ -212,7 +262,33 @@ public class FileHelper {
 	public static void setFileData(final FileBase file, final byte[] fileData, final String contentType) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
+		setFileProperties(file, contentType);
+	}
 
+	/**
+	 * Write image data from the given InputStream to the given file node and set checksum and size.
+	 *
+	 * @param file
+	 * @param fileStream
+	 * @param contentType if null, try to auto-detect content type
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void setFileData(final FileBase file, final InputStream fileStream, final String contentType) throws FrameworkException, IOException {
+
+		FileHelper.writeToFile(file, fileStream);
+		setFileProperties(file, contentType);
+	}
+
+	/**
+	 * Set the contentType, checksum, size and version properties of the given fileNode
+	 *
+	 * @param file
+	 * @param contentType if null, try to auto-detect content type
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void setFileProperties (final FileBase file, final String contentType) throws IOException, FrameworkException {
 		final PropertyMap map = new PropertyMap();
 
 		map.put(FileBase.contentType, contentType != null ? contentType : getContentMimeType(file));
@@ -221,6 +297,33 @@ public class FileHelper {
 		map.put(FileBase.version, 1);
 
 		file.setProperties(file.getSecurityContext(), map);
+	}
+
+	/**
+	 * Set the uuid and the path of a newly created fileNode
+	 *
+	 * @param fileNode
+	 * @throws FrameworkException
+	 */
+	public static void setFileProperties (FileBase fileNode) throws FrameworkException {
+
+		final PropertyMap properties = new PropertyMap();
+
+		String id = fileNode.getProperty(GraphObject.id);
+		if (id == null) {
+
+			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+			id = newUuid;
+
+			fileNode.unlockSystemPropertiesOnce();
+			properties.put(GraphObject.id, newUuid);
+		}
+
+		properties.put(FileBase.relativeFilePath, FileBase.getDirectoryPath(id) + "/" + id);
+
+		fileNode.unlockSystemPropertiesOnce();
+		fileNode.setProperties(fileNode.getSecurityContext(), properties);
+
 	}
 
 	/**
@@ -342,12 +445,12 @@ public class FileHelper {
 	 */
 	public static void writeToFile(final org.structr.dynamic.File fileNode, final InputStream inStream) throws FrameworkException, IOException {
 
-		writeToFile(fileNode, IOUtils.toByteArray(inStream));
+		writeToFile((FileBase) fileNode, inStream);
 
 	}
 
 	/**
-	 * Write binary data to a file and reference the file on disk at the
+	 * Write binary data from byte[] to a file and reference the file on disk at the
 	 * given file node
 	 *
 	 * @param fileNode
@@ -356,24 +459,9 @@ public class FileHelper {
 	 * @throws IOException
 	 * @return the file on disk
 	 */
-	public static File writeToFile(final FileBase fileNode, final byte[] data) throws FrameworkException, IOException {
+	public static void writeToFile(final FileBase fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		final PropertyMap properties = new PropertyMap();
-
-		String id = fileNode.getProperty(GraphObject.id);
-		if (id == null) {
-
-			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-			id = newUuid;
-
-			fileNode.unlockSystemPropertiesOnce();
-			properties.put(GraphObject.id, newUuid);
-		}
-
-		properties.put(FileBase.relativeFilePath, FileBase.getDirectoryPath(id) + "/" + id);
-
-		fileNode.unlockSystemPropertiesOnce();
-		fileNode.setProperties(fileNode.getSecurityContext(), properties);
+		setFileProperties(fileNode);
 
 		final String filesPath = Settings.FilesPath.getValue();
 
@@ -382,7 +470,31 @@ public class FileHelper {
 		fileOnDisk.getParentFile().mkdirs();
 		FileUtils.writeByteArrayToFile(fileOnDisk, data);
 
-		return fileOnDisk;
+	}
+
+	/**
+	 * Write binary data from FileInputStream to a file and reference the file on disk at the
+	 * given file node
+	 *
+	 * @param fileNode
+	 * @param data
+	 * @throws FrameworkException
+	 * @throws IOException
+	 * @return the file on disk
+	 */
+	public static void writeToFile(final FileBase fileNode, final InputStream data) throws FrameworkException, IOException {
+
+		setFileProperties(fileNode);
+		final String filesPath = Settings.FilesPath.getValue();
+
+		final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
+		fileOnDisk.getParentFile().mkdirs();
+		FileOutputStream out = new FileOutputStream(fileOnDisk);
+
+		IOUtils.copy(data, out);
+
+		data.close();
+		out.close();
 
 	}
 
@@ -706,6 +818,6 @@ public class FileHelper {
 	}
 
 	public static String getDateString() {
-		return new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date());
+		return new SimpleDateFormat("yyyy-MM-dd-HHmmssSSS").format(new Date());
 	}
 }
