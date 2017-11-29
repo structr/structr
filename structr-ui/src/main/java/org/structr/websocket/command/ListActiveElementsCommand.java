@@ -186,7 +186,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			return ActiveElementState.Query;
 		}
 
-		if (!StringUtils.isEmpty(node.getXPathQuery())) {
+		if (!StringUtils.isEmpty(node.getXpathQuery())) {
 			return ActiveElementState.Query;
 		}
 

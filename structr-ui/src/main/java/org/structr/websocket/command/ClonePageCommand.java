@@ -62,7 +62,7 @@ public class ClonePageCommand extends AbstractCommand {
 					DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
 
 					if (firstChild == null) {
-						firstChild = pageToClone.treeGetFirstChild();
+						firstChild = (DOMNode)pageToClone.getFirstChild();
 					}
 
 					if (firstChild != null) {

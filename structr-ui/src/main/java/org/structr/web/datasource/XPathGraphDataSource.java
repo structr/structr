@@ -47,9 +47,9 @@ public class XPathGraphDataSource implements GraphDataSource<Iterable<GraphObjec
 	@Override
 	public Iterable<GraphObject> getData(final RenderContext renderContext, final DOMNode referenceNode) throws FrameworkException {
 
-		final String xpathQuery = referenceNode.getXPathQuery();
+		final String xpathQuery = referenceNode.getXpathQuery();
 		if (StringUtils.isBlank(xpathQuery)) {
-			
+
 			return null;
 		}
 

@@ -42,10 +42,11 @@ public interface LinkSource extends DOMElement {
 
 		type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
 
-		//type.addPropertySetter("linkable", Linkable.class);
-		type.addMethod("setLinkable").setSource("setProperty(linkableProperty, linkable);").addParameter("linkable", "org.structr.web.entity.Linkable");
+		type.overrideMethod("getLinkable", false, "getProperty(linkableProperty);");
+		type.overrideMethod("setLinkable", false, "setProperty(arg0);");
 	}}
 
+	Linkable getLinkable();
 	void setLinkable(final Linkable linkable) throws FrameworkException;
 
 	//public static final Property<Linkable> linkable = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));

@@ -638,7 +638,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 				final EditMode edit = renderContext.getEditMode(user);
 
-				DOMNode rootElement = null;
+				DOMNode rootElement   = null;
 				AbstractNode dataNode = null;
 
 				String[] uriParts = PathHelper.getParts(path);

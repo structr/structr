@@ -472,4 +472,9 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
 }

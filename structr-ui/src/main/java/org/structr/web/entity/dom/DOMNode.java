@@ -19,25 +19,58 @@
 package org.structr.web.entity.dom;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.Predicate;
+import org.structr.api.util.Iterables;
+import org.structr.common.CaseHelper;
+import org.structr.common.Filter;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
+import org.structr.web.entity.Site;
+import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.websocket.command.CreateComponentCommand;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
@@ -74,18 +107,127 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addBooleanProperty("renderDetails");
 		type.addBooleanProperty("hideOnIndex");
 		type.addBooleanProperty("hideOnDetail");
+		type.addBooleanProperty("dontCache", PropertyView.Public).setDefaultValue("false");
 
 		type.addIntegerProperty("domSortPosition");
 
+		type.addPropertyGetter("restQuery", String.class);
+		type.addPropertyGetter("cypherQuery", String.class);
+		type.addPropertyGetter("xpathQuery", String.class);
+		type.addPropertyGetter("functionQuery", String.class);
+		type.addPropertyGetter("dataKey", String.class);
+		type.addPropertyGetter("showConditions", String.class);
+		type.addPropertyGetter("hideConditions", String.class);
+
+		type.addPropertyGetter("site", Site.class);
+		type.addPropertyGetter("parent", DOMNode.class);
+		type.addPropertyGetter("children", List.class);
+		type.addPropertyGetter("nextSibling", DOMNode.class);
+		type.addPropertyGetter("previousSibling", DOMNode.class);
+		type.addPropertyGetter("syncedNodes", List.class);
+		type.addPropertyGetter("ownerDocument", Page.class);
+		type.addPropertyGetter("sharedComponent", DOMNode.class);
+
+		type.addPropertySetter("sharedComponent", DOMNode.class);
+		type.addPropertySetter("ownerDocument", Page.class);
+		type.addPropertySetter("setLinkable", Linkable.class);
+
+		type.overrideMethod("getSiblingLinkType",          false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
+		type.overrideMethod("getChildLinkType",            false, "return DOMNodeCONTAINSDOMNode.class;");
+		type.overrideMethod("getChildRelationships",       false, "return treeGetChildRelationships();");
+		type.overrideMethod("renderNodeList",              false, DOMNode.class.getName() + ".renderNodeList(this, arg0, arg1, arg2, arg3);");
+
+		type.overrideMethod("setVisibility",               false, "setProperty(visibleToPublicUsers, arg0); setProperty(visibleToAuthenticatedUsers, arg1);");
+		type.overrideMethod("updateFromNode",              false, "");
+
+		type.overrideMethod("getClosestPage",              false, "return " + DOMNode.class.getName() + ".getClosestPage(this);");
+		type.overrideMethod("getClosestTemplate",          false, "return " + DOMNode.class.getName() + ".getClosestTemplate(this, arg0);");
+		type.overrideMethod("getContent",                  false, "return " + DOMNode.class.getName() + ".getContent(this, arg0);");
+		type.overrideMethod("getOwnerDocumentAsSuperUser", false, "return " + DOMNode.class.getName() + ".getOwnerDocumentAsSuperUser(this);");
+		type.overrideMethod("isSharedComponent",           false, "return " + DOMNode.class.getName() + ".isSharedComponent(this);");
+
+		type.overrideMethod("getChildPosition",            false, "return treeGetChildPosition(arg0);");
+		type.overrideMethod("getPositionPath",             false, "return " + DOMNode.class.getName() + ".getPositionPath(this);");
+
+		type.overrideMethod("getTag",                      false, "return null;");
+		type.overrideMethod("getContextName",              false, "return null;");
+		type.overrideMethod("getIdHash",                   false, "return getUuid();");
+		type.overrideMethod("getIdHashOrProperty",         false, "return " + DOMNode.class.getName() + ".getIdHashOrProperty(this);");
+		type.overrideMethod("getDataHash",                 false, "return getProperty(datastructrhashProperty);");
+
+		type.overrideMethod("avoidWhitespace",             false, "return false;");
+		type.overrideMethod("isVoidElement",               false, "return false;");
+		type.overrideMethod("contentEquals",               false, "return false;");
+
+		type.overrideMethod("inTrash",                     false, "return getParent() == null && getOwnerDocumentAsSuperUser() == null;");
+		type.overrideMethod("dontCache",                   false, "return getProperty(dontCacheProperty);");
+		type.overrideMethod("hideOnIndex",                 false, "return getProperty(hideOnIndexProperty);");
+		type.overrideMethod("hideOnDetail",                false, "return getProperty(hideOnDetailProperty);");
+		type.overrideMethod("isSynced",                    false, "return getSyncedNodes().size() > 0 || getSharedComponent() != null;");
+
+		// ----- interface org.w3c.dom.Node -----
+		type.overrideMethod("setUserData",                         false, "return null;");
+		type.overrideMethod("getUserData",                         false, "return null;");
+		type.overrideMethod("getFeature",                          false, "return null;");
+		type.overrideMethod("isEqualNode",                         false, "return equals(arg0);");
+		type.overrideMethod("lookupNamespaceURI",                  false, "return null;");
+		type.overrideMethod("lookupPrefix",                        false, "return null;");
+		type.overrideMethod("isDefaultNamespace",                  false, "return true;");
+		type.overrideMethod("isSameNode",                          false, "return " + DOMNode.class.getName() + ".isSameNode(this, arg0);");
+		type.overrideMethod("isSupported",                         false, "return false;");
+		type.overrideMethod("getPrefix",                           false, "return null;");
+		type.overrideMethod("setPrefix",                           false, "");
+		type.overrideMethod("getNamespaceURI",                     false, "return null;");
+		type.overrideMethod("getBaseURI",                          false, "return null;");
+		type.overrideMethod("getLocalName",                        false, "return null;");
+		type.overrideMethod("cloneNode",                           false, "return " + DOMNode.class.getName() + ".cloneNode(this, arg0, arg1);");
+		type.overrideMethod("setTextContent",                      false, "");
+		type.overrideMethod("getTextContent",                      false, "");
+		type.overrideMethod("compareDocumentPosition",             false, "return 0;");
+		type.overrideMethod("hasAttributes",                       false, "return getLength() > 0;");
+		type.overrideMethod("getNodeName",                         false, "return getTagName();");
+		type.overrideMethod("getNodeType",                         false, "return -1;");
+		type.overrideMethod("getNodeValue",                        false, "return null;");
+		type.overrideMethod("setNodeValue",                        false, "");
+
+		// DOM operations
+		type.overrideMethod("normalize",                           false, DOMNode.class.getName() + ".normalize(this);");
+		type.overrideMethod("checkHierarchy",                      false, DOMNode.class.getName() + ".checkHierarchy(this, arg0);");
+		type.overrideMethod("checkSameDocument",                   false, DOMNode.class.getName() + ".checkSameDocument(this, arg0);");
+		type.overrideMethod("checkWriteAccess",                    false, DOMNode.class.getName() + ".checkWriteAccess(this);");
+		type.overrideMethod("checkReadAccess",                     false, DOMNode.class.getName() + ".checkReadAccess(this);");
+		type.overrideMethod("handleNewChild",                      false, "return " + DOMNode.class.getName() + ".handleNewChild(this, arg0);");
+		type.overrideMethod("checkIsChild",                        false, "return " + DOMNode.class.getName() + ".checkIsChild(this, arg0);");
+		type.overrideMethod("insertBefore",                        false, "return " + DOMNode.class.getName() + ".insertBefore(this, arg0, arg1);");
+		type.overrideMethod("replaceChild",                        false, "return " + DOMNode.class.getName() + ".replaceChild(this, arg0, arg1);");
+		type.overrideMethod("removeChild",                         false, "return " + DOMNode.class.getName() + ".removeChild(this, arg0);");
+		type.overrideMethod("appendChild",                         false, "return " + DOMNode.class.getName() + ".appendChild(this, arg0);");
+		type.overrideMethod("hasChildNodes",                       false, "return !getProperty(childrenProperty).isEmpty();");
+		type.overrideMethod("getAttributes",                       false, "return this;");
+
+		type.overrideMethod("renderContent",                       false, "");
+		type.overrideMethod("displayForLocale",                    false, "return " + DOMNode.class.getName() + ".displayForLocale(this, arg0);");
+		type.overrideMethod("displayForConditions",                false, "return " + DOMNode.class.getName() + ".displayForConditions(this, arg0);");
+
+
+		// LinkedTreeNode
+		type.overrideMethod("doAppendChild",                       false, "treeAppendChild(arg0);");
+		type.overrideMethod("doRemoveChild",                       false, "treeRemoveChild(arg0);");
+		type.overrideMethod("getFirstChild",                       false, "checkReadAccess(); treeGetFirstChild();");
+		type.overrideMethod("getLastChild",                        false, "checkReadAccess(); treeGetLastChild();");
+		type.overrideMethod("getChildNodes",                       false, "checkReadAccess(); return new DOMNodeList(treeGetChildren());");
+		type.overrideMethod("getParentNode",                       false, "checkReadAccess(); return getParent();");
+
+		type.overrideMethod("renderCustomAttributes",              false, DOMNode.class.getName() + ".renderCustomAttributes(this);");
+		type.overrideMethod("getSecurityInstructions",             false, DOMNode.class.getName() + ".getSecurityInstructions(this);");
+		type.overrideMethod("getVisibilityInstructions",           false, DOMNode.class.getName() + ".getVisibilityInstructions(this);");
+		type.overrideMethod("getLinkableInstructions",             false, DOMNode.class.getName() + ".getLinkableInstructions(this);");
+		type.overrideMethod("getContentInstructions",              false, DOMNode.class.getName() + ".getContentInstructions(this);");
+		type.overrideMethod("renderSharedComponentConfiguration",  false, DOMNode.class.getName() + ".renderSharedComponentConfiguration(this);");
+		type.overrideMethod("getDataPropertyKeys",                 false, "return " + DOMNode.class.getName() + ".getDataPropertyKeys(this);");
+
 		type.addMethod("getIdHash").setSource("return getUuid();").setReturnType("String");
 
-		type.overrideMethod("getSiblingLinkType",    false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
-		type.overrideMethod("getChildLinkType",      false, "return DOMNodeCONTAINSDOMNode.class;");
-		type.overrideMethod("getChildRelationships", false, "return treeGetChildRelationships();");
-		type.overrideMethod("renderNodeList",        false, DOMNode.class.getName() + ".renderNodeList(this, arg0, arg1, arg2);");
-
-		fixme
-		type.overrideMethod("setVisibilty",          false, "fixme");
 
 		/*
 			public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
@@ -126,6 +268,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	public static final List<GraphDataSource<Iterable<GraphObject>>> listSources = new LinkedList<>();
 
+	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
+		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "children", "childrenIds", "linkable", "linkableId", "path"
+	}));
+
+	public static final String[] rawProps = new String[] {
+		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
+	};
+
 	/*
 	private Page cachedOwnerDocument;
 
@@ -147,15 +297,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final Property<String> pageId                       = new EntityIdProperty("pageId", ownerDocument).category(PAGE_CATEGORY);
 	public static final Property<Boolean> isDOMNode                   = new ConstantBooleanProperty("isDOMNode", true).category(PAGE_CATEGORY);
 
-	public static final Property[] rawProps = new Property[] {
-		dataKey, restQuery, cypherQuery, xpathQuery, functionQuery, hideOnIndex, hideOnDetail, showForLocales, hideForLocales, showConditions, hideConditions
-	};
-
-	private static final Set<PropertyKey> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new Property[] {
-		GraphObject.id, GraphObject.type, DOMNode.ownerDocument, DOMNode.pageId, DOMNode.parent, DOMNode.parentId, DOMElement.syncedNodes,
-		DOMNode.children, DOMNode.childrenIds, LinkSource.linkable, LinkSource.linkableId, Page.path
-	}));
-
 	// a simple cache for custom properties
 	private Set<PropertyKey> customProperties = null;
 	*/
@@ -169,6 +310,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	boolean dontCache();
 	boolean hideOnIndex();
 	boolean hideOnDetail();
+	boolean displayForLocale(final RenderContext renderContext);
+	boolean displayForConditions(final RenderContext renderContext);
+
+	int getChildPosition(final DOMNode otherNode);
 
 	String getContextName();
 	String getIdHash();
@@ -183,7 +328,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	String getCypherQuery();
 	String getRestQuery();
-	String getXPathQuery();
+	String getXpathQuery();
 	String getFunctionQuery();
 
 	@Override
@@ -193,11 +338,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	DOMNode getNextSibling();
 
 	DOMNode getParent();
+	DOMNode getSharedComponent();
 	List<DOMNode> getChildren();
 	List<DOMNode> getSyncedNodes();
 
 	@Override
 	Page getOwnerDocument();
+	Page getOwnerDocumentAsSuperUser();
 	Page getClosestPage();
 
 	void setOwnerDocument(final Page page) throws FrameworkException;
@@ -208,12 +355,29 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 	void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException;
 	void renderNodeList(final SecurityContext securityContext, final RenderContext renderContext, final int depth, final String dataKey) throws FrameworkException;
+	void handleNewChild(final Node newChild);
+	void checkIsChild(final Node otherNode) throws DOMException;
+	void checkHierarchy(Node otherNode) throws DOMException;
+	void checkSameDocument(Node otherNode) throws DOMException;
+	void checkWriteAccess() throws DOMException;
+	void checkReadAccess() throws DOMException;
+
+	void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException;
+	void getSecurityInstructions(final Set<String> instructions);
+	void getVisibilityInstructions(final Set<String> instructions);
+	void getLinkableInstructions(final Set<String> instructions);
+	void getContentInstructions(final Set<String> instructions);
+	void renderSharedComponentConfiguration(final AsyncBuffer out, final EditMode editMode);
 
 	List<RelationshipInterface> getChildRelationships();
 
-	// ----- test -----
 	LinkedTreeNode treeGetFirstChild();
+	LinkedTreeNode treeGetLastChild();
+	void doAppendChild(final DOMNode node) throws FrameworkException;
+	void doRemoveChild(final DOMNode node) throws FrameworkException;
 	Class getChildLinkType();
+
+	Set<PropertyKey> getDataPropertyKeys();
 
 
 	// ----- static methods -----
@@ -310,263 +474,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
-	/*
-	public String getIdHash() {
+	public static Template getClosestTemplate(final DOMNode thisNode, final Page page) {
 
-		return getUuid();
-
-	}
-
-	public String getIdHashOrProperty() {
-
-		String idHash = getProperty(DOMNode.dataHashProperty);
-		if (idHash == null) {
-
-			idHash = getIdHash();
-		}
-
-		return idHash;
-	}
-
-	@Override
-	public Class<DOMChildren> getChildLinkType() {
-		return DOMChildren.class;
-	}
-
-	@Override
-	public Class<DOMSiblings> getSiblingLinkType() {
-		return DOMSiblings.class;
-	}
-
-	public boolean isSharedComponent() {
-
-		final Document _ownerDocument = getOwnerDocumentAsSuperUser();
-		if (_ownerDocument != null) {
-
-			try {
-
-				return _ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
-			}
-		}
-
-		return false;
-	}
-
-
-	// ----- public methods -----
-	public List<DOMChildren> getChildRelationships() {
-		return treeGetChildRelationships();
-	}
-
-	public String getPositionPath() {
-
-		String path = "";
-
-		DOMNode currentNode = this;
-		while (currentNode.getParentNode() != null) {
-
-			DOMNode parentNode = (DOMNode)currentNode.getParentNode();
-
-			path = "/" + parentNode.treeGetChildPosition(currentNode) + path;
-
-			currentNode = parentNode;
-
-		}
-
-		return path;
-
-	}
-
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.onCreation(securityContext, errorBuffer)) {
-
-			return checkName(errorBuffer);
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			if (customProperties != null) {
-
-				// invalidate data property cache
-				customProperties.clear();
-			}
-
-
-			try {
-
-				increasePageVersion();
-
-			} catch (FrameworkException ex) {
-
-				logger.warn("Updating page version failed", ex);
-
-			}
-
-			return checkName(errorBuffer);
-		}
-
-		return false;
-	}
-
-	/**
-	 * Render the node including data binding (outer rendering).
-	 *
-	 * @param renderContext
-	 * @param depth
-	 * @throws FrameworkException
-	@Override
-	public void render(final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		if (!securityContext.isVisible(this)) {
-			return;
-		}
-
-		final GraphObject details = renderContext.getDetailsDataObject();
-		final boolean detailMode = details != null;
-
-		if (detailMode && getProperty(hideOnDetail)) {
-			return;
-		}
-
-		if (!detailMode && getProperty(hideOnIndex)) {
-			return;
-		}
-
-		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-
-		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode)) {
-
-			renderContent(renderContext, depth);
-
-		} else {
-
-			final String subKey = getProperty(dataKey);
-
-			if (StringUtils.isNotBlank(subKey)) {
-
-				setDataRoot(renderContext, this, subKey);
-
-				final GraphObject currentDataNode = renderContext.getDataObject();
-
-				// fetch (optional) list of external data elements
-				final Iterable<GraphObject> listData = checkListSources(securityContext, renderContext);
-
-				final PropertyKey propertyKey;
-
-				if (getProperty(renderDetails) && detailMode) {
-
-					renderContext.setDataObject(details);
-					renderContext.putDataObject(subKey, details);
-					renderContent(renderContext, depth);
-
-				} else {
-
-					if (Iterables.isEmpty(listData) && currentDataNode != null) {
-
-						// There are two alternative ways of retrieving sub elements:
-						// First try to get generic properties,
-						// if that fails, try to create a propertyKey for the subKey
-						final Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
-						renderContext.setRelatedProperty(new GenericProperty(subKey));
-						renderContext.setSourceDataObject(currentDataNode);
-
-						if (elements != null) {
-
-							if (elements instanceof Iterable) {
-
-								for (Object o : (Iterable)elements) {
-
-									if (o instanceof GraphObject) {
-
-										GraphObject graphObject = (GraphObject)o;
-										renderContext.putDataObject(subKey, graphObject);
-										renderContent(renderContext, depth);
-
-									}
-								}
-
-							}
-
-						} else {
-
-							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
-							renderContext.setRelatedProperty(propertyKey);
-
-							if (propertyKey != null) {
-
-								final Object value = currentDataNode.getProperty(propertyKey);
-								if (value != null) {
-
-									if (value instanceof Iterable) {
-
-										for (final Object o : ((Iterable)value)) {
-
-											if (o instanceof GraphObject) {
-
-												renderContext.putDataObject(subKey, (GraphObject)o);
-												renderContent(renderContext, depth);
-
-											}
-										}
-									}
-								}
-							}
-
-						}
-
-						// reset data node in render context
-						renderContext.setDataObject(currentDataNode);
-						renderContext.setRelatedProperty(null);
-
-					} else {
-
-						renderContext.setListSource(listData);
-						renderNodeList(securityContext, renderContext, depth, subKey);
-
-					}
-
-				}
-
-			} else {
-
-				renderContent(renderContext, depth);
-			}
-		}
-
-	}
-
-	/**
-	 * Return the content of this node depending on edit mode
-	 *
-	 * @param editMode
-	 * @return content
-	 * @throws FrameworkException
-	public String getContent(final RenderContext.EditMode editMode) throws FrameworkException {
-
-		final RenderContext ctx = new RenderContext(securityContext, null, null, editMode);
-		final StringRenderBuffer buffer = new StringRenderBuffer();
-		ctx.setBuffer(buffer);
-		render(ctx, 0);
-
-		// extract source
-		return buffer.getBuffer().toString();
-	}
-
-	public Template getClosestTemplate(final Page page) {
-
-		DOMNode node = this;
+		DOMNode node = thisNode;
 
 		while (node != null) {
 
@@ -587,7 +497,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				}
 
-				final List<DOMNode> _syncedNodes = template.getProperty(DOMNode.syncedNodes);
+				final List<DOMNode> _syncedNodes = template.getSyncedNodes();
 
 				for (final DOMNode syncedNode : _syncedNodes) {
 
@@ -598,22 +508,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 						return (Template)syncedNode;
 
 					}
-
 				}
-
 			}
 
 			node = (DOMNode)node.getParentNode();
-
 		}
 
 		return null;
-
 	}
 
-	public Page getClosestPage() {
+	public static Page getClosestPage(final DOMNode thisNode) {
 
-		DOMNode node = this;
+		DOMNode node = thisNode;
 
 		while (node != null) {
 
@@ -629,67 +535,524 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return null;
 	}
 
-	public boolean inTrash() {
-		return (getProperty(DOMNode.parent) == null && getOwnerDocumentAsSuperUser() == null);
-	}
+	public static String getPositionPath(final DOMNode thisNode) {
 
-	// ----- private methods -----
-	/**
-	 * Get all ancestors of this node
-	 *
-	 * @return list of ancestors
-	private List<Node> getAncestors() {
+		String path = "";
 
-		List<Node> ancestors = new ArrayList();
+		DOMNode currentNode = thisNode;
+		while (currentNode.getParentNode() != null) {
 
-		Node _parent = getParentNode();
-		while (_parent != null) {
+			DOMNode parentNode = (DOMNode)currentNode.getParentNode();
 
-			ancestors.add(_parent);
-			_parent = _parent.getParentNode();
+			path = "/" + parentNode.getChildPosition(currentNode) + path;
+
+			currentNode = parentNode;
+
 		}
 
-		return ancestors;
+		return path;
 
 	}
 
-	// ----- protected methods -----
-	/**
-	 * This method will be called by the DOM logic when this node gets a new child. Override this method if you need to set properties on the child depending on its type etc.
-	 *
-	 * @param newChild
-	protected void handleNewChild(Node newChild) {
+	public static String getContent(final DOMNode thisNode, final RenderContext.EditMode editMode) throws FrameworkException {
 
-		final Page page = (Page)getOwnerDocument();
+		final RenderContext ctx         = new RenderContext(thisNode.getSecurityContext(), null, null, editMode);
+		final StringRenderBuffer buffer = new StringRenderBuffer();
 
-		for (final DOMNode child : getAllChildNodes()) {
+		ctx.setBuffer(buffer);
+		thisNode.render(ctx, 0);
+
+		// extract source
+		return buffer.getBuffer().toString();
+	}
+
+	public static String getIdHashOrProperty(final DOMNode thisNode) {
+
+		String idHash = thisNode.getDataHash();
+		if (idHash == null) {
+
+			idHash = thisNode.getIdHash();
+		}
+
+		return idHash;
+	}
+
+	public static Document getOwnerDocumentAsSuperUser(final DOMNode thisNode) {
+
+		final RelationshipInterface ownership = thisNode.getOutgoingRelationshipAsSuperUser(StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodePAGEPage"));
+		if (ownership != null) {
+
+			return (Page)ownership.getTargetNode();
+		}
+
+		return null;
+	}
+
+	public static boolean isSharedComponent(final DOMNode thisNode) {
+
+		final Document _ownerDocument = thisNode.getOwnerDocumentAsSuperUser();
+		if (_ownerDocument != null) {
 
 			try {
 
-				child.setProperties(child.getSecurityContext(), new PropertyMap(ownerDocument, page));
+				return _ownerDocument.equals(CreateComponentCommand.getOrCreateHiddenDocument());
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Unable fetch ShadowDocument node: {}", fex.getMessage());
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean isSameNode(final DOMNode thisNode, Node node) {
+
+		if (node != null && node instanceof DOMNode) {
+
+			String otherId = ((DOMNode)node).getProperty(GraphObject.id);
+			String ourId   = thisNode.getProperty(GraphObject.id);
+
+			if (ourId != null && otherId != null && ourId.equals(otherId)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static Node cloneNode(final DOMNode thisNode, boolean deep) {
+
+		final SecurityContext securityContext = thisNode.getSecurityContext();
+
+		if (deep) {
+
+			return cloneAndAppendChildren(securityContext, thisNode);
+
+		} else {
+
+			final PropertyMap properties = new PropertyMap();
+
+			for (Iterator<PropertyKey> it = thisNode.getPropertyKeys(PropertyView.Ui).iterator(); it.hasNext();) {
+
+				final PropertyKey key = it.next();
+
+				// skip blacklisted properties
+				if (cloneBlacklist.contains(key.jsonName())) {
+					continue;
+				}
+
+
+				if (!key.isUnvalidated()) {
+					properties.put(key, thisNode.getProperty(key));
+				}
+			}
+
+			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
+			for (Iterator<PropertyKey> it = thisNode.getPropertyKeys(PropertyView.Html).iterator(); it.hasNext();) {
+
+				final PropertyKey key = it.next();
+
+				// skip blacklisted properties
+				if (cloneBlacklist.contains(key.jsonName())) {
+					continue;
+				}
+
+				if (!key.isUnvalidated()) {
+					properties.put(key, thisNode.getProperty(key));
+				}
+			}
+
+			if (thisNode instanceof LinkSource) {
+
+				final LinkSource linkSourceElement = (LinkSource)thisNode;
+
+				properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
+
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			try {
+				return app.create(thisNode.getClass(), properties);
 
 			} catch (FrameworkException ex) {
-				logger.warn("", ex);
+
+				ex.printStackTrace();
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
 			}
+		}
+	}
+
+	static String getTextContent(final DOMNode thisNode) throws DOMException {
+
+		final DOMNodeList results         = new DOMNodeList();
+		final TextCollector textCollector = new TextCollector();
+
+		collectNodesByPredicate(thisNode.getSecurityContext(), thisNode, results, textCollector, 0, false);
+
+		return textCollector.getText();
+	}
+
+	static void collectNodesByPredicate(final SecurityContext securityContext, Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
+
+		if (predicate instanceof Filter) {
+
+			((Filter)predicate).setSecurityContext(securityContext);
+		}
+
+		if (predicate.accept(startNode)) {
+
+			results.add(startNode);
+
+			if (stopOnFirstHit) {
+
+				return;
+			}
+		}
+
+		NodeList _children = startNode.getChildNodes();
+		if (_children != null) {
+
+			int len = _children.getLength();
+			for (int i = 0; i < len; i++) {
+
+				Node child = _children.item(i);
+
+				collectNodesByPredicate(securityContext, child, results, predicate, depth + 1, stopOnFirstHit);
+			}
+		}
+	}
+
+	public static void normalize(final DOMNode thisNode) {
+
+		final Document document = thisNode.getOwnerDocument();
+		if (document != null) {
+
+			// merge adjacent text nodes until there is only one left
+			Node child = thisNode.getFirstChild();
+			while (child != null) {
+
+				if (child instanceof Text) {
+
+					Node next = child.getNextSibling();
+					if (next != null && next instanceof Text) {
+
+						String text1 = child.getNodeValue();
+						String text2 = next.getNodeValue();
+
+						// create new text node
+						final Text newText = document.createTextNode(text1.concat(text2));
+
+						thisNode.removeChild(child);
+						thisNode.insertBefore(newText, next);
+						thisNode.removeChild(next);
+
+						child = newText;
+
+					} else {
+
+						// advance to next node
+						child = next;
+					}
+
+				} else {
+
+					// advance to next node
+					child = child.getNextSibling();
+
+				}
+			}
+
+			// recursively normalize child nodes
+			if (thisNode.hasChildNodes()) {
+
+				Node currentChild = thisNode.getFirstChild();
+				while (currentChild != null) {
+
+					currentChild.normalize();
+					currentChild = currentChild.getNextSibling();
+				}
+			}
+		}
+	}
+
+	static Node appendChild(final DOMNode thisNode, final Node newChild) throws DOMException {
+
+		thisNode.checkWriteAccess();
+		thisNode.checkSameDocument(newChild);
+		thisNode.checkHierarchy(newChild);
+
+		try {
+
+			if (newChild instanceof DocumentFragment) {
+
+				// When inserting document fragments, we must take
+				// care of the special case that the nodes already
+				// have a NEXT_LIST_ENTRY relationship coming from
+				// the document fragment, so we must first remove
+				// the node from the document fragment and then
+				// add it to the new parent.
+				// replace indirectly using insertBefore and remove
+				final DocumentFragment fragment = (DocumentFragment)newChild;
+				Node currentChild = fragment.getFirstChild();
+
+				while (currentChild != null) {
+
+					// save next child in fragment list for later use
+					final Node savedNextChild = currentChild.getNextSibling();
+
+					// remove child from document fragment
+					fragment.removeChild(currentChild);
+
+					// append child to new parent
+					thisNode.appendChild(currentChild);
+
+					// next
+					currentChild = savedNextChild;
+				}
+
+			} else {
+
+				final Node _parent = newChild.getParentNode();
+
+				if (_parent != null && _parent instanceof DOMNode) {
+					_parent.removeChild(newChild);
+				}
+
+				thisNode.doAppendChild((DOMNode)newChild);
+
+				// allow parent to set properties in new child
+				thisNode.handleNewChild(newChild);
+			}
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
+
+		return newChild;
+	}
+
+	public static Node removeChild(final DOMNode thisNode, final Node node) throws DOMException {
+
+		thisNode.checkWriteAccess();
+		thisNode.checkSameDocument(node);
+		thisNode.checkIsChild(node);
+
+		try {
+
+			thisNode.doRemoveChild((DOMNode)node);
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
+
+		return node;
+	}
+
+	static void checkIsChild(final DOMNode thisNode, final Node otherNode) throws DOMException {
+
+		if (otherNode instanceof DOMNode) {
+
+			Node _parent = otherNode.getParentNode();
+
+			if (!thisNode.isSameNode(_parent)) {
+
+				throw new DOMException(DOMException.NOT_FOUND_ERR, NOT_FOUND_ERR_MESSAGE);
+			}
+
+			// validation successful
+			return;
+		}
+
+		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
+	}
+
+	static void checkHierarchy(final DOMNode thisNode, final Node otherNode) throws DOMException {
+
+		// we can only check DOMNodes
+		if (otherNode instanceof DOMNode) {
+
+			// verify that the other node is not this node
+			if (thisNode.isSameNode(otherNode)) {
+				throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);
+			}
+
+			// verify that otherNode is not one of the
+			// the ancestors of this node
+			// (prevent circular relationships)
+			Node _parent = thisNode.getParentNode();
+			while (_parent != null) {
+
+				if (_parent.isSameNode(otherNode)) {
+					throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
+				}
+
+				_parent = _parent.getParentNode();
+			}
+
+			// TODO: check hierarchy constraints imposed by the schema
+			// validation successful
+			return;
+		}
+
+		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
+	}
+
+	static void checkSameDocument(final DOMNode thisNode, final Node otherNode) throws DOMException {
+
+		Document doc = thisNode.getOwnerDocument();
+
+		if (doc != null) {
+
+			Document otherDoc = otherNode.getOwnerDocument();
+
+			// Shadow doc is neutral
+			if (otherDoc != null && !doc.equals(otherDoc) && !(doc instanceof ShadowDocument)) {
+
+				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
+					otherNode.getClass().getSimpleName(),
+					((NodeInterface)otherNode).getUuid(),
+					otherDoc.getClass().getSimpleName(),
+					((NodeInterface)otherDoc).getUuid(),
+					doc.getClass().getSimpleName(),
+					((NodeInterface)doc).getUuid()
+				);
+
+				throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
+			}
+
+			if (otherDoc == null) {
+
+				((DOMNode)otherNode).doAdopt((Page)doc);
+
+			}
+		}
+	}
+
+	static void checkWriteAccess(final DOMNode thisNode) throws DOMException {
+
+		if (!thisNode.isGranted(Permission.write, thisNode.getSecurityContext())) {
+
+			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
+		}
+	}
+
+	static void checkReadAccess(final DOMNode thisNode) throws DOMException {
+
+		final SecurityContext securityContext = thisNode.getSecurityContext();
+
+		if (securityContext.isVisible(thisNode) || thisNode.isGranted(Permission.read, securityContext)) {
+			return;
+		}
+
+		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
+	}
+
+	static String indent(final int depth, final RenderContext renderContext) {
+
+		if (!renderContext.shouldIndentHtml()) {
+			return "";
+		}
+
+		StringBuilder indent = new StringBuilder("\n");
+
+		for (int d = 0; d < depth; d++) {
+
+			indent.append("	");
 
 		}
 
+		return indent.toString();
 	}
 
-	protected boolean renderDeploymentExportComments(final AsyncBuffer out, final boolean isContentNode) {
+	static boolean displayForLocale(final DOMNode thisNode, final RenderContext renderContext) {
+
+		// In raw or widget mode, render everything
+		EditMode editMode = renderContext.getEditMode(thisNode.getSecurityContext().getUser(false));
+		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+			return true;
+		}
+
+		String localeString = renderContext.getLocale().toString();
+
+		String show = thisNode.getProperty(StructrApp.key(DOMNode.class, "showForLocales"));
+		String hide = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideForLocales"));
+
+		// If both fields are empty, render node
+		if (StringUtils.isBlank(hide) && StringUtils.isBlank(show)) {
+			return true;
+		}
+
+		// If locale string is found in hide, don't render
+		if (StringUtils.contains(hide, localeString)) {
+			return false;
+		}
+
+		// If locale string is found in hide, don't render
+		if (StringUtils.isNotBlank(show) && !StringUtils.contains(show, localeString)) {
+			return false;
+		}
+
+		return true;
+
+	}
+
+	static boolean displayForConditions(final DOMNode thisNode, final RenderContext renderContext) {
+
+		// In raw or widget mode, render everything
+		EditMode editMode = renderContext.getEditMode(renderContext.getSecurityContext().getUser(false));
+		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
+			return true;
+		}
+
+		String _showConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "showConditions"));
+		String _hideConditions = thisNode.getProperty(StructrApp.key(DOMNode.class, "hideConditions"));
+
+		// If both fields are empty, render node
+		if (StringUtils.isBlank(_hideConditions) && StringUtils.isBlank(_showConditions)) {
+			return true;
+		}
+		try {
+			// If hide conditions evaluate to "true", don't render
+			if (StringUtils.isNotBlank(_hideConditions) && Boolean.TRUE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_hideConditions).concat("}"), "hide condition"))) {
+				return false;
+			}
+
+		} catch (UnlicensedException|FrameworkException ex) {
+			logger.error("Hide conditions " + _hideConditions + " could not be evaluated.", ex);
+		}
+		try {
+			// If show conditions evaluate to "false", don't render
+			if (StringUtils.isNotBlank(_showConditions) && Boolean.FALSE.equals(Scripting.evaluate(renderContext, thisNode, "${".concat(_showConditions).concat("}"), "show condition"))) {
+				return false;
+			}
+
+		} catch (UnlicensedException|FrameworkException ex) {
+			logger.error("Show conditions " + _showConditions + " could not be evaluated.", ex);
+		}
+
+		return true;
+
+	}
+
+	static boolean renderDeploymentExportComments(final DOMNode thisNode, final AsyncBuffer out, final boolean isContentNode) {
 
 		final Set<String> instructions = new LinkedHashSet<>();
 
-		getVisibilityInstructions(instructions);
-		getLinkableInstructions(instructions);
-		getSecurityInstructions(instructions);
+		thisNode.getVisibilityInstructions(instructions);
+		thisNode.getLinkableInstructions(instructions);
+		thisNode.getSecurityInstructions(instructions);
 
 		if (isContentNode) {
 
 			// special rules apply for content nodes: since we can not store
 			// structr-specific properties in the attributes of the element,
 			// we need to encode those attributes in instructions.
-			getContentInstructions(instructions);
+			thisNode.getContentInstructions(instructions);
 		}
 
 		if (!instructions.isEmpty()) {
@@ -717,11 +1080,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
-	protected void renderSharedComponentConfiguration(final AsyncBuffer out, final EditMode editMode) {
+	static void renderSharedComponentConfiguration(final DOMNode thisNode, final AsyncBuffer out, final EditMode editMode) {
 
 		if (EditMode.DEPLOYMENT.equals(editMode)) {
 
-			final String configuration = getProperty(DOMNode.sharedComponentConfiguration);
+			final String configuration = thisNode.getProperty(StructrApp.key(DOMNode.class, "sharedComponentConfiguration"));
 			if (StringUtils.isNotBlank(configuration)) {
 
 				out.append(" data-structr-meta-shared-component-configuration=\"");
@@ -731,33 +1094,33 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
-	private void getContentInstructions(final Set<String> instructions) {
+	static void getContentInstructions(final DOMNode thisNode, final Set<String> instructions) {
 
-		final String _contentType = getProperty(Content.contentType);
+		final String _contentType = thisNode.getProperty(StructrApp.key(Content.class, "contentType"));
 		if (_contentType != null) {
 
 			instructions.add("@structr:content(" + escapeForHtmlAttributes(_contentType) + ")");
 		}
 
-		final String _showConditions = getProperty(DOMNode.showConditions);
+		final String _showConditions = thisNode.getShowConditions();
 		if (StringUtils.isNotEmpty(_showConditions)) {
 
 			instructions.add("@structr:show(" + escapeForHtmlAttributes(_showConditions) + ")");
 		}
 
-		final String _hideConditions = getProperty(DOMNode.hideConditions);
+		final String _hideConditions = thisNode.getHideConditions();
 		if (StringUtils.isNotEmpty(_hideConditions)) {
 
 			instructions.add("@structr:hide(" + escapeForHtmlAttributes(_hideConditions) + ")");
 		}
 	}
 
-	private void getLinkableInstructions(final Set<String> instructions) {
+	static void getLinkableInstructions(final DOMNode thisNode, final Set<String> instructions) {
 
-		if (this instanceof LinkSource) {
+		if (thisNode instanceof LinkSource) {
 
-			final LinkSource linkSourceElement = (LinkSource)this;
-			final Linkable linkable            = linkSourceElement.getProperty(LinkSource.linkable);
+			final LinkSource linkSourceElement = (LinkSource)thisNode;
+			final Linkable linkable            = linkSourceElement.getLinkable();
 
 			if (linkable != null) {
 
@@ -774,21 +1137,21 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
-	private void getVisibilityInstructions(final Set<String> instructions) {
+	static void getVisibilityInstructions(final DOMNode thisNode, final Set<String> instructions) {
 
-		final Page _ownerDocument       = (Page)getOwnerDocument();
+		final Page _ownerDocument       = (Page)thisNode.getOwnerDocument();
 
 		if(_ownerDocument == null) {
 
-			logger.warn("DOMNode {} has no owner document!", getUuid());
+			logger.warn("DOMNode {} has no owner document!", thisNode.getUuid());
 		}
 
 		final boolean pagePublic        = _ownerDocument != null ? _ownerDocument.isVisibleToPublicUsers() : false;
 		final boolean pageProtected     = _ownerDocument != null ? _ownerDocument.isVisibleToAuthenticatedUsers() : false;
 		final boolean pagePrivate       = !pagePublic && !pageProtected;
 		final boolean pagePublicOnly    = pagePublic && !pageProtected;
-		final boolean elementPublic     = isVisibleToPublicUsers();
-		final boolean elementProtected  = isVisibleToAuthenticatedUsers();
+		final boolean elementPublic     = thisNode.isVisibleToPublicUsers();
+		final boolean elementProtected  = thisNode.isVisibleToAuthenticatedUsers();
 		final boolean elementPrivate    = !elementPublic && !elementProtected;
 		final boolean elementPublicOnly = elementPublic && !elementProtected;
 
@@ -867,15 +1230,15 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
-	private void getSecurityInstructions(final Set<String> instructions) {
+	static void getSecurityInstructions(final DOMNode thisNode, final Set<String> instructions) {
 
-		final Principal _owner = getOwnerNode();
+		final Principal _owner = thisNode.getOwnerNode();
 		if (_owner != null) {
 
 			instructions.add("@structr:owner(" + _owner.getProperty(AbstractNode.name) + ")");
 		}
 
-		for (final Security security : getSecurityRelationships()) {
+		for (final Security security : thisNode.getSecurityRelationships()) {
 
 			if (security != null) {
 
@@ -898,18 +1261,17 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
-	protected void renderCustomAttributes(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
+	static void renderCustomAttributes(final DOMNode thisNode, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
 
-		dbNode = this.getNode();
-		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 
-		for (PropertyKey key : getDataPropertyKeys()) {
+		for (PropertyKey key : thisNode.getDataPropertyKeys()) {
 
 			String value = "";
 
 			if (EditMode.DEPLOYMENT.equals(editMode)) {
 
-				final Object obj = getProperty(key);
+				final Object obj = thisNode.getProperty(key);
 				if (obj != null) {
 
 					value = obj.toString();
@@ -917,7 +1279,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} else {
 
-				value = getPropertyWithVariableReplacement(renderContext, key);
+				value = thisNode.getPropertyWithVariableReplacement(renderContext, key);
 				if (value != null) {
 
 					value = value.trim();
@@ -944,21 +1306,22 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			if (EditMode.DEPLOYMENT.equals(editMode)) {
 
 				// export name property if set
-				final String name = getProperty(AbstractNode.name);
+				final String name = thisNode.getProperty(AbstractNode.name);
 				if (name != null) {
 
 					out.append(" data-structr-meta-name=\"").append(escapeForHtmlAttributes(name)).append("\"");
 				}
 			}
 
-			for (final Property p : rawProps) {
+			for (final String p : rawProps) {
 
-				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p.jsonName(), false).replaceAll("_", "-");
-				Object value = getProperty(p);
+				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
+				Object value    = thisNode.getProperty(p);
 
 				if (value != null) {
 
-					final boolean isBoolean  = p instanceof BooleanProperty;
+					final PropertyKey key    = StructrApp.key(DOMNode.class, p);
+					final boolean isBoolean  = key instanceof BooleanProperty;
 					final String stringValue = value.toString();
 
 					if ((isBoolean && "true".equals(stringValue)) || (!isBoolean && StringUtils.isNotBlank(stringValue))) {
@@ -969,43 +1332,245 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
-	protected Set<PropertyKey> getDataPropertyKeys() {
+	static Set<PropertyKey> getDataPropertyKeys(final DOMNode thisNode) {
 
-		if (customProperties == null) {
+		final Set<PropertyKey> customProperties = new TreeSet<>();
+		final org.structr.api.graph.Node dbNode = thisNode.getNode();
+		final Iterable<String> props            = dbNode.getPropertyKeys();
 
-			customProperties = new TreeSet<>();
+		for (final String key : props) {
 
-			final Iterable<String> props = dbNode.getPropertyKeys();
-			for (final String key : props) {
+			if (key.startsWith("data-")) {
 
-				if (key.startsWith("data-")) {
+				final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key);
+				if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
-					final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key);
-					if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
+					final Object defaultValue = propertyKey.defaultValue();
+					final Object nodeValue    = dbNode.getProperty(key);
 
-						final Object defaultValue = propertyKey.defaultValue();
-						final Object nodeValue    = dbNode.getProperty(key);
+					// don't export boolean false values (which is the default)
+					if (nodeValue != null && Boolean.FALSE.equals(nodeValue) && (defaultValue == null || nodeValue.equals(defaultValue))) {
 
-						// don't export boolean false values (which is the default)
-						if (nodeValue != null && Boolean.FALSE.equals(nodeValue) && (defaultValue == null || nodeValue.equals(defaultValue))) {
-
-							continue;
-						}
+						continue;
 					}
-
-					customProperties.add(propertyKey);
-
-				} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
-
-					final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), key));
-
-					customProperties.add(customProp);
 				}
+
+				customProperties.add(propertyKey);
+
+			} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
+
+				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key));
+
+				customProperties.add(customProp);
 			}
 		}
 
 		return customProperties;
 	}
+
+	static void handleNewChild(final DOMNode thisNode, Node newChild) {
+
+		final Page page = (Page)thisNode.getOwnerDocument();
+
+		for (final DOMNode child : DOMNode.getAllChildNodes(thisNode)) {
+
+			try {
+
+				child.setOwnerDocument(page);
+
+			} catch (FrameworkException ex) {
+				logger.warn("", ex);
+			}
+		}
+	}
+
+	static void render(final DOMNode thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+		if (!securityContext.isVisible(thisNode)) {
+			return;
+		}
+
+		final GraphObject details = renderContext.getDetailsDataObject();
+		final boolean detailMode = details != null;
+
+		if (detailMode && thisNode.hideOnDetail()) {
+			return;
+		}
+
+		if (!detailMode && thisNode.hideOnIndex()) {
+			return;
+		}
+
+		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+
+		if (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode)) {
+
+			thisNode.renderContent(renderContext, depth);
+
+		} else {
+
+			final String subKey = thisNode.getDataKey();
+
+			if (StringUtils.isNotBlank(subKey)) {
+
+				setDataRoot(renderContext, this, subKey);
+
+				final GraphObject currentDataNode = renderContext.getDataObject();
+
+				// fetch (optional) list of external data elements
+				final Iterable<GraphObject> listData = thisNode.checkListSources(securityContext, renderContext);
+
+				final PropertyKey propertyKey;
+
+				if (thisNode.getProperty(renderDetails) && detailMode) {
+
+					renderContext.setDataObject(details);
+					renderContext.putDataObject(subKey, details);
+
+					thisNode.renderContent(renderContext, depth);
+
+				} else {
+
+					if (Iterables.isEmpty(listData) && currentDataNode != null) {
+
+						// There are two alternative ways of retrieving sub elements:
+						// First try to get generic properties,
+						// if that fails, try to create a propertyKey for the subKey
+						final Object elements = currentDataNode.getProperty(new GenericProperty(subKey));
+
+						renderContext.setRelatedProperty(new GenericProperty(subKey));
+						renderContext.setSourceDataObject(currentDataNode);
+
+						if (elements != null) {
+
+							if (elements instanceof Iterable) {
+
+								for (Object o : (Iterable)elements) {
+
+									if (o instanceof GraphObject) {
+
+										GraphObject graphObject = (GraphObject)o;
+										renderContext.putDataObject(subKey, graphObject);
+										thisNode.renderContent(renderContext, depth);
+
+									}
+								}
+
+							}
+
+						} else {
+
+							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+							renderContext.setRelatedProperty(propertyKey);
+
+							if (propertyKey != null) {
+
+								final Object value = currentDataNode.getProperty(propertyKey);
+								if (value != null) {
+
+									if (value instanceof Iterable) {
+
+										for (final Object o : ((Iterable)value)) {
+
+											if (o instanceof GraphObject) {
+
+												renderContext.putDataObject(subKey, (GraphObject)o);
+												thisNode.renderContent(renderContext, depth);
+
+											}
+										}
+									}
+								}
+							}
+
+						}
+
+						// reset data node in render context
+						renderContext.setDataObject(currentDataNode);
+						renderContext.setRelatedProperty(null);
+
+					} else {
+
+						renderContext.setListSource(listData);
+						thisNode.renderNodeList(securityContext, renderContext, depth, subKey);
+
+					}
+
+				}
+
+			} else {
+
+				thisNode.renderContent(renderContext, depth);
+			}
+		}
+	}
+
+	/*
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onCreation(securityContext, errorBuffer)) {
+
+			return checkName(errorBuffer);
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+
+			if (customProperties != null) {
+
+				// invalidate data property cache
+				customProperties.clear();
+			}
+
+
+			try {
+
+				increasePageVersion();
+
+			} catch (FrameworkException ex) {
+
+				logger.warn("Updating page version failed", ex);
+
+			}
+
+			return checkName(errorBuffer);
+		}
+
+		return false;
+	}
+
+
+	public boolean inTrash() {
+		return (getProperty(DOMNode.parent) == null && getOwnerDocumentAsSuperUser() == null);
+	}
+
+	// ----- private methods -----
+	/**
+	 * Get all ancestors of this node
+	 *
+	 * @return list of ancestors
+	private List<Node> getAncestors() {
+
+		List<Node> ancestors = new ArrayList();
+
+		Node _parent = getParentNode();
+		while (_parent != null) {
+
+			ancestors.add(_parent);
+			_parent = _parent.getParentNode();
+		}
+
+		return ancestors;
+
+	}
+
 
 	protected void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
 		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
@@ -1103,124 +1668,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	}
 
-	protected void checkIsChild(Node otherNode) throws DOMException {
-
-		if (otherNode instanceof DOMNode) {
-
-			Node _parent = otherNode.getParentNode();
-
-			if (!isSameNode(_parent)) {
-
-				throw new DOMException(DOMException.NOT_FOUND_ERR, NOT_FOUND_ERR_MESSAGE);
-			}
-
-			// validation successful
-			return;
-		}
-
-		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
-	}
-
-	protected void checkHierarchy(Node otherNode) throws DOMException {
-
-		// we can only check DOMNodes
-		if (otherNode instanceof DOMNode) {
-
-			// verify that the other node is not this node
-			if (isSameNode(otherNode)) {
-				throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);
-			}
-
-			// verify that otherNode is not one of the
-			// the ancestors of this node
-			// (prevent circular relationships)
-			Node _parent = getParentNode();
-			while (_parent != null) {
-
-				if (_parent.isSameNode(otherNode)) {
-					throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR);
-				}
-
-				_parent = _parent.getParentNode();
-			}
-
-			// TODO: check hierarchy constraints imposed by the schema
-			// validation successful
-			return;
-		}
-
-		throw new DOMException(DOMException.NOT_SUPPORTED_ERR, NOT_SUPPORTED_ERR_MESSAGE);
-	}
-
-	protected void checkSameDocument(Node otherNode) throws DOMException {
-
-		Document doc = getOwnerDocument();
-
-		if (doc != null) {
-
-			Document otherDoc = otherNode.getOwnerDocument();
-
-			// Shadow doc is neutral
-			if (otherDoc != null && !doc.equals(otherDoc) && !(doc instanceof ShadowDocument)) {
-
-				logger.warn("{} node with UUID {} has owner document {} with UUID {} whereas this node has owner document {} with UUID {}",
-					otherNode.getClass().getSimpleName(),
-					((NodeInterface)otherNode).getUuid(),
-					otherDoc.getClass().getSimpleName(),
-					((NodeInterface)otherDoc).getUuid(),
-					doc.getClass().getSimpleName(),
-					((NodeInterface)doc).getUuid()
-				);
-
-				throw new DOMException(DOMException.WRONG_DOCUMENT_ERR, WRONG_DOCUMENT_ERR_MESSAGE);
-			}
-
-			if (otherDoc == null) {
-
-				((DOMNode)otherNode).doAdopt((Page)doc);
-
-			}
-		}
-	}
-
-	protected void checkWriteAccess() throws DOMException {
-
-		if (!isGranted(Permission.write, securityContext)) {
-
-			logger.warn("User {} has no write access to {} node with UUID {}", securityContext.getUser(false), this.getClass().getSimpleName(), getUuid());
-
-			throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, NO_MODIFICATION_ALLOWED_MESSAGE);
-		}
-	}
-
-	protected void checkReadAccess() throws DOMException {
-
-		if (securityContext.isVisible(this) || isGranted(Permission.read, securityContext)) {
-			return;
-		}
-
-		logger.warn("User {} has no read access to {} node with UUID {}", securityContext.getUser(false), this.getClass().getSimpleName(), getUuid());
-
-		throw new DOMException(DOMException.INVALID_ACCESS_ERR, INVALID_ACCESS_ERR_MESSAGE);
-	}
-
-	public static String indent(final int depth, final RenderContext renderContext) {
-
-		if (!renderContext.shouldIndentHtml()) {
-			return "";
-		}
-
-		StringBuilder indent = new StringBuilder("\n");
-
-		for (int d = 0; d < depth; d++) {
-
-			indent.append("	");
-
-		}
-
-		return indent.toString();
-	}
-
 	/**
 	 * Decide whether this node should be displayed for the given conditions string.
 	 *
@@ -1262,73 +1709,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		return true;
 
-	}
-
-	/**
-	 * Decide whether this node should be displayed for the given locale settings.
-	 *
-	 * @param renderContext
-	 * @return true if node should be displayed
-	protected boolean displayForLocale(final RenderContext renderContext) {
-
-		// In raw or widget mode, render everything
-		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-		if (EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) {
-			return true;
-		}
-
-		String localeString = renderContext.getLocale().toString();
-
-		String show = getProperty(DOMNode.showForLocales);
-		String hide = getProperty(DOMNode.hideForLocales);
-
-		// If both fields are empty, render node
-		if (StringUtils.isBlank(hide) && StringUtils.isBlank(show)) {
-			return true;
-		}
-
-		// If locale string is found in hide, don't render
-		if (StringUtils.contains(hide, localeString)) {
-			return false;
-		}
-
-		// If locale string is found in hide, don't render
-		if (StringUtils.isNotBlank(show) && !StringUtils.contains(show, localeString)) {
-			return false;
-		}
-
-		return true;
-
-	}
-
-	protected void collectNodesByPredicate(Node startNode, DOMNodeList results, Predicate<Node> predicate, int depth, boolean stopOnFirstHit) {
-
-
-		if (predicate instanceof Filter) {
-			((Filter)predicate).setSecurityContext(securityContext);
-		}
-
-		if (predicate.accept(startNode)) {
-
-			results.add(startNode);
-
-			if (stopOnFirstHit) {
-
-				return;
-			}
-		}
-
-		NodeList _children = startNode.getChildNodes();
-		if (_children != null) {
-
-			int len = _children.getLength();
-			for (int i = 0; i < len; i++) {
-
-				Node child = _children.item(i);
-
-				collectNodesByPredicate(child, results, predicate, depth + 1, stopOnFirstHit);
-			}
-		}
 	}
 
 	// ----- interface org.w3c.dom.Node -----
@@ -1534,152 +1914,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}
 
 	@Override
-	public Node removeChild(final Node node) throws DOMException {
-
-		checkWriteAccess();
-		checkSameDocument(node);
-		checkIsChild(node);
-
-		try {
-
-			treeRemoveChild((DOMNode)node);
-
-		} catch (FrameworkException fex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-		}
-
-		return node;
-	}
-
-	@Override
-	public Node appendChild(final Node newChild) throws DOMException {
-
-		checkWriteAccess();
-		checkSameDocument(newChild);
-		checkHierarchy(newChild);
-
-		try {
-
-			if (newChild instanceof DocumentFragment) {
-
-				// When inserting document fragments, we must take
-				// care of the special case that the nodes already
-				// have a NEXT_LIST_ENTRY relationship coming from
-				// the document fragment, so we must first remove
-				// the node from the document fragment and then
-				// add it to the new parent.
-				// replace indirectly using insertBefore and remove
-				final DocumentFragment fragment = (DocumentFragment)newChild;
-				Node currentChild = fragment.getFirstChild();
-
-				while (currentChild != null) {
-
-					// save next child in fragment list for later use
-					final Node savedNextChild = currentChild.getNextSibling();
-
-					// remove child from document fragment
-					fragment.removeChild(currentChild);
-
-					// append child to new parent
-					appendChild(currentChild);
-
-					// next
-					currentChild = savedNextChild;
-				}
-
-			} else {
-
-				final Node _parent = newChild.getParentNode();
-
-				if (_parent != null && _parent instanceof DOMNode) {
-					_parent.removeChild(newChild);
-				}
-
-				treeAppendChild((DOMNode)newChild);
-
-				// allow parent to set properties in new child
-				handleNewChild(newChild);
-			}
-
-		} catch (FrameworkException fex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
-		}
-
-		return newChild;
-	}
-
-	@Override
 	public boolean hasChildNodes() {
 		return !getProperty(children).isEmpty();
-	}
-
-	@Override
-	public Node cloneNode(boolean deep) {
-
-		if (deep) {
-
-			return cloneAndAppendChildren(securityContext, this);
-
-		} else {
-
-			final PropertyMap properties = new PropertyMap();
-
-			for (Iterator<PropertyKey> it = getPropertyKeys(uiView.name()).iterator(); it.hasNext();) {
-
-				final PropertyKey key = it.next();
-
-				// skip blacklisted properties
-				if (cloneBlacklist.contains(key)) {
-					continue;
-				}
-
-
-				if (!key.isUnvalidated()) {
-					properties.put(key, getProperty(key));
-				}
-			}
-
-			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
-			for (Iterator<PropertyKey> it = getPropertyKeys(DOMElement.htmlView.name()).iterator(); it.hasNext();) {
-
-				final PropertyKey key = it.next();
-
-				// skip blacklisted properties
-				if (cloneBlacklist.contains(key)) {
-					continue;
-				}
-
-				if (!key.isUnvalidated()) {
-					properties.put(key, getProperty(key));
-				}
-			}
-
-			if (this instanceof LinkSource) {
-
-				final LinkSource linkSourceElement = (LinkSource)this;
-
-				properties.put(LinkSource.linkable, linkSourceElement.getProperty(LinkSource.linkable));
-
-			}
-
-			final App app = StructrApp.getInstance(securityContext);
-
-			try {
-				final DOMNode node = app.create(getClass(), properties);
-
-				return node;
-
-			} catch (FrameworkException ex) {
-
-				ex.printStackTrace();
-
-				throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
-
-			}
-
-		}
 	}
 
 	@Override
@@ -1709,22 +1945,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	@Override
 	public short compareDocumentPosition(Node node) throws DOMException {
 		return 0;
-	}
-
-	@Override
-	public boolean isSameNode(Node node) {
-
-		if (node != null && node instanceof DOMNode) {
-
-			String otherId = ((DOMNode)node).getProperty(GraphObject.id);
-			String ourId = getProperty(GraphObject.id);
-
-			if (ourId != null && otherId != null && ourId.equals(otherId)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	@Override
@@ -1760,61 +1980,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	@Override
 	public Object getUserData(String string) {
 		return null;
-	}
-
-	@Override
-	public final void normalize() {
-
-		Document document = getOwnerDocument();
-		if (document != null) {
-
-			// merge adjacent text nodes until there is only one left
-			Node child = getFirstChild();
-			while (child != null) {
-
-				if (child instanceof Text) {
-
-					Node next = child.getNextSibling();
-					if (next != null && next instanceof Text) {
-
-						String text1 = child.getNodeValue();
-						String text2 = next.getNodeValue();
-
-						// create new text node
-						Text newText = document.createTextNode(text1.concat(text2));
-
-						removeChild(child);
-						insertBefore(newText, next);
-						removeChild(next);
-
-						child = newText;
-
-					} else {
-
-						// advance to next node
-						child = next;
-					}
-
-				} else {
-
-					// advance to next node
-					child = child.getNextSibling();
-
-				}
-			}
-
-			// recursively normalize child nodes
-			if (hasChildNodes()) {
-
-				Node currentChild = getFirstChild();
-				while (currentChild != null) {
-
-					currentChild.normalize();
-					currentChild = currentChild.getNextSibling();
-				}
-			}
-		}
-
 	}
 
 	// ----- interface DOMAdoptable -----
@@ -1890,26 +2055,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return data;
 	}
 
-	// ----- nested classes -----
-	protected static class TextCollector implements Predicate<Node> {
-
-		private final StringBuilder textBuffer = new StringBuilder(200);
-
-		@Override
-		public boolean accept(final Node obj) {
-
-			if (obj instanceof Text) {
-				textBuffer.append(((Text)obj).getTextContent());
-			}
-
-			return false;
-		}
-
-		public String getText() {
-			return textBuffer.toString();
-		}
-	}
-
 	protected static class TagPredicate implements Predicate<Node> {
 
 		private String tagName = null;
@@ -1932,25 +2077,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			return false;
 		}
-	}
-
-	/**
-	 * Returns the owner document of this DOMNode, following an OUTGOING "PAGE" relationship.
-	 *
-	 * @return the owner node of this node
-	public Document getOwnerDocumentAsSuperUser() {
-
-		if (cachedOwnerDocument == null) {
-
-			final PageLink ownership = getOutgoingRelationshipAsSuperUser(PageLink.class);
-			if (ownership != null) {
-
-				Page page = ownership.getTargetNode();
-				cachedOwnerDocument = page;
-			}
-		}
-
-		return cachedOwnerDocument;
 	}
 
 	private String cachedPagePath = null;
@@ -1998,4 +2124,24 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return true;
 	}
 	*/
+
+	// ----- nested classes -----
+	static class TextCollector implements Predicate<Node> {
+
+		private final StringBuilder textBuffer = new StringBuilder(200);
+
+		@Override
+		public boolean accept(final Node obj) {
+
+			if (obj instanceof Text) {
+				textBuffer.append(((Text)obj).getTextContent());
+			}
+
+			return false;
+		}
+
+		public String getText() {
+			return textBuffer.toString();
+		}
+	}
 }

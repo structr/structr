@@ -22,21 +22,38 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
+import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
-	public static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
+	static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
+	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
+	static final String lowercaseBodyName        = "body";
 
-	public static final int HtmlPrefixLength            = PropertyView.Html.length();
+	static final int HtmlPrefixLength            = PropertyView.Html.length();
 
 	static class Impl { static {
 
@@ -56,12 +73,26 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("path",             PropertyView.Html).setIndexed(true);
 		type.addStringProperty("partialUpdateKey", PropertyView.Html).setIndexed(true);
 
+		type.addPropertyGetter("tag", String.class);
+
 		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
 		type.overrideMethod("getOffsetAttributeName", false, "return org.structr.web.entity.dom.DOMElement.getOffsetAttributeName(this, arg0, arg1);");
+		type.overrideMethod("updateFromNode",         false, DOMElement.class.getName() + ".updateFromNode(this, arg0);");
+		type.overrideMethod("getContextName",         false, DOMElement.class.getName() + ".getContextName(this);");
+		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
+
+		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
+		type.overrideMethod("renderStructrAppLib",    false, DOMElement.class.getName() + ".renderStructrAppLib(this, arg0, arg1, arg2, arg3, arg4);");
+
+
 
 	}}
 
 	String getOffsetAttributeName(final String name, final int offset);
+
+	void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException;
+	void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException;
+
 	Property[] getHtmlAttributes();
 
 	// ----- static methods -----
@@ -102,15 +133,278 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return null;
 	}
 
+	public static void updateFromNode(final DOMElement node, final DOMNode newNode) throws FrameworkException {
+
+		if (newNode instanceof DOMElement) {
+
+			final PropertyKey<String> tagKey = StructrApp.key(DOMElement.class, "tag");
+			final PropertyMap properties     = new PropertyMap();
+
+			for (Property htmlProp : node.getHtmlAttributes()) {
+				properties.put(htmlProp, newNode.getProperty(htmlProp));
+			}
+
+			// copy tag
+			properties.put(tagKey, newNode.getProperty(tagKey));
+
+			node.setProperties(node.getSecurityContext(), properties);
+		}
+	}
+
+	public static String getContextName(DOMElement thisNode) {
+
+		final String _name = thisNode.getProperty(DOMElement.name);
+		if (_name != null) {
+
+			return _name;
+		}
+
+		return thisNode.getTag();
+	}
+
+	static void renderContent(final DOMElement thisElement, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		if (thisElement.isDeleted() || thisElement.isHidden() || !thisElement.displayForLocale(renderContext) || !thisElement.displayForConditions(renderContext)) {
+			return;
+		}
+
+		// final variables
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+		final AsyncBuffer out                 = renderContext.getBuffer();
+		final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
+		final boolean isVoid                  = thisElement.isVoidElement();
+		final String _tag                     = thisElement.getTag();
+
+		// non-final variables
+		Result localResult                 = renderContext.getResult();
+		boolean anyChildNodeCreatesNewLine = false;
+
+		thisElement.renderStructrAppLib(out, securityContext, renderContext, depth);
+
+		if (depth > 0 && !thisElement.avoidWhitespace()) {
+
+			out.append(DOMNode.indent(depth, renderContext));
+
+		}
+
+		if (StringUtils.isNotBlank(_tag)) {
+
+			if (EditMode.DEPLOYMENT.equals(editMode)) {
+
+				// Determine if this element's visibility flags differ from
+				// the flags of the page and render a <!-- @structr:private -->
+				// comment accordingly.
+				if (DOMNode.renderDeploymentExportComments(thisElement, out, false)) {
+
+					// restore indentation
+					if (depth > 0 && !thisElement.avoidWhitespace()) {
+						out.append(DOMNode.indent(depth, renderContext));
+					}
+				}
+			}
+
+			thisElement.openingTag(out, _tag, editMode, renderContext, depth);
+
+			try {
+
+				// in body?
+				if (lowercaseBodyName.equals(thisElement.getTagName())) {
+					renderContext.setInBody(true);
+				}
+
+				// only render children if we are not in a shared component scenario and not in deployment mode
+				if (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode)) {
+
+					// fetch children
+					final List<RelationshipInterface> rels = thisElement.getChildRelationships();
+					if (rels.isEmpty()) {
+
+						// No child relationships, maybe this node is in sync with another node
+						final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
+						if (_syncedNode != null) {
+
+							rels.addAll(_syncedNode.getChildRelationships());
+						}
+					}
+
+					// apply configuration for shared component if present
+					final String _sharedComponentConfiguration = thisElement.getProperty(StructrApp.key(DOMElement.class, "sharedComponentConfiguration"));
+					if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
+
+						Scripting.evaluate(renderContext, thisElement, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
+					}
+
+					for (final RelationshipInterface rel : rels) {
+
+						final DOMNode subNode = (DOMNode) rel.getTargetNode();
+
+						if (subNode instanceof DOMElement) {
+							anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
+						}
+
+						subNode.render(renderContext, depth + 1);
+
+					}
+
+				}
+
+			} catch (Throwable t) {
+
+				out.append("Error while rendering node ").append(thisElement.getUuid()).append(": ").append(t.getMessage());
+
+				logger.warn("", t);
+
+			}
+
+			// render end tag, if needed (= if not singleton tags)
+			if (StringUtils.isNotBlank(_tag) && (!isVoid)) {
+
+				// only insert a newline + indentation before the closing tag if any child-element used a newline
+				final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
+				final boolean isTemplate     = _syncedNode != null && EditMode.DEPLOYMENT.equals(editMode);
+
+				if (anyChildNodeCreatesNewLine || isTemplate) {
+
+					out.append(DOMNode.indent(depth, renderContext));
+				}
+
+				if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
+
+					out.append("</structr:component>");
+
+				} else if (isTemplate) {
+
+					out.append("</structr:template>");
+
+				} else {
+
+					out.append("</").append(_tag).append(">");
+				}
+			}
+
+		}
+
+		// Set result for this level again, if there was any
+		if (localResult != null) {
+			renderContext.setResult(localResult);
+		}
+	}
+
+	static void renderStructrAppLib(final DOMElement thisElement, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+
+		if (!(EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && thisElement.getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
+
+			out
+				.append("<!--")
+				.append(DOMNode.indent(depth, renderContext))
+				.append("--><script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.1.min.js\"><\\/script>'); }</script><!--")
+				.append(DOMNode.indent(depth, renderContext))
+				.append("--><script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.11.0.custom.min.js\"><\\/script>'); }</script><!--")
+				.append(DOMNode.indent(depth, renderContext))
+				.append("--><script>if (!window.jQuery.ui.timepicker) { document.write('<script src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"><\\/script>'); }</script><!--")
+				.append(DOMNode.indent(depth, renderContext))
+				.append("--><script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.js\"><\\/script>'); }</script><!--")
+				.append(DOMNode.indent(depth, renderContext))
+				.append("--><script>if (!window.moment) { document.write('<script src=\"/structr/js/lib/moment.min.js\"><\\/script>'); }</script><!--")
+				.append(DOMNode.indent(depth, renderContext))
+				.append("--><link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/lib/jquery-ui-1.10.3.custom.min.css\">");
+
+			renderContext.setAppLibRendered(true);
+
+		}
+
+	}
+
+	static void openingTag(final DOMElement thisElement, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
+
+		final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
+		if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
+
+			final String name = _syncedNode.getProperty(AbstractNode.name);
+
+			out.append("<structr:component src=\"");
+			out.append(name != null ? name : _syncedNode.getUuid());
+			out.append("\"");
+
+			thisElement.renderSharedComponentConfiguration(out, editMode);
+
+			// include data-* attributes in template
+			thisElement.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
+
+		} else {
+
+			out.append("<").append(tag);
+
+			for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(thisElement.getEntityType(), PropertyView.Html)) {
+
+				String value = null;
+
+				if (EditMode.DEPLOYMENT.equals(editMode)) {
+
+					value = (String)thisElement.getProperty(attribute);
+
+				} else {
+
+					value = thisElement.getPropertyWithVariableReplacement(renderContext, attribute);
+				}
+
+				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
+
+					value = escapeForHtmlAttributes(value);
+				}
+
+				if (value != null) {
+
+					String key = attribute.jsonName().substring(PropertyView.Html.length());
+
+					out.append(" ").append(key).append("=\"").append(value).append("\"");
+
+				}
+
+			}
+
+			// include arbitrary data-* attributes
+			thisElement.renderSharedComponentConfiguration(out, editMode);
+			thisElement.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
+
+			// include special mode attributes
+			switch (editMode) {
+
+				case CONTENT:
+
+					if (depth == 0) {
+
+						String pageId = renderContext.getPageId();
+
+						if (pageId != null) {
+
+							out.append(" data-structr-page=\"").append(pageId).append("\"");
+						}
+					}
+
+					out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+					break;
+
+				case RAW:
+
+					out.append(" ").append("data-structr-hash").append("=\"").append(thisElement.getIdHash()).append("\"");
+					break;
+	 		}
+		}
+
+		out.append(">");
+	}
+
+
 	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(DOMElement.class.getName());
 	private static final int HtmlPrefixLength = PropertyView.Html.length();
 
-	private static final String STRUCTR_ACTION_PROPERTY = "data-structr-action";
 
 	private static final Map<String, HtmlProperty> htmlProperties = new LRUMap(1000);	// use LURMap here to avoid infinite growing
-	private static final String lowercaseBodyName = Body.class.getSimpleName().toLowerCase();
 
 	// Event-handler attributes
 	public static final Property<String> _onabort = new HtmlProperty("onabort");
@@ -241,306 +535,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, tag, "^[a-z][a-zA-Z0-9\\-]*$", errorBuffer);
 
 		return valid;
-	}
-
-	@Override
-	public boolean contentEquals(DOMNode otherNode) {
-
-		// two elements can not have the same content
-		return false;
-	}
-
-	@Override
-	public String getContextName() {
-
-		final String _name = getProperty(DOMElement.name);
-		if (_name != null) {
-
-			return _name;
-		}
-
-		return getProperty(DOMElement.tag);
-	}
-
-	@Override
-	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
-
-		if (newNode instanceof DOMElement) {
-
-			final PropertyMap properties = new PropertyMap();
-
-			for (Property htmlProp : getHtmlAttributes()) {
-				properties.put(htmlProp, newNode.getProperty(htmlProp));
-			}
-
-			// copy tag
-			properties.put(DOMElement.tag, newNode.getProperty(DOMElement.tag));
-
-			setProperties(securityContext, properties);
-		}
-	}
-
-	public Property[] getHtmlAttributes() {
-
-		return htmlView.properties();
-
-	}
-
-	public void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		final DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
-		if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
-
-			final String name = _syncedNode.getProperty(AbstractNode.name);
-
-			out.append("<structr:component src=\"");
-			out.append(name != null ? name : _syncedNode.getUuid());
-			out.append("\"");
-
-			renderSharedComponentConfiguration(out, editMode);
-
-			// include data-* attributes in template
-			renderCustomAttributes(out, securityContext, renderContext);
-
-		} else {
-
-			out.append("<").append(tag);
-
-			for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.Html)) {
-
-				String value = null;
-
-				if (EditMode.DEPLOYMENT.equals(editMode)) {
-
-					value = (String)getProperty(attribute);
-
-				} else {
-
-					value = getPropertyWithVariableReplacement(renderContext, attribute);
-				}
-
-				if (!(EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode))) {
-
-					value = escapeForHtmlAttributes(value);
-				}
-
-				if (value != null) {
-
-					String key = attribute.jsonName().substring(PropertyView.Html.length());
-
-					out.append(" ").append(key).append("=\"").append(value).append("\"");
-
-				}
-
-			}
-
-			// include arbitrary data-* attributes
-			renderSharedComponentConfiguration(out, editMode);
-			renderCustomAttributes(out, securityContext, renderContext);
-
-			// include special mode attributes
-			switch (editMode) {
-
-				case CONTENT:
-
-					if (depth == 0) {
-
-						String pageId = renderContext.getPageId();
-
-						if (pageId != null) {
-
-							out.append(" data-structr-page=\"").append(pageId).append("\"");
-						}
-					}
-
-					out.append(" data-structr-id=\"").append(getUuid()).append("\"");
-					break;
-
-				case RAW:
-
-					out.append(" ").append(DOMElement.dataHashProperty.jsonName()).append("=\"").append(getIdHash()).append("\"");
-					break;
-	 		}
-		}
-
-		out.append(">");
-	}
-
-	/**
-	 * Render (inner) content.
-	 *
-	 * @param renderContext
-	 * @param depth
-	 * @throws FrameworkException
-	@Override
-	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		if (isDeleted() || isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
-			return;
-		}
-
-		// final variables
-		final AsyncBuffer out    = renderContext.getBuffer();
-		final EditMode editMode  = renderContext.getEditMode(securityContext.getUser(false));
-		final boolean isVoid     = isVoidElement();
-		final String _tag        = getProperty(DOMElement.tag);
-
-		// non-final variables
-		Result localResult                 = renderContext.getResult();
-		boolean anyChildNodeCreatesNewLine = false;
-
-		renderStructrAppLib(out, securityContext, renderContext, depth);
-
-		if (depth > 0 && !avoidWhitespace()) {
-
-			out.append(indent(depth, renderContext));
-
-		}
-
-		if (StringUtils.isNotBlank(_tag)) {
-
-			if (EditMode.DEPLOYMENT.equals(editMode)) {
-
-				// Determine if this element's visibility flags differ from
-				// the flags of the page and render a <!-- @structr:private -->
-				// comment accordingly.
-				if (renderDeploymentExportComments(out, false)) {
-
-					// restore indentation
-					if (depth > 0 && !avoidWhitespace()) {
-						out.append(indent(depth, renderContext));
-					}
-				}
-			}
-
-			openingTag(out, _tag, editMode, renderContext, depth);
-
-			try {
-
-				// in body?
-				if (lowercaseBodyName.equals(this.getTagName())) {
-					renderContext.setInBody(true);
-				}
-
-				// only render children if we are not in a shared component scenario and not in deployment mode
-				if (getProperty(sharedComponent) == null || !EditMode.DEPLOYMENT.equals(editMode)) {
-
-					// fetch children
-					final List<DOMChildren> rels = getChildRelationships();
-					if (rels.isEmpty()) {
-
-						// No child relationships, maybe this node is in sync with another node
-						final DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
-						if (_syncedNode != null) {
-
-							rels.addAll(_syncedNode.getChildRelationships());
-						}
-					}
-
-					// apply configuration for shared component if present
-					final String _sharedComponentConfiguration = getProperty(sharedComponentConfiguration);
-					if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
-
-						Scripting.evaluate(renderContext, this, "${" + _sharedComponentConfiguration + "}", "shared component configuration");
-					}
-
-					for (final AbstractRelationship rel : rels) {
-
-						final DOMNode subNode = (DOMNode) rel.getTargetNode();
-
-						if (subNode instanceof DOMElement) {
-							anyChildNodeCreatesNewLine = (anyChildNodeCreatesNewLine || !(subNode.avoidWhitespace()));
-						}
-
-						subNode.render(renderContext, depth + 1);
-
-					}
-
-				}
-
-			} catch (Throwable t) {
-
-				logger.error("Error while rendering node {}: {}", new java.lang.Object[]{getUuid(), t});
-
-				out.append("Error while rendering node ").append(getUuid()).append(": ").append(t.getMessage());
-
-				logger.warn("", t);
-
-			}
-
-			// render end tag, if needed (= if not singleton tags)
-			if (StringUtils.isNotBlank(_tag) && (!isVoid)) {
-
-				// only insert a newline + indentation before the closing tag if any child-element used a newline
-				final DOMElement _syncedNode = (DOMElement) getProperty(sharedComponent);
-				final boolean isTemplate     = _syncedNode != null && EditMode.DEPLOYMENT.equals(editMode);
-
-				if (anyChildNodeCreatesNewLine || isTemplate) {
-
-					out.append(indent(depth, renderContext));
-				}
-
-				if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
-
-					out.append("</structr:component>");
-
-				} else if (isTemplate) {
-
-					out.append("</structr:template>");
-
-				} else {
-
-					out.append("</").append(_tag).append(">");
-				}
-			}
-
-		}
-
-		// Set result for this level again, if there was any
-		if (localResult != null) {
-			renderContext.setResult(localResult);
-		}
-	}
-
-	public boolean isVoidElement() {
-		return false;
-	}
-
-	public String getOffsetAttributeName(String name, int offset) {
-
-		int namePosition = -1;
-		int index = 0;
-
-		List<String> keys = Iterables.toList(this.getNode().getPropertyKeys());
-		Collections.sort(keys);
-
-		List<String> names = new ArrayList<>(10);
-
-		for (String key : keys) {
-
-			// use html properties only
-			if (key.startsWith(PropertyView.Html)) {
-
-				String htmlName = key.substring(HtmlPrefixLength);
-
-				if (name.equals(htmlName)) {
-
-					namePosition = index;
-				}
-
-				names.add(htmlName);
-
-				index++;
-			}
-		}
-
-		int offsetIndex = namePosition + offset;
-		if (offsetIndex >= 0 && offsetIndex < names.size()) {
-
-			return names.get(offsetIndex);
-		}
-
-		return null;
 	}
 
 	public List<String> getHtmlAttributeNames() {
@@ -776,43 +770,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
 	}
 
-	// ----- interface org.w3c.dom.Node -----
-	@Override
-	public String getLocalName() {
-		return null;
-	}
-
-	@Override
-	public String getNodeName() {
-		return getTagName();
-	}
-
-	@Override
-	public String getNodeValue() throws DOMException {
-		return null;
-	}
-
-	@Override
-	public void setNodeValue(String string) throws DOMException {
-		// the nodeValue of an Element cannot be set
-	}
-
-	@Override
-	public short getNodeType() {
-
-		return ELEMENT_NODE;
-	}
-
-	@Override
-	public NamedNodeMap getAttributes() {
-		return this;
-	}
-
-	@Override
-	public boolean hasAttributes() {
-		return getLength() > 0;
-	}
-
 	// ----- interface org.w3c.dom.NamedNodeMap -----
 	@Override
 	public Node getNamedItem(String name) {
@@ -938,39 +895,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Render script tags with jQuery and structr-app.js to current tag.
-	 *
-	 * Make sure it happens only once per page.
-	 *
-	 * @param out
-	private void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException {
-
-		EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
-
-		if (!(EditMode.DEPLOYMENT.equals(editMode) || EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode)) && !renderContext.appLibRendered() && getProperty(new StringProperty(STRUCTR_ACTION_PROPERTY)) != null) {
-
-			out
-				.append("<!--")
-				.append(indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery) { document.write('<script src=\"/structr/js/lib/jquery-1.11.1.min.js\"><\\/script>'); }</script><!--")
-				.append(indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery.ui) { document.write('<script src=\"/structr/js/lib/jquery-ui-1.11.0.custom.min.js\"><\\/script>'); }</script><!--")
-				.append(indent(depth, renderContext))
-				.append("--><script>if (!window.jQuery.ui.timepicker) { document.write('<script src=\"/structr/js/lib/jquery-ui-timepicker-addon.min.js\"><\\/script>'); }</script><!--")
-				.append(indent(depth, renderContext))
-				.append("--><script>if (!window.StructrApp) { document.write('<script src=\"/structr/js/structr-app.js\"><\\/script>'); }</script><!--")
-				.append(indent(depth, renderContext))
-				.append("--><script>if (!window.moment) { document.write('<script src=\"/structr/js/lib/moment.min.js\"><\\/script>'); }</script><!--")
-				.append(indent(depth, renderContext))
-				.append("--><link rel=\"stylesheet\" type=\"text/css\" href=\"/structr/css/lib/jquery-ui-1.10.3.custom.min.css\">");
-
-			renderContext.setAppLibRendered(true);
-
-		}
-
 	}
 
 	/**

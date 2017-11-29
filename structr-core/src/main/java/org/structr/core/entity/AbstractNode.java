@@ -666,11 +666,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
 	}
 
-	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawTarget(SecurityContext.getSuperUserInstance(), dbNode, null);
+		final Relationship relationship      = template.getTarget().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);

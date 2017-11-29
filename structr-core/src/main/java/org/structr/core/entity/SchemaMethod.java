@@ -42,6 +42,7 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
 
 /**
@@ -75,7 +76,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public ActionEntry getActionEntry(final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
-		final ActionEntry entry  = new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
+		final ActionEntry entry  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
 
 		for (final SchemaMethodParameter parameter : getProperty(parameters)) {
 
@@ -246,7 +247,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 					// non-generic return type
 					final Class returnClass = method.getReturnType();
 					if (returnClass.isArray()) {
-					
+
 						entry.setReturnType(returnClass.getComponentType().getName() + "[]");
 
 					} else {
@@ -289,7 +290,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 			return Class.forName(name);
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("No class found for type name {}", name);
 		}
 
 		return null;

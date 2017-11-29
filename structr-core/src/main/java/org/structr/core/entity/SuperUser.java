@@ -545,4 +545,9 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
 		return false;
 	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
+		return null;
+	}
 }

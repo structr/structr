@@ -39,7 +39,7 @@ public interface Html extends DOMElement {
 
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
 		type.overrideMethod("openingTag", false,
-			"String custTag = getProperty(_customOpeningTag);\n" +
+			"final String custTag = getProperty(customOpeningTagProperty);\n" +
 			"if (custTag != null) {\n" +
 			"	arg0.append(custTag);\n" +
 			"} else {\n" +

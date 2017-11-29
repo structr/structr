@@ -61,7 +61,6 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
 		type.addBooleanProperty("isPage",    PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addBooleanProperty("dontCache", PropertyView.Public).setDefaultValue("false");
 
 		// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
 		type.addBooleanProperty("pageCreatesRawData", PropertyView.Public).setDefaultValue("false");
