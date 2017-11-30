@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import javax.activation.DataSource;
 import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -101,7 +102,7 @@ import org.structr.web.property.FileDataProperty;
  *
  *
  */
-public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable {
+public class FileBase extends AbstractFile implements Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable, DataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
 

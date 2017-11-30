@@ -25,6 +25,7 @@ import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.DynamicMailAttachment;
 import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -63,7 +64,7 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 			}
 
 			List<FileBase> fileNodes = null;
-			List<EmailAttachment> attachments   = new ArrayList<>();
+			List<DynamicMailAttachment> attachments   = new ArrayList<>();
 
 			try {
 
@@ -73,17 +74,24 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 
 					for (FileBase fileNode : fileNodes) {
 
-						final EmailAttachment attachment = new EmailAttachment();
-						attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
+						final DynamicMailAttachment attachment = new DynamicMailAttachment();
 						attachment.setName(fileNode.getProperty(FileBase.name));
 						attachment.setDisposition(EmailAttachment.ATTACHMENT);
-						
+
+						if(fileNode.getProperty(FileBase.isTemplate) == true) {
+							attachment.setIsDynamic(true);
+							attachment.setDataSource(fileNode);
+						} else {
+							attachment.setIsDynamic(false);
+							attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
+						}
+
 						attachments.add(attachment);
 					}
 				}
 
 
-				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent, attachments.isEmpty() ? null : attachments.toArray(new EmailAttachment[attachments.size()]));
+				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent, attachments.isEmpty() ? null : attachments.toArray(new DynamicMailAttachment[attachments.size()]));
 
 			} catch (EmailException | MalformedURLException ex) {
 
