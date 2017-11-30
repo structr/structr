@@ -44,7 +44,7 @@ import org.structr.core.property.RelationProperty;
  *
  *
  */
-public class IdDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
+public class IdDeserializationStrategy<S, T extends NodeInterface> extends DeserializationStrategy<S, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(IdDeserializationStrategy.class.getName());
 

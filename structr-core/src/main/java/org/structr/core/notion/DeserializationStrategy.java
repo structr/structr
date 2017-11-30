@@ -18,10 +18,16 @@
  */
 package org.structr.core.notion;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
@@ -32,19 +38,48 @@ import org.structr.core.property.RelationProperty;
  *
  * @param <T>
  */
-public interface DeserializationStrategy<S, T extends NodeInterface> {
+public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 
-	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException;
+	public abstract T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException;
 
-	public void setRelationProperty(final RelationProperty<S> parentProperty);
+	public abstract void setRelationProperty(final RelationProperty<S> parentProperty);
 
-	default void setProperties(final SecurityContext securityContext, final GraphObject obj, final PropertyMap properties) throws FrameworkException {
+	protected void setProperties(final SecurityContext securityContext, final GraphObject obj, final PropertyMap properties) throws FrameworkException {
 
 		// are we allowed to set properties on related nodes?
 		final Boolean allowed = (Boolean)securityContext.getAttribute("setNestedProperties");
 		if (allowed != null && allowed == true) {
 
-			obj.setProperties(securityContext, properties);
+			final PropertyMap mergedProperties = new PropertyMap();
+
+			for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+				final PropertyKey key = entry.getKey();
+				final Object newValue  = entry.getValue();
+				final Object oldValue = obj.getProperty(key);
+
+				mergedProperties.put(key, merge(oldValue, newValue));
+			}
+
+			obj.setProperties(securityContext, mergedProperties);
 		}
 	}
+
+	protected Object merge(final Object oldValue, final Object newValue) {
+
+		if (oldValue instanceof Collection && newValue instanceof Collection) {
+
+			final Collection oldCollection = (Collection)oldValue;
+			final Collection newCollection = (Collection)newValue;
+			final Set merged               = new LinkedHashSet<>();
+
+			merged.addAll(oldCollection);
+			merged.addAll(newCollection);
+
+			return new LinkedList<>(merged);
+		};
+
+		return newValue;
+	}
+
 }
