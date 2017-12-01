@@ -42,7 +42,7 @@ import org.structr.module.xml.XMLModule;
 import org.structr.rest.common.XMLHandler;
 import org.structr.web.entity.FileBase;
 
-public class XMLFileImportJob extends ImportJob {
+public class XMLFileImportJob extends FileImportJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(XMLFileImportJob.class.getName());
 
@@ -55,7 +55,7 @@ public class XMLFileImportJob extends ImportJob {
 	}
 
 	@Override
-	boolean runInitialChecks() throws FrameworkException {
+	public boolean runInitialChecks() throws FrameworkException {
 
 		if ( !("text/xml".equals(contentType) || "application/xml".equals(contentType)) ) {
 
@@ -154,17 +154,17 @@ public class XMLFileImportJob extends ImportJob {
 	}
 
 	@Override
-	public String getImportType() {
+	public String getJobType() {
 		return "XML";
 	}
 
 	@Override
-	public String getImportStatusType() {
+	public String getJobStatusType() {
 		return "FILE_IMPORT_STATUS";
 	}
 
 	@Override
-	public String getImportExceptionMessageType() {
+	public String getJobExceptionMessageType() {
 		return "FILE_IMPORT_EXCEPTION";
 	}
 }

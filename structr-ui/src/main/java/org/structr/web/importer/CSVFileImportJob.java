@@ -43,7 +43,7 @@ import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
 import org.structr.web.entity.FileBase;
 
-public class CSVFileImportJob extends ImportJob {
+public class CSVFileImportJob extends FileImportJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(CSVFileImportJob.class.getName());
 
@@ -179,17 +179,17 @@ public class CSVFileImportJob extends ImportJob {
 	}
 
 	@Override
-	public String getImportType() {
+	public String getJobType() {
 		return "CSV";
 	}
 
 	@Override
-	public String getImportStatusType() {
+	public String getJobStatusType() {
 		return "FILE_IMPORT_STATUS";
 	}
 
 	@Override
-	public String getImportExceptionMessageType() {
+	public String getJobExceptionMessageType() {
 		return "FILE_IMPORT_EXCEPTION";
 	}
 }

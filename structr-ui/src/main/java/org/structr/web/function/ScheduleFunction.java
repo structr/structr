@@ -21,7 +21,7 @@ package org.structr.web.function;
 import java.util.Collections;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.importer.DataImportManager;
+import org.structr.core.scheduler.JobQueueManager;
 import org.structr.web.importer.ScriptJob;
 
 /**
@@ -46,7 +46,7 @@ public class ScheduleFunction extends UiFunction {
 
 			try {
 
-				DataImportManager.getInstance().addJob(job);
+				JobQueueManager.getInstance().addJob(job);
 
 			} catch (FrameworkException ex) {
 				logException(ex, ex.getMessage(), null);

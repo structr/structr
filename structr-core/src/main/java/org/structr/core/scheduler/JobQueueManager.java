@@ -4,21 +4,20 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.importer;
+package org.structr.core.scheduler;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -28,30 +27,30 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicLong;
 import org.structr.common.error.FrameworkException;
 
-public class DataImportManager {
+public class JobQueueManager {
 
-	private static DataImportManager singletonInstance = null;
+	private static JobQueueManager singletonInstance = null;
 
-	private final AtomicLong importJobIdCount      = new AtomicLong(0);
-	private final Map<Long, ImportJob> queuedJobs  = new ConcurrentHashMap<>();
-	private final Map<Long, ImportJob> activeJobs  = new ConcurrentHashMap<>();
-	private final Queue<Long> jobIdQueue           = new ConcurrentLinkedDeque<>();
+	private final Map<Long, ScheduledJob> queuedJobs  = new ConcurrentHashMap<>();
+	private final Map<Long, ScheduledJob> activeJobs  = new ConcurrentHashMap<>();
+	private final Queue<Long> jobIdQueue              = new ConcurrentLinkedDeque<>();
+	private final AtomicLong importJobIdCount         = new AtomicLong(0);
 
-	private DataImportManager() { }
+	private JobQueueManager() { }
 
 	/*
 	 * Public API
 	 */
-	public static DataImportManager getInstance() {
+	public static JobQueueManager getInstance() {
 
 		if (singletonInstance == null) {
-			singletonInstance = new DataImportManager();
+			singletonInstance = new JobQueueManager();
 		}
 
 		return singletonInstance;
 	}
 
-	public void addJob(final ImportJob job) throws FrameworkException {
+	public void addJob(final ScheduledJob job) throws FrameworkException {
 
 		if (job.runInitialChecks()) {
 
@@ -80,7 +79,7 @@ public class DataImportManager {
 	 */
 	public boolean startJob(final Long jobId) {
 
-		final ImportJob job = removeFromQueueInternal(jobId);
+		final ScheduledJob job = removeFromQueueInternal(jobId);
 
 		if (job != null) {
 			activeJobs.put(jobId, job);
@@ -107,11 +106,11 @@ public class DataImportManager {
 		removeFromQueueInternal(jobId);
 	}
 
-	public List listJobs () {
+	public List<Map<String, Object>> listJobs () {
 
-		final List jobInfoList = new LinkedList();
+		final List<Map<String, Object>> jobInfoList = new LinkedList<>();
 
-		activeJobs.values().forEach((ImportJob job) -> {
+		activeJobs.values().forEach((ScheduledJob job) -> {
 			addJobToList(jobInfoList, job);
 		});
 
@@ -122,21 +121,11 @@ public class DataImportManager {
 		return jobInfoList;
 	}
 
-	private void addJobToList (List list, ImportJob job) {
-
-		final LinkedHashMap jobInfo = new LinkedHashMap();
-		jobInfo.put("jobId", job.jobId());
-		jobInfo.put("fileUuid", job.getFileUuid());
-		jobInfo.put("filepath", job.getFilePath());
-		jobInfo.put("filesize", job.getFileSize());
-		jobInfo.put("username", job.getUsername());
-		jobInfo.put("status", job.getCurrentStatus());
-		jobInfo.put("processedChunks", job.getProcessedChunks());
-
-		list.add(jobInfo);
+	private void addJobToList (final List<Map<String, Object>> list, final ScheduledJob job) {
+		list.add(job.getJobInfo());
 	}
 
-	protected void jobFinished (final ImportJob job) {
+	protected void jobFinished (final ScheduledJob job) {
 
 		activeJobs.remove(job.jobId());
 
@@ -146,7 +135,7 @@ public class DataImportManager {
 
 	}
 
-	protected void jobAborted (final ImportJob job) {
+	protected void jobAborted (final ScheduledJob job) {
 
 		activeJobs.remove(job.jobId());
 
@@ -159,12 +148,12 @@ public class DataImportManager {
 
 	//~--- private methods ----------------------------------------------------
 
-	private void appendToQueueInternal (final ImportJob job) {
+	private void appendToQueueInternal (final ScheduledJob job) {
 		jobIdQueue.add(job.jobId());
 		queuedJobs.put(job.jobId(), job);
 	}
 
-	private ImportJob removeFromQueueInternal (final Long jobId) {
+	private ScheduledJob removeFromQueueInternal (final Long jobId) {
 		jobIdQueue.remove(jobId);
 		return queuedJobs.remove(jobId);
 	}

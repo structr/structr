@@ -182,7 +182,7 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
-			return evaluateJavascript(actionContext, entity, source, methodName);
+			return evaluateJavascript(actionContext, entity, new Snippet(methodName, source));
 
 		} else {
 
@@ -198,43 +198,7 @@ public class Scripting {
 		}
 	}
 
-	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final String script) throws FrameworkException {
-
-		final ScriptEngineManager manager = new ScriptEngineManager();
-		final ScriptEngine engine = manager.getEngineByName(engineName);
-
-		if (engine == null) {
-			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
-		}
-
-		final ScriptContext scriptContext = engine.getContext();
-		final Bindings bindings           = new StructrScriptBindings(actionContext, entity);
-
-		if (!(engine instanceof RenjinScriptEngine)) {
-			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
-		}
-
-		StringWriter output = new StringWriter();
-		scriptContext.setWriter(output);
-
-		try {
-
-			engine.eval(script);
-
-			Object extractedValue = output.toString();
-
-			return extractedValue;
-
-		} catch (final ScriptException e) {
-
-			logger.error("Error while processing {} script: {}", engineName, script, e);
-		}
-
-		return null;
-
-	}
-
-	private static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final String script, final String methodName) throws FrameworkException {
+	public static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
 		final String entityName        = entity != null ? entity.getProperty(AbstractNode.name) : null;
 		final String entityDescription = entity != null ? ( StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + entity.getUuid() : "anonymous";
@@ -260,9 +224,15 @@ public class Scripting {
 			// clear output buffer
 			actionContext.clear();
 
-			final String sourceLocation     = methodName + " [" + entityDescription + "], line ";
-			final String embeddedSourceCode = embedInFunction(actionContext, script);
-			final Script compiledScript     = compileOrGetCached(scriptingContext, embeddedSourceCode, sourceLocation, 1);
+			// compile or use provided script
+			Script compiledScript = snippet.getCompiledScript();
+			if (compiledScript == null) {
+
+				final String sourceLocation     = snippet.getName() + " [" + entityDescription + "], line ";
+				final String embeddedSourceCode = embedInFunction(actionContext, snippet.getSource());
+
+				compiledScript = compileOrGetCached(scriptingContext, embeddedSourceCode, sourceLocation, 1);
+			}
 
 			Object extractedValue = compiledScript.exec(scriptingContext, scope);
 
@@ -301,6 +271,43 @@ public class Scripting {
 
 			Scripting.destroyJavascriptContext();
 		}
+	}
+
+	// ----- private methods -----
+	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final String script) throws FrameworkException {
+
+		final ScriptEngineManager manager = new ScriptEngineManager();
+		final ScriptEngine engine = manager.getEngineByName(engineName);
+
+		if (engine == null) {
+			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
+		}
+
+		final ScriptContext scriptContext = engine.getContext();
+		final Bindings bindings           = new StructrScriptBindings(actionContext, entity);
+
+		if (!(engine instanceof RenjinScriptEngine)) {
+			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+		}
+
+		StringWriter output = new StringWriter();
+		scriptContext.setWriter(output);
+
+		try {
+
+			engine.eval(script);
+
+			Object extractedValue = output.toString();
+
+			return extractedValue;
+
+		} catch (final ScriptException e) {
+
+			logger.error("Error while processing {} script: {}", engineName, script, e);
+		}
+
+		return null;
+
 	}
 
 	public static Context setupJavascriptContext() {

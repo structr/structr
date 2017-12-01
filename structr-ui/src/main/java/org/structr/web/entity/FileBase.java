@@ -93,7 +93,7 @@ import org.structr.web.entity.relation.Folders;
 import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.entity.relation.UserFavoriteFile;
 import org.structr.web.importer.CSVFileImportJob;
-import org.structr.web.importer.DataImportManager;
+import org.structr.core.scheduler.JobQueueManager;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
 
@@ -662,7 +662,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public void doCSVImport(final Map<String, Object> parameters) throws FrameworkException {
 
 		CSVFileImportJob job = new CSVFileImportJob(this, securityContext.getUser(false), parameters);
-		DataImportManager.getInstance().addJob(job);
+		JobQueueManager.getInstance().addJob(job);
 
 	}
 
@@ -692,7 +692,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public void doXMLImport(final Map<String, Object> config) throws FrameworkException {
 
 		XMLFileImportJob job = new XMLFileImportJob(this, securityContext.getUser(false), config);
-		DataImportManager.getInstance().addJob(job);
+		JobQueueManager.getInstance().addJob(job);
 
 	}
 

@@ -18,17 +18,27 @@
  */
 package org.structr.web.importer;
 
+import java.util.LinkedHashMap;
+import org.structr.core.scheduler.ScheduledJob;
 import java.util.Map;
+import org.mozilla.javascript.Script;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.Snippet;
+import org.structr.schema.action.ActionContext;
 
 /**
  */
-public class ScriptJob extends ImportJob {
+public class ScriptJob extends ScheduledJob {
 
-	private Object script   = null;
+	private static final Logger logger = LoggerFactory.getLogger(ScriptJob.class);
+	private Object script              = null;
 
 	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script) {
 
@@ -38,27 +48,38 @@ public class ScriptJob extends ImportJob {
 	}
 
 	@Override
-	boolean runInitialChecks() throws FrameworkException {
+	public boolean runInitialChecks() throws FrameworkException {
 		return true;
 	}
 
 	@Override
-	Runnable getRunnable() {
+	public Runnable getRunnable() {
 
 		return () -> {
 
 			try {
 
+				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+				final ActionContext actionContext     = new ActionContext(securityContext);
+				final long startTime                  = System.currentTimeMillis();
 
-				final SecurityContext ctx = SecurityContext.getInstance(user, AccessMode.Backend);
-				final long startTime      = System.currentTimeMillis();
 				reportBegin();
 
-				System.out.println(script);
+				// called from JavaScript?
+				if (script instanceof Script) {
 
-				//Scripting.evaluate(new ActionContext(ctx, configuration), null, scriptSource, jobName);
+					Scripting.evaluateJavascript(actionContext, null, new Snippet((Script)script));
 
-				importFinished(startTime, 1);
+				} else if (script instanceof String) {
+
+					Scripting.evaluate(actionContext, null, (String)script, jobName);
+
+				} else if (script != null) {
+
+					logger.warn("Unable to schedule script of type {}, ignoring", script.getClass().getName());
+				}
+
+				reportFinished();
 
 			} catch (Exception e) {
 
@@ -68,22 +89,58 @@ public class ScriptJob extends ImportJob {
 
 				jobFinished();
 			}
-
 		};
 	}
 
 	@Override
-	public String getImportType() {
-		return "CSV";
+	public String getJobType() {
+		return "SCRIPT";
 	}
 
 	@Override
-	public String getImportStatusType() {
-		return "FILE_IMPORT_STATUS";
+	public String getJobStatusType() {
+		return "SCRIPT_JOB_STATUS";
 	}
 
 	@Override
-	public String getImportExceptionMessageType() {
-		return "FILE_IMPORT_EXCEPTION";
+	public String getJobExceptionMessageType() {
+		return "SCRIPT_JOB_EXCEPTION";
+	}
+
+	@Override
+	public Map<String, Object> getStatusData (final JobStatusMessageSubtype subtype) {
+
+		final Map<String, Object> data = new LinkedHashMap();
+
+		data.put("type",       getJobStatusType());
+		data.put("jobtype",    getJobType());
+		data.put("subtype",    subtype);
+		data.put("username",   getUsername());
+
+		return data;
+	}
+
+	@Override
+	public Map<String, Object> getJobInfo () {
+
+		final LinkedHashMap<String, Object> jobInfo = new LinkedHashMap<>();
+
+		jobInfo.put("jobId",           jobId());
+		jobInfo.put("username",        getUsername());
+		jobInfo.put("status",          getCurrentStatus());
+
+		return jobInfo;
+	}
+
+	// ----- private methods -----
+	private void reportException(Exception ex) {
+
+		final Map<String, Object> data = new LinkedHashMap<>();
+
+		data.put("type",       getJobExceptionMessageType());
+		data.put("jobtype",    getJobType());
+		data.put("username",   getUsername());
+
+		TransactionCommand.simpleBroadcastException(ex, data, true);
 	}
 }
