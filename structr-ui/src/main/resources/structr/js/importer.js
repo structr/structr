@@ -54,10 +54,11 @@ var Importer = {
 					'<table id="importer-jobs-table">' +
 						'<thead><tr>' +
 							'<th>Job ID</th>' +
+							'<th>Job Type</th>' +
+							'<th>User</th>' +
 							'<th>File UUID</th>' +
 							'<th>File path</th>' +
 							'<th>File size</th>' +
-							'<th>User</th>' +
 							'<th>Processed Chunks</th>' +
 							'<th>Status</th>' +
 							'<th>Action</th>' +
@@ -99,7 +100,7 @@ var Importer = {
 					});
 
 				} else {
-					tbody.append('<td colspan=8>No import jobs</td>');
+					tbody.append('<td colspan=9>No import jobs</td>');
 				}
 
 			});
@@ -111,26 +112,46 @@ var Importer = {
 
 	},
 	createRowForJob: function (job) {
-		return $('<tr><td>' + job.jobId + '</td><td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.username + '</td><td>' + job.processedChunks + '</td><td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
+		return $('<tr><td>' + job.jobId + '</td><td>' + job.jobtype + '</td><td>' + job.username + '</td>' + Importer.createJobInfoHTML(job) + '<td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
+	},
+	createJobInfoHTML:function(job) {
+		switch (job.jobtype) {
+			case 'XML':
+			case 'CSV':
+				return '<td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.processedChunks + '</td>';
+
+			default:
+				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';
+		}
 	},
 	createActionButtons: function (job) {
 		var actionHtml = '';
 
-		switch (job.status) {
-			case 'QUEUED':
-				actionHtml += Importer.createActionButton('start', job.jobId, 'Start');
-				actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+		switch (job.jobtype) {
+			case 'XML':
+			case 'CSV':
+				switch (job.status) {
+					case 'QUEUED':
+						actionHtml += Importer.createActionButton('start', job.jobId, 'Start');
+						actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+						break;
+
+					case 'PAUSED':
+						actionHtml += Importer.createActionButton('resume', job.jobId, 'Resume');
+						actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+						break;
+
+					case 'RUNNING':
+						actionHtml += Importer.createActionButton('pause', job.jobId, 'Pause');
+						actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+						break;
+				}
 				break;
 
-			case 'PAUSED':
-				actionHtml += Importer.createActionButton('resume', job.jobId, 'Resume');
-				actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
-				break;
-
-			case 'RUNNING':
-				actionHtml += Importer.createActionButton('pause', job.jobId, 'Pause');
-				actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
-				break;
+			default:
+				if (job.status === 'QUEUED') {
+					actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+				}
 		}
 
 		return actionHtml;

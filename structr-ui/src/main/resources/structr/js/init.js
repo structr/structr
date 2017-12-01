@@ -1474,7 +1474,7 @@ var Structr = {
 		};
 
 		var fileImportTexts = {
-			QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running import(s)',
+			QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running/queued job(s)',
 			BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
 			CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
 			END: 'Finished importing data from <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
@@ -1483,6 +1483,17 @@ var Structr = {
 			WAIT_PAUSE: 'The import of <b>' + data.filename + '</b> will be paused after finishing the current chunk',
 			PAUSED: 'The import of <b>' + data.filename + '</b> has been paused',
 			RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
+		};
+
+		var scriptJobTitles = {
+			QUEUED: 'Script added to queue',
+			BEGIN: 'Script started',
+			END: 'Script finished'
+		};
+		var scriptJobTexts = {
+			QUEUED: 'Script job # ' + data.jobId + ' will begin after currently running/queued job(s)',
+			BEGIN: 'Started script job #' + data.jobId,
+			END: 'Finished script job #' + data.jobId
 		};
 
 		switch (data.type) {
@@ -1523,9 +1534,9 @@ var Structr = {
 				if (me.username === data.username) {
 
 					var msg = new MessageBuilder()
-							.title(data.importtype + ' ' + fileImportTitles[data.subtype])
+							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
 							.info(fileImportTexts[data.subtype])
-							.uniqueClass(data.importtype + '-import-status-' + data.filepath);
+							.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
 
 					if (data.subtype !== 'QUEUED') {
 						msg.updatesText().requiresConfirmation();
@@ -1549,10 +1560,31 @@ var Structr = {
 					}
 
 					new MessageBuilder()
-							.title("Exception while importing " + data.importtype)
+							.title("Exception while importing " + data.jobtype)
 							.error("File: " + data.filepath + "<br>" + text)
 							.requiresConfirmation()
 							.show();
+
+					if (Structr.isModuleActive(Importer)) {
+						Importer.updateJobTable();
+					}
+				}
+				break;
+
+			case "SCRIPT_JOB_STATUS":
+
+				if (me.username === data.username) {
+
+					var msg = new MessageBuilder()
+							.title(scriptJobTitles[data.subtype])
+							.info(scriptJobTexts[data.subtype])
+							.uniqueClass(data.jobtype + '-status-' + data.jobId);
+
+					if (data.subtype !== 'QUEUED') {
+						msg.updatesText().requiresConfirmation();
+					}
+
+					msg.show();
 
 					if (Structr.isModuleActive(Importer)) {
 						Importer.updateJobTable();

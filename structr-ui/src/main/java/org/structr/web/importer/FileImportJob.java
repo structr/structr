@@ -80,12 +80,15 @@ abstract class FileImportJob extends ScheduledJob {
 	public Map<String, Object> getStatusData (final JobStatusMessageSubtype subtype) {
 
 		final Map<String, Object> data = new LinkedHashMap();
+
+		data.put("jobId",      jobId());
 		data.put("type",       getJobStatusType());
-		data.put("importtype", getJobType());
+		data.put("jobtype",    getJobType());
 		data.put("subtype",    subtype);
+		data.put("username",   username);
+
 		data.put("filename",   fileName);
 		data.put("filepath",   filePath);
-		data.put("username",   username);
 
 		return data;
 	}
@@ -96,11 +99,13 @@ abstract class FileImportJob extends ScheduledJob {
 		final LinkedHashMap<String, Object> jobInfo = new LinkedHashMap<>();
 
 		jobInfo.put("jobId",           jobId());
+		jobInfo.put("jobtype",         getJobType());
+		jobInfo.put("username",        getUsername());
+		jobInfo.put("status",          getCurrentStatus());
+
 		jobInfo.put("fileUuid",        getFileUuid());
 		jobInfo.put("filepath",        getFilePath());
 		jobInfo.put("filesize",        getFileSize());
-		jobInfo.put("username",        getUsername());
-		jobInfo.put("status",          getCurrentStatus());
 		jobInfo.put("processedChunks", getProcessedChunks());
 
 		return jobInfo;

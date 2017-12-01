@@ -19,7 +19,6 @@
 package org.structr.web.importer;
 
 import java.util.LinkedHashMap;
-import org.structr.core.scheduler.ScheduledJob;
 import java.util.Map;
 import org.mozilla.javascript.Script;
 import org.slf4j.Logger;
@@ -29,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.scheduler.ScheduledJob;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
@@ -112,6 +112,7 @@ public class ScriptJob extends ScheduledJob {
 
 		final Map<String, Object> data = new LinkedHashMap();
 
+		data.put("jobId",      jobId());
 		data.put("type",       getJobStatusType());
 		data.put("jobtype",    getJobType());
 		data.put("subtype",    subtype);
@@ -126,6 +127,7 @@ public class ScriptJob extends ScheduledJob {
 		final LinkedHashMap<String, Object> jobInfo = new LinkedHashMap<>();
 
 		jobInfo.put("jobId",           jobId());
+		jobInfo.put("jobtype",         getJobType());
 		jobInfo.put("username",        getUsername());
 		jobInfo.put("status",          getCurrentStatus());
 
