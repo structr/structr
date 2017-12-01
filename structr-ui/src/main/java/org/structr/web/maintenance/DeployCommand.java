@@ -126,16 +126,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		if (!securityContext.getCachedUserId().equals(Principal.SUPERUSER_ID)) {
-			logger.info("");
-			logger.info("/*************************************************************************************************/");
-			logger.info("/*                                                                                               */");
-			logger.info("/*   Deployment is faster using the superadmin account - consider using this account next time   */");
-			logger.info("/*                                                                                               */");
-			logger.info("/*************************************************************************************************/");
-			logger.info("");
-		}
-
 		final String mode = (String) attributes.get("mode");
 		if (mode != null && "export".equals(mode)) {
 
