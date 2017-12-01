@@ -1860,29 +1860,32 @@ var _Entities = {
 };
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
-	if (obj === null) {
-		if (isMultiline) {
-			return '<textarea name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value=""></textarea>';
-		} else {
-			return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value="">';
-		}
-	} else if (obj.constructor === Object) {
-		var node = obj;
-		var displayName = _Crud.displayName(node);
-		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
-	} else if (obj.constructor === Array) {
-		var out = '';
-		$(obj).each(function(i, v) {
-			out += formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
-		});
-		return out;
-		//return '<textarea name="' + key + '"' + (isReadOnly?'readonly class="readonly"':'') + '>' + out + '</textarea>';
-	} else {
-		if (isMultiline) {
-			return '<textarea name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + '>' + escapeForHtmlAttributes(obj) + '</textarea>';
-		} else {
-			return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + 'value="' + escapeForHtmlAttributes(obj) + '">';
-		}
-	}
-}
 
+	if (obj === null) {
+
+		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
+
+	} else if (obj.constructor === Object) {
+
+		var displayName = _Crud.displayName(obj);
+		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+
+	} else if (obj.constructor === Array) {
+
+		return obj.reduce(function (acc, v) {
+			return acc + formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
+		}, '');
+
+	} else {
+
+		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
+	}
+};
+
+function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
+	if (isMultiline) {
+		return '<textarea name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+	} else {
+		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
+	}
+};
