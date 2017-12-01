@@ -45,6 +45,7 @@ import org.structr.web.function.LogEventFunction;
 import org.structr.web.function.ParseFunction;
 import org.structr.web.function.RemoveSessionAttributeFunction;
 import org.structr.web.function.RenderFunction;
+import org.structr.web.function.ScheduleFunction;
 import org.structr.web.function.SendHtmlMailFunction;
 import org.structr.web.function.SendPlaintextMailFunction;
 import org.structr.web.function.SetDetailsObjectFunction;
@@ -102,6 +103,7 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "from_xml",                 new FromXmlFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse",                    new ParseFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "createArchive", 		new CreateArchiveFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "schedule",                 new ScheduleFunction());
 	}
 
 	@Override

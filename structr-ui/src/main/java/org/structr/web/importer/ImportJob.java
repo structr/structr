@@ -69,10 +69,14 @@ abstract class ImportJob {
 
 	public ImportJob (final FileBase file, final Principal user, final Map<String, Object> configuration) {
 
-		this.fileUuid = file.getUuid();
-		this.filePath = file.getPath();
-		this.fileName = file.getName();
-		this.fileSize = file.getSize();
+		if (file != null) {
+			
+			this.fileUuid = file.getUuid();
+			this.filePath = file.getPath();
+			this.fileName = file.getName();
+			this.fileSize = file.getSize();
+		}
+
 		this.user = user;
 		this.username = user.getName();
 		this.configuration = configuration;

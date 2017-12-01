@@ -171,9 +171,9 @@ public class CSVFileImportJob extends ImportJob {
 				} catch (FrameworkException ex) {
 					logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
 				}
-			}
 
-			jobFinished();
+				jobFinished();
+			}
 		};
 
 	}

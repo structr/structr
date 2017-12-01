@@ -143,10 +143,13 @@ public class XMLFileImportJob extends ImportJob {
 				}
 
 			} catch (IOException ex) {
-				reportException(ex);
-			}
 
-			jobFinished();
+				reportException(ex);
+
+			} finally {
+
+				jobFinished();
+			}
 		};
 	}
 
