@@ -48,6 +48,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 
 /**
  * File utility class.
@@ -333,19 +334,31 @@ public class FileHelper {
 
 			try {
 
+				String contentType = file.getContentType();
+
 				// Don't overwrite existing MIME type
-				if (StringUtils.isBlank(file.getContentType())) {
+				if (StringUtils.isBlank(contentType)) {
 
 					try {
 
-						map.put(FileBase.contentType, getContentMimeType(file));
+						contentType = getContentMimeType(file);
+						map.put(FileBase.contentType, contentType);
 
 					} catch (IOException ex) {
 						logger.debug("Unable to detect content MIME type", ex);
 					}
 				}
 
-				map.put(FileBase.checksum, FileHelper.getChecksum(fileOnDisk));
+				map.put(FileBase.fileModificationDate, fileOnDisk.lastModified());
+				map.put(FileBase.checksum,             FileHelper.getChecksum(fileOnDisk));
+
+				if (contentType != null) {
+
+					// modify type when image type is detected
+					if (contentType.startsWith("image/")) {
+						map.put(FileBase.type, Image.class.getSimpleName());
+					}
+				}
 
 				long fileSize = FileHelper.getSize(fileOnDisk);
 				if (fileSize > 0) {

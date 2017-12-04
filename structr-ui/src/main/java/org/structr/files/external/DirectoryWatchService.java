@@ -18,10 +18,9 @@
  */
 package org.structr.files.external;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,9 +30,12 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -143,7 +145,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 						final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
 
-						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+						try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, false)) {
 
 							for (final WatchEvent event : key.pollEvents()) {
 
@@ -302,14 +304,12 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	private void watchDirectoryTree(final Path root, final Path path) throws IOException {
 
-		logger.info("importing directory " + path.toString() + "..");
-
 		final Set<FileVisitOption> options = new LinkedHashSet<>();
 		final WatchKey key                 = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
 
 		if (key != null) {
 
-			watchKeyMap.put(key, path);
+			watchKeyMap.put(key, root);
 		}
 
 		// follow symlinks?
@@ -318,75 +318,63 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			options.add(FileVisitOption.FOLLOW_LINKS);
 		}
 
-		Files.walkFileTree(path, options, 1, new FileVisitor<Path>() {
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final List<File> directories          = new LinkedList<>();
+		int count                             = 0;
 
-			@Override
-			public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+		// configure security context for maximum performance
+		securityContext.disableEnsureCardinality();
+		securityContext.disableModificationOfAccessTime();
+		securityContext.ignoreResultCount(true);
 
-				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-				securityContext.disableEnsureCardinality();
-				securityContext.disableModificationOfAccessTime();
-				securityContext.ignoreResultCount(true);
+		final List<File> files  = Arrays.asList(path.toFile().listFiles());
+		final Iterator<File> it = files.iterator();
 
-				try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, false, false)) {
+		while (it.hasNext()) {
+
+			int batchCount = 0;
+
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, false, false)) {
+
+				while (it.hasNext() && batchCount++ < 1000) {
+
+					final File file     = it.next();
+					final Path filePath = file.toPath();
+
+					if (file.isDirectory()) {
+
+						directories.add(file);
+
+						// register directory with watch service
+						final WatchKey directoryKey = filePath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+						if (directoryKey != null) {
+
+							watchKeyMap.put(directoryKey, root);
+						}
+					}
 
 					// notify listener of directory discovery
-					listener.onDiscover(root, path, dir);
+					listener.onDiscover(root, path, filePath);
 
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
+					count++;
 				}
 
-				// register directory with watch service
-				final WatchKey key = dir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
-				if (key != null) {
+				// commit batch after 1000 files
+				tx.success();
 
-					watchKeyMap.put(key, root);
-				}
-
-				return FileVisitResult.CONTINUE;
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
 			}
+		}
 
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+		logger.info("{}: {} files", path.toString(), count);
 
-				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-				securityContext.disableEnsureCardinality();
-				securityContext.disableModificationOfAccessTime();
-				securityContext.ignoreResultCount(true);
+		// recurse
+		for (final File directory : directories) {
 
-				try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, false, false)) {
-
-					// notify listener of file discovery
-					listener.onDiscover(root, path, file);
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					fex.printStackTrace();
-				}
-
-				if (attrs.isDirectory()) {
-
-					// recurse (but not in a new thread)
-					new MountWorker(root, file.toString()).run();
-				}
-
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-				return FileVisitResult.CONTINUE;
-			}
-		});
+			// recurse (but not in a new thread)
+			new MountWorker(root, directory.getAbsolutePath()).run();
+		}
 	}
 
 	// ----- nested classes -----

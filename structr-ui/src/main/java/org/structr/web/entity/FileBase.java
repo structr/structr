@@ -102,6 +102,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
 
 	public static final Property<Long> size                                      = new LongProperty("size").indexed().systemInternal();
+	public static final Property<Long> fileModificationDate                      = new LongProperty("fileModificationDate").indexed().systemInternal();
 	public static final Property<String> url                                     = new StringProperty("url");
 	public static final Property<Long> checksum                                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
 	public static final Property<Integer> cacheForSeconds                        = new IntProperty("cacheForSeconds").cmis();

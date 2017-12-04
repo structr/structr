@@ -128,7 +128,7 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 		if (super.onDeletion(securityContext, errorBuffer, properties)) {
 
 			// only update watch service for root folder of mounted hierarchy
-			if (getProperty(mountTarget) != null || !isMounted()) {
+			if (properties.get(mountTarget) != null) {
 
 				updateWatchService(false);
 			}

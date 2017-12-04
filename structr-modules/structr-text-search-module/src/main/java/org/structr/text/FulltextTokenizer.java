@@ -21,6 +21,8 @@ package org.structr.text;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.tika.language.LanguageIdentifier;
@@ -42,7 +44,7 @@ public class FulltextTokenizer extends Writer {
 	private final int wordMaxLength          = Settings.IndexingMaxLength.getValue();
 	private final StringBuilder rawText      = new StringBuilder();
 	private final StringBuilder wordBuffer   = new StringBuilder();
-	private final Set<String> words          = new LinkedHashSet<>();
+	private final List<String> words         = new LinkedList<>();
 	private String language                  = "de";
 	private String fileName                  = null;
 	private char lastCharacter               = 0;
@@ -136,7 +138,7 @@ public class FulltextTokenizer extends Writer {
 		return rawText.toString().trim();
 	}
 
-	public Set<String> getWords() {
+	public List<String> getWords() {
 		return words;
 	}
 

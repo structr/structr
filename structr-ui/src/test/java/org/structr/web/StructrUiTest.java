@@ -177,9 +177,9 @@ public abstract class StructrUiTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			 logger.error("Exception while trying to clean database: {}", fex);
+			 logger.error("Exception while trying to clean database: {}", t);
 		}
 	}
 

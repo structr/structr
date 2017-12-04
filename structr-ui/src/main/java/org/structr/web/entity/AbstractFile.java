@@ -20,10 +20,13 @@ package org.structr.web.entity;
 
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
+import org.structr.api.search.SortType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -36,6 +39,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
@@ -68,10 +72,11 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
 	public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
 	public static final Property<Boolean> isExternal               = new BooleanProperty("isExternal").writeOnce();
+	public static final Property<Boolean> isMounted                = new MethodCallProperty<>("isMounted", AbstractFile.class, "isMounted");
 	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
-	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
-	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
+	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path, isExternal, isMounted);
+	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path, isExternal, isMounted);
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -249,5 +254,63 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		}
 
 		return file;
+	}
+
+	// ----- nested classes -----
+	private static class MethodCallProperty<T> extends AbstractReadOnlyProperty<T> {
+
+		private Method method = null;
+
+		public MethodCallProperty(final String name, final Class type, final String methodName) {
+
+			super(name);
+
+			try {
+
+				this.method = type.getDeclaredMethod(methodName);
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		@Override
+		public Class valueType() {
+			return Boolean.class;
+		}
+
+		@Override
+		public Class relatedType() {
+			return null;
+		}
+
+		@Override
+		public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+			return getProperty(securityContext, obj, applyConverter, null);
+		}
+
+		@Override
+		public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+
+			try {
+
+				return (T)method.invoke(obj);
+
+			} catch (Throwable t) {
+				logger.warn("Unable to call method {}: {}", method.getName(), t.getMessage());
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+
+		@Override
+		public SortType getSortType() {
+			return SortType.Default;
+		}
 	}
 }

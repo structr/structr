@@ -18,13 +18,7 @@
  */
 package org.structr.cron;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
-import org.structr.agent.Task;
-import org.structr.core.entity.AbstractNode;
+import org.structr.agent.AbstractTask;
 import org.structr.core.entity.Principal;
 
 /**
@@ -32,50 +26,9 @@ import org.structr.core.entity.Principal;
  *
  *
  */
-public class CronTestTask<T extends AbstractNode> implements Task<T> {
+public class CronTestTask<T> extends AbstractTask<T> {
 
-	@Override
-	public Principal getUser() {
-		return null;
-	}
-
-	@Override
-	public List<T> getNodes() {
-		return Collections.emptyList();
-	}
-
-	@Override
-	public int priority() {
-		return 0;
-	}
-
-	@Override
-	public Date getScheduledTime() {
-		return new Date();
-	}
-
-	@Override
-	public Date getCreationTime() {
-		return new Date();
-	}
-
-	@Override
-	public String getType() {
-		return "CronTestTask";
-	}
-
-	@Override
-	public long getDelay(TimeUnit unit) {
-		return 0;
-	}
-
-	@Override
-	public int compareTo(Delayed o) {
-		return 0;
-	}
-
-	@Override
-	public Object getStatusProperty(String key) {
-		return null;
+	public CronTestTask(final String type, final Principal user, final T node) {
+		super(type, user, node);
 	}
 }

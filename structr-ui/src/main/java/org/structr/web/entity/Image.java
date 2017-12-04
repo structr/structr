@@ -59,6 +59,8 @@ import org.structr.web.property.ThumbnailProperty;
  */
 public class Image extends org.structr.dynamic.File {
 
+	private static final String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
+
 	// register this type as an overridden builtin type
 	static {
 
@@ -385,7 +387,7 @@ public class Image extends org.structr.dynamic.File {
 						properties.put(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
 						properties.put(File.size,                                Long.valueOf(data.length));
 						properties.put(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
-						properties.put(File.parent,                              originalImage.getProperty(File.parent));
+						properties.put(File.parent,                              getThumbnailParentFolder(originalImage.getProperty(Folder.parent)));
 						properties.put(File.hasParent,                           originalImage.getProperty(File.hasParent));
 
 						thumbnail.unlockSystemPropertiesOnce();
@@ -439,5 +441,19 @@ public class Image extends org.structr.dynamic.File {
 		final Integer tnHeight = getHeight();
 
 		return StringUtils.stripEnd(getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
+	}
+
+	// ----- private methods -----
+	private Folder getThumbnailParentFolder(final Folder originalParentFolder) throws FrameworkException {
+
+		final StringBuilder pathBuffer = new StringBuilder(STRUCTR_THUMBNAIL_FOLDER);
+
+		if (originalParentFolder != null) {
+
+			pathBuffer.append(originalParentFolder.getPath());
+
+		}
+
+		return FileHelper.createFolderPath(securityContext, pathBuffer.toString());
 	}
 }

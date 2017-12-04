@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
@@ -59,8 +60,21 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final GraphObject obj = handle(root, root.relativize(path), path, true);
 		if (obj != null && obj instanceof FileBase) {
 
-			//((FileBase)obj).notifyUploadCompletion();
-			FileHelper.updateMetadata((FileBase)obj);
+			final FileBase fileNode       = (FileBase)obj;
+			final java.io.File fileOnDisk = path.toFile();
+			final long size               = fileOnDisk.length();
+			final long lastModified       = fileOnDisk.lastModified();
+			final Long fileNodeSize       = fileNode.getSize();
+			final Long fileNodeDate       = fileNode.getProperty(FileBase.fileModificationDate);
+
+			// update metadata only when size or modification time has changed
+			if (fileNodeSize == null || fileNodeDate == null || size != fileNodeSize || lastModified != fileNodeDate) {
+
+				final FileBase file = (FileBase)obj;
+
+				StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(file);
+				FileHelper.updateMetadata(file);
+			}
 		}
 
 		return true;
@@ -72,8 +86,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final GraphObject obj = handle(root, root.relativize(path), path, true);
 		if (obj != null && obj instanceof FileBase) {
 
-			//((FileBase)obj).notifyUploadCompletion();
-			FileHelper.updateMetadata((FileBase)obj);
+			final FileBase file = (FileBase)obj;
+
+			StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(file);
+			FileHelper.updateMetadata(file);
 		}
 
 		return true;
@@ -87,8 +103,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		if (obj != null && obj instanceof FileBase) {
 
-			//((FileBase)obj).notifyUploadCompletion();
-			FileHelper.updateMetadata((FileBase)obj);
+			final FileBase file = (FileBase)obj;
+
+			StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(file);
+			FileHelper.updateMetadata(file);
 		}
 
 		return true;
@@ -97,8 +115,6 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	@Override
 	public boolean onDelete(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		/** dont delete anything right now..
-
 		final Path relativePath = root.relativize(path);
 		final GraphObject obj   = handle(root, relativePath, path, false);
 
@@ -106,7 +122,6 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 			StructrApp.getInstance().delete((NodeInterface)obj);
 		}
-		*/
 
 		return true;
 	}

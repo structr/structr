@@ -168,6 +168,10 @@ public class FilesystemTest extends StructrUiTest {
 				fail("Unexpected exception.");
 			}
 
+
+			// wait some time
+			try { Thread.sleep(1000); } catch (Throwable t) {}
+
 			// check that all files and folders exist
 			try (final Tx tx = app.tx()) {
 
@@ -224,20 +228,6 @@ public class FilesystemTest extends StructrUiTest {
 				fail("Unexpected exception.");
 			}
 
-			// check that files and folders have been deleted
-			try (final Tx tx = app.tx()) {
-
-				logger.info("Verifying that files have been deleted..");
-
-				assertEquals("No files should remain after unmounting", 0, app.nodeQuery(File.class).getAsList().size());
-				assertEquals("Only one directory should remain after unmounting", 1, app.nodeQuery(Folder.class).getAsList().size());
-
-				tx.success();
-
-			} catch (FrameworkException fex) {
-				fail("Unexpected exception.");
-			}
-
 		} catch (IOException ioex) {
 
 			fail("Unexpected exception.");
@@ -256,7 +246,11 @@ public class FilesystemTest extends StructrUiTest {
 
 					@Override
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-						Files.delete(file);
+						try {
+							Files.delete(file);
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
 						return FileVisitResult.CONTINUE;
 					}
 
@@ -267,11 +261,16 @@ public class FilesystemTest extends StructrUiTest {
 
 					@Override
 					public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-						Files.delete(dir);
+						try {
+							Files.delete(dir);
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
 						return FileVisitResult.CONTINUE;
 					}
 				});
-			} catch (IOException ex) {
+
+			} catch (Throwable ex) {
 				ex.printStackTrace();
 			}
 		}
