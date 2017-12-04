@@ -38,13 +38,14 @@ import org.structr.web.entity.FileBase;
 public class FulltextIndexingTest extends TextSearchModuleTest {
 
 	private static final List<String> testWords = Arrays.asList(new String[] {
-		"aenean", "eget", "amet", "donec", "quis", "ante", "enim", "etiam", "justo", "lorem", "nisi", "quam", "rhoncus", "tellus", "tincidunt", "ultricies",
-		"vitae", "adipiscing", "consequat", "dapibus", "dolor", "eleifend", "faucibus", "felis", "fringilla", "imperdiet", "ipsum", "libero", "ligula",
-		"maecenas", "massa", "nulla", "nullam", "pede", "pretium", "semper", "tempus", "venenatis", "viverra", "vulputate", "aliquam", "aliquet", "arcu",
-		"augue", "blandit", "commodo", "condimentum", "consectetuer", "cras", "curabitur", "dictum", "duis", "elementum", "elit", "eros", "feugiat",
-		"hendrerit", "integer", "laoreet", "luctus", "magna", "magnis", "mauris", "metus", "mollis", "montes", "nascetur", "natoque", "neque", "nibh",
-		"nunc", "odio", "orci", "parturient", "pellentesque", "penatibus", "phasellus", "porttitor", "pulvinar", "quisque", "ridiculus", "rutrum",
-		"sagittis", "sapien", "sociis", "sodales", "ullamcorper", "varius", "vivamus"
+		"aenean", "eget", "amet", "donec", "quis", "sit", "ante", "enim", "etiam", "justo", "lorem", "nec", "nisi", "quam", "rhoncus", "sem", "tellus",
+		"tincidunt", "ultricies", "vel", "vitae", "adipiscing", "consequat", "dapibus", "dolor", "eleifend", "faucibus", "felis", "fringilla",
+		"imperdiet", "ipsum", "leo", "libero", "ligula", "maecenas", "massa", "nam", "nulla", "nullam", "pede", "pretium", "sed", "semper", "tempus",
+		"venenatis", "viverra", "vulputate", "aliquam", "aliquet", "arcu", "augue", "blandit", "commodo", "condimentum", "consectetuer", "cras", "cum",
+		"curabitur", "dictum", "dis", "dui", "duis", "elementum", "elit", "eros", "feugiat", "hendrerit", "integer", "laoreet", "luctus", "magna",
+		"magnis", "mauris", "metus", "mollis", "montes", "mus", "nascetur", "natoque", "neque", "nibh", "nunc", "odio", "orci", "parturient",
+		"pellentesque", "penatibus", "phasellus", "porttitor", "pulvinar", "quisque", "ridiculus", "rutrum", "sagittis", "sapien", "sociis", "sodales",
+		"ullamcorper", "varius", "vivamus"
 	});
 
 	@Test
@@ -161,7 +162,7 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 			final List<String> indexedWords = Arrays.asList(rawIndexedWords);
 
-			Assert.assertEquals("Invalid number of extracted words", 89, indexedWords.size());
+			Assert.assertEquals("Invalid number of extracted words", 100, indexedWords.size());
 			Assert.assertEquals("Invalid extracted word list", testWords, indexedWords);
 
 			tx.success();
