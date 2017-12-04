@@ -19,7 +19,6 @@
 package org.structr.web.common;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -27,6 +26,7 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -282,7 +283,9 @@ public class FileHelper {
 	 * @throws IOException
 	 */
 	public static void setFileProperties (final FileBase file, final String contentType) throws IOException, FrameworkException {
-		final PropertyMap map = new PropertyMap();
+
+		final java.io.File fileOnDisk = file.getFileOnDisk(false);
+		final PropertyMap map         = new PropertyMap();
 
 		map.put(FileBase.contentType, contentType != null ? contentType : FileHelper.getContentMimeType(fileOnDisk, file.getProperty(FileBase.name)));
 		map.put(FileBase.checksum,    FileHelper.getChecksum(fileOnDisk));
@@ -311,8 +314,6 @@ public class FileHelper {
 			fileNode.unlockSystemPropertiesOnce();
 			properties.put(GraphObject.id, newUuid);
 		}
-
-		properties.put(FileBase.relativeFilePath, FileBase.getDirectoryPath(id) + "/" + id);
 
 		fileNode.unlockSystemPropertiesOnce();
 		fileNode.setProperties(fileNode.getSecurityContext(), properties);
@@ -466,12 +467,7 @@ public class FileHelper {
 
 		setFileProperties(fileNode);
 
-		final String filesPath = Settings.FilesPath.getValue();
-
-		final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
-
-		fileOnDisk.getParentFile().mkdirs();
-		FileUtils.writeByteArrayToFile(fileOnDisk, data);
+		FileUtils.writeByteArrayToFile(fileNode.getFileOnDisk(), data);
 
 	}
 
@@ -488,27 +484,13 @@ public class FileHelper {
 	public static void writeToFile(final FileBase fileNode, final InputStream data) throws FrameworkException, IOException {
 
 		setFileProperties(fileNode);
-		final String filesPath = Settings.FilesPath.getValue();
 
-		final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
-		fileOnDisk.getParentFile().mkdirs();
-		FileOutputStream out = new FileOutputStream(fileOnDisk);
+		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
 
-		IOUtils.copy(data, out);
+			IOUtils.copy(data, out);
 
-		data.close();
-		out.close();
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	public static File getFile(final FileBase file) {
-		return new java.io.File(getFilePath(file.getRelativeFilePath()));
-	}
-
-	public static Path getPath(final FileBase file) {
-		return Paths.get(getFilePath(file.getRelativeFilePath()));
+			data.close();
+		}
 	}
 
 	/**
