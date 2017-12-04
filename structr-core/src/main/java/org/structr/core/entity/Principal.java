@@ -86,15 +86,14 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPropertySetter("eMail", String.class);
 		principal.addPropertySetter("salt", String.class);
 
-		principal.addMethod("isAdmin").setReturnType("boolean").setSource("return getProperty(isAdminProperty);");
-		principal.addMethod("isBlocked").setReturnType("boolean").setSource("return getProperty(blockedProperty);");
-		principal.addMethod("getParents").setReturnType("List<org.structr.core.entity.Principal>").setSource("return org.structr.core.entity.Principal.getParents(this);");
-		principal.addMethod("shouldSkipSecurityRelationships").setReturnType("boolean").setSource("return false;");
-		principal.addMethod("isValidPassword").setReturnType("boolean").setSource("return org.structr.core.entity.Principal.isValidPassword(this, password);").addParameter("password", "String");
-		principal.addMethod("addSessionId").setSource("org.structr.core.entity.Principal.addSessionId(this, sessionId);").addParameter("sessionId", "String");
-		principal.addMethod("removeSessionId").setSource("org.structr.core.entity.Principal.removeSessionId(this, sessionId);").addParameter("sessionId", "String");
-
-		principal.overrideMethod("getProperty", false, "if (propertyKey.equals(passwordProperty) || propertyKey.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(propertyKey); }");
+		principal.overrideMethod("shouldSkipSecurityRelationships", false, "return false;");
+		principal.overrideMethod("isAdmin", false,                         "return getProperty(isAdminProperty);");
+		principal.overrideMethod("isBlocked", false,                       "return getProperty(blockedProperty);");
+		principal.overrideMethod("getParents", false,                      "return " + Principal.class.getName() + ".getParents(this);");
+		principal.overrideMethod("isValidPassword", false,                 "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
+		principal.overrideMethod("addSessionId", false,                    Principal.class.getName() + ".addSessionId(this, arg0);");
+		principal.overrideMethod("removeSessionId", false,                 Principal.class.getName() + ".removeSessionId(this, arg0);");
+		principal.overrideMethod("getProperty", false,                     "if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0); }");
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");

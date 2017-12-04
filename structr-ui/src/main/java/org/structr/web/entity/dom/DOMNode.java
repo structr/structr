@@ -20,6 +20,7 @@ package org.structr.web.entity.dom;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -64,6 +65,7 @@ import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
 import org.structr.web.entity.Site;
+import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
@@ -77,7 +79,7 @@ import org.w3c.dom.Text;
  *
  *
  */
-public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable {
+public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode {
 
 	static class Impl { static {
 
@@ -85,8 +87,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final JsonObjectType page = (JsonObjectType)schema.getType("Page");
 		final JsonObjectType type = schema.addType("DOMNode");
 
+		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
-		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNode"));
+		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl"));
 
 		type.addStringProperty("dataKey").setIndexed(true);
 		type.addStringProperty("cypherQuery");
@@ -161,6 +164,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		type.overrideMethod("inTrash",                     false, "return getParent() == null && getOwnerDocumentAsSuperUser() == null;");
 		type.overrideMethod("dontCache",                   false, "return getProperty(dontCacheProperty);");
+		type.overrideMethod("renderDetails",               false, "return getProperty(renderDetailsProperty);");
 		type.overrideMethod("hideOnIndex",                 false, "return getProperty(hideOnIndexProperty);");
 		type.overrideMethod("hideOnDetail",                false, "return getProperty(hideOnDetailProperty);");
 		type.overrideMethod("isSynced",                    false, "return getSyncedNodes().size() > 0 || getSharedComponent() != null;");
@@ -180,7 +184,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("getNamespaceURI",                     false, "return null;");
 		type.overrideMethod("getBaseURI",                          false, "return null;");
 		type.overrideMethod("getLocalName",                        false, "return null;");
-		type.overrideMethod("cloneNode",                           false, "return " + DOMNode.class.getName() + ".cloneNode(this, arg0, arg1);");
+		type.overrideMethod("cloneNode",                           false, "return " + DOMNode.class.getName() + ".cloneNode(this, arg0);");
 		type.overrideMethod("setTextContent",                      false, "");
 		type.overrideMethod("getTextContent",                      false, "");
 		type.overrideMethod("compareDocumentPosition",             false, "return 0;");
@@ -196,8 +200,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("checkSameDocument",                   false, DOMNode.class.getName() + ".checkSameDocument(this, arg0);");
 		type.overrideMethod("checkWriteAccess",                    false, DOMNode.class.getName() + ".checkWriteAccess(this);");
 		type.overrideMethod("checkReadAccess",                     false, DOMNode.class.getName() + ".checkReadAccess(this);");
+		type.overrideMethod("checkIsChild",                        false, DOMNode.class.getName() + ".checkIsChild(this, arg0);");
 		type.overrideMethod("handleNewChild",                      false, "return " + DOMNode.class.getName() + ".handleNewChild(this, arg0);");
-		type.overrideMethod("checkIsChild",                        false, "return " + DOMNode.class.getName() + ".checkIsChild(this, arg0);");
 		type.overrideMethod("insertBefore",                        false, "return " + DOMNode.class.getName() + ".insertBefore(this, arg0, arg1);");
 		type.overrideMethod("replaceChild",                        false, "return " + DOMNode.class.getName() + ".replaceChild(this, arg0, arg1);");
 		type.overrideMethod("removeChild",                         false, "return " + DOMNode.class.getName() + ".removeChild(this, arg0);");
@@ -205,10 +209,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("hasChildNodes",                       false, "return !getProperty(childrenProperty).isEmpty();");
 		type.overrideMethod("getAttributes",                       false, "return this;");
 
-		type.overrideMethod("renderContent",                       false, "");
 		type.overrideMethod("displayForLocale",                    false, "return " + DOMNode.class.getName() + ".displayForLocale(this, arg0);");
 		type.overrideMethod("displayForConditions",                false, "return " + DOMNode.class.getName() + ".displayForConditions(this, arg0);");
 
+		// Renderable
+		type.overrideMethod("render",                              false, "return " + DOMNode.class.getName() + ".render(this, arg0, arg1);");
+		type.overrideMethod("renderContent",                       false, ""); // this method will be overridden but must provide an implementation
+
+		// DOMAdoptable
+		type.overrideMethod("doAdopt",                             false, "return " + DOMNode.class.getName() + ".doAdopt(this, arg0);");
+
+		// DOMImportable
+		type.overrideMethod("doImport",                            false, ""); // this method will be overridden but must provide an implementation
 
 		// LinkedTreeNode
 		type.overrideMethod("doAppendChild",                       false, "treeAppendChild(arg0);");
@@ -310,6 +322,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	boolean dontCache();
 	boolean hideOnIndex();
 	boolean hideOnDetail();
+	boolean renderDetails();
 	boolean displayForLocale(final RenderContext renderContext);
 	boolean displayForConditions(final RenderContext renderContext);
 
@@ -1414,16 +1427,16 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (StringUtils.isNotBlank(subKey)) {
 
-				setDataRoot(renderContext, this, subKey);
+				setDataRoot(renderContext, thisNode, subKey);
 
 				final GraphObject currentDataNode = renderContext.getDataObject();
 
 				// fetch (optional) list of external data elements
-				final Iterable<GraphObject> listData = thisNode.checkListSources(securityContext, renderContext);
+				final Iterable<GraphObject> listData = checkListSources(thisNode, securityContext, renderContext);
 
 				final PropertyKey propertyKey;
 
-				if (thisNode.getProperty(renderDetails) && detailMode) {
+				if (thisNode.renderDetails() && detailMode) {
 
 					renderContext.setDataObject(details);
 					renderContext.putDataObject(subKey, details);
@@ -1506,6 +1519,62 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
+	public static void setDataRoot(final RenderContext renderContext, final NodeInterface node, final String dataKey) {
+
+		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
+		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
+
+			NodeInterface dataRoot = rel.getTargetNode();
+
+			// set start node of this rendering to the data root node
+			renderContext.putDataObject(dataKey, dataRoot);
+
+			// allow only one data tree to be rendered for now
+			break;
+		}
+	}
+
+	public static Iterable<GraphObject> checkListSources(final DOMNode thisNode, final SecurityContext securityContext, final RenderContext renderContext) {
+
+		// try registered data sources first
+		for (GraphDataSource<Iterable<GraphObject>> source : listSources) {
+
+			try {
+
+				Iterable<GraphObject> graphData = source.getData(renderContext, thisNode);
+				if (graphData != null && !Iterables.isEmpty(graphData)) {
+					return graphData;
+				}
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("", fex);
+
+				logger.warn("Could not retrieve data from graph data source {}: {}", new Object[]{source, fex});
+			}
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
+	public static Node doAdopt(final DOMNode thisNode, final Page _page) throws DOMException {
+
+		if (_page != null) {
+
+			try {
+
+				thisNode.setOwnerDocument(_page);
+
+			} catch (FrameworkException fex) {
+
+				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+
+			}
+		}
+
+		return thisNode;
+	}
+
 	/*
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -1569,44 +1638,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		return ancestors;
 
-	}
-
-
-	protected void setDataRoot(final RenderContext renderContext, final AbstractNode node, final String dataKey) {
-		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
-		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
-
-			NodeInterface dataRoot = rel.getTargetNode();
-
-			// set start node of this rendering to the data root node
-			renderContext.putDataObject(dataKey, dataRoot);
-
-			// allow only one data tree to be rendered for now
-			break;
-		}
-	}
-
-	protected Iterable<GraphObject> checkListSources(final SecurityContext securityContext, final RenderContext renderContext) {
-
-		// try registered data sources first
-		for (GraphDataSource<Iterable<GraphObject>> source : listSources) {
-
-			try {
-
-				Iterable<GraphObject> graphData = source.getData(renderContext, this);
-				if (graphData != null && !Iterables.isEmpty(graphData)) {
-					return graphData;
-				}
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("", fex);
-
-				logger.warn("Could not retrieve data from graph data source {}: {}", new Object[]{source, fex});
-			}
-		}
-
-		return Collections.EMPTY_LIST;
 	}
 
 	/**
@@ -1983,24 +2014,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}
 
 	// ----- interface DOMAdoptable -----
-	@Override
-	public Node doAdopt(final Page _page) throws DOMException {
-
-		if (_page != null) {
-
-			try {
-
-				setProperties(securityContext, new PropertyMap(ownerDocument, _page));
-
-			} catch (FrameworkException fex) {
-
-				throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-
-			}
-		}
-
-		return this;
-	}
 
 	public static GraphObjectMap extractHeaders(final Header[] headers) {
 

@@ -194,10 +194,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 								}
 
-							} catch (ClassNotFoundException ex) {
-
-								// ignore
-							}
+							} catch (ClassNotFoundException ex) {}
 						}
 					}
 				}

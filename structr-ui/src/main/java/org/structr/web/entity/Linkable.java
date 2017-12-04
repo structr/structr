@@ -35,7 +35,7 @@ public interface Linkable extends NodeInterface {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Linkable");
 
-		type.setAbstract();
+		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Linkable"));
 
 		type.addBooleanProperty("enableBasicAuth").setDefaultValue("false").setIndexed(true);

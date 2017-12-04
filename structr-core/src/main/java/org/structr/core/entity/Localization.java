@@ -42,7 +42,7 @@ public interface Localization extends NodeInterface {
 		type.addStringProperty("locale",        PropertyView.Public).setRequired(true).setIndexed(true);
 		type.addBooleanProperty("imported",     PropertyView.Public).setIndexed(true);
 
-		type.overrideMethod("onCreation",     true, "org.structr.core.entity.Localization.onCreation(this, securityContext, errorBuffer);");
+		type.overrideMethod("onCreation",     true, "org.structr.core.entity.Localization.onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
 
 	}}

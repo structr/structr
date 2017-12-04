@@ -72,6 +72,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Set<StructrMethodDefinition> methods          = new TreeSet<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
+	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
@@ -129,12 +130,23 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public boolean isInterface() {
+		return isInterface;
+	}
+
+	@Override
+	public JsonType setIsInterface() {
+		this.isInterface = true;
+		return this;
+	}
+
+	@Override
 	public boolean isAbstract() {
 		return isAbstract;
 	}
 
 	@Override
-	public JsonType setAbstract() {
+	public JsonType setIsAbstract() {
 		this.isAbstract = true;
 		return this;
 	}
@@ -540,6 +552,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
+		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
 
 		// properties
 		if (!serializedProperties.isEmpty()) {
@@ -587,6 +600,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_IS_ABSTRACT)) {
 			this.isAbstract = (Boolean)source.get(JsonSchema.KEY_IS_ABSTRACT);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_IS_INTERFACE)) {
+			this.isInterface = (Boolean)source.get(JsonSchema.KEY_IS_INTERFACE);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
@@ -704,7 +721,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isAbstract = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isInterface = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract  = schemaNode.getProperty(SchemaNode.isAbstract);
 	}
 
 	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
@@ -836,6 +854,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			schemaNode.setProperty(SchemaNode.implementsInterfaces, list.toString());
 		}
 
+		schemaNode.setProperty(SchemaNode.isInterface, isInterface);
 		schemaNode.setProperty(SchemaNode.isAbstract, isAbstract);
 
 		return schemaNode;
@@ -956,7 +975,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final Object isAbstractValue = source.get(JsonSchema.KEY_IS_ABSTRACT);
 		if (isAbstractValue != null && Boolean.TRUE.equals(isAbstractValue)) {
 
-			typeDefinition.setAbstract();
+			typeDefinition.setIsAbstract();
+		}
+
+		final Object isInterfaceValue = source.get(JsonSchema.KEY_IS_INTERFACE);
+		if (isInterfaceValue != null && Boolean.TRUE.equals(isInterfaceValue)) {
+
+			typeDefinition.setIsInterface();
 		}
 
 		return typeDefinition;

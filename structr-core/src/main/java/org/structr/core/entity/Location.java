@@ -30,8 +30,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * The Location entity.
  *

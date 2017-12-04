@@ -539,7 +539,7 @@ public class SchemaHelper {
 		// include import statements from mixins
 		SchemaHelper.formatImportStatements(schemaNode, src, baseType, importStatements);
 
-		if (schemaNode.getProperty(SchemaNode.isAbstract)) {
+		if (schemaNode.getProperty(SchemaNode.isInterface)) {
 
 			// create interface
 			src.append("public interface ");
@@ -555,7 +555,13 @@ public class SchemaHelper {
 		} else {
 
 			// create class
-			src.append("public class ");
+			src.append("public ");
+
+			if (schemaNode.getProperty(SchemaNode.isAbstract)) {
+				src.append("abstract ");
+			}
+
+			src.append("class ");
 			src.append(_className);
 			src.append(" extends ");
 			src.append(superClass);
@@ -1646,7 +1652,9 @@ public class SchemaHelper {
 
 			return Class.forName(fqcn);
 
-		} catch (ClassNotFoundException ex) { }
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		return null;
 	}

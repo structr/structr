@@ -44,8 +44,11 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+import org.w3c.dom.Attr;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -77,15 +80,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
 		type.overrideMethod("getOffsetAttributeName", false, "return org.structr.web.entity.dom.DOMElement.getOffsetAttributeName(this, arg0, arg1);");
+		type.overrideMethod("getHtmlAttributeNames",  false, DOMElement.class.getName() + ".getHtmlAttributeNames(this);");
 		type.overrideMethod("updateFromNode",         false, DOMElement.class.getName() + ".updateFromNode(this, arg0);");
 		type.overrideMethod("getContextName",         false, DOMElement.class.getName() + ".getContextName(this);");
 		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
 
 		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
+		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
 		type.overrideMethod("renderStructrAppLib",    false, DOMElement.class.getName() + ".renderStructrAppLib(this, arg0, arg1, arg2, arg3, arg4);");
-
-
-
 	}}
 
 	String getOffsetAttributeName(final String name, final int offset);
@@ -94,6 +96,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	void renderStructrAppLib(final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext, final int depth) throws FrameworkException;
 
 	Property[] getHtmlAttributes();
+	List<String> getHtmlAttributeNames();
 
 	// ----- static methods -----
 	public static String getOffsetAttributeName(final DOMElement elem, final String name, final int offset) {
@@ -397,6 +400,38 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		out.append(">");
 	}
 
+	public static Node doImport(final DOMElement thisNode, final Page newPage) throws DOMException {
+
+		DOMElement newElement = (DOMElement) newPage.createElement(thisNode.getTag());
+
+		// copy attributes
+		for (String _name : thisNode.getHtmlAttributeNames()) {
+
+			Attr attr = thisNode.getAttributeNode(_name);
+			if (attr.getSpecified()) {
+
+				newElement.setAttribute(attr.getName(), attr.getValue());
+			}
+		}
+
+		return newElement;
+	}
+
+	public static List<String> getHtmlAttributeNames(final DOMElement thisNode) {
+
+		List<String> names = new ArrayList<>(10);
+
+		for (String key : thisNode.getNode().getPropertyKeys()) {
+
+			// use html properties only
+			if (key.startsWith(PropertyView.Html)) {
+
+				names.add(key.substring(HtmlPrefixLength));
+			}
+		}
+
+		return names;
+	}
 
 	/*
 
@@ -535,22 +570,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, tag, "^[a-z][a-zA-Z0-9\\-]*$", errorBuffer);
 
 		return valid;
-	}
-
-	public List<String> getHtmlAttributeNames() {
-
-		List<String> names = new ArrayList<>(10);
-
-		for (String key : this.getNode().getPropertyKeys()) {
-
-			// use html properties only
-			if (key.startsWith(PropertyView.Html)) {
-
-				names.add(key.substring(HtmlPrefixLength));
-			}
-		}
-
-		return names;
 	}
 
 	// ----- protected methods -----
@@ -832,22 +851,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	// ----- interface DOMImportable -----
 	@Override
-	public Node doImport(final Page newPage) throws DOMException {
-
-		DOMElement newElement = (DOMElement) newPage.createElement(getTagName());
-
-		// copy attributes
-		for (String _name : getHtmlAttributeNames()) {
-
-			Attr attr = getAttributeNode(_name);
-			if (attr.getSpecified()) {
-
-				newElement.setAttribute(attr.getName(), attr.getValue());
-			}
-		}
-
-		return newElement;
-	}
 
 	@Override
 	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {

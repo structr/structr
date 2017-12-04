@@ -152,7 +152,7 @@ public class SchemaService implements Service {
 								config.registerEntityType(newType);
 								newType.newInstance();
 
-							} catch (Throwable t) {}
+							} catch (Throwable ignore) {}
 						}
 
 						// calculate difference between previous and new classes

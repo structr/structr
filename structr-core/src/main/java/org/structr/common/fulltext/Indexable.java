@@ -37,7 +37,7 @@ public interface Indexable extends NodeInterface {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Indexable");
 
-		type.setAbstract();
+		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Indexable"));
 
 		type.addStringProperty("extractedContent", PropertyView.Public).setIndexed(true);

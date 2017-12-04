@@ -34,7 +34,10 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonType setName(final String name);
 
 	boolean isAbstract();
-	JsonType setAbstract();
+	JsonType setIsAbstract();
+
+	boolean isInterface();
+	JsonType setIsInterface();
 
 	JsonMethod addMethod(final String name, final String source, final String comment);
 	JsonMethod addMethod(final String name);

@@ -36,7 +36,7 @@ public interface JavaScriptSource extends NodeInterface {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("JavaScriptSource");
 
-		type.setAbstract();
+		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/JavaScriptSource"));
 
 		type.addBooleanProperty("useAsJavascriptLibrary", PropertyView.Ui).setIndexed(true);
