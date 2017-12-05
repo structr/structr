@@ -54,16 +54,6 @@ public abstract class MailHelper {
 	}
 
 	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
-					final String htmlContent, final String textContent, final DynamicMailAttachment attachment)
-		throws EmailException {
-
-		List<DynamicMailAttachment> list = new ArrayList<>();
-		list.add(attachment);
-
-		return _sendHtmlMail(from, fromName, to, toName, cc, bcc, bounce, subject, htmlContent, textContent, list);
-	}
-
-	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
 					final String htmlContent, final String textContent, final List<DynamicMailAttachment> attachments)
 		throws EmailException {
 
