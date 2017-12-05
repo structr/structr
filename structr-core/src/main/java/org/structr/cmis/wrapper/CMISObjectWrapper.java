@@ -306,7 +306,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 						case CMIS_ITEM:
 							wrapper = new CMISItemWrapper(propertyFilter, includeAllowableActions);
-							wrapper.initializeFrom(cmisInfo.geItemInfo());
+							wrapper.initializeFrom(cmisInfo.getItemInfo());
 							break;
 
 						case CMIS_POLICY:

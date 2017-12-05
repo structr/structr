@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -41,6 +42,7 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
@@ -49,6 +51,7 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -78,18 +81,60 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		type.addPropertyGetter("tag", String.class);
 
-		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
-		type.overrideMethod("getOffsetAttributeName", false, "return org.structr.web.entity.dom.DOMElement.getOffsetAttributeName(this, arg0, arg1);");
-		type.overrideMethod("getHtmlAttributeNames",  false, DOMElement.class.getName() + ".getHtmlAttributeNames(this);");
 		type.overrideMethod("updateFromNode",         false, DOMElement.class.getName() + ".updateFromNode(this, arg0);");
-		type.overrideMethod("getContextName",         false, DOMElement.class.getName() + ".getContextName(this);");
+		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
+		type.overrideMethod("getHtmlAttributeNames",  false, "return " + DOMElement.class.getName() + ".getHtmlAttributeNames(this);");
+		type.overrideMethod("getOffsetAttributeName", false, "return " + DOMElement.class.getName() + ".getOffsetAttributeName(this, arg0, arg1);");
+		//type.overrideMethod("getContextName",         false, "return " + DOMElement.class.getName() + ".getContextName(this);");
+		type.overrideMethod("getLocalName",           false, "return null;");
+		type.overrideMethod("getAttributes",          false, "return this;");
+		type.overrideMethod("contentEquals",          false, "return false;");
+		type.overrideMethod("hasAttributes",          false, "return getLength() > 0;");
+		type.overrideMethod("getLength",              false, "return getHtmlAttributeNames().size();");
+		type.overrideMethod("getTagName",             false, "return getTag();");
+		type.overrideMethod("getNodeName",            false, "return getTagName();");
+		type.overrideMethod("setNodeValue",           false, "");
+		type.overrideMethod("getNodeValue",           false, "return null;");
 		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
 
 		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
 		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
-		type.overrideMethod("renderStructrAppLib",    false, DOMElement.class.getName() + ".renderStructrAppLib(this, arg0, arg1, arg2, arg3, arg4);");
+		type.overrideMethod("renderStructrAppLib",    false, DOMElement.class.getName() + ".renderStructrAppLib(this, arg0, arg1, arg2, arg3);");
+		type.overrideMethod("setIdAttribute",         false, DOMElement.class.getName() + ".setIdAttribute(this, arg0, arg1);");
+		type.overrideMethod("setAttribute",           false, DOMElement.class.getName() + ".setAttribute(this, arg0, arg1);");
+		type.overrideMethod("removeAttribute",        false, DOMElement.class.getName() + ".removeAttribute(this, arg0);");
+		type.overrideMethod("doImport",               false, "return "+ DOMElement.class.getName() + ".doImport(this, arg0);");
+		type.overrideMethod("getAttribute",           false, "return " + DOMElement.class.getName() + ".getAttribute(this, arg0);");
+		type.overrideMethod("getAttributeNode",       false, "return " + DOMElement.class.getName() + ".getAttributeNode(this, arg0);");
+		type.overrideMethod("setAttributeNode",       false, "return " + DOMElement.class.getName() + ".setAttributeNode(this, arg0);");
+		type.overrideMethod("removeAttributeNode",    false, "return " + DOMElement.class.getName() + ".removeAttributeNode(this, arg0);");
+		type.overrideMethod("getElementsByTagName",   false, "return " + DOMElement.class.getName() + ".getElementsByTagName(this, arg0);");
+		type.overrideMethod("setIdAttributeNS",       false, "throw new UnsupportedOperationException(\"Namespaces not supported.\");");
+		type.overrideMethod("setIdAttributeNode",     false, "throw new UnsupportedOperationException(\"Attribute nodes not supported in HTML5.\");");
+		type.overrideMethod("hasAttribute",           false, "return getAttribute(arg0) != null;");
+		type.overrideMethod("hasAttributeNS",         false, "return false;");
+		type.overrideMethod("getAttributeNS",         false, "");
+		type.overrideMethod("setAttributeNS",         false, "");
+		type.overrideMethod("removeAttributeNS",      false, "");
+		type.overrideMethod("getAttributeNodeNS",     false, "return null;");
+		type.overrideMethod("setAttributeNodeNS",     false, "return null;");
+		type.overrideMethod("getElementsByTagNameNS", false, "return null;");
+
+		// NamedNodeMap
+		type.overrideMethod("getNamedItemNS",         false, "return null;");
+		type.overrideMethod("setNamedItemNS",         false, "return null;");
+		type.overrideMethod("removeNamedItemNS",      false, "return null;");
+		type.overrideMethod("getNamedItem",           false, "return getAttributeNode(arg0);");
+		type.overrideMethod("setNamedItem",           false, "return " + DOMElement.class.getName() + ".setNamedItem(this, arg0);");
+		type.overrideMethod("removeNamedItem",        false, "return " + DOMElement.class.getName() + ".removeNamedItem(this, arg0);");
+		type.overrideMethod("item",                   false, "return " + DOMElement.class.getName() + ".item(this, arg0);");
+
+		// CMISInfo
+		type.overrideMethod("getSchemaTypeInfo",      false, "return null;");
+
 	}}
 
+	String getTag();
 	String getOffsetAttributeName(final String name, final int offset);
 
 	void openingTag(final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException;
@@ -433,6 +478,188 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return names;
 	}
 
+	public static void setIdAttribute(final DOMElement thisElement, final String idString, boolean isId) throws DOMException {
+
+		thisElement.checkWriteAccess();
+
+		try {
+			thisElement.setProperty(StructrApp.key(DOMElement.class, "_html_id"), idString);
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.toString());
+		}
+	}
+
+	public static String getAttribute(final DOMElement thisElement, final String name) {
+
+		HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
+
+		return htmlProperty.getProperty(thisElement.getSecurityContext(), thisElement, true);
+	}
+
+	public static void setAttribute(final DOMElement thisElement, final String name, final String value) throws DOMException {
+
+		try {
+			HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
+			if (htmlProperty != null) {
+
+				htmlProperty.setProperty(thisElement.getSecurityContext(), thisElement, value);
+			}
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+
+		}
+	}
+
+	public static void removeAttribute(final DOMElement thisElement, final String name) throws DOMException {
+
+		try {
+			HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
+			if (htmlProperty != null) {
+
+				htmlProperty.setProperty(thisElement.getSecurityContext(), thisElement, null);
+			}
+
+		} catch (FrameworkException fex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
+
+		}
+	}
+
+	public static Attr getAttributeNode(final DOMElement thisElement, final String name) {
+
+		HtmlProperty htmlProperty = DOMElement.findOrCreateAttributeKey(thisElement, name);
+		final String value        = htmlProperty.getProperty(thisElement.getSecurityContext(), thisElement, true);
+
+		if (value != null) {
+
+			boolean explicitlySpecified = true;
+			boolean isId = false;
+
+			if (value.equals(htmlProperty.defaultValue())) {
+				explicitlySpecified = false;
+			}
+
+			return new DOMAttribute((Page) thisElement.getOwnerDocument(), thisElement, name, value, explicitlySpecified, isId);
+		}
+
+		return null;
+	}
+
+	public static Attr setAttributeNode(final DOMElement thisElement, final Attr attr) throws DOMException {
+
+		// save existing attribute node
+		final Attr attribute = thisElement.getAttributeNode(attr.getName());
+
+		// set value
+		thisElement.setAttribute(attr.getName(), attr.getValue());
+
+		// set parent of attribute node
+		if (attr instanceof DOMAttribute) {
+			((DOMAttribute) attr).setParent(thisElement);
+		}
+
+		return attribute;
+	}
+
+	public static Attr removeAttributeNode(final DOMElement thisElement, final Attr attr) throws DOMException {
+
+		// save existing attribute node
+		final Attr attribute = thisElement.getAttributeNode(attr.getName());
+
+		// set value
+		thisElement.setAttribute(attr.getName(), null);
+
+		return attribute;
+	}
+
+	public static NodeList getElementsByTagName(final DOMElement thisElement, final String tagName) {
+
+		DOMNodeList results = new DOMNodeList();
+
+		DOMNode.collectNodesByPredicate(thisElement.getSecurityContext(), thisElement, results, new TagPredicate(tagName), 0, false);
+
+		return results;
+	}
+
+	public static HtmlProperty findOrCreateAttributeKey(final DOMElement thisElement, final String name) {
+
+		// try to find native html property defined in DOMElement or one of its subclasses
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisElement.getEntityType(), name, false);
+
+		if (key != null && key instanceof HtmlProperty) {
+
+			return (HtmlProperty) key;
+
+		} else {
+
+			// create synthetic HtmlProperty
+			final HtmlProperty htmlProperty = new HtmlProperty(name);
+			htmlProperty.setDeclaringClass(DOMElement.class);
+
+			return htmlProperty;
+		}
+	}
+
+	public static Node setNamedItem(final DOMElement thisElement, final Node node) throws DOMException {
+
+		if (node instanceof Attr) {
+			return thisElement.setAttributeNode((Attr) node);
+		}
+
+		return null;
+	}
+
+	public static Node removeNamedItem(final DOMElement thisElement, final String name) throws DOMException {
+
+		// save existing attribute node
+		Attr attribute = thisElement.getAttributeNode(name);
+
+		// set value to null
+		thisElement.setAttribute(name, null);
+
+		return attribute;
+	}
+
+	public static Node item(final DOMElement thisElement, final int i) {
+
+		List<String> htmlAttributeNames = thisElement.getHtmlAttributeNames();
+		if (i >= 0 && i < htmlAttributeNames.size()) {
+
+			return thisElement.getAttributeNode(htmlAttributeNames.get(i));
+		}
+
+		return null;
+	}
+
+	public static class TagPredicate implements Predicate<Node> {
+
+		private String tagName = null;
+
+		public TagPredicate(String tagName) {
+			this.tagName = tagName;
+		}
+
+		@Override
+		public boolean accept(Node obj) {
+
+			if (obj instanceof DOMElement) {
+
+				DOMElement elem = (DOMElement)obj;
+
+				if (tagName.equals(elem.getProperty(StructrApp.key(DOMElement.class, "tag")))) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
 	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(DOMElement.class.getName());
@@ -617,108 +844,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	public String getTagName() {
 
 		return getProperty(tag);
-	}
-
-	@Override
-	public String getAttribute(String name) {
-
-		HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-
-		return htmlProperty.getProperty(securityContext, this, true);
-	}
-
-	@Override
-	public void setAttribute(final String name, final String value) throws DOMException {
-
-		try {
-			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-			if (htmlProperty != null) {
-
-				htmlProperty.setProperty(securityContext, DOMElement.this, value);
-			}
-
-		} catch (FrameworkException fex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-
-		}
-	}
-
-	@Override
-	public void removeAttribute(final String name) throws DOMException {
-
-		try {
-			HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-			if (htmlProperty != null) {
-
-				htmlProperty.setProperty(securityContext, DOMElement.this, null);
-			}
-
-		} catch (FrameworkException fex) {
-
-			throw new DOMException(DOMException.INVALID_STATE_ERR, fex.getMessage());
-
-		}
-	}
-
-	@Override
-	public Attr getAttributeNode(String name) {
-
-		HtmlProperty htmlProperty = findOrCreateAttributeKey(name);
-		String value = htmlProperty.getProperty(securityContext, this, true);
-
-		if (value != null) {
-
-			boolean explicitlySpecified = true;
-			boolean isId = false;
-
-			if (value.equals(htmlProperty.defaultValue())) {
-				explicitlySpecified = false;
-			}
-
-			return new DOMAttribute((Page) getOwnerDocument(), this, name, value, explicitlySpecified, isId);
-		}
-
-		return null;
-	}
-
-	@Override
-	public Attr setAttributeNode(final Attr attr) throws DOMException {
-
-		// save existing attribute node
-		Attr attribute = getAttributeNode(attr.getName());
-
-		// set value
-		setAttribute(attr.getName(), attr.getValue());
-
-		// set parent of attribute node
-		if (attr instanceof DOMAttribute) {
-			((DOMAttribute) attr).setParent(this);
-		}
-
-		return attribute;
-	}
-
-	@Override
-	public Attr removeAttributeNode(final Attr attr) throws DOMException {
-
-		// save existing attribute node
-		Attr attribute = getAttributeNode(attr.getName());
-
-		// set value
-		setAttribute(attr.getName(), null);
-
-		return attribute;
-	}
-
-	@Override
-	public NodeList getElementsByTagName(final String tagName) {
-
-		DOMNodeList results = new DOMNodeList();
-
-		collectNodesByPredicate(this, results, new TagPredicate(tagName), 0, false);
-
-		return results;
 	}
 
 	@Override

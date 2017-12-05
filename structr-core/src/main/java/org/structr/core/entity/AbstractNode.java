@@ -1867,7 +1867,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public CMISItemInfo geItemInfo() {
+	public CMISItemInfo getItemInfo() {
 		return this;
 	}
 

@@ -42,8 +42,12 @@ public interface LinkSource extends DOMElement {
 
 		type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
 
-		type.overrideMethod("getLinkable", false, "getProperty(linkableProperty);");
-		type.overrideMethod("setLinkable", false, "setProperty(arg0);");
+		type.overrideMethod("getLinkable", false, "return getProperty(linkableProperty);");
+
+		type.addMethod("setLinkable")
+			.setSource("setProperty(linkableProperty, (Linkable)linkable);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("linkable", "org.structr.web.entity.Linkable");
 	}}
 
 	Linkable getLinkable();

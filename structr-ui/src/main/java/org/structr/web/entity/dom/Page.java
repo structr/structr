@@ -31,6 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -55,6 +56,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType site = (JsonObjectType)schema.getType("Site");
 		final JsonObjectType type = schema.addType("Page");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
@@ -76,8 +78,14 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		// category is part of a special view named "category"
 		type.addStringProperty("category", PropertyView.Public, "category" ).setIndexed(true);
 
-		type.overrideMethod("getContent",    false, "return org.structr.web.entity.dom.Page.getContent(this, editMode);");
-		type.overrideMethod("createElement", false, "return org.structr.web.entity.dom.Page.createElement(this, tag, suppressException);");
+		type.addPropertyGetter("site", Site.class);
+
+		type.overrideMethod("getContent",     false, "return org.structr.web.entity.dom.Page.getContent(this, arg0);");
+		type.overrideMethod("createElement",  false, "return org.structr.web.entity.dom.Page.createElement(this, arg0, arg1);");
+		type.overrideMethod("updateFromNode", false, "");
+		type.overrideMethod("contentEquals",  false, "return false;");
+
+		site.relate(type, "CONTAINS", Cardinality.OneToMany, "site", "pages");
 	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));

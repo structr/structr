@@ -20,7 +20,6 @@ package org.structr.web.entity;
 
 import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -39,7 +38,8 @@ public interface Site extends NodeInterface {
 		type.addStringProperty("hostname", PropertyView.Public).setIndexed(true);
 		type.addIntegerProperty("port", PropertyView.Public).setIndexed(true);
 
-		type.relate(page, "CONTAINS", Cardinality.OneToMany, "site", "pages");
+		type.addPropertyGetter("hostname", String.class);
+		type.addPropertyGetter("port",     Integer.class);
 	}}
 
 	String getHostname();

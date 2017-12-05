@@ -146,7 +146,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 				// try to find schema node for the given type
 				final SchemaNode typeNode = app.nodeQuery(SchemaNode.class).andName(shortTypeName).getFirst();
-				if (typeNode != null) {
+				if (typeNode != null && !typeNode.equals(schemaEntity)) {
 
 					// try to identify overridden schema method from database
 					final SchemaMethod superMethod = app.nodeQuery(SchemaMethod.class)

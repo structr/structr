@@ -22,27 +22,36 @@ package org.structr.web.entity;
 import java.net.URI;
 import java.util.List;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 
 /**
  * Base class for filesystem objects in Structr.
  */
-public interface AbstractFile extends NodeInterface {
+public interface AbstractFile extends LinkedTreeNode {
 
 	static class Impl { static {
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("AbstractFile");
+		final JsonSchema schema     = SchemaService.getDynamicSchema();
+		final JsonObjectType folder = (JsonObjectType)schema.addType("Folder");
+		final JsonObjectType type   = schema.addType("AbstractFile");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
-		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNode"));
+		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl"));
 
 		type.addBooleanProperty("includeInFrontendExport").setIndexed(true);
 		type.addBooleanProperty("hasParent").setIndexed(true);
 
+		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
+		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
+		type.overrideMethod("getChildRelationships",       false, "return treeGetChildRelationships();");
+
+		folder.relate(type, "CONTAINS", Relation.Cardinality.OneToMany, "parent", "children");
+		type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
 	}}
 
 	boolean isTemplate();
@@ -53,12 +62,6 @@ public interface AbstractFile extends NodeInterface {
 	void setParent(final Folder folder) throws FrameworkException;
 
 	List<AbstractFile> getChildren();
-
-	// ----- test -----
-	AbstractFile treeGetParent();
-	void treeRemoveChild(final AbstractFile file) throws FrameworkException;
-	void treeAppendChild(final AbstractFile file) throws FrameworkException;
-
 
 	/*
 	public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);

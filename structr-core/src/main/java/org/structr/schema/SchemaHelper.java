@@ -518,7 +518,7 @@ public class SchemaHelper {
 		final boolean extendsAbstractNode                      = _extendsClass == null;
 
 		// check superclass
-		if (!extendsAbstractNode && !SchemaHelper.hasType(superClass) && !superClass.startsWith("org.structr.dynamic.")) {
+		if (!extendsAbstractNode && !superClass.startsWith("org.structr.dynamic.") && !SchemaHelper.hasType(superClass)) {
 
 			// we can only detect if a type is missing that is usually provided by a module; we
 			// can not detect whether a dynamic type is missing because those are only available
@@ -1652,9 +1652,7 @@ public class SchemaHelper {
 
 			return Class.forName(fqcn);
 
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		} catch (Throwable t) {}
 
 		return null;
 	}

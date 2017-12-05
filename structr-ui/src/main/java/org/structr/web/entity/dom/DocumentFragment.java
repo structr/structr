@@ -23,7 +23,6 @@ import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.w3c.dom.DOMException;
 
 /**
  *
@@ -41,18 +40,18 @@ public interface DocumentFragment extends DOMNode, org.w3c.dom.DocumentFragment,
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
 		// ----- interface org.w3c.dom.Node -----
-		type.addMethod("getNodeName").setSource("return \"#document-fragment\";");
-		type.addMethod("getLocalName").setSource("return null;");
-		type.addMethod("getNodeValue").setSource("return null;").addException(DOMException.class.getName());
-		type.addMethod("hasAttributes").setSource("return false;").setReturnType("boolean");
-		type.addMethod("getAttributes").setSource("return null;").setReturnType("org.w3c.dom.NamedNodeMap");
-		type.addMethod("getNodeType").setSource("return DOCUMENT_FRAGMENT_NODE;");
-		type.addMethod("setNodeValue").setSource("").addException(DOMException.class.getName()).addParameter("value", "String");
+		type.overrideMethod("getNodeName", false, "return \"#document-fragment\";");
+		type.overrideMethod("getLocalName", false, "return null;");
+		type.overrideMethod("getNodeValue", false, "return null;");
+		type.overrideMethod("hasAttributes", false, "return false;");
+		type.overrideMethod("getAttributes", false, "return null;");
+		type.overrideMethod("getNodeType", false, "return DOCUMENT_FRAGMENT_NODE;");
+		type.overrideMethod("setNodeValue", false, "");
 
 		// ----- interface DOMNode -----
-		type.addMethod("getContextName").setSource("return \"DocumentFragment\";").setReturnType("String");
-		type.addMethod("isSynced").setSource("return false;").setReturnType("boolean");
-		type.addMethod("contentEquals").setSource("return false;").addParameter("otherNode", DOMNode.class.getName());
+		type.overrideMethod("getContextName", false, "return \"DocumentFragment\";");
+		type.overrideMethod("isSynced", false, "return false;");
+		type.overrideMethod("contentEquals", false, "return false;");
 
 		//type.addMethod("updateFromNode").setSource("error").addException(FrameworkException.class.getName()).addParameter("otherNode", DOMNode.class.getName());
 

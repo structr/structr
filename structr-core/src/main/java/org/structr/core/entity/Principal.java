@@ -93,7 +93,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("isValidPassword", false,                 "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
 		principal.overrideMethod("addSessionId", false,                    Principal.class.getName() + ".addSessionId(this, arg0);");
 		principal.overrideMethod("removeSessionId", false,                 Principal.class.getName() + ".removeSessionId(this, arg0);");
-		principal.overrideMethod("getProperty", false,                     "if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0); }");
+		principal.overrideMethod("getProperty", false,                     "if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");

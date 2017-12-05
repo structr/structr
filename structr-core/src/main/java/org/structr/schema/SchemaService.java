@@ -25,7 +25,6 @@ package org.structr.schema;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -447,36 +446,5 @@ public class SchemaService implements Service {
 
 		// fallback: use dynamic class from simple name
 		return StructrApp.getConfiguration().getNodeEntityClass(StringUtils.substringAfterLast(name, "."));
-	}
-
-	// ----- nested classes -----
-	private static class VirtualSchemaInfo {
-
-		private String name             = null;
-		private String baseClass        = null;
-		private String interfaces       = null;
-
-		public VirtualSchemaInfo(final String name, final String baseClass, final Class... interfaces) {
-
-			this.name       = name;
-			this.baseClass  = baseClass;
-			this.interfaces = StringUtils.join(Arrays.asList(interfaces).stream().map(i -> i.getName()).iterator(), ", ");
-		}
-
-		public String getClassName() {
-			return name;
-		}
-
-		public String getBaseClass() {
-			return baseClass;
-		}
-
-		public String getImplementedInterfaces() {
-			return interfaces;
-		}
-
-		public SchemaNode getSchemaNode() {
-			return null;
-		}
 	}
 }

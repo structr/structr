@@ -43,7 +43,7 @@ public interface CMISInfo {
 
 	public CMISFolderInfo getFolderInfo();
 	public CMISDocumentInfo getDocumentInfo();
-	public CMISItemInfo geItemInfo();
+	public CMISItemInfo getItemInfo();
 	public CMISRelationshipInfo getRelationshipInfo();
 	public CMISPolicyInfo getPolicyInfo();
 	public CMISSecondaryInfo getSecondaryInfo();

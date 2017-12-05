@@ -20,6 +20,7 @@ package org.structr.web.entity;
 
 import java.net.URI;
 import java.util.List;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISFolderInfo;
 import org.structr.common.ConstantBooleanTrue;
@@ -28,6 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
@@ -51,7 +53,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 		// ----- CMIS support -----
 		type.overrideMethod("getCMISInfo",         false, "return this;");
-		type.overrideMethod("getBaseTypeId",       false, "return BaseTypeId.CMIS_FOLDER;");
+		type.overrideMethod("getBaseTypeId",       false, "return " + BaseTypeId.class.getName() + ".CMIS_FOLDER;");
 		type.overrideMethod("getFolderInfo",       false, "return this;");
 		type.overrideMethod("getDocumentInfo",     false, "return null;");
 		type.overrideMethod("getItemInfo",         false, "return null;");
@@ -60,7 +62,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.overrideMethod("getSecondaryInfo",    false, "return null;");
 		type.overrideMethod("getParentId",         false, "return getProperty(parentIdProperty);");
 		type.overrideMethod("getPath",             false, "return getProperty(pathProperty);");
-		type.overrideMethod("getAllowableActions", false, "return StructrFolderActions.getInstance();");
+		type.overrideMethod("getAllowableActions", false, "return " + StructrFolderActions.class.getName() + ".getInstance();");
 		type.overrideMethod("getChangeToken",      false, "return null;");
 
 	}}

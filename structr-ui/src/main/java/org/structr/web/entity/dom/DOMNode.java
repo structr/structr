@@ -64,7 +64,6 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.Site;
 import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
@@ -76,8 +75,6 @@ import org.w3c.dom.Text;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
- *
- *
  */
 public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode {
 
@@ -122,7 +119,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("showConditions", String.class);
 		type.addPropertyGetter("hideConditions", String.class);
 
-		type.addPropertyGetter("site", Site.class);
 		type.addPropertyGetter("parent", DOMNode.class);
 		type.addPropertyGetter("children", List.class);
 		type.addPropertyGetter("nextSibling", DOMNode.class);
@@ -131,17 +127,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("ownerDocument", Page.class);
 		type.addPropertyGetter("sharedComponent", DOMNode.class);
 
-		type.addPropertySetter("sharedComponent", DOMNode.class);
-		type.addPropertySetter("ownerDocument", Page.class);
-		type.addPropertySetter("setLinkable", Linkable.class);
-
 		type.overrideMethod("getSiblingLinkType",          false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
 		type.overrideMethod("getChildLinkType",            false, "return DOMNodeCONTAINSDOMNode.class;");
 		type.overrideMethod("getChildRelationships",       false, "return treeGetChildRelationships();");
 		type.overrideMethod("renderNodeList",              false, DOMNode.class.getName() + ".renderNodeList(this, arg0, arg1, arg2, arg3);");
 
 		type.overrideMethod("setVisibility",               false, "setProperty(visibleToPublicUsers, arg0); setProperty(visibleToAuthenticatedUsers, arg1);");
-		type.overrideMethod("updateFromNode",              false, "");
 
 		type.overrideMethod("getClosestPage",              false, "return " + DOMNode.class.getName() + ".getClosestPage(this);");
 		type.overrideMethod("getClosestTemplate",          false, "return " + DOMNode.class.getName() + ".getClosestTemplate(this, arg0);");
@@ -152,15 +143,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("getChildPosition",            false, "return treeGetChildPosition(arg0);");
 		type.overrideMethod("getPositionPath",             false, "return " + DOMNode.class.getName() + ".getPositionPath(this);");
 
-		type.overrideMethod("getTag",                      false, "return null;");
-		type.overrideMethod("getContextName",              false, "return null;");
 		type.overrideMethod("getIdHash",                   false, "return getUuid();");
 		type.overrideMethod("getIdHashOrProperty",         false, "return " + DOMNode.class.getName() + ".getIdHashOrProperty(this);");
 		type.overrideMethod("getDataHash",                 false, "return getProperty(datastructrhashProperty);");
 
 		type.overrideMethod("avoidWhitespace",             false, "return false;");
 		type.overrideMethod("isVoidElement",               false, "return false;");
-		type.overrideMethod("contentEquals",               false, "return false;");
 
 		type.overrideMethod("inTrash",                     false, "return getParent() == null && getOwnerDocumentAsSuperUser() == null;");
 		type.overrideMethod("dontCache",                   false, "return getProperty(dontCacheProperty);");
@@ -176,6 +164,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("isEqualNode",                         false, "return equals(arg0);");
 		type.overrideMethod("lookupNamespaceURI",                  false, "return null;");
 		type.overrideMethod("lookupPrefix",                        false, "return null;");
+		type.overrideMethod("compareDocumentPosition",             false, "return 0;");
 		type.overrideMethod("isDefaultNamespace",                  false, "return true;");
 		type.overrideMethod("isSameNode",                          false, "return " + DOMNode.class.getName() + ".isSameNode(this, arg0);");
 		type.overrideMethod("isSupported",                         false, "return false;");
@@ -183,16 +172,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("setPrefix",                           false, "");
 		type.overrideMethod("getNamespaceURI",                     false, "return null;");
 		type.overrideMethod("getBaseURI",                          false, "return null;");
-		type.overrideMethod("getLocalName",                        false, "return null;");
 		type.overrideMethod("cloneNode",                           false, "return " + DOMNode.class.getName() + ".cloneNode(this, arg0);");
 		type.overrideMethod("setTextContent",                      false, "");
 		type.overrideMethod("getTextContent",                      false, "");
-		type.overrideMethod("compareDocumentPosition",             false, "return 0;");
-		type.overrideMethod("hasAttributes",                       false, "return getLength() > 0;");
-		type.overrideMethod("getNodeName",                         false, "return getTagName();");
-		type.overrideMethod("getNodeType",                         false, "return -1;");
-		type.overrideMethod("getNodeValue",                        false, "return null;");
-		type.overrideMethod("setNodeValue",                        false, "");
 
 		// DOM operations
 		type.overrideMethod("normalize",                           false, DOMNode.class.getName() + ".normalize(this);");
@@ -201,45 +183,51 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("checkWriteAccess",                    false, DOMNode.class.getName() + ".checkWriteAccess(this);");
 		type.overrideMethod("checkReadAccess",                     false, DOMNode.class.getName() + ".checkReadAccess(this);");
 		type.overrideMethod("checkIsChild",                        false, DOMNode.class.getName() + ".checkIsChild(this, arg0);");
-		type.overrideMethod("handleNewChild",                      false, "return " + DOMNode.class.getName() + ".handleNewChild(this, arg0);");
+		type.overrideMethod("handleNewChild",                      false, DOMNode.class.getName() + ".handleNewChild(this, arg0);");
 		type.overrideMethod("insertBefore",                        false, "return " + DOMNode.class.getName() + ".insertBefore(this, arg0, arg1);");
 		type.overrideMethod("replaceChild",                        false, "return " + DOMNode.class.getName() + ".replaceChild(this, arg0, arg1);");
 		type.overrideMethod("removeChild",                         false, "return " + DOMNode.class.getName() + ".removeChild(this, arg0);");
 		type.overrideMethod("appendChild",                         false, "return " + DOMNode.class.getName() + ".appendChild(this, arg0);");
 		type.overrideMethod("hasChildNodes",                       false, "return !getProperty(childrenProperty).isEmpty();");
-		type.overrideMethod("getAttributes",                       false, "return this;");
 
 		type.overrideMethod("displayForLocale",                    false, "return " + DOMNode.class.getName() + ".displayForLocale(this, arg0);");
 		type.overrideMethod("displayForConditions",                false, "return " + DOMNode.class.getName() + ".displayForConditions(this, arg0);");
 
 		// Renderable
-		type.overrideMethod("render",                              false, "return " + DOMNode.class.getName() + ".render(this, arg0, arg1);");
-		type.overrideMethod("renderContent",                       false, ""); // this method will be overridden but must provide an implementation
+		type.overrideMethod("render",                              false, DOMNode.class.getName() + ".render(this, arg0, arg1);");
 
 		// DOMAdoptable
 		type.overrideMethod("doAdopt",                             false, "return " + DOMNode.class.getName() + ".doAdopt(this, arg0);");
 
-		// DOMImportable
-		type.overrideMethod("doImport",                            false, ""); // this method will be overridden but must provide an implementation
-
 		// LinkedTreeNode
-		type.overrideMethod("doAppendChild",                       false, "treeAppendChild(arg0);");
-		type.overrideMethod("doRemoveChild",                       false, "treeRemoveChild(arg0);");
-		type.overrideMethod("getFirstChild",                       false, "checkReadAccess(); treeGetFirstChild();");
-		type.overrideMethod("getLastChild",                        false, "checkReadAccess(); treeGetLastChild();");
-		type.overrideMethod("getChildNodes",                       false, "checkReadAccess(); return new DOMNodeList(treeGetChildren());");
+		type.overrideMethod("doAppendChild",                       false, "checkWriteAccess(); treeAppendChild(arg0);");
+		type.overrideMethod("doRemoveChild",                       false, "checkWriteAccess(); treeRemoveChild(arg0);");
+		type.overrideMethod("getFirstChild",                       false, "checkReadAccess(); return (DOMNode)treeGetFirstChild();");
+		type.overrideMethod("getLastChild",                        false, "checkReadAccess(); return (DOMNode)treeGetLastChild();");
+		type.overrideMethod("getChildNodes",                       false, "checkReadAccess(); return new " + DOMNodeList.class.getName() + "(treeGetChildren());");
 		type.overrideMethod("getParentNode",                       false, "checkReadAccess(); return getParent();");
 
-		type.overrideMethod("renderCustomAttributes",              false, DOMNode.class.getName() + ".renderCustomAttributes(this);");
-		type.overrideMethod("getSecurityInstructions",             false, DOMNode.class.getName() + ".getSecurityInstructions(this);");
-		type.overrideMethod("getVisibilityInstructions",           false, DOMNode.class.getName() + ".getVisibilityInstructions(this);");
-		type.overrideMethod("getLinkableInstructions",             false, DOMNode.class.getName() + ".getLinkableInstructions(this);");
-		type.overrideMethod("getContentInstructions",              false, DOMNode.class.getName() + ".getContentInstructions(this);");
-		type.overrideMethod("renderSharedComponentConfiguration",  false, DOMNode.class.getName() + ".renderSharedComponentConfiguration(this);");
+		type.overrideMethod("renderCustomAttributes",              false, DOMNode.class.getName() + ".renderCustomAttributes(this, arg0, arg1, arg2);");
+		type.overrideMethod("getSecurityInstructions",             false, DOMNode.class.getName() + ".getSecurityInstructions(this, arg0);");
+		type.overrideMethod("getVisibilityInstructions",           false, DOMNode.class.getName() + ".getVisibilityInstructions(this, arg0);");
+		type.overrideMethod("getLinkableInstructions",             false, DOMNode.class.getName() + ".getLinkableInstructions(this, arg0);");
+		type.overrideMethod("getContentInstructions",              false, DOMNode.class.getName() + ".getContentInstructions(this, arg0);");
+		type.overrideMethod("renderSharedComponentConfiguration",  false, DOMNode.class.getName() + ".renderSharedComponentConfiguration(this, arg0, arg1);");
 		type.overrideMethod("getDataPropertyKeys",                 false, "return " + DOMNode.class.getName() + ".getDataPropertyKeys(this);");
+		type.overrideMethod("getAllChildNodes",                    false, "return " + DOMNode.class.getName() + ".getAllChildNodes(this);");
+
 
 		type.addMethod("getIdHash").setSource("return getUuid();").setReturnType("String");
 
+		type.addMethod("setOwnerDocument")
+			.setSource("setProperty(ownerDocumentProperty, (Page)ownerDocument);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("ownerDocument", "org.structr.web.entity.dom.Page");
+
+		type.addMethod("setSharedComponent")
+			.setSource("setProperty(sharedComponentProperty, (DOMNode)sharedComponent);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("sharedComponent", "org.structr.web.entity.dom.DOMNode");
 
 		/*
 			public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
@@ -256,7 +244,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		*/
 
-		type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToMany, "previousSibling", "nextSibling");
+		type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
 		type.relate(type, "CONTAINS",              Cardinality.OneToMany, "parent",          "children");     // DOMChildren
 		type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
 		type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
@@ -328,7 +316,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	int getChildPosition(final DOMNode otherNode);
 
-	String getContextName();
 	String getIdHash();
 	String getIdHashOrProperty();
 	String getShowConditions();
@@ -336,7 +323,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	String getContent(final RenderContext.EditMode editMode) throws FrameworkException;
 	String getDataHash();
 	String getDataKey();
-	String getTag();
 	String getPositionPath();
 
 	String getCypherQuery();
@@ -361,7 +347,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	Page getClosestPage();
 
 	void setOwnerDocument(final Page page) throws FrameworkException;
-	void setSharedComponent(final DOMNode page) throws FrameworkException;
+	void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException;
 
 	Template getClosestTemplate(final Page page);
 
@@ -384,11 +370,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	List<RelationshipInterface> getChildRelationships();
 
-	LinkedTreeNode treeGetFirstChild();
-	LinkedTreeNode treeGetLastChild();
 	void doAppendChild(final DOMNode node) throws FrameworkException;
 	void doRemoveChild(final DOMNode node) throws FrameworkException;
-	Class getChildLinkType();
 
 	Set<PropertyKey> getDataPropertyKeys();
 
@@ -590,7 +573,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return idHash;
 	}
 
-	public static Document getOwnerDocumentAsSuperUser(final DOMNode thisNode) {
+	public static Page getOwnerDocumentAsSuperUser(final DOMNode thisNode) {
 
 		final RelationshipInterface ownership = thisNode.getOutgoingRelationshipAsSuperUser(StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodePAGEPage"));
 		if (ownership != null) {
@@ -703,7 +686,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final DOMNodeList results         = new DOMNodeList();
 		final TextCollector textCollector = new TextCollector();
 
-		collectNodesByPredicate(thisNode.getSecurityContext(), thisNode, results, textCollector, 0, false);
+		DOMNode.collectNodesByPredicate(thisNode.getSecurityContext(), thisNode, results, textCollector, 0, false);
 
 		return textCollector.getText();
 	}
@@ -1575,6 +1558,151 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return thisNode;
 	}
 
+	public static Node insertBefore(final DOMNode thisNode, final Node newChild, final Node refChild) throws DOMException {
+
+		// according to DOM spec, insertBefore with null refChild equals appendChild
+		if (refChild == null) {
+
+			return thisNode.appendChild(newChild);
+		}
+
+		thisNode.checkWriteAccess();
+
+		thisNode.checkSameDocument(newChild);
+		thisNode.checkSameDocument(refChild);
+
+		thisNode.checkHierarchy(newChild);
+		thisNode.checkHierarchy(refChild);
+
+		if (newChild instanceof DocumentFragment) {
+
+			// When inserting document fragments, we must take
+			// care of the special case that the nodes already
+			// have a NEXT_LIST_ENTRY relationship coming from
+			// the document fragment, so we must first remove
+			// the node from the document fragment and then
+			// add it to the new parent.
+			final DocumentFragment fragment = (DocumentFragment)newChild;
+			Node currentChild = fragment.getFirstChild();
+
+			while (currentChild != null) {
+
+				// save next child in fragment list for later use
+				Node savedNextChild = currentChild.getNextSibling();
+
+				// remove child from document fragment
+				fragment.removeChild(currentChild);
+
+				// insert child into new parent
+				thisNode.insertBefore(currentChild, refChild);
+
+				// next
+				currentChild = savedNextChild;
+			}
+
+		} else {
+
+			final Node _parent = newChild.getParentNode();
+			if (_parent != null) {
+
+				_parent.removeChild(newChild);
+			}
+
+			try {
+
+				// do actual tree insertion here
+				thisNode.treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
+
+			} catch (FrameworkException frex) {
+
+				if (frex.getStatus() == 404) {
+
+					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+
+				} else {
+
+					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+				}
+			}
+
+			// allow parent to set properties in new child
+			thisNode.handleNewChild(newChild);
+		}
+
+		return refChild;
+	}
+
+	public static Node replaceChild(final DOMNode thisNode, final Node newChild, final Node oldChild) throws DOMException {
+
+		thisNode.checkWriteAccess();
+
+		thisNode.checkSameDocument(newChild);
+		thisNode.checkSameDocument(oldChild);
+
+		thisNode.checkHierarchy(newChild);
+		thisNode.checkHierarchy(oldChild);
+
+		if (newChild instanceof DocumentFragment) {
+
+			// When inserting document fragments, we must take
+			// care of the special case that the nodes already
+			// have a NEXT_LIST_ENTRY relationship coming from
+			// the document fragment, so we must first remove
+			// the node from the document fragment and then
+			// add it to the new parent.
+			// replace indirectly using insertBefore and remove
+			final DocumentFragment fragment = (DocumentFragment)newChild;
+			Node currentChild = fragment.getFirstChild();
+
+			while (currentChild != null) {
+
+				// save next child in fragment list for later use
+				final Node savedNextChild = currentChild.getNextSibling();
+
+				// remove child from document fragment
+				fragment.removeChild(currentChild);
+
+				// add child to new parent
+				thisNode.insertBefore(currentChild, oldChild);
+
+				// next
+				currentChild = savedNextChild;
+			}
+
+			// finally, remove reference element
+			thisNode.removeChild(oldChild);
+
+		} else {
+
+			Node _parent = newChild.getParentNode();
+			if (_parent != null && _parent instanceof DOMNode) {
+
+				_parent.removeChild(newChild);
+			}
+
+			try {
+				// replace directly
+				thisNode.treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
+
+			} catch (FrameworkException frex) {
+
+				if (frex.getStatus() == 404) {
+
+					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
+
+				} else {
+
+					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
+				}
+			}
+
+			// allow parent to set properties in new child
+			thisNode.handleNewChild(newChild);
+		}
+
+		return oldChild;
+	}
+
 	/*
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -1613,11 +1741,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 
 		return false;
-	}
-
-
-	public boolean inTrash() {
-		return (getProperty(DOMNode.parent) == null && getOwnerDocumentAsSuperUser() == null);
 	}
 
 	// ----- private methods -----
@@ -1795,153 +1918,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	@Override
 	public Document getOwnerDocument() {
 		return getProperty(ownerDocument);
-	}
-
-	@Override
-	public Node insertBefore(final Node newChild, final Node refChild) throws DOMException {
-
-		// according to DOM spec, insertBefore with null refChild equals appendChild
-		if (refChild == null) {
-
-			return appendChild(newChild);
-		}
-
-		checkWriteAccess();
-
-		checkSameDocument(newChild);
-		checkSameDocument(refChild);
-
-		checkHierarchy(newChild);
-		checkHierarchy(refChild);
-
-		if (newChild instanceof DocumentFragment) {
-
-			// When inserting document fragments, we must take
-			// care of the special case that the nodes already
-			// have a NEXT_LIST_ENTRY relationship coming from
-			// the document fragment, so we must first remove
-			// the node from the document fragment and then
-			// add it to the new parent.
-			final DocumentFragment fragment = (DocumentFragment)newChild;
-			Node currentChild = fragment.getFirstChild();
-
-			while (currentChild != null) {
-
-				// save next child in fragment list for later use
-				Node savedNextChild = currentChild.getNextSibling();
-
-				// remove child from document fragment
-				fragment.removeChild(currentChild);
-
-				// insert child into new parent
-				insertBefore(currentChild, refChild);
-
-				// next
-				currentChild = savedNextChild;
-			}
-
-		} else {
-
-			final Node _parent = newChild.getParentNode();
-			if (_parent != null) {
-
-				_parent.removeChild(newChild);
-			}
-
-			try {
-
-				// do actual tree insertion here
-				treeInsertBefore((DOMNode)newChild, (DOMNode)refChild);
-
-			} catch (FrameworkException frex) {
-
-				if (frex.getStatus() == 404) {
-
-					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
-
-				} else {
-
-					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
-				}
-			}
-
-			// allow parent to set properties in new child
-			handleNewChild(newChild);
-		}
-
-		return refChild;
-	}
-
-	@Override
-	public Node replaceChild(final Node newChild, final Node oldChild) throws DOMException {
-
-		checkWriteAccess();
-
-		checkSameDocument(newChild);
-		checkSameDocument(oldChild);
-
-		checkHierarchy(newChild);
-		checkHierarchy(oldChild);
-
-		if (newChild instanceof DocumentFragment) {
-
-			// When inserting document fragments, we must take
-			// care of the special case that the nodes already
-			// have a NEXT_LIST_ENTRY relationship coming from
-			// the document fragment, so we must first remove
-			// the node from the document fragment and then
-			// add it to the new parent.
-			// replace indirectly using insertBefore and remove
-			final DocumentFragment fragment = (DocumentFragment)newChild;
-			Node currentChild = fragment.getFirstChild();
-
-			while (currentChild != null) {
-
-				// save next child in fragment list for later use
-				final Node savedNextChild = currentChild.getNextSibling();
-
-				// remove child from document fragment
-				fragment.removeChild(currentChild);
-
-				// add child to new parent
-				insertBefore(currentChild, oldChild);
-
-				// next
-				currentChild = savedNextChild;
-			}
-
-			// finally, remove reference element
-			removeChild(oldChild);
-
-		} else {
-
-			Node _parent = newChild.getParentNode();
-			if (_parent != null && _parent instanceof DOMNode) {
-
-				_parent.removeChild(newChild);
-			}
-
-			try {
-				// replace directly
-				treeReplaceChild((DOMNode)newChild, (DOMNode)oldChild);
-
-			} catch (FrameworkException frex) {
-
-				if (frex.getStatus() == 404) {
-
-					throw new DOMException(DOMException.NOT_FOUND_ERR, frex.getMessage());
-
-				} else {
-
-					throw new DOMException(DOMException.INVALID_STATE_ERR, frex.getMessage());
-				}
-			}
-
-			// allow parent to set properties in new child
-			handleNewChild(newChild);
-		}
-
-		return oldChild;
 	}
 
 	@Override

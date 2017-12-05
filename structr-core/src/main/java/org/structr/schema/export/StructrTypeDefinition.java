@@ -88,6 +88,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	abstract T createSchemaNode(final App app) throws FrameworkException;
 
 	@Override
+	public String toString() {
+		return "StructrTypeDefinition(" + name + ")";
+	}
+
+	@Override
 	public int hashCode() {
 		return name.hashCode();
 	}
@@ -820,6 +825,19 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					// FileBase doesn't exist any more, but we need to support it for some time..
 					schemaNode.setProperty(SchemaNode.implementsInterfaces, "org.structr.web.entity.File");
+
+				} else if (!StructrApp.getSchemaBaseURI().relativize(baseTypeReference).isAbsolute()) {
+
+					// resolve internal type referenced in special URI
+					final URI base        = StructrApp.getSchemaBaseURI().resolve("definitions/");
+					final URI type        = base.relativize(baseTypeReference);
+					final String typeName = type.toString();
+
+					final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+					if (internal != null) {
+
+						schemaNode.setProperty(SchemaNode.extendsClass, internal.getName());
+					}
 				}
 			}
 		}
