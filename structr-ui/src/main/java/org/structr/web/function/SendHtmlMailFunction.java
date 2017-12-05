@@ -91,7 +91,7 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 				}
 
 
-				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent, attachments.isEmpty() ? null : attachments.toArray(new DynamicMailAttachment[attachments.size()]));
+				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent,attachments);
 
 			} catch (EmailException | MalformedURLException ex) {
 
