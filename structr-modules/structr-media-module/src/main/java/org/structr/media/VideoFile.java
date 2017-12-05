@@ -48,9 +48,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
-import org.structr.web.common.FileHelper;
-import static org.structr.web.entity.FileBase.relativeFilePath;
-import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.Image;
 
 //~--- classes ----------------------------------------------------------------
@@ -89,7 +86,7 @@ public class VideoFile extends File {
 	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(VideoFile.class, PropertyView.Ui,
-		type, name, contentType, size, relativeFilePath, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
+		type, name, contentType, size, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
 		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height, originalVideo, convertedVideos,
 		posterImage
 	);
@@ -118,22 +115,7 @@ public class VideoFile extends File {
 	}
 
 	public String getDiskFilePath(final SecurityContext securityContext) {
-
-		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-			final String path = getRelativeFilePath();
-
-			tx.success();
-
-			if (path != null) {
-				return new java.io.File(FileHelper.getFilePath(path)).getAbsolutePath();
-			}
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-		}
-
-		return null;
+		return getFileOnDisk().getAbsolutePath();
 	}
 
 	@Export

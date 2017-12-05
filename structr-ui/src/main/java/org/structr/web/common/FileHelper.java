@@ -19,13 +19,10 @@
 package org.structr.web.common;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +36,6 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -47,25 +43,23 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import static org.structr.web.entity.FileBase.size;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 
 /**
  * File utility class.
- *
  */
 public class FileHelper {
 
-	private static final String UNKNOWN_MIME_TYPE = "application/octet-stream";
-	private static final Logger logger = LoggerFactory.getLogger(FileHelper.class.getName());
+	private static final String UNKNOWN_MIME_TYPE         = "application/octet-stream";
+	private static final Logger logger                    = LoggerFactory.getLogger(FileHelper.class.getName());
 	private static final MimetypesFileTypeMap mimeTypeMap = new MimetypesFileTypeMap(FileHelper.class.getResourceAsStream("/mime.types"));
 
-	//~--- methods --------------------------------------------------------
 	/**
 	 * Transform an existing file into the target class.
 	 *
@@ -289,12 +283,14 @@ public class FileHelper {
 	 * @throws IOException
 	 */
 	public static void setFileProperties (final FileBase file, final String contentType) throws IOException, FrameworkException {
-		final PropertyMap map = new PropertyMap();
 
-		map.put(FileBase.contentType, contentType != null ? contentType : getContentMimeType(file));
-		map.put(FileBase.checksum, FileHelper.getChecksum(file));
-		map.put(FileBase.size, FileHelper.getSize(file));
-		map.put(FileBase.version, 1);
+		final java.io.File fileOnDisk = file.getFileOnDisk(false);
+		final PropertyMap map         = new PropertyMap();
+
+		map.put(FileBase.contentType, contentType != null ? contentType : FileHelper.getContentMimeType(fileOnDisk, file.getProperty(FileBase.name)));
+		map.put(FileBase.checksum,    FileHelper.getChecksum(fileOnDisk));
+		map.put(FileBase.size,        FileHelper.getSize(fileOnDisk));
+		map.put(FileBase.version,     1);
 
 		file.setProperties(file.getSecurityContext(), map);
 	}
@@ -319,8 +315,6 @@ public class FileHelper {
 			properties.put(GraphObject.id, newUuid);
 		}
 
-		properties.put(FileBase.relativeFilePath, FileBase.getDirectoryPath(id) + "/" + id);
-
 		fileNode.unlockSystemPropertiesOnce();
 		fileNode.setProperties(fileNode.getSecurityContext(), properties);
 
@@ -335,27 +329,51 @@ public class FileHelper {
 	 */
 	public static void updateMetadata(final FileBase file, final PropertyMap map) throws FrameworkException {
 
-		// Don't overwrite existing MIME type
-		if (StringUtils.isBlank(file.getContentType())) {
+		final java.io.File fileOnDisk = file.getFileOnDisk(false);
+
+		if (fileOnDisk != null && fileOnDisk.exists()) {
 
 			try {
 
-				map.put(FileBase.contentType, getContentMimeType(file));
+				String contentType = file.getContentType();
 
-			} catch (IOException ex) {
-				logger.debug("Unable to detect content MIME type", ex);
+				// Don't overwrite existing MIME type
+				if (StringUtils.isBlank(contentType)) {
+
+					try {
+
+						contentType = getContentMimeType(file);
+						map.put(FileBase.contentType, contentType);
+
+					} catch (IOException ex) {
+						logger.debug("Unable to detect content MIME type", ex);
+					}
+				}
+
+				map.put(FileBase.fileModificationDate, fileOnDisk.lastModified());
+				map.put(FileBase.checksum,             FileHelper.getChecksum(fileOnDisk));
+
+				if (contentType != null) {
+
+					// modify type when image type is detected
+					if (contentType.startsWith("image/")) {
+						map.put(FileBase.type, Image.class.getSimpleName());
+					}
+				}
+
+				long fileSize = FileHelper.getSize(fileOnDisk);
+				if (fileSize > 0) {
+
+					map.put(size, fileSize);
+				}
+
+				file.unlockSystemPropertiesOnce();
+				file.setProperties(file.getSecurityContext(), map);
+
+			} catch (IOException ioex) {
+				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
 			}
 		}
-
-		map.put(FileBase.checksum, FileHelper.getChecksum(file));
-
-		long fileSize = FileHelper.getSize(file);
-		if (fileSize > 0) {
-			map.put(size, fileSize);
-		}
-
-		file.unlockSystemPropertiesOnce();
-		file.setProperties(file.getSecurityContext(), map);
 	}
 
 	/**
@@ -365,11 +383,9 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final FileBase file) throws FrameworkException {
-
 		updateMetadata(file, new PropertyMap());
 	}
 
-	//~--- get methods ----------------------------------------------------
 	public static String getBase64String(final FileBase file) {
 
 		try {
@@ -387,13 +403,11 @@ public class FileHelper {
 		return null;
 	}
 
-	//~--- inner classes --------------------------------------------------
 	public static class Base64URIData {
 
 		private String contentType = null;
 		private String data = null;
 
-		//~--- constructors -------------------------------------------
 		public Base64URIData(final String rawData) {
 
 			if (rawData.contains(",")) {
@@ -403,35 +417,25 @@ public class FileHelper {
 
 					contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
 					data        = parts[1];
-
 				}
 
 			} else {
 
 				data = rawData;
 			}
-
 		}
 
-		//~--- get methods --------------------------------------------
 		public String getContentType() {
-
 			return contentType;
-
 		}
 
 		public String getData() {
-
 			return data;
-
 		}
 
 		public byte[] getBinaryData() {
-
 			return Base64.decode(data);
-
 		}
-
 	}
 
 	/**
@@ -463,12 +467,7 @@ public class FileHelper {
 
 		setFileProperties(fileNode);
 
-		final String filesPath = Settings.FilesPath.getValue();
-
-		final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
-
-		fileOnDisk.getParentFile().mkdirs();
-		FileUtils.writeByteArrayToFile(fileOnDisk, data);
+		FileUtils.writeByteArrayToFile(fileNode.getFileOnDisk(), data);
 
 	}
 
@@ -485,27 +484,13 @@ public class FileHelper {
 	public static void writeToFile(final FileBase fileNode, final InputStream data) throws FrameworkException, IOException {
 
 		setFileProperties(fileNode);
-		final String filesPath = Settings.FilesPath.getValue();
 
-		final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
-		fileOnDisk.getParentFile().mkdirs();
-		FileOutputStream out = new FileOutputStream(fileOnDisk);
+		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
 
-		IOUtils.copy(data, out);
+			IOUtils.copy(data, out);
 
-		data.close();
-		out.close();
-
-	}
-
-	//~--- get methods ----------------------------------------------------
-
-	public static File getFile(final FileBase file) {
-		return new java.io.File(getFilePath(file.getRelativeFilePath()));
-	}
-
-	public static Path getPath(final FileBase file) {
-		return Paths.get(getFilePath(file.getRelativeFilePath()));
+			data.close();
+		}
 	}
 
 	/**
@@ -542,98 +527,13 @@ public class FileHelper {
 		final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
 
 		mimeType = mediaType.toString();
-
-//		// then file content
-//		mimeType = Files.probeContentType(file.toPath());
-//		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
-//
-//			return mimeType;
-//		}
-//
-//		// fallback: jmimemagic
-//		try {
-//			final MagicMatch match = Magic.getMagicMatch(file, false, true);
-//			if (match != null) {
-//
-//				return match.getMimeType();
-//			}
-//
-//		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
-//			// mlogger.warn("", ex);
-//		}
-
 		if (mimeType != null) {
+
 			return mimeType;
 		}
 
 		// no success :(
 		return UNKNOWN_MIME_TYPE;
-	}
-
-	/**
-	 * Calculate CRC32 checksum of given file
-	 *
-	 * @param file
-	 * @return checksum
-	 */
-	public static Long getChecksum(final FileBase file) {
-
-		String relativeFilePath = file.getRelativeFilePath();
-
-		if (relativeFilePath != null) {
-
-			try {
-
-				String filePath = getFilePath(relativeFilePath);
-
-				return getChecksum(new java.io.File(filePath));
-
-			} catch (IOException ex) {
-
-				logger.warn("Could not calculate checksum of file {}: {}", relativeFilePath, ex.getMessage());
-			}
-		}
-
-		return null;
-	}
-
-	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
-		return FileUtils.checksumCRC32(fileOnDisk);
-	}
-
-	/**
-	 * Return size of file on disk, or -1 if not possible
-	 *
-	 * @param file
-	 * @return size
-	 */
-	public static long getSize(final FileBase file) {
-
-		String path = file.getRelativeFilePath();
-
-		if (path != null) {
-
-			String filePath = getFilePath(path);
-
-			try {
-
-				java.io.File fileOnDisk = new java.io.File(filePath);
-				long fileSize = fileOnDisk.length();
-
-				logger.debug("File size of node {} ({}): {}", new Object[]{file.getUuid(), filePath, fileSize});
-
-				return fileSize;
-
-			} catch (Exception ex) {
-
-				logger.warn("Could not calculate file size of file {}: {}", filePath, ex);
-
-			}
-
-		}
-
-		return -1;
-
 	}
 
 	/**
@@ -652,7 +552,8 @@ public class FileHelper {
 			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(AbstractFile.path, absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
-			logger.warn("File not found: {}", new Object[] { absolutePath });
+			ex.printStackTrace();
+			logger.warn("File not found: {}", absolutePath);
 		}
 
 		return null;
@@ -719,47 +620,6 @@ public class FileHelper {
 	}
 
 	/**
-	 * Return the virtual folder path of any
-	 * {@link File} or
-	 * {@link org.structr.web.entity.Folder}
-	 *
-	 * @param file
-	 * @return path
-	 */
-	public static String getFolderPath(final AbstractFile file) {
-
-		LinkedTreeNode parentFolder = file.getProperty(AbstractFile.parent);
-
-		String folderPath = file.getProperty(AbstractFile.name);
-
-		if (folderPath == null) {
-			folderPath = file.getProperty(GraphObject.id);
-		}
-
-		while (parentFolder != null) {
-			folderPath = parentFolder.getName().concat("/").concat(folderPath);
-			parentFolder = parentFolder.getProperty(AbstractFile.parent);
-		}
-
-		return "/".concat(folderPath);
-	}
-
-	public static String getFilePath(final String... pathParts) {
-
-		final String filePath          = Settings.FilesPath.getValue();
-		final StringBuilder returnPath = new StringBuilder();
-
-		returnPath.append(filePath);
-		returnPath.append(filePath.endsWith("/") ? "" : "/");
-
-		for (String pathPart : pathParts) {
-			returnPath.append(pathPart);
-		}
-
-		return returnPath.toString();
-	}
-
-	/**
 	 * Create one folder per path item and return the last folder.
 	 *
 	 * F.e.: /a/b/c => Folder["name":"a"] --HAS_CHILD--> Folder["name":"b"]
@@ -819,5 +679,24 @@ public class FileHelper {
 
 	public static String getDateString() {
 		return new SimpleDateFormat("yyyy-MM-dd-HHmmssSSS").format(new Date());
+	}
+
+	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
+		return FileUtils.checksumCRC32(fileOnDisk);
+	}
+
+	public static long getSize(final java.io.File file) {
+
+		try {
+
+			return file.length();
+
+		} catch (Exception ex) {
+
+			logger.warn("Could not calculate file size of file {}: {}", file.getPath(), ex.getMessage());
+		}
+
+		return -1;
+
 	}
 }

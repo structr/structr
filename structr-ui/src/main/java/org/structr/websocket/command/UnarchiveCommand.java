@@ -178,26 +178,26 @@ public class UnarchiveCommand extends AbstractCommand {
 		}
 
 		final BufferedInputStream bufferedIs = new BufferedInputStream(is);
-		
+
 		switch (ArchiveStreamFactory.detect(bufferedIs)) {
 
 			// 7z doesn't support streaming
 			case ArchiveStreamFactory.SEVEN_Z:
-				
+
 				SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
-				
+
 				SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
-				
+
 				int overallCount = 0;
-				
+
 				while (sevenZEntry != null) {
-					
+
 					try (final Tx tx = app.tx(true, true, false)) {
-						
+
 						int count = 0;
 
 						while (sevenZEntry != null && count++ < 50) {
-						
+
 							final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
 							logger.info("Entry path: {}", entryPath);
 
@@ -214,27 +214,27 @@ public class UnarchiveCommand extends AbstractCommand {
 
 								handleFile(securityContext, in, existingParentFolder, entryPath);
 							}
-							
+
 							sevenZEntry = sevenZFile.getNextEntry();
 
 							overallCount++;
 						}
-						
+
 						logger.info("Committing transaction after {} entries.", overallCount);
-						
+
 						tx.success();
-						
+
 					}
-					
+
 				}
 
 				logger.info("Unarchived {} files.", overallCount);
-				
+
 				break;
-			
+
 			// ZIP needs special treatment to support "unsupported feature data descriptor"
 			case ArchiveStreamFactory.ZIP:
-				
+
 				try (final ZipArchiveInputStream in = new ZipArchiveInputStream(bufferedIs, null, false, true)) {
 
 					ArchiveEntry entry = in.getNextEntry();
@@ -273,10 +273,10 @@ public class UnarchiveCommand extends AbstractCommand {
 				}
 
 				logger.info("Unarchived {} entries.", overallCount);
-				
+
 				break;
 			default:
-		
+
 				try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(bufferedIs)) {
 
 					ArchiveEntry entry = in.getNextEntry();
@@ -301,7 +301,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 									handleFile(securityContext, in, existingParentFolder, entryPath);
 								}
-								
+
 								entry = in.getNextEntry();
 
 								overallCount++;
@@ -321,16 +321,14 @@ public class UnarchiveCommand extends AbstractCommand {
 	}
 
 	private void handleDirectory(final SecurityContext securityContext, final Folder existingParentFolder, final String entryPath) throws FrameworkException {
-		
-		final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
-		final Folder newFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
-		logger.info("Created folder {} with path {}", new Object[]{newFolder, FileHelper.getFolderPath(newFolder)});
-		
+		final String folderPath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + entryPath;
+
+		FileHelper.createFolderPath(securityContext, folderPath);
 	}
-	
+
 	private void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
-		
+
 		final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
 
 		final String name = PathHelper.getName(entryPath);
@@ -343,15 +341,14 @@ public class UnarchiveCommand extends AbstractCommand {
 		final Folder parentFolder = FileHelper.createFolderPath(securityContext, folderPath);
 
 		if (parentFolder != null) {
+
 			final PropertyMap properties = new PropertyMap(AbstractFile.parent, parentFolder);
+
 			properties.put(AbstractFile.hasParent, true);
 			newFile.setProperties(securityContext, properties);
 		}
-
-		logger.info("Created {} file {} with path {}", new Object[]{newFile.getType(), newFile, FileHelper.getFolderPath(newFile)});
-		
 	}
-	
+
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {

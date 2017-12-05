@@ -27,10 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.FileBase;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  *
@@ -40,13 +37,9 @@ public class FileUploadHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	private FileBase file                  = null;
 	private FileChannel privateFileChannel = null;
 	private Long size                      = 0L;
-
-	//~--- constructors ---------------------------------------------------
 
 	public FileUploadHandler(final FileBase file) {
 
@@ -65,13 +58,8 @@ public class FileUploadHandler {
 			} catch (IOException ex) {
 				logger.error("Could not access file", ex);
 			}
-
-
 		}
-
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
@@ -93,11 +81,8 @@ public class FileUploadHandler {
 
 				finish();
 				updateSize(this.size);
-
 			}
-
 		}
-
 	}
 
 	private void updateSize(final Long size) {
@@ -114,9 +99,7 @@ public class FileUploadHandler {
 		} catch (FrameworkException ex) {
 
 			logger.warn("Could not set size to " + size, ex);
-
 		}
-
 	}
 
 	/**
@@ -137,46 +120,26 @@ public class FileUploadHandler {
 
 				//file.increaseVersion();
 				file.notifyUploadCompletion();
-
 			}
 
 		} catch (IOException e) {
 
 			logger.warn("Unable to finish file upload", e);
-
 		}
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	// ----- private methods -----
 	private FileChannel getChannel(final boolean append) throws IOException {
 
 		if (this.privateFileChannel == null) {
 
-			String relativeFilePath = file.getRelativeFilePath();
+			java.io.File fileOnDisk = file.getFileOnDisk();
 
-			if (relativeFilePath != null) {
+			fileOnDisk.getParentFile().mkdirs();
 
-				if (relativeFilePath.contains("..")) {
-
-					throw new IOException("Security violation: File path contains ..");
-				}
-
-				String filePath         = FileHelper.getFilePath(relativeFilePath);
-				java.io.File fileOnDisk = new java.io.File(filePath);
-
-				fileOnDisk.getParentFile().mkdirs();
-
-				this.privateFileChannel = new FileOutputStream(fileOnDisk, append).getChannel();
-
-			}
-
+			this.privateFileChannel = new FileOutputStream(fileOnDisk, append).getChannel();
 		}
 
 		return this.privateFileChannel;
-
 	}
-
 }

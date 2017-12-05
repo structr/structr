@@ -20,9 +20,12 @@ package org.structr.web.importer;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,10 +37,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -83,7 +84,6 @@ import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
 import org.structr.web.entity.FileBase;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -91,7 +91,6 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
@@ -1067,19 +1066,22 @@ public class Importer {
 			return alreadyDownloaded.get(downloadAddress);
 		}
 
-		final String uuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-		String contentType;
-
-		// Create temporary file with new uuid
-		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-		final String filePath = FileHelper.getFilePath(relativeFilePath);
-		final java.io.File fileOnDisk = new java.io.File(filePath);
-
-		fileOnDisk.getParentFile().mkdirs();
-
 		long size;
 		long checksum;
 		URL downloadUrl;
+		String contentType;
+		java.io.File tmpFile;
+
+		try {
+			// create temporary file on disk
+			final Path tmpFilePath = Files.createTempFile("structr", "download");
+			tmpFile = tmpFilePath.toFile();
+
+		} catch (IOException ioex) {
+
+			logger.error("Unable to create temporary file for download, aborting.");
+			return null;
+		}
 
 		try {
 
@@ -1087,7 +1089,7 @@ public class Importer {
 
 			logger.info("Starting download from {}", downloadUrl);
 
-			copyURLToFile(downloadUrl.toString(), fileOnDisk);
+			copyURLToFile(downloadUrl.toString(), tmpFile);
 
 		} catch (IOException ioe) {
 
@@ -1115,7 +1117,7 @@ public class Importer {
 					downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				}
 
-				copyURLToFile(downloadUrl.toString(), fileOnDisk);
+				copyURLToFile(downloadUrl.toString(), tmpFile);
 
 			} catch (MalformedURLException ex) {
 				logger.error("Could not resolve address {}", address.concat("/"));
@@ -1143,13 +1145,13 @@ public class Importer {
 		// the files repo
 		try {
 
-			contentType = FileHelper.getContentMimeType(fileOnDisk, fileName);
-			size = fileOnDisk.length();
-			checksum = FileUtils.checksumCRC32(fileOnDisk);
+			contentType = FileHelper.getContentMimeType(tmpFile, fileName);
+			checksum    = FileHelper.getChecksum(tmpFile);
+			size        = tmpFile.length();
 
 		} catch (IOException ioe) {
 
-			logger.warn("Unable to determine MIME type, size or checksum of {}", fileOnDisk);
+			logger.warn("Unable to determine MIME type, size or checksum of {}", tmpFile);
 			return null;
 		}
 
@@ -1185,14 +1187,12 @@ public class Importer {
 		}
 
 
-		logger.info("Relative path: {}, final path: {}", new Object[]{relativePath, path});
+		logger.info("Relative path: {}, final path: {}", relativePath, path);
 
 		if (contentType.equals("text/plain")) {
 
 			contentType = StringUtils.defaultIfBlank(contentTypeForExtension.get(StringUtils.substringAfterLast(fileName, ".")), "text/plain");
 		}
-
-		final String ct = contentType;
 
 		try {
 
@@ -1203,11 +1203,18 @@ public class Importer {
 
 				if (ImageHelper.isImageType(fileName)) {
 
-					fileNode = createImageNode(uuid, fullPath, ct, size, checksum);
+					fileNode = createImageNode(fullPath, contentType, size, checksum);
+
 				} else {
 
-					fileNode = createFileNode(uuid, fullPath, ct, size, checksum);
+					fileNode = createFileNode(fullPath, contentType, size, checksum);
 				}
+
+				final java.io.File imageFile = fileNode.getFileOnDisk(false);
+				final Path imagePath         = imageFile.toPath();
+
+				// rename / move file to final location
+				Files.move(tmpFile.toPath(), imagePath);
 
 				if (contentType.equals("text/css")) {
 
@@ -1216,7 +1223,7 @@ public class Importer {
 
 			} else {
 
-				fileOnDisk.delete();
+				tmpFile.delete();
 			}
 
 			alreadyDownloaded.put(downloadAddress, fileNode);
@@ -1232,47 +1239,36 @@ public class Importer {
 
 	}
 
-	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
-		return createFileNode(uuid, path, contentType, size, checksum, null);
+	private FileBase createFileNode(final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
+		return createFileNode(path, contentType, size, checksum, null);
 	}
 
-	private FileBase createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
+	private FileBase createFileNode(final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
 
-		final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-
-		final FileBase fileNode = app.create(fileClass != null ? fileClass : File.class,
-			new NodeAttribute(GraphObject.id, uuid),
+		return app.create(fileClass != null ? fileClass : File.class,
 			new NodeAttribute(AbstractNode.name, PathHelper.getName(path)),
-			new NodeAttribute(File.relativeFilePath, relativeFilePath),
+			new NodeAttribute(File.parent,  FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path))),
 			new NodeAttribute(File.contentType, contentType),
 			new NodeAttribute(File.size, size),
 			new NodeAttribute(File.checksum, checksum),
 			new NodeAttribute(File.version, 1),
 			new NodeAttribute(AbstractNode.visibleToPublicUsers, publicVisible),
 			new NodeAttribute(AbstractNode.visibleToAuthenticatedUsers, authVisible));
-
-		final Folder parentFolder = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
-		fileNode.setProperty(FileBase.parent, parentFolder);
-
-		return fileNode;
-
 	}
 
-	private Image createImageNode(final String uuid, final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
-
-		return (Image) createFileNode(uuid, path, contentType, size, checksum, Image.class);
-
+	private Image createImageNode(final String path, final String contentType, final long size, final long checksum) throws FrameworkException {
+		return (Image) createFileNode(path, contentType, size, checksum, Image.class);
 	}
 
 	private void processCssFileNode(final FileBase fileNode, final URL base) throws IOException {
 
-		StringWriter sw = new StringWriter();
+		final StringWriter sw = new StringWriter();
 
-		IOUtils.copy(fileNode.getInputStream(), sw, "UTF-8");
+		try (final InputStream is = fileNode.getInputStream()) {
+			IOUtils.copy(is, sw, "UTF-8");
+		}
 
-		String css = sw.toString();
-
-		processCss(css, base);
+		processCss(sw.toString(), base);
 
 	}
 
@@ -1387,10 +1383,6 @@ public class Importer {
 		return createNewTemplateNode(parent, sb.toString(), null);
 	}
 
-	private Template createNewHTMLTemplateNodeForUnsupportedTag(final DOMNode parent, final Node nodeOfUnsupportedTag) throws FrameworkException {
-		return createNewTemplateNode(parent, nodeToString(nodeOfUnsupportedTag), "text/html");
-	}
-
 	private Template createNewTemplateNode(final DOMNode parent, final String content, final String contentType) throws FrameworkException {
 
 		final PropertyMap map = new PropertyMap();
@@ -1411,10 +1403,7 @@ public class Importer {
 	}
 
 	private DOMNode createSharedComponent(final Node node) throws FrameworkException {
-
-		ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
-		return createChildNodes(node, null, shadowDoc);
-
+		return createChildNodes(node, null, CreateComponentCommand.getOrCreateHiddenDocument());
 	}
 
 	private String nodeToString(Node node) {

@@ -37,8 +37,6 @@ import org.structr.api.service.StructrServices;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * The agent service main class.
  *
@@ -48,7 +46,7 @@ public class AgentService extends Thread implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AgentService.class.getName());
 
-	private final int maxAgents                          = 4;    // TODO: make configurable
+	private final int maxAgents                          = 10;    // TODO: make configurable
 	private final Map<String, List<Agent>> runningAgents = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<String, Class> agentClassCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Queue<Task> taskQueue                  = new ConcurrentLinkedQueue<>();
@@ -71,23 +69,6 @@ public class AgentService extends Thread implements RunnableService {
 			taskQueue.add(task);
 			logger.debug("Task {} added to task queue", task);
 		}
-	}
-
-	public Agent findAgentForTask(Task task) {
-
-		List<Agent> agents = getRunningAgentsForTask(task.getClass());
-
-		synchronized (agents) {
-
-			for (Agent agent : agents) {
-
-				if (agent.getTaskQueue().contains(task)) {
-					return (agent);
-				}
-			}
-		}
-
-		return (null);
 	}
 
 	@Override
@@ -137,7 +118,6 @@ public class AgentService extends Thread implements RunnableService {
 		return Collections.emptyMap();
 	}
 
-	// <editor-fold defaultstate="collapsed" desc="interface RunnableService">
 	@Override
 	public void injectArguments(Command command) {
 		command.setArgument("agentService", this);
@@ -168,12 +148,9 @@ public class AgentService extends Thread implements RunnableService {
 
 	@Override
 	public boolean runOnStartup() {
-		return (true);
+		return true;
 	}
 
-	// </editor-fold>
-
-	// <editor-fold defaultstate="collapsed" desc="private methods">
 	private void assignNextAgentForTask(Task nextTask) {
 
 		Class taskClass    = nextTask.getClass();
@@ -297,8 +274,6 @@ public class AgentService extends Thread implements RunnableService {
 		return (agent);
 	}
 
-	// </editor-fold>
-
 	/**
 	 * Returns the current queue of remaining tasks.
 	 * @return tasks
@@ -321,7 +296,7 @@ public class AgentService extends Thread implements RunnableService {
 
 		if (agents == null) {
 
-			agents = Collections.synchronizedList(new LinkedList<Agent>());
+			agents = Collections.synchronizedList(new LinkedList<>());
 
 			// Hashtable is synchronized
 			runningAgents.put(taskClass.getName(), agents);

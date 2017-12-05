@@ -227,12 +227,19 @@ var _Dashboard = {
 					dialogBtn.prepend('<button id="run-method">Run</button>');
 					dialogBtn.append('<button id="clear-log">Clear output</button>');
 
-					var paramsOuterBox = $('<div id="params"><h3>Parameters</h3></div>');
+					var paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
 					var paramsBox = $('<div></div>');
 					paramsOuterBox.append(paramsBox);
-					var addParamBtn = $('<button>Add parameter</button>');
-					paramsOuterBox.append(addParamBtn);
+					var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
+					paramsBox.append(addParamBtn);
 					dialog.append(paramsOuterBox);
+
+					Structr.appendInfoTextToElement({
+						element: $('#params h3'),
+						text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
+						css: { marginLeft: "5px" },
+						helpElementCss: { fontSize: "12px" }
+					});
 
 					addParamBtn.on('click', function() {
 						var newParam = $('<div class="param"><input class="param-name" placeholder="Parameter name"> : <input class="param-value" placeholder="Parameter value"></div>');

@@ -119,18 +119,20 @@ public class Settings {
 	public static final Setting<Boolean> SyncDebugging         = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
 
 	// application settings
-	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup, "Security",   "application.security.resolution.depth",     5);
-	public static final Setting<String> OwnerlessNodes        = new StringSetting(applicationGroup,  "Security",   "application.security.ownerless.nodes",      "read");
-	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",             false);
-	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",            false);
-	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",       true);
-	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",     50000);
-	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength", 4);
-	public static final Setting<Integer> IndexingMaxLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxlength", 40);
-	public static final Setting<String> DefaultUploadFolder   = new StringSetting(applicationGroup,  "Filesystem", "application.uploads.folder",                "");
-	public static final Setting<String> HttpProxyUrl          = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.url",                "");
-	public static final Setting<String> HttpProxyUser         = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.username",           "");
-	public static final Setting<String> HttpProxyPassword     = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.password",           "");
+	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup, "Security",   "application.security.resolution.depth",       5);
+	public static final Setting<String> OwnerlessNodes        = new StringSetting(applicationGroup,  "Security",   "application.security.ownerless.nodes",        "read");
+	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",               false);
+	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",              false);
+	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",         true);
+	public static final Setting<Integer> IndexingMaxFileSize  = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxsize",     10);
+	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",       50000);
+	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength",   3);
+	public static final Setting<Integer> IndexingMaxLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxlength",   30);
+	public static final Setting<Boolean> FollowSymlinks       = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.mount.followSymlinks", true);
+	public static final Setting<String> DefaultUploadFolder   = new StringSetting(applicationGroup,  "Filesystem", "application.uploads.folder",                  "");
+	public static final Setting<String> HttpProxyUrl          = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.url",                  "");
+	public static final Setting<String> HttpProxyUser         = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.username",             "");
+	public static final Setting<String> HttpProxyPassword     = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.password",             "");
 
 	// mail settings
 	public static final Setting<String> SmtpHost              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.host",         "localhost");

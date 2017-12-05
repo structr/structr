@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.cxf.helpers.IOUtils;
 import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -39,12 +38,14 @@ import org.structr.web.entity.FileBase;
 public class FulltextIndexingTest extends TextSearchModuleTest {
 
 	private static final List<String> testWords = Arrays.asList(new String[] {
-		"adipiscing", "aenean", "aliquam", "aliquet", "amet", "ante", "arcu", "augue", "blandit", "commodo", "condimentum", "consectetuer", "consequat", "cras", "curabitur",
-		"dapibus", "dictum", "dolor", "donec", "duis", "eget", "eleifend", "elementum", "elit", "enim", "eros", "etiam", "faucibus", "felis", "feugiat", "fringilla",
-		"hendrerit", "imperdiet", "integer", "ipsum", "justo", "laoreet", "libero", "ligula", "lorem", "luctus", "maecenas", "magna", "magnis", "massa", "mauris", "metus",
-		"mollis", "montes", "nascetur", "natoque", "neque", "nibh", "nisi", "nulla", "nullam", "nunc", "odio", "orci", "parturient", "pede", "pellentesque", "penatibus",
-		"phasellus", "porttitor", "pretium", "pulvinar", "quam", "quis", "quisque", "rhoncus", "ridiculus", "rutrum", "sagittis", "sapien", "semper", "sociis", "sodales",
-		"tellus", "tempus", "tincidunt", "ullamcorper", "ultricies", "varius", "venenatis", "vitae", "vivamus", "viverra", "vulputate"
+		"aenean", "eget", "amet", "donec", "quis", "sit", "ante", "enim", "etiam", "justo", "lorem", "nec", "nisi", "quam", "rhoncus", "sem", "tellus",
+		"tincidunt", "ultricies", "vel", "vitae", "adipiscing", "consequat", "dapibus", "dolor", "eleifend", "faucibus", "felis", "fringilla",
+		"imperdiet", "ipsum", "leo", "libero", "ligula", "maecenas", "massa", "nam", "nulla", "nullam", "pede", "pretium", "sed", "semper", "tempus",
+		"venenatis", "viverra", "vulputate", "aliquam", "aliquet", "arcu", "augue", "blandit", "commodo", "condimentum", "consectetuer", "cras", "cum",
+		"curabitur", "dictum", "dis", "dui", "duis", "elementum", "elit", "eros", "feugiat", "hendrerit", "integer", "laoreet", "luctus", "magna",
+		"magnis", "mauris", "metus", "mollis", "montes", "mus", "nascetur", "natoque", "neque", "nibh", "nunc", "odio", "orci", "parturient",
+		"pellentesque", "penatibus", "phasellus", "porttitor", "pulvinar", "quisque", "ridiculus", "rutrum", "sagittis", "sapien", "sociis", "sodales",
+		"ullamcorper", "varius", "vivamus"
 	});
 
 	@Test
@@ -161,7 +162,7 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 			final List<String> indexedWords = Arrays.asList(rawIndexedWords);
 
-			Assert.assertEquals("Invalid number of extracted words", 89, indexedWords.size());
+			Assert.assertEquals("Invalid number of extracted words", 100, indexedWords.size());
 			Assert.assertEquals("Invalid extracted word list", testWords, indexedWords);
 
 			tx.success();
@@ -173,25 +174,16 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 	}
 
 	private void delay() {
+		delay(3000);
+	}
+
+	private void delay(final long time) {
 
 		try {
 
-			Thread.sleep(2000);
+			Thread.sleep(time);
 
 		} catch (Throwable t) { }
-	}
-
-	private String getContent(final FileBase file) {
-
-		try (final InputStream is = file.getInputStream()) {
-
-			return IOUtils.toString(is, "utf-8");
-
-		} catch (IOException ioex) {
-			ioex.printStackTrace();
-		}
-
-		return null;
 	}
 }
 

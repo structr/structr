@@ -2662,6 +2662,15 @@ input.bitmask {
 	font-size: 1.2em;
 }
 
+.heading-narrow {
+	margin: 4px 0;
+}
+
+#params i.button.sprite-delete {
+	margin-left: 2px;
+	vertical-align: sub;
+}
+
 /*
  * Graph
  */

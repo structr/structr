@@ -39,7 +39,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.cloud.message.DataContainer;
 import org.structr.cloud.message.FileNodeChunk;
 import org.structr.cloud.message.FileNodeDataContainer;
@@ -66,6 +65,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -576,28 +576,18 @@ public class CloudConnection<T> extends Thread implements TransactionSource {
 			container.flushAndCloseTemporaryFile();
 
 			final NodeInterface newNode = storeNode(container);
-			final String filesPath      = Settings.FilesPath.getValue();
-			final String relativePath   = newNode.getProperty(File.relativeFilePath);
-			String newPath              = null;
+			if (newNode instanceof FileBase) {
 
-			if (filesPath.endsWith("/")) {
+				try {
+					container.persistTemporaryFile(((FileBase)newNode).getFileOnDisk().getAbsolutePath());
 
-				newPath = filesPath + relativePath;
+				} catch (Throwable t) {
 
-			} else {
-
-				newPath = filesPath + "/" + relativePath;
-			}
-
-			try {
-				container.persistTemporaryFile(newPath);
-
-			} catch (Throwable t) {
-
-				// do not catch specific exception only, we need to be able to shut
-				// down the connection gracefully, so we must make sure not to be
-				// interrupted here
-				logger.warn("", t);
+					// do not catch specific exception only, we need to be able to shut
+					// down the connection gracefully, so we must make sure not to be
+					// interrupted here
+					logger.warn("Unable to persist file {}: {}", newNode, t.getMessage());
+				}
 			}
 
 			count++;

@@ -64,7 +64,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
@@ -185,10 +184,12 @@ public class StructrSSHFileSystem extends FileSystem {
 				if (fileNode != null) {
 
 					try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-						final Path filePath = FileHelper.getPath(fileNode);
-						channel = Files.newByteChannel(filePath);
+
+						final Path filePath = fileNode.getFileOnDisk().toPath();
+						channel             = Files.newByteChannel(filePath);
 
 						tx.success();
+						
 					} catch (FrameworkException fex) {
 						logger.error("", fex);
 						throw new IOException(fex);

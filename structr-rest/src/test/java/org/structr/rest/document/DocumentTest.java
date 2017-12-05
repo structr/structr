@@ -20,6 +20,9 @@ package org.structr.rest.document;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.LinkedList;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import org.junit.Test;
@@ -1357,9 +1360,61 @@ public class DocumentTest extends StructrRestTest {
 
 	}
 
+	@Test
+	public void testMergeOnNestedProperties() {
+
+		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"));
+		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"), new Pair("_description", "String"));
+		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"), new Pair("_description", "String"));
+
+		// create relationships
+		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "*", "*", "project",    "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(workerNodeId, taskNodeId,    "WORKS_ON", "*", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
+
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{\"name\":\"Project1\",\"tasks\":[{\"name\":\"Task1\",\"worker\":[{\"name\":\"Worker1\"}]}]}")
+			.expect()
+			.statusCode(201)
+			.when()
+			.post("/projects");
+
+
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{\"name\":\"Project2\",\"tasks\":[{\"name\":\"Task1\",\"worker\":[{\"name\":\"Worker2\"}]}]}")
+			.expect()
+			.statusCode(201)
+			.when()
+			.post("/projects");
+
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+
+			.body("result",                     hasSize(1))
+			.body("result_count",               equalTo(1))
+
+			.body("result[0].name",             equalTo("Task1"))
+			.body("result[0].project[0].name",  equalTo("Project1"))
+			.body("result[0].project[1].name",  equalTo("Project2"))
+			.body("result[0].worker[0].name",   equalTo("Worker1"))
+			.body("result[0].worker[1].name",   equalTo("Worker2"))
+
+			.when()
+			.get("/Task/ui");
+
+	}
+
 	private String createSchemaNode(final String name, Pair... properties) {
 
 		final StringBuilder buf = new StringBuilder();
+		final List<String> view = new LinkedList<>();
 
 		// append name
 		buf.append("{ \"name\": \"");
@@ -1369,6 +1424,7 @@ public class DocumentTest extends StructrRestTest {
 		for (final Pair pair : properties) {
 
 			final boolean isString = pair.value instanceof String;
+			view.add(pair.key);
 
 			buf.append(", \"");
 			buf.append(pair.key);
@@ -1384,6 +1440,11 @@ public class DocumentTest extends StructrRestTest {
 				buf.append("\"");
 			}
 		}
+
+		// append view as well
+		buf.append(", __public: \"");
+		buf.append(StringUtils.join(view, ", "));
+		buf.append("\"");
 
 		buf.append(" }");
 

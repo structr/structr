@@ -126,16 +126,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
-		if (!securityContext.getCachedUserId().equals(Principal.SUPERUSER_ID)) {
-			logger.info("");
-			logger.info("/*************************************************************************************************/");
-			logger.info("/*                                                                                               */");
-			logger.info("/*   Deployment is faster using the superadmin account - consider using this account next time   */");
-			logger.info("/*                                                                                               */");
-			logger.info("/*************************************************************************************************/");
-			logger.info("");
-		}
-
 		final String mode = (String) attributes.get("mode");
 		if (mode != null && "export".equals(mode)) {
 
@@ -718,7 +708,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(file, properties);
 
 		if (!properties.isEmpty()) {
-			config.put(file.getPath(), properties);
+			config.put(file.getFolderPath(), properties);
 		}
 	}
 
@@ -1066,7 +1056,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			Map<Integer, String> minifcationSources = new TreeMap<>();
 			for(MinificationSource minificationSourceRel : file.getOutgoingRelationships(MinificationSource.class)) {
-				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getPath());
+				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getFolderPath());
 			}
 			putIf(config, "minificationSources",     minifcationSources);
 

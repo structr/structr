@@ -48,6 +48,7 @@ import org.structr.core.graph.Factory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -359,6 +360,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		this.sortDescending = false;
 		this.sortKey        = key;
 
+		assertPropertyIsIndexed(key);
+
 		return this;
 	}
 
@@ -368,6 +371,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		this.doNotSort      = false;
 		this.sortDescending = true;
 		this.sortKey        = key;
+
+		assertPropertyIsIndexed(key);
 
 		return this;
 	}
@@ -505,6 +510,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			this.doNotSort = false;
 		}
 
+		assertPropertyIsIndexed(key);
+
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.REQUIRED, value, exact, this));
 
 		return this;
@@ -552,6 +559,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		currentGroup.getSearchAttributes().add(key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, value, exact, this));
 
+		assertPropertyIsIndexed(key);
+
 		return this;
 	}
 
@@ -574,6 +583,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> notBlank(final PropertyKey key) {
 
 		currentGroup.getSearchAttributes().add(new NotBlankSearchAttribute(key));
+
+		assertPropertyIsIndexed(key);
+
 		return this;
 	}
 
@@ -581,6 +593,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public org.structr.core.app.Query<T> blank(final PropertyKey key) {
 
 		currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
+
+		assertPropertyIsIndexed(key);
+
 		return this;
 	}
 
@@ -588,6 +603,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public <P> org.structr.core.app.Query<T> andRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.REQUIRED));
+
+		assertPropertyIsIndexed(key);
+
 		return this;
 	}
 
@@ -595,6 +613,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public <P> org.structr.core.app.Query<T> orRange(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
 
 		currentGroup.getSearchAttributes().add(new RangeSearchAttribute(key, rangeStart, rangeEnd, Occurrence.OPTIONAL));
+
+		assertPropertyIsIndexed(key);
+
 		return this;
 	}
 
@@ -761,6 +782,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return allSupertypes;
 	}
 
+	// ----- private methods ----
+	private void assertPropertyIsIndexed(final PropertyKey key) {
+
+		if (key != null && !key.isIndexed() && key instanceof AbstractPrimitiveProperty) {
+
+			final Class declaringClass = key.getDeclaringClass();
+			String className           = "";
+
+			if (declaringClass != null) {
+
+				className = declaringClass.getSimpleName() + ".";
+			}
+
+			logger.warn("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
+		}
+	}
+
 	// ----- nested classes -----
 	private class AndPredicate implements Predicate<GraphObject> {
 
@@ -808,4 +846,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return result;
 		}
 	}
+
+
 }

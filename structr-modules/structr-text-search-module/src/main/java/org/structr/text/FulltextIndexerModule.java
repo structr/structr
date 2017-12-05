@@ -43,7 +43,7 @@ public class FulltextIndexerModule implements FulltextIndexer, StructrModule {
 
 	@Override
 	public void addToFulltextIndex(final Indexable node) throws FrameworkException {
-		StructrApp.getInstance(node.getSecurityContext()).processTasks(new FulltextIndexingTask(node));
+		StructrApp.getInstance(node.getSecurityContext()).processTasks(new FulltextIndexingTask(node.getUuid()));
 	}
 
 	@Override

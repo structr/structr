@@ -18,9 +18,12 @@
  */
 package org.structr.web.entity;
 
+import java.io.IOException;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
@@ -35,6 +38,8 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ConstantBooleanProperty;
@@ -43,7 +48,9 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.files.cmis.config.StructrFolderActions;
+import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.relation.Files;
 import org.structr.web.entity.relation.Folders;
@@ -53,20 +60,23 @@ import org.structr.web.entity.relation.UserHomeDir;
 
 public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
+	private static final Logger logger                                   = LoggerFactory.getLogger(Folder.class);
+
 	public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
 	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
 	public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
 	public static final Property<Boolean>        isFolder                = new ConstantBooleanProperty("isFolder", true);
 	public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
 
+	public static final Property<String>         mountTarget             = new StringProperty("mountTarget").indexed();
 	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
 
 	public static final View publicView = new View(Folder.class, PropertyView.Public,
-			id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers
+			id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers, mountTarget, isExternal
 	);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-			parent, owner, folders, files, images, isFolder, includeInFrontendExport
+			parent, owner, folders, files, images, isFolder, includeInFrontendExport, mountTarget, isExternal
 	);
 
 	// register this type as an overridden builtin type
@@ -81,6 +91,12 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 			setHasParent();
 
+			// only update watch service for root folder of mounted hierarchy
+			if (getProperty(mountTarget) != null || !isMounted()) {
+
+				updateWatchService(true);
+			}
+
 			return true;
 		}
 
@@ -94,10 +110,52 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 			setHasParent();
 
+			// only update watch service for root folder of mounted hierarchy
+			if (getProperty(mountTarget) != null || !isMounted()) {
+
+				updateWatchService(true);
+			}
+
 			return true;
 		}
 
 		return false;
+	}
+
+	@Override
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+
+			// only update watch service for root folder of mounted hierarchy
+			if (properties.get(mountTarget) != null) {
+
+				updateWatchService(false);
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public void deleteRecursively(final boolean deleteRoot) throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		for (final Folder folder : getProperty(Folder.folders)) {
+			folder.deleteRecursively(true);
+		}
+
+		for (final FileBase file : getProperty(Folder.files)) {
+			app.delete(file);
+		}
+
+		if (deleteRoot) {
+
+			// delete post-ordered
+			app.delete(this);
+		}
 	}
 
 	// ----- interface Syncable -----
@@ -132,6 +190,41 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 		//data.add(getIncomingRelationship(Folders.class));
 
 		return data;
+	}
+
+	public java.io.File getFileOnDisk(final FileBase file, final String path, final boolean create) {
+
+		final Folder parentFolder = getProperty(Folder.parent);
+		if (parentFolder != null) {
+
+			return parentFolder.getFileOnDisk(file, getProperty(Folder.name) + "/" + path, create);
+		}
+
+		final String _mountTarget = getProperty(Folder.mountTarget);
+		if (_mountTarget != null) {
+
+			final String fullPath         = removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(FileBase.name));
+			final java.io.File fileOnDisk = new java.io.File(fullPath);
+
+			fileOnDisk.getParentFile().mkdirs();
+
+			if (create && !isExternal()) {
+
+				try {
+
+					fileOnDisk.createNewFile();
+
+				} catch (IOException ioex) {
+
+					logger.error("Unable to create file {}: {}", file, ioex.getMessage());
+				}
+			}
+
+			return fileOnDisk;
+		}
+
+		// default implementation (store in UUID-indexed tree)
+		return defaultGetFileOnDisk(file, create);
 	}
 
 	// ----- CMIS support -----
@@ -213,6 +306,26 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 			// restore previous security context
 			this.securityContext = previousSecurityContext;
+		}
+	}
+
+	private String removeDuplicateSlashes(final String src) {
+		return src.replaceAll("[/]+", "/");
+	}
+
+	private void updateWatchService(final boolean mount) {
+
+		final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
+		if (service != null && service.isRunning()) {
+
+			if (mount) {
+
+				service.mountFolder(this);
+
+			} else {
+
+				service.unmountFolder(this);
+			}
 		}
 	}
 }

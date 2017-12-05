@@ -124,7 +124,7 @@ public abstract class StructrUiTest {
 
 		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
-		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.Services.setValue("NodeService HttpService SchemaService DirectoryWatchService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup
@@ -177,9 +177,9 @@ public abstract class StructrUiTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			 logger.error("Exception while trying to clean database: {}", fex);
+			 logger.error("Exception while trying to clean database: {}", t);
 		}
 	}
 

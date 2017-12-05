@@ -16,19 +16,39 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cron;
+package org.structr.core.script;
 
-import org.structr.agent.AbstractTask;
-import org.structr.core.entity.Principal;
+import org.mozilla.javascript.Script;
 
 /**
- * A task for testing the CRON service.
- *
- *
+ * A small piece of JavaScript code that can either be
+ * compiled or run directly.
  */
-public class CronTestTask<T> extends AbstractTask<T> {
+public class Snippet {
 
-	public CronTestTask(final String type, final Principal user, final T node) {
-		super(type, user, node);
+	private Script compiled = null;
+	private String name     = null;
+	private String source   = null;
+
+	public Snippet(final String name, final String source) {
+
+		this.source = source;
+		this.name   = name;
+	}
+
+	public Snippet(final Script compiled) {
+		this.compiled = compiled;
+	}
+
+	public Script getCompiledScript() {
+		return compiled;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String getSource() {
+		return source;
 	}
 }

@@ -59,6 +59,8 @@ import org.structr.web.property.ThumbnailProperty;
  */
 public class Image extends org.structr.dynamic.File {
 
+	private static final String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
+
 	// register this type as an overridden builtin type
 	static {
 
@@ -85,7 +87,7 @@ public class Image extends org.structr.dynamic.File {
 
 	public static final Property<Boolean> isCreatingThumb         = new BooleanProperty("isCreatingThumb").systemInternal();
 
-	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, relativeFilePath, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
+	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 
 	@Override
@@ -188,18 +190,12 @@ public class Image extends org.structr.dynamic.File {
 		return false;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	public Integer getWidth() {
-
 		return getProperty(Image.width);
-
 	}
 
 	public Integer getHeight() {
-
 		return getProperty(Image.height);
-
 	}
 
 	public List<Image> getThumbnails() {
@@ -222,7 +218,6 @@ public class Image extends org.structr.dynamic.File {
 	 */
 	public Iterable<Thumbnails> getThumbnailRelationships() {
 		return getOutgoingRelationships(Thumbnails.class);
-
 	}
 
 	/**
@@ -236,21 +231,15 @@ public class Image extends org.structr.dynamic.File {
 	 * @return scaled image
 	 */
 	public Image getScaledImage(final String maxWidthString, final String maxHeightString) {
-
 		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), false);
-
 	}
 
 	public Image getScaledImage(final String maxWidthString, final String maxHeightString, final boolean cropToFit) {
-
 		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), cropToFit);
-
 	}
 
 	public Image getScaledImage(final int maxWidth, final int maxHeight) {
-
 		return getScaledImage(maxWidth, maxHeight, false);
-
 	}
 
 	/**
@@ -275,16 +264,21 @@ public class Image extends org.structr.dynamic.File {
 		final Integer origWidth                           = originalImage.getWidth();
 		final Integer origHeight                          = originalImage.getHeight();
 		final Long currentChecksum                        = originalImage.getProperty(Image.checksum);
-		final Long newChecksum;
+		Long newChecksum                                  = 0L;
 
 		if (currentChecksum == null || currentChecksum == 0) {
 
-			newChecksum = FileHelper.getChecksum(originalImage);
-			
-			if (newChecksum == null || newChecksum == 0) {
+			try {
 
-				logger.debug("Unable to create scaled image, file {} is not ready.", originalImage.getName());
-				return null;
+				newChecksum = FileHelper.getChecksum(originalImage.getFileOnDisk());
+
+				if (newChecksum == null || newChecksum == 0) {
+
+					logger.debug("Unable to create scaled image, file {} is not ready.", originalImage.getName());
+					return null;
+				}
+			} catch (IOException ioex) {
+				logger.warn("Unable to calculate checksum of {}: {}", originalImage.getFileOnDisk(), ioex.getMessage());
 			}
 
 		} else {
@@ -294,7 +288,7 @@ public class Image extends org.structr.dynamic.File {
 
 		// Read Exif and GPS data from image and update properties
 		ImageHelper.getExifData(originalImage);
-		
+
 		// Return self if SVG image
 		final String _contentType = getProperty(Image.contentType);
 		if (_contentType != null && (_contentType.startsWith("image/svg") || (_contentType.startsWith("image/") && _contentType.endsWith("icon")))) {
@@ -393,7 +387,7 @@ public class Image extends org.structr.dynamic.File {
 						properties.put(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
 						properties.put(File.size,                                Long.valueOf(data.length));
 						properties.put(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
-						properties.put(File.parent,                              originalImage.getProperty(File.parent));
+						properties.put(File.parent,                              getThumbnailParentFolder(originalImage.getProperty(Folder.parent)));
 						properties.put(File.hasParent,                           originalImage.getProperty(File.hasParent));
 
 						thumbnail.unlockSystemPropertiesOnce();
@@ -447,5 +441,19 @@ public class Image extends org.structr.dynamic.File {
 		final Integer tnHeight = getHeight();
 
 		return StringUtils.stripEnd(getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
+	}
+
+	// ----- private methods -----
+	private Folder getThumbnailParentFolder(final Folder originalParentFolder) throws FrameworkException {
+
+		final StringBuilder pathBuffer = new StringBuilder(STRUCTR_THUMBNAIL_FOLDER);
+
+		if (originalParentFolder != null) {
+
+			pathBuffer.append(originalParentFolder.getPath());
+
+		}
+
+		return FileHelper.createFolderPath(securityContext, pathBuffer.toString());
 	}
 }
