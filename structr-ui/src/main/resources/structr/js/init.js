@@ -205,6 +205,7 @@ $(function() {
 var Structr = {
 	modules: {},
 	activeModules: {},
+	edition: '',
 	classes: [],
 	expanded: {},
 	msgCount: 0,
@@ -378,7 +379,7 @@ var Structr = {
 			var module = Structr.modules[lastMenuEntry];
 			if (module) {
 				module.onload();
-				Structr.adaptUiToPresentModules();
+				Structr.adaptUiToAvailableFeatures();
 				if (module.resize) {
 					module.resize();
 				}
@@ -816,7 +817,7 @@ var Structr = {
 			Structr.clearMain();
 			Structr.activateMenuEntry(name);
 			Structr.modules[name].onload();
-			Structr.adaptUiToPresentModules();
+			Structr.adaptUiToAvailableFeatures();
 		}
 	},
 	activateMenuEntry: function(name) {
@@ -956,7 +957,7 @@ var Structr = {
 				}
 
 				Structr.modules['pages'].onload();
-				Structr.adaptUiToPresentModules();
+				Structr.adaptUiToAvailableFeatures();
 				_Pages.resize();
 				$('a#pages_').removeClass('nodeHover').droppable('enable');
 			}
@@ -1208,6 +1209,8 @@ var Structr = {
 
 					if (envInfo.edition) {
 
+						Structr.edition = envInfo.edition;
+
 						var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
 						if (envInfo.licensee) {
 							tooltipText += '\nLicensed to: ' + envInfo.licensee;
@@ -1240,7 +1243,7 @@ var Structr = {
 				});
 
 				Structr.activeModules = envInfo.modules;
-				Structr.adaptUiToPresentModules();
+				Structr.adaptUiToAvailableFeatures();
 			}
 		});
 	},
@@ -1268,7 +1271,11 @@ var Structr = {
 	getActiveElementId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
-	adaptUiToPresentModules: function() {
+	adaptUiToAvailableFeatures: function() {
+		Structr.adaptUiToAvailableModules();
+		Structr.adaptUiToEdition();
+	},
+	adaptUiToAvailableModules: function() {
 		$('.module-dependend').each(function(idx, element) {
 			var el = $(element);
 			var module = el.data('structr-module');
@@ -1281,6 +1288,29 @@ var Structr = {
 	},
 	isModulePresent: function(moduleName) {
 		return Structr.activeModules[moduleName] !== undefined;
+	},
+	adaptUiToEdition: function() {
+		$('.edition-dependend').each(function(idx, element) {
+			var el = $(element);
+
+			if (Structr.isAvailableInEdition(el.data('structr-edition'))) {
+				if (!el.is(':visible')) el.show();
+			} else {
+				el.hide();
+			}
+		});
+	},
+	isAvailableInEdition: function (requiredEdition) {
+		switch(Structr.edition) {
+			case 'Enterprise':
+				return true;
+			case 'Small Business':
+				return ['Small Business', 'Basic', 'Community'].indexOf(requiredEdition) !== -1;
+			case 'Basic':
+				return ['Basic', 'Community'].indexOf(requiredEdition) !== -1;
+			case 'Community':
+				return ['Community'].indexOf(requiredEdition) !== -1;
+		};
 	},
 	guardExecution:function (callbackToGuard) {
 		var didRun = false;

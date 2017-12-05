@@ -131,7 +131,7 @@ var _VirtualTypes = {
 
 		}).appendTo(actionsCol);
 
-		$('<i class=" button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
+		$('<i class="button ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" />').on('click', function () {
 			_VirtualTypes.clearVirtualTypeDetails();
 
 			_VirtualTypes.virtualTypeDetail.hide();
@@ -246,7 +246,7 @@ var _VirtualTypes = {
 			_VirtualTypes.showVirtualTypeDetails(virtualType.id);
 		}).appendTo(actionsCol);
 
-		_VirtualTypes.appendDeleteIcon(virtualType.id, row, actionsCol, 'Do you really want to delete the virtual type "' + virtualType.name + '" with all its virtual properties?', function() {
+		_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual type "' + virtualType.name + '" with all its virtual properties?', function() {
 
 			Command.get(virtualType.id, 'id,properties', function(vt) {
 
@@ -378,7 +378,7 @@ var _VirtualTypes = {
 		if (optionalProperty) {
 			row.data('virtual-property-id', optionalProperty.id);
 
-			_VirtualTypes.appendDeleteIcon(optionalProperty.id, row, actionsCol, 'Do you really want to delete the virtual property?', function() {
+			_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual property?', function() {
 				_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
 			});
 
@@ -405,7 +405,7 @@ var _VirtualTypes = {
 					row.data('virtual-property-id', data.result[0]);
 					fastRemoveAllChildren(actionsCol[0]);
 
-					_VirtualTypes.appendDeleteIcon(row.data('virtual-property-id'), row, actionsCol, 'Do you really want to delete the virtual property?', function() {
+					_VirtualTypes.appendDeleteIcon(actionsCol, 'Do you really want to delete the virtual property?', function() {
 						_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
 					});
 				});
@@ -421,7 +421,7 @@ var _VirtualTypes = {
 
 		return row;
 	},
-	appendDeleteIcon: function(id, row, insertPoint, confirmText, deletionActionCallback) {
+	appendDeleteIcon: function(insertPoint, confirmText, deletionActionCallback) {
 
 		$('<a title="Delete" class="delete"><i class=" button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></a>').on('click', function() {
 

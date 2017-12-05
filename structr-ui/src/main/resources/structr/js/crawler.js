@@ -60,7 +60,7 @@ var _Crawler = {
 		});
 
 		Structr.makePagesMenuDroppable();
-		Structr.adaptUiToPresentModules();
+		Structr.adaptUiToAvailableFeatures();
 
 	},
 	resize: function() {

@@ -3715,17 +3715,45 @@ i.fa.ps {
 }
 
 /**
- * Virtual Types
+ * Virtual Types/Mail Templates
  */
 
-#virtual-types-list {
+#virtual-types-list, #mail-templates-list {
 	width: 310px;
 	margin: 10px 5px 10px 10px;
 }
 
-#virtual-type-detail {
+#virtual-type-detail, #mail-template-detail {
 	width: calc(100vw - 400px);
 	margin: 10px 10px 10px 5px;
+}
+
+#mail-templates-table {
+	display: table;
+}
+
+#mail-template-detail-wrapper {
+	display: inline-block;
+	position: relative;
+}
+
+#mail-template-detail-wrapper input[type="text"] {
+	width: calc(100% - 10px);
+}
+
+#mail-template-detail-wrapper textarea {
+	width: 800px;
+	height: 300px;
+}
+
+#mail-template-detail .actions {
+	position: absolute;
+	right: 4px;
+}
+
+#mail-template-preview {
+	width: 100%;
+	height: 50%;
 }
 
 /**
