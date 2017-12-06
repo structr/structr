@@ -368,7 +368,7 @@ var _Pages = {
 			Command.createSimplePage();
 		});
 
-		Structr.adaptUiToPresentModules();
+		Structr.adaptUiToAvailableFeatures();
 
 	},
 	addTab: function(entity) {

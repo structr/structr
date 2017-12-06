@@ -272,7 +272,7 @@ var _Schema = {
 
 			_Schema.resize();
 
-			Structr.adaptUiToPresentModules();
+			Structr.adaptUiToAvailableFeatures();
 
 		});
 

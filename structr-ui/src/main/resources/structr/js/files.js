@@ -83,7 +83,7 @@ var _Files = {
 		}
 
 		Structr.makePagesMenuDroppable();
-		Structr.adaptUiToPresentModules();
+		Structr.adaptUiToAvailableFeatures();
 
 	},
 	resize: function() {
@@ -254,7 +254,7 @@ var _Files = {
 		Structr.unblockMenu(100);
 
 		_Files.resize();
-		Structr.adaptUiToPresentModules();
+		Structr.adaptUiToAvailableFeatures();
 
 	},
 	deepOpen: function(d, dirs) {
@@ -845,7 +845,7 @@ var _Files = {
 		}
 		div.children('.delete_icon').on('click', function(e) {
 			e.stopPropagation();
-			
+
 			selectedElements = $('.node.selected');
 			var selectedCount = selectedElements.length;
 
@@ -980,7 +980,7 @@ var _Files = {
 
 				selectedElements = $('.node.selected');
 				var selectedCount = selectedElements.length;
-				
+
 				if (selectedCount > 1) {
 
 					var files = [];
@@ -988,11 +988,11 @@ var _Files = {
 					$.each(selectedElements, function(i, el) {
 						files.push(Structr.entityFromElement(el));
 					});
-					
+
 					_Entities.deleteNodes(this, files, true, function() {
 						_Files.refreshTree();
 					});
-					
+
 				} else {
 					_Entities.deleteNode(this, d);
 				}

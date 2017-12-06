@@ -59,7 +59,7 @@ var _Contents = {
 		});
 
 		Structr.makePagesMenuDroppable();
-		Structr.adaptUiToPresentModules();
+		Structr.adaptUiToAvailableFeatures();
 	},
 	resize: function() {
 
