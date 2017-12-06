@@ -49,7 +49,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);               // logout
 		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);   // self-registration
 		resourceMap.put(Pattern.compile("me"), MeResource.class);                       // me
-		resourceMap.put(Pattern.compile("reset-password"), ResetPasswordResource.class);// reset password
+		resourceMap.put(Pattern.compile("reset-password"), ResetPasswordResource.class);// reset passwor
 		resourceMap.put(Pattern.compile("maintenance"), MaintenanceResource.class);     // maintenance
 		resourceMap.put(Pattern.compile("in"), RelationshipResource.class);             // incoming relationship
 		resourceMap.put(Pattern.compile("out"), RelationshipResource.class);            // outgoing relationship
@@ -73,6 +73,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("[0-9]+"), UuidResource.class);                       // this matches the ID resource
 
 		resourceMap.put(Pattern.compile("_schema"), SchemaResource.class);	               // special resource for schema information
+		resourceMap.put(Pattern.compile("_schemaJson"), SchemaJsonResource.class);	// special resource for schema json import and export !needs to be below any type match
 		resourceMap.put(Pattern.compile("_env"), EnvResource.class);	                       // special resource for environment information
 
 		resourceMap.put(Pattern.compile("globalSchemaMethods"),    GlobalSchemaMethodsResource.class);

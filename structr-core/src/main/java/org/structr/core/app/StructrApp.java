@@ -420,13 +420,11 @@ public class StructrApp implements App {
 		synchronized (globalConfigLock) {
 
 			String instanceId = (String) getGlobalSetting("structr.instance.id", null);
-			System.out.println("instance id from getGlobalSetting: " + instanceId);
 			if (instanceId == null) {
 
 				instanceId = NodeServiceCommand.getNextUuid();
 				setGlobalSetting("structr.instance.id", instanceId);
 			}
-			System.out.println("instance id: " + instanceId);
 			return instanceId;
 		}
 	}

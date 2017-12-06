@@ -166,6 +166,10 @@ public class MaintenanceResource extends Resource {
 			return this;
 		}
 
+		if(next instanceof SchemaJsonResource) {
+			return next;
+		}
+
 		// accept global schema methods resource as successor
 		if (next instanceof GlobalSchemaMethodsResource) {
 			return next;
