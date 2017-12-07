@@ -86,7 +86,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					watchedRoots.put(uuid, mountTarget);
 
-					new Thread(new MountWorker(Paths.get(mountTarget), mountTarget)).start();
+					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget)).start();
 				}
 
 			} else {
@@ -103,7 +103,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					watchedRoots.put(uuid, mountTarget);
 
-					new Thread(new MountWorker(Paths.get(mountTarget), mountTarget)).start();
+					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget)).start();
 				}
 			}
 		}
@@ -126,6 +126,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	// ----- interface RunnableService -----
 	@Override
 	public void run() {
+
 
 		while (running) {
 
@@ -155,7 +156,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 									continue;
 								}
 
-								if (!handleWatchEvent(root, (Path)key.watchable(), event)) {
+								if (!handleWatchEvent(true, root, (Path)key.watchable(), event)) {
 
 									System.out.println("cancelling watch key for " + key.watchable());
 
@@ -266,7 +267,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	// ----- private methods -----
-	private boolean handleWatchEvent(final Path root, final Path parent, final WatchEvent event) throws IOException {
+	private boolean handleWatchEvent(final boolean registerWatchKey, final Path root, final Path parent, final WatchEvent event) throws IOException {
 
 		boolean result = true; // default is "don't cancel watch key"
 
@@ -279,7 +280,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				if (Files.isDirectory(path)) {
 
-					watchDirectoryTree(root, path);
+					scanDirectoryTree(registerWatchKey, root, path);
 				}
 
 				result = listener.onCreate(root, parent, path);
@@ -302,14 +303,17 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		return result;
 	}
 
-	private void watchDirectoryTree(final Path root, final Path path) throws IOException {
+	private void scanDirectoryTree(final boolean registerWatchKey, final Path root, final Path path) throws IOException {
 
 		final Set<FileVisitOption> options = new LinkedHashSet<>();
-		final WatchKey key                 = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
 
-		if (key != null) {
+		if (registerWatchKey) {
 
-			watchKeyMap.put(key, root);
+			final WatchKey key = path.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+			if (key != null) {
+
+				watchKeyMap.put(key, root);
+			}
 		}
 
 		// follow symlinks?
@@ -345,11 +349,14 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 						directories.add(file);
 
-						// register directory with watch service
-						final WatchKey directoryKey = filePath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
-						if (directoryKey != null) {
+						if (registerWatchKey) {
 
-							watchKeyMap.put(directoryKey, root);
+							// register directory with watch service
+							final WatchKey directoryKey = filePath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+							if (directoryKey != null) {
+
+								watchKeyMap.put(directoryKey, root);
+							}
 						}
 					}
 
@@ -373,19 +380,22 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		for (final File directory : directories) {
 
 			// recurse (but not in a new thread)
-			new MountWorker(root, directory.getAbsolutePath()).run();
+			new ScanWorker(registerWatchKey, root, directory.getAbsolutePath()).run();
 		}
 	}
 
 	// ----- nested classes -----
-	private class MountWorker implements Runnable {
+	private class ScanWorker implements Runnable {
 
-		private String path = null;
-		private Path root   = null;
+		private boolean registerWatchKey = false;
+		private String path              = null;
+		private Path root                = null;
 
-		public MountWorker(final Path root, final String path) {
-			this.root  = root;
-			this.path  = path;
+		public ScanWorker(final boolean registerWatchKey, final Path root, final String path) {
+
+			this.registerWatchKey = registerWatchKey;
+			this.root             = root;
+			this.path             = path;
 		}
 
 		@Override
@@ -425,7 +435,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 						try {
 
 							// add watch services for each directory recursively
-							watchDirectoryTree(root, actualPath);
+							scanDirectoryTree(registerWatchKey, root, actualPath);
 
 						} catch (IOException ex) {
 

@@ -45,6 +45,7 @@ import org.structr.core.property.CollectionIdProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.web.common.FileHelper;
@@ -71,8 +72,11 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
 	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
 	public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
+
+	public static final Property<Long> lastSeenMounted             = new LongProperty("lastSeenMounted");
 	public static final Property<Boolean> isExternal               = new BooleanProperty("isExternal").writeOnce();
 	public static final Property<Boolean> isMounted                = new MethodCallProperty<>("isMounted", AbstractFile.class, "isMounted");
+
 	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path, isExternal, isMounted);

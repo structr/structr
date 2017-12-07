@@ -42,9 +42,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
@@ -60,23 +62,29 @@ import org.structr.web.entity.relation.UserHomeDir;
 
 public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
-	private static final Logger logger                                   = LoggerFactory.getLogger(Folder.class);
+	private static final Logger logger                                 = LoggerFactory.getLogger(Folder.class);
 
-	public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
-	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
-	public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
-	public static final Property<Boolean>        isFolder                = new ConstantBooleanProperty("isFolder", true);
-	public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
+	public static final Property<List<Folder>>   folders               = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+	public static final Property<List<FileBase>> files                 = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<Image>>    images                = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
+	public static final Property<Boolean>        isFolder              = new ConstantBooleanProperty("isFolder", true);
+	public static final Property<User>           homeFolderOfUser      = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
 
-	public static final Property<String>         mountTarget             = new StringProperty("mountTarget").indexed();
-	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
+	public static final Property<String>         mountTarget           = new StringProperty("mountTarget").indexed();
+	public static final Property<Boolean>        mountFulltextIndexing = new BooleanProperty("mountFulltextIndexing");
+	public static final Property<Integer>        mountScanInterval     = new IntProperty("mountScanInterval");
+	public static final Property<Long>           lastScanned           = new LongProperty("lastSeenMounted");
+
+	public static final Property<Integer>        position              = new IntProperty("position").cmis().indexed();
 
 	public static final View publicView = new View(Folder.class, PropertyView.Public,
-			id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers, mountTarget, isExternal
+		id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers,
+		mountTarget, mountFulltextIndexing, mountScanInterval, lastScanned, isExternal
 	);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
-			parent, owner, folders, files, images, isFolder, includeInFrontendExport, mountTarget, isExternal
+		parent, owner, folders, files, images, isFolder, includeInFrontendExport, mountTarget, isExternal,
+		mountFulltextIndexing, mountScanInterval, lastScanned
 	);
 
 	// register this type as an overridden builtin type

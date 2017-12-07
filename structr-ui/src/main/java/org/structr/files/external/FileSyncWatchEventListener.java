@@ -18,18 +18,15 @@
  */
 package org.structr.files.external;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
@@ -57,10 +54,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			return true;
 		}
 
-		final GraphObject obj = handle(root, root.relativize(path), path, true);
-		if (obj != null && obj instanceof FileBase) {
+		final FolderAndFile obj = handle(root, root.relativize(path), path, true);
+		if (obj != null && obj.file != null && obj.file instanceof FileBase) {
 
-			final FileBase fileNode       = (FileBase)obj;
+			final FileBase fileNode       = (FileBase)obj.file;
 			final java.io.File fileOnDisk = path.toFile();
 			final long size               = fileOnDisk.length();
 			final long lastModified       = fileOnDisk.lastModified();
@@ -70,10 +67,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			// update metadata only when size or modification time has changed
 			if (fileNodeSize == null || fileNodeDate == null || size != fileNodeSize || lastModified != fileNodeDate) {
 
-				final FileBase file = (FileBase)obj;
-
-				StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(file);
-				FileHelper.updateMetadata(file);
+				obj.handle();
 			}
 		}
 
@@ -83,13 +77,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	@Override
 	public boolean onCreate(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		final GraphObject obj = handle(root, root.relativize(path), path, true);
-		if (obj != null && obj instanceof FileBase) {
+		final FolderAndFile obj = handle(root, root.relativize(path), path, true);
+		if (obj != null) {
 
-			final FileBase file = (FileBase)obj;
-
-			StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(file);
-			FileHelper.updateMetadata(file);
+			obj.handle();
 		}
 
 		return true;
@@ -98,15 +89,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	@Override
 	public boolean onModify(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		final Path relativePath = root.relativize(path);
-		final GraphObject obj   = handle(root, relativePath, path, false);
+		final FolderAndFile obj = handle(root, root.relativize(path), path, false);
+		if (obj != null) {
 
-		if (obj != null && obj instanceof FileBase) {
-
-			final FileBase file = (FileBase)obj;
-
-			StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(file);
-			FileHelper.updateMetadata(file);
+			obj.handle();
 		}
 
 		return true;
@@ -116,18 +102,18 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	public boolean onDelete(final Path root, final Path context, final Path path) throws FrameworkException {
 
 		final Path relativePath = root.relativize(path);
-		final GraphObject obj   = handle(root, relativePath, path, false);
+		final FolderAndFile obj = handle(root, relativePath, path, false);
 
-		if (obj != null) {
+		if (obj != null && obj.file != null) {
 
-			StructrApp.getInstance().delete((NodeInterface)obj);
+			StructrApp.getInstance().delete(obj.file);
 		}
 
 		return true;
 	}
 
 	// ----- private methods -----
-	private GraphObject handle(final Path root, final Path relativePath, final Path path, final boolean create) throws FrameworkException {
+	private FolderAndFile handle(final Path root, final Path relativePath, final Path path, final boolean create) throws FrameworkException {
 
 		// identify mounted folder object
 		final Folder folder = StructrApp.getInstance().nodeQuery(Folder.class).and(Folder.mountTarget, root.toString()).getFirst();
@@ -139,14 +125,15 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 				final Path relativePathParent = relativePath.getParent();
 				if (relativePathParent == null) {
 
-					return getOrCreate(folder, path, relativePath, create);
+					return new FolderAndFile(folder, getOrCreate(folder, path, relativePath, create));
 
 				} else {
 
 					final String pathRelativeToRoot = folder.getPath() + "/" + relativePathParent.toString();
 					final Folder parentFolder       = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathRelativeToRoot);
+					final AbstractFile file         = getOrCreate(parentFolder, path, relativePath, create);
 
-					return getOrCreate(parentFolder, path, relativePath, create);
+					return new FolderAndFile(folder, file);
 				}
 
 			} else {
@@ -162,13 +149,13 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		return null;
 	}
 
-	private GraphObject getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate) throws FrameworkException {
+	private AbstractFile getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate) throws FrameworkException {
 
-		final String fileName = relativePath.getFileName().toString();
-		final boolean isFile  = !Files.isDirectory(fullPath);
-		final Class type      = isFile ? File.class : Folder.class;
+		final String fileName                    = relativePath.getFileName().toString();
+		final boolean isFile                     = !Files.isDirectory(fullPath);
+		final Class<? extends AbstractFile> type = isFile ? org.structr.dynamic.File.class : Folder.class;
 
-		GraphObject file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(AbstractFile.parent, parentFolder).getFirst();
+		AbstractFile file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(AbstractFile.parent, parentFolder).getFirst();
 		if (file == null && doCreate) {
 
 			file = app.create(type,
@@ -179,6 +166,33 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		}
 
 		return file;
+	}
+
+	private class FolderAndFile {
+
+		public AbstractFile file = null;
+		public Folder rootFolder = null;
+
+		public FolderAndFile(final Folder rootFolder, final AbstractFile file) {
+			this.rootFolder = rootFolder;
+			this.file       = file;
+		}
+
+		void handle() throws FrameworkException {
+
+			if (file instanceof FileBase) {
+
+				final FileBase fileBase = (FileBase)file;
+
+				if (rootFolder != null && rootFolder.getProperty(Folder.mountFulltextIndexing)) {
+					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(fileBase);
+				}
+
+				if (file != null) {
+					FileHelper.updateMetadata(fileBase);
+				}
+			}
+		}
 	}
 }
 
