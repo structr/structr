@@ -47,6 +47,7 @@ public interface Indexable extends NodeInterface {
 	}}
 
 	String getContentType();
+	String getExtractedContent();
 	InputStream getInputStream();
 
 	@Export

@@ -255,6 +255,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		updateProperties.put(SchemaProperty.indexed, isIndexed());
 		updateProperties.put(SchemaProperty.notNull, isRequired());
 		updateProperties.put(SchemaProperty.readOnly, isReadOnly());
+		updateProperties.put(SchemaProperty.format, getFormat());
 		updateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
 		updateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
 		updateProperties.put(SchemaProperty.defaultValue, defaultValue);
@@ -283,6 +284,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (source.containsKey(JsonSchema.KEY_READ_ONLY)) {
 			this.readOnly = (Boolean)source.get(JsonSchema.KEY_READ_ONLY);
+		}
+
+		final Object _format = source.get(JsonSchema.KEY_FORMAT);
+		if (_format != null) {
+
+			this.format = _format.toString();
 		}
 
 		final Object _defaultValue = source.get(JsonSchema.KEY_DEFAULT);
@@ -439,6 +446,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					newProperty = new StructrLongProperty(parent, name);
 					break;
 
+				case "custom":
+					newProperty = new StructrCustomProperty(parent, name);
+					break;
+
 				case "object":
 
 					// notion properties don't contain $link
@@ -577,6 +588,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			case Boolean:
 				final StructrBooleanProperty bool = new StructrBooleanProperty(parent, name);
 				bool.deserialize(property);
+				bool.setDefaultValue(property.getDefaultValue());
 				return bool;
 
 			case BooleanArray:
@@ -644,6 +656,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				thumb.deserialize(property);
 				thumb.setDefaultValue(property.getDefaultValue());
 				return thumb;
+
+			case Custom:
+				final StructrCustomProperty custom = new StructrCustomProperty(parent, name);
+				custom.deserialize(property);
+				return custom;
 		}
 
 		throw new IllegalStateException("Unknown type " + type);

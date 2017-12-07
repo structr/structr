@@ -21,15 +21,14 @@ package org.structr.core.entity;
 import java.util.List;
 import java.util.Set;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.relationship.AbstractChildren;
-import org.structr.core.entity.relationship.AbstractListSiblings;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  */
-public interface LinkedTreeNode<R extends AbstractChildren<T, T>, S extends AbstractListSiblings<T, T>, T extends LinkedTreeNode> extends LinkedListNode<S, T> {
+public interface LinkedTreeNode<T extends NodeInterface> extends LinkedListNode<T> {
 
-	public Class<R> getChildLinkType();
+	public <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> Class<R> getChildLinkType();
 
 	public T treeGetParent();
 	public void treeAppendChild(final T childElement) throws FrameworkException;
@@ -43,6 +42,7 @@ public interface LinkedTreeNode<R extends AbstractChildren<T, T>, S extends Abst
 	public int treeGetChildPosition(final T child);
 	public List<T> treeGetChildren();
 	public int treeGetChildCount();
-	public List<R> treeGetChildRelationships();
+	public <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> List<R> treeGetChildRelationships();
+
 	public Set<T> getAllChildNodes();
 }

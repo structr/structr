@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -55,10 +56,12 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 			return "Create Content(" + newNode.getIdHashOrProperty() + ")";
 
-		} else {
+		} else if (newNode instanceof DOMElement) {
 
-			return "Create " + newNode.getTag() + "(" + newNode.getIdHashOrProperty() + ")";
+			return "Create " + ((DOMElement)newNode).getTag() + "(" + newNode.getIdHashOrProperty() + ")";
 		}
+
+		return "Create " + newNode.getUuid() + "(" + newNode.getIdHashOrProperty() + ")";
 	}
 
 	// ----- interface InvertibleModificationOperation -----

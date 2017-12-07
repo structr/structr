@@ -51,7 +51,12 @@ public interface Image extends File {
 		type.addBooleanProperty("isCreatingThumb", PropertyView.Public).setIndexed(true);
 
 		// TODO: sysinternal and unvalidated properties are not possible right now
+		type.overrideMethod("isImage",     false, "return getProperty(isImageProperty);");
+		type.overrideMethod("isThumbnail", false, "return getProperty(isThumbnailProperty);");
 	}}
+
+	boolean isImage();
+	boolean isThumbnail();
 
 	Integer getWidth();
 	Integer getHeight();

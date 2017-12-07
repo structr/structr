@@ -20,6 +20,7 @@ package org.structr.core.graph;
 
 import java.lang.invoke.MethodHandles;
 import java.util.List;
+import java.util.Map;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -102,6 +103,8 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	Relationship getRawPathSegment();
 
 	List<Security> getSecurityRelationships();
+
+	public Map<String, Object> getTemporaryStorage();
 
 	public static <T> PropertyKey<T> getKey(final String name) {
 		return StructrApp.getConfiguration().getPropertyKeyForJSONName(MethodHandles.lookup().lookupClass(), name, false);

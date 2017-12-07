@@ -19,6 +19,7 @@
 package org.structr.schema.export;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.common.util.UrlUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -70,7 +72,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
-	protected final Set<StructrMethodDefinition> methods          = new TreeSet<>();
+	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
@@ -166,6 +168,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		methods.add(newMethod);
 
+		// sort methods
+		Collections.sort(methods);
+
 		return newMethod;
 	}
 
@@ -177,6 +182,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		newMethod.setCodeType("java");
 
 		methods.add(newMethod);
+
+		// sort methods
+		Collections.sort(methods);
 
 		return newMethod;
 	}
@@ -193,6 +201,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		methods.add(newMethod);
 
+		// sort methods
+		Collections.sort(methods);
+
 		return newMethod;
 	}
 
@@ -206,6 +217,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		newMethod.setCodeType("java");
 
 		methods.add(newMethod);
+
+		// sort methods
+		Collections.sort(methods);
 
 		return newMethod;
 	}
@@ -221,6 +235,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		newMethod.addException("FrameworkException");
 
 		methods.add(newMethod);
+
+		// sort methods
+		Collections.sort(methods);
 
 		return newMethod;
 	}
@@ -263,8 +280,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public Set<JsonMethod> getMethods() {
-		return (Set)methods;
+	public List<JsonMethod> getMethods() {
+		return (List)methods;
 	}
 
 	@Override
@@ -479,6 +496,20 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		properties.add(enumProperty);
 
 		return enumProperty;
+	}
+
+	@Override
+	public JsonProperty addCustomProperty(final String name, final String fqcn, final String... views) {
+
+		final StructrCustomProperty customProperty = new StructrCustomProperty(this, name);
+
+		customProperty.setFqcn(fqcn);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(customProperty);
+
+		return customProperty;
 	}
 
 	@Override
@@ -829,14 +860,15 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				} else if (!StructrApp.getSchemaBaseURI().relativize(baseTypeReference).isAbsolute()) {
 
 					// resolve internal type referenced in special URI
-					final URI base        = StructrApp.getSchemaBaseURI().resolve("definitions/");
-					final URI type        = base.relativize(baseTypeReference);
-					final String typeName = type.toString();
+					final URI base          = StructrApp.getSchemaBaseURI().resolve("definitions/");
+					final URI type          = base.relativize(baseTypeReference);
+					final String typeName   = type.getPath();
+					final String parameters = type.getQuery();
 
 					final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
 					if (internal != null) {
 
-						schemaNode.setProperty(SchemaNode.extendsClass, internal.getName());
+						schemaNode.setProperty(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
 					}
 				}
 			}
@@ -1078,6 +1110,40 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			// add property name to view
 			view.add(name);
 		}
+	}
+
+	private String getParameterizedType(final Class type, final String queryString) {
+
+		final StringBuilder buf           = new StringBuilder();
+		final List<String> typeParameters = new LinkedList<>();
+
+		buf.append(type.getName());
+
+		if (queryString != null) {
+
+			final Map<String, String> params = UrlUtils.parseQueryString(queryString);
+			final String types               = params.get("typeparameters");
+
+			if (types != null) {
+
+				final String[] parameterTypes = types.split("[, ]+");
+				for (final String parameterType : parameterTypes) {
+
+					final String trimmed = parameterType.trim();
+					if (StringUtils.isNotBlank(trimmed)) {
+
+						typeParameters.add(trimmed);
+					}
+				}
+
+				buf.append("<");
+				buf.append(StringUtils.join(typeParameters, ", "));
+				buf.append(">");
+			}
+		}
+
+		return buf.toString();
+
 	}
 
 	// ----- nested classes -----

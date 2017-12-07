@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -49,15 +50,15 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private static final Logger logger = LoggerFactory.getLogger(StructrMethodDefinition.class.getName());
 
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
-	private final List<String> exceptions                           = new LinkedList<>();
-	private boolean overridesExisting                               = false;
-	private boolean callSuper                                       = false;
-	private JsonType parent                                         = null;
-	private String returnType                                       = "void";
-	private String codeType                                         = null;
-	private String name                                             = null;
-	private String comment                                          = null;
-	private String source                                           = null;
+	private final List<String> exceptions                     = new LinkedList<>();
+	private boolean overridesExisting                         = false;
+	private boolean callSuper                                 = false;
+	private JsonType parent                                   = null;
+	private String returnType                                 = "void";
+	private String codeType                                   = null;
+	private String name                                       = null;
+	private String comment                                    = null;
+	private String source                                     = null;
 
 
 	StructrMethodDefinition(final JsonType parent, final String name) {
@@ -67,8 +68,13 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public String toString() {
+		return getSignature();
+	}
+
+	@Override
 	public int hashCode() {
-		return name.hashCode();
+		return getSignature().hashCode();
 	}
 
 	@Override
@@ -228,6 +234,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		final PropertyMap updateProperties      = new PropertyMap();
 
 		getOrCreateProperties.put(SchemaMethod.name,       getName());
+		getOrCreateProperties.put(SchemaMethod.signature,  getSignature());
 		getOrCreateProperties.put(SchemaMethod.schemaNode, schemaNode);
 
 		SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(getOrCreateProperties).getFirst();
@@ -379,6 +386,25 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	void initializeReferences() {
+	}
+
+	private String getSignature() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append(getReturnType());
+		buf.append(" ");
+		buf.append(getName());
+		buf.append("(");
+		buf.append(StringUtils.join(parameters, ", "));
+		buf.append(")");
+
+		if (!exceptions.isEmpty()) {
+			buf.append(" throws ");
+			buf.append(StringUtils.join(exceptions, ", "));
+		}
+
+		return buf.toString();
 	}
 
 	// ----- static methods -----

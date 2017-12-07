@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.WeakHashMap;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
@@ -113,15 +114,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
 	);
 
-	public boolean internalSystemPropertiesUnlocked = false;
-	private Relationship rawPathSegment             = null;
-	private boolean readOnlyPropertiesUnlocked      = false;
-	private boolean isCreation                      = false;
-	protected String cachedUuid                     = null;
-	protected SecurityContext securityContext       = null;
-	protected Principal cachedOwnerNode             = null;
-	protected Class entityType                      = null;
-	protected Node dbNode                           = null;
+	private final Map<AbstractNode, Map<String, Object>> tmpStorageContainer = new WeakHashMap<>(2);
+	public boolean internalSystemPropertiesUnlocked                          = false;
+	private Relationship rawPathSegment                                      = null;
+	private boolean readOnlyPropertiesUnlocked                               = false;
+	private boolean isCreation                                               = false;
+	protected String cachedUuid                                              = null;
+	protected SecurityContext securityContext                                = null;
+	protected Principal cachedOwnerNode                                      = null;
+	protected Class entityType                                               = null;
+	protected Node dbNode                                                    = null;
 
 	public AbstractNode() {
 	}
@@ -1970,6 +1972,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		return entries;
+	}
+
+	@Override
+	public synchronized Map<String, Object> getTemporaryStorage() {
+
+		Map<String, Object> tmp = tmpStorageContainer.get(this);
+		if (tmp == null) {
+
+			tmp = new LinkedHashMap<>();
+			tmpStorageContainer.put(this, tmp);
+		}
+
+		return tmp;
 	}
 
 	// ----- nested classes -----

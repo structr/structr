@@ -27,7 +27,7 @@ import org.structr.rest.common.StructrRestTest;
  *
  *
  */
-public class GroupPropertyTest extends StructrRestTest{
+public class GroupPropertyTest extends StructrRestTest {
 
 	@Test
 	public void test01GroupProperty(){

@@ -23,6 +23,7 @@ import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.DOMException;
@@ -56,10 +57,12 @@ public class MoveOperation extends InvertibleModificationOperation {
 
 			return "Move Content(" + originalNode.getIdHashOrProperty() + ")";
 
-		} else {
+		} else if (originalNode instanceof DOMElement) {
 
-			return "Move " + originalNode.getTag() + "(" + originalNode.getIdHashOrProperty() + ")";
+			return "Move " + ((DOMElement)originalNode).getTag() + "(" + originalNode.getIdHashOrProperty() + ")";
 		}
+
+		return "Move " + originalNode.getUuid()+ "(" + originalNode.getIdHashOrProperty() + ")";
 	}
 
 	// ----- interface InvertibleModificationOperation -----

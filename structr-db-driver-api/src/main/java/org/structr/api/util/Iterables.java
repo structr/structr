@@ -97,6 +97,11 @@ public class Iterables {
 	}
 
 	public static <T> List<T> toList(Iterable<T> iterable) {
+
+		if (iterable instanceof List) {
+			return (List<T>)iterable;
+		}
+
 		return addAll(new ArrayList<T>(), iterable);
 	}
 

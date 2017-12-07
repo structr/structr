@@ -18,9 +18,11 @@
  */
 package org.structr.web.entity;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISFolderInfo;
 import org.structr.common.ConstantBooleanTrue;
@@ -47,9 +49,19 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 		type.addBooleanProperty("isFolder").addTransformer(ConstantBooleanTrue.class.getName());
 		type.addIntegerProperty("position", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);
 
-		type.overrideMethod("onCreation",     true, "org.structr.web.entity.Folder.setHasParent(this);");
-		type.overrideMethod("onModification", true, "org.structr.web.entity.Folder.setHasParent(this);");
+		type.addPropertyGetter("mountTarget", String.class);
+		type.addPropertyGetter("children", List.class);
+
+		type.overrideMethod("onCreation",     true, Folder.class.getName() + ".setHasParent(this);");
+		type.overrideMethod("onModification", true, Folder.class.getName() + ".setHasParent(this);");
+
+		type.overrideMethod("getFiles",       false, "return " + Folder.class.getName() + ".getFiles(this);");
+		type.overrideMethod("getFolders",     false, "return " + Folder.class.getName() + ".getFolders(this);");
+		type.overrideMethod("getImages",      false, "return " + Folder.class.getName() + ".getImages(this);");
+
+		type.overrideMethod("isMounted",      false, "return " + Folder.class.getName() + ".isMounted(this);");
 
 		// ----- CMIS support -----
 		type.overrideMethod("getCMISInfo",         false, "return this;");
@@ -60,15 +72,20 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.overrideMethod("getRelationshipInfo", false, "return null;");
 		type.overrideMethod("getPolicyInfo",       false, "return null;");
 		type.overrideMethod("getSecondaryInfo",    false, "return null;");
-		type.overrideMethod("getParentId",         false, "return getProperty(parentIdProperty);");
+		type.overrideMethod("getParentId",         false, "return null;");//return getProperty(parentIdProperty);");
 		type.overrideMethod("getPath",             false, "return getProperty(pathProperty);");
 		type.overrideMethod("getAllowableActions", false, "return " + StructrFolderActions.class.getName() + ".getInstance();");
 		type.overrideMethod("getChangeToken",      false, "return null;");
 
 	}}
 
-	List<Folder> getFolders();
-	List<File> getFiles();
+	boolean isMounted();
+	String getMountTarget();
+
+	Iterable<AbstractFile> getChildren();
+	Iterable<Folder> getFolders();
+	Iterable<Image> getImages();
+	Iterable<File> getFiles();
 
 	static void setHasParent(final Folder folder) throws FrameworkException {
 
@@ -89,6 +106,69 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 			folder.setSecurityContext(previousSecurityContext);
 		}
 	}
+
+	static Iterable<File> getFiles(final Folder thisFolder) {
+		return Iterables.map(s -> (File)s, Iterables.filter((AbstractFile value) -> value instanceof File, thisFolder.getChildren()));
+	}
+
+	static Iterable<Folder> getFolders(final Folder thisFolder) {
+		return Iterables.map(s -> (Folder)s, Iterables.filter((AbstractFile value) -> value instanceof Folder, thisFolder.getChildren()));
+	}
+
+	static Iterable<Image> getImages(final Folder thisFolder) {
+		return Iterables.map(s -> (Image)s, Iterables.filter((AbstractFile value) -> value instanceof Image, thisFolder.getChildren()));
+	}
+
+	public static java.io.File getFileOnDisk(final Folder thisFolder, final File file, final String path, final boolean create) {
+
+		final Folder parentFolder = thisFolder.getParent();
+		if (parentFolder != null) {
+
+			return Folder.getFileOnDisk(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, create);
+		}
+
+		final String _mountTarget = thisFolder.getMountTarget();
+		if (_mountTarget != null) {
+
+			final String fullPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getName());
+			final java.io.File fileOnDisk = new java.io.File(fullPath);
+
+			fileOnDisk.getParentFile().mkdirs();
+
+			if (create && !thisFolder.isExternal()) {
+
+				try {
+
+					fileOnDisk.createNewFile();
+
+				} catch (IOException ioex) {
+
+					logger.error("Unable to create file {}: {}", file, ioex.getMessage());
+				}
+			}
+
+			return fileOnDisk;
+		}
+
+		// default implementation (store in UUID-indexed tree)
+		return AbstractFile.defaultGetFileOnDisk(file, create);
+	}
+
+	static String removeDuplicateSlashes(final String src) {
+		return src.replaceAll("[/]+", "/");
+	}
+
+	public static boolean isMounted(final Folder thisFolder) {
+
+		final Folder parent = thisFolder.getParent();
+		if (parent != null) {
+
+			return parent.isMounted();
+		}
+
+		return thisFolder.getMountTarget() != null;
+	}
+
 
 	/*TODO:
 

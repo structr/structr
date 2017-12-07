@@ -36,6 +36,7 @@ import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataIm
 import org.apache.chemistry.opencmis.commons.spi.NavigationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISObjectWrapper;
 import org.structr.common.GraphObjectComparator;
@@ -140,7 +141,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 				final Folder folder = app.get(Folder.class, folderId);
 				if (folder != null) {
 
-					final List<Folder> children = folder.getFolders();
+					final List<Folder> children = Iterables.toList(folder.getFolders());
 					Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
 
 					for (final Folder child : children) {
@@ -245,7 +246,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 		list.add(impl);
 
 		// fetch and sort children
-		final List<Folder> children = child.getFolders();
+		final List<Folder> children = Iterables.toList(child.getFolders());
 		Collections.sort(children, new GraphObjectComparator(AbstractNode.name, false));
 
 		// descend into children

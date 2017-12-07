@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -53,6 +54,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final Property<List<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
 	public static final Property<AbstractSchemaNode> schemaNode          = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<String>             signature           = new StringProperty("signature").indexed();
 	public static final Property<String>             virtualFileName     = new StringProperty("virtualFileName");
 	public static final Property<String>             returnType          = new StringProperty("returnType");
 	public static final Property<String>             source              = new StringProperty("source");
@@ -109,7 +111,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	// ----- private methods -----
 	private void addType(final Queue<String> typeQueue, final AbstractSchemaNode schemaNode) {
 
-		typeQueue.add(schemaNode.getProperty(SchemaNode.extendsClass));
+		final String _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		if (_extendsClass != null) {
+
+			typeQueue.add(StringUtils.substringBefore(_extendsClass, "<"));
+		}
 
 		final String _interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
 		if (_interfaces != null) {
@@ -170,7 +176,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				} else {
 
 					// no schema node for the given type found, try internal types
-					final Class internalType = getClass(typeName);
+					final Class internalType = SchemaHelper.classForName(typeName);
 					if (internalType != null) {
 
 						if (getSignature(internalType, methodName, entry)) {
@@ -281,18 +287,5 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 
 		return false;
-	}
-
-	private Class getClass(final String name) {
-
-		try {
-
-			return Class.forName(name);
-
-		} catch (Throwable t) {
-			logger.warn("No class found for type name {}", name);
-		}
-
-		return null;
 	}
 }

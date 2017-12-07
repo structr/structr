@@ -475,6 +475,11 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public Map<String, Object> getTemporaryStorage() {
+		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 }

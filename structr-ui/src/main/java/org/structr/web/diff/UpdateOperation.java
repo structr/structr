@@ -22,6 +22,7 @@ import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -49,10 +50,12 @@ public class UpdateOperation extends InvertibleModificationOperation {
 
 			return "Update Content(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 
-		} else {
+		} else if (existingNode instanceof DOMElement) {
 
-			return "Update " + newNode.getTag() + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
+			return "Update " + ((DOMElement)newNode).getTag() + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 		}
+
+		return "Update " + existingNode.getUuid() + "(" + existingNode.getIdHash();
 	}
 
 	// ----- interface InvertibleModificationOperation -----

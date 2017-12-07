@@ -550,4 +550,9 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
 		return null;
 	}
+
+	@Override
+	public Map<String, Object> getTemporaryStorage() {
+		throw new UnsupportedOperationException("Not supported.");
+	}
 }

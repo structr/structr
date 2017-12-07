@@ -168,7 +168,9 @@ public abstract class PropertySourceGenerator {
 			buf.append(", \"").append(source.getDbName()).append("\"");
 		}
 
-		buf.append(getPropertyParameters());
+		if (getPropertyParameters() != null) {
+			buf.append(getPropertyParameters());
+		}
 
 		buf.append(")");
 

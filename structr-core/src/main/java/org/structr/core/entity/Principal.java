@@ -97,7 +97,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
-		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
+
+		if (favoritable != null) {
+			principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
+		}
 	}}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";

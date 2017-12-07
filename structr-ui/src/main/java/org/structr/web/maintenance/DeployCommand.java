@@ -47,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -672,14 +673,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		final List<Folder> folders = folder.getFolders();
+		final List<Folder> folders = Iterables.toList(folder.getFolders());
 		Collections.sort(folders, new GraphObjectComparator(AbstractNode.name, false));
 
 		for (final Folder child : folders) {
 			exportFilesAndFolders(path, child, config);
 		}
 
-		final List<File> files = folder.getFiles();
+		final List<File> files = Iterables.toList(folder.getFiles());
 		Collections.sort(files, new GraphObjectComparator(AbstractNode.name, false));
 
 		for (final File file : files) {
@@ -1035,23 +1036,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
+	private void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
 
-		if (file.isVisibleToPublicUsers())         { putIf(config, "visibleToPublicUsers", true); }
-		if (file.isVisibleToAuthenticatedUsers())  { putIf(config, "visibleToAuthenticatedUsers", true); }
-		if (file.isTemplate())                     { putIf(config, "isTemplate", true); }
+		if (abstractFile.isVisibleToPublicUsers())         { putIf(config, "visibleToPublicUsers", true); }
+		if (abstractFile.isVisibleToAuthenticatedUsers())  { putIf(config, "visibleToAuthenticatedUsers", true); }
 
-		putIf(config, "type",                        file.getProperty(File.type));
-		putIf(config, "contentType",                 file.getProperty(StructrApp.key(File.class, "contentType")));
-		putIf(config, "cacheForSeconds",             file.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
-		putIf(config, "useAsJavascriptLibrary",      file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
-		putIf(config, "includeInFrontendExport",     file.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
-		putIf(config, "basicAuthRealm",              file.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
-		putIf(config, "enableBasicAuth",             file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+		if (abstractFile instanceof File) {
 
-		if (file instanceof Image) {
+			final File file = (File)abstractFile;
 
-			final Image image = (Image)file;
+			if (file.isTemplate())                     { putIf(config, "isTemplate", true); }
+		}
+
+		putIf(config, "type",                        abstractFile.getProperty(File.type));
+		putIf(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
+		putIf(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+		putIf(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		putIf(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
+		putIf(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
+		putIf(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+
+		if (abstractFile instanceof Image) {
+
+			final Image image = (Image)abstractFile;
 
 			putIf(config, "isThumbnail",             image.isThumbnail());
 			putIf(config, "isImage",                 image.isImage());
@@ -1059,24 +1066,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putIf(config, "height",                  image.getHeight());
 		}
 
-		if (file instanceof AbstractMinifiedFile) {
+		if (abstractFile instanceof AbstractMinifiedFile) {
 
-			if (file instanceof MinifiedCssFile) {
+			if (abstractFile instanceof MinifiedCssFile) {
 
-				final MinifiedCssFile mcf = (MinifiedCssFile)file;
+				final MinifiedCssFile mcf = (MinifiedCssFile)abstractFile;
 
 				putIf(config, "lineBreak", mcf.getLineBreak());
 			}
 
-			if (file instanceof MinifiedJavaScriptFile) {
+			if (abstractFile instanceof MinifiedJavaScriptFile) {
 
-				final MinifiedJavaScriptFile mjf = (MinifiedJavaScriptFile)file;
+				final MinifiedJavaScriptFile mjf = (MinifiedJavaScriptFile)abstractFile;
 
 				putIf(config, "optimizationLevel",    mjf.getOptimizationLevel());
 			}
 
 			Map<Integer, String> minifcationSources = new TreeMap<>();
-			for(MinificationSource minificationSourceRel : file.getOutgoingRelationships(MinificationSource.class)) {
+			for(MinificationSource minificationSourceRel : abstractFile.getOutgoingRelationships(MinificationSource.class)) {
 				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getPath());
 			}
 			putIf(config, "minificationSources",     minifcationSources);
@@ -1084,16 +1091,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		// export all dynamic properties
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(file.getClass(), PropertyView.All)) {
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys
 			if (key.isDynamic()) {
 
-				putIf(config, key.jsonName(), file.getProperty(key));
+				putIf(config, key.jsonName(), abstractFile.getProperty(key));
 			}
 		}
 
-		exportOwnershipAndSecurity(file, config);
+		exportOwnershipAndSecurity(abstractFile, config);
 	}
 
 	private void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {

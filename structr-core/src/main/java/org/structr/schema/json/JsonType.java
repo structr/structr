@@ -19,6 +19,7 @@
 package org.structr.schema.json;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -58,7 +59,7 @@ public interface JsonType extends Comparable<JsonType> {
 	Set<String> getRequiredProperties();
 	Set<String> getViewNames();
 	Set<String> getViewPropertyNames(final String viewName);
-	Set<JsonMethod> getMethods();
+	List<JsonMethod> getMethods();
 
 	JsonType addViewProperty(final String viewName, final String propertyName);
 
@@ -72,6 +73,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonScriptProperty addScriptProperty(final String name, final String...views);
 	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
 	JsonEnumProperty addEnumProperty(final String name, final String...views);
+	JsonProperty addCustomProperty(final String name, final String fqcn, final String... views);
 	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
 	JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
 	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);

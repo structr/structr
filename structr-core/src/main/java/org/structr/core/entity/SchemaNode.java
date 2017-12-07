@@ -280,8 +280,11 @@ public class SchemaNode extends AbstractSchemaNode {
 		//  - class extends FileBase => make it extend AbstractNode and implement File
 		//  - class extends built-in type => make it extend AbstractNode and implement dynamic interface
 
-		final String _extendsClass = getProperty(extendsClass);
-		if (_extendsClass != null) {
+		final String tmp = getProperty(extendsClass);
+		if (tmp != null) {
+
+			// remove optional generic parts from class name
+			final String _extendsClass = StringUtils.substringBefore(tmp, "<");
 
 			// we need to migrate
 			if (_extendsClass.equals("org.structr.web.entity.FileBase")) {

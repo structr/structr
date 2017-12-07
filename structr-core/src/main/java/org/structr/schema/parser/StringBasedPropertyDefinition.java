@@ -35,6 +35,7 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private String format           = null;
 	private String defaultValue     = null;
 	private String contentType      = null;
+	private String fqcn             = null;
 	private boolean notNull         = false;
 	private boolean compound        = false;
 	private boolean unique          = false;
@@ -195,6 +196,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 		return validators;
 	}
 
+	@Override
+	public String getFqcn() {
+		return fqcn;
+	}
+
 	public static String substringBetween(final String source, final String prefix, final String suffix) {
 
 		final int pos1 = source.indexOf(prefix);
@@ -207,5 +213,4 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 
 		return null;
 	}
-
 }

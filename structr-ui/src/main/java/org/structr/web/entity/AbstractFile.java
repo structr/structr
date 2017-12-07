@@ -19,8 +19,9 @@
 package org.structr.web.entity;
 
 
+import java.io.IOException;
 import java.net.URI;
-import java.util.List;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Relation;
@@ -28,11 +29,12 @@ import org.structr.core.entity.Relation.Cardinality;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.property.PathProperty;
 
 /**
  * Base class for filesystem objects in Structr.
  */
-public interface AbstractFile extends LinkedTreeNode {
+public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static class Impl { static {
 
@@ -40,38 +42,104 @@ public interface AbstractFile extends LinkedTreeNode {
 		final JsonObjectType folder = (JsonObjectType)schema.addType("Folder");
 		final JsonObjectType type   = schema.addType("AbstractFile");
 
+		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
-		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl"));
+		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.AbstractFile"));
 
 		type.addBooleanProperty("includeInFrontendExport").setIndexed(true);
+		type.addBooleanProperty("isExternal").setIndexed(true);
 		type.addBooleanProperty("hasParent").setIndexed(true);
+		type.addCustomProperty("path", PathProperty.class.getName()).setIndexed(true);
+
+		//type.addCustomProperty("nextSiblingId", EntityIdProperty.class.getName()).setIndexed(true).setFormat("nextSibling");
+		//type.addCustomProperty("childrenIds", CollectionIdProperty.class.getName()).setIndexed(true).setFormat("children");
+		//type.addCustomProperty("parentId", EntityIdProperty.class.getName()).setIndexed(true).setFormat("parent");
+
+		//type.addPropertyGetter("parentId", String.class);
+		type.addPropertyGetter("parent", Folder.class);
+		type.addPropertyGetter("path", String.class);
 
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
 		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
-		type.overrideMethod("getChildRelationships",       false, "return treeGetChildRelationships();");
+		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
+
+		type.addMethod("setParent")
+			.setSource("setProperty(parentProperty, (Folder)parent);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("parent", "org.structr.web.entity.Folder");
 
 		folder.relate(type, "CONTAINS", Relation.Cardinality.OneToMany, "parent", "children");
 		type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
 	}}
-
-	boolean isTemplate();
 
 	String getPath();
 
 	Folder getParent();
 	void setParent(final Folder folder) throws FrameworkException;
 
-	List<AbstractFile> getChildren();
+	boolean isExternal();
+	boolean isMounted();
+
+	public static String getFolderPath(final AbstractFile thisFile) {
+
+		Folder parentFolder = thisFile.getParent();
+		String folderPath   = thisFile.getName();
+
+		if (folderPath == null) {
+			folderPath = thisFile.getUuid();
+		}
+
+		while (parentFolder != null) {
+
+			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
+			parentFolder = parentFolder.getParent();
+		}
+
+		return "/".concat(folderPath);
+	}
+
+	public static String getDirectoryPath(final String uuid) {
+
+		return (uuid != null)
+			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			: null;
+	}
+
+	public static java.io.File defaultGetFileOnDisk(final AbstractFile fileBase, final boolean create) {
+
+		final String uuid       = fileBase.getUuid();
+		final String filePath   = Settings.FilesPath.getValue();
+		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
+		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
+
+		// create parent directory tree
+		file.getParentFile().mkdirs();
+
+		// create file only if requested
+		if (create && !file.exists() && !fileBase.isExternal()) {
+
+			try {
+
+				file.createNewFile();
+
+			} catch (IOException ioex) {
+
+				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
+			}
+		}
+
+		return file;
+	}
 
 	/*
-	public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);
-	public static final Property<List<AbstractFile>> children      = new EndNodes<>("children", FileChildren.class);
-	public static final Property<AbstractFile> previousSibling     = new StartNode<>("previousSibling", FileSiblings.class);
-	public static final Property<AbstractFile> nextSibling         = new EndNode<>("nextSibling", FileSiblings.class);
-	public static final Property<List<String>> childrenIds         = new CollectionIdProperty("childrenIds", children);
-	public static final Property<String> nextSiblingId             = new EntityIdProperty("nextSiblingId", nextSibling);
-	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
-	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
+	//public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);
+	//public static final Property<List<AbstractFile>> children      = new EndNodes<>("children", FileChildren.class);
+	//public static final Property<AbstractFile> previousSibling     = new StartNode<>("previousSibling", FileSiblings.class);
+	//public static final Property<AbstractFile> nextSibling         = new EndNode<>("nextSibling", FileSiblings.class);
+	//public static final Property<List<String>> childrenIds         = new CollectionIdProperty("childrenIds", children);
+	//public static final Property<String> nextSiblingId             = new EntityIdProperty("nextSiblingId", nextSibling);
+	//public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
+	//public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
 	//public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
 	//public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 

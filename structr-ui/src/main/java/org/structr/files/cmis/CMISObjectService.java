@@ -614,9 +614,14 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 
 				app.delete(toDelete);
 
-				for (final AbstractFile child : toDelete.getChildren()) {
+				if (toDelete instanceof Folder) {
 
-					recursivelyCheckAndDeleteFiles(app, result, child, continueOnFailure);
+					final Folder folderToDelete = (Folder)toDelete;
+
+					for (final AbstractFile child : folderToDelete.getChildren()) {
+
+						recursivelyCheckAndDeleteFiles(app, result, child, continueOnFailure);
+					}
 				}
 
 			} else {

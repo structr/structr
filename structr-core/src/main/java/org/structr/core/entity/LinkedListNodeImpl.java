@@ -22,7 +22,7 @@ import org.structr.api.graph.Node;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.AbstractListSiblings;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
 
@@ -30,10 +30,9 @@ import org.structr.core.property.PropertyMap;
  * Abstract base class for a multi-dimensional linked list data structure.
  *
  *
- * @param <R>
  * @param <T>
  */
-public abstract class LinkedListNodeImpl<R extends AbstractListSiblings<T, T>, T extends LinkedListNode> extends ValidatedNode implements LinkedListNode<R, T> {
+public abstract class LinkedListNodeImpl<T extends NodeInterface> extends ValidatedNode implements LinkedListNode<T> {
 
 	/**
 	 * Returns the predecessor of the given element in the list structure
@@ -45,10 +44,10 @@ public abstract class LinkedListNodeImpl<R extends AbstractListSiblings<T, T>, T
 	@Override
 	public  T listGetPrevious(final T currentElement) {
 
-		R prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
+		Relation<T, T, OneStartpoint<T>, OneEndpoint<T>> prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
 		if (prevRel != null) {
 
-			return prevRel.getSourceNode();
+			return (T)prevRel.getSourceNode();
 		}
 
 		return null;
@@ -64,10 +63,10 @@ public abstract class LinkedListNodeImpl<R extends AbstractListSiblings<T, T>, T
 	@Override
 	public T listGetNext(final T currentElement) {
 
-		R nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
+		Relation<T, T, OneStartpoint<T>, OneEndpoint<T>> nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
 		if (nextRel != null) {
 
-			return nextRel.getTargetNode();
+			return (T)nextRel.getTargetNode();
 		}
 
 		return null;
@@ -190,7 +189,7 @@ public abstract class LinkedListNodeImpl<R extends AbstractListSiblings<T, T>, T
 		StructrApp.getInstance(securityContext).create(startNode, endNode, linkType, properties);
 	}
 
-	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
+	private <R extends Relation<T, T, OneStartpoint<T>, OneEndpoint<T>>> void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 

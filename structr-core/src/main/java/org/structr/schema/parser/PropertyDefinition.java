@@ -32,6 +32,7 @@ public interface PropertyDefinition {
 	String getSource();
 	String getDbName();
 	String getFormat();
+	String getFqcn();
 	boolean isNotNull();
 	boolean isCompound();
 	boolean isUnique();

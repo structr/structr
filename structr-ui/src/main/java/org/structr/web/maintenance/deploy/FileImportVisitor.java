@@ -264,8 +264,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				final File createdFile = app.get(File.class, newFileUuid);
 				String type            = createdFile.getType();
-				boolean isImage        = createdFile.isImage();
-				boolean isThumbnail    = createdFile.isThumbnail();
+				boolean isImage        = createdFile instanceof Image;
+				boolean isThumbnail    = isImage && ((Image)createdFile).isThumbnail();
 
 				logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
 

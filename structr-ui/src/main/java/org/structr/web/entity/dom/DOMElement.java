@@ -85,7 +85,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("getHtmlAttributes",      false, "return _html_View.properties();");
 		type.overrideMethod("getHtmlAttributeNames",  false, "return " + DOMElement.class.getName() + ".getHtmlAttributeNames(this);");
 		type.overrideMethod("getOffsetAttributeName", false, "return " + DOMElement.class.getName() + ".getOffsetAttributeName(this, arg0, arg1);");
-		//type.overrideMethod("getContextName",         false, "return " + DOMElement.class.getName() + ".getContextName(this);");
 		type.overrideMethod("getLocalName",           false, "return null;");
 		type.overrideMethod("getAttributes",          false, "return this;");
 		type.overrideMethod("contentEquals",          false, "return false;");

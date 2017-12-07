@@ -29,14 +29,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.AbstractChildren;
-import org.structr.core.entity.relationship.AbstractListSiblings;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
 
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  */
-public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S extends AbstractListSiblings<T, T>, T extends LinkedTreeNode> extends LinkedListNodeImpl<S, T> implements LinkedTreeNode<R, S, T> {
+public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends LinkedListNodeImpl<T> implements LinkedTreeNode<T> {
 
 	@Override
 	public T treeGetParent() {
@@ -72,7 +72,7 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 	@Override
 	public void treeInsertBefore(final T newChild, final T refChild) throws FrameworkException {
 
-		List<R> rels = treeGetChildRelationships();
+		final List<Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> rels = treeGetChildRelationships();
 		boolean found = false;
 		int position = 0;
 
@@ -88,9 +88,9 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 			return;
 		}
 
-		for (R rel : rels) {
+		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel : rels) {
 
-			T node = rel.getTargetNode();
+			T node = (T)rel.getTargetNode();
 			if (node.equals(refChild)) {
 
 				// will be used only once here..
@@ -123,7 +123,7 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 	@Override
 	public void treeInsertAfter(final T newChild, final T refChild) throws FrameworkException {
 
-		List<R> rels = treeGetChildRelationships();
+		final List<Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> rels = treeGetChildRelationships();
 		int position = 0;
 
 		// when there are no child rels, this is an append operation
@@ -133,9 +133,9 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 			return;
 		}
 
-		for (R rel : rels) {
+		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel : rels) {
 
-			T node = rel.getTargetNode();
+			T node = (T)rel.getTargetNode();
 
 			rel.setProperty(AbstractChildren.position, position);
 			position++;
@@ -213,7 +213,7 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 	@Override
 	public T treeGetChild(final int position) {
 
-		for (R rel : getOutgoingRelationships(getChildLinkType())) {
+		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel : getOutgoingRelationships(getChildLinkType())) {
 
 			Integer pos = rel.getProperty(AbstractChildren.position);
 
@@ -229,7 +229,7 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 	@Override
 	public int treeGetChildPosition(final T child) {
 
-		final R rel = child.getIncomingRelationship(getChildLinkType());
+		final Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel = child.getIncomingRelationship(getChildLinkType());
 		if (rel != null) {
 
 			Integer pos = rel.getProperty(AbstractChildren.position);
@@ -247,9 +247,9 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 
 		List<T> abstractChildren = new ArrayList<>();
 
-		for (R rel : treeGetChildRelationships()) {
+		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel : treeGetChildRelationships()) {
 
-			abstractChildren.add(rel.getTargetNode());
+			abstractChildren.add((T)rel.getTargetNode());
 		}
 
 		return abstractChildren;
@@ -261,7 +261,7 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 	}
 
 	@Override
-	public List<R> treeGetChildRelationships() {
+	public <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> List<R> treeGetChildRelationships() {
 
 		// fetch all relationships
 		List<R> childRels = Iterables.toList(getOutgoingRelationships(getChildLinkType()));
@@ -299,15 +299,15 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 	 */
 	private void ensureCorrectChildPositions() throws FrameworkException {
 
-		List<R> childRels = treeGetChildRelationships();
+		final List<Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> childRels = treeGetChildRelationships();
 		int position = 0;
 
-		for (R childRel : childRels) {
+		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> childRel : childRels) {
 			childRel.setProperty(AbstractChildren.position, position++);
 		}
 	}
 
-	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
+	private <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -337,8 +337,12 @@ public abstract class LinkedTreeNodeImpl<R extends AbstractChildren<T, T>, S ext
 		for (final T child : childNodes) {
 
 			allChildNodes.add(child);
-			allChildNodes.addAll(child.getAllChildNodes());
 
+			if (child instanceof LinkedTreeNode) {
+
+				final LinkedTreeNode treeNode = (LinkedTreeNode)child;
+				allChildNodes.addAll(treeNode.getAllChildNodes());
+			}
 		}
 
 		return allChildNodes;

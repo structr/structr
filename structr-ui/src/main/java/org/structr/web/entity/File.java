@@ -18,19 +18,36 @@
  */
 package org.structr.web.entity;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import org.apache.commons.io.IOUtils;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
+import org.structr.schema.json.JsonMethod;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
+import org.structr.web.common.ClosingFileOutputStream;
+import org.structr.web.common.FileHelper;
+import org.structr.web.common.RenderContext;
+import static org.structr.web.entity.ContentContainer.path;
 
 /**
  *
@@ -58,6 +75,33 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addLongProperty("size", PropertyView.Public).setIndexed(true);
 		type.addLongProperty("checksum", PropertyView.Public).setIndexed(true);
+
+		type.addPropertyGetter("relativeFilePath", String.class);
+		type.addPropertyGetter("cacheForSeconds", Integer.class);
+		type.addPropertyGetter("checksum", Long.class);
+
+		type.addPropertyGetter("version", Integer.class);
+		type.addPropertyGetter("contentType", String.class);
+		type.addPropertyGetter("extractedContent", String.class);
+
+		type.overrideMethod("isTemplate",             false, "return getProperty(isTemplateProperty);");
+		type.overrideMethod("isMounted",              false, "return " + File.class.getName() + ".isMounted(this);");
+		type.overrideMethod("setVersion",             false, "setProperty(versionProperty, arg0);");
+		type.overrideMethod("increaseVersion",        false, File.class.getName() + ".increaseVersion(this);");
+		type.overrideMethod("notifyUploadCompletion", false, File.class.getName() + ".notifyUploadCompletion(this);");
+		type.overrideMethod("getFileOnDisk",          false, File.class.getName() + ".getFileOnDisk(this);");
+		type.overrideMethod("getInputStream",         false, File.class.getName() + ".getInputStream(this);");
+		type.overrideMethod("getSearchContext",       false, File.class.getName() + ".getSearchContext(this, arg0, arg1);");
+
+		final JsonMethod getOutputStream1 = type.addMethod("getOutputStream");
+		getOutputStream1.setSource(File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
+		getOutputStream1.addParameter("notifyIndexerAfterClosing", "boolean");
+		getOutputStream1.addParameter("append", "boolean");
+		getOutputStream1.setReturnType(FileOutputStream.class.getName());
+
+		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
+		getOutputStream2.setSource(File.class.getName() + ".getOutputStream(this, true, false);");
+		getOutputStream2.setReturnType(FileOutputStream.class.getName());
 	}}
 
 	FileOutputStream getOutputStream();
@@ -65,13 +109,15 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	java.io.File getFileOnDisk();
 
-	boolean isImage();
-	boolean isThumbnail();
+	boolean isTemplate();
 
 	void notifyUploadCompletion();
 	void increaseVersion() throws FrameworkException;
 
 	String getRelativeFilePath();
+
+	void setVersion(final int version);
+	Integer getVersion();
 
 	Integer getCacheForSeconds();
 
@@ -84,6 +130,151 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
 			: null;
 
+	}
+
+	public static void increaseVersion(final File thisFile) throws FrameworkException {
+
+		final Integer _version = thisFile.getVersion();
+
+		thisFile.unlockSystemPropertiesOnce();
+		if (_version == null) {
+
+			thisFile.setVersion(1);
+
+		} else {
+
+			thisFile.setVersion(_version + 1);
+		}
+	}
+
+	public static void notifyUploadCompletion(final File thisFile) {
+
+		try {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				synchronized (tx) {
+
+					FileHelper.updateMetadata(thisFile, new PropertyMap());
+
+					tx.success();
+				}
+			}
+
+			final FulltextIndexer indexer = StructrApp.getInstance(thisFile.getSecurityContext()).getFulltextIndexer();
+			indexer.addToFulltextIndex(thisFile);
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Unable to index " + thisFile, fex);
+		}
+	}
+
+	public static InputStream getInputStream(final File thisFile) {
+
+		final java.io.File fileOnDisk         = thisFile.getFileOnDisk();
+		final SecurityContext securityContext = thisFile.getSecurityContext();
+
+		try {
+
+			final FileInputStream fis = new FileInputStream(fileOnDisk);
+
+			if (thisFile.isTemplate()) {
+
+				boolean editModeActive = false;
+				if (securityContext.getRequest() != null) {
+
+					final String editParameter = securityContext.getRequest().getParameter("edit");
+					if (editParameter != null) {
+
+						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
+					}
+				}
+
+				if (!editModeActive) {
+
+					final String content = IOUtils.toString(fis, "UTF-8");
+
+					try {
+
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content);
+						return IOUtils.toInputStream(result, "UTF-8");
+
+					} catch (Throwable t) {
+
+						logger.warn("Scripting error in {}:\n{}", getUuid(), content, t);
+					}
+				}
+			}
+
+			return fis;
+
+		} catch (IOException ex) {
+			logger.warn("File not found: {}", fileOnDisk);
+		}
+
+		return null;
+	}
+
+	public static FileOutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
+
+		if (thisFile.isTemplate()) {
+
+			logger.error("File is in template mode, no write access allowed: {}", path);
+			return null;
+		}
+
+		try {
+
+			// Return file output stream and save checksum and size after closing
+			return new ClosingFileOutputStream(thisFile, append, notifyIndexerAfterClosing);
+
+		} catch (IOException e) {
+			logger.error("Unable to open file output stream for {}: {}", path, e.getMessage());
+		}
+
+		return null;
+
+	}
+
+	public static java.io.File getFileOnDisk(final File thisFile) {
+		return File.getFileOnDisk(thisFile, true);
+	}
+
+	public static java.io.File getFileOnDisk(final File thisFile, final boolean create) {
+
+		final Folder parentFolder = thisFile.getParent();
+		if (parentFolder != null) {
+
+			return Folder.getFileOnDisk(parentFolder, thisFile, "", create);
+
+		} else {
+
+			return AbstractFile.defaultGetFileOnDisk(thisFile, create);
+		}
+	}
+
+	public static boolean isMounted(final File thisFile) {
+
+		final Folder parent = thisFile.getParent();
+		if (parent != null) {
+
+			return parent.isMounted();
+		}
+
+		return false;
+	}
+
+	public static GraphObject getSearchContext(final File thisFile, final String searchTerm, final int contextLength) {
+
+		final String text = thisFile.getExtractedContent();
+		if (text != null) {
+
+			final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
+		}
+
+		return null;
 	}
 
 	/* TODO:
@@ -246,43 +437,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return FileHelper.getFolderPath(this);
 	}
 
-	@Export
-	@Override
-	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {
-
-		final String text = getProperty(extractedContent);
-		if (text != null) {
-
-			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			return indexer.getContextObject(searchTerm, text, contextLength);
-		}
-
-		return null;
-	}
-
-	public void notifyUploadCompletion() {
-
-		try {
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				synchronized (tx) {
-
-					FileHelper.updateMetadata(this, new PropertyMap());
-
-					tx.success();
-				}
-			}
-
-			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			indexer.addToFulltextIndex(this);
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("Unable to index " + this, fex);
-		}
-	}
-
 	public String getRelativeFilePath() {
 
 		return getProperty(FileBase.relativeFilePath);
@@ -319,21 +473,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return FileUtils.byteCountToDisplaySize(getSize());
 
-	}
-
-	public void increaseVersion() throws FrameworkException {
-
-		final Integer _version = getProperty(FileBase.version);
-
-		unlockSystemPropertiesOnce();
-		if (_version == null) {
-
-			setProperties(securityContext, new PropertyMap(FileBase.version, 1));
-
-		} else {
-
-			setProperties(securityContext, new PropertyMap(FileBase.version, _version + 1));
-		}
 	}
 
 	public void triggerMinificationIfNeeded(ModificationQueue modificationQueue) throws FrameworkException {

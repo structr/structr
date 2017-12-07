@@ -92,6 +92,7 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.parser.BooleanArrayPropertyParser;
 import org.structr.schema.parser.BooleanPropertyParser;
 import org.structr.schema.parser.CountPropertyParser;
+import org.structr.schema.parser.CustomPropertyParser;
 import org.structr.schema.parser.CypherPropertyParser;
 import org.structr.schema.parser.DatePropertyParser;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
@@ -126,7 +127,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail, Password;
+		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail, Password, Custom;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -147,6 +148,7 @@ public class SchemaHelper {
 		parserMap.put(Type.Integer, IntPropertyParser.class);
 		parserMap.put(Type.String, StringPropertySourceGenerator.class);
 		parserMap.put(Type.Double, DoublePropertyParser.class);
+		parserMap.put(Type.Custom, CustomPropertyParser.class);
 		parserMap.put(Type.Notion, NotionPropertyParser.class);
 		parserMap.put(Type.Cypher, CypherPropertyParser.class);
 		parserMap.put(Type.Long, LongPropertyParser.class);
@@ -1630,6 +1632,17 @@ public class SchemaHelper {
 		return false;
 	}
 
+	public static Class classForName(final String fqcn) {
+
+		try {
+
+			return Class.forName(StringUtils.substringBefore(fqcn, "<"));
+
+		} catch (Throwable t) {}
+
+		return null;
+	}
+
 	private static class ReverseTypeComparator implements Comparator<Type> {
 
 		@Override
@@ -1644,17 +1657,6 @@ public class SchemaHelper {
 
 	private static String uiViewResourceSignature(final String signature) {
 		return signature + "/_Ui";
-	}
-
-	private static Class classForName(final String fqcn) {
-
-		try {
-
-			return Class.forName(fqcn);
-
-		} catch (Throwable t) {}
-
-		return null;
 	}
 
 	private static boolean hasMethod(final Class type, final String name, final Class... parameters) {

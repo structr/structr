@@ -53,6 +53,11 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	@Override
+	public String toString() {
+		return type + " " + name;
+	}
+
+	@Override
 	public int hashCode() {
 		return name.hashCode();
 	}

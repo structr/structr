@@ -40,12 +40,17 @@ public interface Favoritable extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema        = SchemaService.getDynamicSchema();
+		final JsonObjectType principal = (JsonObjectType)schema.addType("Principal");
 		final JsonObjectType type      = schema.addType("Favoritable");
 
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
 
 		type.addBooleanProperty("isFavoritable").addTransformer(ConstantBooleanTrue.class.getName());
+
+		if (principal != null) {
+			principal.relate(type, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
+		}
 	}}
 
 

@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import java.net.URI;
 import org.structr.api.config.Settings;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.KeyAndClass;
@@ -48,6 +49,7 @@ public interface User extends Principal {
 		final JsonObjectType user  = schema.addType("User");
 
 		user.setExtends(schema.getType("Principal"));
+		user.setImplements(URI.create("https://structr.org/v1.1/definitions/User"));
 
 		user.addStringProperty("confirmationKey").setIndexed(true);
 		user.addStringProperty("twitterName").setIndexed(true);

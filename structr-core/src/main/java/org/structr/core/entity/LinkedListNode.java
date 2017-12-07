@@ -19,19 +19,17 @@
 package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.relationship.AbstractListSiblings;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 
 /**
- * Abstract base class for a multi-dimensional linked list data structure.
+ * Abstract base class for a linked list data structure.
  *
- * @param <R>
  * @param <T>
  */
-public interface LinkedListNode<R extends AbstractListSiblings<T, T>, T extends LinkedListNode> extends NodeInterface {
+public interface LinkedListNode<T extends NodeInterface> extends NodeInterface {
 
-	public Class<R> getSiblingLinkType();
+	public <R extends Relation<T, T, OneStartpoint<T>, OneEndpoint<T>>> Class<R> getSiblingLinkType();
 
 	public  T listGetPrevious(final T currentElement);
 	public T listGetNext(final T currentElement);

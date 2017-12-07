@@ -68,6 +68,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             propertyType      = new StringProperty("propertyType");
 	public static final Property<String>             contentType       = new StringProperty("contentType");
 	public static final Property<String>             dbName            = new StringProperty("dbName");
+	public static final Property<String>             fqcn              = new StringProperty("fqcn");
 	public static final Property<String>             format            = new StringProperty("format");
 	public static final Property<Boolean>            notNull           = new BooleanProperty("notNull");
 	public static final Property<Boolean>            compound          = new BooleanProperty("compound");
@@ -275,7 +276,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(isDefaultInPublic, _contentHash);
 		_contentHash = addContentHash(readFunction,      _contentHash);
 		_contentHash = addContentHash(writeFunction,     _contentHash);
-		_contentHash = addContentHash(transformers,    _contentHash);
+		_contentHash = addContentHash(transformers,      _contentHash);
 		_contentHash = addContentHash(validators,        _contentHash);
 
 		return Integer.toHexString(_contentHash);
@@ -406,6 +407,14 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	@Override
 	public String[] getValidators() {
 		return getProperty(SchemaProperty.validators);
+	}
+
+	public String getFqcn() {
+		return getProperty(fqcn);
+	}
+
+	public void setFqcn(final String value) throws FrameworkException {
+		setProperty(fqcn, value);
 	}
 
 	// ----- private methods -----

@@ -53,6 +53,7 @@ public interface JsonSchema {
 	public static final String KEY_TITLE                   = "title";
 	public static final String KEY_DESCRIPTION             = "description";
 	public static final String KEY_ENUM                    = "enum";
+	public static final String KEY_FQCN                    = "fqcn";
 	public static final String KEY_FORMAT                  = "format";
 	public static final String KEY_READ_ONLY               = "readOnly";
 	public static final String KEY_VALIDATORS              = "validators";

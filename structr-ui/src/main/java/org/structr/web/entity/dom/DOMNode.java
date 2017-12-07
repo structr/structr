@@ -76,7 +76,7 @@ import org.w3c.dom.Text;
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
  */
-public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode {
+public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode> {
 
 	static class Impl { static {
 
@@ -86,7 +86,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
-		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl"));
+		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.dom.DOMNode"));
 
 		type.addStringProperty("dataKey").setIndexed(true);
 		type.addStringProperty("cypherQuery");
@@ -215,9 +215,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("renderSharedComponentConfiguration",  false, DOMNode.class.getName() + ".renderSharedComponentConfiguration(this, arg0, arg1);");
 		type.overrideMethod("getDataPropertyKeys",                 false, "return " + DOMNode.class.getName() + ".getDataPropertyKeys(this);");
 		type.overrideMethod("getAllChildNodes",                    false, "return " + DOMNode.class.getName() + ".getAllChildNodes(this);");
-
-
-		type.addMethod("getIdHash").setSource("return getUuid();").setReturnType("String");
 
 		type.addMethod("setOwnerDocument")
 			.setSource("setProperty(ownerDocumentProperty, (Page)ownerDocument);")
