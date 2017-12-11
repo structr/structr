@@ -31,7 +31,7 @@ import org.structr.schema.action.Actions;
 
 public class TranslationModule implements StructrModule {
 
-	public static final Setting<String> TranslationAPIKey      = new StringSetting(Settings.applicationGroup,   "Translation Module", "translation.google.apikey", "");
+	public static final Setting<String> TranslationAPIKey      = new StringSetting(Settings.miscGroup,   "Translation Module", "translation.google.apikey", "");
 
 
 	@Override

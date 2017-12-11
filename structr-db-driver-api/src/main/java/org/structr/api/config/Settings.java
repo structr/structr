@@ -508,6 +508,14 @@ public class Settings {
 	}
 
 	static void registerSetting(final Setting setting) {
+
+		final Setting oldSetting = settings.get(setting.getKey());
+
+		if (oldSetting != null) {
+			setting.setValue(oldSetting.getValue());
+			oldSetting.unregister();
+		}
+
 		settings.put(setting.getKey(), setting);
 	}
 

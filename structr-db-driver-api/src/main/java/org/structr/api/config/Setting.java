@@ -41,7 +41,7 @@ public abstract class Setting<T> {
 
 		this(group, categoryName, key, value, null);
 	}
-	
+
 	public Setting(final SettingsGroup group, final String categoryName, final String key, final T value, final String comment) {
 
 		this.key          = key;
@@ -62,7 +62,7 @@ public abstract class Setting<T> {
 	public String getCategory() {
 		return category;
 	}
-	
+
 	public String getComment() {
 		return comment;
 	}
