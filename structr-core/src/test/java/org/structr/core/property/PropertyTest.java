@@ -1521,7 +1521,7 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fail("Error in test");
 		}
 	}
 
@@ -1552,11 +1552,206 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fail("Error in test");
 		}
 
 	}
 
+	@Test
+	public void testMultilineStringPropertySearchOnNode() {
+
+		try {
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<String> key = TestFour.stringProperty;
+
+			properties.put(key, "test\nabc");
+
+			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals("test\nabc", testEntity.getProperty(key));
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test\nabc").getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Error in test");
+		}
+
+	}
+	
+	@Test
+	public void testMultilineStringPropertyExactSubstringSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<String> key = TestFour.stringProperty;
+
+			properties.put(key, "test\nabc");
+
+			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals("test\nabc", testEntity.getProperty(key));
+
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test").getResult();
+
+				assertEquals(0, result.size());
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Error in test");
+		}
+
+	}
+	
+	@Test
+	public void testMultilineStringPropertyInexactSubstringSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<String> key = TestFour.stringProperty;
+
+			properties.put(key, "xyz\ntest\nabc");
+
+			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals("xyz\ntest\nabc", testEntity.getProperty(key));
+
+				// inexact searc
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test", false).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Error in test");
+		}
+
+	}
+
+	@Test
+	public void testMultilineWithLinefeedStringPropertyInexactSubstringSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<String> key = TestFour.stringProperty;
+
+			properties.put(key, "xyz\r\ntest\r\nabc");
+
+			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals("xyz\r\ntest\r\nabc", testEntity.getProperty(key));
+
+				// inexact searc
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test", false).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Error in test");
+		}
+
+	}
+
+	@Test
+	public void testCaseInsensitiveMultilineStringPropertyInexactSubstringSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<String> key = TestFour.stringProperty;
+
+			properties.put(key, "{\n return sollwegRuleManager;\n}");
+
+			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals("{\n return sollwegRuleManager;\n}", testEntity.getProperty(key));
+
+				// inexact searc
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "sollweg", false).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Error in test");
+		}
+
+	}
+
+	@Test
+	public void testCaseInsensitiveMultilineWithLinefeedStringPropertyInexactSubstringSearchOnNode() {
+
+		try {
+
+			final PropertyMap properties  = new PropertyMap();
+			final PropertyKey<String> key = TestFour.stringProperty;
+
+			properties.put(key, "xyz\r\nTeSt\r\nabc");
+
+			final TestFour testEntity     = createTestNode(TestFour.class, properties);
+
+			assertNotNull(testEntity);
+
+			try (final Tx tx = app.tx()) {
+
+				// check value from database
+				assertEquals("xyz\r\nTeSt\r\nabc", testEntity.getProperty(key));
+
+				// inexact searc
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "test", false).getResult();
+
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
+			}
+
+		} catch (FrameworkException fex) {
+
+			fail("Error in test");
+		}
+
+	}
+	
 	@Test
 	public void testSimpleStringPropertySearchOnRelationship() {
 
@@ -1586,13 +1781,13 @@ public class PropertyTest extends StructrTest {
 
 				Result<OneFourOneToOne> result = app.relationshipQuery(OneFourOneToOne.class).and(key, "test").getResult();
 
-				assertEquals(result.size(), 1);
-				assertEquals(result.get(0), testEntity);
+				assertEquals(1, result.size());
+				assertEquals(testEntity, result.get(0));
 			}
 
 		} catch (FrameworkException fex) {
 
-			fail("Unable to store array");
+			fail("Error in test");
 		}
 	}
 

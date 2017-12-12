@@ -218,12 +218,21 @@ public class AdvancedCypherQuery implements PageableQuery {
 	}
 
 	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty) {
+		addSimpleParameter(key, operator, value, isProperty, false);
+	}
+
+	public void addSimpleParameter(final String key, final String operator, final Object value, final boolean isProperty, final boolean caseInsensitive) {
 
 		if (value != null) {
 
 			final String paramKey = "param" + count++;
 
 			if (isProperty) {
+				
+				if (caseInsensitive) {
+					buffer.append("toLower(");
+				}
+				
 				buffer.append("n.`");
 			}
 
@@ -231,7 +240,11 @@ public class AdvancedCypherQuery implements PageableQuery {
 
 			if (isProperty) {
 
-				buffer.append("` ");
+				if (caseInsensitive) {
+					buffer.append("`) ");
+				} else {
+					buffer.append("` ");
+				}
 
 			} else {
 
@@ -243,7 +256,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 			buffer.append(paramKey);
 			buffer.append("}");
 
-			parameters.put(paramKey, value);
+			parameters.put(paramKey, caseInsensitive && value instanceof String ? ((String) value).toLowerCase() : value);
 
 		} else {
 

@@ -343,8 +343,8 @@ public class SearchAndSortingTest extends StructrTest {
 		testResults.put("ABCDE{2345",  1);
 		testResults.put("ABCDE}2345",  1);
 		testResults.put("ABCDE~2345",  1);
-		testResults.put("ABCDE*2345", 21);
-		testResults.put("ABCDE?2345", 21);
+		testResults.put("ABCDE*2345",  1);
+		testResults.put("ABCDE?2345",  1);
 		testResults.put("ABCDE|2345",  1);
 		testResults.put("ABCDE&2345",  1);
 		testResults.put("ABCDE;2345",  1);
