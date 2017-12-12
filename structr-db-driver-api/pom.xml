@@ -13,18 +13,18 @@
 	<packaging>jar</packaging>
 	<version>2.3-SNAPSHOT</version>
 	<name>Structr Database Driver API</name>
+	<url>http://structr.org</url>
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
 		<developer>
 			<name>Axel Morgner</name>
-			<email>am@structr.org</email>
+			<email>axel.morgner@structr.com</email>
 		</developer>
 		<developer>
 			<name>Christian Morgner</name>
-			<email>cm@structr.org</email>
+			<email>christian.morgner@structr.com</email>
 		</developer>
 	</developers>
-	<url>http://structr.org</url>
 
 	<properties>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
@@ -55,7 +55,6 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
 			<optional>true</optional>
 		</dependency>
 	</dependencies>
@@ -145,7 +144,19 @@
 		<connection>scm:git:https://github.com:structr/structr.git</connection>
 		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
 	</scm>
-	<distributionManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <debug>true</debug>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <distributionManagement>
 		<repository>
 			<id>sonatype-nexus-staging</id>
 			<name>Maven Central Staging</name>
