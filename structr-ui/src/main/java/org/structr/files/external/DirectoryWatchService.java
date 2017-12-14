@@ -56,12 +56,12 @@ import org.structr.web.entity.Folder;
  */
 public class DirectoryWatchService extends Thread implements RunnableService {
 
-	private static final Logger logger             = LoggerFactory.getLogger(DirectoryWatchService.class);
-	private final Map<String, String> watchedRoots = new LinkedHashMap<>();
-	private final Map<WatchKey, Path> watchKeyMap  = new LinkedHashMap<>();
-	private WatchEventListener listener            = null;
-	private WatchService watchService              = null;
-	private boolean running                        = false;
+	private static final Logger logger                 = LoggerFactory.getLogger(DirectoryWatchService.class);
+	private final Map<String, FolderInfo> watchedRoots = new LinkedHashMap<>();
+	private final Map<WatchKey, Path> watchKeyMap      = new LinkedHashMap<>();
+	private WatchEventListener listener                = null;
+	private WatchService watchService                  = null;
+	private boolean running                            = false;
 
 	public DirectoryWatchService() {
 		super("DirectoryWatchService");
@@ -69,27 +69,29 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public void mountFolder(final Folder folder) {
 
-		final String mountTarget = folder.getProperty(Folder.mountTarget);
-		final String folderPath  = folder.getProperty(Folder.path);
-		final String uuid        = folder.getUuid();
+		final Integer scanInterval = folder.getProperty(Folder.mountScanInterval);
+		final String mountTarget   = folder.getProperty(Folder.mountTarget);
+		final String folderPath    = folder.getProperty(Folder.path);
+		final String uuid          = folder.getUuid();
 
 		synchronized (watchedRoots) {
 
-			final String root = watchedRoots.get(uuid);
-
-			if (root == null) {
+			final FolderInfo info = watchedRoots.get(uuid);
+			if (info == null) {
 
 				// mount
 				if (mountTarget != null) {
 
 					logger.info("Mounting {} to {}..", mountTarget, folderPath);
 
-					watchedRoots.put(uuid, mountTarget);
+					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
 
 					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget)).start();
 				}
 
 			} else {
+
+				final String root = info.getRoot();
 
 				if (mountTarget == null) {
 
@@ -101,9 +103,16 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					logger.info("Mounting {} to {}..", mountTarget, folderPath);
 
-					watchedRoots.put(uuid, mountTarget);
+					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
 
 					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget)).start();
+
+				} else {
+
+					// update values of already mounted folder?
+					logger.info("Updating attributes of mounted folder {}..", folderPath);
+
+					info.setScanInterval(scanInterval);
 				}
 			}
 		}
@@ -113,10 +122,10 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		synchronized (watchedRoots) {
 
-			final String uuid = folder.getUuid();
-			final String root = watchedRoots.get(uuid);
+			final String uuid     = folder.getUuid();
+			final FolderInfo info = watchedRoots.get(uuid);
 
-			if (root != null) {
+			if (info != null) {
 
 				watchedRoots.remove(uuid);
 			}
@@ -127,8 +136,22 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	@Override
 	public void run() {
 
-
 		while (running) {
+
+			synchronized (watchedRoots) {
+
+				for (final FolderInfo info : watchedRoots.values()) {
+
+					if (info.shouldScan()) {
+
+						// update last scanned timestamp
+						info.setLastScanned(System.currentTimeMillis());
+
+						// start a new scan thread
+						new Thread(new ScanWorker(false, Paths.get(info.getRoot()), info.getRoot())).start();
+					}
+				}
+			}
 
 			try {
 
@@ -456,6 +479,52 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				logger.warn("Unable to mount {}, folder was not created or mount target was not set", path);
 			}
+		}
+	}
+
+	// ----- nested classes -----
+	private static final class FolderInfo {
+
+		private long lastScanned  = 0L;
+		private long scanInterval = 0L;
+		private String root       = null;
+		private String uuid       = null;
+
+		public FolderInfo(final String uuid, final String root, final Integer scanInterval) {
+
+			this.lastScanned  = System.currentTimeMillis();
+			this.root         = root;
+			this.uuid         = uuid;
+
+			setScanInterval(scanInterval);
+		}
+
+		public String getUuid() {
+			return uuid;
+		}
+
+		public String getRoot() {
+			return root;
+		}
+
+		public long getScanInterval() {
+			return scanInterval;
+		}
+
+		public void setScanInterval(final Integer scanInterval) {
+			this.scanInterval = scanInterval != null ? scanInterval * 1000 : 0L;
+		}
+
+		public void setLastScanned(final long lastScanned) {
+			this.lastScanned = lastScanned;
+		}
+
+		public long getLastScanned() {
+			return lastScanned;
+		}
+
+		public boolean shouldScan() {
+			return scanInterval > 0 && System.currentTimeMillis() > (lastScanned + scanInterval);
 		}
 	}
 }

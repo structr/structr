@@ -39,12 +39,6 @@ import org.structr.web.entity.Folder;
 public class FileSyncWatchEventListener implements WatchEventListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileSyncWatchEventListener.class);
-	private App app                    = null;
-
-	public FileSyncWatchEventListener() {
-
-		this.app = StructrApp.getInstance();
-	}
 
 	@Override
 	public boolean onDiscover(final Path root, final Path context, final Path path) throws FrameworkException {
@@ -154,6 +148,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		final String fileName                    = relativePath.getFileName().toString();
 		final boolean isFile                     = !Files.isDirectory(fullPath);
 		final Class<? extends AbstractFile> type = isFile ? org.structr.dynamic.File.class : Folder.class;
+		final App app                            = StructrApp.getInstance();
 
 		AbstractFile file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(AbstractFile.parent, parentFolder).getFirst();
 		if (file == null && doCreate) {
@@ -184,13 +179,20 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 				final FileBase fileBase = (FileBase)file;
 
-				if (rootFolder != null && rootFolder.getProperty(Folder.mountFulltextIndexing)) {
+				if (rootFolder != null && rootFolder.getProperty(Folder.mountDoFulltextIndexing)) {
 					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(fileBase);
 				}
 
 				if (file != null) {
 					FileHelper.updateMetadata(fileBase);
 				}
+			}
+
+			if (file instanceof AbstractFile) {
+
+				final AbstractFile abstractFile = (AbstractFile)file;
+				
+				abstractFile.setProperty(AbstractFile.lastSeenMounted, System.currentTimeMillis());
 			}
 		}
 	}

@@ -32,7 +32,6 @@ import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.activation.DataSource;
 import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
@@ -116,11 +115,11 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<Boolean> isTemplate                             = new BooleanProperty("isTemplate");
 
 	public static final View publicView = new View(FileBase.class, PropertyView.Public,
-		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable, isTemplate, isExternal
+		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable, isTemplate, fileModificationDate
 	);
 
 	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
-		type, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate, isExternal
+		type, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
 	);
 
 	@Override

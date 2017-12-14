@@ -79,8 +79,13 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 
 	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
-	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path, isExternal, isMounted);
-	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path, isExternal, isMounted);
+	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public,
+		path, isExternal, isMounted, lastSeenMounted
+	);
+
+	public static final View uiView = new View(AbstractFile.class, PropertyView.Ui,
+		path, isExternal, isMounted, lastSeenMounted
+	);
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
