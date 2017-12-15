@@ -78,6 +78,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	@Override
 	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+
+		createFolder(dir);
+
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -165,6 +168,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				final PropertyMap properties = getPropertiesForFileOrFolder(folder.getPath());
 				if (properties != null) {
 
+					folder.unlockSystemPropertiesOnce();
 					folder.setProperties(securityContext, properties);
 				}
 			}

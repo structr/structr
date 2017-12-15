@@ -1567,7 +1567,6 @@ public class DeploymentTest extends StructrUiTest {
 		}
 	}
 
-
 	@Test
 	public void test34WidgetWithTemplate() {
 
@@ -1847,6 +1846,46 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test39EmptyFolderInDeployment() {
+
+		final String folderPath = "/empty/folders/in/filesystem";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final Folder rootFolder = getRootFolder(folder);
+
+			Assert.assertNotNull("Root folder should not be null", rootFolder);
+
+			// root folder needs to have "includeInFrontendExport" set
+			rootFolder.setProperty(Folder.includeInFrontendExport, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		doImportExportRoundtrip(true, true, null);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = app.nodeQuery(Folder.class).andName("filesystem").getFirst();
+
+			Assert.assertNotNull("Invalid deployment result - empty folder from export was not imported!", folder);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
@@ -2060,7 +2099,7 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append(valueOrEmpty(node, DOMElement._fieldName));
 		buf.append(valueOrEmpty(node, DOMElement._hide));
 		buf.append(valueOrEmpty(node, DOMElement._rawValue));
-	
+
 		// Content
 		buf.append(valueOrEmpty(node, Content.contentType));
 		buf.append(valueOrEmpty(node, Content.content));
