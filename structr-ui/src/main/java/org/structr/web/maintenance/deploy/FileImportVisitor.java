@@ -79,7 +79,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
 
-		createFolder(dir);
+		if (!basePath.equals(dir)) {
+			createFolder(dir);
+		}
 
 		return FileVisitResult.CONTINUE;
 	}
