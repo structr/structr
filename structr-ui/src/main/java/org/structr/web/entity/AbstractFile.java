@@ -28,6 +28,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.property.PathProperty;
 
@@ -51,11 +52,6 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addBooleanProperty("hasParent").setIndexed(true);
 		type.addCustomProperty("path", PathProperty.class.getName()).setIndexed(true);
 
-		//type.addCustomProperty("nextSiblingId", EntityIdProperty.class.getName()).setIndexed(true).setFormat("nextSibling");
-		//type.addCustomProperty("childrenIds", CollectionIdProperty.class.getName()).setIndexed(true).setFormat("children");
-		//type.addCustomProperty("parentId", EntityIdProperty.class.getName()).setIndexed(true).setFormat("parent");
-
-		//type.addPropertyGetter("parentId", String.class);
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
 
@@ -68,8 +64,11 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 			.addException(FrameworkException.class.getName())
 			.addParameter("parent", "org.structr.web.entity.Folder");
 
-		folder.relate(type, "CONTAINS", Relation.Cardinality.OneToMany, "parent", "children");
-		type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
+		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Relation.Cardinality.OneToMany, "parent", "children");
+		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
+
+		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
+		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());
 	}}
 
 	String getPath();

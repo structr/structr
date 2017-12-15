@@ -20,6 +20,7 @@ package org.structr.schema.export;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.UrlUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -69,6 +72,8 @@ import org.structr.schema.json.JsonType;
  * @param <T>
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
@@ -529,6 +534,22 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonReferenceProperty addIdReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views) {
+
+		final String reference = root.toJsonPointer(referencedProperty.getId());
+		final String refType   = referencedProperty.getType();
+		final String refName   = referencedProperty.getName();
+
+		final StructrReferenceProperty ref = new IdNotionReferenceProperty(this, name, reference, refType, refName);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(ref);
+
+		return ref;
+	}
+
+	@Override
 	public int compareTo(final JsonType o) {
 		return getName().compareTo(o.getName());
 	}
@@ -877,7 +898,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// implements
 		if (!implementedInterfaces.isEmpty()) {
 
-			final StringBuilder list = new StringBuilder();
+			final Set<String> interfaces = new LinkedHashSet<>();
 
 			for (final URI implementedInterface : implementedInterfaces) {
 
@@ -888,20 +909,32 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final JsonType jsonType     = (JsonType)def;
 					final String superclassName = "org.structr.dynamic." + jsonType.getName();
 
-					schemaNode.setProperty(SchemaNode.extendsClass, superclassName);
+					if (jsonType.isInterface()) {
+
+						interfaces.add(superclassName);
+
+					} else {
+
+						schemaNode.setProperty(SchemaNode.extendsClass, superclassName);
+					}
 
 				} else {
 
 					final Class superclass = StructrApp.resolveSchemaId(implementedInterface);
 					if (superclass != null) {
 
-						list.append(superclass.getName());
-						list.append(", ");
+						interfaces.add(superclass.getName());
+
+					} else {
+
+						logger.warn("Unable to resolve built-in type {} against Structr schema", implementedInterface);
+
+						StructrApp.resolveSchemaId(implementedInterface);
 					}
 				}
 			}
 
-			schemaNode.setProperty(SchemaNode.implementsInterfaces, list.toString());
+			schemaNode.setProperty(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
 		}
 
 		schemaNode.setProperty(SchemaNode.isInterface, isInterface);

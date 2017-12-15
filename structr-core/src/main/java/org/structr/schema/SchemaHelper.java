@@ -18,8 +18,6 @@
  */
 package org.structr.schema;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,7 +35,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import javatools.parsers.PlingStemmer;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +96,7 @@ import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.EnumPropertyParser;
 import org.structr.schema.parser.FunctionPropertyParser;
+import org.structr.schema.parser.IdNotionPropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
 import org.structr.schema.parser.IntegerArrayPropertyParser;
 import org.structr.schema.parser.JoinPropertyParser;
@@ -127,7 +125,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, Cypher, Join, Thumbnail, Password, Custom;
+		String, StringArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -144,6 +142,7 @@ public class SchemaHelper {
 		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
+		parserMap.put(Type.IdNotion, IdNotionPropertyParser.class);
 		parserMap.put(Type.Boolean, BooleanPropertyParser.class);
 		parserMap.put(Type.Integer, IntPropertyParser.class);
 		parserMap.put(Type.String, StringPropertySourceGenerator.class);
@@ -508,7 +507,7 @@ public class SchemaHelper {
 		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
 		final Set<Validator> validators                        = new LinkedHashSet<>();
-		final Set<Class> implementedInterfaces                 = new LinkedHashSet<>();
+		final Set<String> implementedInterfaces                = new LinkedHashSet<>();
 		final List<String> importStatements                    = new LinkedList<>();
 		final Set<String> enums                                = new LinkedHashSet<>();
 		final StringBuilder src                                = new StringBuilder();
@@ -530,10 +529,7 @@ public class SchemaHelper {
 		}
 
 		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
-		if (!SchemaHelper.importMixins(schemaNode, implementedInterfaces, importStatements, mixinCodeBuffer)) {
-			logger.warn("Dynamic type {} cannot be used, mixin type not defined.", schemaNode.getName());
-			return null;
-		}
+		SchemaHelper.collectInterfaces(schemaNode, implementedInterfaces);
 
 		// package name
 		src.append("package org.structr.dynamic;\n\n");
@@ -551,7 +547,7 @@ public class SchemaHelper {
 			if (!implementedInterfaces.isEmpty()) {
 
 				src.append(" extends ");
-				src.append(StringUtils.join(implementedInterfaces.stream().map(element -> element.getName()).iterator(), ", "));
+				src.append(StringUtils.join(implementedInterfaces, ", "));
 			}
 
 		} else {
@@ -572,7 +568,7 @@ public class SchemaHelper {
 			if (!implementedInterfaces.isEmpty()) {
 
 				src.append(" implements ");
-				src.append(StringUtils.join(implementedInterfaces.stream().map(element -> element.getName()).iterator(), ", "));
+				src.append(StringUtils.join(implementedInterfaces, ", "));
 			}
 		}
 
@@ -688,7 +684,7 @@ public class SchemaHelper {
 			src.append("\t}\n");
 		}
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, implementedInterfaces, extendsAbstractNode, propertyValidators);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
 		SchemaHelper.formatSaveActions(schemaNode, src, saveActions, implementedInterfaces);
 
 		// insert dynamic code here
@@ -1102,7 +1098,7 @@ public class SchemaHelper {
 
 	}
 
-	public static boolean importMixins(final AbstractSchemaNode schemaInfo, final Set<Class> classes, final List<String> imports, final StringBuilder src) throws FrameworkException {
+	public static void collectInterfaces(final AbstractSchemaNode schemaInfo, final Set<String> interfaces) throws FrameworkException {
 
 		final String _implementsInterfaces = schemaInfo.getProperty(SchemaNode.implementsInterfaces);
 		if (StringUtils.isNotBlank(_implementsInterfaces)) {
@@ -1113,71 +1109,17 @@ public class SchemaHelper {
 				final String trimmed = part.trim();
 				if (StringUtils.isNotBlank(trimmed)) {
 
-					final Class type = SchemaHelper.classForName(trimmed);
-					if (type != null) {
-
-						classes.add(type);
-
-						// load mixin source code
-						final InputStream resource = type.getResourceAsStream("/" + type.getName().replace(".", "/") + "Mixin.java");
-						if (resource != null) {
-
-							boolean include = false;
-
-							try (final InputStream is = resource) {
-
-								for (final String line : IOUtils.readLines(is, "utf-8")) {
-
-									final String lowerLine = line.toLowerCase();
-
-									// start mixin code import
-									if (lowerLine.contains(EndStructrMixinComment)) {
-										include = false;
-									}
-
-									// include import statements
-									if (line.trim().startsWith(StructrImportPrefix)) {
-										imports.add(line);
-									}
-
-									if (include) {
-										src.append(line);
-										src.append("\n");
-									}
-
-									// end mixin code import
-									if (lowerLine.contains(BeginStructrMixinComment)) {
-
-										include = true;
-
-										src.append("\t// ----- dynamic code from ");
-										src.append(type.getSimpleName());
-										src.append("Mixin.java -----\n");
-									}
-								}
-
-							} catch (IOException ioex) {
-								ioex.printStackTrace();
-							}
-						}
-
-					} else {
-
-						// ignore type
-						return false;
-					}
+					interfaces.add(trimmed);
 				}
 			}
 		}
-
-		return true;
 	}
 
 	public static String cleanPropertyName(final String propertyName) {
 		return propertyName.replaceAll("[^\\w]+", "");
 	}
 
-	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<Class> implementedInterfaces, final boolean extendsAbstractNode, final List<String> propertyValidators) {
+	public static void formatValidators(final StringBuilder src, final Set<Validator> validators, final Set<String> compoundIndexKeys, final boolean extendsAbstractNode, final List<String> propertyValidators) {
 
 		if (!validators.isEmpty() || !compoundIndexKeys.isEmpty()) {
 
@@ -1206,7 +1148,7 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void formatSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions, final Set<Class> implementedInterfaces) {
+	public static void formatSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
 		// save actions..
 		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
@@ -1334,7 +1276,7 @@ public class SchemaHelper {
 
 	}
 
-	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList, final Set<Class> implementedInterfaces) {
+	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList, final Set<String> implementedInterfaces) {
 
 		src.append("\n\t@Override\n");
 		src.append("\tpublic void ");
@@ -1348,17 +1290,21 @@ public class SchemaHelper {
 		src.append(type.getParameters());
 		src.append(");\n\n");
 
-		for (final Class iface : implementedInterfaces) {
+		for (final String interfaceName : implementedInterfaces) {
 
-			if (hasMethod(iface, type.getMethod(), type.getParameterTypes())) {
+			final Class iface = classForName(interfaceName);
+			if (iface != null) {
 
-				src.append("\t\t");
-				src.append(iface.getName());
-				src.append(".super.");
-				src.append(type.getMethod());
-				src.append("(");
-				src.append(type.getParameters());
-				src.append(");\n");
+				if (hasMethod(iface, type.getMethod(), type.getParameterTypes())) {
+
+					src.append("\t\t");
+					src.append(iface.getName());
+					src.append(".super.");
+					src.append(type.getMethod());
+					src.append("(");
+					src.append(type.getParameters());
+					src.append(");\n");
+				}
 			}
 		}
 

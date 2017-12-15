@@ -28,7 +28,6 @@ import org.structr.web.common.RenderContext;
 
 /**
  *
- *
  */
 public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
@@ -40,15 +39,13 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Comment"));
 		type.setExtends(URI.create("#/definitions/Content"));
 
-		type.overrideMethod("onCreation", true, "setProperty(contentTypeProperty, \"text/html\");");
-
-		// call static method below
-		type.overrideMethod("render", false, "org.structr.web.entity.dom.Comment.render(this, arg0, arg1);");
+		type.overrideMethod("onCreation", true,  "setProperty(contentTypeProperty, \"text/html\");");
+		type.overrideMethod("render",     false, Comment.class.getName() + ".render(this, arg0, arg1);");
 	}}
 
 	static void render(final Comment comment, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		final String _content = comment.getProperty("content");
+		final String _content = comment.getContent();
 
 		// Avoid rendering existing @structr comments since those comments are
 		// created depending on the visiblity settings of individual nodes. If
@@ -60,34 +57,4 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 		}
 
 	}
-
-	/*
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.isValid(errorBuffer)) {
-
-			setProperties(securityContext, new PropertyMap(Comment.contentType, "text/html"));
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public void render(RenderContext renderContext, int depth) throws FrameworkException {
-
-		final String _content = getProperty(content);
-
-		// Avoid rendering existing @structr comments since those comments are
-		// created depending on the visiblity settings of individual nodes. If
-		// those comments are rendered, there will be duplicates in a round-
-		// trip export/import test.
-		if (!_content.contains("@structr:")) {
-
-			renderContext.getBuffer().append("<!--").append(_content).append("-->");
-		}
-
-	}
-	*/
 }

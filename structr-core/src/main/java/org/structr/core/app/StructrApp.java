@@ -502,8 +502,10 @@ public class StructrApp implements App {
 	// ----- private static methods -----
 	private static void initializeSchemaIds() {
 
+		final Map<String, Class> interfaces = StructrApp.getConfiguration().getInterfaces();
+
 		// add Structr interfaces here
-		for (final Class type : StructrApp.getConfiguration().getInterfaces().values()) {
+		for (final Class type : interfaces.values()) {
 
 			// only register node types
 			if (type.isInterface() && NodeInterface.class.isAssignableFrom(type)) {

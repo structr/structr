@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -55,6 +56,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.GraphDataSource;
@@ -108,8 +110,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addBooleanProperty("hideOnIndex");
 		type.addBooleanProperty("hideOnDetail");
 		type.addBooleanProperty("dontCache", PropertyView.Public).setDefaultValue("false");
+		type.addBooleanProperty("isDOMNode",  PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
 
 		type.addIntegerProperty("domSortPosition");
+
 
 		type.addPropertyGetter("restQuery", String.class);
 		type.addPropertyGetter("cypherQuery", String.class);
@@ -126,6 +130,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("syncedNodes", List.class);
 		type.addPropertyGetter("ownerDocument", Page.class);
 		type.addPropertyGetter("sharedComponent", DOMNode.class);
+		type.addPropertyGetter("sharedComponentConfiguration", String.class);
+
 
 		type.overrideMethod("getSiblingLinkType",          false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
 		type.overrideMethod("getChildLinkType",            false, "return DOMNodeCONTAINSDOMNode.class;");
@@ -213,6 +219,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("getLinkableInstructions",             false, DOMNode.class.getName() + ".getLinkableInstructions(this, arg0);");
 		type.overrideMethod("getContentInstructions",              false, DOMNode.class.getName() + ".getContentInstructions(this, arg0);");
 		type.overrideMethod("renderSharedComponentConfiguration",  false, DOMNode.class.getName() + ".renderSharedComponentConfiguration(this, arg0, arg1);");
+		type.overrideMethod("getPagePath",                         false, "return " + DOMNode.class.getName() + ".getPagePath(this);");
 		type.overrideMethod("getDataPropertyKeys",                 false, "return " + DOMNode.class.getName() + ".getDataPropertyKeys(this);");
 		type.overrideMethod("getAllChildNodes",                    false, "return " + DOMNode.class.getName() + ".getAllChildNodes(this);");
 
@@ -226,25 +233,15 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			.addException(FrameworkException.class.getName())
 			.addParameter("sharedComponent", "org.structr.web.entity.dom.DOMNode");
 
-		/*
-			public static final Property<List<DOMNode>> syncedNodes           = new EndNodes("syncedNodes", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
-			public static final Property<DOMNode> sharedComponent             = new StartNode("sharedComponent", Sync.class, new PropertyNotion(id)).category(PAGE_CATEGORY);
+		final JsonReferenceType siblings = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
+		final JsonReferenceType parent   = type.relate(type, "CONTAINS",              Cardinality.OneToMany, "parent",          "children");     // DOMChildren
+		final JsonReferenceType synced   = type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
+		final JsonReferenceType owner    = type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
 
-			public static final Property<DOMNode> parent                      = new StartNode<>("parent", DOMChildren.class).category(PAGE_CATEGORY);
-			public static final Property<String> parentId                     = new EntityIdProperty("parentId", parent).category(PAGE_CATEGORY);
-			public static final Property<List<DOMNode>> children              = new EndNodes<>("children", DOMChildren.class).category(PAGE_CATEGORY);
-			public static final Property<List<String>> childrenIds            = new CollectionIdProperty("childrenIds", children).category(PAGE_CATEGORY);
-
-			public static final Property<DOMNode> previousSibling             = new StartNode<>("previousSibling", DOMSiblings.class).category(PAGE_CATEGORY);
-			public static final Property<DOMNode> nextSibling                 = new EndNode<>("nextSibling", DOMSiblings.class).category(PAGE_CATEGORY);
-			public static final Property<String> nextSiblingId                = new EntityIdProperty("nextSiblingId", nextSibling).category(PAGE_CATEGORY);
-
-		*/
-
-		type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
-		type.relate(type, "CONTAINS",              Cardinality.OneToMany, "parent",          "children");     // DOMChildren
-		type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
-		type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
+		type.addIdReferenceProperty("parentId",      parent.getSourceProperty(),    PropertyView.Public);
+		type.addIdReferenceProperty("childrenIds",   parent.getTargetProperty(),    PropertyView.Public);
+		type.addIdReferenceProperty("pageId",        owner.getTargetProperty(),     PropertyView.Public);
+		type.addIdReferenceProperty("nextSiblingId", siblings.getTargetProperty(),  PropertyView.Public);
 	}}
 
 	// ----- error messages for DOMExceptions -----
@@ -326,6 +323,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	String getRestQuery();
 	String getXpathQuery();
 	String getFunctionQuery();
+
+	String getPagePath();
+	String getContextName();
+	String getSharedComponentConfiguration();
 
 	@Override
 	DOMNode getPreviousSibling();
@@ -2067,24 +2068,31 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	private String cachedPagePath = null;
 
-	public String getPagePath() {
+	*/
 
+	public static String getPagePath(final DOMNode thisNode) {
+
+		String cachedPagePath = (String)thisNode.getTemporaryStorage().get("cachedPagePath");
 		if (cachedPagePath == null) {
 
 			final StringBuilder buf = new StringBuilder();
-			DOMNode current         = this;
+			DOMNode current         = thisNode;
 
 			while (current != null) {
 
 				buf.insert(0, "/" + current.getContextName());
-				current = current.getProperty(DOMNode.parent);
+				current = current.getParent();
 			}
 
 			cachedPagePath = buf.toString();
+
+			thisNode.getTemporaryStorage().put("cachedPagePath", cachedPagePath);
 		}
 
 		return cachedPagePath;
 	}
+
+	/*
 
 	public void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
 

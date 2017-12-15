@@ -22,11 +22,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.IOUtils;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,9 +39,11 @@ import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
@@ -61,6 +67,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final JsonType type     = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
+		type.setImplements(URI.create("#/definitions/Linkable"));
+		type.setImplements(URI.create("#/definitions/Indexable"));
+		type.setImplements(URI.create("#/definitions/JavaScriptSource"));
+		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
 
 		type.addStringProperty("relativeFilePath", PropertyView.Public);
@@ -83,24 +93,50 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addPropertyGetter("version", Integer.class);
 		type.addPropertyGetter("contentType", String.class);
 		type.addPropertyGetter("extractedContent", String.class);
+		type.addPropertyGetter("basicAuthRealm", String.class);
+		type.addPropertyGetter("size", Long.class);
 
-		type.overrideMethod("isTemplate",             false, "return getProperty(isTemplateProperty);");
-		type.overrideMethod("isMounted",              false, "return " + File.class.getName() + ".isMounted(this);");
-		type.overrideMethod("setVersion",             false, "setProperty(versionProperty, arg0);");
-		type.overrideMethod("increaseVersion",        false, File.class.getName() + ".increaseVersion(this);");
-		type.overrideMethod("notifyUploadCompletion", false, File.class.getName() + ".notifyUploadCompletion(this);");
-		type.overrideMethod("getFileOnDisk",          false, File.class.getName() + ".getFileOnDisk(this);");
-		type.overrideMethod("getInputStream",         false, File.class.getName() + ".getInputStream(this);");
-		type.overrideMethod("getSearchContext",       false, File.class.getName() + ".getSearchContext(this, arg0, arg1);");
+		type.overrideMethod("isTemplate",               false, "return getProperty(isTemplateProperty);");
+		type.overrideMethod("isMounted",                false, "return " + File.class.getName() + ".isMounted(this);");
+		type.overrideMethod("setVersion",               false, "setProperty(versionProperty, arg0);").addException(FrameworkException.class.getName());
+		type.overrideMethod("increaseVersion",          false, File.class.getName() + ".increaseVersion(this);");
+		type.overrideMethod("notifyUploadCompletion",   false, File.class.getName() + ".notifyUploadCompletion(this);");
+		type.overrideMethod("getFileOnDisk",            false, "return " + File.class.getName() + ".getFileOnDisk(this);");
+		type.overrideMethod("getInputStream",           false, "return " + File.class.getName() + ".getInputStream(this);");
+		type.overrideMethod("getSearchContext",         false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1);");
+		type.overrideMethod("getJavascriptLibraryCode", false, "return " + File.class.getName() + ".getJavascriptLibraryCode(this);");
+		type.overrideMethod("getEnableBasicAuth",       false, "return getProperty(enableBasicAuthProperty);");
 
+		// Favoritable
+		type.overrideMethod("getContext",               false, "return getPath();");
+		type.overrideMethod("getFavoriteContent",       false, "return " + File.class.getName() + ".getFavoriteContent(this);");
+		type.overrideMethod("setFavoriteContent",       false, File.class.getName() + ".setFavoriteContent(this, arg0);");
+		type.overrideMethod("getFavoriteContentType",   false, "return getContentType();");
+
+
+		// CMIS support
+		type.overrideMethod("getCMISInfo",              false, "return this;");
+		type.overrideMethod("getBaseTypeId",            false, "return " + BaseTypeId.class.getName() + ".CMIS_DOCUMENT;");
+		type.overrideMethod("getFolderInfo",            false, "return null;");
+		type.overrideMethod("getDocumentInfo",          false, "return this;");
+		type.overrideMethod("getItemInfo",              false, "return null;");
+		type.overrideMethod("getRelationshipInfo",      false, "return null;");
+		type.overrideMethod("getPolicyInfo",            false, "return null;");
+		type.overrideMethod("getSecondaryInfo",         false, "return null;");
+		type.overrideMethod("getChangeToken",           false, "return null;");
+		type.overrideMethod("getParentId",              false, "return getProperty(parentIdProperty);");
+		type.overrideMethod("getAllowableActions",      false, "return new " + StructrFileActions.class.getName() + "(isImmutable());");
+		type.overrideMethod("isImmutable",              false, "return " + File.class.getName() + ".isImmutable(this);");
+
+		// overridden methods
 		final JsonMethod getOutputStream1 = type.addMethod("getOutputStream");
-		getOutputStream1.setSource(File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
+		getOutputStream1.setSource("return " + File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
 		getOutputStream1.addParameter("notifyIndexerAfterClosing", "boolean");
 		getOutputStream1.addParameter("append", "boolean");
 		getOutputStream1.setReturnType(FileOutputStream.class.getName());
 
 		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
-		getOutputStream2.setSource(File.class.getName() + ".getOutputStream(this, true, false);");
+		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
 		getOutputStream2.setReturnType(FileOutputStream.class.getName());
 	}}
 
@@ -116,7 +152,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	String getRelativeFilePath();
 
-	void setVersion(final int version);
+	void setVersion(final int version) throws FrameworkException;
 	Integer getVersion();
 
 	Integer getCacheForSeconds();
@@ -275,6 +311,117 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 
 		return null;
+	}
+
+	// ----- interface JavaScriptSource -----
+	public static String getJavascriptLibraryCode(final File thisFile) {
+
+		try (final InputStream is = thisFile.getInputStream()) {
+
+			return IOUtils.toString(new InputStreamReader(is));
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+
+		return null;
+	}
+
+	// ----- interface Favoritable -----
+	public static String getFavoriteContent(final File thisFile) {
+
+		try (final InputStream is = thisFile.getInputStream()) {
+
+			return IOUtils.toString(is, "utf-8");
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+
+		return null;
+	}
+
+	public static void setFavoriteContent(final File thisFile, final String content) throws FrameworkException {
+
+		try (final OutputStream os = thisFile.getOutputStream(true, false)) {
+
+			IOUtils.write(content, os, "utf-8");
+			os.flush();
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
+	// ----- CMIS support -----
+	/*
+	@Override
+	public CMISInfo getCMISInfo() {
+		return this;
+	}
+
+	@Override
+	public BaseTypeId getBaseTypeId() {
+		return BaseTypeId.CMIS_DOCUMENT;
+	}
+
+	@Override
+	public CMISFolderInfo getFolderInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISDocumentInfo getDocumentInfo() {
+		return this;
+	}
+
+	@Override
+	public CMISItemInfo geItemInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISRelationshipInfo getRelationshipInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISPolicyInfo getPolicyInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISSecondaryInfo getSecondaryInfo() {
+		return null;
+	}
+
+	@Override
+	public String getParentId() {
+		return getProperty(FileBase.parentId);
+	}
+
+	@Override
+	public AllowableActions getAllowableActions() {
+		return new StructrFileActions(isImmutable());
+	}
+
+	@Override
+	public String getChangeToken() {
+
+		// versioning not supported yet.
+		return null;
+	}
+	*/
+
+	public static boolean isImmutable(final File thisFile) {
+
+		final Principal _owner = thisFile.getOwnerNode();
+		if (_owner != null) {
+
+			return !_owner.isGranted(Permission.write, thisFile.getSecurityContext());
+		}
+
+		return true;
 	}
 
 	/* TODO:
@@ -962,129 +1109,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		data.add(getIncomingRelationship(Folders.class));
 
 		return data;
-	}
-
-	// ----- interface JavaScriptSource -----
-	@Override
-	public String getJavascriptLibraryCode() {
-
-		try (final InputStream is = getInputStream()) {
-
-			return IOUtils.toString(new InputStreamReader(is));
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
-
-		return null;
-	}
-
-	// ----- CMIS support -----
-	@Override
-	public CMISInfo getCMISInfo() {
-		return this;
-	}
-
-	@Override
-	public BaseTypeId getBaseTypeId() {
-		return BaseTypeId.CMIS_DOCUMENT;
-	}
-
-	@Override
-	public CMISFolderInfo getFolderInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISDocumentInfo getDocumentInfo() {
-		return this;
-	}
-
-	@Override
-	public CMISItemInfo geItemInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISRelationshipInfo getRelationshipInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISPolicyInfo getPolicyInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISSecondaryInfo getSecondaryInfo() {
-		return null;
-	}
-
-	@Override
-	public String getParentId() {
-		return getProperty(FileBase.parentId);
-	}
-
-	@Override
-	public AllowableActions getAllowableActions() {
-		return new StructrFileActions(isImmutable());
-	}
-
-	@Override
-	public String getChangeToken() {
-
-		// versioning not supported yet.
-		return null;
-	}
-
-	@Override
-	public boolean isImmutable() {
-
-		final Principal _owner = getOwnerNode();
-		if (_owner != null) {
-
-			return !_owner.isGranted(Permission.write, securityContext);
-		}
-
-		return true;
-	}
-
-	// ----- interface Favoritable -----
-	@Override
-	public String getContext() {
-		return getProperty(FileBase.path);
-	}
-
-	@Override
-	public String getFavoriteContent() {
-
-		try (final InputStream is = getInputStream()) {
-
-			return IOUtils.toString(is);
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
-
-		return null;
-	}
-
-	@Override
-	public String getFavoriteContentType() {
-		return getContentType();
-	}
-
-	@Override
-	public void setFavoriteContent(final String content) throws FrameworkException {
-
-		try (final OutputStream os = getOutputStream(true, false)) {
-
-			IOUtils.write(content, os, Charset.defaultCharset());
-			os.flush();
-
-		} catch (IOException ioex) {
-			logger.warn("", ioex);
-		}
 	}
 
 	// ----- nested classes -----

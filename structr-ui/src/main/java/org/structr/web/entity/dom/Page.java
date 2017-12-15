@@ -151,6 +151,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.overrideMethod("getInputEncoding",            false, "return null;");
 		type.overrideMethod("getStrictErrorChecking",      false, "return true;");
 		type.overrideMethod("setStrictErrorChecking",      false, "");
+		type.overrideMethod("getContextName",              false, "return getProperty(name);");
 
 		final JsonMethod createElement1 = type.addMethod("createElement");
 		createElement1.setReturnType("org.w3c.dom.Element");

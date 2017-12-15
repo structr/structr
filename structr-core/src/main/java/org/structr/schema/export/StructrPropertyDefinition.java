@@ -547,6 +547,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				return cypher;
 
 			case Notion:
+			{
 				final String referenceName         = property.getNotionBaseProperty();
 				final String reference             = "#/definitions/" + parentName + "/properties/" + referenceName;
 				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
@@ -566,6 +567,30 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				notionProperty.deserialize(property);
 
 				return notionProperty;
+			}
+
+			case IdNotion:
+			{
+				final String referenceName         = property.getNotionBaseProperty();
+				final String reference             = "#/definitions/" + parentName + "/properties/" + referenceName;
+				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
+				final IdNotionReferenceProperty notionProperty;
+
+				if (property.getNotionMultiplicity().startsWith("*")) {
+
+					notionProperty = new IdNotionReferenceProperty(parent, name, reference, "array", referenceName);
+					notionProperty.setProperties(notionProperties.toArray(new String[0]));
+
+				} else {
+
+					notionProperty = new IdNotionReferenceProperty(parent, name, reference, "object", referenceName);
+					notionProperty.setProperties(notionProperties.toArray(new String[0]));
+				}
+
+				notionProperty.deserialize(property);
+
+				return notionProperty;
+			}
 
 			case Password:
 				final StructrPasswordProperty pwd = new StructrPasswordProperty(parent, name);

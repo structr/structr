@@ -19,7 +19,6 @@
 package org.structr.schema.export;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
@@ -35,13 +34,13 @@ import org.structr.schema.json.JsonType;
  *
  *
  */
-class NotionReferenceProperty extends StructrReferenceProperty {
+class IdNotionReferenceProperty extends StructrReferenceProperty {
 
 	private String referenceName = null;
 	private String reference     = null;
 	private String type          = null;
 
-	NotionReferenceProperty(final JsonType parent, final String name, final String reference, final String type, final String referenceName) {
+	IdNotionReferenceProperty(final JsonType parent, final String name, final String reference, final String type, final String referenceName) {
 
 		super(parent, name);
 
@@ -60,15 +59,13 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 		return type;
 	}
 
-	// ----- package methods -----
-
 	@Override
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 
 		property.setProperty(SchemaProperty.format, referenceName + ", " + StringUtils.join(properties, ", "));
-		property.setProperty(SchemaProperty.propertyType, SchemaHelper.Type.Notion.name());
+		property.setProperty(SchemaProperty.propertyType, SchemaHelper.Type.IdNotion.name());
 
 		return property;
 	}
@@ -77,12 +74,6 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 	void deserialize(final Map<String, Object> source) {
 
 		super.deserialize(source);
-
-		final Object propertiesValue = source.get(JsonSchema.KEY_PROPERTIES);
-		if (propertiesValue != null && propertiesValue instanceof List) {
-
-			this.properties.addAll((List)propertiesValue);
-		}
 
 		final String type = (String)source.get(JsonSchema.KEY_TYPE);
 		switch (type) {
@@ -125,8 +116,6 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 				items.put(JsonSchema.KEY_REFERENCE, reference);
 				break;
 		}
-
-		map.put(JsonSchema.KEY_PROPERTIES, this.properties);
 
 		return map;
 	}

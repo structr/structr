@@ -40,14 +40,14 @@ public interface LinkSource extends DOMElement {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LinkSource"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
-
 		type.overrideMethod("getLinkable", false, "return getProperty(linkableProperty);");
 
 		type.addMethod("setLinkable")
 			.setSource("setProperty(linkableProperty, (Linkable)linkable);")
 			.addException(FrameworkException.class.getName())
 			.addParameter("linkable", "org.structr.web.entity.Linkable");
+
+		type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
 	}}
 
 	Linkable getLinkable();

@@ -126,6 +126,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("getNamedItem",           false, "return getAttributeNode(arg0);");
 		type.overrideMethod("setNamedItem",           false, "return " + DOMElement.class.getName() + ".setNamedItem(this, arg0);");
 		type.overrideMethod("removeNamedItem",        false, "return " + DOMElement.class.getName() + ".removeNamedItem(this, arg0);");
+		type.overrideMethod("getContextName",         false, "return " + DOMElement.class.getName() + ".getContextName(this);");
 		type.overrideMethod("item",                   false, "return " + DOMElement.class.getName() + ".item(this, arg0);");
 
 		// CMISInfo

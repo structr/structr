@@ -37,6 +37,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -95,7 +96,12 @@ public class NodeExtender {
 			if (Settings.LogSchemaOutput.getValue()) {
 
 				System.out.println("########################################################################################################################################################");
-				System.out.println(content);
+
+				int count = 0;
+
+				for (final String line : content.split("[\\n\\r]{1}")) {
+					System.out.println(StringUtils.rightPad(++count + ": ", 6) + line);
+				}
 			}
 		}
 	}

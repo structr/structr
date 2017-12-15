@@ -555,7 +555,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, Collections.emptySet(), false, propertyValidators);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, false, propertyValidators);
 		SchemaHelper.formatSaveActions(this, src, actions, Collections.emptySet());
 
 		formatRelationshipFlags(src);
@@ -1013,7 +1013,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		// examine properties of other node
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
 
-			if (Type.Notion.equals(property.getPropertyType())) {
+			if (Type.Notion.equals(property.getPropertyType()) || Type.IdNotion.equals(property.getPropertyType())) {
 
 				// try to rename
 				final String basePropertyName = property.getNotionBaseProperty();

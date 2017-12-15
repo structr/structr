@@ -81,4 +81,5 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
 
 	JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
+	JsonReferenceProperty addIdReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 }

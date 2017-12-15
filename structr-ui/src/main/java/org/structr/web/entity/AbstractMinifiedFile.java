@@ -22,6 +22,7 @@ import java.net.URI;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
+import org.structr.web.entity.relation.MinificationSource;
 
 /**
  * Base class for minifiable files in structr
@@ -36,9 +37,22 @@ public interface AbstractMinifiedFile extends File {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractMinifiedFile"));
 		type.setExtends(URI.create("#/definitions/File"));
+
+		type.overrideMethod("getMaxPosition", false, "return " + AbstractMinifiedFile.class.getName() + ".getMaxPosition(this);");
 	}}
 
 	int getMaxPosition();
+
+	public static int getMaxPosition (final AbstractMinifiedFile thisFile) {
+
+		int max = -1;
+
+		for (final MinificationSource neighbor : thisFile.getOutgoingRelationships(MinificationSource.class)) {
+			max = Math.max(max, neighbor.getProperty(MinificationSource.position));
+		}
+
+		return max;
+	}
 
 	/*
 
@@ -80,14 +94,6 @@ public interface AbstractMinifiedFile extends File {
 	public abstract void minify() throws FrameworkException, IOException;
 
 	public abstract boolean shouldModificationTriggerMinifcation(ModificationEvent modState);
-
-	public int getMaxPosition () {
-		int max = -1;
-		for (final MinificationSource neighbor : getOutgoingRelationships(MinificationSource.class)) {
-			max = Math.max(max, neighbor.getProperty(MinificationSource.position));
-		}
-		return max;
-	}
 
 	public String getConcatenatedSource () throws FrameworkException, IOException {
 
