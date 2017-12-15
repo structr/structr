@@ -37,6 +37,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -83,6 +84,8 @@ import org.structr.web.entity.AbstractMinifiedFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.MinifiedCssFile;
 import org.structr.web.entity.MinifiedJavaScriptFile;
 import org.structr.web.entity.Widget;
@@ -117,6 +120,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
 
 	private Integer stepCounter                          = 0;
+	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
 
 	static {
 
@@ -462,6 +466,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (IOException ioex) {
 				logger.warn("Exception while importing pages", ioex);
 			}
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
+
+				try {
+					final DOMNode page = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
+
+					final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(Page.path, pagePath).or(Page.name, pagePath).getFirst();
+					page.setProperties(page.getSecurityContext(), new PropertyMap(LinkSource.linkable, linkedPage));
+
+				} catch (FrameworkException ex) {
+				}
+
+			});
+
+			deferredPageLinks.clear();
+
+			tx.success();
 		}
 
 		// apply configuration
@@ -1330,5 +1354,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		return true;
+	}
+
+	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
+		deferredPageLinks.put(linkableUUID, pagePath);
 	}
 }

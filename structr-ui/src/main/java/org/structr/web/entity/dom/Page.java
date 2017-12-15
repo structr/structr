@@ -846,7 +846,7 @@ public class Page extends DOMNode implements Linkable, Document, DOMImplementati
 
 	@Override
 	public String getFolderPath() {
-		return getProperty(path);
+		return (getProperty(path) == null) ? getProperty(name) : getProperty(path);
 	}
 
 	// ----- diff methods -----

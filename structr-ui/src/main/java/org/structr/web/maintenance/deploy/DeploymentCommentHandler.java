@@ -38,6 +38,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
+import org.structr.web.maintenance.DeployCommand;
 
 /**
  *
@@ -88,6 +89,13 @@ public class DeploymentCommentHandler implements CommentHandler {
 					final LinkSource linkSource = (LinkSource)node;
 					linkSource.setProperties(linkSource.getSecurityContext(), new PropertyMap(LinkSource.linkable, file));
 				}
+			}
+		});
+
+		handlers.put("pagelink", (Page page, DOMNode node, final String parameters) -> {
+
+			if (node instanceof LinkSource) {
+				DeployCommand.addDeferredPagelink(node.getUuid(), parameters);
 			}
 		});
 
