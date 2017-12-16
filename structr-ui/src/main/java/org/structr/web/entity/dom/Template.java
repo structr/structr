@@ -63,13 +63,13 @@ public class Template extends Content {
 
 				// use name of synced node
 				final String _name = _syncedNode.getProperty(AbstractNode.name);
-				out.append(_name != null ? _name : _syncedNode.getUuid());
+				out.append(_name != null ? _name.concat("-").concat(_syncedNode.getUuid()) : _syncedNode.getUuid());
 
 			} else {
 
 				// use name of local template
 				final String _name = getProperty(AbstractNode.name);
-				out.append(_name != null ? _name : getUuid());
+				out.append(_name != null ? _name.concat("-").concat(getUuid()) : getUuid());
 			}
 
 			out.append("\"");

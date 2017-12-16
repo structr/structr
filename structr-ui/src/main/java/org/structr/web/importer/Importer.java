@@ -693,6 +693,16 @@ public class Importer {
 
 						}
 
+					} else if ( DeployCommand.nameContainsUUID(src) ) {
+						final String uuid = src.substring(src.length() - 32);
+						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuid).getFirst();
+
+						if (template == null) {
+
+							System.out.println("##################################### template with UUID " + uuid + " not found, this is a known bug");
+
+						}
+
 					} else {
 
 						template = Importer.findSharedComponentByName(src);

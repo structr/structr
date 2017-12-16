@@ -177,6 +177,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return pattern.matcher(name).matches();
 	}
 
+	public static boolean nameContainsUUID(final String name) {
+		if (name.length() > 32) {
+			return pattern.matcher(name.substring(name.length() - 32)).matches();
+		} else {
+			return false;
+		}
+	}
+
 
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
@@ -919,9 +927,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final String content = template.getProperty(Template.content);
 		if (content != null) {
 
-			// name or uuid
+			// name with uuid or just uuid
 			String name = template.getProperty(AbstractNode.name);
-			if (name == null) {
+
+			if (name != null) {
+
+				name += "-" + template.getUuid();
+
+			} else {
 
 				name = template.getUuid();
 			}
