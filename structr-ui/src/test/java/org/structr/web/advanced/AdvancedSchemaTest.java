@@ -104,9 +104,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(36))
-					.body("result[35].jsonName",       equalTo("testFile"))
-					.body("result[35].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(37))
+					.body("result[36].jsonName",       equalTo("testFile"))
+					.body("result[36].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/File/ui");
@@ -136,9 +136,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(46))
-					.body("result[45].jsonName",       equalTo("testFile"))
-					.body("result[45].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(47))
+					.body("result[46].jsonName",       equalTo("testFile"))
+					.body("result[46].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/Image/ui");
@@ -227,11 +227,11 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(37))
-					.body("result[35].jsonName",       equalTo("testSubFile"))
-					.body("result[35].declaringClass", equalTo("SubFile"))
-					.body("result[36].jsonName",       equalTo("testFile"))
-					.body("result[36].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(38))
+					.body("result[36].jsonName",       equalTo("testSubFile"))
+					.body("result[36].declaringClass", equalTo("SubFile"))
+					.body("result[37].jsonName",       equalTo("testFile"))
+					.body("result[37].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/SubFile/ui");
@@ -321,11 +321,11 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(47))
-					.body("result[45].jsonName",       equalTo("testSubFile"))
-					.body("result[45].declaringClass", equalTo("SubFile"))
-					.body("result[46].jsonName",       equalTo("testFile"))
-					.body("result[46].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(48))
+					.body("result[46].jsonName",       equalTo("testSubFile"))
+					.body("result[46].declaringClass", equalTo("SubFile"))
+					.body("result[47].jsonName",       equalTo("testFile"))
+					.body("result[47].declaringClass", equalTo("_FileHelper"))
 
 				.when()
 					.get("/_schema/SubFile/ui");

@@ -23,11 +23,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -289,6 +291,9 @@ public class FileHelper {
 
 		map.put(FileBase.contentType, contentType != null ? contentType : FileHelper.getContentMimeType(fileOnDisk, file.getProperty(FileBase.name)));
 		map.put(FileBase.checksum,    FileHelper.getChecksum(fileOnDisk));
+		map.put(FileBase.md5,         FileHelper.getMD5Checksum(file));
+		map.put(FileBase.sha1,        FileHelper.getSHA1Checksum(file));
+		map.put(FileBase.sha512,      FileHelper.getSHA512Checksum(file));
 		map.put(FileBase.size,        FileHelper.getSize(fileOnDisk));
 		map.put(FileBase.version,     1);
 
@@ -352,6 +357,9 @@ public class FileHelper {
 
 				map.put(FileBase.fileModificationDate, fileOnDisk.lastModified());
 				map.put(FileBase.checksum,             FileHelper.getChecksum(fileOnDisk));
+				map.put(FileBase.md5,                  FileHelper.getMD5Checksum(file));
+				map.put(FileBase.sha1,                 FileHelper.getSHA1Checksum(file));
+				map.put(FileBase.sha512,               FileHelper.getSHA512Checksum(file));
 
 				if (contentType != null) {
 
@@ -461,7 +469,6 @@ public class FileHelper {
 	 * @param data
 	 * @throws FrameworkException
 	 * @throws IOException
-	 * @return the file on disk
 	 */
 	public static void writeToFile(final FileBase fileNode, final byte[] data) throws FrameworkException, IOException {
 
@@ -479,7 +486,6 @@ public class FileHelper {
 	 * @param data
 	 * @throws FrameworkException
 	 * @throws IOException
-	 * @return the file on disk
 	 */
 	public static void writeToFile(final FileBase fileNode, final InputStream data) throws FrameworkException, IOException {
 
@@ -683,6 +689,66 @@ public class FileHelper {
 
 	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
 		return FileUtils.checksumCRC32(fileOnDisk);
+	}
+
+	public static String getMD5Checksum(final FileBase file) {
+		
+		try {
+			return DigestUtils.md5Hex(file.getInputStream());
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate MD5 checksum of file " + file, ex);
+		}
+		
+		return null;
+	}
+	
+	public static String getSHA1Checksum(final FileBase file) {
+		
+		try {
+			return DigestUtils.sha1Hex(file.getInputStream());
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-1 checksum of file " + file, ex);
+		}
+		
+		return null;
+	}
+
+	public static String getSHA256Checksum(final FileBase file) {
+		
+		try {
+			return DigestUtils.sha256Hex(file.getInputStream());
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-256 checksum of file " + file, ex);
+		}
+		
+		return null;
+	}
+
+	public static String getSHA384Checksum(final FileBase file) {
+		
+		try {
+			return DigestUtils.sha384Hex(file.getInputStream());
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-384 checksum of file " + file, ex);
+		}
+		
+		return null;
+	}
+
+	public static String getSHA512Checksum(final FileBase file) {
+		
+		try {
+			return DigestUtils.sha512Hex(file.getInputStream());
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-512 checksum of file " + file, ex);
+		}
+		
+		return null;
 	}
 
 	public static long getSize(final java.io.File file) {
