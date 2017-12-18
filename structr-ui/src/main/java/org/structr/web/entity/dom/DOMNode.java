@@ -90,11 +90,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
 		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.dom.DOMNode"));
 
-		type.addStringProperty("dataKey").setIndexed(true);
-		type.addStringProperty("cypherQuery");
-		type.addStringProperty("xpathQuery");
-		type.addStringProperty("restQuery");
-		type.addStringProperty("functionQuery");
+		type.addStringProperty("dataKey",       PropertyView.Public).setIndexed(true);
+		type.addStringProperty("cypherQuery",   PropertyView.Public);
+		type.addStringProperty("xpathQuery",    PropertyView.Public);
+		type.addStringProperty("restQuery",     PropertyView.Public);
+		type.addStringProperty("functionQuery", PropertyView.Public);
 
 		type.addStringProperty("showForLocales");
 		type.addStringProperty("hideForLocales");

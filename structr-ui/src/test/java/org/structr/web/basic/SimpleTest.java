@@ -971,9 +971,9 @@ public class SimpleTest extends StructrUiTest {
 			Page.createSimplePage(securityContext, "test");
 
 			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
+				new NodeAttribute<>(StructrApp.key(Principal.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
 			);
 
 			tx.success();

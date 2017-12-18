@@ -19,7 +19,6 @@
 package org.structr.schema.parser;
 
 import java.lang.reflect.Constructor;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
@@ -58,11 +57,6 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 							this.propertyType         = type.getSimpleName();
 							this.valueType            = property.valueType().getName();
 							this.unqualifiedValueType = type.getSimpleName();
-							final String format       = params.getFormat();
-
-							if (StringUtils.isNotBlank(format)) {
-								this.propertyParameters = ", " + format;
-							}
 						}
 					}
 				}

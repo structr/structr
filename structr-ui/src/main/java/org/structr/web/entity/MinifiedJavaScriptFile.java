@@ -37,6 +37,8 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 		type.addEnumProperty("optimizationLevel", PropertyView.Public).setEnums("WHITESPACE_ONLY", "SIMPLE_OPTIMIZATIONS", "ADVANCED_OPTIMIZATIONS");
 		type.addStringProperty("warnings", PropertyView.Public);
 		type.addStringProperty("errors",   PropertyView.Public);
+
+		type.overrideMethod("getOptimizationLevel", false, "return getProperty(optimizationLevelProperty).name();");
 	}}
 
 	String getOptimizationLevel();

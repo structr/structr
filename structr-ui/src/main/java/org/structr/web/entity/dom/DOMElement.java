@@ -75,9 +75,88 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
 		*/
 
-		type.addStringProperty("tag",              PropertyView.Html).setIndexed(true);
-		type.addStringProperty("path",             PropertyView.Html).setIndexed(true);
-		type.addStringProperty("partialUpdateKey", PropertyView.Html).setIndexed(true);
+		type.addStringProperty("tag",              PropertyView.Public).setIndexed(true);
+		type.addStringProperty("path",             PropertyView.Public).setIndexed(true);
+		type.addStringProperty("partialUpdateKey", PropertyView.Public).setIndexed(true);
+
+		type.addStringProperty("_html_onabort", PropertyView.Html);
+		type.addStringProperty("_html_onblur", PropertyView.Html);
+		type.addStringProperty("_html_oncanplay", PropertyView.Html);
+		type.addStringProperty("_html_oncanplaythrough", PropertyView.Html);
+		type.addStringProperty("_html_onchange", PropertyView.Html);
+		type.addStringProperty("_html_onclick", PropertyView.Html);
+		type.addStringProperty("_html_oncontextmenu", PropertyView.Html);
+		type.addStringProperty("_html_ondblclick", PropertyView.Html);
+		type.addStringProperty("_html_ondrag", PropertyView.Html);
+		type.addStringProperty("_html_ondragend", PropertyView.Html);
+		type.addStringProperty("_html_ondragenter", PropertyView.Html);
+		type.addStringProperty("_html_ondragleave", PropertyView.Html);
+		type.addStringProperty("_html_ondragover", PropertyView.Html);
+		type.addStringProperty("_html_ondragstart", PropertyView.Html);
+		type.addStringProperty("_html_ondrop", PropertyView.Html);
+		type.addStringProperty("_html_ondurationchange", PropertyView.Html);
+		type.addStringProperty("_html_onemptied", PropertyView.Html);
+		type.addStringProperty("_html_onended", PropertyView.Html);
+		type.addStringProperty("_html_onerror", PropertyView.Html);
+		type.addStringProperty("_html_onfocus", PropertyView.Html);
+		type.addStringProperty("_html_oninput", PropertyView.Html);
+		type.addStringProperty("_html_oninvalid", PropertyView.Html);
+		type.addStringProperty("_html_onkeydown", PropertyView.Html);
+		type.addStringProperty("_html_onkeypress", PropertyView.Html);
+		type.addStringProperty("_html_onkeyup", PropertyView.Html);
+		type.addStringProperty("_html_onload", PropertyView.Html);
+		type.addStringProperty("_html_onloadeddata", PropertyView.Html);
+		type.addStringProperty("_html_onloadedmetadata", PropertyView.Html);
+		type.addStringProperty("_html_onloadstart", PropertyView.Html);
+		type.addStringProperty("_html_onmousedown", PropertyView.Html);
+		type.addStringProperty("_html_onmousemove", PropertyView.Html);
+		type.addStringProperty("_html_onmouseout", PropertyView.Html);
+		type.addStringProperty("_html_onmouseover", PropertyView.Html);
+		type.addStringProperty("_html_onmouseup", PropertyView.Html);
+		type.addStringProperty("_html_onmousewheel", PropertyView.Html);
+		type.addStringProperty("_html_onpause", PropertyView.Html);
+		type.addStringProperty("_html_onplay", PropertyView.Html);
+		type.addStringProperty("_html_onplaying", PropertyView.Html);
+		type.addStringProperty("_html_onprogress", PropertyView.Html);
+		type.addStringProperty("_html_onratechange", PropertyView.Html);
+		type.addStringProperty("_html_onreadystatechange", PropertyView.Html);
+		type.addStringProperty("_html_onreset", PropertyView.Html);
+		type.addStringProperty("_html_onscroll", PropertyView.Html);
+		type.addStringProperty("_html_onseeked", PropertyView.Html);
+		type.addStringProperty("_html_onseeking", PropertyView.Html);
+		type.addStringProperty("_html_onselect", PropertyView.Html);
+		type.addStringProperty("_html_onshow", PropertyView.Html);
+		type.addStringProperty("_html_onstalled", PropertyView.Html);
+		type.addStringProperty("_html_onsubmit", PropertyView.Html);
+		type.addStringProperty("_html_onsuspend", PropertyView.Html);
+		type.addStringProperty("_html_ontimeupdate", PropertyView.Html);
+		type.addStringProperty("_html_onvolumechange", PropertyView.Html);
+		type.addStringProperty("_html_onwaiting", PropertyView.Html);
+		type.addStringProperty("_html_data", PropertyView.Html);
+
+		// Core attributes
+		type.addStringProperty("_html_accesskey", PropertyView.Html);
+		type.addStringProperty("_html_class", PropertyView.Html);
+		type.addStringProperty("_html_contenteditable", PropertyView.Html);
+		type.addStringProperty("_html_contextmenu", PropertyView.Html);
+		type.addStringProperty("_html_dir", PropertyView.Html);
+		type.addStringProperty("_html_draggable", PropertyView.Html);
+		type.addStringProperty("_html_dropzone", PropertyView.Html);
+		type.addStringProperty("_html_hidden", PropertyView.Html);
+		type.addStringProperty("_html_id", PropertyView.Html);
+		type.addStringProperty("_html_lang", PropertyView.Html);
+		type.addStringProperty("_html_spellcheck", PropertyView.Html);
+		type.addStringProperty("_html_style", PropertyView.Html);
+		type.addStringProperty("_html_tabindex", PropertyView.Html);
+		type.addStringProperty("_html_title", PropertyView.Html);
+		type.addStringProperty("_html_translate", PropertyView.Html);
+
+		// new properties for Polymer support
+		type.addStringProperty("_html_is", PropertyView.Html);
+		type.addStringProperty("_html_properties", PropertyView.Html);
+
+		// The role attribute, see http://www.w3.org/TR/role-attribute/
+		type.addStringProperty("_html_role", PropertyView.Html);
 
 		type.addPropertyGetter("tag", String.class);
 

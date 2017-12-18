@@ -496,7 +496,7 @@ public class StructrApp implements App {
 	}
 
 	public static <T> PropertyKey<T> key(final Class type, final String name) {
-		return getConfiguration().getPropertyKeyForJSONName(type, name);
+		return getConfiguration().getPropertyKeyForJSONName(type, name, false);
 	}
 
 	// ----- private static methods -----
@@ -508,7 +508,7 @@ public class StructrApp implements App {
 		for (final Class type : interfaces.values()) {
 
 			// only register node types
-			if (type.isInterface() && NodeInterface.class.isAssignableFrom(type)) {
+			if (type.isInterface() && NodeInterface.class.isAssignableFrom(type) && !type.getName().startsWith("org.structr.dynamic.")) {
 
 				registerType(type);
 			}

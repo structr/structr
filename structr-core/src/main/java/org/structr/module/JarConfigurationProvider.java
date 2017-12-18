@@ -581,8 +581,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			for (final Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
 
 				final PropertyKey propertyKey = entry.getValue();
-				final Field field = entry.getKey();
-				final Class declaringClass = field.getDeclaringClass();
+				final Field field             = entry.getKey();
+				final Class declaringClass    = field.getDeclaringClass();
 
 				if (declaringClass != null) {
 

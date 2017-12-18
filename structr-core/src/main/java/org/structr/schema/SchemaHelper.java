@@ -409,7 +409,7 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
-				logger.info("New signature created: {}", new Object[]{ (signature) });
+				logger.debug("New signature created: {}", new Object[]{ (signature) });
 			}
 
 			final String schemaSig = schemaResourceSignature(signature);
@@ -422,7 +422,7 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
-				logger.info("New signature created: {}", new Object[]{ schemaSig });
+				logger.debug("New signature created: {}", new Object[]{ schemaSig });
 			}
 
 			final String uiSig = uiViewResourceSignature(signature);
@@ -436,7 +436,7 @@ public class SchemaHelper {
 					new NodeAttribute(DynamicResourceAccess.flags, initialFlagsValue)
 				));
 
-				logger.info("New signature created: {}", new Object[]{ uiSig });
+				logger.debug("New signature created: {}", new Object[]{ uiSig });
 			}
 
 		} catch (Throwable t) {

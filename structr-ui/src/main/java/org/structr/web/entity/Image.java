@@ -77,6 +77,11 @@ public interface Image extends File {
 		type.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
 		type.addPropertySetter("isCreatingThumb", Boolean.TYPE);
 
+		type.addPropertyGetter("width",       Integer.class);
+		type.addPropertySetter("width",       Integer.class);
+		type.addPropertyGetter("height",      Integer.class);
+		type.addPropertySetter("height",      Integer.class);
+
 		// TODO: sysinternal and unvalidated properties are not possible right now
 		type.overrideMethod("isImage",              false, "return getProperty(isImageProperty);");
 		type.overrideMethod("isThumbnail",          false, "return getProperty(isThumbnailProperty);");

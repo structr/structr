@@ -610,7 +610,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	public static void handleNewChild(final Page thisPage, Node newChild) {
 
-		for (final DOMNode child : (List<DOMNode>)thisPage.getAllChildNodes()) {
+		for (final DOMNode child : (Set<DOMNode>)thisPage.getAllChildNodes()) {
 
 			try {
 
