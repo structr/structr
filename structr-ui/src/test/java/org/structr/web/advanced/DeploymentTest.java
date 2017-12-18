@@ -1886,6 +1886,51 @@ public class DeploymentTest extends StructrUiTest {
 
 	}
 
+	@Test
+	public void test40TwoTemplatesWithSameNameInTwoPages() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test40_1");
+			final Html html1 = createElement(page1, page1, "html");
+			final Head head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test40_1");
+			final Body body1 = createElement(page1, html1, "body");
+			final Div div1   = createElement(page1, body1, "div");
+
+			// create first template and give it a name
+			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
+			final PropertyMap template1Properties = new PropertyMap();
+			template1Properties.put(Template.name, "Test40Template");
+			template1.setProperties(template1.getSecurityContext(), template1Properties);
+
+
+			// create second page
+			final Page page2 = Page.createNewPage(securityContext,   "test40_2");
+			final Html html2 = createElement(page2, page2, "html");
+			final Head head2 = createElement(page2, html2, "head");
+			createElement(page2, head2, "title", "test40_2");
+			final Body body2 = createElement(page2, html2, "body");
+			final Div div2   = createElement(page2, body2, "div");
+
+			// create second template and give it the same name as the first one
+			final Template template2 = createTemplate(page2, div2, "template source 2 - öäüÖÄÜß'\"'`");
+			final PropertyMap template2Properties = new PropertyMap();
+			template2Properties.put(Template.name, "Test40Template");
+			template2.setProperties(template2.getSecurityContext(), template2Properties);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);
