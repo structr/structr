@@ -496,7 +496,16 @@ public class StructrApp implements App {
 	}
 
 	public static <T> PropertyKey<T> key(final Class type, final String name) {
-		return getConfiguration().getPropertyKeyForJSONName(type, name, false);
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class dynamicType            = config.getNodeEntityClass(type.getSimpleName());
+
+		if (dynamicType != null) {
+
+			return getConfiguration().getPropertyKeyForJSONName(dynamicType, name, false);
+		}
+
+		return config.getPropertyKeyForJSONName(type, name, false);
 	}
 
 	// ----- private static methods -----

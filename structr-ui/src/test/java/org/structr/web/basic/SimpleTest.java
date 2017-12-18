@@ -986,6 +986,7 @@ public class SimpleTest extends StructrUiTest {
 			.given()
 			.header("X-User",     "admin")
 			.header("X-Password", "admin")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.response()
 			.contentType("text/html")

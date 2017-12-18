@@ -1291,7 +1291,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private <T> Map<Field, T> getFieldValuesOfType(final Class<T> fieldType, final Class entityType) {
 
-		final Map<Field, T> fields = new LinkedHashMap<>();
+		final Map<Field, T> fields   = new LinkedHashMap<>();
 		final Set<Class<?>> allTypes = getAllTypes(entityType);
 
 		for (final Class<?> type : allTypes) {

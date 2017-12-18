@@ -377,6 +377,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 		try {
 
+			//final Class entityClass = Class.forName("org.structr.web.entity.html." + elementType);
 			final Class entityClass = Class.forName("org.structr.web.entity.html." + elementType);
 			if (entityClass != null) {
 
