@@ -57,7 +57,7 @@ public interface User extends Principal {
 
 		user.addBooleanProperty("backendUser").setIndexed(true);
 		user.addBooleanProperty("frontendUser").setIndexed(true);
-		user.addBooleanProperty("isUser", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		user.addBooleanProperty("isUser", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		user.addBooleanProperty("skipSecurityRelationships").setDefaultValue("false").setIndexed(true);
 
 		user.addPropertySetter("localStorage", String.class);

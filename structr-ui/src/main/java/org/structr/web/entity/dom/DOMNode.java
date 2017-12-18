@@ -110,7 +110,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addBooleanProperty("hideOnIndex");
 		type.addBooleanProperty("hideOnDetail");
 		type.addBooleanProperty("dontCache", PropertyView.Public).setDefaultValue("false");
-		type.addBooleanProperty("isDOMNode",  PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isDOMNode",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		type.addIntegerProperty("domSortPosition");
 

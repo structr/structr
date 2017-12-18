@@ -869,15 +869,17 @@ public class SchemaHelper {
 					views.put(viewName, view);
 				}
 
-				for (final SchemaProperty property : schemaView.getProperty(SchemaView.schemaProperties)) {
+				final List<SchemaProperty> schemaProperties = schemaView.getProperty(SchemaView.schemaProperties);
+
+				for (final SchemaProperty property : schemaProperties) {
 
 					if (property.getProperty(SchemaProperty.isBuiltinProperty) && !property.getProperty(SchemaProperty.isDynamic)) {
 
-						view.add(property.getPropertyName());
+						view.add(SchemaHelper.cleanPropertyName(property.getPropertyName()));
 
 					} else {
 
-						view.add(property.getPropertyName() + "Property");
+						view.add(SchemaHelper.cleanPropertyName(property.getPropertyName() + "Property"));
 					}
 				}
 
@@ -888,11 +890,11 @@ public class SchemaHelper {
 
 						if (SchemaHelper.isDynamic(entity.getClassName(), propertyName)) {
 
-							view.add(propertyName + "Property");
+							view.add(SchemaHelper.cleanPropertyName(propertyName + "Property"));
 
 						} else {
 
-							view.add(propertyName);
+							view.add(SchemaHelper.cleanPropertyName(propertyName));
 						}
 					}
 				}

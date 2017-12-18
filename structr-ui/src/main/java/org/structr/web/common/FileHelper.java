@@ -45,7 +45,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
@@ -612,10 +611,8 @@ public class FileHelper {
 	 */
 	public static String getFolderPath(final AbstractFile file) {
 
-		final PropertyKey<LinkedTreeNode> parent = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
-		LinkedTreeNode parentFolder              = file.getProperty(parent);
-
-		String folderPath = file.getProperty(AbstractFile.name);
+		Folder parentFolder = file.getParent();
+		String folderPath   = file.getProperty(AbstractFile.name);
 
 		if (folderPath == null) {
 			folderPath = file.getProperty(GraphObject.id);
@@ -624,7 +621,7 @@ public class FileHelper {
 		while (parentFolder != null) {
 
 			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
-			parentFolder = parentFolder.getProperty(parent);
+			parentFolder = parentFolder.getParent();
 		}
 
 		return "/".concat(folderPath);

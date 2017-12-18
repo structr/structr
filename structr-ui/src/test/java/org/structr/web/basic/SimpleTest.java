@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -62,7 +63,6 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -387,7 +387,7 @@ public class SimpleTest extends StructrUiTest {
 
 				for (AbstractRelationship r : page.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
-					assertTrue(r instanceof PageLink);
+					assertEquals("PAGE", r.getRelType().name());
 
 				}
 
@@ -395,7 +395,7 @@ public class SimpleTest extends StructrUiTest {
 
 				for (AbstractRelationship r : head.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
-					//assertTrue(r instanceof DOMChildren);
+					assertEquals("CONTAINS", r.getRelType().name());
 
 				}
 
@@ -404,7 +404,7 @@ public class SimpleTest extends StructrUiTest {
 
 				for (AbstractRelationship r : ((DOMNode) titleText).getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
-					//assertTrue(r instanceof DOMChildren);
+					assertEquals("CONTAINS", r.getRelType().name());
 
 				}
 
@@ -691,7 +691,7 @@ public class SimpleTest extends StructrUiTest {
 
 
 			// Warm-up caches and JVM
-			for (long i = 1; i <= 50000; i++) {
+			for (long i = 1; i <= 5000; i++) {
 				if (i % 1000 == 0) {
 					logger.info("Making connection #{}", i);
 				}
@@ -930,6 +930,8 @@ public class SimpleTest extends StructrUiTest {
 
 		final List<String> sourceLines = importer.extractSources(new ByteArrayInputStream(source.getBytes(Charset.forName("utf-8"))));
 
+		Settings.LogSchemaOutput.setValue(true);
+
 		// import (uses Neo4j transaction)
 		importer.importCypher(sourceLines);
 		importer.analyzeSchema();
@@ -1000,7 +1002,7 @@ public class SimpleTest extends StructrUiTest {
 			.header("X-Frame-Options", "SAMEORIGIN")
 			.header("X-XSS-Protection", "1;mode=block")
 			.header("Vary", "Accept-Encoding, User-Agent")
-			.header("Content-Length", "133")
+			.header("Content-Length", "117")
 			.header("Server", "Jetty(9.4.7.v20170914)")
 			.statusCode(200)
 			.when()

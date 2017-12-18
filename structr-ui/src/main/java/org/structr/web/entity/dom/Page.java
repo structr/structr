@@ -74,7 +74,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
-		type.addBooleanProperty("isPage",    PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isPage",    PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
 		type.addBooleanProperty("pageCreatesRawData", PropertyView.Public).setDefaultValue("false");
@@ -111,6 +111,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.overrideMethod("getElementsByTagNameNS",      false, "throw new UnsupportedOperationException(\"Namespaces not supported.\");");
 		type.overrideMethod("getElementsByTagName",        false, "return " + Page.class.getName() + ".getElementsByTagName(this, arg0);");
 		type.overrideMethod("getElementById",              false, "return " + Page.class.getName() + ".getElementById(this, arg0);");
+		type.overrideMethod("getFirstChild",               false, "return " + Page.class.getName() + ".getFirstChild(this);");
+		type.overrideMethod("getChildNodes",               false, "return " + Page.class.getName() + ".getChildNodes(this);");
 
 		type.overrideMethod("render",                      false, Page.class.getName() + ".render(this, arg0, arg1);");
 		type.overrideMethod("normalizeDocument",           false, "normalize();");
@@ -790,18 +792,19 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	public boolean hasChildNodes() {
 		return true;
 	}
+	*/
 
-	@Override
-	public NodeList getChildNodes() {
+	public static NodeList getChildNodes(final Page thisPage) {
 
 		DOMNodeList _children = new DOMNodeList();
 
-		_children.add(docTypeNode);
-		_children.addAll(super.getChildNodes());
+		_children.add(thisPage.getFirstChild());
+		_children.addAll(thisPage.treeGetChildren());
 
 		return _children;
 	}
 
+	/*
 	public void increaseVersion() throws FrameworkException {
 
 		final Integer _version = getProperty(Page.version);

@@ -76,7 +76,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addStringProperty("relativeFilePath", PropertyView.Public);
 		type.addStringProperty("url", PropertyView.Public);
 
-		type.addBooleanProperty("isFile").addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isFile").setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addBooleanProperty("isTemplate", PropertyView.Public);
 
 		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);

@@ -66,7 +66,7 @@ public interface Image extends File {
 		type.addStringProperty("exifSubIFDData", PropertyView.Public).setIndexed(true);
 		type.addStringProperty("gpsData", PropertyView.Public).setIndexed(true);
 
-		type.addBooleanProperty("isImage").addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isImage").setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addBooleanProperty("isThumbnail", PropertyView.Public).setIndexed(true);
 		type.addBooleanProperty("isCreatingThumb", PropertyView.Public).setIndexed(true);
 

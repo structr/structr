@@ -35,6 +35,15 @@ public class ConstantBooleanTrue implements Transformer<Boolean> {
 
 	@Override
 	public Boolean setProperty(final GraphObject entity, final PropertyKey<Boolean> key, final Boolean value) throws FrameworkException {
-		throw new FrameworkException(422, entity.getType() + "." + key.jsonName() + " is_read_only_property", new ReadOnlyPropertyToken(entity.getType(), key));
+
+		final Class declaringClass = key.getDeclaringClass();
+		String typeName            = GraphObject.class.getSimpleName();
+
+		if (declaringClass != null) {
+
+			typeName = declaringClass.getSimpleName();
+		}
+
+		throw new FrameworkException(422, typeName + "." + key.jsonName() + " is_read_only_property", new ReadOnlyPropertyToken(typeName, key));
 	}
 }

@@ -112,7 +112,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			final Transformer transformator = getTransformator(fqcn);
 			if (transformator != null) {
 
-				value = transformator.getProperty(entity, this, value);
+				value = transformator.getProperty(PropertyMap.unwrap(obj), this, value);
 			}
 
 		}
@@ -143,7 +143,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			final Transformer transformator = getTransformator(fqcn);
 			if (transformator != null) {
 
-				convertedValue = transformator.setProperty(entity, this, convertedValue);
+				convertedValue = transformator.setProperty(PropertyMap.unwrap(obj), this, convertedValue);
 			}
 
 		}

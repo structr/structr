@@ -21,8 +21,14 @@ package org.structr.web.entity;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import org.structr.api.config.Settings;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UniqueToken;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
@@ -30,6 +36,8 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.FileHelper;
+import static org.structr.web.entity.ContentContainer.path;
 import org.structr.web.property.PathProperty;
 
 /**
@@ -47,17 +55,22 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
 		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.AbstractFile"));
 
-		type.addBooleanProperty("includeInFrontendExport").setIndexed(true);
-		type.addBooleanProperty("isExternal").setIndexed(true);
-		type.addBooleanProperty("hasParent").setIndexed(true);
-		type.addCustomProperty("path", PathProperty.class.getName()).setIndexed(true);
+		type.addBooleanProperty("includeInFrontendExport", PropertyView.Public).setIndexed(true);
+		type.addBooleanProperty("isExternal", PropertyView.Public).setIndexed(true);
+		type.addBooleanProperty("hasParent", PropertyView.Public).setIndexed(true);
+		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public).setIndexed(true);
 
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
 
+		type.overrideMethod("onCreation",                  true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validateAndRenameFileOnce(arg0, arg1); }");
+		type.overrideMethod("onModification",              true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validatePath(arg0, arg1); }");
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
 		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
 		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
+		type.overrideMethod("validatePath",                false, "return " + AbstractFile.class.getName() + ".validatePath(this, arg0, arg1);");
+		type.overrideMethod("validateAndRenameFileOnce",   false, "return " + AbstractFile.class.getName() + ".validateAndRenameFileOnce(this, arg0, arg1);");
+		type.overrideMethod("includeInFrontendExport",     false, "return " + AbstractFile.class.getName() + ".includeInFrontendExport(this);");
 
 		type.addMethod("setParent")
 			.setSource("setProperty(parentProperty, (Folder)parent);")
@@ -78,6 +91,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	boolean isExternal();
 	boolean isMounted();
+	boolean includeInFrontendExport();
+	boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 
 	public static String getFolderPath(final AbstractFile thisFile) {
 
@@ -168,16 +184,17 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		return valid && super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
+	*/
 
-	public boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static boolean validatePath(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final String filePath = getProperty(path);
+		final String filePath = thisFile.getPath();
 		if (filePath != null) {
 
 			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(path, filePath).getAsList();
 			for (final AbstractFile file : files) {
 
-				if (!file.getUuid().equals(getUuid())) {
+				if (!file.getUuid().equals(thisFile.getUuid())) {
 
 					if (errorBuffer != null) {
 
@@ -195,18 +212,18 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		return true;
 	}
 
-	public boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static boolean validateAndRenameFileOnce(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		boolean valid = validatePath(securityContext, null);
+		boolean valid = thisFile.validatePath(securityContext, null);
 
 		if (!valid) {
 
-			final String originalPath = getProperty(AbstractFile.path);
-			final String newName = getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
+			final String originalPath = thisFile.getPath();
+			final String newName      = thisFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
 
-			setProperty(AbstractFile.name, newName);
+			thisFile.setProperty(AbstractFile.name, newName);
 
-			valid = validatePath(securityContext, errorBuffer);
+			valid = thisFile.validatePath(securityContext, errorBuffer);
 
 			if (valid) {
 				logger.warn("File {} already exists, renaming to {}", new Object[] { originalPath, newName });
@@ -217,8 +234,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		}
 
 		return valid;
-
 	}
+
+	/*
 
 	@Override
 	public boolean isValid(ErrorBuffer errorBuffer) {
@@ -240,15 +258,16 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	public Class<FileSiblings> getSiblingLinkType() {
 		return FileSiblings.class;
 	}
+	*/
 
-	public boolean includeInFrontendExport() {
+	public static boolean includeInFrontendExport(final AbstractFile thisFile) {
 
-		if (getProperty(FileBase.includeInFrontendExport)) {
+		if (thisFile.getProperty(StructrApp.key(AbstractFile.class, "includeInFrontendExport"))) {
 
 			return true;
 		}
 
-		final Folder _parent = getProperty(FileBase.parent);
+		final Folder _parent = thisFile.getParent();
 		if (_parent != null) {
 
 			// recurse
@@ -257,5 +276,4 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		return false;
 	}
-	*/
 }
