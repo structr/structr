@@ -693,7 +693,7 @@ public class Importer {
 
 						}
 
-					} else if ( DeployCommand.nameContainsUUID(src) ) {
+					} else if ( DeployCommand.endsWithUuid(src) ) {
 						final String uuid = src.substring(src.length() - 32);
 						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuid).getFirst();
 

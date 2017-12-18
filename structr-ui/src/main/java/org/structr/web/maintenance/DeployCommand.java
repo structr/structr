@@ -177,10 +177,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return pattern.matcher(name).matches();
 	}
 
-	public static boolean nameContainsUUID(final String name) {
+	/**
+	 * Checks if the given string ends with a uuid
+	 */
+	public static boolean endsWithUuid(final String name) {
 		if (name.length() > 32) {
+
 			return pattern.matcher(name.substring(name.length() - 32)).matches();
 		} else {
+
 			return false;
 		}
 	}

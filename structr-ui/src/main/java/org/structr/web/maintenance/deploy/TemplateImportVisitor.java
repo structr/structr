@@ -160,7 +160,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 		final String templateName = StringUtils.substringBeforeLast(fileName, ".html");
 
 		// either the template was exported with name + uuid or just the uuid
-		final boolean byNameAndId = DeployCommand.nameContainsUUID(templateName);
+		final boolean byNameAndId = DeployCommand.endsWithUuid(templateName);
 		final boolean byId        = DeployCommand.isUuid(templateName);
 
 		try (final Tx tx = app.tx(true, false, false)) {
