@@ -220,13 +220,17 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 
 	public boolean isMounted() {
 
+		if (getProperty(Folder.mountTarget) != null) {
+			return true;
+		}
+
 		final Folder parent = getProperty(AbstractFile.parent);
 		if (parent != null) {
 
 			return parent.isMounted();
 		}
 
-		return getProperty(Folder.mountTarget) != null;
+		return false;
 	}
 
 	public boolean isExternal() {
