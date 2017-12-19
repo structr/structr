@@ -51,6 +51,7 @@ import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.EnumProperty;
@@ -96,6 +97,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<String>     extendsClass           = new StringProperty("extendsClass").indexed();
 	public static final Property<Long>       cascadingDeleteFlag    = new LongProperty("cascadingDeleteFlag");
 	public static final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");
+	public static final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty("isPartOfBuiltInSchema");
 
 
 	public enum Propagation {
@@ -279,14 +281,15 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public String getPropertySource(final String propertyName, final boolean outgoing, final boolean newStatementOnly) {
 
-		final StringBuilder buf          = new StringBuilder();
-		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
-		final String _targetMultiplicity = getProperty(targetMultiplicity);
-		final String _sourceNotion       = getProperty(sourceNotion);
-		final String _targetNotion       = getProperty(targetNotion);
-		final String _sourceType         = getSchemaNodeSourceType();
-		final String _targetType         = getSchemaNodeTargetType();
-		final String _className          = getClassName();
+		final StringBuilder buf           = new StringBuilder();
+		final Boolean partOfBuiltInSchema = getProperty(isPartOfBuiltInSchema);
+		final String _sourceMultiplicity  = getProperty(sourceMultiplicity);
+		final String _targetMultiplicity  = getProperty(targetMultiplicity);
+		final String _sourceNotion        = getProperty(sourceNotion);
+		final String _targetNotion        = getProperty(targetNotion);
+		final String _sourceType          = getSchemaNodeSourceType();
+		final String _targetType          = getSchemaNodeTargetType();
+		final String _className           = getClassName();
 
 		if (outgoing) {
 
@@ -299,7 +302,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 
 			} else {
 
@@ -310,7 +323,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 			}
 
 		} else {
@@ -324,7 +347,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 
 			} else {
 
@@ -335,7 +368,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 			}
 		}
 
@@ -507,8 +550,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		SchemaHelper.extractMethods(this, actions);
 
 		// source and target id properties
-		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\");\n");
-		src.append("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\");\n");
+		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();\n");
+		src.append("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\").partOfBuiltInSchema();\n");
 
 		// add sourceId and targetId to view properties
 		//SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);

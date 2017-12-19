@@ -277,6 +277,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public boolean isDynamic();
 
 	/**
+	 * Indicates whether this property is a part of the internal Structr schema.
+	 *
+	 * @return whether this property is a part of the internal Structr schema
+	 */
+	public boolean isPartOfBuiltInSchema();
+
+	/**
 	 * Returns the lucene sort type of this property.
 	 * @return sortType
 	 */
@@ -319,6 +326,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public PropertyKey<T> notNull(final boolean notNull);
 	public PropertyKey<T> unique(final boolean unique);
 	public PropertyKey<T> format(final String format);
+	public PropertyKey<T> partOfBuiltInSchema();
 	public PropertyKey<T> dynamic();
 	public PropertyKey<T> readFunction(final String readFunction);
 	public PropertyKey<T> writeFunction(final String writeFunction);

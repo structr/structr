@@ -38,6 +38,7 @@ public interface PropertyDefinition {
 	boolean isUnique();
 	boolean isIndexed();
 	boolean isReadOnly();
+	boolean isPartOfBuiltInSchema();
 	String getDefaultValue();
 	String getContentType();
 	String getReadFunction();

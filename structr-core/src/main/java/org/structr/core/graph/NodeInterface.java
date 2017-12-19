@@ -53,14 +53,14 @@ import org.structr.core.property.StringProperty;
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
 	// properties
-	public static final Property<String>          name               = new StringProperty("name").indexed();
-	public static final Property<Boolean>         deleted            = new BooleanProperty("deleted").indexed();
-	public static final Property<Boolean>         hidden             = new BooleanProperty("hidden").indexed();
+	public static final Property<String>          name               = new StringProperty("name").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>         deleted            = new BooleanProperty("deleted").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>         hidden             = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	public static final Property<Principal>       owner              = new StartNode<>("owner", PrincipalOwnsNode.class);
-	public static final Property<String>          ownerId            = new EntityIdProperty("ownerId", owner);
+	public static final Property<Principal>       owner              = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<String>          ownerId            = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
 
-	public static final Property<List<Principal>> grantees           = new StartNodes<>("grantees", Security.class);
+	public static final Property<List<Principal>> grantees           = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
 
 	public static final View graphView = new View(NodeInterface.class, View.INTERNAL_GRAPH_VIEW,
 		id, name, type

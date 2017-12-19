@@ -632,22 +632,23 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_METHODS, serializedMethods);
 		}
 
-		final Set<String> baseTypesAndInterfaces = new TreeSet<>();
-		final URI ext                            = getExtends();
-
+		final URI ext = getExtends();
 		if (ext != null) {
-			baseTypesAndInterfaces.add(root.toJsonPointer(ext));
+
+			serializedForm.put(JsonSchema.KEY_EXTENDS, root.toJsonPointer(ext));
 		}
 
 		if (!implementedInterfaces.isEmpty()) {
 
-			for (final URI uri : implementedInterfaces) {
-				baseTypesAndInterfaces.add(root.toJsonPointer(uri));
-			}
-		}
+			final Set<String> interfaces = new TreeSet<>();
 
-		if (!baseTypesAndInterfaces.isEmpty()) {
-			serializedForm.put(JsonSchema.KEY_EXTENDS, baseTypesAndInterfaces);
+			for (final URI uri : implementedInterfaces) {
+				interfaces.add(root.toJsonPointer(uri));
+			}
+
+			if (!interfaces.isEmpty()) {
+				serializedForm.put(JsonSchema.KEY_IMPLEMENTS, interfaces);
+			}
 		}
 
 		return serializedForm;
@@ -666,21 +667,24 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
 
 			final Object extendsValue = source.get(JsonSchema.KEY_EXTENDS);
-			if (extendsValue instanceof String) {
 
-				// "old" schema
-				String jsonPointerFormat = (String)extendsValue;
-				if (jsonPointerFormat.startsWith("#")) {
+			// "old" schema
+			String jsonPointerFormat = (String)extendsValue;
+			if (jsonPointerFormat.startsWith("#")) {
 
-					jsonPointerFormat = jsonPointerFormat.substring(1);
-				}
+				jsonPointerFormat = jsonPointerFormat.substring(1);
+			}
 
-				this.baseTypeReference = root.getId().relativize(URI.create(jsonPointerFormat));
+			this.baseTypeReference = root.getId().relativize(URI.create(jsonPointerFormat));
+		}
 
-			} else if (extendsValue instanceof List) {
+		if (source.containsKey(JsonSchema.KEY_IMPLEMENTS)) {
+
+			final Object implementsValue = source.get(JsonSchema.KEY_IMPLEMENTS);
+			if (implementsValue instanceof List) {
 
 				// "new" schema
-				final List<String> impl = (List<String>)extendsValue;
+				final List<String> impl = (List<String>)implementsValue;
 				for (String jsonPointerFormat : impl) {
 
 					if (jsonPointerFormat.startsWith("#")) {
@@ -745,7 +749,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final String extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
 		if (extendsClass != null) {
 
-			final String typeName = extendsClass.substring(extendsClass.lastIndexOf(".") + 1);
+			final String typeName = resolveParameterizedType(extendsClass);
+
 			if (extendsClass.startsWith("org.structr.dynamic.")) {
 
 				this.baseTypeReference = root.getId().resolve("definitions/" + typeName);
@@ -1179,5 +1184,20 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	}
 
-	// ----- nested classes -----
+	private String resolveParameterizedType(final String parameterizedType) {
+
+		// input is something like "org.structr.core.entity.LinkedTreeNodeImpl<org.structr.web.entity.AbstractFile>"
+		// output is LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.AbstractFile
+
+		if (parameterizedType.contains("<") && parameterizedType.contains(">")) {
+
+			final int startOfTypeParam = parameterizedType.indexOf("<");
+			final String typeParameter = parameterizedType.substring(startOfTypeParam);
+			final String baseType      = parameterizedType.substring(0, startOfTypeParam);
+
+			return baseType + "?typeParameters=" + typeParameter.substring(1, typeParameter.length() - 1);
+		}
+
+		return parameterizedType.substring(parameterizedType.lastIndexOf(".") + 1);
+	}
 }

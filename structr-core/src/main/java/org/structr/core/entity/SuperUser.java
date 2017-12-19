@@ -555,4 +555,9 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public Map<String, Object> getTemporaryStorage() {
 		throw new UnsupportedOperationException("Not supported.");
 	}
+
+	@Override
+	public String getEMail() {
+		return null;
+	}
 }

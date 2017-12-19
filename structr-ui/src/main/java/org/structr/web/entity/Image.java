@@ -58,16 +58,14 @@ public interface Image extends File {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Image"));
 		type.setExtends(URI.create("#/definitions/File"));
 
-		type.addIntegerProperty("width", PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("height", PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("orientation", PropertyView.Public).setIndexed(true);
-
-		type.addStringProperty("exifIFD0Data", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("exifSubIFDData", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("gpsData", PropertyView.Public).setIndexed(true);
-
-		type.addBooleanProperty("isImage").setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addBooleanProperty("isThumbnail", PropertyView.Public).setIndexed(true);
+		type.addIntegerProperty("width",           PropertyView.Public).setIndexed(true);
+		type.addIntegerProperty("height",          PropertyView.Public).setIndexed(true);
+		type.addIntegerProperty("orientation",     PropertyView.Public).setIndexed(true);
+		type.addStringProperty("exifIFD0Data",     PropertyView.Public).setIndexed(true);
+		type.addStringProperty("exifSubIFDData",   PropertyView.Public).setIndexed(true);
+		type.addStringProperty("gpsData",          PropertyView.Public).setIndexed(true);
+		type.addBooleanProperty("isImage",         PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isThumbnail",     PropertyView.Public).setIndexed(true);
 		type.addBooleanProperty("isCreatingThumb", PropertyView.Public).setIndexed(true);
 
 		type.addCustomProperty("imageData", ImageDataProperty.class.getName());

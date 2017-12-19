@@ -31,3 +31,4 @@ docs/screenshots
 **nbactions.xml
 import-*.log
 license.key
+/structr-ui/nbproject/

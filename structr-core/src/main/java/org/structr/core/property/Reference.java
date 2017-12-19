@@ -370,4 +370,14 @@ public class Reference<T> implements PropertyKey<T> {
 	public PropertyKey<T> transformators(String... transformators) {
 		return propertyKey.transformators(transformators);
 	}
+
+	@Override
+	public boolean isPartOfBuiltInSchema() {
+		return propertyKey.isPartOfBuiltInSchema();
+	}
+
+	@Override
+	public PropertyKey<T> partOfBuiltInSchema() {
+		return propertyKey.partOfBuiltInSchema();
+	}
 }

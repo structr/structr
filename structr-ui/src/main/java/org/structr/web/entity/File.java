@@ -25,14 +25,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.List;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.IOUtils;
+import org.structr.api.config.Settings;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
@@ -40,7 +43,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.ModificationEvent;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.files.cmis.config.StructrFileActions;
@@ -48,12 +55,14 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.json.JsonMethod;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import static org.structr.web.entity.ContentContainer.path;
+import org.structr.web.property.FileDataProperty;
 
 /**
  *
@@ -63,8 +72,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static class Impl { static {
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("File");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
 		type.setImplements(URI.create("#/definitions/Linkable"));
@@ -96,37 +105,48 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addPropertyGetter("basicAuthRealm", String.class);
 		type.addPropertyGetter("size", Long.class);
 
-		type.overrideMethod("isTemplate",               false, "return getProperty(isTemplateProperty);");
-		type.overrideMethod("isMounted",                false, "return " + File.class.getName() + ".isMounted(this);");
-		type.overrideMethod("setVersion",               false, "setProperty(versionProperty, arg0);").addException(FrameworkException.class.getName());
-		type.overrideMethod("increaseVersion",          false, File.class.getName() + ".increaseVersion(this);");
-		type.overrideMethod("notifyUploadCompletion",   false, File.class.getName() + ".notifyUploadCompletion(this);");
-		type.overrideMethod("getFileOnDisk",            false, "return " + File.class.getName() + ".getFileOnDisk(this);");
-		type.overrideMethod("getInputStream",           false, "return " + File.class.getName() + ".getInputStream(this);");
-		type.overrideMethod("getSearchContext",         false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1);");
-		type.overrideMethod("getJavascriptLibraryCode", false, "return " + File.class.getName() + ".getJavascriptLibraryCode(this);");
-		type.overrideMethod("getEnableBasicAuth",       false, "return getProperty(enableBasicAuthProperty);");
+		type.addCustomProperty("base64Data", FileDataProperty.class.getName());
+
+		type.overrideMethod("onCreation",                  true,  File.class.getName() + ".onCreation(this, arg0, arg1);");
+		type.overrideMethod("onModification",              true,  File.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		type.overrideMethod("onNodeCreation",              true,  File.class.getName() + ".onNodeCreation(this);");
+		type.overrideMethod("onNodeDeletion",              true,  File.class.getName() + ".onNodeDeletion(this);");
+		type.overrideMethod("afterCreation",               true,  File.class.getName() + ".afterCreation(this, arg0);");
+
+		type.overrideMethod("isTemplate",                  false, "return getProperty(isTemplateProperty);");
+		type.overrideMethod("isMounted",                   false, "return " + File.class.getName() + ".isMounted(this);");
+		type.overrideMethod("setVersion",                  false, "setProperty(versionProperty, arg0);").addException(FrameworkException.class.getName());
+
+		type.overrideMethod("increaseVersion",             false, File.class.getName() + ".increaseVersion(this);");
+		type.overrideMethod("notifyUploadCompletion",      false, File.class.getName() + ".notifyUploadCompletion(this);");
+		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
+
+		type.overrideMethod("getFileOnDisk",               false, "return " + File.class.getName() + ".getFileOnDisk(this);");
+		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
+		type.overrideMethod("getSearchContext",            false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1);");
+		type.overrideMethod("getJavascriptLibraryCode",    false, "return " + File.class.getName() + ".getJavascriptLibraryCode(this);");
+		type.overrideMethod("getEnableBasicAuth",          false, "return getProperty(enableBasicAuthProperty);");
 
 		// Favoritable
-		type.overrideMethod("getContext",               false, "return getPath();");
-		type.overrideMethod("getFavoriteContent",       false, "return " + File.class.getName() + ".getFavoriteContent(this);");
-		type.overrideMethod("setFavoriteContent",       false, File.class.getName() + ".setFavoriteContent(this, arg0);");
-		type.overrideMethod("getFavoriteContentType",   false, "return getContentType();");
+		type.overrideMethod("getContext",                  false, "return getPath();");
+		type.overrideMethod("getFavoriteContent",          false, "return " + File.class.getName() + ".getFavoriteContent(this);");
+		type.overrideMethod("setFavoriteContent",          false, File.class.getName() + ".setFavoriteContent(this, arg0);");
+		type.overrideMethod("getFavoriteContentType",      false, "return getContentType();");
 
 
 		// CMIS support
-		type.overrideMethod("getCMISInfo",              false, "return this;");
-		type.overrideMethod("getBaseTypeId",            false, "return " + BaseTypeId.class.getName() + ".CMIS_DOCUMENT;");
-		type.overrideMethod("getFolderInfo",            false, "return null;");
-		type.overrideMethod("getDocumentInfo",          false, "return this;");
-		type.overrideMethod("getItemInfo",              false, "return null;");
-		type.overrideMethod("getRelationshipInfo",      false, "return null;");
-		type.overrideMethod("getPolicyInfo",            false, "return null;");
-		type.overrideMethod("getSecondaryInfo",         false, "return null;");
-		type.overrideMethod("getChangeToken",           false, "return null;");
-		type.overrideMethod("getParentId",              false, "return getProperty(parentIdProperty);");
-		type.overrideMethod("getAllowableActions",      false, "return new " + StructrFileActions.class.getName() + "(isImmutable());");
-		type.overrideMethod("isImmutable",              false, "return " + File.class.getName() + ".isImmutable(this);");
+		type.overrideMethod("getCMISInfo",                 false, "return this;");
+		type.overrideMethod("getBaseTypeId",               false, "return " + BaseTypeId.class.getName() + ".CMIS_DOCUMENT;");
+		type.overrideMethod("getFolderInfo",               false, "return null;");
+		type.overrideMethod("getDocumentInfo",             false, "return this;");
+		type.overrideMethod("getItemInfo",                 false, "return null;");
+		type.overrideMethod("getRelationshipInfo",         false, "return null;");
+		type.overrideMethod("getPolicyInfo",               false, "return null;");
+		type.overrideMethod("getSecondaryInfo",            false, "return null;");
+		type.overrideMethod("getChangeToken",              false, "return null;");
+		type.overrideMethod("getParentId",                 false, "return getProperty(parentIdProperty);");
+		type.overrideMethod("getAllowableActions",         false, "return new " + StructrFileActions.class.getName() + "(isImmutable());");
+		type.overrideMethod("isImmutable",                 false, "return " + File.class.getName() + ".isImmutable(this);");
 
 		// overridden methods
 		final JsonMethod getOutputStream1 = type.addMethod("getOutputStream");
@@ -138,6 +158,22 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
 		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
 		getOutputStream2.setReturnType(FileOutputStream.class.getName());
+
+
+		// relationships
+		final JsonObjectType minifiedFile = (JsonObjectType)schema.getType("AbstractMinifiedFile");
+		if (minifiedFile != null) {
+
+			final JsonReferenceType rel = minifiedFile.relate(type, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
+
+			rel.addIntegerProperty("position", PropertyView.Public);
+		}
+
+		/* TODO:
+			public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
+			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
+		*/
+
 	}}
 
 	FileOutputStream getOutputStream();
@@ -149,6 +185,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	void notifyUploadCompletion();
 	void increaseVersion() throws FrameworkException;
+	void triggerMinificationIfNeeded(final ModificationQueue modificationQueue) throws FrameworkException;
 
 	String getRelativeFilePath();
 
@@ -447,70 +484,53 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	public static final View uiView = new View(File.class, PropertyView.Ui,
 		type, relativeFilePath, size, url, parent, checksum, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
 	);
+	*/
 
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static void onCreation(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if (super.onCreation(securityContext, errorBuffer)) {
+		final Folder parent = thisFile.getParent();
 
-			final PropertyMap changedProperties = new PropertyMap();
+		if (Settings.FilesystemEnabled.getValue() && parent == null) {
 
-			if (Settings.FilesystemEnabled.getValue() && !getProperty(AbstractFile.hasParent)) {
+			final Folder workingOrHomeDir = File.getCurrentWorkingDir(thisFile);
+			if (workingOrHomeDir != null) {
 
-				final Folder workingOrHomeDir = getCurrentWorkingDir();
-				if (workingOrHomeDir != null && getProperty(AbstractFile.parent) == null) {
-
-					changedProperties.put(AbstractFile.parent, workingOrHomeDir);
-				}
+				thisFile.setParent(workingOrHomeDir);
 			}
-
-			changedProperties.put(hasParent, getProperty(parentId) != null);
-
-			setProperties(securityContext, changedProperties);
-
-			return true;
 		}
-
-		return false;
 	}
 
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public static void onModification(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+		synchronized (thisFile) {
 
-			synchronized (this) {
+			// save current security context
+			final SecurityContext previousSecurityContext = thisFile.getSecurityContext();
 
-				// save current security context
-				final SecurityContext previousSecurityContext = securityContext;
+			// replace with SU context
+			thisFile.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-				// replace with SU context
-				this.securityContext = SecurityContext.getSuperUserInstance();
+			// update metadata and parent as superuser
+			FileHelper.updateMetadata(thisFile, new PropertyMap(StructrApp.key(File.class, "hasParent"), thisFile.getParent() != null));
 
-				// update metadata and parent as superuser
-				FileHelper.updateMetadata(this, new PropertyMap(hasParent, getProperty(parentId) != null));
-
-				// restore previous security context
-				this.securityContext = previousSecurityContext;
-			}
-
-			triggerMinificationIfNeeded(modificationQueue);
-
-			return true;
+			// restore previous security context
+			thisFile.setSecurityContext(previousSecurityContext);
 		}
 
-		return false;
+		if (thisFile instanceof AbstractMinifiedFile) {
+
+			((AbstractMinifiedFile)thisFile).triggerMinificationIfNeeded(modificationQueue);
+		}
 	}
 
-	@Override
-	public void onNodeCreation() {
+	public static void onNodeCreation(final File thisFile) {
 
-		final String uuid = getUuid();
+		final String uuid     = thisFile.getUuid();
 		final String filePath = getDirectoryPath(uuid) + "/" + uuid;
 
 		try {
-			unlockSystemPropertiesOnce();
-			setProperties(securityContext, new PropertyMap(relativeFilePath, filePath));
+			thisFile.unlockSystemPropertiesOnce();
+			thisFile.setProperty(StructrApp.key(File.class, "relativeFilePath"), filePath);
 
 		} catch (Throwable t) {
 
@@ -519,13 +539,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	@Override
-	public void onNodeDeletion() {
+	public static void onNodeDeletion(final File thisFile) {
 
 		String filePath = null;
 		try {
-			final String path = getRelativeFilePath();
-
+			final String path = thisFile.getRelativeFilePath();
 			if (path != null) {
 
 				filePath = FileHelper.getFilePath(path);
@@ -541,19 +559,14 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		} catch (Throwable t) {
 
 			logger.debug("Exception while trying to delete file {}: {}", new Object[]{filePath, t});
-
 		}
-
 	}
 
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
+	public static void afterCreation(final File thisFile, final SecurityContext securityContext) {
 
 		try {
 
-			final String filesPath        = Settings.FilesPath.getValue();
-			final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + getRelativeFilePath());
-
+			final java.io.File fileOnDisk = thisFile.getFileOnDisk();
 			if (fileOnDisk.exists()) {
 				return;
 			}
@@ -570,7 +583,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				return;
 			}
 
-			FileHelper.updateMetadata(this, new PropertyMap(version, 0));
+			FileHelper.updateMetadata(thisFile, new PropertyMap(StructrApp.key(File.class, "version"), 0));
 
 		} catch (FrameworkException ex) {
 
@@ -579,6 +592,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	}
 
+	/*
 	@Override
 	public String getPath() {
 		return FileHelper.getFolderPath(this);
@@ -621,23 +635,25 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return FileUtils.byteCountToDisplaySize(getSize());
 
 	}
+	*/
 
-	public void triggerMinificationIfNeeded(ModificationQueue modificationQueue) throws FrameworkException {
+	public static void triggerMinificationIfNeeded(final File thisFile, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		final List<AbstractMinifiedFile> targets = getProperty(minificationTargets);
+		final List<AbstractMinifiedFile> targets = thisFile.getProperty(StructrApp.key(File.class, "minificationTargets"));
+		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
 
 		if (!targets.isEmpty()) {
 
 			// only run minification if the file version changed
 			boolean versionChanged = false;
+
 			for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
 
-				if (getUuid().equals(modState.getUuid())) {
+				if (thisFile.getUuid().equals(modState.getUuid())) {
 
-					versionChanged = versionChanged ||
-							modState.getRemovedProperties().containsKey(FileBase.version) ||
-							modState.getModifiedProperties().containsKey(FileBase.version) ||
-							modState.getNewProperties().containsKey(FileBase.version);
+					versionChanged |= modState.getRemovedProperties().containsKey(versionKey);
+					versionChanged |= modState.getModifiedProperties().containsKey(versionKey);
+					versionChanged |= modState.getNewProperties().containsKey(versionKey);
 				}
 			}
 
@@ -646,18 +662,19 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				for (AbstractMinifiedFile minifiedFile : targets) {
 
 					try {
+
 						minifiedFile.minify();
+
 					} catch (IOException ex) {
 						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
 					}
 
 				}
-
 			}
-
 		}
-
 	}
+
+	/*
 
 	@Override
 	public InputStream getInputStream() {
@@ -964,9 +981,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	 * Returns the Folder entity for the current working directory,
 	 * or the user's home directory as a fallback.
 	 * @return
-	private Folder getCurrentWorkingDir() {
+	*/
+	static Folder getCurrentWorkingDir(final File thisFile) {
 
-		final Principal _owner  = getProperty(owner);
+		final Principal _owner  = thisFile.getOwnerNode();
 		Folder workingOrHomeDir = null;
 
 		if (_owner != null && _owner instanceof User) {
@@ -981,6 +999,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return workingOrHomeDir;
 	}
 
+	/*
 	private int getNumberOrDefault(final Map<String, Object> data, final String key, final int defaultValue) {
 
 		final Object value = data.get(key);

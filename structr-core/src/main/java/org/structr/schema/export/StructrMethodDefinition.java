@@ -347,8 +347,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 
-		for (final String fqcn : method.getProperty(SchemaMethod.exceptions)) {
-			addException(fqcn);
+		final String[] exceptionArray = method.getProperty(SchemaMethod.exceptions);
+		if (exceptionArray != null) {
+
+			for (final String fqcn : exceptionArray) {
+				addException(fqcn);
+			}
 		}
 
 		for (final SchemaMethodParameter param : method.getProperty(SchemaMethod.parameters)) {

@@ -78,6 +78,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPropertyGetter("locale", String.class);
 		principal.addPropertyGetter("sessionData", String.class);
 		principal.addPropertyGetter("favorites", List.class);
+		principal.addPropertyGetter("eMail", String.class);
 
 		principal.addPropertySetter("sessionData", String.class);
 		principal.addPropertySetter("favorites", List.class);
@@ -119,6 +120,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	void removeSessionId(final String sessionId);
 
 	String getSessionData();
+	String getEMail();
 	void setSessionData(final String sessionData) throws FrameworkException;
 
 	boolean isAdmin();

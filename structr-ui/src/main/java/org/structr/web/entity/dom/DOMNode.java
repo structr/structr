@@ -234,7 +234,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			.addParameter("sharedComponent", "org.structr.web.entity.dom.DOMNode");
 
 		final JsonReferenceType siblings = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
-		final JsonReferenceType parent   = type.relate(type, "CONTAINS",              Cardinality.OneToMany, "parent",          "children");     // DOMChildren
+		final JsonReferenceType parent   = type.relate(type, "CONTAINS",              Cardinality.OneToMany, "parent",          "children");
 		final JsonReferenceType synced   = type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
 		final JsonReferenceType owner    = type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
 

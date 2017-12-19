@@ -18,20 +18,25 @@
  */
 package org.structr.web.basic;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.StructrUiTest;
+import org.structr.web.auth.UiAuthenticator;
+import org.structr.web.entity.User;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Run casperjs frontend tests
- *
- *
+ * Run casperjs frontend tests.
  */
 public abstract class FrontendTest extends StructrUiTest {
-
-	protected int run(final String testName) {
-		return 0;
-	}
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(FrontendTest.class.getName());
 
@@ -43,7 +48,7 @@ public abstract class FrontendTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
-			createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
+			ResourceAccessTest.createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
 			tx.success();
 
 		} catch (Exception ex) {
@@ -111,10 +116,10 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		final PropertyMap properties = new PropertyMap();
 
-		properties.put(User.name, ADMIN_USERNAME);
-		properties.put(User.password, ADMIN_PASSWORD);
-		properties.put(User.isAdmin, true);
-		properties.put(User.backendUser, true);
+		properties.put(StructrApp.key(User.class, "name"), ADMIN_USERNAME);
+		properties.put(StructrApp.key(User.class, "password"), ADMIN_PASSWORD);
+		properties.put(StructrApp.key(User.class, "isAdmin"), true);
+		properties.put(StructrApp.key(User.class, "backendUser"), true);
 
 		User user = null;
 
@@ -159,6 +164,4 @@ public abstract class FrontendTest extends StructrUiTest {
 				.expect().statusCode(201)
 			.when().post(resource).getHeader("Location"));
 	}
-
-	*/
 }

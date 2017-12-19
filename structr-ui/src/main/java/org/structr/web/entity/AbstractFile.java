@@ -32,12 +32,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.FileHelper;
-import static org.structr.web.entity.ContentContainer.path;
 import org.structr.web.property.PathProperty;
 
 /**
@@ -188,17 +188,19 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	public static boolean validatePath(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final String filePath = thisFile.getPath();
+		final PropertyKey<String> pathKey = StructrApp.key(File.class, "path");
+		final String filePath             = thisFile.getPath();
+
 		if (filePath != null) {
 
-			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(path, filePath).getAsList();
+			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(pathKey, filePath).getAsList();
 			for (final AbstractFile file : files) {
 
 				if (!file.getUuid().equals(thisFile.getUuid())) {
 
 					if (errorBuffer != null) {
 
-						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), path, file.getUuid());
+						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), pathKey, file.getUuid());
 						token.setValue(filePath);
 
 						errorBuffer.add(token);

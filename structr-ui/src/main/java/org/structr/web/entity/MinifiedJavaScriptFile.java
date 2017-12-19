@@ -18,11 +18,32 @@
  */
 package org.structr.web.entity;
 
+import com.google.javascript.jscomp.BasicErrorManager;
+import com.google.javascript.jscomp.CheckLevel;
+import com.google.javascript.jscomp.CommandLineRunner;
+import com.google.javascript.jscomp.Compiler;
+import com.google.javascript.jscomp.CompilationLevel;
+import com.google.javascript.jscomp.CompilerOptions;
+import com.google.javascript.jscomp.JSError;
+import com.google.javascript.jscomp.SourceFile;
+import com.google.javascript.jscomp.parsing.parser.util.format.SimpleFormat;
+import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationEvent;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.relation.MinificationSource;
 
 public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
@@ -34,49 +55,38 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MinifiedJavaScriptFile"));
 		type.setExtends(URI.create("#/definitions/AbstractMinifiedFile"));
 
-		type.addEnumProperty("optimizationLevel", PropertyView.Public).setEnums("WHITESPACE_ONLY", "SIMPLE_OPTIMIZATIONS", "ADVANCED_OPTIMIZATIONS");
+		type.addEnumProperty("optimizationLevel", PropertyView.Public).setEnums("WHITESPACE_ONLY", "SIMPLE_OPTIMIZATIONS", "ADVANCED_OPTIMIZATIONS").setDefaultValue("WHITESPACE_ONLY");
+
 		type.addStringProperty("warnings", PropertyView.Public);
 		type.addStringProperty("errors",   PropertyView.Public);
 
-		type.overrideMethod("getOptimizationLevel", false, "return getProperty(optimizationLevelProperty).name();");
+		type.overrideMethod("getOptimizationLevel",                 false, "return getProperty(optimizationLevelProperty).name();");
+		type.overrideMethod("shouldModificationTriggerMinifcation", false, "return " + MinifiedJavaScriptFile.class.getName() + ".shouldModificationTriggerMinifcation(this, arg0);");
+		type.overrideMethod("minify",                               false, MinifiedJavaScriptFile.class.getName() + ".minify(this);");
 	}}
 
 	String getOptimizationLevel();
 
-	/*
 
-	private static final Logger logger = LoggerFactory.getLogger(MinifiedJavaScriptFile.class.getName());
-
-	public static final Property<CompilationLevel> optimizationLevel = new EnumProperty<>("optimizationLevel", CompilationLevel.class, CompilationLevel.WHITESPACE_ONLY);
-	public static final Property<String> warnings                    = new StringProperty("warnings");
-	public static final Property<String> errors                      = new StringProperty("errors");
-
-	public static final View defaultView = new View(MinifiedJavaScriptFile.class, PropertyView.Public, minificationSources, optimizationLevel, warnings, errors);
-	public static final View uiView      = new View(MinifiedJavaScriptFile.class, PropertyView.Ui, minificationSources, optimizationLevel, warnings, errors);
-
-	@Override
-	public boolean shouldModificationTriggerMinifcation(ModificationEvent modState) {
-
-		return modState.getModifiedProperties().containsKey(MinifiedJavaScriptFile.optimizationLevel);
-
+	static boolean shouldModificationTriggerMinifcation(final MinifiedJavaScriptFile thisFile, final ModificationEvent modState) {
+		return modState.getModifiedProperties().containsKey(StructrApp.key(MinifiedJavaScriptFile.class, "optimizationLevel"));
 	}
 
-	@Override
-	public void minify() throws FrameworkException, IOException {
+	static void minify(final MinifiedJavaScriptFile thisFile) throws FrameworkException, IOException {
 
-		logger.info("Running minify: {}", this.getUuid());
+		logger.info("Running minify: {}", thisFile.getUuid());
 
-		final Compiler compiler = new Compiler();
-		final CompilerOptions options = new CompilerOptions();
-		final CompilationLevel selectedLevel = getProperty(optimizationLevel);
+		final SecurityContext securityContext = thisFile.getSecurityContext();
+		final Compiler compiler               = new Compiler();
+		final CompilerOptions options         = new CompilerOptions();
+		final CompilationLevel selectedLevel  = CompilationLevel.valueOf(thisFile.getOptimizationLevel());
+
 		selectedLevel.setOptionsForCompilationLevel(options);
 
 		compiler.setErrorManager(new BasicErrorManager() {
+
 			@Override
-			public void println(CheckLevel level, JSError error) {
-//				if (level != CheckLevel.OFF) {
-//					logger.log((level == CheckLevel.ERROR) ? Level.SEVERE : Level.WARNING, error.toString());
-//				}
+			public void println(final CheckLevel level, final JSError error) {
 			}
 
 			@Override
@@ -92,25 +102,29 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 				}
 			}
 		});
-		compiler.compile(CommandLineRunner.getBuiltinExterns(options), getSourceFileList(), options);
 
-		FileHelper.setFileData(this, compiler.toSource().getBytes(), getProperty(contentType));
+		compiler.compile(CommandLineRunner.getBuiltinExterns(options), MinifiedJavaScriptFile.getSourceFileList(thisFile), options);
+
+		FileHelper.setFileData(thisFile, compiler.toSource().getBytes(), thisFile.getContentType());
 
 		final PropertyMap changedProperties = new PropertyMap();
-		changedProperties.put(warnings, StringUtils.join(compiler.getWarnings(), System.lineSeparator()));
-		changedProperties.put(errors, StringUtils.join(compiler.getErrors(), System.lineSeparator()));
-		setProperties(securityContext, changedProperties);
 
+		changedProperties.put(StructrApp.key(MinifiedJavaScriptFile.class, "warnings"), StringUtils.join(compiler.getWarnings(), System.lineSeparator()));
+		changedProperties.put(StructrApp.key(MinifiedJavaScriptFile.class, "errors"),   StringUtils.join(compiler.getErrors(), System.lineSeparator()));
+
+		thisFile.setProperties(securityContext, changedProperties);
 	}
 
-	private ArrayList<SourceFile> getSourceFileList() throws FrameworkException, IOException {
+	static ArrayList<SourceFile> getSourceFileList(final MinifiedJavaScriptFile thisFile) throws FrameworkException, IOException {
 
-		ArrayList<SourceFile> sourceList = new ArrayList();
+		final SecurityContext securityContext  = thisFile.getSecurityContext();
+		final ArrayList<SourceFile> sourceList = new ArrayList();
 
 		int cnt = 0;
-		for (MinificationSource rel : getSortedRelationships()) {
 
-			final File src = rel.getTargetNode();
+		for (Relation rel : AbstractMinifiedFile.getSortedRelationships(thisFile)) {
+
+			final File src = (File)rel.getTargetNode();
 
 			sourceList.add(SourceFile.fromCode(src.getProperty(File.name), FileUtils.readFileToString(src.getFileOnDisk())));
 
@@ -123,5 +137,4 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 		return sourceList;
 	}
-	*/
 }

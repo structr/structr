@@ -18,12 +18,41 @@
  */
 package org.structr.web.advanced;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.util.LinkedList;
+import java.util.List;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
+import org.structr.core.function.TypeInfoFunction;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.basic.FrontendTest;
+import org.structr.web.basic.ResourceAccessTest;
+import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
 
 
 
 public class AdvancedSchemaTest extends FrontendTest {
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSchemaTest.class.getName());
 
@@ -33,7 +62,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
-			createResourceAccess("_schema", UiAuthenticator.AUTH_USER_GET);
+			ResourceAccessTest.createResourceAccess("_schema", UiAuthenticator.AUTH_USER_GET);
 			tx.success();
 
 		} catch (Exception ex) {
@@ -76,9 +105,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(34))
-					.body("result[33].jsonName",       equalTo("testFile"))
-					.body("result[33].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(42))
+					.body("result[41].jsonName",       equalTo("testFile"))
+					.body("result[41].declaringClass", equalTo("File"))
 
 				.when()
 					.get("/_schema/File/ui");
@@ -108,9 +137,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(44))
-					.body("result[43].jsonName",       equalTo("testFile"))
-					.body("result[43].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(56))
+					.body("result[32].jsonName",       equalTo("testFile"))
+					.body("result[32].declaringClass", equalTo("File"))
 
 				.when()
 					.get("/_schema/Image/ui");
@@ -162,7 +191,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, "File");
+			subFileProperties.put(SchemaNode.extendsClass, "org.structr.dynamic.File");
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -199,11 +228,11 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(35))
-					.body("result[33].jsonName",       equalTo("testSubFile"))
-					.body("result[33].declaringClass", equalTo("SubFile"))
-					.body("result[34].jsonName",       equalTo("testFile"))
-					.body("result[34].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(43))
+					.body("result[32].jsonName",       equalTo("testFile"))
+					.body("result[32].declaringClass", equalTo("File"))
+					.body("result[42].jsonName",       equalTo("testSubFile"))
+					.body("result[42].declaringClass", equalTo("SubFile"))
 
 				.when()
 					.get("/_schema/SubFile/ui");
@@ -256,7 +285,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			final PropertyMap subFileProperties = new PropertyMap();
 			subFileProperties.put(SchemaNode.name, "SubFile");
-			subFileProperties.put(SchemaNode.extendsClass, "Image");
+			subFileProperties.put(SchemaNode.extendsClass, "org.structr.dynamic.Image");
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
 
@@ -293,11 +322,11 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(45))
-					.body("result[43].jsonName",       equalTo("testSubFile"))
-					.body("result[43].declaringClass", equalTo("SubFile"))
-					.body("result[44].jsonName",       equalTo("testFile"))
-					.body("result[44].declaringClass", equalTo("_FileHelper"))
+					.body("result",	                   hasSize(57))
+					.body("result[32].jsonName",       equalTo("testFile"))
+					.body("result[32].declaringClass", equalTo("File"))
+					.body("result[56].jsonName",       equalTo("testSubFile"))
+					.body("result[56].declaringClass", equalTo("SubFile"))
 
 				.when()
 					.get("/_schema/SubFile/ui");
@@ -969,5 +998,4 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 	}
-	*/
 }

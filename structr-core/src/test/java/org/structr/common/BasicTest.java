@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -1629,19 +1630,22 @@ public class BasicTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<? extends RelationshipInterface> rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
+			final List<Class> classes1                        = rels1.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels1.get(0).getClass());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels1.get(1).getClass());
+			assertTrue("Invalid relationship type after object creation", classes1.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes1.contains(PrincipalOwnsNode.class));
 
 			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
+			final List<Class> classes2                        = rels2.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels2.get(0).getClass());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels2.get(1).getClass());
+			assertTrue("Invalid relationship type after object creation", classes2.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes2.contains(PrincipalOwnsNode.class));
 
 			final List<? extends RelationshipInterface> rels3 = Iterables.toList(test.getIncomingRelationships());
+			final List<Class> classes3                        = rels3.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels3.size());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels3.get(0).getClass());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels3.get(1).getClass());
+			assertTrue("Invalid relationship type after object creation", classes3.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes3.contains(PrincipalOwnsNode.class));
 
 			final Security sec = app.relationshipQuery(Security.class).getFirst();
 			assertNotNull("Relationship caching on node creation is broken", sec);

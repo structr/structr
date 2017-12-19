@@ -29,6 +29,7 @@ import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonReferenceType;
@@ -465,6 +466,14 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 		if (aclHiddenProperties != null) {
 			_schemaNode.setProperty(SchemaRelationshipNode.propertyMask, aclHiddenProperties);
+		}
+
+		if (root != null) {
+
+			if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
+
+				_schemaNode.setProperty(SchemaRelationshipNode.isPartOfBuiltInSchema, true);
+			}
 		}
 
 		return _schemaNode;

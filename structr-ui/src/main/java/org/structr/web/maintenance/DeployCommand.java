@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -613,9 +612,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting files (unchanged files will be skipped)");
 
-		final PropertyKey<Boolean> inclKey  = StructrApp.key(AbstractFile.class, "includeInFrontendExport");
-		final PropertyKey<Boolean> jsKey    = StructrApp.key(AbstractFile.class, "useAsJavascriptLibrary");
-		final PropertyKey<Folder> parentKey = StructrApp.key(AbstractFile.class, "parent");
+		final PropertyKey<Boolean> inclKey  = StructrApp.key(File.class, "includeInFrontendExport");
+		final PropertyKey<Boolean> jsKey    = StructrApp.key(File.class, "useAsJavascriptLibrary");
+		final PropertyKey<Folder> parentKey = StructrApp.key(File.class, "parent");
 		final Map<String, Object> config    = new TreeMap<>();
 		final App app                       = StructrApp.getInstance();
 
@@ -994,8 +993,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.warn("", ioex);
 			}
 
-		} catch (URISyntaxException x) {
-			logger.warn("", x);
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 
@@ -1029,7 +1028,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys
-			if (key.isDynamic()) {
+			if (!key.isPartOfBuiltInSchema()) {
+
+				// TODO: isDynamic() is not sufficient any more, since almost all of the
+				//       keys are dynamic now. We need to set a different flag
 
 				putIf(config, key.jsonName(), node.getProperty(key));
 			}

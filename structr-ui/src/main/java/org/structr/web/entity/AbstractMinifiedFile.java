@@ -18,15 +18,30 @@
  */
 package org.structr.web.entity;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import org.apache.commons.io.FileUtils;
+import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationEvent;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 import org.structr.web.entity.relation.MinificationSource;
 
 /**
- * Base class for minifiable files in structr
- *
+ * Base class for minifiable files in Structr.
  */
 public interface AbstractMinifiedFile extends File {
 
@@ -37,11 +52,15 @@ public interface AbstractMinifiedFile extends File {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractMinifiedFile"));
 		type.setExtends(URI.create("#/definitions/File"));
+		type.setIsAbstract();
 
 		type.overrideMethod("getMaxPosition", false, "return " + AbstractMinifiedFile.class.getName() + ".getMaxPosition(this);");
+		type.overrideMethod("onModification", true,  AbstractMinifiedFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 	}}
 
 	int getMaxPosition();
+	void minify() throws FrameworkException, IOException;
+	boolean shouldModificationTriggerMinifcation(final ModificationEvent modState);
 
 	public static int getMaxPosition (final AbstractMinifiedFile thisFile) {
 
@@ -54,24 +73,17 @@ public interface AbstractMinifiedFile extends File {
 		return max;
 	}
 
-	/*
-
-	private static final Logger logger = LoggerFactory.getLogger(AbstractMinifiedFile.class.getName());
-
-	public static final Property<List<File>> minificationSources = new EndNodes<>("minificationSources", MinificationSource.class);
-
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	static void onModification(final AbstractMinifiedFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		boolean shouldMinify = false;
-		final String myUUID = getUuid();
+		final String myUUID = thisFile.getUuid();
 
 		for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
 
 			// only take changes on this exact file into account
 			if (myUUID.equals(modState.getUuid())) {
 
-				shouldMinify = shouldMinify || shouldModificationTriggerMinifcation(modState);
+				shouldMinify = shouldMinify || thisFile.shouldModificationTriggerMinifcation(modState);
 
 			}
 
@@ -80,34 +92,30 @@ public interface AbstractMinifiedFile extends File {
 		if (shouldMinify) {
 
 			try {
-				this.minify();
+
+				thisFile.minify();
+
 			} catch (IOException ex) {
 				logger.warn("Could not automatically minify file", ex);
 			}
-
 		}
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
-	@Export
-	public abstract void minify() throws FrameworkException, IOException;
+	public static String getConcatenatedSource(final AbstractMinifiedFile thisFile) throws FrameworkException, IOException {
 
-	public abstract boolean shouldModificationTriggerMinifcation(ModificationEvent modState);
-
-	public String getConcatenatedSource () throws FrameworkException, IOException {
-
+		final SecurityContext securityContext  = thisFile.getSecurityContext();
 		final StringBuilder concatenatedSource = new StringBuilder();
 		int cnt = 0;
 
-		for (MinificationSource rel : getSortedRelationships()) {
+		for (Relation rel : AbstractMinifiedFile.getSortedRelationships(thisFile)) {
 
-			final File src = rel.getTargetNode();
+			final File src = (File)rel.getTargetNode();
 
-			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk()));
+			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk(), Charset.forName("utf-8")));
 
 			// compact the relationships (if necessary)
 			if (rel.getProperty(MinificationSource.position) != cnt) {
+
 				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, cnt));
 			}
 
@@ -117,11 +125,15 @@ public interface AbstractMinifiedFile extends File {
 		return concatenatedSource.toString();
 	}
 
-	public List<MinificationSource> getSortedRelationships() {
-		final List<MinificationSource> rels = new ArrayList();
-		getOutgoingRelationships(MinificationSource.class).forEach(rels::add);
+	public static List<Relation> getSortedRelationships(final AbstractMinifiedFile thisFile) {
 
-		Collections.sort(rels, (MinificationSource arg0, MinificationSource arg1) -> (arg0.getProperty(MinificationSource.position).compareTo(arg1.getProperty(MinificationSource.position))));
+		final Class<Relation> type     = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key = StructrApp.key(type, "position");
+		final List<Relation> rels      = new ArrayList<>();
+
+		rels.addAll(Iterables.toList(thisFile.getOutgoingRelationships(type)));
+
+		Collections.sort(rels, (arg0, arg1) -> (arg0.getProperty(key).compareTo(arg1.getProperty(key))));
 
 		return rels;
 	}

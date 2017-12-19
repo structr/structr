@@ -18,10 +18,84 @@
  */
 package org.structr.web.advanced;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import org.junit.Assert;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Localization;
+import org.structr.core.entity.MailTemplate;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.Security;
+import org.structr.core.entity.relationship.PrincipalOwnsNode;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.StructrUiTest;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.User;
+import org.structr.web.entity.Widget;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.html.Body;
+import org.structr.web.entity.html.Div;
+import org.structr.web.entity.html.Head;
+import org.structr.web.entity.html.Html;
+import org.structr.web.entity.html.Li;
+import org.structr.web.entity.html.Link;
+import org.structr.web.entity.html.Option;
+import org.structr.web.entity.html.P;
+import org.structr.web.entity.html.Script;
+import org.structr.web.entity.html.Select;
+import org.structr.web.entity.html.Table;
+import org.structr.web.entity.html.Tbody;
+import org.structr.web.entity.html.Td;
+import org.structr.web.entity.html.Thead;
+import org.structr.web.entity.html.Tr;
+import org.structr.web.entity.html.Ul;
+import org.structr.web.importer.Importer;
+import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
+import org.structr.websocket.command.CloneComponentCommand;
+import org.structr.websocket.command.CreateComponentCommand;
+import org.w3c.dom.Node;
 
 public class DeploymentTest extends StructrUiTest {
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(DeploymentTest.class.getName());
 
@@ -34,7 +108,13 @@ public class DeploymentTest extends StructrUiTest {
 			final Page page = Page.createSimplePage(securityContext, "test01");
 
 			// test special properties
-			page.setProperty(Page.showOnErrorCodes, "404");
+			page.setProperty(StructrApp.key(Page.class, "showOnErrorCodes"), "404");
+
+
+
+			fixme: compare export to export from master branch
+
+								    
 
 			tx.success();
 
@@ -64,7 +144,7 @@ public class DeploymentTest extends StructrUiTest {
 				final Div div1 = createElement(page, body, "div");
 				createElement(page, div1, "h1", "private - ${find('User')}");
 
-				div1.setProperties(div1.getSecurityContext(), new PropertyMap(DOMNode.showConditions, "me.isAdmin"));
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
 			}
 
 			// create a private div
@@ -72,7 +152,7 @@ public class DeploymentTest extends StructrUiTest {
 				final Div div1 = createElement(page, body, "div");
 				 createElement(page, div1, "h1", "private - test abcdefghjiklmnopqrstuvwyzöäüßABCDEFGHIJKLMNOPQRSTUVWXYZÖÄÜ?\"'");
 
-				div1.setProperties(div1.getSecurityContext(), new PropertyMap(DOMNode.showConditions, "me.isAdmin"));
+				div1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "me.isAdmin");
 			}
 
 			// create a protected div
@@ -142,8 +222,8 @@ public class DeploymentTest extends StructrUiTest {
 			);
 
 			// workaround for strange importer behaviour
-			script.setProperties(script.getSecurityContext(), new PropertyMap(Script._type, "text/javascript"));
-			content.setProperties(content.getSecurityContext(), new PropertyMap(Content.contentType, "text/javascript"));
+			script.setProperty(StructrApp.key(Script.class, "_html_type"), "text/javascript");
+			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/javascript");
 
 			tx.success();
 
@@ -172,9 +252,9 @@ public class DeploymentTest extends StructrUiTest {
 			final Link link3  = createElement(page, head, "link");
 
 			final PropertyMap link3Properties = new PropertyMap();
-			link3Properties.put(Link._href, "/");
-			link3Properties.put(Link._media, "screen");
-			link3Properties.put(Link._type, "stylesheet");
+			link3Properties.put(StructrApp.key(Link.class, "_html_href"), "/");
+			link3Properties.put(StructrApp.key(Link.class, "_html_media"), "screen");
+			link3Properties.put(StructrApp.key(Link.class, "_html_type"), "stylesheet");
 			link3.setProperties(link3.getSecurityContext(), link3Properties);
 
 			final Body body       = createElement(page, html, "body");
@@ -208,8 +288,8 @@ public class DeploymentTest extends StructrUiTest {
 			final Template template = createTemplate(page, div1, "template source - öäüÖÄÜß'\"'`");
 
 			final PropertyMap templateProperties = new PropertyMap();
-			templateProperties.put(Template.functionQuery, "find('User')");
-			templateProperties.put(Template.dataKey, "user");
+			templateProperties.put(StructrApp.key(Template.class, "functionQuery"), "find('User')");
+			templateProperties.put(StructrApp.key(Template.class, "dataKey"), "user");
 			template.setProperties(template.getSecurityContext(), templateProperties);
 
 			// append children to template object
@@ -426,8 +506,8 @@ public class DeploymentTest extends StructrUiTest {
 			final Template template1 = createTemplate(page1, tbody, "<tr><td>${user.name}</td></tr>");
 
 			final PropertyMap template1Properties = new PropertyMap();
-			template1Properties.put(DOMNode.functionQuery, "find('User')");
-			template1Properties.put(DOMNode.dataKey, "user");
+			template1Properties.put(StructrApp.key(DOMNode.class, "functionQuery"), "find('User')");
+			template1Properties.put(StructrApp.key(DOMNode.class, "dataKey"), "user");
 			template1.setProperties(template1.getSecurityContext(), template1Properties);
 
 			tx.success();
@@ -456,7 +536,7 @@ public class DeploymentTest extends StructrUiTest {
 			final Script script1 = createElement(page, body, "script");
 			final Script script2 = createElement(page, body, "script");
 
-			script1.setProperty(Script._type, "text/javascript");
+			script1.setProperty(StructrApp.key(Script.class, "_html_type"), "text/javascript");
 
 			createContent(page, script1, "");
 
@@ -511,13 +591,13 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(Folder.includeInFrontendExport, true);
+			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
 
-			file.setProperty(File.parent, folder);
-			file.setProperty(File.visibleToPublicUsers, true);
-			file.setProperty(File.visibleToAuthenticatedUsers, true);
-			file.setProperty(File.enableBasicAuth, true);
-			file.setProperty(File.useAsJavascriptLibrary, true);
+			file.setProperty(StructrApp.key(File.class, "parent"), folder);
+			file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
+			file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
+			file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
+			file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), true);
 
 			tx.success();
 
@@ -536,15 +616,15 @@ public class DeploymentTest extends StructrUiTest {
 
 			Assert.assertNotNull("Invalid deployment result", folder);
 
-			final File file     = app.nodeQuery(File.class).and(File.parent, folder).and(File.name, fileName).getFirst();
+			final File file     = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
 
 			Assert.assertNotNull("Invalid deployment result", file);
 
-			Assert.assertEquals("Deployment import does not restore attributes correctly", folder, file.getProperty(File.parent));
-			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
-			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.visibleToAuthenticatedUsers));
-			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.enableBasicAuth));
-			Assert.assertTrue("Deployment import does not restore attributes correctly", file.getProperty(File.useAsJavascriptLibrary));
+			Assert.assertEquals("Deployment import does not restore attributes correctly", folder, file.getParent());
+			Assert.assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",   file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
 
 			tx.success();
 
@@ -570,14 +650,14 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertNotNull("Root folder should not be null", rootFolder);
 
 			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(Folder.includeInFrontendExport, true);
+			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
 
-			file.setProperty(File.parent, folder);
-			file.setProperty(File.visibleToPublicUsers, true);
-			file.setProperty(File.visibleToAuthenticatedUsers, true);
-			file.setProperty(File.enableBasicAuth, true);
-			file.setProperty(File.useAsJavascriptLibrary, true);
-			file.setProperty(File.includeInFrontendExport, true);
+			file.setProperty(StructrApp.key(File.class, "parent"), folder);
+			file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
+			file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
+			file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
+			file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), true);
+			file.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
 
 			tx.success();
 
@@ -595,11 +675,11 @@ public class DeploymentTest extends StructrUiTest {
 				try (final Tx tx = app.tx()) {
 
 					final File file = app.nodeQuery(File.class).and(File.name, fileName).getFirst();
-					file.setProperty(File.visibleToPublicUsers, false);
-					file.setProperty(File.visibleToAuthenticatedUsers, false);
-					file.setProperty(File.enableBasicAuth, false);
-					file.setProperty(File.useAsJavascriptLibrary, false);
-					file.setProperty(File.includeInFrontendExport, false);
+					file.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), false);
+					file.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), false);
+					file.setProperty(StructrApp.key(File.class, "enableBasicAuth"), false);
+					file.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), false);
+					file.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), false);
 
 					tx.success();
 
@@ -617,16 +697,16 @@ public class DeploymentTest extends StructrUiTest {
 
 			Assert.assertNotNull("Invalid deployment result", folder);
 
-			final File file     = app.nodeQuery(File.class).and(File.parent, folder).and(File.name, fileName).getFirst();
+			final File file     = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), folder).and(File.name, fileName).getFirst();
 
 			Assert.assertNotNull("Invalid deployment result", file);
 
-			Assert.assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.getProperty(File.parent));
-			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToPublicUsers));
-			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.visibleToAuthenticatedUsers));
-			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.enableBasicAuth));
-			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.useAsJavascriptLibrary));
-			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(File.includeInFrontendExport));
+			Assert.assertEquals("Deployment import of existing file does not restore attributes correctly", folder, file.getParent());
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+			Assert.assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
 
 			tx.success();
 
@@ -750,7 +830,7 @@ public class DeploymentTest extends StructrUiTest {
 			final Div div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(Content.contentType, "text/html");
+			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
 
 			tx.success();
 
@@ -797,7 +877,7 @@ public class DeploymentTest extends StructrUiTest {
 			final Div div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(Content.contentType, "text/html");
+			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
 
 			// set owner to different user
 			div1.setProperty(AbstractNode.owner, user2);
@@ -848,7 +928,7 @@ public class DeploymentTest extends StructrUiTest {
 			final Div div1  = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(Content.contentType, "text/html");
+			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
 
 			// create grants
 			page.grant(Permission.read, user2);
@@ -969,13 +1049,14 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create some files and folders
-			final Folder folder1  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder1"), new NodeAttribute<>(Folder.includeInFrontendExport, true));
-			final Folder folder2  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(Folder.parent, folder1));
+			final Folder folder1  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder1"), new NodeAttribute<>(StructrApp.key(Folder.class, "includeInFrontendExport"), true));
+			final Folder folder2  = app.create(Folder.class, new NodeAttribute<>(Folder.name, "Folder2"), new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), folder1));
+
 			final File file1  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test1.txt");
 			final File file2  = FileHelper.createFile(securityContext, "test".getBytes(), "text/plain", File.class, "test2.txt");
 
-			file1.setProperty(File.parent, folder2);
-			file2.setProperty(File.parent, folder2);
+			file1.setParent(folder2);
+			file2.setParent(folder2);
 
 			folder1.setProperty(Folder.owner, user1);
 			folder1.grant(Permission.read, user2);
@@ -1037,9 +1118,9 @@ public class DeploymentTest extends StructrUiTest {
 			final Content content2 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
 			final Content content3 = createContent(page, div1, "${find('User', 'name', '@structr')[0].id}");
 
-			content1.setProperty(DOMNode.showConditions, "eq(current.type, 'MyTestFolder')");
-			content2.setProperty(DOMNode.showConditions, "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
-			content3.setProperty(DOMNode.showConditions, "(((((([]))))))"); // for testing only
+			content1.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "eq(current.type, 'MyTestFolder')");
+			content2.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "if(equal(extract(first(find('User', 'name' 'structr')), 'name'), '@structr'), true, false)");
+			content3.setProperty(StructrApp.key(DOMNode.class, "showConditions"), "(((((([]))))))"); // for testing only
 
 			tx.success();
 
@@ -1058,6 +1139,7 @@ public class DeploymentTest extends StructrUiTest {
 		/* This method tests whether files, folders and images that are
 		 * considered part of application data (derived from built-in
 		 * types) are ignored in the deployment process.
+		 */
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -1086,17 +1168,17 @@ public class DeploymentTest extends StructrUiTest {
 			final NodeInterface folder1 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"), "folder1");
 			final NodeInterface folder2 = app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFolder"),
 				new NodeAttribute<>(Folder.name, "folder2"),
-				new NodeAttribute(Folder.parent, folder1)
+				new NodeAttribute(StructrApp.key(Folder.class, "parent"), folder1)
 			);
 
 			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
 				new NodeAttribute<>(File.name, "file1.txt"),
-				new NodeAttribute(File.parent, folder1)
+				new NodeAttribute(StructrApp.key(File.class, "parent"), folder1)
 			);
 
 			app.create(StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile"),
 				new NodeAttribute<>(File.name, "file2.txt"),
-				new NodeAttribute(File.parent, folder2)
+				new NodeAttribute(StructrApp.key(File.class, "parent"), folder2)
 			);
 
 			tx.success();
@@ -1124,7 +1206,7 @@ public class DeploymentTest extends StructrUiTest {
 			final Div div1         = createElement(page, body, "div");
 			final Content content1 = createContent(page, div1, "<div><script>var test = '<h3>Title</h3>';</script></div>");
 
-			content1.setProperty(Content.contentType, "text/html");
+			content1.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
 
 			tx.success();
 
@@ -1148,15 +1230,15 @@ public class DeploymentTest extends StructrUiTest {
 			final File file1 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName1);
 			final File file2 = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName2);
 
-			file1.setProperty(File.visibleToPublicUsers, true);
-			file1.setProperty(File.visibleToAuthenticatedUsers, true);
-			file1.setProperty(File.enableBasicAuth, true);
-			file1.setProperty(File.useAsJavascriptLibrary, true);
+			file1.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
+			file1.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
+			file1.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
+			file1.setProperty(StructrApp.key(File.class, "useAsJavascriptLibrary"), true);
 
-			file2.setProperty(File.visibleToPublicUsers, true);
-			file2.setProperty(File.visibleToAuthenticatedUsers, true);
-			file2.setProperty(File.enableBasicAuth, true);
-			file2.setProperty(File.includeInFrontendExport, true);
+			file2.setProperty(StructrApp.key(File.class, "visibleToPublicUsers"), true);
+			file2.setProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers"), true);
+			file2.setProperty(StructrApp.key(File.class, "enableBasicAuth"), true);
+			file2.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
 
 			tx.success();
 
@@ -1177,17 +1259,17 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertNotNull("Invalid deployment result", file1);
 			Assert.assertNotNull("Invalid deployment result", file2);
 
-			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.visibleToPublicUsers));
-			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.visibleToAuthenticatedUsers));
-			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.enableBasicAuth));
-			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(File.useAsJavascriptLibrary));
-			Assert.assertFalse("Deployment import does not restore attributes correctly", file1.getProperty(File.includeInFrontendExport));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+			Assert.assertFalse("Deployment import does not restore attributes correctly", file1.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
 
-			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(File.visibleToPublicUsers));
-			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(File.visibleToAuthenticatedUsers));
-			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(File.enableBasicAuth));
-			Assert.assertFalse("Deployment import does not restore attributes correctly", file2.getProperty(File.useAsJavascriptLibrary));
-			Assert.assertTrue("Deployment import does not restore attributes correctly" , file2.getProperty(File.includeInFrontendExport));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(StructrApp.key(File.class, "visibleToPublicUsers")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(StructrApp.key(File.class, "visibleToAuthenticatedUsers")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
+			Assert.assertFalse("Deployment import does not restore attributes correctly", file2.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+			Assert.assertTrue("Deployment import does not restore attributes correctly" , file2.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
 
 			tx.success();
 
@@ -1203,17 +1285,17 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(MailTemplate.class,
-				new NodeAttribute<>(MailTemplate.name,   "template1"),
-				new NodeAttribute<>(MailTemplate.locale, "de_DE"),
-				new NodeAttribute<>(MailTemplate.text,   "text1"),
-				new NodeAttribute<>(MailTemplate.visibleToPublicUsers, true)
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "template1"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "text1"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "visibleToPublicUsers"), true)
 			);
 
 			app.create(MailTemplate.class,
-				new NodeAttribute<>(MailTemplate.name,   "template2"),
-				new NodeAttribute<>(MailTemplate.locale, "en"),
-				new NodeAttribute<>(MailTemplate.text,   "text2"),
-				new NodeAttribute<>(MailTemplate.visibleToAuthenticatedUsers, true)
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "template2"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "en"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "text2"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "visibleToAuthenticatedUsers"), true)
 			);
 
 			tx.success();
@@ -1235,17 +1317,17 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertNotNull("Invalid deployment result", template1);
 			Assert.assertNotNull("Invalid deployment result", template2);
 
-			Assert.assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(MailTemplate.name));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(MailTemplate.locale));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(MailTemplate.text));
-			Assert.assertEquals("Invalid MailTemplate deployment result", true,        template1.getProperty(MailTemplate.visibleToPublicUsers));
-			Assert.assertEquals("Invalid MailTemplate deployment result", false,       template1.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "template1", template1.getProperty(StructrApp.key(MailTemplate.class, "name")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "de_DE",     template1.getProperty(StructrApp.key(MailTemplate.class, "locale")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "text1",     template1.getProperty(StructrApp.key(MailTemplate.class, "text")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,        template1.getProperty(StructrApp.key(MailTemplate.class, "visibleToPublicUsers")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", false,       template1.getProperty(StructrApp.key(MailTemplate.class, "visibleToAuthenticatedUsers")));
 
-			Assert.assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(MailTemplate.name));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(MailTemplate.locale));
-			Assert.assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(MailTemplate.text));
-			Assert.assertEquals("Invalid MailTemplate deployment result", false,       template2.getProperty(MailTemplate.visibleToPublicUsers));
-			Assert.assertEquals("Invalid MailTemplate deployment result", true,        template2.getProperty(MailTemplate.visibleToAuthenticatedUsers));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "template2", template2.getProperty(StructrApp.key(MailTemplate.class, "name")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "en",        template2.getProperty(StructrApp.key(MailTemplate.class, "locale")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", "text2",     template2.getProperty(StructrApp.key(MailTemplate.class, "text")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", false,       template2.getProperty(StructrApp.key(MailTemplate.class, "visibleToPublicUsers")));
+			Assert.assertEquals("Invalid MailTemplate deployment result", true,        template2.getProperty(StructrApp.key(MailTemplate.class, "visibleToAuthenticatedUsers")));
 
 			tx.success();
 
@@ -1261,17 +1343,17 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name,                "localization1"),
-				new NodeAttribute<>(Localization.domain,              "domain1"),
-				new NodeAttribute<>(Localization.locale,              "de_DE"),
-				new NodeAttribute<>(Localization.localizedName,       "localizedName1")
+				new NodeAttribute<>(StructrApp.key(Localization.class, "name"),                "localization1"),
+				new NodeAttribute<>(StructrApp.key(Localization.class, "domain"),              "domain1"),
+				new NodeAttribute<>(StructrApp.key(Localization.class, "locale"),              "de_DE"),
+				new NodeAttribute<>(StructrApp.key(Localization.class, "localizedName"),       "localizedName1")
 			);
 
 			app.create(Localization.class,
-				new NodeAttribute<>(Localization.name,                       "localization2"),
-				new NodeAttribute<>(Localization.domain,                     "domain2"),
-				new NodeAttribute<>(Localization.locale,                     "en"),
-				new NodeAttribute<>(Localization.localizedName,              "localizedName2")
+				new NodeAttribute<>(StructrApp.key(Localization.class, "name"),                       "localization2"),
+				new NodeAttribute<>(StructrApp.key(Localization.class, "domain"),                     "domain2"),
+				new NodeAttribute<>(StructrApp.key(Localization.class, "locale"),                     "en"),
+				new NodeAttribute<>(StructrApp.key(Localization.class, "localizedName"),              "localizedName2")
 			);
 
 			tx.success();
@@ -1293,19 +1375,19 @@ public class DeploymentTest extends StructrUiTest {
 			Assert.assertNotNull("Invalid deployment result", localization1);
 			Assert.assertNotNull("Invalid deployment result", localization2);
 
-			Assert.assertEquals("Invalid Localization deployment result", "localization1",  localization1.getProperty(Localization.name));
-			Assert.assertEquals("Invalid Localization deployment result", "domain1",        localization1.getProperty(Localization.domain));
-			Assert.assertEquals("Invalid Localization deployment result", "de_DE",          localization1.getProperty(Localization.locale));
-			Assert.assertEquals("Invalid Localization deployment result", "localizedName1", localization1.getProperty(Localization.localizedName));
-			Assert.assertEquals("Invalid Localization deployment result", true,             localization1.getProperty(Localization.visibleToPublicUsers));
-			Assert.assertEquals("Invalid Localization deployment result", true,             localization1.getProperty(Localization.visibleToAuthenticatedUsers));
+			Assert.assertEquals("Invalid Localization deployment result", "localization1",  localization1.getProperty(StructrApp.key(Localization.class, "name")));
+			Assert.assertEquals("Invalid Localization deployment result", "domain1",        localization1.getProperty(StructrApp.key(Localization.class, "domain")));
+			Assert.assertEquals("Invalid Localization deployment result", "de_DE",          localization1.getProperty(StructrApp.key(Localization.class, "locale")));
+			Assert.assertEquals("Invalid Localization deployment result", "localizedName1", localization1.getProperty(StructrApp.key(Localization.class, "localizedName")));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization1.getProperty(StructrApp.key(Localization.class, "visibleToPublicUsers")));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization1.getProperty(StructrApp.key(Localization.class, "visibleToAuthenticatedUsers")));
 
-			Assert.assertEquals("Invalid Localization deployment result", "localization2",  localization2.getProperty(Localization.name));
-			Assert.assertEquals("Invalid Localization deployment result", "domain2",        localization2.getProperty(Localization.domain));
-			Assert.assertEquals("Invalid Localization deployment result", "en",             localization2.getProperty(Localization.locale));
-			Assert.assertEquals("Invalid Localization deployment result", "localizedName2", localization2.getProperty(Localization.localizedName));
-			Assert.assertEquals("Invalid Localization deployment result", true,             localization2.getProperty(Localization.visibleToPublicUsers));
-			Assert.assertEquals("Invalid Localization deployment result", true,             localization2.getProperty(Localization.visibleToAuthenticatedUsers));
+			Assert.assertEquals("Invalid Localization deployment result", "localization2",  localization2.getProperty(StructrApp.key(Localization.class, "name")));
+			Assert.assertEquals("Invalid Localization deployment result", "domain2",        localization2.getProperty(StructrApp.key(Localization.class, "domain")));
+			Assert.assertEquals("Invalid Localization deployment result", "en",             localization2.getProperty(StructrApp.key(Localization.class, "locale")));
+			Assert.assertEquals("Invalid Localization deployment result", "localizedName2", localization2.getProperty(StructrApp.key(Localization.class, "localizedName")));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization2.getProperty(StructrApp.key(Localization.class, "visibleToPublicUsers")));
+			Assert.assertEquals("Invalid Localization deployment result", true,             localization2.getProperty(StructrApp.key(Localization.class, "visibleToAuthenticatedUsers")));
 
 			tx.success();
 
@@ -1510,11 +1592,11 @@ public class DeploymentTest extends StructrUiTest {
 			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
 			Widget widgetToImport = app.create(Widget.class,
-					new NodeAttribute<>(Widget.name,"TestWidget"),
-					new NodeAttribute<>(Widget.source,"<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
-					new NodeAttribute<>(Widget.configuration,"{\"processDeploymentInfo\": true}"),
-					new NodeAttribute<>(Widget.visibleToPublicUsers,true),
-					new NodeAttribute<>(Widget.visibleToAuthenticatedUsers,true)
+					new NodeAttribute<>(StructrApp.key(Widget.class, "name"),"TestWidget"),
+					new NodeAttribute<>(StructrApp.key(Widget.class, "source"),                      "<!-- @structr:content(text/html) --><structr:template>${{Structr.print(\"<div>Test</div>\");}}</structr:template>"),
+					new NodeAttribute<>(StructrApp.key(Widget.class, "configuration"),               "{\"processDeploymentInfo\": true}"),
+					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToPublicUsers"),        true),
+					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToAuthenticatedUsers"), true)
 			);
 
 			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true);
@@ -1550,7 +1632,7 @@ public class DeploymentTest extends StructrUiTest {
 			Template template = (Template)obj;
 
 			Assert.assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getTextContent());
-			Assert.assertEquals("text/html", template.getProperty(Template.contentType));
+			Assert.assertEquals("text/html", template.getContentType());
 
 			tx.success();
 
@@ -1578,16 +1660,16 @@ public class DeploymentTest extends StructrUiTest {
 			div2.setProperty(AbstractNode.name, "WidgetTestPage-Div2");
 
 			Widget widgetToImport = app.create(Widget.class,
-					new NodeAttribute<>(Widget.name,"TestWidget"),
-					new NodeAttribute<>(Widget.source,
+					new NodeAttribute<>(StructrApp.key(Widget.class, "name"), "TestWidget"),
+					new NodeAttribute<>(StructrApp.key(Widget.class, "source"),
 						"<structr:component src=\"TestComponent\">\n" +
 						"	<div data-structr-meta-name=\"TestComponent\">\n" +
 						"		Test123\n" +
 						"	</div>\n" +
 						"</structr:component>"),
-					new NodeAttribute<>(Widget.configuration,""),
-					new NodeAttribute<>(Widget.visibleToPublicUsers,true),
-					new NodeAttribute<>(Widget.visibleToAuthenticatedUsers,true)
+					new NodeAttribute<>(StructrApp.key(Widget.class, "configuration"), ""),
+					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToPublicUsers"), true),
+					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToAuthenticatedUsers"), true)
 
 			);
 
@@ -1677,15 +1759,15 @@ public class DeploymentTest extends StructrUiTest {
 			page.setProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "icon"),            "icon");
 
 			final Folder folder = app.create(Folder.class, "files");
-			folder.setProperty(Folder.includeInFrontendExport, true);
+			folder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
 
 			// create test file with custom attributes
 			app.create(File.class,
-				new NodeAttribute<>(File.name, "test.txt"),
-				new NodeAttribute<>(File.parent, folder),
-				new NodeAttribute<>(File.contentType, "text/plain"),
-				new NodeAttribute<>(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(File.class, "test1"), 123),
-				new NodeAttribute<>(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(File.class, "test2"), "testString")
+				new NodeAttribute<>(StructrApp.key(File.class, "name"),        "test.txt"),
+				new NodeAttribute<>(StructrApp.key(File.class, "parent"),      folder),
+				new NodeAttribute<>(StructrApp.key(File.class, "contentType"), "text/plain"),
+				new NodeAttribute<>(StructrApp.key(File.class, "test1"),       123),
+				new NodeAttribute<>(StructrApp.key(File.class, "test2"),       "testString")
 			);
 
 			tx.success();
@@ -1758,8 +1840,9 @@ public class DeploymentTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt");
-			node.setProperty(File.includeInFrontendExport, true);
+			final NodeInterface node = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", type, "test.txt");
+
+			node.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), true);
 			node.setProperty(test, "test");
 
 			tx.success();
@@ -1894,7 +1977,7 @@ public class DeploymentTest extends StructrUiTest {
 		return buf.toString();//DigestUtils.md5Hex(buf.toString());
 	}
 
-	private void calculateHash(final AbstractNode start, final StringBuilder buf, final int depth) {
+	private void calculateHash(final NodeInterface start, final StringBuilder buf, final int depth) {
 
 		buf.append(start.getType()).append("{");
 
@@ -1909,10 +1992,10 @@ public class DeploymentTest extends StructrUiTest {
 
 		if (start instanceof ShadowDocument) {
 
-			for (final DOMNode child : ((ShadowDocument)start).getProperty(Page.elements)) {
+			for (final DOMNode child : ((ShadowDocument)start).getElements()) {
 
 				// only include toplevel elements of the shadow document
-				if (child.getProperty(DOMNode.parent) == null) {
+				if (child.getParent() == null) {
 
 					calculateHash(child, buf, depth+1);
 				}
@@ -1920,7 +2003,7 @@ public class DeploymentTest extends StructrUiTest {
 
 		} else {
 
-			for (final DOMNode child : start.getProperty(DOMNode.children)) {
+			for (final DOMNode child : ((DOMNode)start).getChildren()) {
 
 				calculateHash(child, buf, depth+1);
 			}
@@ -1929,7 +2012,7 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append("}");
 	}
 
-	private void hash(final AbstractNode node, final StringBuilder buf) {
+	private void hash(final NodeInterface node, final StringBuilder buf) {
 
 		// AbstractNode
 		buf.append(valueOrEmpty(node, AbstractNode.type));
@@ -1955,47 +2038,47 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		// DOMNode
-		buf.append(valueOrEmpty(node, DOMNode.showConditions));
-		buf.append(valueOrEmpty(node, DOMNode.hideConditions));
-		buf.append(valueOrEmpty(node, DOMNode.showForLocales));
-		buf.append(valueOrEmpty(node, DOMNode.hideForLocales));
-		buf.append(valueOrEmpty(node, DOMNode.hideOnIndex));
-		buf.append(valueOrEmpty(node, DOMNode.hideOnDetail));
-		buf.append(valueOrEmpty(node, DOMNode.renderDetails));
-		buf.append(valueOrEmpty(node, DOMNode.sharedComponentConfiguration));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "showConditions")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideConditions")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "showForLocales")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideForLocales")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnIndex")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "hideOnDetail")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "renderDetails")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "sharedComponentConfiguration")));
 
-		final Page ownerDocument = node.getProperty(DOMNode.ownerDocument);
+		final Page ownerDocument = ((DOMNode)node).getOwnerDocument();
 		if (ownerDocument != null) {
 
 			buf.append(valueOrEmpty(ownerDocument, AbstractNode.name));
 		}
 
 		// DOMElement
-		buf.append(valueOrEmpty(node, DOMElement.dataKey));
-		buf.append(valueOrEmpty(node, DOMElement.restQuery));
-		buf.append(valueOrEmpty(node, DOMElement.cypherQuery));
-		buf.append(valueOrEmpty(node, DOMElement.xpathQuery));
-		buf.append(valueOrEmpty(node, DOMElement.functionQuery));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "dataKey")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "restQuery")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "cypherQuery")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "xpathQuery")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "functionQuery")));
 
-		buf.append(valueOrEmpty(node, DOMElement._reload));
-		buf.append(valueOrEmpty(node, DOMElement._confirm));
-		buf.append(valueOrEmpty(node, DOMElement._action));
-		buf.append(valueOrEmpty(node, DOMElement._attributes));
-		buf.append(valueOrEmpty(node, DOMElement._attr));
-		buf.append(valueOrEmpty(node, DOMElement._fieldName));
-		buf.append(valueOrEmpty(node, DOMElement._hide));
-		buf.append(valueOrEmpty(node, DOMElement._rawValue));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_reload")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_confirm")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_action")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_attributes")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_attr")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_fieldName")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_hide")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_rawValue")));
 
 		// Content
-		buf.append(valueOrEmpty(node, Content.contentType));
-		buf.append(valueOrEmpty(node, Content.content));
+		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "contentType")));
+		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "content")));
 
 		// Page
-		buf.append(valueOrEmpty(node, Page.cacheForSeconds));
-		buf.append(valueOrEmpty(node, Page.dontCache));
-		buf.append(valueOrEmpty(node, Page.pageCreatesRawData));
-		buf.append(valueOrEmpty(node, Page.position));
-		buf.append(valueOrEmpty(node, Page.showOnErrorCodes));
+		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "cacheForSeconds")));
+		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "dontCache")));
+		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "pageCreatesRawData")));
+		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "position")));
+		buf.append(valueOrEmpty(node, StructrApp.key(Page.class, "showOnErrorCodes")));
 
 		// HTML attributes
 		if (node instanceof DOMElement) {
@@ -2046,8 +2129,8 @@ public class DeploymentTest extends StructrUiTest {
 	private Template createTemplate(final Page page, final DOMNode parent, final String content) throws FrameworkException {
 
 		final Template template = StructrApp.getInstance().create(Template.class,
-			new NodeAttribute<>(Template.content, content),
-			new NodeAttribute<>(Template.ownerDocument, page)
+			new NodeAttribute<>(StructrApp.key(Template.class, "content"), content),
+			new NodeAttribute<>(StructrApp.key(Template.class, "ownerDocument"), page)
 		);
 
 		if (parent != null) {
@@ -2088,9 +2171,9 @@ public class DeploymentTest extends StructrUiTest {
 
 		while (parent != null && !root) {
 
-			if (parent.getProperty(Folder.parent) != null) {
+			if (parent.getParent() != null) {
 
-				parent = parent.getProperty(Folder.parent);
+				parent = parent.getParent();
 
 			} else {
 
@@ -2131,5 +2214,4 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 	}
-	*/
 }

@@ -37,6 +37,7 @@ import org.structr.schema.SchemaHelper.Type;
 import static org.structr.schema.SchemaHelper.Type.Count;
 import static org.structr.schema.SchemaHelper.Type.Cypher;
 import static org.structr.schema.SchemaHelper.Type.Double;
+import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
@@ -259,6 +260,18 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		updateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
 		updateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
 		updateProperties.put(SchemaProperty.defaultValue, defaultValue);
+
+		if (parent != null) {
+
+			final JsonSchema root = parent.getSchema();
+			if (root != null) {
+
+				if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
+
+					updateProperties.put(SchemaProperty.isPartOfBuiltInSchema, true);
+				}
+			}
+		}
 
 		// update properties
 		property.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);

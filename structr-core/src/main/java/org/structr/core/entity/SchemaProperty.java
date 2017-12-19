@@ -60,30 +60,31 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
-	public static final Property<AbstractSchemaNode> schemaNode        = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<List<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<List<SchemaView>>   schemaViews           = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
-	public static final Property<String>             declaringClass    = new StringProperty("declaringClass");
-	public static final Property<String>             defaultValue      = new StringProperty("defaultValue");
-	public static final Property<String>             propertyType      = new StringProperty("propertyType");
-	public static final Property<String>             contentType       = new StringProperty("contentType");
-	public static final Property<String>             dbName            = new StringProperty("dbName");
-	public static final Property<String>             fqcn              = new StringProperty("fqcn");
-	public static final Property<String>             format            = new StringProperty("format");
-	public static final Property<Boolean>            notNull           = new BooleanProperty("notNull");
-	public static final Property<Boolean>            compound          = new BooleanProperty("compound");
-	public static final Property<Boolean>            unique            = new BooleanProperty("unique");
-	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed");
-	public static final Property<Boolean>            readOnly          = new BooleanProperty("readOnly");
-	public static final Property<Boolean>            isDynamic         = new BooleanProperty("isDynamic");
-	public static final Property<Boolean>            isBuiltinProperty = new BooleanProperty("isBuiltinProperty");
-	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
-	public static final Property<Boolean>            isDefaultInPublic = new BooleanProperty("isDefaultInPublic");
-	public static final Property<String>             contentHash       = new StringProperty("contentHash");
-	public static final Property<String>             readFunction      = new StringProperty("readFunction");
-	public static final Property<String>             writeFunction     = new StringProperty("writeFunction");
-	public static final Property<String[]>           validators        = new ArrayProperty("validators", String.class);
-	public static final Property<String[]>           transformers      = new ArrayProperty("transformers", String.class);
+	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
+	public static final Property<String>             defaultValue          = new StringProperty("defaultValue");
+	public static final Property<String>             propertyType          = new StringProperty("propertyType");
+	public static final Property<String>             contentType           = new StringProperty("contentType");
+	public static final Property<String>             dbName                = new StringProperty("dbName");
+	public static final Property<String>             fqcn                  = new StringProperty("fqcn");
+	public static final Property<String>             format                = new StringProperty("format");
+	public static final Property<Boolean>            notNull               = new BooleanProperty("notNull");
+	public static final Property<Boolean>            compound              = new BooleanProperty("compound");
+	public static final Property<Boolean>            unique                = new BooleanProperty("unique");
+	public static final Property<Boolean>            indexed               = new BooleanProperty("indexed");
+	public static final Property<Boolean>            readOnly              = new BooleanProperty("readOnly");
+	public static final Property<Boolean>            isDynamic             = new BooleanProperty("isDynamic");
+	public static final Property<Boolean>            isBuiltinProperty     = new BooleanProperty("isBuiltinProperty");
+	public static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
+	public static final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
+	public static final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
+	public static final Property<String>             contentHash           = new StringProperty("contentHash");
+	public static final Property<String>             readFunction          = new StringProperty("readFunction");
+	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
+	public static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
+	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
 		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
@@ -194,6 +195,18 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		final Boolean isReadOnly = getProperty(readOnly);
 		if (isReadOnly != null && isReadOnly) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isPartOfBuiltInSchema() {
+
+		final Boolean _isPartOfBuiltInSchema = getProperty(SchemaProperty.isPartOfBuiltInSchema);
+		if (_isPartOfBuiltInSchema != null && _isPartOfBuiltInSchema) {
 
 			return true;
 		}

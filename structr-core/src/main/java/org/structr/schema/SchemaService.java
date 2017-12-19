@@ -65,8 +65,9 @@ import org.structr.schema.json.JsonSchema;
  */
 public class SchemaService implements Service {
 
+	public static final URI DynamicSchemaRootURI  = URI.create("https://structr.org/v2.0/#");
 	private static final Logger logger            = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final JsonSchema dynamicSchema = StructrSchema.newInstance(URI.create("https://structr.org/v2.0/#"));
+	private static final JsonSchema dynamicSchema = StructrSchema.newInstance(DynamicSchemaRootURI);
 	private static final AtomicBoolean compiling  = new AtomicBoolean(false);
 	private static final AtomicBoolean updating   = new AtomicBoolean(false);
 

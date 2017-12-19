@@ -27,24 +27,25 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class StringBasedPropertyDefinition implements PropertyDefinition {
 
-	private String propertyName     = null;
-	private Type propertyType       = null;
-	private String rawSource        = null;
-	private String source           = null;
-	private String dbName           = null;
-	private String format           = null;
-	private String defaultValue     = null;
-	private String contentType      = null;
-	private String fqcn             = null;
-	private boolean notNull         = false;
-	private boolean compound        = false;
-	private boolean unique          = false;
-	private boolean indexed         = true;
-	private boolean readOnly        = false;
-	private String readFunction     = null;
-	private String writeFunction    = null;
-	private String[] transformators = null;
-	private String[] validators     = null;
+	private String propertyName           = null;
+	private Type propertyType             = null;
+	private String rawSource              = null;
+	private String source                 = null;
+	private String dbName                 = null;
+	private String format                 = null;
+	private String defaultValue           = null;
+	private String contentType            = null;
+	private String fqcn                   = null;
+	private boolean notNull               = false;
+	private boolean compound              = false;
+	private boolean unique                = false;
+	private boolean indexed               = true;
+	private boolean readOnly              = false;
+	private boolean isPartOfBuiltInSchema = false;
+	private String readFunction           = null;
+	private String writeFunction          = null;
+	private String[] transformators       = null;
+	private String[] validators           = null;
 
 	public StringBasedPropertyDefinition(final String propertyName, final String rawSource) {
 
@@ -199,6 +200,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	@Override
 	public String getFqcn() {
 		return fqcn;
+	}
+
+	@Override
+	public boolean isPartOfBuiltInSchema() {
+		return isPartOfBuiltInSchema;
 	}
 
 	public static String substringBetween(final String source, final String prefix, final String suffix) {

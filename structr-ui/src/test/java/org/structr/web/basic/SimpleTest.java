@@ -1002,7 +1002,7 @@ public class SimpleTest extends StructrUiTest {
 			.header("X-Frame-Options", "SAMEORIGIN")
 			.header("X-XSS-Protection", "1;mode=block")
 			.header("Vary", "Accept-Encoding, User-Agent")
-			.header("Content-Length", "117")
+			.header("Content-Length", "133")
 			.header("Server", "Jetty(9.4.7.v20170914)")
 			.statusCode(200)
 			.when()
