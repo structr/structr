@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -109,12 +111,6 @@ public class DeploymentTest extends StructrUiTest {
 
 			// test special properties
 			page.setProperty(StructrApp.key(Page.class, "showOnErrorCodes"), "404");
-
-
-
-			fixme: compare export to export from master branch
-
-								    
 
 			tx.success();
 
@@ -1623,16 +1619,16 @@ public class DeploymentTest extends StructrUiTest {
 
 			Div div = (Div)app.nodeQuery().andName("WidgetTestPage-Div").getFirst();
 
-			Assert.assertEquals(1, div.treeGetChildCount());
+			assertEquals(1, div.treeGetChildCount());
 
 			Object obj = div.treeGetFirstChild();
 
-			Assert.assertEquals(Template.class, obj.getClass());
+			assertTrue(Template.class.isAssignableFrom(obj.getClass()));
 
 			Template template = (Template)obj;
 
-			Assert.assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getTextContent());
-			Assert.assertEquals("text/html", template.getContentType());
+			assertEquals("${{Structr.print(\"<div>Test</div>\");}}", template.getTextContent());
+			assertEquals("text/html", template.getContentType());
 
 			tx.success();
 
@@ -1697,7 +1693,7 @@ public class DeploymentTest extends StructrUiTest {
 
 			Div div = app.nodeQuery(Div.class).andName("WidgetTestPage-Div").getFirst();
 
-			Assert.assertEquals(2, div.treeGetChildCount());
+			assertEquals(2, div.treeGetChildCount());
 
 			Object obj = null;
 			for(DOMNode n: div.getAllChildNodes()){
@@ -1705,13 +1701,12 @@ public class DeploymentTest extends StructrUiTest {
 				break;
 			}
 
-			Assert.assertEquals(Div.class, obj.getClass());
+			assertTrue(Div.class.isAssignableFrom(obj.getClass()));
 
 			Div clonedNode = (Div)obj;
 
-			Assert.assertEquals(0, clonedNode.getChildNodes().getLength());
-
-			Assert.assertEquals(3, app.nodeQuery(Div.class).andName("TestComponent").getResult().size());
+			assertEquals(0, clonedNode.getChildNodes().getLength());
+			assertEquals(3, app.nodeQuery(Div.class).andName("TestComponent").getResult().size());
 
 			tx.success();
 
@@ -1755,8 +1750,8 @@ public class DeploymentTest extends StructrUiTest {
 
 			final Page page = Page.createSimplePage(securityContext, "page1");
 
-			page.setProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "displayPosition"), 12);
-			page.setProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "icon"),            "icon");
+			page.setProperty(StructrApp.key(Page.class, "displayPosition"), 12);
+			page.setProperty(StructrApp.key(Page.class, "icon"),            "icon");
 
 			final Folder folder = app.create(Folder.class, "files");
 			folder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
@@ -1833,7 +1828,7 @@ public class DeploymentTest extends StructrUiTest {
 		}
 
 		final Class type       = StructrApp.getConfiguration().getNodeEntityClass("ExtendedFile");
-		final PropertyKey test = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "test");
+		final PropertyKey test = StructrApp.key(type, "test");
 
 		Assert.assertNotNull("Extended file type should exist", type);
 		Assert.assertNotNull("Extended file property should exist", test);
@@ -2001,7 +1996,7 @@ public class DeploymentTest extends StructrUiTest {
 				}
 			}
 
-		} else {
+		} else if (start instanceof DOMNode) {
 
 			for (final DOMNode child : ((DOMNode)start).getChildren()) {
 
@@ -2047,10 +2042,13 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "renderDetails")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMNode.class, "sharedComponentConfiguration")));
 
-		final Page ownerDocument = ((DOMNode)node).getOwnerDocument();
-		if (ownerDocument != null) {
+		if (node instanceof DOMNode) {
 
-			buf.append(valueOrEmpty(ownerDocument, AbstractNode.name));
+			final Page ownerDocument = ((DOMNode)node).getOwnerDocument();
+			if (ownerDocument != null) {
+
+				buf.append(valueOrEmpty(ownerDocument, AbstractNode.name));
+			}
 		}
 
 		// DOMElement
@@ -2060,14 +2058,14 @@ public class DeploymentTest extends StructrUiTest {
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "xpathQuery")));
 		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "functionQuery")));
 
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_reload")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_confirm")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_action")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_attributes")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_attr")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_fieldName")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_hide")));
-		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "_html_rawValue")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-reload")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-confirm")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-action")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-attributes")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-attr")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-name")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-hide")));
+		buf.append(valueOrEmpty(node, StructrApp.key(DOMElement.class, "data-structr-raw-value")));
 
 		// Content
 		buf.append(valueOrEmpty(node, StructrApp.key(Content.class, "contentType")));
@@ -2091,7 +2089,7 @@ public class DeploymentTest extends StructrUiTest {
 
 		for (final PropertyKey key : node.getPropertyKeys(PropertyView.All)) {
 
-			if (key.isDynamic()) {
+			if (!key.isPartOfBuiltInSchema()) {
 
 				buf.append(valueOrEmpty(node, key));
 			}

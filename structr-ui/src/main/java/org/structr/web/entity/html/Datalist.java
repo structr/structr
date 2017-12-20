@@ -31,6 +31,7 @@ public interface Datalist extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Datalist");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Datalist"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

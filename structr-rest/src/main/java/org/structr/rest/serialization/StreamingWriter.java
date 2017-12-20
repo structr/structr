@@ -489,7 +489,7 @@ public abstract class StreamingWriter {
 								if (AbstractNode.name.equals(localKey)) {
 
 									// replace key
-									localKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(source.getClass(), AbstractNode.name.jsonName(), false);
+									localKey = StructrApp.key(source.getClass(), AbstractNode.name.jsonName());
 								}
 							}
 

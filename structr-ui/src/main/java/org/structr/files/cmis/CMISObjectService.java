@@ -339,7 +339,7 @@ public class CMISObjectService extends AbstractStructrCmisService implements Obj
 	@Override
 	public ObjectData getObjectByPath(final String repositoryId, final String path, final String propertyFilter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePolicyIds, final Boolean includeAcl, final ExtensionsData extension) {
 
-		final PropertyKey<String> pathKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "path");
+		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
 		final App app                     = StructrApp.getInstance();
 		ObjectData result                 = null;
 

@@ -114,7 +114,7 @@ public class SearchFunction extends Function<Object, Object> implements QueryFun
 
 				for (int c = 1; c < parameter_count; c += 2) {
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+					final PropertyKey key = StructrApp.key(type, sources[c].toString());
 
 					if (key != null) {
 

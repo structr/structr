@@ -31,6 +31,7 @@ public interface Tbody extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Tbody");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Tbody"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

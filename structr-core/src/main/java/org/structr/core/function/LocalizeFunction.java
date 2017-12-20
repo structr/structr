@@ -193,9 +193,9 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 	private static String getLocalizedNameFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
 
-		final PropertyKey<String> localizedNameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "localizedName");
-		final PropertyKey<String> domainKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "domain");
-		final PropertyKey<String> localeKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "locale");
+		final PropertyKey<String> localizedNameKey = StructrApp.key(Localization.class, "localizedName");
+		final PropertyKey<String> domainKey        = StructrApp.key(Localization.class, "domain");
+		final PropertyKey<String> localeKey        = StructrApp.key(Localization.class, "locale");
 
 		final List<Localization> localizations = StructrApp.getInstance().nodeQuery(Localization.class)
 			.and(Localization.name,   key)

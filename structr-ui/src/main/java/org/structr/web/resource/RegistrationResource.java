@@ -105,8 +105,8 @@ public class RegistrationResource extends Resource {
 
 		if (propertySet.containsKey("eMail")) {
 
-			final PropertyKey<String> confKeyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "confirmationKey");
-			final PropertyKey<String> eMailKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
+			final PropertyKey<String> confKeyKey = StructrApp.key(User.class, "confirmationKey");
+			final PropertyKey<String> eMailKey   = StructrApp.key(Principal.class, "eMail");
 			final String emailString             = (String) propertySet.get("eMail");
 
 			if (StringUtils.isEmpty(emailString)) {
@@ -185,7 +185,7 @@ public class RegistrationResource extends Resource {
 
 	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) {
 
-		final PropertyKey<String> eMailKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
+		final PropertyKey<String> eMailKey       = StructrApp.key(Principal.class, "eMail");
 		final Map<String, String> replacementMap = new HashMap();
 
 		// Populate the replacement map with all POSTed values
@@ -384,7 +384,7 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) {
 
-		final PropertyKey<String> confirmationKeyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
 		Principal user = null;
 
 		try {

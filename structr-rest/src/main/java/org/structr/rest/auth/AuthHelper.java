@@ -174,7 +174,7 @@ public class AuthHelper {
 	 * @return principal
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
-		return getPrincipalForCredential(StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "sessionIds"), new String[]{ sessionId });
+		return getPrincipalForCredential(StructrApp.key(Principal.class, "sessionIds"), new String[]{ sessionId });
 
 	}
 

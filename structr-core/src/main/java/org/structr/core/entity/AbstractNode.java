@@ -1570,14 +1570,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			default:
 
 				// evaluate object value or return default
-				Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
+				final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key, false);
+				if (propertyKey != null) {
 
-				if (value != null) {
-					return value;
+					final Object value = getProperty(propertyKey, actionContext.getPredicate());
+					if (value != null) {
+
+						return value;
+					}
 				}
 
-				value = invokeMethod(key, Collections.EMPTY_MAP, false);
+				final Object value = invokeMethod(key, Collections.EMPTY_MAP, false);
 				if (value != null) {
+
 					return value;
 				}
 

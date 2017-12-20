@@ -72,6 +72,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		final JsonObjectType type = schema.addType("Page");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
+		type.setImplements(URI.create("#/definitions/Linkable"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
 		type.addBooleanProperty("isPage",    PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
@@ -274,10 +275,10 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	 */
 	public static Page createNewPage(final SecurityContext securityContext, final String uuid, final String name) throws FrameworkException {
 
-		final PropertyKey<String> contentTypeKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "contentType");
-		final PropertyKey<Boolean> hideOnDetailKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnDetail");
-		final PropertyKey<Boolean> hideOnIndexKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "hideOnIndex");
-		final PropertyKey<Boolean> enableBasicAuthKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "enableBasicAuth");
+		final PropertyKey<String> contentTypeKey      = StructrApp.key(Page.class, "contentType");
+		final PropertyKey<Boolean> hideOnDetailKey    = StructrApp.key(Page.class, "hideOnDetail");
+		final PropertyKey<Boolean> hideOnIndexKey     = StructrApp.key(Page.class, "hideOnIndex");
+		final PropertyKey<Boolean> enableBasicAuthKey = StructrApp.key(Page.class, "enableBasicAuth");
 		final App app                                 = StructrApp.getInstance(securityContext);
 		final PropertyMap properties                  = new PropertyMap();
 
@@ -386,9 +387,9 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 				final ConfigurationProvider config = StructrApp.getConfiguration();
 
 				final DOMElement element = (DOMElement) app.create(entityClass,
-					new NodeAttribute(config.getPropertyKeyForJSONName(entityClass, "tag"),          tag),
-					new NodeAttribute(config.getPropertyKeyForJSONName(entityClass, "hideOnDetail"), false),
-					new NodeAttribute(config.getPropertyKeyForJSONName(entityClass, "hideOnIndex"),  false)
+					new NodeAttribute(StructrApp.key(entityClass, "tag"),          tag),
+					new NodeAttribute(StructrApp.key(entityClass, "hideOnDetail"), false),
+					new NodeAttribute(StructrApp.key(entityClass, "hideOnIndex"),  false)
 				);
 
 				element.doAdopt(page);

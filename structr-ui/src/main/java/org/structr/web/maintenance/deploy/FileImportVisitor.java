@@ -180,7 +180,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		String newFileUuid = null;
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final PropertyKey<Folder> parentKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "parent");
+			final PropertyKey<Folder> parentKey = StructrApp.key(File.class, "parent");
 			final Path parentPath               = basePath.relativize(path).getParent();
 			final Folder parent                 = createFolders(parentPath);
 			final String fullPath               = (parentPath != null ? "/" + parentPath.toString() : "") + "/" + fileName;
@@ -242,7 +242,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (file != null) {
 
-					if (fileProperties.containsKey(StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractMinifiedFile.class, "minificationSources"))) {
+					if (fileProperties.containsKey(StructrApp.key(AbstractMinifiedFile.class, "minificationSources"))) {
 						deferredFiles.add(file);
 					} else {
 						file.unlockSystemPropertiesOnce();
@@ -327,7 +327,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		if (folder != null) {
 
-			final PropertyKey<Folder> parentKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "parent");
+			final PropertyKey<Folder> parentKey = StructrApp.key(File.class, "parent");
 			final App app                       = StructrApp.getInstance();
 			Folder current                      = null;
 			Folder parent                       = null;

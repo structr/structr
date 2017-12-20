@@ -52,12 +52,8 @@ import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.ConfigurationProvider;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Base class for all resource constraints. Constraints can be combined with succeeding constraints to avoid unneccesary evaluation.
- *
- *
- *
  */
 public abstract class Resource {
 
@@ -186,12 +182,12 @@ public abstract class Resource {
 
 		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
 		String rawName = typeResource.getRawType();
-		PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, rawName, false);
+		PropertyKey key = StructrApp.key(sourceNodeType, rawName);
 
 		if (key == null) {
 
 			// try to convert raw name into lower-case variable name
-			key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName), false);
+			key = StructrApp.key(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
 		}
 
 		return key;
@@ -313,7 +309,7 @@ public abstract class Resource {
 
 			for (final String name : request.getParameterMap().keySet()) {
 
-				final PropertyKey key = conf.getPropertyKeyForJSONName(type, getFirstPartOfString(name), false);
+				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, getFirstPartOfString(name), false);
 				if (key != null) {
 
 					// add to list of searchable keys

@@ -31,6 +31,7 @@ public interface H3 extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("H3");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/H3"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

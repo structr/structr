@@ -32,6 +32,7 @@ public interface Source extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Source");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Source"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_src",   PropertyView.Html);

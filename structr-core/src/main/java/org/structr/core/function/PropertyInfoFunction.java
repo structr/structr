@@ -56,7 +56,7 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 
 			if (type != null) {
 
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, false);
+				final PropertyKey key = StructrApp.key(type, keyName);
 				if (key != null) {
 
 					return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key);

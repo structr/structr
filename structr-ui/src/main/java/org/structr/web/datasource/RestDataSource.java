@@ -67,7 +67,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	@Override
 	public Iterable<GraphObject> getData(final RenderContext renderContext, DOMNode referenceNode) throws FrameworkException {
 
-		final PropertyKey<String> restQueryKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "restQuery");
+		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
 		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
 		if (restQuery == null || restQuery.isEmpty()) {
@@ -209,6 +209,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 				type = AbstractNode.class;
 
 			}
+
 			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 		}
 

@@ -65,11 +65,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             codeType            = new StringProperty("codeType");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, comment, isFavoritable
+		name, schemaNode, source, comment
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment, isFavoritable
+		name, schemaNode, source, comment
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",

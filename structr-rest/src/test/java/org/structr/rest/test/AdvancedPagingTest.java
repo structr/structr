@@ -83,6 +83,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.statusCode(200)
 					.body("result",			hasSize(2))
@@ -262,8 +263,8 @@ public class AdvancedPagingTest extends StructrRestTest {
 	public void test01PagingWithDeletedNodes() {
 
 		final Class testUserType              = createTestUserType();
-		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
-		final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "isAdmin");
+		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
+		final PropertyKey<Boolean> isAdminKey = StructrApp.key(testUserType, "isAdmin");
 		List<TestOne> testOnes                = null;
 
 		// Create two User and ten TestOne nodes
@@ -370,8 +371,8 @@ public class AdvancedPagingTest extends StructrRestTest {
 	public void test02PagingWithSoftDeletedNodes() {
 
 		final Class testUserType              = createTestUserType();
-		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
-		final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "isAdmin");
+		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
+		final PropertyKey<Boolean> isAdminKey = StructrApp.key(testUserType, "isAdmin");
 		List<TestOne> testOnes                = null;
 
 		// Create two User and ten TestOne nodes

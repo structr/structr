@@ -31,6 +31,7 @@ public interface Ul extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Ul");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Ul"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

@@ -1654,7 +1654,7 @@ public class SchemaHelper {
 
 		if (type != null) {
 
-			final PropertyKey property = config.getPropertyKeyForJSONName(type, propertyName, false);
+			final PropertyKey property = StructrApp.key(type, propertyName);
 			if (property != null && property.isDynamic()) {
 
 				return true;

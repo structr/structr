@@ -254,7 +254,7 @@ public class ToCsvFunction extends UiFunction {
 					final GraphObject castedObj = (GraphObject)obj;
 
 					for (final String colName : properties) {
-						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), colName);
+						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
 						final Object value = castedObj.getProperty(key);
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}

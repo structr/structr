@@ -31,6 +31,7 @@ public interface Area extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Area");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Area"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("isVoidElement", false, "return true;");

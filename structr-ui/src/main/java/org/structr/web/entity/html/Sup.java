@@ -31,6 +31,7 @@ public interface Sup extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Sup");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Sup"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");

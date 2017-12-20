@@ -31,6 +31,7 @@ public interface Menu extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Menu");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Menu"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

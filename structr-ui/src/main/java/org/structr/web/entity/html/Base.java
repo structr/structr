@@ -32,6 +32,7 @@ public interface Base extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Base");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Base"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_href",   PropertyView.Html);

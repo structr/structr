@@ -32,6 +32,7 @@ public interface Meta extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Meta");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Meta"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_name",      PropertyView.Html);

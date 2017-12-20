@@ -31,6 +31,7 @@ public interface Hgroup extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Hgroup");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Hgroup"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

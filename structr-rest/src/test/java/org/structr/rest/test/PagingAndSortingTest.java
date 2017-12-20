@@ -376,7 +376,7 @@ public class PagingAndSortingTest extends StructrRestTest {
 	public void testRelationshipResourcePagingOnCollectionResource() {
 
 		final Class testUserType              = createTestUserType();
-		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
+		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
 		Principal tester                      = null;
 
 		try (final Tx tx = app.tx()) {
@@ -425,7 +425,7 @@ public class PagingAndSortingTest extends StructrRestTest {
 	public void testRelationshipResourcePagingOnEntityResource() {
 
 		final Class testUserType              = createTestUserType();
-		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testUserType, "password");
+		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
 		Principal tester = null;
 
 		try (final Tx tx = app.tx()) {

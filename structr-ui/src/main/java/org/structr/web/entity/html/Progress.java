@@ -31,6 +31,7 @@ public interface Progress extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Progress");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Progress"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

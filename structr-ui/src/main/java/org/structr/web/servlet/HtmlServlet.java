@@ -1112,7 +1112,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKeyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
 		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
 		final String errorPage                       = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
 
@@ -1185,7 +1185,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKeyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "confirmationKey");
+		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
 		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PAGE_KEY));
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
@@ -1608,7 +1608,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 				final Class type = config.getNodeEntityClass(className);
 				if (type != null) {
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, false);
+					final PropertyKey key = StructrApp.key(type, keyName);
 					if (key != null) {
 
 						try {

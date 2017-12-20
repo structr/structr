@@ -238,10 +238,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final JsonReferenceType synced   = type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
 		final JsonReferenceType owner    = type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
 
-		type.addIdReferenceProperty("parentId",      parent.getSourceProperty(),    PropertyView.Public);
-		type.addIdReferenceProperty("childrenIds",   parent.getTargetProperty(),    PropertyView.Public);
-		type.addIdReferenceProperty("pageId",        owner.getTargetProperty(),     PropertyView.Public);
-		type.addIdReferenceProperty("nextSiblingId", siblings.getTargetProperty(),  PropertyView.Public);
+		type.addIdReferenceProperty("parentId",      parent.getSourceProperty());
+		type.addIdReferenceProperty("childrenIds",   parent.getTargetProperty());
+		type.addIdReferenceProperty("pageId",        owner.getTargetProperty());
+		type.addIdReferenceProperty("nextSiblingId", siblings.getTargetProperty());
 	}}
 
 	// ----- error messages for DOMExceptions -----
@@ -1336,7 +1336,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (key.startsWith("data-")) {
 
-				final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key);
+				final PropertyKey propertyKey = StructrApp.key(thisNode.getClass(), key);
 				if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
 					final Object defaultValue = propertyKey.defaultValue();
@@ -1353,7 +1353,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
 
-				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key));
+				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(StructrApp.key(thisNode.getClass(), key));
 
 				customProperties.add(customProp);
 			}
@@ -1455,7 +1455,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 						} else {
 
-							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
+							propertyKey = StructrApp.key(currentDataNode.getClass(), subKey);
 							renderContext.setRelatedProperty(propertyKey);
 
 							if (propertyKey != null) {

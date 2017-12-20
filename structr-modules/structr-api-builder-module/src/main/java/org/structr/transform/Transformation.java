@@ -46,7 +46,7 @@ public class Transformation {
 		this.inputFunction  = inputFunction;
 		this.outputFunction = outputFunction;
 
-		this.sourceProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sourceName);
+		this.sourceProperty = StructrApp.key(type, sourceName);
 		this.targetProperty = new GenericProperty(targetName);
 	}
 

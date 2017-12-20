@@ -24,10 +24,12 @@ import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -62,11 +64,12 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
-		type.addBooleanProperty("isContent",  PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isContent",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addStringProperty("contentType", PropertyView.Public).setIndexed(true);
 		type.addStringProperty("content",     PropertyView.Public).setIndexed(true);
 
 		type.addPropertyGetter("contentType", String.class);
+		type.addPropertySetter("contentType", String.class);
 		type.addPropertyGetter("content",     String.class);
 		type.addPropertySetter("content",     String.class);
 
@@ -75,6 +78,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("contentEquals",              false, "return " + Content.class.getName() + ".contentEquals(this, arg0);");
 		type.overrideMethod("getContextName",             false, "return \"#text\";");
 		type.overrideMethod("doImport",                   false, "return arg0.createTextNode(getData());");
+		type.overrideMethod("onCreation",                 true,  "if (getContentType() == null) { setContentType(\"text/plain\"); }");
+		type.overrideMethod("onModification",             true,  Content.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 
 		// ----- interface Favoritable -----
 		type.overrideMethod("setFavoriteContent",         false, "setContent(arg0);");
@@ -112,6 +117,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 	String getContentType();
 	String getContent();
 	void setContent(final String content) throws FrameworkException;
+	void setContentType(final String contentType) throws FrameworkException;
 
 	/*
 	public static final org.structr.common.View uiView                                   = new org.structr.common.View(Content.class, PropertyView.Ui,
@@ -123,63 +129,28 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		content, contentType, parent, pageId, syncedNodes, sharedComponent, sharedComponentConfiguration, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		hideOnDetail, hideOnIndex, showForLocales, hideForLocales, showConditions, hideConditions, isContent, isDOMNode, isFavoritable
 	);
-
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.isValid(errorBuffer)) {
-
-			if (getProperty(Content.contentType) == null) {
-				setProperty(Content.contentType, "text/plain");
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			for (final Sync rel : getOutgoingRelationships(Sync.class)) {
-
-				final Content syncedNode = (Content) rel.getTargetNode();
-				final PropertyMap map    = new PropertyMap();
-
-				// sync content only
-				map.put(content, getProperty(content));
-				map.put(contentType, getProperty(contentType));
-				map.put(name, getProperty(name));
-
-				syncedNode.setProperties(securityContext, map);
-			}
-
-			final Sync rel = getIncomingRelationship(Sync.class);
-			if (rel != null) {
-
-				final Content otherNode = (Content) rel.getSourceNode();
-				if (otherNode != null) {
-
-					final PropertyMap map = new PropertyMap();
-
-					// sync both ways
-					map.put(content, getProperty(content));
-					map.put(contentType, getProperty(contentType));
-					map.put(name, getProperty(name));
-
-					otherNode.setProperties(otherNode.getSecurityContext(), map);
-				}
-			}
-
-			return true;
-		}
-
-		return false;
-	}
 	*/
+
+	static void onModification(final Content thisContent, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		final PropertyMap map = new PropertyMap();
+
+		// sync content only
+		map.put(StructrApp.key(Content.class, "content"),     thisContent.getContent());
+		map.put(StructrApp.key(Content.class, "contentType"), thisContent.getContentType());
+		map.put(StructrApp.key(Content.class, "name"),        thisContent.getProperty(StructrApp.key(Content.class, "name")));
+
+		for (final DOMNode syncedNode : thisContent.getSyncedNodes()) {
+
+			syncedNode.setProperties(securityContext, map);
+		}
+
+		final DOMNode sharedComponent = thisContent.getSharedComponent();
+		if (sharedComponent != null) {
+
+			sharedComponent.setProperties(sharedComponent.getSecurityContext(), map);
+		}
+	}
 
 	public static boolean contentEquals(final Content thisNode, final DOMNode otherNode) {
 

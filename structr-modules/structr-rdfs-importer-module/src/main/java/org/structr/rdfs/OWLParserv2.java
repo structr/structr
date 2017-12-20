@@ -688,7 +688,7 @@ public class OWLParserv2 {
 											final String targetJsonName  = "has" + capitalJsonName;
 											final NodeInterface node     = nodes.get(0);
 
-											final PropertyKey fileRelationshipKey = config.getPropertyKeyForJSONName(type, targetJsonName, false);
+											final PropertyKey fileRelationshipKey = StructrApp.key(type, targetJsonName, false);
 											if (fileRelationshipKey != null) {
 
 												try (final InputStream is = new FileInputStream(file.toFile())) {
@@ -993,7 +993,7 @@ public class OWLParserv2 {
 			final Class<NodeInterface> type = config.getNodeEntityClass(className);
 			if (type != null) {
 
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, propertyName, false);
+				final PropertyKey key = StructrApp.key(type, propertyName, false);
 				if (key != null) {
 
 					mapping.add(new Tuple(type, key));

@@ -277,7 +277,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createTestType.setProperty(new StringProperty("testCount"), "Integer");
+			createTestType.setProperty(new StringProperty("_testCount"), "Integer");
 			createTestType.setProperty(new StringProperty("___onCreate"), "set(this, 'testCount', size(find('CreateTest')))");
 
 			tx.success();
@@ -607,8 +607,8 @@ public class SystemTest extends StructrTest {
 	public void testPasswordAndHashSecurity() {
 
 		final Class userType                  = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		final PropertyKey<String> passwordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(userType, "password");
-		final PropertyKey<String> saltKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(userType, "salt");
+		final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
+		final PropertyKey<String> saltKey     = StructrApp.key(userType, "salt");
 
 		// actual test: test performance of node association on supernode
 		try (final Tx tx = app.tx()) {

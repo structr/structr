@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import java.net.URI;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
@@ -32,6 +33,8 @@ public interface MailTemplate extends NodeInterface {
 	static class Impl { static {
 
 		final JsonType type = SchemaService.getDynamicSchema().addType("MailTemplate");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MailTemplate"));
 
 		type.addStringProperty("text");
 		type.addStringProperty("locale");

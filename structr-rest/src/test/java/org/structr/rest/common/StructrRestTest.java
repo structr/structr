@@ -384,7 +384,7 @@ public class StructrRestTest {
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 
-		Settings.LogSchemaOutput.setValue(true);
+		//Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 

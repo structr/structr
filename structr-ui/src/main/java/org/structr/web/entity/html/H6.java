@@ -31,6 +31,7 @@ public interface H6 extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("H6");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/H6"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

@@ -70,7 +70,7 @@ public class GetOrNullFunction extends Function<Object, Object> {
 			if (dataObject != null) {
 
 				final String keyName = sources[1].toString();
-				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), keyName);
+				final PropertyKey key = StructrApp.key(dataObject.getClass(), keyName);
 
 				if (key != null) {
 

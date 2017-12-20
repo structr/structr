@@ -32,6 +32,7 @@ public interface Canvas extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Canvas");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Canvas"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_width",  PropertyView.Html);

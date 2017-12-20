@@ -435,7 +435,7 @@ public class StructrTest {
 		final Class type = getType(typeName);
 		if (type != null) {
 
-			return StructrApp.getConfiguration().getPropertyKeyForJSONName(type, keyName);
+			return StructrApp.key(type, keyName);
 		}
 
 		return null;

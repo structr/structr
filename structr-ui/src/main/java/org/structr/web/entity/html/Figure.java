@@ -31,6 +31,7 @@ public interface Figure extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Figure");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Figure"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

@@ -31,6 +31,7 @@ public interface Legend extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Legend");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Legend"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

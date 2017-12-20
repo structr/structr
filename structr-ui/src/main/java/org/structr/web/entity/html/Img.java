@@ -33,7 +33,8 @@ public interface Img extends LinkSource {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Img");
 
-		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Img"));
+		type.setExtends(URI.create("#/definitions/LinkSource"));
 
 		type.addStringProperty("_html_alt",         PropertyView.Html);
 		type.addStringProperty("_html_src",         PropertyView.Html);

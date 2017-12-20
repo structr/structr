@@ -103,7 +103,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 		final String sortOrder = webSocketData.getSortOrder();
 		final String sortKey = webSocketData.getSortKey();
-		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, sortKey);
+		final PropertyKey sortProperty = StructrApp.key(DOMNode.class, sortKey);
 		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
 
 		query.orTypes(DOMElement.class);

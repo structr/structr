@@ -31,6 +31,7 @@ public interface H4 extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("H4");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/H4"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

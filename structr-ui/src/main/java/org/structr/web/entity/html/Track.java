@@ -32,6 +32,7 @@ public interface Track extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Track");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Track"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_kind",    PropertyView.Html);

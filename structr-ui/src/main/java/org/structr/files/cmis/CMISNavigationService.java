@@ -117,7 +117,7 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	@Override
 	public List<ObjectInFolderContainer> getFolderTree(final String repositoryId, final String folderId, final BigInteger depth, final String filter, final Boolean includeAllowableActions, final IncludeRelationships includeRelationships, final String renditionFilter, final Boolean includePathSegment, final ExtensionsData extension) {
 
-		final PropertyKey<Folder> parentKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
+		final PropertyKey<Folder> parentKey        = StructrApp.key(AbstractFile.class, "parent");
 		final List<ObjectInFolderContainer> result = new LinkedList<>();
 		final App app                              = StructrApp.getInstance();
 
@@ -262,9 +262,9 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 			return;
 		}
 
-		final PropertyKey<Folder> parent                       = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
-		final PropertyKey<Boolean> hasParent                   = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "hasParent");
-		final PropertyKey<Boolean> isThumbnail                 = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "isThumbnail");
+		final PropertyKey<Folder> parent                       = StructrApp.key(AbstractFile.class, "parent");
+		final PropertyKey<Boolean> hasParent                   = StructrApp.key(AbstractFile.class, "hasParent");
+		final PropertyKey<Boolean> isThumbnail                 = StructrApp.key(Image.class, "isThumbnail");
 		final CMISObjectInFolderWrapper wrapper                = new CMISObjectInFolderWrapper(includeAllowableActions);
 		final ObjectInFolderContainerImpl impl                 = new ObjectInFolderContainerImpl();
 		final List<ObjectInFolderContainer> childContainerList = new LinkedList<>();
@@ -290,9 +290,9 @@ public class CMISNavigationService extends AbstractStructrCmisService implements
 	public Query<AbstractFile> getChildrenQuery (final App app, final String folderId) throws FrameworkException {
 
 		final Query<AbstractFile> query        = app.nodeQuery(AbstractFile.class).sort(AbstractNode.name);
-		final PropertyKey<Folder> parent       = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
-		final PropertyKey<Boolean> hasParent   = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "hasParent");
-		final PropertyKey<Boolean> isThumbnail = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "isThumbnail");
+		final PropertyKey<Folder> parent       = StructrApp.key(AbstractFile.class, "parent");
+		final PropertyKey<Boolean> hasParent   = StructrApp.key(AbstractFile.class, "hasParent");
+		final PropertyKey<Boolean> isThumbnail = StructrApp.key(Image.class, "isThumbnail");
 
 		if (CMISInfo.ROOT_FOLDER_ID.equals(folderId)) {
 

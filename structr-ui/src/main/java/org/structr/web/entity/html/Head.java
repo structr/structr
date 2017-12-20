@@ -31,6 +31,7 @@ public interface Head extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Head");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Head"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

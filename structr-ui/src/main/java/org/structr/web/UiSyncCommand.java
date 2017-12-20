@@ -143,7 +143,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 			final List<ShadowDocument> shadowDocuments = app.nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
-				final PropertyKey<List<DOMNode>> elementsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "elements");
+				final PropertyKey<List<DOMNode>> elementsKey = StructrApp.key(Page.class, "elements");
 				final List<DOMNode> collectiveChildren       = new LinkedList<>();
 
 				// sort by node id (higher node ID is newer entity)

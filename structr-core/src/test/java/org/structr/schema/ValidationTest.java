@@ -413,7 +413,7 @@ public class ValidationTest extends StructrTest {
 		assertNotNull(type);
 
 
-		final PropertyKey name = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "name", false);
+		final PropertyKey name = StructrApp.key(type, "name");
 		assertNotNull(name);
 
 		final Runnable tester = new Runnable() {
@@ -505,7 +505,7 @@ public class ValidationTest extends StructrTest {
 		assertNotNull(baseType);
 		assertNotNull(derivedType);
 
-		final PropertyKey name = StructrApp.getConfiguration().getPropertyKeyForJSONName(baseType, "name", false);
+		final PropertyKey name = StructrApp.key(baseType, "name");
 		assertNotNull(name);
 
 		final Runnable tester = new Runnable() {
@@ -596,7 +596,7 @@ public class ValidationTest extends StructrTest {
 		assertNotNull(type);
 
 
-		final PropertyKey testXYZ = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "testXYZ", false);
+		final PropertyKey testXYZ = StructrApp.key(type, "testXYZ");
 		assertNotNull(testXYZ);
 
 		final Runnable tester = new Runnable() {
@@ -708,7 +708,7 @@ public class ValidationTest extends StructrTest {
 		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "testUnique");
+			final PropertyKey key = StructrApp.key(testType, "testUnique");
 			if (key != null) {
 
 				String uuid = null;
@@ -759,7 +759,7 @@ public class ValidationTest extends StructrTest {
 		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "testUnique");
+			final PropertyKey key = StructrApp.key(testType, "testUnique");
 			if (key != null) {
 
 				String uuid = null;
@@ -800,7 +800,7 @@ public class ValidationTest extends StructrTest {
 		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "testUnique");
+			final PropertyKey key = StructrApp.key(testType, "testUnique");
 			if (key != null) {
 
 				try (final Tx tx = app.tx()) {
@@ -865,7 +865,7 @@ public class ValidationTest extends StructrTest {
 		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("TestDerived");
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "testUnique");
+			final PropertyKey key = StructrApp.key(testType, "testUnique");
 			if (key != null) {
 
 				try (final Tx tx = app.tx()) {
@@ -925,7 +925,7 @@ public class ValidationTest extends StructrTest {
 		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "testUnique");
+			final PropertyKey key = StructrApp.key(testType, "testUnique");
 			if (key != null) {
 
 				final Random random = new Random();
@@ -991,7 +991,7 @@ public class ValidationTest extends StructrTest {
 		final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
 		if (testType != null) {
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "nonempty");
+			final PropertyKey key = StructrApp.key(testType, "nonempty");
 			if (key != null) {
 
 				try (final Tx tx = app.tx()) {
@@ -1021,7 +1021,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName  = "regex";
 		final Class testType  = createTypeWithProperty("Test", keyName, "String([a-zA-Z0-9]+)");
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key = StructrApp.key(testType, keyName);
 
 		if (key != null) {
 
@@ -1052,7 +1052,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName  = "stringArray";
 		final Class testType  = createTypeWithProperty("Test", keyName, "+String[]");
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key = StructrApp.key(testType, keyName);
 
 		if (key != null) {
 
@@ -1080,7 +1080,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "stringArray";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "String[]!");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 		String uuid1                        = null;
 		String uuid2                        = null;
 
@@ -1132,7 +1132,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "notNull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Boolean");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 
 		if (key != null) {
 
@@ -1162,7 +1162,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Boolean!");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1199,7 +1199,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Date!");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 		final Date date                     = new Date();
 		String uuid                         = null;
 
@@ -1235,7 +1235,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Date");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 
 		if (key != null) {
 
@@ -1268,7 +1268,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Double!");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1303,7 +1303,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Double");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 
 		if (key != null) {
 
@@ -1334,7 +1334,7 @@ public class ValidationTest extends StructrTest {
 	public void testDoublePropertyRangeValidation1() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([1,5])");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 1.0);
 		checkRangeSuccess(testType, range1, 1.00001);
@@ -1356,7 +1356,7 @@ public class ValidationTest extends StructrTest {
 	public void testDoublePropertyRangeValidation2() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5])");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, -0.0);
 		checkRangeSuccess(testType, range1, 0.0);
@@ -1378,7 +1378,7 @@ public class ValidationTest extends StructrTest {
 	public void testDoublePropertyRangeValidation3() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5[)");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, -0.0);
 		checkRangeSuccess(testType, range1, 0.0);
@@ -1400,7 +1400,7 @@ public class ValidationTest extends StructrTest {
 	public void testDoublePropertyRangeValidation4() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5])");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 0.00001);
 		checkRangeSuccess(testType, range1, 0.1);
@@ -1422,7 +1422,7 @@ public class ValidationTest extends StructrTest {
 	public void testDoublePropertyRangeValidation5() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5[)");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 0.00001);
 		checkRangeSuccess(testType, range1, 0.1);
@@ -1445,7 +1445,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Enum(one, two, three)!");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1482,7 +1482,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Enum(one, two, three)");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 
 		// test failure
 		try (final Tx tx = app.tx()) {
@@ -1512,7 +1512,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Integer!");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1547,7 +1547,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Integer");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 
 		if (key != null) {
 
@@ -1578,7 +1578,7 @@ public class ValidationTest extends StructrTest {
 	public void testIntPropertyRangeValidation1() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer([1,5])");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1596,7 +1596,7 @@ public class ValidationTest extends StructrTest {
 	public void testIntPropertyRangeValidation3() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer([0,5[)");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, -0);
 		checkRangeSuccess(testType, range1, 0);
@@ -1614,7 +1614,7 @@ public class ValidationTest extends StructrTest {
 	public void testIntPropertyRangeValidation4() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5])");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1630,7 +1630,7 @@ public class ValidationTest extends StructrTest {
 	public void testIntPropertyRangeValidation5() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5[)");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1648,7 +1648,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Long!");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 		String uuid                         = null;
 
 		if (key != null) {
@@ -1683,7 +1683,7 @@ public class ValidationTest extends StructrTest {
 
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Long");
-		final PropertyKey key               = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, keyName);
+		final PropertyKey key               = StructrApp.key(testType, keyName);
 
 		if (key != null) {
 
@@ -1714,7 +1714,7 @@ public class ValidationTest extends StructrTest {
 	public void testLongPropertyRangeValidation1() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([1,5])");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1732,7 +1732,7 @@ public class ValidationTest extends StructrTest {
 	public void testLongPropertyRangeValidation3() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, -0);
 		checkRangeSuccess(testType, range1, 0);
@@ -1750,7 +1750,7 @@ public class ValidationTest extends StructrTest {
 	public void testLongPropertyRangeValidation4() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5])");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1766,7 +1766,7 @@ public class ValidationTest extends StructrTest {
 	public void testLongPropertyRangeValidation5() {
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5[)");
-		final PropertyKey range1            = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "range1");
+		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
 		checkRangeSuccess(testType, range1, 1);
 		checkRangeSuccess(testType, range1, 2);
@@ -1919,9 +1919,9 @@ public class ValidationTest extends StructrTest {
 		}
 
 		final Class type         = StructrApp.getConfiguration().getNodeEntityClass("TestType");
-		final PropertyKey key1   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "key1");
-		final PropertyKey key2   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "key2");
-		final PropertyKey key3   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "key3");
+		final PropertyKey key1   = StructrApp.key(type, "key1");
+		final PropertyKey key2   = StructrApp.key(type, "key2");
+		final PropertyKey key3   = StructrApp.key(type, "key3");
 		final PropertyKey[] keys = new PropertyKey[] { key1, key2, key3 };
 
 		// test success

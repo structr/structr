@@ -26,18 +26,21 @@ import java.util.Collections;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 import org.structr.web.entity.relation.MinificationSource;
 
 /**
@@ -47,8 +50,8 @@ public interface AbstractMinifiedFile extends File {
 
 	static class Impl { static {
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("AbstractMinifiedFile");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("AbstractMinifiedFile");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractMinifiedFile"));
 		type.setExtends(URI.create("#/definitions/File"));
@@ -56,6 +59,15 @@ public interface AbstractMinifiedFile extends File {
 
 		type.overrideMethod("getMaxPosition", false, "return " + AbstractMinifiedFile.class.getName() + ".getMaxPosition(this);");
 		type.overrideMethod("onModification", true,  AbstractMinifiedFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+
+		// relationships
+		final JsonObjectType file = (JsonObjectType)schema.getType("AbstractMinifiedFile");
+		if (file != null) {
+
+			final JsonReferenceType rel = type.relate(file, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
+
+			rel.addIntegerProperty("position", PropertyView.Public);
+		}
 	}}
 
 	int getMaxPosition();

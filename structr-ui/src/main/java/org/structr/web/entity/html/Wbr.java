@@ -31,6 +31,7 @@ public interface Wbr extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Wbr");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Wbr"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");

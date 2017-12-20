@@ -89,7 +89,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
 			type2 = StructrApp.getConfiguration().getNodeEntityClass("Type2");
-			key   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type1, "target");
+			key   = StructrApp.key(type1, "target");
 
 			Assert.assertNotNull("Node type Type1 should exist.", type1);
 			Assert.assertNotNull("Node type Type2 should exist.", type2);

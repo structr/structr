@@ -53,6 +53,7 @@ public class TestOne extends AbstractNode {
 	public static final Property<Status>        anEnum             = new EnumProperty<>("anEnum", Status.class).indexed();
 	public static final Property<String>        aString            = new StringProperty("aString").indexed().indexedWhenEmpty();
 	public static final Property<Boolean>       aBoolean           = new BooleanProperty("aBoolean").indexed();
+	public static final Property<String>        testString         = new StringProperty("testString");
 	public static final Property<String>        anotherString      = new StringProperty("anotherString");
 	public static final Property<String>        replaceString      = new StringProperty("replaceString");
 	public static final Property<String>        cleanTestString    = new StringProperty("cleanTestString");
@@ -71,8 +72,10 @@ public class TestOne extends AbstractNode {
 
 	public static final Property<String>        aCreateString      = new StringProperty("aCreateString").indexed();
 	public static final Property<Integer>       aCreateInt         = new IntProperty("aCreateInt").indexed();
-	
+
 	public static final Property<String[]>      aStringArray       = new ArrayProperty("aStringArray", String.class).indexed();
+
+	public static final Property<Boolean>       isValid            = new BooleanProperty("isValid");
 
 	public static final View publicView = new View(TestOne.class, PropertyView.Public,
 		name, anInt, aDouble, aLong, aDate, createdDate, aString, anotherString, aBoolean, anEnum, stringWithDefault, aStringArray

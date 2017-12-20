@@ -134,6 +134,23 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_onwaiting", PropertyView.Html);
 		type.addStringProperty("_html_data", PropertyView.Html);
 
+		// data-structr-* attibutes
+		type.addBooleanProperty("data-structr-reload");
+		type.addBooleanProperty("data-structr-confirm");
+		type.addBooleanProperty("data-structr-append-id");
+		type.addStringProperty("data-structr-action");
+		type.addStringProperty("data-structr-attributes");
+		type.addStringProperty("data-structr-attr");
+		type.addStringProperty("data-structr-name");
+		type.addStringProperty("data-structr-hide");
+		type.addStringProperty("data-structr-raw-value");
+		type.addStringProperty("data-structr-placeholder");
+		type.addStringProperty("data-structr-type");
+		type.addStringProperty("data-structr-custom-options-query");
+		type.addStringProperty("data-structr-options-key");
+		type.addStringProperty("data-structr-edit-class");
+		type.addStringProperty("data-structr-return");
+
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
 		type.addStringProperty("_html_class", PropertyView.Html);
@@ -668,7 +685,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	public static HtmlProperty findOrCreateAttributeKey(final DOMElement thisElement, final String name) {
 
 		// try to find native html property defined in DOMElement or one of its subclasses
-		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisElement.getEntityType(), name, false);
+		final PropertyKey key = StructrApp.key(thisElement.getEntityType(), name);
 
 		if (key != null && key instanceof HtmlProperty) {
 
@@ -892,7 +909,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			// try to find native html property defined in
 			// DOMElement or one of its subclasses
-			PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, name, false);
+			PropertyKey key = StructrApp.key(entityType, name, false);
 
 			if (key != null && key instanceof HtmlProperty) {
 

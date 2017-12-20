@@ -32,6 +32,7 @@ public interface Form extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Form");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Form"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_acceptCharset", PropertyView.Html);

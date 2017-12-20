@@ -35,6 +35,7 @@ public interface Ol extends DOMElement {
 		type.addStringProperty("_html_reversed", PropertyView.Html);
 		type.addStringProperty("_html_start",    PropertyView.Html);
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Ol"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);

@@ -81,7 +81,7 @@ public class PasswordProperty extends StringProperty {
 
 			String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "salt"), salt);
+			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
 
 			return super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 

@@ -32,6 +32,7 @@ public interface Video extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Video");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Video"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_src",         PropertyView.Html);

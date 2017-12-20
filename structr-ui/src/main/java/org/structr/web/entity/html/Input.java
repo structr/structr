@@ -32,6 +32,7 @@ public interface Input extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Input");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Input"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_accept",         PropertyView.Html);

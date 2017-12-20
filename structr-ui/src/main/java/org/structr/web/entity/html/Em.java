@@ -31,6 +31,7 @@ public interface Em extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Em");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Em"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("avoidWhitespace", true, "return true;");

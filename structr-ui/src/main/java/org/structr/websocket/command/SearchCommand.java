@@ -133,7 +133,7 @@ public class SearchCommand extends AbstractCommand {
 
 		final String sortOrder = webSocketData.getSortOrder();
 		final String sortKey = webSocketData.getSortKey();
-		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, sortKey);
+		final PropertyKey sortProperty = StructrApp.key(AbstractNode.class, sortKey);
 		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
 
 		query.and(AbstractNode.name, searchString, exactSearch);

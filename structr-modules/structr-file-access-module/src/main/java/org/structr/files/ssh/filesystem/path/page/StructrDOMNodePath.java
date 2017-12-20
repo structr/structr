@@ -320,14 +320,14 @@ public class StructrDOMNodePath extends StructrPath {
 			// stored in the configuration provider
 			if (pathComponent != null && pathComponent.startsWith("data-")) {
 
-				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(domNode.getClass(), pathComponent);
+				final PropertyKey key = StructrApp.key(domNode.getClass(), pathComponent);
 				if (key != null) {
 
 					return new StructrNodePropertyPath(fs, this, domNode, key);
 				}
 			}
 
-			final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(domNode.getClass(), pathComponent, false);
+			final PropertyKey key = StructrApp.key(domNode.getClass(), pathComponent, false);
 			if (key != null) {
 
 				return new StructrNodePropertyPath(fs, this, domNode, key);

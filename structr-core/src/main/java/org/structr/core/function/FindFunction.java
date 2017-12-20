@@ -118,7 +118,7 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 				}
 
 				// special case: second parameter is a UUID
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, "id");
+				final PropertyKey key = StructrApp.key(type, "id");
 
 				query.and(key, sources[1].toString());
 
@@ -139,7 +139,7 @@ public class FindFunction extends Function<Object, Object> implements QueryFunct
 						throw new IllegalArgumentException();
 					}
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+					final PropertyKey key = StructrApp.key(type, sources[c].toString());
 
 					if (key != null) {
 

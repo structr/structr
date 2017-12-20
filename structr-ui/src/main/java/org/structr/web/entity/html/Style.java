@@ -32,6 +32,7 @@ public interface Style extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Style");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Style"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_media",  PropertyView.Html);

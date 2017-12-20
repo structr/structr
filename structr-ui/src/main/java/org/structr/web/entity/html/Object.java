@@ -39,6 +39,7 @@ public interface Object extends DOMElement {
 		type.addStringProperty("_html_width",         PropertyView.Html);
 		type.addStringProperty("_html_height",        PropertyView.Html);
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Object"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

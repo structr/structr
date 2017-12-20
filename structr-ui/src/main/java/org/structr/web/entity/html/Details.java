@@ -31,6 +31,7 @@ public interface Details extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Details");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Details"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

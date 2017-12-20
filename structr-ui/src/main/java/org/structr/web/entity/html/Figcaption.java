@@ -31,6 +31,7 @@ public interface Figcaption extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Figcaption");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Figcaption"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

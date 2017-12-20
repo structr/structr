@@ -31,6 +31,7 @@ public interface Del extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Del");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Del"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

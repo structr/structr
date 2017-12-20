@@ -31,6 +31,7 @@ public interface Ins extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Ins");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Ins"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

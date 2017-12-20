@@ -194,7 +194,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 				properties.put(Template.name, name);
 			}
 
-			properties.put(StructrApp.getConfiguration().getPropertyKeyForJSONName(Template.class, "content"), src);
+			properties.put(StructrApp.key(Template.class, "content"), src);
 
 			// insert "shared" templates into ShadowDocument
 			final Object value = properties.get(internalSharedTemplateKey);

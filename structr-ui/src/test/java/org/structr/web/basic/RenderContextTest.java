@@ -62,7 +62,7 @@ public class RenderContextTest extends StructrUiTest {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class itemClass              = config.getNodeEntityClass("Item");
-		final PropertyKey childrenProperty = config.getPropertyKeyForJSONName(itemClass, "children");
+		final PropertyKey childrenProperty = StructrApp.key(itemClass, "children");
 
 		// create parent/child relationship
 		try (final Tx tx = app.tx()) {
@@ -244,8 +244,8 @@ public class RenderContextTest extends StructrUiTest {
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class projectClass           = config.getNodeEntityClass("Project");
 		final Class taskClass              = config.getNodeEntityClass("Task");
-		final PropertyKey currentTaskKey   = config.getPropertyKeyForJSONName(projectClass, "currentTask");
-		final PropertyKey tasksKey         = config.getPropertyKeyForJSONName(projectClass, "tasks");
+		final PropertyKey currentTaskKey   = StructrApp.key(projectClass, "currentTask");
+		final PropertyKey tasksKey         = StructrApp.key(projectClass, "tasks");
 
 		// create parent/child relationship
 		try (final Tx tx = app.tx()) {
@@ -615,8 +615,8 @@ public class RenderContextTest extends StructrUiTest {
 			// obtain class objects to create instances of the above types
 			final Class projectType    = StructrApp.getConfiguration().getNodeEntityClass("Project");
 			final Class taskType       = StructrApp.getConfiguration().getNodeEntityClass("Task");
-			final PropertyKey taskKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "task");
-			final PropertyKey tasksKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "tasks");
+			final PropertyKey taskKey  = StructrApp.key(taskType, "task");
+			final PropertyKey tasksKey = StructrApp.key(projectType, "tasks");
 
 			final List<NodeInterface> tasks = new LinkedList<>();
 

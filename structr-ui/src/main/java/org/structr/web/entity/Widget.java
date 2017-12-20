@@ -22,6 +22,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
+import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
@@ -49,6 +51,13 @@ public interface Widget extends NodeInterface {
 		final JsonType type     = schema.addType("Widget");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
+
+		type.addStringProperty("source",        PropertyView.Public);
+		type.addStringProperty("description",   PropertyView.Public);
+		type.addStringProperty("configuration", PropertyView.Public);
+		type.addStringProperty("treePath",      PropertyView.Public);
+
+		type.addBooleanProperty("isWidget",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 	}}
 
 	static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");

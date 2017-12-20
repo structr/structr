@@ -71,11 +71,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * The module service main class.
- *
- *
  */
 public class JarConfigurationProvider implements ConfigurationProvider {
 

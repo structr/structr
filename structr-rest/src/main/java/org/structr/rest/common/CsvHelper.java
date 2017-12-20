@@ -166,7 +166,7 @@ public class CsvHelper {
 							targetKey = propertyMapping.get(key);
 						}
 
-						if (StructrApp.getConfiguration().getPropertyKeyForJSONName(type, targetKey).isCollection()) {
+						if (StructrApp.key(type, targetKey).isCollection()) {
 
 							// if the current property is a collection, split it into its parts
 							jsonInput.add(key, extractArrayContentsFromArray(columns[i], key));

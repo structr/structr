@@ -65,7 +65,7 @@ public class ErrorFunction extends Function<Object, Object> {
 					{
 						arrayHasLengthAndAllElementsNotNull(sources, 2);
 
-						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+						final PropertyKey key = StructrApp.key(entityType, sources[0].toString());
 						ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString()));
 						break;
 					}
@@ -73,7 +73,7 @@ public class ErrorFunction extends Function<Object, Object> {
 					{
 						arrayHasLengthAndAllElementsNotNull(sources, 3);
 
-						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, sources[0].toString());
+						final PropertyKey key = StructrApp.key(entityType, sources[0].toString());
 						ctx.raiseError(422, new SemanticErrorToken(type, key, sources[1].toString(), sources[2]));
 						break;
 					}

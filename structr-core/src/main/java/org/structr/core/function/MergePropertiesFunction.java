@@ -54,7 +54,7 @@ public class MergePropertiesFunction extends Function<Object, Object> {
 			for (int i = 2; i < paramCount; i++) {
 
 				final String keyName = sources[i].toString();
-				final PropertyKey key = config.getPropertyKeyForJSONName(target.getClass(), keyName);
+				final PropertyKey key = StructrApp.key(target.getClass(), keyName);
 
 				mergeKeys.add(key);
 			}

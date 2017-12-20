@@ -31,6 +31,7 @@ public interface Div extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Div");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Div"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

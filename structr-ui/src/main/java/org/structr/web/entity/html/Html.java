@@ -32,6 +32,7 @@ public interface Html extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Html");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Html"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_manifest",   PropertyView.Html);

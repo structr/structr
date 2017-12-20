@@ -31,6 +31,7 @@ public interface Table extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Table");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Table"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

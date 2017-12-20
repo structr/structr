@@ -37,7 +37,7 @@ public class CypherGraphDataSource implements GraphDataSource<Iterable<GraphObje
 	@Override
 	public Iterable<GraphObject> getData(final RenderContext renderContext, final DOMNode referenceNode) throws FrameworkException {
 
-		final PropertyKey<String> cypherQueryKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "cypherQuery");
+		final PropertyKey<String> cypherQueryKey = StructrApp.key(DOMNode.class, "cypherQuery");
 		final String cypherQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, cypherQueryKey);
 
 		if (StringUtils.isBlank(cypherQuery)) {

@@ -161,17 +161,17 @@ public class ScriptingTest extends StructrTest {
 
 			sourceType          = config.getNodeEntityClass("Source");
 			targetType          = config.getNodeEntityClass("Target");
-			targetsProperty     = config.getPropertyKeyForJSONName(sourceType, "targets");
+			targetsProperty     = StructrApp.key(sourceType, "targets");
 
 			// we need to cast to EnumProperty in order to obtain the dynamic enum type
-			testEnumProperty    = (EnumProperty)config.getPropertyKeyForJSONName(sourceType, "testEnum");
+			testEnumProperty    = (EnumProperty)StructrApp.key(sourceType, "testEnum");
 			testEnumType        = testEnumProperty.getEnumType();
 
-			testBooleanProperty = config.getPropertyKeyForJSONName(sourceType, "testBoolean");
-			testIntegerProperty = config.getPropertyKeyForJSONName(sourceType, "testInteger");
-			testStringProperty  = config.getPropertyKeyForJSONName(sourceType, "testString");
-			testDoubleProperty  = config.getPropertyKeyForJSONName(sourceType, "testDouble");
-			testDateProperty    = config.getPropertyKeyForJSONName(sourceType, "testDate");
+			testBooleanProperty = StructrApp.key(sourceType, "testBoolean");
+			testIntegerProperty = StructrApp.key(sourceType, "testInteger");
+			testStringProperty  = StructrApp.key(sourceType, "testString");
+			testDoubleProperty  = StructrApp.key(sourceType, "testDouble");
+			testDateProperty    = StructrApp.key(sourceType, "testDate");
 
 			assertNotNull(sourceType);
 			assertNotNull(targetType);
@@ -291,7 +291,7 @@ public class ScriptingTest extends StructrTest {
 
 			testUser = app.create(Principal.class,
 				new NodeAttribute<>(Principal.name,     "test"),
-				new NodeAttribute<>(config.getPropertyKeyForJSONName(Principal.class, "password"), "test")
+				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "test")
 			);
 
 			tx.success();
@@ -318,7 +318,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -479,7 +479,7 @@ public class ScriptingTest extends StructrTest {
 	public void testCollectionOperations() {
 
 		final Class groupType                      = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		final PropertyKey<List<Principal>> members = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "members");
+		final PropertyKey<List<Principal>> members = StructrApp.key(groupType, "members");
 		Group group            = null;
 		Principal user1         = null;
 		Principal user2         = null;
@@ -2280,7 +2280,7 @@ public class ScriptingTest extends StructrTest {
 
 			final Class type        = StructrApp.getConfiguration().getNodeEntityClass("Test");
 			final NodeInterface obj = app.create(type, "test");
-			final Map map           = (Map)obj.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "returnTest"));
+			final Map map           = (Map)obj.getProperty(StructrApp.key(type, "returnTest"));
 			final Object name       = map.get("name");
 			final Object value      = map.get("value");
 			final Object me         = map.get("me");

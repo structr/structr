@@ -211,10 +211,10 @@ public class FileHelper {
 
 		FileHelper.writeToFile(file, fileData);
 
-		final PropertyKey<String> contentTypeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "contentType");
-		final PropertyKey<Long> checksumKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "checksum");
-		final PropertyKey<Long> sizeKey          = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "size");
-		final PropertyKey<Integer> versionKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "version");
+		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
+		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
+		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
+		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
 		final PropertyMap map                    = new PropertyMap();
 
 		map.put(contentTypeKey, contentType != null ? contentType : getContentMimeType(file));
@@ -234,9 +234,9 @@ public class FileHelper {
 	 */
 	public static void updateMetadata(final File file, final PropertyMap map) throws FrameworkException {
 
-		final PropertyKey<String> contentTypeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "contentType");
-		final PropertyKey<Long> checksumKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "checksum");
-		final PropertyKey<Long> sizeKey          = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "size");
+		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
+		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
+		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
 
 		// Don't overwrite existing MIME type
 		if (StringUtils.isBlank(file.getContentType())) {
@@ -349,7 +349,7 @@ public class FileHelper {
 	 */
 	public static java.io.File writeToFile(final File fileNode, final byte[] data) throws FrameworkException, IOException {
 
-		final PropertyKey<String> relPathKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "relativeFilePath");
+		final PropertyKey<String> relPathKey = StructrApp.key(File.class, "relativeFilePath");
 		final PropertyMap properties         = new PropertyMap();
 
 		String id = fileNode.getProperty(GraphObject.id);
@@ -527,7 +527,7 @@ public class FileHelper {
 
 		try {
 
-			final PropertyKey<String> pathKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "path");
+			final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
 
 			return StructrApp.getInstance(securityContext)
 				.nodeQuery(AbstractFile.class)
@@ -583,7 +583,7 @@ public class FileHelper {
 
 		try {
 			final List<AbstractFile> files      = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
-			final PropertyKey<String> parentKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
+			final PropertyKey<String> parentKey = StructrApp.key(AbstractFile.class, "parent");
 
 			for (final AbstractFile file : files) {
 

@@ -31,6 +31,7 @@ public interface Fieldset extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Fieldset");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Fieldset"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

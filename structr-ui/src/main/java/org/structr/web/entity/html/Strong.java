@@ -31,6 +31,7 @@ public interface Strong extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Strong");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Strong"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");

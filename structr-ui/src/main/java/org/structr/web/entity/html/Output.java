@@ -31,6 +31,7 @@ public interface Output extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Output");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Output"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

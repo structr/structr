@@ -31,6 +31,7 @@ public interface Q extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Q");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Q"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");

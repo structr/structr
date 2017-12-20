@@ -107,7 +107,7 @@ public class GetOrCreateFunction extends Function<Object, Object> {
 						throw new IllegalArgumentException();
 					}
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+					final PropertyKey key = StructrApp.key(type, sources[c].toString());
 					if (key != null) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext);

@@ -31,6 +31,7 @@ public interface Tfoot extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Tfoot");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Tfoot"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

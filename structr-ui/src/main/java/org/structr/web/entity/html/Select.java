@@ -32,6 +32,7 @@ public interface Select extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Select");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Select"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_name",      PropertyView.Html);

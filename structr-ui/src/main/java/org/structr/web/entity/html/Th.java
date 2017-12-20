@@ -32,6 +32,7 @@ public interface Th extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Th");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Th"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_colspan", PropertyView.Html);

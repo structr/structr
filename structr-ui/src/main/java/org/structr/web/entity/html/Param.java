@@ -32,6 +32,7 @@ public interface Param extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Param");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Param"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_value", PropertyView.Html);

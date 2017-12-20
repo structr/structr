@@ -276,7 +276,7 @@ public class StructrOAuthClient {
 	}
 
 	public PropertyKey getCredentialKey() {
-		return StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
+		return StructrApp.key(Principal.class, "eMail");
 	}
 
 	public String getCredential(final HttpServletRequest request) {

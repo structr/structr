@@ -31,6 +31,7 @@ public interface Map extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Map");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Map"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

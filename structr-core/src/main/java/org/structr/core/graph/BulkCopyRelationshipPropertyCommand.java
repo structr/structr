@@ -31,13 +31,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 
-
-//~--- classes ----------------------------------------------------------------
 /**
  * Sets the properties found in the property set on all nodes matching the type.
  * If no type property is found, set the properties on all nodes.
- *
- *
  */
 public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -55,7 +51,6 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 		if(sourceKey == null || destKey == null) {
 
 			throw new IllegalArgumentException("This command requires one argument of type Map. Map must contain values for 'sourceKey' and 'destKey'.");
-
 		}
 
 		if(graphDb != null) {

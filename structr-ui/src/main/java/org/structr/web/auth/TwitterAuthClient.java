@@ -168,7 +168,7 @@ public class TwitterAuthClient extends StructrOAuthClient {
 
 	@Override
 	public PropertyKey getCredentialKey() {
-		return StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "twitterName", false);
+		return StructrApp.key(User.class, "twitterName");
 	}
 
 	@Override

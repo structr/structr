@@ -19,10 +19,12 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
@@ -47,7 +49,9 @@ public interface LinkSource extends DOMElement {
 			.addException(FrameworkException.class.getName())
 			.addParameter("linkable", "org.structr.web.entity.Linkable");
 
-		type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
+		final JsonReferenceType rel = type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
+
+		type.addIdReferenceProperty("linkableId", rel.getTargetProperty(), PropertyView.Public);
 	}}
 
 	Linkable getLinkable();

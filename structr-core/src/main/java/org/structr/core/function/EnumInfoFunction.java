@@ -52,7 +52,7 @@ public class EnumInfoFunction extends Function<Object, Object> {
 
 				if (type != null) {
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, enumPropertyName, false);
+					final PropertyKey key = StructrApp.key(type, enumPropertyName);
 					if (key != null) {
 
 						if (key instanceof EnumProperty) {

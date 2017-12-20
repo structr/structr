@@ -31,6 +31,7 @@ public interface H5 extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("H5");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/H5"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

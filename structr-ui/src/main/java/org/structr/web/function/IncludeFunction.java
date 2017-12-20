@@ -61,7 +61,7 @@ public class IncludeFunction extends Function<Object, Object> {
 				return null;
 			}
 
-			final PropertyKey<DOMNode> sharedCompKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "sharedComponent");
+			final PropertyKey<DOMNode> sharedCompKey = StructrApp.key(DOMNode.class, "sharedComponent");
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);

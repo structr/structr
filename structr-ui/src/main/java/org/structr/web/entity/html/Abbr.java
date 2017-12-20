@@ -31,6 +31,7 @@ public interface Abbr extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Abbr");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Abbr"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");

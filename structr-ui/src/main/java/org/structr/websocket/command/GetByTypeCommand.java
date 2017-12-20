@@ -71,7 +71,7 @@ public class GetByTypeCommand extends AbstractCommand {
 		final String sortKey     = webSocketData.getSortKey();
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+		PropertyKey sortProperty = StructrApp.key(type, sortKey);
 
 
 		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden(includeDeletedAndHidden).sort(sortProperty).order("desc".equals(sortOrder));

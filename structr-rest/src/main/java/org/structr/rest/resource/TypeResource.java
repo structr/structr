@@ -415,7 +415,7 @@ public class TypeResource extends SortableResource {
 		final Class<? extends AbstractNode> virtualTypeClass = StructrApp.getConfiguration().getNodeEntityClass("VirtualType");
 		if (virtualTypeClass != null) {
 
-			final PropertyKey<Integer> positionProperty  = StructrApp.getConfiguration().getPropertyKeyForJSONName(virtualTypeClass, "position");
+			final PropertyKey<Integer> positionProperty  = StructrApp.key(virtualTypeClass, "position");
 
 			virtualType = (ResultTransformer)app.nodeQuery(virtualTypeClass).andName(rawType).sort(positionProperty).getFirst();
 			if (virtualType != null) {

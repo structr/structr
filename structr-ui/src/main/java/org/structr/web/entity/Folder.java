@@ -93,8 +93,8 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 			// save current security context
 			final SecurityContext previousSecurityContext = folder.getSecurityContext();
-			final PropertyKey<Boolean> hasParentKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(Folder.class, "hasParent");
-			final PropertyKey<String> parentIdKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(Folder.class, "parentId");
+			final PropertyKey<Boolean> hasParentKey       = StructrApp.key(Folder.class, "hasParent");
+			final PropertyKey<String> parentIdKey         = StructrApp.key(Folder.class, "parentId");
 
 			// replace with SU context
 			folder.setSecurityContext(SecurityContext.getSuperUserInstance());

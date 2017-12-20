@@ -31,6 +31,7 @@ public interface Hr extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Hr");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Hr"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("isVoidElement", false, "return true;");

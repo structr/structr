@@ -56,8 +56,8 @@ public class TemplateFunction extends Function<Object, Object> {
 			}
 
 			final Class type                    = StructrApp.getConfiguration().getNodeEntityClass("MailTemplate");
-			final PropertyKey<String> localeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "locale");
-			final PropertyKey<String> textKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "text");
+			final PropertyKey<String> localeKey = StructrApp.key(type, "locale");
+			final PropertyKey<String> textKey   = StructrApp.key(type, "text");
 			final App app                       = StructrApp.getInstance(ctx.getSecurityContext());
 			final String name                   = sources[0].toString();
 			final String locale                 = sources[1].toString();

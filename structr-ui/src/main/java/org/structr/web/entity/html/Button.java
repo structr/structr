@@ -32,6 +32,7 @@ public interface Button extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Button");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Button"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_autofocus",      PropertyView.Html);

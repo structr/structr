@@ -837,7 +837,7 @@ public class AccessControlTest extends StructrTest {
 	public void test00CreatePrincipal() {
 
 		final Class type                = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		final PropertyKey<String> eMail = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "eMail");
+		final PropertyKey<String> eMail = StructrApp.key(type, "eMail");
 		Principal user1                 = null;
 
 		try (final Tx tx = app.tx()) {
@@ -1003,7 +1003,7 @@ public class AccessControlTest extends StructrTest {
 
 			Principal nonAdmin = (Principal)createTestNode(principalType);
 
-			final PropertyKey<Boolean> isAdminKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(principalType, "isAdmin");
+			final PropertyKey<Boolean> isAdminKey = StructrApp.key(principalType, "isAdmin");
 			final SecurityContext userContext     = SecurityContext.getInstance(nonAdmin, AccessMode.Frontend);
 
 			nonAdmin.setSecurityContext(userContext);
@@ -1053,7 +1053,7 @@ public class AccessControlTest extends StructrTest {
 	public void test10LowercaseEMail() {
 
 		final Class type                = StructrApp.getConfiguration().getNodeEntityClass("Principal");
-		final PropertyKey<String> eMail = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "eMail");
+		final PropertyKey<String> eMail = StructrApp.key(type, "eMail");
 		Principal user1                 = null;
 
 		try (final Tx tx = app.tx()) {

@@ -317,7 +317,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				// store data
 				for (final Entry<String, Object> entry : data.entrySet()) {
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, entry.getKey(), false);
+					final PropertyKey key = StructrApp.key(type, entry.getKey(), false);
 					if (key != null) {
 						newNode.setProperty(app, key, entry.getValue());
 					}
@@ -499,7 +499,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				if (node != null) {
 
 					// store data
-					final PropertyKey propertyKey = config.getPropertyKeyForJSONName(node.getClass(), key, false);
+					final PropertyKey propertyKey = StructrApp.key(node.getClass(), key, false);
 					if (propertyKey != null) {
 
 						node.setProperty(app, propertyKey, value);

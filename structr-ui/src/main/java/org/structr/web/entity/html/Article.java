@@ -31,6 +31,7 @@ public interface Article extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Article");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Article"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

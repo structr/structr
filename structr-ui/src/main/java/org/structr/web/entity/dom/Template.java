@@ -19,11 +19,18 @@
 package org.structr.web.entity.dom;
 
 import java.net.URI;
-import org.structr.common.ConstantBooleanTrue;
+import java.util.List;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.RenderContext;
+import org.structr.web.common.RenderContext.EditMode;
 
 public interface Template extends Content {
 
@@ -35,9 +42,10 @@ public interface Template extends Content {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Template"));
 		type.setExtends(URI.create("#/definitions/Content"));
 
-		type.addBooleanProperty("isContent", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addStringProperty("contentType").setIndexed(true);
-		type.addStringProperty("content").setIndexed(true);
+		type.addStringProperty("contentType", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("content",     PropertyView.Public).setIndexed(true);
+
+		type.overrideMethod("renderContent", false, Template.class.getName() + ".renderContent(this, arg0, arg1);");
 
 	}}
 
@@ -51,21 +59,23 @@ public interface Template extends Content {
 		children, childrenIds, content, contentType, parent, pageId, hideOnDetail, hideOnIndex, sharedComponent, syncedNodes, dataKey, restQuery, cypherQuery, xpathQuery, functionQuery,
 		showForLocales, hideForLocales, showConditions, hideConditions, isContent
 	);
+	*/
 
-	@Override
-	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
+	public static void renderContent(final Template thisTemplate, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
+		final SecurityContext securityContext = thisTemplate.getSecurityContext();
+		final EditMode editMode               = renderContext.getEditMode(securityContext.getUser(false));
+
 		if (EditMode.DEPLOYMENT.equals(editMode)) {
 
-			final DOMNode _syncedNode = (DOMNode) getProperty(sharedComponent);
+			final DOMNode _syncedNode = thisTemplate.getSharedComponent();
 			final AsyncBuffer out     = renderContext.getBuffer();
 
 			if (depth > 0) {
 				out.append(DOMNode.indent(depth, renderContext));
 			}
 
-			renderDeploymentExportComments(out, true);
+			DOMNode.renderDeploymentExportComments(thisTemplate, out, true);
 
 			out.append("<structr:template src=\"");
 
@@ -78,19 +88,19 @@ public interface Template extends Content {
 			} else {
 
 				// use name of local template
-				final String _name = getProperty(AbstractNode.name);
-				out.append(_name != null ? _name : getUuid());
+				final String _name = thisTemplate.getProperty(AbstractNode.name);
+				out.append(_name != null ? _name : thisTemplate.getUuid());
 			}
 
 			out.append("\"");
 
-			renderSharedComponentConfiguration(out, editMode);
-			renderCustomAttributes(out, securityContext, renderContext); // include custom attributes in templates as well!
+			DOMNode.renderSharedComponentConfiguration(thisTemplate, out, editMode);
+			DOMNode.renderCustomAttributes(thisTemplate, out, securityContext, renderContext); // include custom attributes in templates as well!
 
 			out.append(">");
 
 			// fetch children
-			final List<DOMChildren> rels = getChildRelationships();
+			final List<RelationshipInterface> rels = thisTemplate.getChildRelationships();
 			if (rels.isEmpty()) {
 
 				// No child relationships, maybe this node is in sync with another node
@@ -99,7 +109,7 @@ public interface Template extends Content {
 				}
 			}
 
-			for (final AbstractRelationship rel : rels) {
+			for (final RelationshipInterface rel : rels) {
 
 				final DOMNode subNode = (DOMNode) rel.getTargetNode();
 				subNode.render(renderContext, depth + 1);
@@ -111,8 +121,8 @@ public interface Template extends Content {
 
 		} else {
 
-			super.renderContent(renderContext, depth);
+			// "super" call using static method..
+			Content.renderContent(thisTemplate, renderContext, depth);
 		}
 	}
-	*/
 }

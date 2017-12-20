@@ -113,8 +113,8 @@ public interface User extends Principal {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
-			final PropertyKey<Folder> homeFolderKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "homeFolderOfUser");
-			final PropertyKey<Folder> parentKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractFile.class, "parent");
+			final PropertyKey<Folder> homeFolderKey = StructrApp.key(AbstractFile.class, "homeFolderOfUser");
+			final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
 
 			// use superuser context here
 			final SecurityContext storedContext = user.getSecurityContext();

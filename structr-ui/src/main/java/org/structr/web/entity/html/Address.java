@@ -31,6 +31,7 @@ public interface Address extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Address");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Address"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

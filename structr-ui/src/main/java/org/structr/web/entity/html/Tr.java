@@ -31,6 +31,7 @@ public interface Tr extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Tr");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Tr"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

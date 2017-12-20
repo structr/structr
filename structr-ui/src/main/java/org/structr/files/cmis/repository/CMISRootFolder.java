@@ -66,8 +66,8 @@ public class CMISRootFolder extends CMISFolderWrapper {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 
-		dynamicPropertyMap.put(config.getPropertyKeyForJSONName(Folder.class, "includeInFrontendExport"), false);
-		dynamicPropertyMap.put(config.getPropertyKeyForJSONName(Folder.class, "position"),                null);
+		dynamicPropertyMap.put(StructrApp.key(Folder.class, "includeInFrontendExport"), false);
+		dynamicPropertyMap.put(StructrApp.key(Folder.class, "position"),                null);
 	}
 
 	@Override

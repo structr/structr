@@ -96,7 +96,7 @@ public abstract class ImageHelper extends FileHelper {
 	 */
 	public static Image createImageNode(final SecurityContext securityContext, final byte[] imageData, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail) throws FrameworkException, IOException {
 
-		final PropertyKey<Boolean> isThumbnailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "isThumbnail");
+		final PropertyKey<Boolean> isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
 		final PropertyMap props                   = new PropertyMap();
 
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
@@ -131,9 +131,9 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectThumbnails(final Image originalImage) {
 
-		final PropertyKey<String> path   = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "path");
-		final PropertyKey<Image> tnSmall = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "tnSmall");
-		final PropertyKey<Image> tnMid   = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "tnMid");
+		final PropertyKey<String> path   = StructrApp.key(Image.class, "path");
+		final PropertyKey<Image> tnSmall = StructrApp.key(Image.class, "tnSmall");
+		final PropertyKey<Image> tnMid   = StructrApp.key(Image.class, "tnMid");
 		final App app                    = StructrApp.getInstance();
 		final Integer origWidth          = originalImage.getWidth();
 		final Integer origHeight         = originalImage.getHeight();
@@ -172,10 +172,10 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectOriginalImage(final Image thumbnail) {
 
-		final PropertyKey<Integer> width  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "width");
-		final PropertyKey<Integer> height = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "height");
-		final PropertyKey<String> path    = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "path");
-		final PropertyKey<Long> checksum  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "checksum");
+		final PropertyKey<Integer> width  = StructrApp.key(Image.class, "width");
+		final PropertyKey<Integer> height = StructrApp.key(Image.class, "height");
+		final PropertyKey<String> path    = StructrApp.key(Image.class, "path");
+		final PropertyKey<Long> checksum  = StructrApp.key(Image.class, "checksum");
 		final String originalImageName    = thumbnail.getOriginalImageName();
 
 		try {
@@ -245,8 +245,8 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
 
-		final PropertyKey<Integer> width  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "width");
-		final PropertyKey<Integer> height = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "height");
+		final PropertyKey<Integer> width  = StructrApp.key(Image.class, "width");
+		final PropertyKey<Integer> height = StructrApp.key(Image.class, "height");
 
 		Thumbnail.Format format = Thumbnail.defaultFormat;
 
@@ -362,8 +362,8 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
 
-		final PropertyKey<Integer> width  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "width");
-		final PropertyKey<Integer> height = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "height");
+		final PropertyKey<Integer> width  = StructrApp.key(Image.class, "width");
+		final PropertyKey<Integer> height = StructrApp.key(Image.class, "height");
 		final String imageFormatString    = getImageFormatString(originalImage);
 		final Thumbnail.Format format     = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
 
@@ -596,9 +596,9 @@ public abstract class ImageHelper extends FileHelper {
 				final int sourceWidth  = source.getWidth();
 				final int sourceHeight = source.getHeight();
 
-				final PropertyKey<Integer> orientation = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "orientation");
-				final PropertyKey<Integer> width       = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "width");
-				final PropertyKey<Integer> height      = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "height");
+				final PropertyKey<Integer> orientation = StructrApp.key(Image.class, "orientation");
+				final PropertyKey<Integer> width       = StructrApp.key(Image.class, "width");
+				final PropertyKey<Integer> height      = StructrApp.key(Image.class, "height");
 				final PropertyMap map                  = new PropertyMap();
 
 				map.put(width,       sourceWidth);
@@ -756,7 +756,7 @@ public abstract class ImageHelper extends FileHelper {
 		try {
 
 			final ExifIFD0Directory exifIFD0Directory = getMetadata(originalImage).getFirstDirectoryOfType(ExifIFD0Directory.class);
-			final PropertyKey<Integer> orientationKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "orientation");
+			final PropertyKey<Integer> orientationKey = StructrApp.key(Image.class, "orientation");
 
 			if (exifIFD0Directory != null && exifIFD0Directory.hasTagName(ExifIFD0Directory.TAG_ORIENTATION)) {
 
@@ -781,9 +781,9 @@ public abstract class ImageHelper extends FileHelper {
 
 			final Metadata metadata = getMetadata(originalImage);
 
-			final PropertyKey<String> exifIFD0Data        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "exifIFD0Data");
-			final PropertyKey<String> exifSubIFDData      = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "exifSubIFDData");
-			final PropertyKey<String> gpsData             = StructrApp.getConfiguration().getPropertyKeyForJSONName(Image.class, "gpsData");
+			final PropertyKey<String> exifIFD0Data        = StructrApp.key(Image.class, "exifIFD0Data");
+			final PropertyKey<String> exifSubIFDData      = StructrApp.key(Image.class, "exifSubIFDData");
+			final PropertyKey<String> gpsData             = StructrApp.key(Image.class, "gpsData");
 			final ExifIFD0Directory   exifIFD0Directory   = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
 			final ExifSubIFDDirectory exifSubIFDDirectory = metadata.getFirstDirectoryOfType(ExifSubIFDDirectory.class);
 			final GpsDirectory        gpsDirectory        = metadata.getFirstDirectoryOfType(GpsDirectory.class);

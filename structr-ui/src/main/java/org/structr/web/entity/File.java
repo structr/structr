@@ -159,7 +159,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
 		getOutputStream2.setReturnType(FileOutputStream.class.getName());
 
-
 		// relationships
 		final JsonObjectType minifiedFile = (JsonObjectType)schema.getType("AbstractMinifiedFile");
 		if (minifiedFile != null) {

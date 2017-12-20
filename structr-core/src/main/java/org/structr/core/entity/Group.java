@@ -58,7 +58,7 @@ public interface Group extends Principal {
 	public static void addMember(final Group group, final Principal user) {
 
 		try {
-			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(group.getClass(), "members");
+			final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
 			final List<Principal> _users           = group.getProperty(key);
 
 			_users.add(user);
@@ -74,7 +74,7 @@ public interface Group extends Principal {
 
 		try {
 
-			final PropertyKey<List<Principal>> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(group.getClass(), "members");
+			final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
 			final List<Principal> _users           = group.getProperty(key);
 
 			_users.remove(member);

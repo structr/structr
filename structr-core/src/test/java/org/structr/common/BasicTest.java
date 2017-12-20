@@ -1242,7 +1242,7 @@ public class BasicTest extends StructrTest {
 		try {
 
 			final Class groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
-			final PropertyKey<Boolean> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "isGroup");
+			final PropertyKey<Boolean> key = StructrApp.key(groupType, "isGroup");
 			final PropertyMap props        = new PropertyMap();
 			final String type              = "Group";
 			final String name              = "TestGroup-1";

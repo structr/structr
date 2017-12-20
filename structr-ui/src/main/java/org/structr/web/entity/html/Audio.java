@@ -35,6 +35,7 @@ public interface Audio extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Audio");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Audio"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_src",         PropertyView.Html);

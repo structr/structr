@@ -307,8 +307,8 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		final PropertyKey<String> confKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "confirmationKey");
-		final PropertyKey<String> eMailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "eMail");
+		final PropertyKey<String> confKey  = StructrApp.key(Principal.class, "confirmationKey");
+		final PropertyKey<String> eMailKey = StructrApp.key(Principal.class, "eMail");
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {

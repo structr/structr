@@ -33,7 +33,7 @@ public class EMailValidator implements Validator {
 	public boolean isValid(final NodeInterface node, final ErrorBuffer errorBuffer) {
 
 		final Class type                = node.getClass();
-		final PropertyKey<String> eMail = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "eMail");
+		final PropertyKey<String> eMail = StructrApp.key(type, "eMail");
 		boolean valid                   = true;
 
 		valid &= ValidationHelper.isValidUniqueProperty(node, eMail, errorBuffer);

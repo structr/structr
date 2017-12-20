@@ -93,7 +93,7 @@ public class StructrApp implements App {
 	// ----- public methods -----
 	@Override
 	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException {
-		return create(type, new NodeAttribute(getConfiguration().getPropertyKeyForJSONName(type, "name"), name));
+		return create(type, new NodeAttribute(key(type, "name"), name));
 	}
 
 	@Override
@@ -498,14 +498,27 @@ public class StructrApp implements App {
 	public static <T> PropertyKey<T> key(final Class type, final String name) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class dynamicType            = config.getNodeEntityClass(type.getSimpleName());
+		PropertyKey<T> key                 = config.getPropertyKeyForJSONName(type, name, false);
 
-		if (dynamicType != null) {
+		if (key == null) {
 
-			return getConfiguration().getPropertyKeyForJSONName(dynamicType, name, false);
+			final Class dynamicType = config.getNodeEntityClass(type.getSimpleName());
+			if (dynamicType != null) {
+
+				key = getConfiguration().getPropertyKeyForJSONName(dynamicType, name, false);
+			}
 		}
 
-		return config.getPropertyKeyForJSONName(type, name, false);
+		if (key != null) {
+
+			return key;
+		}
+
+		logger.warn("Unknown property key {}.{}!", type.getSimpleName(), name);
+
+		Thread.dumpStack();
+
+		return null;
 	}
 
 	// ----- private static methods -----

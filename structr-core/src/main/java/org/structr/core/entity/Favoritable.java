@@ -21,15 +21,12 @@ package org.structr.core.entity;
 import java.net.URI;
 import org.structr.api.Predicate;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.FunctionProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -48,12 +45,18 @@ public interface Favoritable extends NodeInterface {
 
 		type.addBooleanProperty("isFavoritable").addTransformer(ConstantBooleanTrue.class.getName());
 
+		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), PropertyView.Public);
+		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      PropertyView.Public);
+		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      PropertyView.Public);
+
+		type.addFunctionProperty("relationshipId", PropertyView.Public).setReadFunction("this._path.id");
+
 		if (principal != null) {
 			principal.relate(type, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
 		}
 	}}
 
-
+	/*
 	public static final Property<String>  favoriteContentType = new FavoriteContentTypeProperty("favoriteContentType");
 	public static final Property<String>  favoriteContent     = new FavoriteContentProperty("favoriteContent");
 	public static final Property<String>  favoriteContext     = new FavoriteContextProperty("favoriteContext");
@@ -63,6 +66,7 @@ public interface Favoritable extends NodeInterface {
 	public static final View favView = new View(Favoritable.class, "fav",
 		id, name, type, favoriteContext, favoriteContent, favoriteContentType, relIdProperty
 	);
+	*/
 
 	String getContext();
 	String getFavoriteContent();

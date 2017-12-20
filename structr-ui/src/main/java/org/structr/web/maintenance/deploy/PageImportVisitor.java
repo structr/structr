@@ -184,7 +184,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final PropertyKey<String> contentTypeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Page.class, "contentType");
+			final PropertyKey<String> contentTypeKey = StructrApp.key(Page.class, "contentType");
 			final PropertyMap properties             = getPropertiesForPage(name);
 			final Page existingPage                  = getExistingPage(name);
 

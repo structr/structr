@@ -66,9 +66,9 @@ public class ProxyServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) {
 
-		final PropertyKey<String> proxyUrlKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "proxyUrl");
-		final PropertyKey<String> proxyUsernameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "proxyUsernameKey");
-		final PropertyKey<String> proxyPasswordKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(User.class, "proxyPasswordKey");
+		final PropertyKey<String> proxyUrlKey      = StructrApp.key(User.class, "proxyUrl");
+		final PropertyKey<String> proxyUsernameKey = StructrApp.key(User.class, "proxyUsernameKey");
+		final PropertyKey<String> proxyPasswordKey = StructrApp.key(User.class, "proxyPasswordKey");
 
 		final Authenticator auth = getConfig().getAuthenticator();
 

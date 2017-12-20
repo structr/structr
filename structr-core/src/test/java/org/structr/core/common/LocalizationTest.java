@@ -41,9 +41,9 @@ public class LocalizationTest extends StructrTest {
 	@Test
 	public void testLocalizationWithoutDomain() {
 
-		final PropertyKey<String> localizedName = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "localizedName");
-		final PropertyKey<String> domain        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "domain");
-		final PropertyKey<String> locale        = StructrApp.getConfiguration().getPropertyKeyForJSONName(Localization.class, "locale");
+		final PropertyKey<String> localizedName = StructrApp.key(Localization.class, "localizedName");
+		final PropertyKey<String> domain        = StructrApp.key(Localization.class, "domain");
+		final PropertyKey<String> locale        = StructrApp.key(Localization.class, "locale");
 
 		// create
 		try (final Tx tx = app.tx()) {

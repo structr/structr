@@ -34,6 +34,7 @@ public interface Aside extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Aside");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Aside"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

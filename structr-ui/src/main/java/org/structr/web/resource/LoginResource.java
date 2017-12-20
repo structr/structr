@@ -62,9 +62,13 @@ public class LoginResource extends Resource {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final PropertyMap properties       = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
-		final String name                  = properties.get((PropertyKey<String>)config.getPropertyKeyForJSONName(User.class, "name"));
-		final String email                 = properties.get((PropertyKey<String>)config.getPropertyKeyForJSONName(User.class, "eMail"));
-		final String password              = properties.get((PropertyKey<String>)config.getPropertyKeyForJSONName(User.class, "password"));
+		final PropertyKey<String> nameKey  = StructrApp.key(User.class, "name");
+		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+		final PropertyKey<String> pwdKey   = StructrApp.key(User.class, "password");
+
+		final String name                  = properties.get(nameKey);
+		final String email                 = properties.get(eMailKey);
+		final String password              = properties.get(pwdKey);
 
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
 

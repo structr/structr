@@ -31,6 +31,7 @@ public interface Dd extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Dd");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Dd"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

@@ -31,6 +31,7 @@ public interface Blockquote extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Blockquote");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Blockquote"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

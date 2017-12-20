@@ -74,7 +74,7 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 
 		if (nodeType != null) {
 
-			originIdKey = config.getPropertyKeyForJSONName(nodeType, "originId", false);
+			originIdKey = StructrApp.key(nodeType, "originId", false);
 			if (originIdKey != null) {
 
 				instance = app.create(nodeType, new NodeAttribute(originIdKey, getId().toString()));
@@ -99,7 +99,7 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 		final NodeList extensions          = getElements(getElement(), "krdf:KExtendedByRelation");
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class baseType               = config.getNodeEntityClass("BaseNode");
-		final PropertyKey extensionsKey    = config.getPropertyKeyForJSONName(baseType, "extendedBy", false);
+		final PropertyKey extensionsKey    = StructrApp.key(baseType, "extendedBy", false);
 
 		if (extensions != null && extensionsKey != null) {
 
@@ -163,8 +163,8 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Class baseNodeType           = config.getNodeEntityClass("BaseNode");
 			final Class localizedNameType      = config.getNodeEntityClass("LocalizedName");
-			final PropertyKey namesKey         = config.getPropertyKeyForJSONName(baseNodeType, "names");
-			final PropertyKey langKey          = config.getPropertyKeyForJSONName(localizedNameType, "locale");
+			final PropertyKey namesKey         = StructrApp.key(baseNodeType, "names");
+			final PropertyKey langKey          = StructrApp.key(localizedNameType, "locale");
 
 			if (localizedNameType != null && namesKey != null) {
 
@@ -258,8 +258,8 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 											final OWLClass targetType       = targetTypes.get(0);
 											final String sourcePropertyName = sourceType.getStructrName(false);
 											final String targetPropertyName = targetType.getStructrName(false);
-											final PropertyKey sourceKey     = config.getPropertyKeyForJSONName(hyperRelationshipType, sourcePropertyName, false);
-											final PropertyKey targetKey     = config.getPropertyKeyForJSONName(hyperRelationshipType, targetPropertyName, false);
+											final PropertyKey sourceKey     = StructrApp.key(hyperRelationshipType, sourcePropertyName, false);
+											final PropertyKey targetKey     = StructrApp.key(hyperRelationshipType, targetPropertyName, false);
 
 											if (sourceKey != null && targetKey != null) {
 

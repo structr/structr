@@ -69,9 +69,9 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 					Files.copy(fileToCopy, fileToBeReplaced);
 
-					final PropertyKey<Integer> versionKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "version");
-					final PropertyKey<Long> checksumKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "checksum");
-					final PropertyKey<Long> sizeKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "size");
+					final PropertyKey<Integer> versionKey = StructrApp.key(File.class, "version");
+					final PropertyKey<Long> checksumKey   = StructrApp.key(File.class, "checksum");
+					final PropertyKey<Long> sizeKey       = StructrApp.key(File.class, "size");
 					final PropertyMap changedProperties   = new PropertyMap();
 
 					changedProperties.put(checksumKey, FileHelper.getChecksum(fileToBeReplaced));

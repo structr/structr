@@ -33,7 +33,8 @@ public interface Link extends LinkSource {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Link");
 
-		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Link"));
+		type.setExtends(URI.create("#/definitions/LinkSource"));
 
 		type.addStringProperty("_html_href",     PropertyView.Html);
 		type.addStringProperty("_html_rel",      PropertyView.Html);

@@ -494,7 +494,7 @@ public class SchemaTest extends StructrTest {
 
 			final StringBuilder source = new StringBuilder();
 
-			source.append("\t\tfinal Set<String> test = new LinkedHashSet<>();\n");
+			source.append("final Set<String> test = new LinkedHashSet<>();\n");
 			source.append("\t\ttest.add(\"one\");\n");
 			source.append("\t\ttest.add(\"two\");\n");
 			source.append("\t\ttest.add(\"three\");\n");

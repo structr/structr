@@ -665,7 +665,7 @@ public class Importer {
 					// create comment or content node
 					if (!StringUtils.isBlank(comment)) {
 
-						final PropertyKey<String> contentTypeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Content.class, "contentType");
+						final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
 
 						newNode = (DOMNode) page.createComment(comment);
 						newNode.setProperty(contentTypeKey, "text/html");
@@ -783,9 +783,9 @@ public class Importer {
 
 				if (newNode == null) {
 
-					final PropertyKey<Boolean> hideOnDetailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class,    "hideOnDetail");
-					final PropertyKey<Boolean> showOnDetailKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class,    "showOnDetail");
-					final PropertyKey<String> tagKey           = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMElement.class, "tag");
+					final PropertyKey<Boolean> hideOnDetailKey = StructrApp.key(DOMNode.class,    "hideOnDetail");
+					final PropertyKey<Boolean> showOnDetailKey = StructrApp.key(DOMNode.class,    "showOnDetail");
+					final PropertyKey<String> tagKey           = StructrApp.key(DOMElement.class, "tag");
 
 					// experimental: create DOM element with literal tag
 					newNode = (DOMElement) app.create(DOMElement.class,
@@ -828,12 +828,12 @@ public class Importer {
 				// "id" attribute: Put it into the "_html_id" field
 				if (StringUtils.isNotBlank(id)) {
 
-					newNodeProperties.put(StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMElement.class, "_html_id"), id);
+					newNodeProperties.put(StructrApp.key(DOMElement.class, "_html_id"), id);
 				}
 
 				if (StringUtils.isNotBlank(classString.toString())) {
 
-					newNodeProperties.put(StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMElement.class, "_html_class"), StringUtils.trim(classString.toString()));
+					newNodeProperties.put(StructrApp.key(DOMElement.class, "_html_class"), StringUtils.trim(classString.toString()));
 				}
 
 				for (Attribute nodeAttr : node.attributes()) {
@@ -856,7 +856,7 @@ public class Importer {
 								if (value != null) {
 
 									// store value using actual input converter
-									final PropertyKey actualKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, camelCaseKey, false);
+									final PropertyKey actualKey = StructrApp.key(newNodeType, camelCaseKey);
 									if (actualKey != null) {
 
 										final PropertyConverter converter = actualKey.inputConverter(securityContext);
@@ -878,7 +878,7 @@ public class Importer {
 
 							} else if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
 
-								final PropertyKey propertyKey = config.getPropertyKeyForJSONName(newNodeType, key);
+								final PropertyKey propertyKey = StructrApp.key(newNodeType, key);
 								if (propertyKey != null) {
 
 									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
@@ -932,7 +932,7 @@ public class Importer {
 
 				if ("script".equals(tag)) {
 
-					final PropertyKey<String> typeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Input.class, "_html_type");
+					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType == null) {
@@ -1065,8 +1065,8 @@ public class Importer {
 	 */
 	private File fileExists(final String path, final long checksum) throws FrameworkException {
 
-		final PropertyKey<Long> checksumKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "checksum");
-		final PropertyKey<String> pathKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class, "path");
+		final PropertyKey<Long> checksumKey = StructrApp.key(File.class, "checksum");
+		final PropertyKey<String> pathKey   = StructrApp.key(File.class, "path");
 
 		return app.nodeQuery(File.class).and(pathKey, path).and(checksumKey, checksum).getFirst();
 	}
@@ -1250,12 +1250,12 @@ public class Importer {
 	private File createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
 
 		final String relativeFilePath            = File.getDirectoryPath(uuid) + "/" + uuid;
-		final PropertyKey<Integer> versionKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class,      "version");
-		final PropertyKey<String> relPathKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class,      "relativeFilePath");
-		final PropertyKey<String> contentTypeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Indexable.class, "contentType");
-		final PropertyKey<String> pathKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class,      "path");
-		final PropertyKey<Long> checksumKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class,      "checksum");
-		final PropertyKey<Long> sizeKey          = StructrApp.getConfiguration().getPropertyKeyForJSONName(File.class,      "size");
+		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class,      "version");
+		final PropertyKey<String> relPathKey     = StructrApp.key(File.class,      "relativeFilePath");
+		final PropertyKey<String> contentTypeKey = StructrApp.key(Indexable.class, "contentType");
+		final PropertyKey<String> pathKey        = StructrApp.key(File.class,      "path");
+		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class,      "checksum");
+		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class,      "size");
 
 		final File fileNode = app.create(fileClass != null ? fileClass : File.class,
 			new NodeAttribute(GraphObject.id, uuid),
@@ -1329,8 +1329,8 @@ public class Importer {
 			return null;
 		}
 
-		final PropertyKey<Page> ownerDocumentKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "ownerDocument");
-		final PropertyKey<DOMNode> parentKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "parent");
+		final PropertyKey<Page> ownerDocumentKey = StructrApp.key(DOMNode.class, "ownerDocument");
+		final PropertyKey<DOMNode> parentKey     = StructrApp.key(DOMNode.class, "parent");
 
 		for (final DOMNode n : StructrApp.getInstance().nodeQuery(DOMNode.class).andName(name).and(ownerDocumentKey, CreateComponentCommand.getOrCreateHiddenDocument()).getAsList()) {
 
@@ -1349,7 +1349,7 @@ public class Importer {
 			return null;
 		}
 
-		final PropertyKey<DOMNode> sharedComponentKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(DOMNode.class, "sharedComponent");
+		final PropertyKey<DOMNode> sharedComponentKey = StructrApp.key(DOMNode.class, "sharedComponent");
 
 		for (final DOMNode n : StructrApp.getInstance().nodeQuery(Template.class).andName(name).and().notBlank(AbstractNode.name).getAsList()) {
 
@@ -1411,8 +1411,8 @@ public class Importer {
 
 	private Template createNewTemplateNode(final DOMNode parent, final String content, final String contentType) throws FrameworkException {
 
-		final PropertyKey<String> contentTypeKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Content.class, "contentType");
-		final PropertyKey<String> contentKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(Content.class, "content");
+		final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
+		final PropertyKey<String> contentKey     = StructrApp.key(Content.class, "content");
 		final PropertyMap map                    = new PropertyMap();
 
 		map.put(AbstractNode.visibleToPublicUsers, publicVisible);

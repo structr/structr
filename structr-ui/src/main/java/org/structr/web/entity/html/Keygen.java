@@ -31,6 +31,7 @@ public interface Keygen extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Keygen");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Keygen"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("isVoidElement", false, "return true;");

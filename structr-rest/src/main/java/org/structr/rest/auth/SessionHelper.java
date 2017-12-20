@@ -120,7 +120,7 @@ public class SessionHelper {
 	public static void clearSession(final String sessionId) {
 
 		final App app                            = StructrApp.getInstance();
-		final PropertyKey<String[]> sessionIdKey = (PropertyKey<String[]>)StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "sessionIds");
+		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
 		final Query<Principal> query             = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
@@ -149,7 +149,7 @@ public class SessionHelper {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
-		final PropertyKey<String[]> sessionIdKey = (PropertyKey<String[]>)StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "sessionIds");
+		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
 		final SessionCache sessionCache          = Services.getInstance().getService(HttpService.class).getSessionCache();
 
 		final String[] sessionIds = user.getProperty(sessionIdKey);

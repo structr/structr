@@ -143,7 +143,7 @@ public class SourcePattern extends AbstractNode {
 			final String ex = doc.select(selector).text();
 
 			final ConfigurationProvider config  = StructrApp.getConfiguration();
-			final PropertyKey key = config.getPropertyKeyForJSONName(type(mappedType), mappedAttribute);
+			final PropertyKey key = StructrApp.key(type(mappedType), mappedAttribute);
 
 			if (StringUtils.isNotBlank(ex) && key != null) {
 
@@ -237,7 +237,7 @@ public class SourcePattern extends AbstractNode {
 //
 //							if (subSubEx != null && subSubEx != = '' && subPageSubPattern.mappedAttribute != null) {
 //
-//							final PropertyKey key = config.getPropertyKeyForJSONName(type(mappedType), subPatternMappedAttribute);
+//							final PropertyKey key = StructrApp.key(type(mappedType), subPatternMappedAttribute);
 //							if (key != null) {
 //
 //								subObj.setProperty(key, subSubEx);
@@ -247,7 +247,7 @@ public class SourcePattern extends AbstractNode {
 //
 //						final String subPagePatternMappedAttribute = subPagePattern.getProperty(SourcePattern.mappedAttributeProperty);
 //
-//						final PropertyKey key = config.getPropertyKeyForJSONName(type(mappedType), subPagePatternMappedAttribute);
+//						final PropertyKey key = StructrApp.key(type(mappedType), subPagePatternMappedAttribute);
 //						if (key != null) {
 //
 //							obj.setProperty(key, subSubEx);

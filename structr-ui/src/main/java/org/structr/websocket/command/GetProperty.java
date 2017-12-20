@@ -48,7 +48,7 @@ public class GetProperty extends AbstractCommand {
 
 		if (obj != null) {
 
-			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), key);
+			PropertyKey propertyKey = StructrApp.key(obj.getClass(), key);
 			PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext());
 
 			Object value = obj.getProperty(propertyKey);

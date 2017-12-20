@@ -71,7 +71,7 @@ public class SortFunction extends Function<Object, Object> {
 					if (firstElement instanceof GraphObject) {
 
 						final Class type = firstElement.getClass();
-						final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+						final PropertyKey key = StructrApp.key(type, sortKey);
 						final boolean descending = sources.length == 3 && sources[2] != null && "true".equals(sources[2].toString());
 
 						if (key != null) {

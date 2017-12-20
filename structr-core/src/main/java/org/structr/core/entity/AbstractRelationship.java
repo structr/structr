@@ -702,7 +702,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			default:
 
 				// evaluate object value or return default
-				final Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
+				final Object value = getProperty(StructrApp.key(entityType, key), actionContext.getPredicate());
 				if (value == null) {
 
 					return Function.numberOrString(defaultValue);

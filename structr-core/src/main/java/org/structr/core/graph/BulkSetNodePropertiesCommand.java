@@ -107,7 +107,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 								key = "type";
 							}
 
-							PropertyConverter inputConverter = StructrApp.getConfiguration().getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
+							PropertyConverter inputConverter = StructrApp.key(cls, key).inputConverter(securityContext);
 
 
 							if (inputConverter != null) {

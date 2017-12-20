@@ -31,6 +31,7 @@ public interface Colgroup extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Colgroup");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Colgroup"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

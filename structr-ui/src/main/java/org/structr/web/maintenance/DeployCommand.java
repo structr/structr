@@ -90,7 +90,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.entity.relation.FileChildren;
 import org.structr.web.entity.relation.FileSiblings;
 import org.structr.web.entity.relation.FolderChildren;
@@ -1030,9 +1029,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// only export dynamic (=> additional) keys
 			if (!key.isPartOfBuiltInSchema()) {
 
-				// TODO: isDynamic() is not sufficient any more, since almost all of the
-				//       keys are dynamic now. We need to set a different flag
-
 				putIf(config, key.jsonName(), node.getProperty(key));
 			}
 		}
@@ -1096,7 +1092,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys
-			if (key.isDynamic()) {
+			if (!key.isPartOfBuiltInSchema()) {
 
 				putIf(config, key.jsonName(), abstractFile.getProperty(key));
 			}
@@ -1353,7 +1349,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				continue;
 			}
 
-			if (rel instanceof ResourceLink) {
+			if (rel.getRelType().name().equals("LINK")) {
 				continue;
 			}
 

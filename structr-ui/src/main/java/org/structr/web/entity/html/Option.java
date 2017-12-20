@@ -37,6 +37,7 @@ public interface Option extends DOMElement {
 		type.addStringProperty("_html_selected", PropertyView.Html);
 		type.addStringProperty("_html_label",    PropertyView.Html);
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Option"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

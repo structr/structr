@@ -757,7 +757,7 @@ public class AdvancedSearchTest extends IndexingTest {
 
 			// fetch dynamic type info
 			final Class dynamicType   = StructrApp.getConfiguration().getNodeEntityClass("TestType");
-			final PropertyKey testKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(dynamicType, "test");
+			final PropertyKey testKey = StructrApp.key(dynamicType, "test");
 
 			// modify schema node but keep reference to "old" type
 			try (final Tx tx = app.tx()) {

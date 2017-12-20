@@ -106,7 +106,7 @@ public class GetFunction extends Function<Object, Object> {
 
 			if (dataObject != null) {
 
-				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(dataObject.getClass(), keyName);
+				final PropertyKey key = StructrApp.key(dataObject.getClass(), keyName);
 				if (key != null) {
 
 					final PropertyConverter inputConverter = key.inputConverter(securityContext);

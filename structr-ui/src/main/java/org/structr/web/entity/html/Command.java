@@ -31,6 +31,7 @@ public interface Command extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Command");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Command"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.overrideMethod("isVoidElement", false, "return true;");
