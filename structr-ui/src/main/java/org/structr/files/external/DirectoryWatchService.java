@@ -47,6 +47,7 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.StructrServices;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -86,7 +87,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
 
-					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget)).start();
+					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget, true)).start();
 				}
 
 			} else {
@@ -105,12 +106,9 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
 
-					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget)).start();
+					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget, true)).start();
 
 				} else {
-
-					// update values of already mounted folder?
-					logger.info("Updating attributes of mounted folder {}..", folderPath);
 
 					info.setScanInterval(scanInterval);
 				}
@@ -138,6 +136,14 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		while (running) {
 
+			if (!Services.getInstance().isInitialized()) {
+
+				try { Thread.sleep(100); } catch (InterruptedException i) {}
+
+				// loop until we are stopped
+				continue;
+			}
+
 			synchronized (watchedRoots) {
 
 				for (final FolderInfo info : watchedRoots.values()) {
@@ -148,7 +154,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 						info.setLastScanned(System.currentTimeMillis());
 
 						// start a new scan thread
-						new Thread(new ScanWorker(false, Paths.get(info.getRoot()), info.getRoot())).start();
+						new Thread(new ScanWorker(false, Paths.get(info.getRoot()), info.getRoot(), true)).start();
 					}
 				}
 			}
@@ -156,7 +162,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			try {
 
 				final WatchKey key = watchService.poll(100, TimeUnit.MILLISECONDS);
-				if (key != null) {
+				if (key != null && Services.getInstance().isInitialized()) {
 
 					final Path root;
 
@@ -273,6 +279,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	@Override
 	public void shutdown() {
+		running = false;
 	}
 
 	@Override
@@ -403,19 +410,21 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		for (final File directory : directories) {
 
 			// recurse (but not in a new thread)
-			new ScanWorker(registerWatchKey, root, directory.getAbsolutePath()).run();
+			new ScanWorker(registerWatchKey, root, directory.getAbsolutePath(), false).run();
 		}
 	}
 
 	// ----- nested classes -----
 	private class ScanWorker implements Runnable {
 
+		private boolean isRootScanner    = false;
 		private boolean registerWatchKey = false;
 		private String path              = null;
 		private Path root                = null;
 
-		public ScanWorker(final boolean registerWatchKey, final Path root, final String path) {
+		public ScanWorker(final boolean registerWatchKey, final Path root, final String path, final boolean isRootScanner) {
 
+			this.isRootScanner    = isRootScanner;
 			this.registerWatchKey = registerWatchKey;
 			this.root             = root;
 			this.path             = path;
@@ -459,6 +468,23 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 							// add watch services for each directory recursively
 							scanDirectoryTree(registerWatchKey, root, actualPath);
+
+							// set last scanned timestamp on root folder
+							if (isRootScanner) {
+
+								try (final Tx tx = StructrApp.getInstance().tx()) {
+
+									final Folder rootFolder = StructrApp.getInstance().nodeQuery(Folder.class).and(Folder.mountTarget, root.toString()).getFirst();
+									if (rootFolder != null) {
+
+										rootFolder.setProperty(Folder.mountLastScanned, System.currentTimeMillis());
+									}
+
+									tx.success();
+
+								} catch (FrameworkException fex) {}
+
+							}
 
 						} catch (IOException ex) {
 

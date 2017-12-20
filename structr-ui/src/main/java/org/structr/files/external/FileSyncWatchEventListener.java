@@ -134,10 +134,6 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 				logger.warn("Cannot handle watch event, folder {} has no path", folder.getUuid());
 			}
-
-		} else {
-
-			logger.warn("Cannot find Folder object for mount target {}, folder not found.", root);
 		}
 
 		return null;
@@ -191,7 +187,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			if (file instanceof AbstractFile) {
 
 				final AbstractFile abstractFile = (AbstractFile)file;
-				
+
 				abstractFile.setProperty(AbstractFile.lastSeenMounted, System.currentTimeMillis());
 			}
 		}

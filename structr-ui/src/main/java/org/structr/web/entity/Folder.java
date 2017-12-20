@@ -203,12 +203,8 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public java.io.File getFileOnDisk(final FileBase file, final String path, final boolean create) {
 
 		final Folder parentFolder = getProperty(Folder.parent);
-		if (parentFolder != null) {
-
-			return parentFolder.getFileOnDisk(file, getProperty(Folder.name) + "/" + path, create);
-		}
-
 		final String _mountTarget = getProperty(Folder.mountTarget);
+
 		if (_mountTarget != null) {
 
 			final String fullPath         = removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(FileBase.name));
@@ -229,6 +225,10 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 			}
 
 			return fileOnDisk;
+
+		} else if (parentFolder != null) {
+
+			return parentFolder.getFileOnDisk(file, getProperty(Folder.name) + "/" + path, create);
 		}
 
 		// default implementation (store in UUID-indexed tree)
