@@ -37,8 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.User;
 
 /**
  * Central class for OAuth client implementations.
@@ -276,7 +276,7 @@ public class StructrOAuthClient {
 	}
 
 	public PropertyKey getCredentialKey() {
-		return StructrApp.key(Principal.class, "eMail");
+		return StructrApp.key(User.class, "eMail");
 	}
 
 	public String getCredential(final HttpServletRequest request) {

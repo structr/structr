@@ -48,7 +48,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.DummyNodeServiceCommand;
@@ -203,7 +202,7 @@ public class SimpleTest extends StructrUiTest {
 	@Test
 	public void test001EMailAddressConstraint() {
 
-		final PropertyKey<String> eMail = StructrApp.key(Principal.class, "eMail");
+		final PropertyKey<String> eMail = StructrApp.key(User.class, "eMail");
 
 		try (final Tx tx = app.tx()) {
 
@@ -973,9 +972,9 @@ public class SimpleTest extends StructrUiTest {
 			Page.createSimplePage(securityContext, "test");
 
 			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(Principal.class, "name"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(Principal.class, "isAdmin"), true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
 			);
 
 			tx.success();

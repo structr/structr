@@ -138,7 +138,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static List<Principal> getParents(final Principal principal) {
 
 		final List<Principal> parents          = new LinkedList<>();
-		final PropertyKey<List<Principal>> key = StructrApp.key(principal.getClass(), "groups");
+		final PropertyKey<List<Principal>> key = StructrApp.key(Principal.class, "groups");
 		final List<Principal> list             = principal.getProperty(key);
 
 		for (final Principal parent : list) {
@@ -155,7 +155,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(principal.getClass(), "sessionIds");
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] ids              = principal.getProperty(key);
 
 			if (ids != null) {
@@ -180,7 +180,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(principal.getClass(), "sessionIds");
+			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] ids              = principal.getProperty(key);
 			List<String> newSessionIds      = new ArrayList<>();
 

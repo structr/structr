@@ -106,7 +106,7 @@ public class RegistrationResource extends Resource {
 		if (propertySet.containsKey("eMail")) {
 
 			final PropertyKey<String> confKeyKey = StructrApp.key(User.class, "confirmationKey");
-			final PropertyKey<String> eMailKey   = StructrApp.key(Principal.class, "eMail");
+			final PropertyKey<String> eMailKey   = StructrApp.key(User.class, "eMail");
 			final String emailString             = (String) propertySet.get("eMail");
 
 			if (StringUtils.isEmpty(emailString)) {
@@ -185,7 +185,7 @@ public class RegistrationResource extends Resource {
 
 	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) {
 
-		final PropertyKey<String> eMailKey       = StructrApp.key(Principal.class, "eMail");
+		final PropertyKey<String> eMailKey       = StructrApp.key(User.class, "eMail");
 		final Map<String, String> replacementMap = new HashMap();
 
 		// Populate the replacement map with all POSTed values

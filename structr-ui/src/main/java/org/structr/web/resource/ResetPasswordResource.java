@@ -100,8 +100,8 @@ public class ResetPasswordResource extends Resource {
 			}
 
 			final ConfigurationProvider config        = StructrApp.getConfiguration();
-			final PropertyKey<String> confirmationKey = StructrApp.key(Principal.class, "confirmationKey");
-			final PropertyKey<String> eMail           = StructrApp.key(Principal.class, "eMail");
+			final PropertyKey<String> confirmationKey = StructrApp.key(User.class, "confirmationKey");
+			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
 			final String localeString                 = (String) propertySet.get("locale");
 			final String confKey                      = UUID.randomUUID().toString();
 			final Principal user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();

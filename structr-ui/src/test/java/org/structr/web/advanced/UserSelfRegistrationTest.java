@@ -19,6 +19,7 @@
 package org.structr.web.advanced;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
@@ -271,6 +272,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.body("{ eMail: '" + eMail + "', password: 'correct' }")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.body("result.type",   equalTo("User"))

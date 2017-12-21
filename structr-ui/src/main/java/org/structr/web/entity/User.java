@@ -72,6 +72,8 @@ public interface User extends Principal {
 		user.addMethod("isFrontendUser").setReturnType("boolean").setSource("return getProperty(frontendUserProperty);");
 		user.addMethod("isBackendUser").setReturnType("boolean").setSource("return getProperty(backendUserProperty);");
 
+		user.addViewProperty(PropertyView.Public, "name");
+
 	}}
 
 	//public static final Property<String>            confirmationKey           = new StringProperty("confirmationKey").indexed();
