@@ -35,14 +35,14 @@ public interface Form extends DOMElement {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Form"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		type.addStringProperty("_html_acceptCharset", PropertyView.Html);
-		type.addStringProperty("_html_action",        PropertyView.Html);
-		type.addStringProperty("_html_autocomplete",  PropertyView.Html);
-		type.addStringProperty("_html_enctype",       PropertyView.Html);
-		type.addStringProperty("_html_method",        PropertyView.Html);
-		type.addStringProperty("_html_name",          PropertyView.Html);
-		type.addStringProperty("_html_novalidate",    PropertyView.Html);
-		type.addStringProperty("_html_target",        PropertyView.Html);
+		type.addStringProperty("_html_accept-charset", PropertyView.Html);
+		type.addStringProperty("_html_action",         PropertyView.Html);
+		type.addStringProperty("_html_autocomplete",   PropertyView.Html);
+		type.addStringProperty("_html_enctype",        PropertyView.Html);
+		type.addStringProperty("_html_method",         PropertyView.Html);
+		type.addStringProperty("_html_name",           PropertyView.Html);
+		type.addStringProperty("_html_novalidate",     PropertyView.Html);
+		type.addStringProperty("_html_target",         PropertyView.Html);
 
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
 	}}

@@ -58,7 +58,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
-import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -1250,12 +1249,12 @@ public class Importer {
 	private File createFileNode(final String uuid, final String path, final String contentType, final long size, final long checksum, final Class fileClass) throws FrameworkException {
 
 		final String relativeFilePath            = File.getDirectoryPath(uuid) + "/" + uuid;
-		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class,      "version");
-		final PropertyKey<String> relPathKey     = StructrApp.key(File.class,      "relativeFilePath");
-		final PropertyKey<String> contentTypeKey = StructrApp.key(Indexable.class, "contentType");
-		final PropertyKey<String> pathKey        = StructrApp.key(File.class,      "path");
-		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class,      "checksum");
-		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class,      "size");
+		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
+		final PropertyKey<String> relPathKey     = StructrApp.key(File.class, "relativeFilePath");
+		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
+		final PropertyKey<String> pathKey        = StructrApp.key(File.class, "path");
+		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
+		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
 
 		final File fileNode = app.create(fileClass != null ? fileClass : File.class,
 			new NodeAttribute(GraphObject.id, uuid),

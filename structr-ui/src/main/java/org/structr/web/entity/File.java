@@ -76,8 +76,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final JsonObjectType type = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
-		type.setImplements(URI.create("#/definitions/Linkable"));
 		type.setImplements(URI.create("#/definitions/Indexable"));
+		type.setImplements(URI.create("#/definitions/Linkable"));
 		type.setImplements(URI.create("#/definitions/JavaScriptSource"));
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));

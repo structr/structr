@@ -18,14 +18,41 @@
  */
 package org.structr.web.advanced;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.GenericNode;
+import org.structr.core.entity.relationship.NodeHasLocation;
+import org.structr.core.graph.BulkDeleteCommand;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
+import org.structr.web.entity.TestOne;
+import org.structr.web.entity.User;
 
 /**
  *
  */
 public class PerformanceTest extends StructrUiTest {
-
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(PerformanceTest.class);
 
@@ -39,6 +66,7 @@ public class PerformanceTest extends StructrUiTest {
 	 * with the test setup.
 	 *
 	 * If the test passes, one can expect structr to create nodes with typical performance.
+	 */
 	@Test
 	public void testPerformanceOfNodeCreation() {
 
@@ -101,6 +129,7 @@ public class PerformanceTest extends StructrUiTest {
 	 * with the test setup.
 	 *
 	 * If the test passes, one can expect structr to create relationship with typical performance.
+	 */
 	@Test
 	public void testPerformanceOfRelationshipCreation() {
 
@@ -157,6 +186,7 @@ public class PerformanceTest extends StructrUiTest {
 	 * with the test setup.
 	 *
 	 * If the test passes, one can expect structr to read nodes with typical performance.
+	 */
 	@Test
 	public void testReadPerformance() {
 
@@ -266,9 +296,9 @@ public class PerformanceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			user = app.create(User.class,
-				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),      true)
 			);
 
 			tx.success();
@@ -299,5 +329,4 @@ public class PerformanceTest extends StructrUiTest {
 		return nodes;
 
 	}
-	*/
 }

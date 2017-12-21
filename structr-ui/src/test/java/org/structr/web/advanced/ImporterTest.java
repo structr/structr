@@ -18,15 +18,28 @@
  */
 package org.structr.web.advanced;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+import org.structr.common.PathHelper;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.File;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.importer.Importer;
 
 /**
  * Test the import of external pages
  *
  */
 public class ImporterTest extends StructrUiTest {
-
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(ImporterTest.class.getName());
 
@@ -42,10 +55,10 @@ public class ImporterTest extends StructrUiTest {
 			+ "<html lang=\"en\">\n"
 			+ "	<head>\n"
 			+ "		<meta charset=\"utf-8\">\n"
-			+ "		<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n"
-			+ "		<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\n"
-			+ "		<meta name=\"description\" content=\"\">\n"
-			+ "		<meta name=\"author\" content=\"\">\n"
+			+ "		<meta content=\"IE=edge\" http-equiv=\"X-UA-Compatible\">\n"
+			+ "		<meta content=\"width=device-width, initial-scale=1\" name=\"viewport\"><!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\n"
+			+ "		<meta content=\"\" name=\"description\">\n"
+			+ "		<meta content=\"\" name=\"author\">\n"
 			+ "		<link href=\"?\" rel=\"icon\">\n"
 			+ "		<title>Jumbotron Template for Bootstrap</title><!-- Bootstrap core CSS -->\n"
 			+ "		<link href=\"/dist/css/bootstrap.min.css?1\" rel=\"stylesheet\"><!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->\n"
@@ -139,10 +152,10 @@ public class ImporterTest extends StructrUiTest {
 			+ "<html lang=\"en\">\n"
 			+ "	<head>\n"
 			+ "		<meta charset=\"utf-8\">\n"
-			+ "		<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n"
-			+ "		<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\n"
-			+ "		<meta name=\"description\" content=\"\">\n"
-			+ "		<meta name=\"author\" content=\"\">\n"
+			+ "		<meta content=\"IE=edge\" http-equiv=\"X-UA-Compatible\">\n"
+			+ "		<meta content=\"width=device-width, initial-scale=1\" name=\"viewport\"><!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\n"
+			+ "		<meta content=\"\" name=\"description\">\n"
+			+ "		<meta content=\"\" name=\"author\">\n"
 			+ "		<link href=\"${link.path}?${link.version}\" rel=\"icon\">\n"
 			+ "		<title>Jumbotron Template for Bootstrap</title><!-- Bootstrap core CSS -->\n"
 			+ "		<link href=\"${link.path}?${link.version}\" rel=\"stylesheet\"><!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->\n"
@@ -371,19 +384,6 @@ public class ImporterTest extends StructrUiTest {
 		return sourceHtml;
 	}
 
-	private <T> List<T> collectNodes(final NodeList source, final Class<T> type) {
-
-		final List<T> list = new LinkedList<>();
-		final int len = source.getLength();
-
-		for (int i = 0; i < len; i++) {
-
-			list.add((T) source.item(i));
-		}
-
-		return list;
-	}
-
 	private void assertFileExists(final String expectedPath, final int expectedVersion) {
 
 		final File file;
@@ -393,8 +393,8 @@ public class ImporterTest extends StructrUiTest {
 			file = app.nodeQuery(File.class).andName(filename).getFirst();
 
 			assertNotNull(filename + " file not found", file);
-			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(File.path), expectedPath);
-			assertEquals("Wrong version of " + filename + " file", (int) file.getProperty(File.version), expectedVersion);
+			assertEquals("Wrong path of " + filename + " file", (String) file.getProperty(StructrApp.key(File.class, "path")), expectedPath);
+			assertEquals("Wrong version of " + filename + " file", (int) file.getProperty(StructrApp.key(File.class, "version")), expectedVersion);
 
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
@@ -415,5 +415,4 @@ public class ImporterTest extends StructrUiTest {
 			logger.warn("", ex);
 		}
 	}
-	*/
 }

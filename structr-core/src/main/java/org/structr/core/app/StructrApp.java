@@ -502,10 +502,20 @@ public class StructrApp implements App {
 
 		if (key == null) {
 
+			// not found, next try: dynamic type
 			final Class dynamicType = config.getNodeEntityClass(type.getSimpleName());
 			if (dynamicType != null) {
 
-				key = getConfiguration().getPropertyKeyForJSONName(dynamicType, name, false);
+				key = config.getPropertyKeyForJSONName(dynamicType, name, false);
+
+			} else {
+
+				// next try: interface
+				final Class iface = config.getInterfaces().get(type.getSimpleName());
+				if (iface != null) {
+
+					key = config.getPropertyKeyForJSONName(iface, name, false);
+				}
 			}
 		}
 

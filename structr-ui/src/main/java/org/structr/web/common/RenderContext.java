@@ -438,13 +438,11 @@ public class RenderContext extends ActionContext {
 						break;
 
 					// link has two different meanings
-
-					// link has two different meanings
 					case "link":
 
-						if (data instanceof LinkSource) {
+						if (entity instanceof LinkSource) {
 
-							final LinkSource linkSource = (LinkSource)data;
+							final LinkSource linkSource = (LinkSource)entity;
 							return linkSource.getLinkable();
 						}
 						break;

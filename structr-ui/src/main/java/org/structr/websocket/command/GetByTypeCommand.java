@@ -71,10 +71,18 @@ public class GetByTypeCommand extends AbstractCommand {
 		final String sortKey     = webSocketData.getSortKey();
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
-		PropertyKey sortProperty = StructrApp.key(type, sortKey);
 
 
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden(includeDeletedAndHidden).sort(sortProperty).order("desc".equals(sortOrder));
+		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden(includeDeletedAndHidden);
+
+		if (sortKey != null) {
+
+			final PropertyKey sortProperty = StructrApp.key(type, sortKey);
+			if (sortProperty != null) {
+
+				query.sort(sortProperty).order("desc".equals(sortOrder));
+			}
+		}
 
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {

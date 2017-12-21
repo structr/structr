@@ -1643,8 +1643,6 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	private HttpBasicAuthResult checkHttpBasicAuth(final HttpServletRequest request, final HttpServletResponse response, final String path) throws IOException, FrameworkException {
 
 		final PropertyKey<Boolean> basicAuthKey     = StructrApp.key(Linkable.class, "enableBasicAuth");
-		final PropertyKey<String> basicAuthRealmKey = StructrApp.key(Linkable.class, "basicAuthRealm");
-
 		final PropertyKey<Integer> positionKey      = StructrApp.key(Page.class, "position");
 		final PropertyKey<String> filePathKey       = StructrApp.key(File.class, "path");
 		final PropertyKey<String> pagePathKey       = StructrApp.key(Page.class, "path");

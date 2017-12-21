@@ -53,6 +53,7 @@ import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -1336,8 +1337,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (key.startsWith("data-")) {
 
-				final PropertyKey propertyKey = StructrApp.key(thisNode.getClass(), key);
-				if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
+				PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key, false);
+				if (propertyKey != null && propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
 					final Object defaultValue = propertyKey.defaultValue();
 					final Object nodeValue    = dbNode.getProperty(key);
@@ -1347,6 +1348,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 						continue;
 					}
+				}
+
+				if (propertyKey == null) {
+
+					// support arbitrary data-* attributes
+					propertyKey = new StringProperty(key);
 				}
 
 				customProperties.add(propertyKey);

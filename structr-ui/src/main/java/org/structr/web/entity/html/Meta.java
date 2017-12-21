@@ -35,10 +35,10 @@ public interface Meta extends DOMElement {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Meta"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		type.addStringProperty("_html_name",      PropertyView.Html);
-		type.addStringProperty("_html_httpEquiv", PropertyView.Html);
-		type.addStringProperty("_html_content",   PropertyView.Html);
-		type.addStringProperty("_html_charset",   PropertyView.Html);
+		type.addStringProperty("_html_name",       PropertyView.Html);
+		type.addStringProperty("_html_http-equiv", PropertyView.Html);
+		type.addStringProperty("_html_content",    PropertyView.Html);
+		type.addStringProperty("_html_charset",    PropertyView.Html);
 
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
 		type.overrideMethod("isVoidElement",     false, "return true;");

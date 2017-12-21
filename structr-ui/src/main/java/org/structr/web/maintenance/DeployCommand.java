@@ -1142,7 +1142,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		logger.info("Exporting mail templates");
 
 		final PropertyKey<String> textKey             = StructrApp.key(MailTemplate.class, "text");
-		final PropertyKey<String> localeKey           = StructrApp.key(MailTemplate.class, "text");
+		final PropertyKey<String> localeKey           = StructrApp.key(MailTemplate.class, "locale");
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
