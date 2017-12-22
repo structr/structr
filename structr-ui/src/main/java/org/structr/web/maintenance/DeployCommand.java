@@ -1083,14 +1083,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
 		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
 
-
-		if(file.isMounted()) {
-			putIf(config, "mountTarget",              file.getProperty(Folder.mountTarget));
-			putIf(config, "mountDoFulltextIndexing",  file.getProperty(Folder.mountDoFulltextIndexing));
-			putIf(config, "mountScanInterval",        file.getProperty(Folder.mountScanInterval));
-		}
-
-
 		if (file instanceof Image) {
 			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
 			putIf(config, "isImage",                 file.getProperty(Image.isImage));
