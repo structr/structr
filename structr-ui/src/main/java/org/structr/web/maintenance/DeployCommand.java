@@ -678,6 +678,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
 
+		// ignore folders with mounted content
+		if (folder.isMounted()) {
+			return;
+		}
+
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 
@@ -1077,6 +1082,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putIf(config, "includeInFrontendExport",     file.getProperty(FileBase.includeInFrontendExport));
 		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
 		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
+
+
+		if(file.isMounted()) {
+			putIf(config, "mountTarget",              file.getProperty(Folder.mountTarget));
+			putIf(config, "mountDoFulltextIndexing",  file.getProperty(Folder.mountDoFulltextIndexing));
+			putIf(config, "mountScanInterval",        file.getProperty(Folder.mountScanInterval));
+		}
+
 
 		if (file instanceof Image) {
 			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
