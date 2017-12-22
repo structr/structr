@@ -75,16 +75,18 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 	public static final Property<Integer>        mountScanInterval       = new IntProperty("mountScanInterval");
 	public static final Property<Long>           mountLastScanned        = new LongProperty("mountLastScanned");
 
+	public static final Property<String>         enabledChecksums        = new StringProperty("enabledChecksums").indexed().hint("List of checksum types which are being automatically calculated on file creation.\nSupported values are: crc32, md5, sha1, sha512");
+	
 	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
 
 	public static final View publicView = new View(Folder.class, PropertyView.Public,
 		id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers,
-		mountTarget, mountDoFulltextIndexing, mountScanInterval, mountLastScanned
+		mountTarget, mountDoFulltextIndexing, mountScanInterval, mountLastScanned, enabledChecksums
 	);
 
 	public static final View uiView = new View(Folder.class, PropertyView.Ui,
 		parent, owner, folders, files, images, isFolder, includeInFrontendExport, mountTarget,
-		mountDoFulltextIndexing, mountScanInterval, mountLastScanned
+		mountDoFulltextIndexing, mountScanInterval, mountLastScanned, enabledChecksums
 	);
 
 	// register this type as an overridden builtin type

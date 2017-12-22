@@ -180,7 +180,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 				}
 
 				if (file != null) {
-					FileHelper.updateMetadata(fileBase);
+					FileHelper.updateMetadata(fileBase, true);
 				}
 			}
 

@@ -23,7 +23,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -290,10 +289,9 @@ public class FileHelper {
 		final PropertyMap map         = new PropertyMap();
 
 		map.put(FileBase.contentType, contentType != null ? contentType : FileHelper.getContentMimeType(fileOnDisk, file.getProperty(FileBase.name)));
-		map.put(FileBase.checksum,    FileHelper.getChecksum(fileOnDisk));
-		map.put(FileBase.md5,         FileHelper.getMD5Checksum(file));
-		map.put(FileBase.sha1,        FileHelper.getSHA1Checksum(file));
-		map.put(FileBase.sha512,      FileHelper.getSHA512Checksum(file));
+
+		map.putAll(getChecksums(file, fileOnDisk));
+		
 		map.put(FileBase.size,        FileHelper.getSize(fileOnDisk));
 		map.put(FileBase.version,     1);
 
@@ -326,20 +324,64 @@ public class FileHelper {
 	}
 
 	/**
-	 * Update checksum, content type, size and additional properties of the given file
+	 * Calculate checksums that are configured in settings of parent folder.
+	 * 
+	 * @param file
+	 * @param fileOnDisk
+	 * @return
+	 * @throws IOException 
+	 */
+	private static PropertyMap getChecksums(final FileBase file, final java.io.File fileOnDisk) throws IOException {
+
+		final PropertyMap propreriesWithChecksums = new PropertyMap();
+		
+		final String parentEnabledChecksums = file.getProperty(FileBase.parent).getProperty(Folder.enabledChecksums);
+		
+		if (StringUtils.contains(parentEnabledChecksums, "crc32"))	{
+			propreriesWithChecksums.put(FileBase.checksum,    FileHelper.getChecksum(fileOnDisk));
+		}
+		
+		if (StringUtils.contains(parentEnabledChecksums, "md5"))	{
+			propreriesWithChecksums.put(FileBase.md5,         FileHelper.getMD5Checksum(file));
+		}
+		
+		if (StringUtils.contains(parentEnabledChecksums, "sha1"))	{
+			propreriesWithChecksums.put(FileBase.sha1,        FileHelper.getSHA1Checksum(file));
+		}
+		
+		if (StringUtils.contains(parentEnabledChecksums, "sha512"))	{
+			propreriesWithChecksums.put(FileBase.sha512,      FileHelper.getSHA512Checksum(file));
+		}
+		
+		return propreriesWithChecksums;
+	}
+	/**
+	 * Update checksums, content type, size and additional properties of the given file
 	 *
 	 * @param file the file
 	 * @param map  additional properties
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final FileBase file, final PropertyMap map) throws FrameworkException {
+		updateMetadata(file, map, false);
+	}
+	
+	/**
+	 * Update checksums (optional), content type, size and additional properties of the given file
+	 *
+	 * @param file the file
+	 * @param map  additional properties
+	 * @param calcChecksums
+	 * @throws FrameworkException
+	 */
+	public static void updateMetadata(final FileBase file, final PropertyMap map, final boolean calcChecksums) throws FrameworkException {
 
 		final java.io.File fileOnDisk = file.getFileOnDisk(false);
 
 		if (fileOnDisk != null && fileOnDisk.exists()) {
 
 			try {
-
+			
 				String contentType = file.getContentType();
 
 				// Don't overwrite existing MIME type
@@ -356,10 +398,10 @@ public class FileHelper {
 				}
 
 				map.put(FileBase.fileModificationDate, fileOnDisk.lastModified());
-				map.put(FileBase.checksum,             FileHelper.getChecksum(fileOnDisk));
-				map.put(FileBase.md5,                  FileHelper.getMD5Checksum(file));
-				map.put(FileBase.sha1,                 FileHelper.getSHA1Checksum(file));
-				map.put(FileBase.sha512,               FileHelper.getSHA512Checksum(file));
+
+				if (calcChecksums) {
+					map.putAll(getChecksums(file, fileOnDisk));
+				}
 
 				if (contentType != null) {
 
@@ -377,7 +419,7 @@ public class FileHelper {
 
 				file.unlockSystemPropertiesOnce();
 				file.setProperties(file.getSecurityContext(), map);
-
+				
 			} catch (IOException ioex) {
 				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
 			}
@@ -385,13 +427,24 @@ public class FileHelper {
 	}
 
 	/**
-	 * Update checksum content type and size of the given file
+	 * Update checksums, content type and size of the given file
 	 *
 	 * @param file the file
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final FileBase file) throws FrameworkException {
-		updateMetadata(file, new PropertyMap());
+		updateMetadata(file, new PropertyMap(), false);
+	}
+
+	/**
+	 * Update checksums, content type and size of the given file
+	 *
+	 * @param file the file
+	 * @param calcChecksums
+	 * @throws FrameworkException
+	 */
+	public static void updateMetadata(final FileBase file, final boolean calcChecksums) throws FrameworkException {
+		updateMetadata(file, new PropertyMap(), calcChecksums);
 	}
 
 	public static String getBase64String(final FileBase file) {

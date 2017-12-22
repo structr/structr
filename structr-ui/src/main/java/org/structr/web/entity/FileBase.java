@@ -166,7 +166,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 				this.securityContext = SecurityContext.getSuperUserInstance();
 
 				// update metadata and parent as superuser
-				FileHelper.updateMetadata(this, new PropertyMap(hasParent, getProperty(parentId) != null));
+				FileHelper.updateMetadata(this, new PropertyMap(hasParent, getProperty(parentId) != null), false);
 
 				// restore previous security context
 				this.securityContext = previousSecurityContext;
@@ -237,7 +237,7 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 
 				synchronized (tx) {
 
-					FileHelper.updateMetadata(this, new PropertyMap());
+					FileHelper.updateMetadata(this, new PropertyMap(), true);
 
 					tx.success();
 				}
