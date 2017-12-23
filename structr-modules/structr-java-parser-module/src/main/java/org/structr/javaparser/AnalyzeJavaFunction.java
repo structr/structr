@@ -18,6 +18,7 @@
  */
 package org.structr.javaparser;
 
+import org.structr.javaparser.*;
 import com.github.javaparser.ParseProblemException;
 import com.google.gson.GsonBuilder;
 import org.structr.common.SecurityContext;
@@ -30,13 +31,13 @@ import org.structr.schema.action.Function;
 /**
  *
  */
-public class ParseJavaFunction extends Function<Object, Object> {
+public class AnalyzeJavaFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_PARSE_JAVA = "Usage: ${parse_java(javaSource)}";
+	public static final String ERROR_MESSAGE_ANALYZE_JAVA = "Usage: ${analyze_java(javaSource)}";
 
 	@Override
 	public String getName() {
-		return "parse_java()";
+		return "analyze_java()";
 	}
 
 	@Override
@@ -50,14 +51,14 @@ public class ParseJavaFunction extends Function<Object, Object> {
 			}
 
 			try {
+			
 				final SecurityContext securityContext = ctx.getSecurityContext();
 				final App app                         = StructrApp.getInstance(securityContext);
-			
-				// Parse string as Java code
-				final String resultJson = new GsonBuilder().setPrettyPrinting().create()
-					.toJson(new JavaParserModule(app).parse((String) sources[0]).get());
 				
-				return resultJson;
+				// Analyze string as Java code
+				new JavaParserModule(app).analyzeMethodsInJavaFile((String) sources[0]);
+				
+				return "";
 				
 			} catch (final ParseProblemException ex) {
 				
@@ -78,11 +79,11 @@ public class ParseJavaFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_PARSE_JAVA;
+		return ERROR_MESSAGE_ANALYZE_JAVA;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given string as Java file into an JSON representation of the Java model declared by the given source code.";
+		return "Analyzes the given string as Java and adds result to the graph.";
 	}
 }

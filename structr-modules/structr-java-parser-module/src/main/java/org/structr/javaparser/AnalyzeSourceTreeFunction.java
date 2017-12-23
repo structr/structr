@@ -1,3 +1,5 @@
+package org.structr.javaparser;
+
 /**
  * Copyright (C) 2010-2017 Structr GmbH
  *
@@ -16,27 +18,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.javaparser;
 
-import com.github.javaparser.ParseProblemException;
-import com.google.gson.GsonBuilder;
+
+import org.structr.javaparser.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.web.entity.Folder;
 
 /**
  *
  */
-public class ParseJavaFunction extends Function<Object, Object> {
+public class AnalyzeSourceTreeFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_PARSE_JAVA = "Usage: ${parse_java(javaSource)}";
+	public static final String ERROR_MESSAGE_ANALYZE_SOURCE_TREE = "Usage: ${analyze_source_tree(path)}";
 
 	@Override
 	public String getName() {
-		return "parse_java()";
+		return "analyze_source_tree()";
 	}
 
 	@Override
@@ -45,32 +47,19 @@ public class ParseJavaFunction extends Function<Object, Object> {
 		try {
 
 			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
-
 				return null;
 			}
-
-			try {
-				final SecurityContext securityContext = ctx.getSecurityContext();
-				final App app                         = StructrApp.getInstance(securityContext);
 			
-				// Parse string as Java code
-				final String resultJson = new GsonBuilder().setPrettyPrinting().create()
-					.toJson(new JavaParserModule(app).parse((String) sources[0]).get());
-				
-				return resultJson;
-				
-			} catch (final ParseProblemException ex) {
-				
-				logException(caller, ex, sources);
-				
-			}
+			final SecurityContext securityContext = ctx.getSecurityContext();
+			final App app                         = StructrApp.getInstance(securityContext);
+
+			new JavaParserModule().analyzeSourceTree(app.nodeQuery(Folder.class).and(Folder.path, (String) sources[0]).getFirst());
 
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
-
 		}
 		
 		return "";
@@ -78,11 +67,11 @@ public class ParseJavaFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_PARSE_JAVA;
+		return ERROR_MESSAGE_ANALYZE_SOURCE_TREE;
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Parses the given string as Java file into an JSON representation of the Java model declared by the given source code.";
+		return "Analyze the method calls of all Java classes/interfaces within a source tree.";
 	}
 }
