@@ -26,12 +26,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonMethod;
@@ -74,6 +77,7 @@ public interface Image extends File {
 
 		type.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
 		type.addPropertySetter("isCreatingThumb", Boolean.TYPE);
+		type.addPropertyGetter("thumbnails",      List.class);
 
 		type.addPropertyGetter("width",       Integer.class);
 		type.addPropertySetter("width",       Integer.class);
@@ -84,6 +88,9 @@ public interface Image extends File {
 		type.overrideMethod("isImage",              false, "return getProperty(isImageProperty);");
 		type.overrideMethod("isThumbnail",          false, "return getProperty(isThumbnailProperty);");
 		type.overrideMethod("getOriginalImageName", false, "return " + Image.class.getName() + ".getOriginalImageName(this);");
+		type.overrideMethod("setProperty",          true,  "return " + Image.class.getName() + ".setProperty(this, arg0, arg1);");
+		type.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		type.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
 
 		final JsonMethod getScaledImage1 = type.addMethod("getScaledImage");
 		getScaledImage1.setReturnType(Image.class.getName());
@@ -131,6 +138,8 @@ public interface Image extends File {
 	Image getScaledImage(final int maxWidth, final int maxHeight);
 	Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit);
 
+	List<Image> getThumbnails();
+
 	//public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
 
@@ -160,9 +169,9 @@ public interface Image extends File {
 	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public,
 		type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage
 	);
+	*/
 
-	@Override
-	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+	public static Object setProperty(final Image thisImage, final PropertyKey key, final Object value) throws FrameworkException {
 
 		// Copy visibility properties and owner to all thumbnails
 		if (visibleToPublicUsers.equals(key) ||
@@ -171,25 +180,21 @@ public interface Image extends File {
 			visibilityEndDate.equals(key) ||
 			owner.equals(key)) {
 
-			for (Image tn : getThumbnails()) {
+			for (Image tn : thisImage.getThumbnails()) {
 
 				if (!tn.getUuid().equals(getUuid())) {
+
 					tn.setProperty(key, value);
-				} else {
-//					logger.info("Ignoring recursive setProperty for thumbnail where image is its own thumbnail");
 				}
-
 			}
-
 		}
 
-		return super.setProperty(key, value);
+		return null;
 	}
 
-	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+	public static void setProperties(final Image thisImage, final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
-		if ( !isThumbnail() ) {
+		if ( !thisImage.isThumbnail() ) {
 
 			final PropertyMap propertiesCopiedToAllThumbnails = new PropertyMap();
 
@@ -207,61 +212,44 @@ public interface Image extends File {
 
 			if ( !propertiesCopiedToAllThumbnails.isEmpty() ) {
 
-				final List<Image> thumbnails = getThumbnails();
+				final List<Image> thumbnails = thisImage.getThumbnails();
 
 				for (Image tn : thumbnails) {
 
 					if (!tn.getUuid().equals(getUuid())) {
+
 						tn.setProperties(tn.getSecurityContext(), propertiesCopiedToAllThumbnails);
-					} else {
-//						logger.info("Ignoring recursive setProperty for thumbnail where image is its own thumbnail");
 					}
-
 				}
-
 			}
-
 		}
-
-		super.setProperties(securityContext, properties);
 	}
 
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public static void onModification(final Image thisImage, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+		if ( !thisImage.isThumbnail() ) {
 
-			if ( !isThumbnail() ) {
+			if (modificationQueue.isPropertyModified(thisImage, name)) {
 
-				if (modificationQueue.isPropertyModified(this, name)) {
+				final String newImageName = getName();
 
-					final String newImageName = getName();
+				for (Image tn : thisImage.getThumbnails()) {
 
-					for (Image tn : getThumbnails()) {
+					final String expectedThumbnailName = ImageHelper.getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
+					final String currentThumbnailName  = tn.getName();
 
-						final String expectedThumbnailName = ImageHelper.getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
-						final String currentThumbnailName  = tn.getName();
+					if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
 
-						if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
-
-							logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
-							tn.setProperty(AbstractNode.name, expectedThumbnailName);
-
-						}
+						logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
+						tn.setProperty(AbstractNode.name, expectedThumbnailName);
 
 					}
-
 				}
-
 			}
-
-			return true;
 		}
-
-		return false;
 	}
 
-	//~--- get methods ----------------------------------------------------
+	/*
 
 	public Integer getWidth() {
 

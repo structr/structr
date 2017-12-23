@@ -18,19 +18,39 @@
  */
 package org.structr.web.entity.dom;
 
+import java.util.LinkedList;
+import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.relationship.AbstractChildren;
+import org.structr.core.graph.Tx;
 import org.structr.web.advanced.DOMTest;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 /**
  *
  *
  */
 public class DOMNodeTest extends DOMTest {
-	/*
 
 	@Test
 	public void testAppendChild() {
 
 		try (final Tx tx = app.tx()) {
+
+			final Class domChildrenType = StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodeCONTAINSDOMNode");
 
 			Page document = (Page) getDocument();
 			assertNotNull(document);
@@ -50,7 +70,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(content1);
 
 			// check for correct relationship management
-			List<DOMChildren> divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
+			List<Relation> divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(1, divRels.size());
 			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
 
@@ -58,7 +78,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(content2);
 
 			// check for correct relationship management
-			divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
+			divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(2, divRels.size());
 			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
 			assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(AbstractChildren.position));
@@ -825,6 +845,4 @@ public class DOMNodeTest extends DOMTest {
 
 		return list;
 	}
-
-	*/
 }

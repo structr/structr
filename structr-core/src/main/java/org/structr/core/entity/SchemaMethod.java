@@ -23,6 +23,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -240,13 +241,21 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 			if (methodName.equals(method.getName()) && (method.getModifiers() & Modifier.STATIC) == 0) {
 
-				final Type returnType = method.getGenericReturnType();
+				final Type[] parameterTypes = method.getGenericParameterTypes();
+				final Type returnType       = method.getGenericReturnType();
+				final List<Type> types      = new LinkedList<>();
+
+				// compile list of types to check for generic type parameter
+				types.addAll(Arrays.asList(parameterTypes));
+				types.add(returnType);
+
+				final String genericTypeParameter = getGenericMethodParameter(types, method);
 
 				// check for generic return type, and if the method defines its own generic type
 				if (returnType instanceof TypeVariable && ((TypeVariable)returnType).getGenericDeclaration().equals(method)) {
 
 					// method defines its own generic type
-					entry.setReturnType("<" + returnType.getTypeName() + "> " + returnType.getTypeName());
+					entry.setReturnType(genericTypeParameter + returnType.getTypeName());
 
 				} else {
 
@@ -254,11 +263,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 					final Class returnClass = method.getReturnType();
 					if (returnClass.isArray()) {
 
-						entry.setReturnType(returnClass.getComponentType().getName() + "[]");
+						entry.setReturnType(genericTypeParameter + returnClass.getComponentType().getName() + "[]");
 
 					} else {
 
-						entry.setReturnType(method.getReturnType().getName());
+						entry.setReturnType(genericTypeParameter + method.getReturnType().getName());
 					}
 				}
 
@@ -287,5 +296,25 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 
 		return false;
+	}
+
+	private String getGenericMethodParameter(final List<Type> types, final Method method) {
+
+		final List<String> typeParameterNames = new LinkedList<>();
+
+		for (final Type type : types) {
+
+			if (type instanceof TypeVariable && ((TypeVariable)type).getGenericDeclaration().equals(method)) {
+
+				// method defines its own generic type
+				typeParameterNames.add(type.getTypeName());
+			}
+		}
+
+		if (typeParameterNames.isEmpty()) {
+			return "";
+		}
+
+		return "<" + StringUtils.join(typeParameterNames, ", ") + "> ";
 	}
 }

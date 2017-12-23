@@ -88,16 +88,21 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPropertySetter("salt", String.class);
 
 		principal.overrideMethod("shouldSkipSecurityRelationships", false, "return false;");
-		principal.overrideMethod("isAdmin", false,                         "return getProperty(isAdminProperty);");
-		principal.overrideMethod("isBlocked", false,                       "return getProperty(blockedProperty);");
-		principal.overrideMethod("getParents", false,                      "return " + Principal.class.getName() + ".getParents(this);");
-		principal.overrideMethod("isValidPassword", false,                 "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
-		principal.overrideMethod("addSessionId", false,                    Principal.class.getName() + ".addSessionId(this, arg0);");
-		principal.overrideMethod("removeSessionId", false,                 Principal.class.getName() + ".removeSessionId(this, arg0);");
-		principal.overrideMethod("getProperty", false,                     "if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
+		principal.overrideMethod("isAdmin",                         false, "return getProperty(isAdminProperty);");
+		principal.overrideMethod("isBlocked",                       false, "return getProperty(blockedProperty);");
+		principal.overrideMethod("getParents",                      false, "return " + Principal.class.getName() + ".getParents(this);");
+		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
+		principal.overrideMethod("addSessionId",                    false, Principal.class.getName() + ".addSessionId(this, arg0);");
+		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
+		principal.overrideMethod("getProperty",                     false, "if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
 
-		// create relationship
-		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
+		// create relationships
+		if (group != null) {
+
+			// since we cannot control the order in which the static classes are initialized,
+			// we need to check in both classes if the type exists, and create the relationship
+			group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
+		}
 
 		if (favoritable != null) {
 			principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");

@@ -685,7 +685,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	public static HtmlProperty findOrCreateAttributeKey(final DOMElement thisElement, final String name) {
 
 		// try to find native html property defined in DOMElement or one of its subclasses
-		final PropertyKey key = StructrApp.key(thisElement.getEntityType(), name);
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisElement.getEntityType(), name, false);
 
 		if (key != null && key instanceof HtmlProperty) {
 

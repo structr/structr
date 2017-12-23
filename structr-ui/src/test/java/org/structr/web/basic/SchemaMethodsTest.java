@@ -18,10 +18,23 @@
  */
 package org.structr.web.basic;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.File;
+import org.structr.web.entity.User;
+
 
 
 public class SchemaMethodsTest extends FrontendTest {
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaMethodsTest.class.getName());
 
@@ -420,5 +433,4 @@ public class SchemaMethodsTest extends FrontendTest {
 		}
 
 	}
-	*/
 }

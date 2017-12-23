@@ -486,7 +486,7 @@ public abstract class Function<S, T> extends Hint {
 				final Map<String, Object> map = (Map<String, Object>)value;
 				final GraphObjectMap obj = new GraphObjectMap();
 
-				destination.put(StructrApp.key(obj.getClass(), key), obj);
+				destination.put(provider.getPropertyKeyForJSONName(obj.getClass(), key), obj);
 
 				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 
@@ -510,11 +510,11 @@ public abstract class Function<S, T> extends Hint {
 					}
 				}
 
-				destination.put(StructrApp.key(list.getClass(), key), list);
+				destination.put(provider.getPropertyKeyForJSONName(list.getClass(), key), list);
 
 			} else {
 
-				destination.put(value != null ? StructrApp.key(value.getClass(), key) : new StringProperty(key), value);
+				destination.put(value != null ? provider.getPropertyKeyForJSONName(value.getClass(), key) : new StringProperty(key), value);
 			}
 		}
 	}

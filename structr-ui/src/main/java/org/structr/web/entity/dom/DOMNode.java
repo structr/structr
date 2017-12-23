@@ -64,10 +64,14 @@ import org.structr.web.common.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.datasource.CypherGraphDataSource;
+import org.structr.web.datasource.FunctionDataSource;
+import org.structr.web.datasource.IdRequestParameterGraphDataSource;
+import org.structr.web.datasource.RestDataSource;
+import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
-import org.structr.web.entity.relation.RenderNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.w3c.dom.DOMException;
@@ -261,7 +265,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC     = "Document nodes cannot be adopted by another document.";
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
-	public static final List<GraphDataSource<Iterable<GraphObject>>> listSources = new LinkedList<>();
+	public static final List<GraphDataSource<Iterable<GraphObject>>> listSources = new LinkedList<>(Arrays.asList(
+		new IdRequestParameterGraphDataSource("nodeId"),
+		new RestDataSource(),
+		new FunctionDataSource(),
+		new CypherGraphDataSource(),
+		new XPathGraphDataSource()
+	));
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "children", "childrenIds", "linkable", "linkableId", "path"
@@ -270,31 +280,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final String[] rawProps = new String[] {
 		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
 	};
-
-	/*
-	private Page cachedOwnerDocument;
-
-	static {
-
-		// register data sources
-		listSources.add(new IdRequestParameterGraphDataSource("nodeId"));
-		listSources.add(new RestDataSource());
-		listSources.add(new NodeGraphDataSource());
-		listSources.add(new FunctionDataSource());
-		listSources.add(new CypherGraphDataSource());
-		listSources.add(new XPathGraphDataSource());
-	}
-	*/
-
-	/*
-
-	public static final Property<Page> ownerDocument                  = new EndNode<>("ownerDocument", PageLink.class).category(PAGE_CATEGORY);
-	public static final Property<String> pageId                       = new EntityIdProperty("pageId", ownerDocument).category(PAGE_CATEGORY);
-	public static final Property<Boolean> isDOMNode                   = new ConstantBooleanProperty("isDOMNode", true).category(PAGE_CATEGORY);
-
-	// a simple cache for custom properties
-	private Set<PropertyKey> customProperties = null;
-	*/
 
 	boolean isSynced();
 	boolean isSharedComponent();
@@ -1335,9 +1320,15 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		for (final String key : props) {
 
+			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key, false);
+			if (propertyKey == null) {
+
+				// support arbitrary data-* attributes
+				propertyKey = new StringProperty(key);
+			}
+
 			if (key.startsWith("data-")) {
 
-				PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(thisNode.getClass(), key, false);
 				if (propertyKey != null && propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
 					final Object defaultValue = propertyKey.defaultValue();
@@ -1350,17 +1341,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 					}
 				}
 
-				if (propertyKey == null) {
-
-					// support arbitrary data-* attributes
-					propertyKey = new StringProperty(key);
-				}
-
 				customProperties.add(propertyKey);
 
 			} else if (key.startsWith(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX)) {
 
-				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(StructrApp.key(thisNode.getClass(), key));
+				final CustomHtmlAttributeProperty customProp = new CustomHtmlAttributeProperty(propertyKey);
 
 				customProperties.add(customProp);
 			}
@@ -1414,8 +1399,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			final String subKey = thisNode.getDataKey();
 
 			if (StringUtils.isNotBlank(subKey)) {
-
-				setDataRoot(renderContext, thisNode, subKey);
 
 				final GraphObject currentDataNode = renderContext.getDataObject();
 
@@ -1504,21 +1487,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				thisNode.renderContent(renderContext, depth);
 			}
-		}
-	}
-
-	public static void setDataRoot(final RenderContext renderContext, final NodeInterface node, final String dataKey) {
-
-		// an outgoing RENDER_NODE relationship points to the data node where rendering starts
-		for (RenderNode rel : node.getOutgoingRelationships(RenderNode.class)) {
-
-			NodeInterface dataRoot = rel.getTargetNode();
-
-			// set start node of this rendering to the data root node
-			renderContext.putDataObject(dataKey, dataRoot);
-
-			// allow only one data tree to be rendered for now
-			break;
 		}
 	}
 

@@ -18,12 +18,52 @@
  */
 package org.structr.web.basic;
 
+import java.net.HttpCookie;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.function.GetFunction;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
+import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.StructrUiTest;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.TestOne;
+import org.structr.web.entity.User;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.html.A;
+import org.w3c.dom.NodeList;
 
 
 
 public class RenderContextTest extends StructrUiTest {
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(RenderContextTest.class.getName());
 
@@ -141,9 +181,7 @@ public class RenderContextTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -322,7 +360,7 @@ public class RenderContextTest extends StructrUiTest {
 		DOMNode p2                      = null;
 		DOMNode div3                    = null;
 		DOMNode p3                      = null;
-		DOMNode a                       = null;
+		A a                             = null;
 		DOMNode div4                    = null;
 		DOMNode p4                      = null;
 		TestOne testOne                 = null;
@@ -348,7 +386,7 @@ public class RenderContextTest extends StructrUiTest {
 			p2    = (DOMNode) page.createElement("p");
 			div3  = (DOMNode) page.createElement("div");
 			p3    = (DOMNode) page.createElement("p");
-			a     = (DOMNode) page.createElement("a");
+			a     = (A) page.createElement("a");
 			div4  = (DOMNode) page.createElement("div");
 			p4    = (DOMNode) page.createElement("p");
 
@@ -379,14 +417,14 @@ public class RenderContextTest extends StructrUiTest {
 
 			// add link to p3
 			p3.appendChild(a);
-			a.setProperties(a.getSecurityContext(), new PropertyMap(LinkSource.linkable, page));
+			a.setLinkable(page);
 
 			body.appendChild(div4);
 			div4.appendChild(p4);
 
 			final PropertyMap p4Properties = new PropertyMap();
-			p4Properties.put(DOMElement.restQuery, "/divs");
-			p4Properties.put(DOMElement.dataKey, "div");
+			p4Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "/divs");
+			p4Properties.put(StructrApp.key(DOMElement.class, "dataKey"), "div");
 			p4.setProperties(p4.getSecurityContext(), p4Properties);
 
 			NodeList paragraphs = page.getElementsByTagName("p");
@@ -396,18 +434,19 @@ public class RenderContextTest extends StructrUiTest {
 			assertEquals(p4, paragraphs.item(3));
 
 			// create users
-			final User tester1 = app.create(User.class, new NodeAttribute<>(User.name, "tester1"), new NodeAttribute<>(User.eMail, "tester1@test.com"));
-			final User tester2 = app.create(User.class, new NodeAttribute<>(User.name, "tester2"), new NodeAttribute<>(User.eMail, "tester2@test.com"));
+			final User tester1 = app.create(User.class, new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester1"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester1@test.com"));
+			final User tester2 = app.create(User.class, new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester2"), new NodeAttribute<>(StructrApp.key(User.class, "eMail"), "tester2@test.com"));
 
 			assertNotNull("User tester1 should exist.", tester1);
 			assertNotNull("User tester2 should exist.", tester2);
 
 			// create admin user for later use
 			final PropertyMap adminProperties = new PropertyMap();
-			adminProperties.put(User.name, "admin");
-			adminProperties.put(User.password, "admin");
-			adminProperties.put(User.isAdmin, true);
-			final User admin = app.create(User.class, adminProperties);
+			adminProperties.put(StructrApp.key(User.class, "name"),     "admin");
+			adminProperties.put(StructrApp.key(User.class, "password"), "admin");
+			adminProperties.put(StructrApp.key(User.class, "isAdmin"),   true);
+
+			app.create(User.class, adminProperties);
 
 			tx.success();
 
@@ -578,26 +617,28 @@ public class RenderContextTest extends StructrUiTest {
 	@Test
 	public void testScriptEvaluation() {
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		try (final Tx tx = app.tx()) {
 
 			// create a Project type
-			final SchemaNode projectNode = createTestNode(SchemaNode.class, new NodeAttribute<>(AbstractNode.name, "Project"));
+			final SchemaNode projectNode = createTestNode(SchemaNode.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Project"));
 
 			// create a Task type with a string property "task"
 			final SchemaNode taskNode    = createTestNode(SchemaNode.class,
-				new NodeAttribute<>(AbstractNode.name, "Task"),
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task"),
 				new NodeAttribute<>(new StringProperty("_task"), "String")
 			);
 
 			// create a schema relationship between them
 			createTestNode(SchemaRelationshipNode.class,
-				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, projectNode),
-				new NodeAttribute<>(SchemaRelationshipNode.targetNode, taskNode),
-				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "has"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "*"),
-				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "project"),
-				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "tasks")
+				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "sourceNode"), projectNode),
+				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "targetNode"), taskNode),
+				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "relationshipType"), "has"),
+				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "sourceMultiplicity"), "1"),
+				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "targetMultiplicity"), "*"),
+				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "sourceJsonName"), "project"),
+				new NodeAttribute<>(StructrApp.key(SchemaRelationshipNode.class, "targetJsonName"), "tasks")
 			);
 
 			tx.success();
@@ -620,18 +661,18 @@ public class RenderContextTest extends StructrUiTest {
 
 			final List<NodeInterface> tasks = new LinkedList<>();
 
-			tasks.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
-			tasks.add(app.create(taskType, new NodeAttribute<>(AbstractNode.name, "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));
+			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 3"), new NodeAttribute<>(taskKey, "Task 3")));
 
 			// create a project and a task
 			final NodeInterface project = app.create(projectType,
-				new NodeAttribute<>(AbstractNode.name, "project"),
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "project"),
 				new NodeAttribute<>(tasksKey, tasks)
 			);
 
 			// create an additional test task without a project
-			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(AbstractNode.name, "test task"), new NodeAttribute<>(taskKey, "test task"));
+			final NodeInterface testTask = app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "test task"), new NodeAttribute<>(taskKey, "test task"));
 			final RenderContext renderContext = new RenderContext(securityContext);
 
 			renderContext.putDataObject("project", project);
@@ -679,18 +720,18 @@ public class RenderContextTest extends StructrUiTest {
 			test = app.create(TestOne.class, "test1");
 
 			app.create(Group.class,
-				new NodeAttribute<>(AbstractNode.name, "group1"),
-				new NodeAttribute<>(Group.members, Arrays.asList(new Principal[] { user } ))
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group1"),
+				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
 			final Group group2 = app.create(Group.class,
-				new NodeAttribute<>(AbstractNode.name, "group2"),
-				new NodeAttribute<>(Group.members, Arrays.asList(new Principal[] { user } ))
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group2"),
+				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
 			app.create(Group.class,
-				new NodeAttribute<>(AbstractNode.name, "group3"),
-				new NodeAttribute<>(Group.members, Arrays.asList(new Principal[] { user } ))
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "group3"),
+				new NodeAttribute<>(StructrApp.key(Group.class, "members"), Arrays.asList(new Principal[] { user } ))
 			);
 
 			test.setProperty(AbstractNode.owner, group2);
@@ -774,5 +815,4 @@ public class RenderContextTest extends StructrUiTest {
                 }
 
 	}
-	*/
 }

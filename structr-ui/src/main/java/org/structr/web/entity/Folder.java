@@ -30,19 +30,20 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.property.PropertyKey;
 import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 
 
 public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 	static class Impl { static {
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("Folder");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Folder");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Folder"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
@@ -76,6 +77,10 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.overrideMethod("getPath",             false, "return getProperty(pathProperty);");
 		type.overrideMethod("getAllowableActions", false, "return " + StructrFolderActions.class.getName() + ".getInstance();");
 		type.overrideMethod("getChangeToken",      false, "return null;");
+
+		type.relate(type, "CONTAINS", Cardinality.OneToMany, "folderParent", "folders");
+		type.relate(type, "CONTAINS", Cardinality.OneToMany, "fileParent",   "files");
+		type.relate(type, "CONTAINS", Cardinality.OneToMany, "imageParent",  "images");
 
 	}}
 

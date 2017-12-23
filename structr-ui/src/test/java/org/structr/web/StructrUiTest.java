@@ -139,7 +139,7 @@ public abstract class StructrUiTest {
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
 
-		//Settings.LogSchemaOutput.setValue(true);
+		Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 
@@ -257,7 +257,6 @@ public abstract class StructrUiTest {
 		final PropertyMap props = new PropertyMap();
 
 		props.put(AbstractNode.type, type.getSimpleName());
-		props.put(AbstractNode.name, type.getSimpleName());
 
 		for (final NodeAttribute attr : attrs) {
 			props.put(attr.getKey(), attr.getValue());

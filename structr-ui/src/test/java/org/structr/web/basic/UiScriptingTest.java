@@ -18,14 +18,76 @@
  */
 package org.structr.web.basic;
 
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.security.Principal;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Queue;
+import javax.servlet.AsyncContext;
+import javax.servlet.DispatcherType;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpUpgradeHandler;
+import javax.servlet.http.Part;
+import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StringProperty;
 import org.structr.web.StructrUiTest;
+import org.structr.web.common.RenderContext;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.TestOne;
+import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.html.Div;
+import org.structr.web.entity.html.Table;
+import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
  *
  */
 public class UiScriptingTest extends StructrUiTest {
-	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(UiScriptingTest.class.getName());
 
@@ -36,7 +98,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
-			template.setProperty(Template.content, "${request.param}");
+
+			template.setContent("${request.param}");
 
 			page.appendChild(template);
 
@@ -81,7 +144,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
-			template.setProperty(Template.content, "${each(request.param, print(data))}");
+
+			template.setContent("${each(request.param, print(data))}");
 
 			page.appendChild(template);
 
@@ -164,8 +228,8 @@ public class UiScriptingTest extends StructrUiTest {
 			div.appendChild(p);
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(DOMElement.restQuery, "/divs");
-			changedProperties.put(DOMElement.dataKey, "div");
+			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/divs");
+			changedProperties.put(StructrApp.key(DOMElement.class, "dataKey"), "div");
 			p.setProperties(p.getSecurityContext(), changedProperties);
 
 			p.appendChild(text);
@@ -222,13 +286,13 @@ public class UiScriptingTest extends StructrUiTest {
 			final List<Folder> folders = new LinkedList<>();
 			for (int i=0; i<100; i++) {
 
-				folders.add(createTestNode(Folder.class, new NodeAttribute<>(AbstractNode.name, "Folder" + i)));
+				folders.add(createTestNode(Folder.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Folder" + i)));
 			}
 
 			// create parent folder
 			final Folder parent = createTestNode(Folder.class,
-				new NodeAttribute<>(AbstractNode.name, "Parent"),
-				new NodeAttribute<>(Folder.folders, folders)
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Parent"),
+				new NodeAttribute<>(StructrApp.key(Folder.class, "folders"), folders)
 			);
 
 			uuid = parent.getUuid();
@@ -239,9 +303,9 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create admin user
 			createTestNode(User.class,
-				new NodeAttribute<>(User.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			tx.success();
@@ -285,15 +349,15 @@ public class UiScriptingTest extends StructrUiTest {
 			final Content content = (Content)div.getFirstChild();
 
 			// setup repeater
-			content.setProperty(DOMNode.functionQuery, "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; return arr; }");
-			content.setProperty(DOMNode.dataKey, "test");
-			content.setProperty(Content.content, "${test.name}");
+			content.setProperty(StructrApp.key(DOMNode.class, "functionQuery"), "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; return arr; }");
+			content.setProperty(StructrApp.key(DOMNode.class, "dataKey"), "test");
+			content.setProperty(StructrApp.key(Content.class, "content"), "${test.name}");
 
 			// create admin user
 			createTestNode(User.class,
-				new NodeAttribute<>(User.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			tx.success();
@@ -336,8 +400,8 @@ public class UiScriptingTest extends StructrUiTest {
 			final Content content = (Content)div.getFirstChild();
 
 			// setup scripting repeater
-			content.setProperty(Content.content, "${{ var arr = []; for (var i=0; i<10; i++) { arr.push({name: 'test' + i}); } Structr.include('item', arr, 'test'); }}");
-			content.setProperty(Content.contentType, "text/html");
+			content.setProperty(StructrApp.key(Content.class, "content"), "${{ var arr = []; for (var i=0; i<10; i++) { arr.push({name: 'test' + i}); } Structr.include('item', arr, 'test'); }}");
+			content.setProperty(StructrApp.key(Content.class, "contentType"), "text/html");
 
 			// setup shared component with name "table" to include
 			final ShadowDocument shadowDoc = CreateComponentCommand.getOrCreateHiddenDocument();
@@ -345,14 +409,14 @@ public class UiScriptingTest extends StructrUiTest {
 			final Div item    = (Div)shadowDoc.createElement("div");
 			final Content txt = (Content)shadowDoc.createTextNode("${test.name}");
 
-			item.setProperty(Table.name, "item");
+			item.setProperty(StructrApp.key(Table.class, "name"), "item");
 			item.appendChild(txt);
 
 			// create admin user
 			createTestNode(User.class,
-				new NodeAttribute<>(User.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
 			);
 
 			tx.success();
@@ -406,18 +470,18 @@ public class UiScriptingTest extends StructrUiTest {
 			final Content content = (Content) div.getFirstChild();
 
 			// setup scripting repeater
-			content.setProperty(Content.restQuery, "/Page/${current.id}");
-			content.setProperty(Content.dataKey, "test");
-			content.setProperty(Content.content, "${test.id}");
+			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Page/${current.id}");
+			content.setProperty(StructrApp.key(Content.class, "dataKey"), "test");
+			content.setProperty(StructrApp.key(Content.class, "content"), "${test.id}");
 
 			// store UUID for later use
 			uuid = page.getUuid();
 
 			// create admin user
 			createTestNode(User.class,
-				new NodeAttribute<>(User.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
 			);
 
 			tx.success();
@@ -467,18 +531,18 @@ public class UiScriptingTest extends StructrUiTest {
 			div.getUuid();
 
 			// setup scripting repeater to repeat over (non-existing) children of second div
-			content.setProperty(Content.restQuery, "/Div/" + div2.getUuid()+ "/children");
-			content.setProperty(Content.dataKey, "test");
-			content.setProperty(Content.content, "foo${test}");
+			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Div/" + div2.getUuid()+ "/children");
+			content.setProperty(StructrApp.key(Content.class, "dataKey"), "test");
+			content.setProperty(StructrApp.key(Content.class, "content"), "foo${test}");
 
 			// store UUID for later use
 			uuid = page.getUuid();
 
 			// create admin user
 			createTestNode(User.class,
-				new NodeAttribute<>(User.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
 			);
 
 			tx.success();
@@ -1079,5 +1143,4 @@ public class UiScriptingTest extends StructrUiTest {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 	}
-*/
 }

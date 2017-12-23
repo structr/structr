@@ -38,6 +38,7 @@ public interface Group extends Principal {
 
 		final JsonSchema schema        = SchemaService.getDynamicSchema();
 		final JsonObjectType group     = schema.addType("Group");
+		final JsonObjectType principal = schema.addType("Principal");
 
 		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
 		group.setExtends(URI.create("#/definitions/Principal"));
@@ -49,6 +50,14 @@ public interface Group extends Principal {
 
 		group.addMethod("addMember").setSource("org.structr.core.entity.Group.addMember(this, member);").addParameter("member", Principal.class.getName());
 		group.addMethod("removeMember").setSource("org.structr.core.entity.Group.removeMember(this, member);").addParameter("member", Principal.class.getName());
+
+		// create relationship
+		if (principal != null) {
+
+			// since we cannot control the order in which the static classes are initialized,
+			// we need to check in both classes if the type exists, and create the relationship
+			group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
+		}
 	}}
 
 	void addMember(final Principal member);

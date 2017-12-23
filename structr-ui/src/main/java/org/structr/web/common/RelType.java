@@ -34,9 +34,6 @@ public enum RelType implements RelationshipType {
 	DEFINES_PROPERTY,
 	PAGE,
 	ROOT,
-	RENDER_NODE,
-	RENDER_LIST,
-	RENDER_TREE,
 	SYNC,
 	LINK,
 
