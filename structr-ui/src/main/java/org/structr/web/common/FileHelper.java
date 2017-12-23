@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -335,21 +337,36 @@ public class FileHelper {
 
 		final PropertyMap propreriesWithChecksums = new PropertyMap();
 		
-		final String parentEnabledChecksums = file.getProperty(FileBase.parent).getProperty(Folder.enabledChecksums);
+		final Folder parentFolder = file.getProperty(FileBase.parent);
+		String checksums;
 		
-		if (StringUtils.contains(parentEnabledChecksums, "crc32"))	{
+		final String defaultChecksumsDefaultValue = Settings.getStringSetting(Settings.DefaultChecksums.getKey()).getDefaultValue();
+		
+		if (parentFolder == null) {
+			
+			checksums = Settings.getStringSetting(Settings.DefaultChecksums.getKey()).getValue(defaultChecksumsDefaultValue);
+		
+		} else {
+		
+			checksums = parentFolder.getProperty(Folder.enabledChecksums);
+			if (checksums == null) {
+				checksums = defaultChecksumsDefaultValue;
+			}
+		}
+		
+		if (StringUtils.contains(checksums, "crc32"))	{
 			propreriesWithChecksums.put(FileBase.checksum,    FileHelper.getChecksum(fileOnDisk));
 		}
 		
-		if (StringUtils.contains(parentEnabledChecksums, "md5"))	{
+		if (StringUtils.contains(checksums, "md5"))	{
 			propreriesWithChecksums.put(FileBase.md5,         FileHelper.getMD5Checksum(file));
 		}
 		
-		if (StringUtils.contains(parentEnabledChecksums, "sha1"))	{
+		if (StringUtils.contains(checksums, "sha1"))	{
 			propreriesWithChecksums.put(FileBase.sha1,        FileHelper.getSHA1Checksum(file));
 		}
 		
-		if (StringUtils.contains(parentEnabledChecksums, "sha512"))	{
+		if (StringUtils.contains(checksums, "sha512"))	{
 			propreriesWithChecksums.put(FileBase.sha512,      FileHelper.getSHA512Checksum(file));
 		}
 		
@@ -750,19 +767,43 @@ public class FileHelper {
 			return DigestUtils.md5Hex(file.getInputStream());
 			
 		} catch (final IOException ex) {
-			logger.warn("Unable to calculate MD5 checksum of file " + file, ex);
+			logger.warn("Unable to calculate MD5 checksum of file represented by node " + file, ex);
 		}
 		
 		return null;
 	}
 	
+	public static String getMD5Checksum(final java.io.File fileOnDisk) {
+		
+		try {
+			return DigestUtils.md5Hex(FileUtils.openInputStream(fileOnDisk));
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate MD5 checksum of file " + fileOnDisk, ex);
+		}
+		
+		return null;
+	}
+
 	public static String getSHA1Checksum(final FileBase file) {
 		
 		try {
 			return DigestUtils.sha1Hex(file.getInputStream());
 			
 		} catch (final IOException ex) {
-			logger.warn("Unable to calculate SHA-1 checksum of file " + file, ex);
+			logger.warn("Unable to calculate SHA-1 checksum of file represented by node " + file, ex);
+		}
+		
+		return null;
+	}
+
+	public static String getSHA1Checksum(final java.io.File fileOnDisk) {
+		
+		try {
+			return DigestUtils.sha1Hex(FileUtils.openInputStream(fileOnDisk));
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-1 checksum of file " + fileOnDisk, ex);
 		}
 		
 		return null;
@@ -774,7 +815,19 @@ public class FileHelper {
 			return DigestUtils.sha256Hex(file.getInputStream());
 			
 		} catch (final IOException ex) {
-			logger.warn("Unable to calculate SHA-256 checksum of file " + file, ex);
+			logger.warn("Unable to calculate SHA-256 checksum of file represented by node " + file, ex);
+		}
+		
+		return null;
+	}
+
+	public static String getSHA256Checksum(final java.io.File fileOnDisk) {
+		
+		try {
+			return DigestUtils.sha256Hex(FileUtils.openInputStream(fileOnDisk));
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-256 checksum of file " + fileOnDisk, ex);
 		}
 		
 		return null;
@@ -786,7 +839,19 @@ public class FileHelper {
 			return DigestUtils.sha384Hex(file.getInputStream());
 			
 		} catch (final IOException ex) {
-			logger.warn("Unable to calculate SHA-384 checksum of file " + file, ex);
+			logger.warn("Unable to calculate SHA-384 checksum of file represented by node " + file, ex);
+		}
+		
+		return null;
+	}
+
+	public static String getSHA384Checksum(final java.io.File fileOnDisk) {
+		
+		try {
+			return DigestUtils.sha384Hex(FileUtils.openInputStream(fileOnDisk));
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-384 checksum of file " + fileOnDisk, ex);
 		}
 		
 		return null;
@@ -798,7 +863,19 @@ public class FileHelper {
 			return DigestUtils.sha512Hex(file.getInputStream());
 			
 		} catch (final IOException ex) {
-			logger.warn("Unable to calculate SHA-512 checksum of file " + file, ex);
+			logger.warn("Unable to calculate SHA-512 checksum of file represented by node " + file, ex);
+		}
+		
+		return null;
+	}
+
+	public static String getSHA512Checksum(final java.io.File fileOnDisk) {
+		
+		try {
+			return DigestUtils.sha512Hex(FileUtils.openInputStream(fileOnDisk));
+			
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-512 checksum of file " + fileOnDisk, ex);
 		}
 		
 		return null;

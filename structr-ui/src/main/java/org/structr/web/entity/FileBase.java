@@ -270,6 +270,10 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 		return getProperty(checksum);
 	}
 
+	public String getMD5() {
+		return getProperty(md5);
+	}
+
 	public String getFormattedSize() {
 		return FileUtils.byteCountToDisplaySize(getSize());
 	}
