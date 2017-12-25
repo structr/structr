@@ -3459,6 +3459,7 @@ i.fa.ps {
 #switches .switch {
 	min-width: 12px;
 	margin-right: 0;
+	vertical-align: top;
 }
 
 #switches .switch:first-child {
