@@ -116,11 +116,18 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
  */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger                   = LoggerFactory.getLogger(DeployCommand.class.getName());
-	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
+	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
+	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
-	private Integer stepCounter                          = 0;
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
+
+	private Integer stepCounter                            = 0;
+	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
+	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
+	private final static String DEPLOYMENT_STATUS_BEGIN    = "BEGIN";
+	private final static String DEPLOYMENT_STATUS_END      = "END";
+	private final static String DEPLOYMENT_STATUS_PROGRESS = "PROGRESS";
+	private final static String DEPLOYMENT_WARNING         = "WARNING";
 
 	static {
 
@@ -228,9 +235,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final Map<String, Object> broadcastData = new HashMap();
-		broadcastData.put("type", "DEPLOYMENT_STATUS");
-		broadcastData.put("subtype", "BEGIN");
+		broadcastData.put("type", DEPLOYMENT_IMPORT_STATUS);
+		broadcastData.put("subtype", DEPLOYMENT_STATUS_BEGIN);
 		broadcastData.put("start", startTime);
+		broadcastData.put("source", source);
 		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 		// apply configuration
@@ -244,7 +252,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (confSource.length() > 0) {
 
 					info("Applying pre-deployment configuration from {}", preDeployConf);
-					publishDeploymentProgressMessage("Applying pre-deployment configuration");
+					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying pre-deployment configuration");
 
 					Scripting.evaluate(new ActionContext(ctx), null, confSource, "pre-deploy.conf");
 				} else {
@@ -267,7 +275,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Settings.ChangelogEnabled.setValue(false);
 
 		// read grants.json
-		publishDeploymentProgressMessage("Importing resource access grants");
+		publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
 
 		final Path grantsConf = source.resolve("security/grants.json");
 		if (Files.exists(grantsConf)) {
@@ -295,7 +303,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(mailTemplatesConf)) {
 
 			info("Reading {}", mailTemplatesConf);
-			publishDeploymentProgressMessage("Importing mail templates");
+			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
 
 			importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
 		}
@@ -305,7 +313,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(widgetsConf)) {
 
 			info("Reading {}", widgetsConf);
-			publishDeploymentProgressMessage("Importing widgets");
+			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
 
 			importListData(Widget.class, readConfigList(widgetsConf));
 		}
@@ -322,7 +330,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			additionalData.put(Localization.imported, false);
 
 			info("Reading {}", localizationsConf);
-			publishDeploymentProgressMessage("Importing localizations");
+			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
 			importListData(Localization.class, readConfigList(localizationsConf), additionalData);
 		}
@@ -366,7 +374,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing data from schema/ directory");
-				publishDeploymentProgressMessage("Importing schema");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
 				Files.walkFileTree(schema, new SchemaImportVisitor(schema));
 
@@ -382,7 +390,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing files (unchanged files will be skipped)");
-				publishDeploymentProgressMessage("Importing files");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
 
 				FileImportVisitor fiv = new FileImportVisitor(files, filesConf);
 				Files.walkFileTree(files, fiv);
@@ -399,7 +407,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (module.hasDeploymentData()) {
 
 				info("Importing deployment data for module {}", module.getName());
-				publishDeploymentProgressMessage("Importing deployment data for module " + module.getName());
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
 
 				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
 
@@ -423,7 +431,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try (final Tx tx = app.tx()) {
 
 				info("Removing pages, templates and components");
-				publishDeploymentProgressMessage("Removing pages, templates and components");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
 				app.cypher("MATCH (n:DOMNode) DETACH DELETE n", null);
 				FlushCachesCommand.flushAll();
@@ -442,7 +450,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing templates");
-				publishDeploymentProgressMessage("Importing templates");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
 
 				Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
 
@@ -457,7 +465,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing shared components");
-				publishDeploymentProgressMessage("Importing shared components");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
 				Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
 
@@ -472,7 +480,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing pages");
-				publishDeploymentProgressMessage("Importing pages");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
 				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
 
@@ -512,7 +520,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (confSource.length() > 0) {
 
 					info("Applying post-deployment configuration from {}", postDeployConf);
-					publishDeploymentProgressMessage("Applying post-deployment configuration");
+					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying post-deployment configuration");
 
 					Scripting.evaluate(new ActionContext(ctx), null, confSource, "post-deploy.conf");
 
@@ -542,18 +550,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		info("Import from {} done. (Took {})", source.toString(), duration);
 
-		broadcastData.put("subtype", "END");
+		broadcastData.put("subtype", DEPLOYMENT_STATUS_END);
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
 		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 	}
 
-	private void publishDeploymentProgressMessage (final String message) {
+	private void publishDeploymentProgressMessage (final String type, final String message) {
 
 		final Map<String, Object> msgData = new HashMap();
-		msgData.put("type", "DEPLOYMENT_STATUS");
-		msgData.put("subtype", "PROGRESS");
+		msgData.put("type", type);
+		msgData.put("subtype", DEPLOYMENT_STATUS_PROGRESS);
 		msgData.put("message", message);
 		msgData.put("step", ++stepCounter);
 
@@ -564,7 +572,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void publishDeploymentWarnigMessage (final String title, final String text) {
 
 		final Map<String, Object> warningMsgData = new HashMap();
-		warningMsgData.put("type", "WARNING");
+		warningMsgData.put("type", DEPLOYMENT_WARNING);
 		warningMsgData.put("title", title);
 		warningMsgData.put("text", text);
 
@@ -585,6 +593,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try {
 
+			final long startTime = System.currentTimeMillis();
+			customHeaders.put("start", new Date(startTime).toString());
+
+			final Map<String, Object> broadcastData = new HashMap();
+			broadcastData.put("type", DEPLOYMENT_EXPORT_STATUS);
+			broadcastData.put("subtype", DEPLOYMENT_STATUS_BEGIN);
+			broadcastData.put("start", startTime);
+			broadcastData.put("target", target);
+			TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
+
 			Files.createDirectories(target);
 
 			final Path components     = Files.createDirectories(target.resolve("components"));
@@ -604,20 +622,39 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path localizations  = target.resolve("localizations.json");
 			final Path widgets		  = target.resolve("widgets.json");
 
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Pages");
 			exportPages(pages, pagesConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Components");
 			exportComponents(components, componentsConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
 			exportResourceAccessGrants(grants);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
 			exportSchema(schemaJson);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Mail Templates");
 			exportMailTemplates(mailTemplates);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Localizations");
 			exportLocalizations(localizations);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
 			exportWidgets(widgets);
 
 			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 
 				if (module.hasDeploymentData()) {
 					logger.info("Exporting deployment data for module {}", module.getName());
+
+					publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting deployment data for module " + module.getName());
 
 					final Path moduleFolder = Files.createDirectories(modules.resolve(module.getName()));
 					module.exportDeploymentData(moduleFolder, getGson());
@@ -629,6 +666,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// data import order is "schema, files, templates, components, pages"
 
 			logger.info("Export finished.");
+
+			final long endTime = System.currentTimeMillis();
+			DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
+			customHeaders.put("end", new Date(endTime).toString());
+			customHeaders.put("duration", duration);
+
+			info("Export to {} done. (Took {})", target.toString(), duration);
+
+			broadcastData.put("subtype", DEPLOYMENT_STATUS_END);
+			broadcastData.put("end", endTime);
+			broadcastData.put("duration", duration);
+			TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 		} catch (IOException ex) {
 			logger.warn("", ex);
