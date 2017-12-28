@@ -137,6 +137,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("sharedComponent", DOMNode.class);
 		type.addPropertyGetter("sharedComponentConfiguration", String.class);
 
+		type.overrideMethod("getPositionProperty",         false, "return DOMNodeCONTAINSDOMNode.positionProperty;");
 
 		type.overrideMethod("getSiblingLinkType",          false, "return DOMNodeCONTAINS_NEXT_SIBLINGDOMNode.class;");
 		type.overrideMethod("getChildLinkType",            false, "return DOMNodeCONTAINSDOMNode.class;");
@@ -247,6 +248,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addIdReferenceProperty("childrenIds",   parent.getTargetProperty());
 		type.addIdReferenceProperty("pageId",        owner.getTargetProperty());
 		type.addIdReferenceProperty("nextSiblingId", siblings.getTargetProperty());
+
+		// sort position of children in page
+		parent.addIntegerProperty("position");
 	}}
 
 	// ----- error messages for DOMExceptions -----

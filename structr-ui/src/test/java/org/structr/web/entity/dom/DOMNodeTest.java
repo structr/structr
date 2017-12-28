@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.core.graph.Tx;
 import org.structr.web.advanced.DOMTest;
 import org.w3c.dom.DOMException;
@@ -72,7 +71,7 @@ public class DOMNodeTest extends DOMTest {
 			// check for correct relationship management
 			List<Relation> divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(1, divRels.size());
-			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
+			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(div.getPositionProperty()));
 
 			// second step
 			div.appendChild(content2);
@@ -80,8 +79,8 @@ public class DOMNodeTest extends DOMTest {
 			// check for correct relationship management
 			divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(2, divRels.size());
-			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
-			assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(AbstractChildren.position));
+			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(div.getPositionProperty()));
+			assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(div.getPositionProperty()));
 
 			// third step: test removal of old parent when appending an existing node
 			div.appendChild(content3);

@@ -65,6 +65,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
 
+		type.overrideMethod("getPositionProperty",         false, "return FolderCONTAINSAbstractFile.positionProperty;");
+
 		type.overrideMethod("onCreation",                  true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validateAndRenameFileOnce(arg0, arg1); }");
 		type.overrideMethod("onModification",              true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validatePath(arg0, arg1); }");
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
@@ -84,6 +86,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
 		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());
+
+		// sort position of children in page
+		parentRel.addIntegerProperty("position");
 	}}
 
 	String getPath();

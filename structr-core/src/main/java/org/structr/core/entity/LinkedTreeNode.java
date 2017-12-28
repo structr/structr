@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Set;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
@@ -29,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 public interface LinkedTreeNode<T extends NodeInterface> extends LinkedListNode<T> {
 
 	public <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> Class<R> getChildLinkType();
+	public PropertyKey<Integer> getPositionProperty();
 
 	public T treeGetParent();
 	public void treeAppendChild(final T childElement) throws FrameworkException;

@@ -27,11 +27,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.relation.FileChildren;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -73,17 +73,17 @@ public class ListFilesCommand extends AbstractCommand {
 		try {
 
 			// do search
-			List<AbstractNode> filteredResults     = new LinkedList();
+			List<NodeInterface> filteredResults    = new LinkedList();
 			List<? extends GraphObject> resultList = query.getAsList();
 
 			// add only root folders to the list
 			for (GraphObject obj : resultList) {
 
-				if (obj instanceof AbstractNode) {
+				if (obj instanceof AbstractFile) {
 
-					AbstractNode node = (AbstractNode) obj;
+					AbstractFile node = (AbstractFile) obj;
 
-					if (!node.hasIncomingRelationships(FileChildren.class)) {
+					if (node.getParent() == null) {
 
 						filteredResults.add(node);
 					}

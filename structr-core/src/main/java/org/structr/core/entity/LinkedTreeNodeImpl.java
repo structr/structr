@@ -28,7 +28,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.AbstractChildren;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
@@ -41,7 +40,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 	@Override
 	public T treeGetParent() {
 
-		AbstractChildren prevRel = getIncomingRelationship(getChildLinkType());
+		Relation prevRel = getIncomingRelationship(getChildLinkType());
 		if (prevRel != null) {
 
 			return (T) prevRel.getSourceNode();
@@ -56,7 +55,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 		final T lastChild = treeGetLastChild();
 
 		PropertyMap properties = new PropertyMap();
-		properties.put(AbstractChildren.position, treeGetChildCount());
+		properties.put(getPositionProperty(), treeGetChildCount());
 
 		// create child relationship
 		linkNodes(getChildLinkType(), (T)this, childElement, properties);
@@ -95,7 +94,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 
 				// will be used only once here..
 				PropertyMap properties = new PropertyMap();
-				properties.put(AbstractChildren.position, position);
+				properties.put(getPositionProperty(), position);
 
 				linkNodes(getChildLinkType(), (T)this, newChild, properties);
 
@@ -104,7 +103,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 				position++;
 			}
 
-			rel.setProperty(AbstractChildren.position, position);
+			rel.setProperty(getPositionProperty(), position);
 
 			position++;
 		}
@@ -137,14 +136,14 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 
 			T node = (T)rel.getTargetNode();
 
-			rel.setProperty(AbstractChildren.position, position);
+			rel.setProperty(getPositionProperty(), position);
 			position++;
 
 			if (node.equals(refChild)) {
 
 				// will be used only once here..
 				PropertyMap properties = new PropertyMap();
-				properties.put(AbstractChildren.position, position);
+				properties.put(getPositionProperty(), position);
 
 				linkNodes(getChildLinkType(), (T)this, newChild, properties);
 
@@ -182,7 +181,8 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 
 		// insert new node with position from old node
 		PropertyMap properties = new PropertyMap();
-		properties.put(AbstractChildren.position, oldPosition);
+
+		properties.put(getPositionProperty(), oldPosition);
 
 		linkNodes(getChildLinkType(), (T)this, newChild, properties);
 
@@ -215,7 +215,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 
 		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel : getOutgoingRelationships(getChildLinkType())) {
 
-			Integer pos = rel.getProperty(AbstractChildren.position);
+			Integer pos = rel.getProperty(getPositionProperty());
 
 			if (pos != null && pos == position) {
 
@@ -232,7 +232,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 		final Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> rel = child.getIncomingRelationship(getChildLinkType());
 		if (rel != null) {
 
-			Integer pos = rel.getProperty(AbstractChildren.position);
+			Integer pos = rel.getProperty(getPositionProperty());
 			if (pos != null) {
 
 				return pos;
@@ -272,8 +272,8 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 			@Override
 			public int compare(R o1, R o2) {
 
-				Integer pos1 = o1.getProperty(AbstractChildren.position);
-				Integer pos2 = o2.getProperty(AbstractChildren.position);
+				Integer pos1 = o1.getProperty(getPositionProperty());
+				Integer pos2 = o2.getProperty(getPositionProperty());
 
 				if (pos1 != null && pos2 != null) {
 
@@ -303,7 +303,7 @@ public abstract class LinkedTreeNodeImpl<T extends NodeInterface> extends Linked
 		int position = 0;
 
 		for (Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>> childRel : childRels) {
-			childRel.setProperty(AbstractChildren.position, position++);
+			childRel.setProperty(getPositionProperty(), position++);
 		}
 	}
 
