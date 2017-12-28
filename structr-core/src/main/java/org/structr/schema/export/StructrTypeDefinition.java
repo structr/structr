@@ -19,6 +19,7 @@
 package org.structr.schema.export;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -604,7 +605,43 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		// populate methods
 		for (final StructrMethodDefinition method : methods) {
-			serializedMethods.put(method.getName(), method.serialize());
+
+			final String name = method.getName();
+
+			if (serializedMethods.containsKey(name)) {
+
+				// Name is already present in the map, so there are at least
+				// two method with the same name.
+				final Object currentValue = serializedMethods.get(name);
+				if (currentValue instanceof Collection) {
+
+					// add serialized method to collection
+					final Collection collection = (Collection)currentValue;
+
+					collection.add(method.serialize());
+
+				} else if (currentValue instanceof Map) {
+
+					// remove map, add collection, add
+					// map to collection
+					final Map<String, Object> otherMethod   = (Map<String, Object>)serializedMethods.get(name);
+					final Map<String, Object> currentMethod = method.serialize();
+					final List<Map<String, Object>> list    = new LinkedList<>();
+
+					list.add(otherMethod);
+					list.add(currentMethod);
+
+					serializedMethods.put(name, list);
+
+				} else {
+
+					logger.warn("Invalid storage datastructure for methods: {}", currentValue.getClass().getName());
+				}
+
+			} else {
+
+				serializedMethods.put(method.getName(), method.serialize());
+			}
 		}
 
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
@@ -1051,6 +1088,21 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 						deserializedMethods.put(method.getName(), method);
 						typeDefinition.getMethods().add(method);
+					}
+
+				} else if (value instanceof Collection) {
+
+					// more than on method with the same name exists..
+					final Collection<Map<String, Object>> methodList = (Collection)value;
+
+					for (final Map<String, Object> map : methodList) {
+
+						final StructrMethodDefinition method = StructrMethodDefinition.deserialize(typeDefinition, methodName, map);
+						if (method != null) {
+
+							deserializedMethods.put(method.getName(), method);
+							typeDefinition.getMethods().add(method);
+						}
 					}
 
 				} else {

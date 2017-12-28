@@ -133,7 +133,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.overrideMethod("setFavoriteContent",          false, File.class.getName() + ".setFavoriteContent(this, arg0);");
 		type.overrideMethod("getFavoriteContentType",      false, "return getContentType();");
 
-
 		// CMIS support
 		type.overrideMethod("getCMISInfo",                 false, "return this;");
 		type.overrideMethod("getBaseTypeId",               false, "return " + BaseTypeId.class.getName() + ".CMIS_DOCUMENT;");

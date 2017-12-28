@@ -581,7 +581,7 @@ public class DeploymentTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final File file     = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
+			final File file         = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, fileName);
 			final Folder rootFolder = getRootFolder(folder);
 
 			Assert.assertNotNull("Root folder should not be null", rootFolder);

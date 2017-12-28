@@ -20,6 +20,7 @@ package org.structr.web.basic;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import org.apache.tika.io.IOUtils;
@@ -142,6 +143,26 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 			fail("Unexpected exception");
+		}
+
+		try (final FileWriter writer = new FileWriter("/home/chrisi/export1.txt")) {
+
+			writer.append(source);
+			writer.flush();
+
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
+		}
+
+		try (final FileWriter writer = new FileWriter("/home/chrisi/export2.txt")) {
+
+			writer.append(imp);
+			writer.flush();
+
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
 		}
 
 		// step 7: compare import result to initial source

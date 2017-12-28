@@ -33,13 +33,16 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -90,16 +93,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.relation.FileChildren;
-import org.structr.web.entity.relation.FileSiblings;
-import org.structr.web.entity.relation.FolderChildren;
-import org.structr.web.entity.relation.Folders;
-import org.structr.web.entity.relation.Images;
 import org.structr.web.entity.relation.MinificationSource;
-import org.structr.web.entity.relation.Thumbnails;
-import org.structr.web.entity.relation.UserFavoriteFavoritable;
-import org.structr.web.entity.relation.UserFavoriteFile;
-import org.structr.web.entity.relation.UserWorkDir;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
@@ -1296,64 +1290,33 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private static final Set<String> relationshipTypesOkToExport = new HashSet<>(Arrays.asList(
+		"CONTAINS",
+		"CONTAINS_NEXT_SIBLING",
+		"LINK",
+		"MINIFICATION",
+		"FAVORITE",
+		"WORKING_DIR",
+		"HOME_DIR",
+		"THUMBNAIL"
+	));
+
 	// ----- public static methods -----
 	public static boolean okToExport(final AbstractFile file) {
 
 		for (final AbstractRelationship rel : file.getRelationships()) {
+
+			final String name = rel.getRelType().name();
+
+			if (relationshipTypesOkToExport.contains(name)) {
+				continue;
+			}
 
 			if (rel instanceof Security) {
 				continue;
 			}
 
 			if (rel instanceof PrincipalOwnsNode) {
-				continue;
-			}
-
-			if (rel instanceof FolderChildren) {
-				continue;
-			}
-
-			if (rel instanceof FileChildren) {
-				continue;
-			}
-
-			if (rel instanceof FileSiblings) {
-				continue;
-			}
-
-			if (rel instanceof MinificationSource) {
-				continue;
-			}
-
-			if (rel instanceof UserFavoriteFile) {
-				continue;
-			}
-
-			if (rel instanceof UserWorkDir) {
-				continue;
-			}
-
-			if (rel instanceof Folders) {
-				continue;
-			}
-
-			if (rel instanceof org.structr.web.entity.relation.Files) {
-				continue;
-			}
-
-			if (rel instanceof Images) {
-				continue;
-			}
-
-			if (rel instanceof Thumbnails) {
-				continue;
-			}
-
-			if (rel.getRelType().name().equals("LINK")) {
-				continue;
-			}
-
-			if (rel instanceof UserFavoriteFavoritable) {
 				continue;
 			}
 
