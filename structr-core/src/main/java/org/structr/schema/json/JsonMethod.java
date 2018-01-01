@@ -38,13 +38,16 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	public JsonMethod setComment(final String comment);
 
 	public List<JsonParameter> getParameters();
-	public JsonParameter addParameter(final String name, final String type);
+	public JsonMethod addParameter(final String name, final String type);
 
 	public String getReturnType();
 	public JsonMethod setReturnType(final String returnType);
 
 	public boolean overridesExisting();
 	public JsonMethod setOverridesExisting(final boolean overridesExisting);
+
+	public boolean doExport();
+	public JsonMethod setDoExport(final boolean doExport);
 
 	public boolean callSuper();
 	public JsonMethod setCallSuper(final boolean callsSuper);

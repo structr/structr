@@ -182,12 +182,12 @@ public abstract class Resource {
 
 		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
 		String rawName = typeResource.getRawType();
-		PropertyKey key = StructrApp.key(sourceNodeType, rawName);
+		PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, rawName, false);
 
 		if (key == null) {
 
 			// try to convert raw name into lower-case variable name
-			key = StructrApp.key(sourceNodeType, CaseHelper.toLowerCamelCase(rawName));
+			key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName), false);
 		}
 
 		return key;

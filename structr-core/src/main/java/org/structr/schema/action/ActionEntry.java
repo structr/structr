@@ -34,6 +34,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private final Map<String, String> parameters = new LinkedHashMap<>();
 	private final List<String> exceptions        = new LinkedList<>();
 	private Actions.Type type                    = null;
+	private boolean doExport                     = false;
 	private boolean overrides                    = false;
 	private boolean callSuper                    = false;
 	private String returnType                    = null;
@@ -132,6 +133,14 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public boolean overrides() {
 		return overrides;
+	}
+
+	public void setDoExport(final boolean doExport) {
+		this.doExport = doExport;
+	}
+
+	public boolean doExport() {
+		return doExport;
 	}
 
 	public String getSource(final String objVariable) {

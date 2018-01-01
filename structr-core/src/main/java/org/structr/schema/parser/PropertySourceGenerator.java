@@ -144,6 +144,7 @@ public abstract class PropertySourceGenerator {
 				new NodeAttribute<>(SchemaProperty.dbName,                source.getDbName()),
 				new NodeAttribute<>(SchemaProperty.defaultValue,          source.getDefaultValue()),
 				new NodeAttribute<>(SchemaProperty.format,                source.getFormat()),
+				new NodeAttribute<>(SchemaProperty.fqcn,                  source.getFqcn()),
 				new NodeAttribute<>(SchemaProperty.compound,              source.isCompound()),
 				new NodeAttribute<>(SchemaProperty.unique,                source.isUnique()),
 				new NodeAttribute<>(SchemaProperty.indexed,               source.isIndexed()),

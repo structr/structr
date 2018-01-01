@@ -31,17 +31,15 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 
 /**
@@ -63,7 +61,7 @@ public class CsvImportTest extends StructrApiModuleTest {
 				"2;Three;name: three;33;44";
 
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final FileBase file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file       = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -82,9 +80,9 @@ public class CsvImportTest extends StructrApiModuleTest {
 
 			// create test user
 			app.create(User.class,
-				new NodeAttribute<>(Principal.name,     "admin"),
-				new NodeAttribute<>(Principal.password, "admin"),
-				new NodeAttribute<>(Principal.isAdmin,  true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			tx.success();

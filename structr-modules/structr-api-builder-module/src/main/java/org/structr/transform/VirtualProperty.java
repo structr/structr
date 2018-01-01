@@ -18,19 +18,49 @@
  */
 package org.structr.transform;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
  */
-public class VirtualProperty extends AbstractNode {
+public interface VirtualProperty extends NodeInterface {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("VirtualProperty");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VirtualProperty"));
+
+		type.addIntegerProperty("position",      PropertyView.Public).setIndexed(true);
+		type.addStringProperty("sourceName",     PropertyView.Public);
+		type.addStringProperty("targetName",     PropertyView.Public);
+		type.addStringProperty("inputFunction",  PropertyView.Public);
+		type.addStringProperty("outputFunction", PropertyView.Public);
+
+		type.addPropertyGetter("position",       Integer.class);
+		type.addPropertyGetter("sourceName",     String.class);
+		type.addPropertyGetter("targetName",     String.class);
+		type.addPropertyGetter("inputFunction",  String.class);
+		type.addPropertyGetter("outputFunction", String.class);
+
+		type.overrideMethod("getTransformation", false, "return " + VirtualProperty.class.getName() + ".getTransformation(this, arg0);");
+	}}
+
+	Transformation getTransformation(final Class type) throws FrameworkException;
+	Integer getPosition();
+	String getSourceName();
+	String getInputFunction();
+	String getOutputFunction();
+	String getTargetName();
+
+	/*
 
 	public static final Property<VirtualType> virtualType = new StartNode<>("virtualType", VirtualTypeProperty.class);
 	public static final Property<Integer> position        = new IntProperty("position").indexed();
@@ -62,16 +92,17 @@ public class VirtualProperty extends AbstractNode {
 	public String getInputFunction() {
 		return getProperty(inputFunction);
 	}
+	*/
 
-	public Transformation getTransformation(final Class _type) throws FrameworkException {
+	static Transformation getTransformation(final VirtualProperty thisProperty, final Class _type) throws FrameworkException {
 
-		final String _sourceName     = getProperty(sourceName);
-		final String _inputFunction  = getProperty(inputFunction);
-		final String _outputFunction = getProperty(outputFunction);
-		String _targetName           = getProperty(targetName);
+		final String _sourceName     = thisProperty.getSourceName();
+		final String _inputFunction  = thisProperty.getInputFunction();
+		final String _outputFunction = thisProperty.getOutputFunction();
+		String _targetName           = thisProperty.getTargetName();
 
 		if (_sourceName == null && _outputFunction == null) {
-			throw new FrameworkException(500, "VirtualProperty with ID " + getUuid() + " needs source name or output function");
+			throw new FrameworkException(500, "VirtualProperty with ID " + thisProperty.getUuid() + " needs source name or output function");
 		}
 
 		// don't rename

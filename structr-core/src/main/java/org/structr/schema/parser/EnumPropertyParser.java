@@ -104,6 +104,14 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 
 			addEnumDefinition(buf.toString());
 
+		} else if (source.getFqcn() != null) {
+
+			// no enum type definition, use external type
+			enumTypeName = source.getFqcn();
+
+			// create enum type
+			enumType = ", " + enumTypeName + ".class";
+
 		} else {
 
 			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));

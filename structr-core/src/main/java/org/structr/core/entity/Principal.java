@@ -45,7 +45,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		final JsonSchema schema          = SchemaService.getDynamicSchema();
 		final JsonObjectType principal   = schema.addType("Principal");
-		final JsonObjectType group       = (JsonObjectType)schema.getType("Group");
 		final JsonObjectType favoritable = (JsonObjectType)schema.getType("Favoritable");
 
 		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
@@ -97,16 +96,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("getProperty",                     false, "if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
 
 		// create relationships
-		if (group != null) {
-
-			// since we cannot control the order in which the static classes are initialized,
-			// we need to check in both classes if the type exists, and create the relationship
-			group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
-		}
-
-		if (favoritable != null) {
-			principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
-		}
+		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
 	}}
 
 	public static final Object HIDDEN                            = "****** HIDDEN ******";

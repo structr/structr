@@ -285,10 +285,10 @@ public class OWLProperty<T extends RDFItem> extends RDFItem<T> {
 				// create localization for enum value
 				app.create(Localization.class,
 
-					new NodeAttribute(Localization.domain, domain),
-					new NodeAttribute(Localization.name, choice.getIdentifier()),
-					new NodeAttribute(Localization.locale, translation.getKey()),
-					new NodeAttribute(Localization.localizedName, translation.getValue())
+					new NodeAttribute(StructrApp.key(Localization.class, "domain"),        domain),
+					new NodeAttribute(StructrApp.key(Localization.class, "name"),          choice.getIdentifier()),
+					new NodeAttribute(StructrApp.key(Localization.class, "locale"),        translation.getKey()),
+					new NodeAttribute(StructrApp.key(Localization.class, "localizedName"), translation.getValue())
 				);
 			}
 		}

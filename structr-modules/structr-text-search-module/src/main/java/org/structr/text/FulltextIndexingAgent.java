@@ -49,9 +49,9 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
-import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -132,13 +132,13 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 							file.getSecurityContext().disableModificationOfAccessTime();
 
 							// save raw extracted text
-							file.setProperty(Indexable.extractedContent, tokenizer.getRawText());
+							file.setProperty(StructrApp.key(File.class, "extractedContent"), tokenizer.getRawText());
 
 							// tokenize name
 							tokenizer.write(getName());
 
 							// tokenize owner name
-							final Principal _owner = file.getProperty(owner);
+							final Principal _owner = file.getOwnerNode();
 							if (_owner != null) {
 
 								final String ownerName = _owner.getName();
@@ -147,13 +147,13 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 									tokenizer.write(ownerName);
 								}
 
-								final String eMail = _owner.getProperty(Person.eMail);
+								final String eMail = _owner.getEMail();
 								if (eMail != null) {
 
 									tokenizer.write(eMail);
 								}
 
-								final String twitterName = _owner.getProperty(Person.twitterName);
+								final String twitterName = _owner.getProperty(StructrApp.key(Person.class, "twitterName"));
 								if (twitterName != null) {
 
 									tokenizer.write(twitterName);
@@ -167,7 +167,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 						final NodeService nodeService       = Services.getInstance().getService(NodeService.class);
 						final Index<Node> fulltextIndex     = nodeService.getNodeIndex();
 						final Set<String> stopWords         = languageStopwordMap.get(tokenizer.getLanguage());
-						final String indexKeyName           = Indexable.indexedWords.jsonName();
+						final String indexKeyName           = "indexedWords";
 						final Iterator<String> wordIterator = tokenizer.getWords().iterator();
 						final Node node                     = file.getNode();
 						final Set<String> indexedWords      = new TreeSet<>();
@@ -202,7 +202,7 @@ public class FulltextIndexingAgent extends Agent<Indexable> {
 							file.getSecurityContext().disableModificationOfAccessTime();
 
 							// store indexed words
-							file.setProperty(Indexable.indexedWords, (String[]) indexedWords.toArray(new String[indexedWords.size()]));
+							file.setProperty(StructrApp.key(File.class, "indexedWords"), (String[]) indexedWords.toArray(new String[indexedWords.size()]));
 
 							tx.success();
 						}

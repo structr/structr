@@ -18,6 +18,7 @@
  */
 package org.structr.payment.impl.stripe;
 
+import org.structr.payment.impl.test.TestPaymentProvider;
 import com.stripe.Stripe;
 import com.stripe.exception.APIConnectionException;
 import com.stripe.exception.APIException;

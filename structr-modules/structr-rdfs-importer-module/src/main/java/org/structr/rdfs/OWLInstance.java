@@ -74,7 +74,7 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 
 		if (nodeType != null) {
 
-			originIdKey = StructrApp.key(nodeType, "originId", false);
+			originIdKey = StructrApp.key(nodeType, "originId");
 			if (originIdKey != null) {
 
 				instance = app.create(nodeType, new NodeAttribute(originIdKey, getId().toString()));
@@ -99,7 +99,7 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 		final NodeList extensions          = getElements(getElement(), "krdf:KExtendedByRelation");
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class baseType               = config.getNodeEntityClass("BaseNode");
-		final PropertyKey extensionsKey    = StructrApp.key(baseType, "extendedBy", false);
+		final PropertyKey extensionsKey    = StructrApp.key(baseType, "extendedBy");
 
 		if (extensions != null && extensionsKey != null) {
 
@@ -258,8 +258,8 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 											final OWLClass targetType       = targetTypes.get(0);
 											final String sourcePropertyName = sourceType.getStructrName(false);
 											final String targetPropertyName = targetType.getStructrName(false);
-											final PropertyKey sourceKey     = StructrApp.key(hyperRelationshipType, sourcePropertyName, false);
-											final PropertyKey targetKey     = StructrApp.key(hyperRelationshipType, targetPropertyName, false);
+											final PropertyKey sourceKey     = StructrApp.key(hyperRelationshipType, sourcePropertyName);
+											final PropertyKey targetKey     = StructrApp.key(hyperRelationshipType, targetPropertyName);
 
 											if (sourceKey != null && targetKey != null) {
 

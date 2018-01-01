@@ -18,14 +18,21 @@
  */
 package org.structr.web.entity;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.IOUtils;
 import org.structr.api.config.Settings;
@@ -37,6 +44,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
@@ -44,6 +52,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
@@ -51,8 +60,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.files.cmis.config.StructrFileActions;
+import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.json.JsonMethod;
 import org.structr.schema.json.JsonObjectType;
@@ -62,6 +73,9 @@ import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import static org.structr.web.entity.ContentContainer.path;
+import org.structr.web.importer.CSVFileImportJob;
+import org.structr.web.importer.DataImportManager;
+import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
 
 /**
@@ -160,15 +174,42 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		// relationships
 		final JsonObjectType minifiedFile = (JsonObjectType)schema.getType("AbstractMinifiedFile");
-		if (minifiedFile != null) {
+		final JsonReferenceType rel       = minifiedFile.relate(type, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
 
-			final JsonReferenceType rel = minifiedFile.relate(type, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
+		rel.addIntegerProperty("position", PropertyView.Public);
 
-			rel.addIntegerProperty("position", PropertyView.Public);
-		}
+		type.addMethod("doCSVImport")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource(File.class.getName() + ".doCSVImport(this, parameters);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("doXMLImport")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource(File.class.getName() + ".doXMLImport(this, parameters);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("getFirstLines")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters);")
+			.setDoExport(true);
+
+		type.addMethod("getCSVHeaders")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("getXMLStructure")
+			.setReturnType("java.lang.String")
+			.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
 
 		/* TODO:
-			public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
 			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
 		*/
 
@@ -193,6 +234,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	Integer getCacheForSeconds();
 
 	Long getChecksum();
+
 
 	// ----- static methods -----
 	public static String getDirectoryPath(final String uuid) {
@@ -843,12 +885,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return null;
 	}
+	*/
 
-	@Export
-	public Map<String, Object> getFirstLines(final Map<String, Object> parameters) {
+	public static Map<String, Object> getFirstLines(final File thisFile, final Map<String, Object> parameters) {
 
+		final LineAndSeparator ls        = File.getFirstLines(thisFile, File.getNumberOrDefault(parameters, "num", 3));
 		final Map<String, Object> result = new LinkedHashMap<>();
-		final LineAndSeparator ls        = getFirstLines(getNumberOrDefault(parameters, "num", 3));
 		final String separator           = ls.getSeparator();
 
 		switch (separator) {
@@ -871,10 +913,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return result;
 	}
 
-	@Export
-	public Map<String, Object> getCSVHeaders(final Map<String, Object> parameters) throws FrameworkException {
+	public static Map<String, Object> getCSVHeaders(final File thisFile, final Map<String, Object> parameters) throws FrameworkException {
 
-		if ("text/csv".equals(getProperty(FileBase.contentType))) {
+		if ("text/csv".equals(thisFile.getContentType())) {
 
 			final Map<String, Object> map       = new LinkedHashMap<>();
 			final Function<Object, Object> func = Functions.get("get_csv_headers");
@@ -915,12 +956,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 							break;
 					}
 
-					sources[0] = getFirstLines(1).getLine();
+					sources[0] = getFirstLines(thisFile, 1).getLine();
 					sources[1] = delimiter;
 					sources[2] = quoteChar;
 					sources[3] = recordSeparator;
 
-					map.put("headers", func.apply(new ActionContext(securityContext), null, sources));
+					map.put("headers", func.apply(new ActionContext(thisFile.getSecurityContext()), null, sources));
 
 				} catch (UnlicensedException ex) {
 
@@ -936,22 +977,21 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	@Export
-	public void doCSVImport(final Map<String, Object> parameters) throws FrameworkException {
+	public static void doCSVImport(final File thisFile, final Map<String, Object> config) throws FrameworkException {
 
-		CSVFileImportJob job = new CSVFileImportJob(this, securityContext.getUser(false), parameters);
+		final SecurityContext securityContext = thisFile.getSecurityContext();
+		final CSVFileImportJob job            = new CSVFileImportJob(thisFile, securityContext.getUser(false), config);
+
 		DataImportManager.getInstance().addJob(job);
-
 	}
 
-	@Export
-	public String getXMLStructure() throws FrameworkException {
+	public static String getXMLStructure(final File thisFile) throws FrameworkException {
 
-		final String contentType = getProperty(FileBase.contentType);
+		final String contentType = thisFile.getContentType();
 
 		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
 
-			try (final Reader input = new InputStreamReader(getInputStream())) {
+			try (final Reader input = new InputStreamReader(thisFile.getInputStream())) {
 
 				final XMLStructureAnalyzer analyzer = new XMLStructureAnalyzer(input);
 				final Gson gson                     = new GsonBuilder().setPrettyPrinting().create();
@@ -966,15 +1006,14 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return null;
 	}
 
-	@Export
-	public void doXMLImport(final Map<String, Object> config) throws FrameworkException {
+	public static void doXMLImport(final File thisFile, final Map<String, Object> config) throws FrameworkException {
 
-		XMLFileImportJob job = new XMLFileImportJob(this, securityContext.getUser(false), config);
+		final SecurityContext securityContext = thisFile.getSecurityContext();
+		final XMLFileImportJob job = new XMLFileImportJob(thisFile, securityContext.getUser(false), config);
+
 		DataImportManager.getInstance().addJob(job);
-
 	}
 
-	// ----- private methods -----
 	/**
 	 * Returns the Folder entity for the current working directory,
 	 * or the user's home directory as a fallback.
@@ -997,8 +1036,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return workingOrHomeDir;
 	}
 
-	/*
-	private int getNumberOrDefault(final Map<String, Object> data, final String key, final int defaultValue) {
+	static int getNumberOrDefault(final Map<String, Object> data, final String key, final int defaultValue) {
 
 		final Object value = data.get(key);
 
@@ -1018,13 +1056,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return defaultValue;
 	}
 
-	private LineAndSeparator getFirstLines(final int num) {
+	static LineAndSeparator getFirstLines(final File thisFile, final int num) {
 
 		final StringBuilder lines = new StringBuilder();
 		int separator[]           = new int[10];
 		int separatorLength       = 0;
 
-		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(thisFile.getInputStream(), "utf-8"))) {
 
 			int[] buf = new int[10010];
 
@@ -1116,6 +1154,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
 	}
 
+	/*
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
 
@@ -1127,9 +1166,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return data;
 	}
+	*/
 
 	// ----- nested classes -----
-	private class LineAndSeparator {
+	static class LineAndSeparator {
 
 		private String line      = null;
 		private String separator = null;
@@ -1147,5 +1187,4 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return separator;
 		}
 	}
-	*/
 }

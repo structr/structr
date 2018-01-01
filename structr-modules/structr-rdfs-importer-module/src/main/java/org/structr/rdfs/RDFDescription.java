@@ -71,7 +71,7 @@ public class RDFDescription extends RDFItem<RDFDescription> {
 
 					try {
 
-						PropertyKey key = StructrApp.key(type, keyName, false);
+						PropertyKey key = StructrApp.key(type, keyName);
 						if (key == null) {
 
 							// property key not found, try inverse
@@ -84,7 +84,7 @@ public class RDFDescription extends RDFItem<RDFDescription> {
 									final Class inverseType = config.getNodeEntityClass(inverse.getStructrName(true));
 									if (inverseType != null) {
 
-										key = StructrApp.key(inverseType, keyName, false);
+										key = StructrApp.key(inverseType, keyName);
 									}
 								}
 							}

@@ -52,6 +52,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
 	private boolean overridesExisting                         = false;
+	private boolean doExport                                  = false;
 	private boolean callSuper                                 = false;
 	private JsonType parent                                   = null;
 	private String returnType                                 = "void";
@@ -151,7 +152,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
-	public JsonParameter addParameter(final String name, String type) {
+	public JsonMethod addParameter(final String name, String type) {
 
 		final StructrParameterDefinition param = new StructrParameterDefinition(this, name);
 
@@ -159,7 +160,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		parameters.add(param);
 
-		return param;
+		return this;
 	}
 
 	@Override
@@ -192,6 +193,17 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	@Override
 	public JsonMethod setOverridesExisting(final boolean overridesExisting) {
 		this.overridesExisting = overridesExisting;
+		return this;
+	}
+
+	@Override
+	public boolean doExport() {
+		return doExport;
+	}
+
+	@Override
+	public JsonMethod setDoExport(final boolean doExport) {
+		this.doExport = doExport;
 		return this;
 	}
 
@@ -250,6 +262,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.exceptions,        exceptions.toArray(new String[0]));
 		updateProperties.put(SchemaMethod.overridesExisting, overridesExisting);
 		updateProperties.put(SchemaMethod.callSuper,         callSuper);
+		updateProperties.put(SchemaMethod.doExport,          doExport);
 
 		// update properties
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
@@ -312,6 +325,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.overridesExisting = (Boolean)_overridesExisting;
 		}
 
+		final Object _doExport = source.get(JsonSchema.KEY_DO_EXPORT);
+		if (_doExport != null && _doExport instanceof Boolean) {
+
+			this.doExport = (Boolean)_doExport;
+		}
+
 		final Map<String, Object> params = (Map<String, Object>)source.get(JsonSchema.KEY_PARAMETERS);
 		if (params != null) {
 
@@ -346,6 +365,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setReturnType(method.getProperty(SchemaMethod.returnType));
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
+		setDoExport(method.getProperty(SchemaMethod.doExport));
 
 		final String[] exceptionArray = method.getProperty(SchemaMethod.exceptions);
 		if (exceptionArray != null) {
@@ -377,6 +397,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
+		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
 
 		for (final StructrParameterDefinition param : parameters) {
 			params.put(param.getName(), param.serialize());

@@ -44,16 +44,17 @@ import org.structr.core.script.Scripting;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.entity.User;
 
 public class SourcePattern extends AbstractNode {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(SourcePattern.class.getName());
 
 	public static final Property<List<SourcePattern>> subPatternsProperty             = new EndNodes<>("subPatterns", SourcePatternSUBSourcePattern.class);
 	public static final Property<SourcePage>          subPageProperty                 = new EndNode<>("subPage", SourcePatternSUBPAGESourcePage.class);
 	public static final Property<SourcePage>          sourcePageProperty              = new StartNode<>("sourcePage", SourcePageUSESourcePattern.class);
 	public static final Property<SourcePattern>       parentPatternProperty           = new StartNode<>("parentPattern", SourcePatternSUBSourcePattern.class);
-        
+
 	public static final Property<Long>                fromProperty                    = new LongProperty("from");
 	public static final Property<Long>                toProperty                      = new LongProperty("to");
 	public static final Property<String>              selectorProperty                = new StringProperty("selector").indexed();
@@ -63,13 +64,13 @@ public class SourcePattern extends AbstractNode {
 //	public static final Property<String>              mappedAttributeFormatProperty   = new StringProperty("mappedAttributeFormat");
 //	public static final Property<String>              mappedAttributeLocaleProperty   = new StringProperty("mappedAttributeLocale");
 	public static final Property<String>              inputValue                      = new StringProperty("inputValue").indexed();
-  
+
 	public static final View uiView = new View(SourcePattern.class, "ui",
 		subPatternsProperty, subPageProperty, sourcePageProperty, parentPatternProperty, fromProperty, toProperty, selectorProperty, mappedTypeProperty, mappedAttributeProperty, mappedAttributeFunctionProperty, inputValue
 	);
 
 	private Class type(final String typeString) throws FrameworkException {
-		
+
 		Class type = null;
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
@@ -83,21 +84,21 @@ public class SourcePattern extends AbstractNode {
 
 			throw new FrameworkException(422, "Unknown type '" + typeString + "'");
 		}
-		
+
 		return type;
 	}
-	
+
 	private NodeInterface create(final String typeString) throws FrameworkException {
-		
+
 		final App app = StructrApp.getInstance(securityContext);
-		
+
 		return app.create(type(typeString));
 	}
-	
+
 	private SourceSite getSite() {
 
 		SourcePattern pattern = this;
-		
+
 		SourcePage page = pattern.getProperty(sourcePageProperty);
 		while (page == null) {
 
@@ -107,65 +108,63 @@ public class SourcePattern extends AbstractNode {
 				page = pattern.getProperty(sourcePageProperty);
 			}
 		}
-		
+
 		return page.getProperty(SourcePage.site);
-		
+
 	}
-	
+
 	private String getContent(final String urlString) throws FrameworkException {
-		
+
 		final SourceSite site = getSite();
 
 		String proxyUrl = site.getProperty(SourceSite.proxyUrl);
 		String proxyUsername = site.getProperty(SourceSite.proxyUsername);
 		String proxyPassword = site.getProperty(SourceSite.proxyPassword);
-		
+
 		Principal user = securityContext.getCachedUser();
-		
+
 		if (user != null & StringUtils.isBlank(proxyUrl)) {
-			proxyUrl      = user.getProperty(Principal.proxyUrl);
-			proxyUsername = user.getProperty(Principal.proxyUsername);
-			proxyPassword = user.getProperty(Principal.proxyPassword);
+			proxyUrl      = user.getProperty(StructrApp.key(User.class, "proxyUrl"));
+			proxyUsername = user.getProperty(StructrApp.key(User.class, "proxyUsername"));
+			proxyPassword = user.getProperty(StructrApp.key(User.class, "proxyPassword"));
 		}
 
 		final String cookie = site.getProperty(SourceSite.cookie);
-			
+
 		return HttpHelper.get(urlString, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP)
 				.replace("<head>", "<head>\n  <base href=\"" + urlString + "\">");
 	}
-	
+
 	private void extractAndSetValue(final NodeInterface obj, final Document doc, final String selector, final String mappedType, final String mappedAttribute, final String mappedAttributeFunction, final SourcePage subPage)  throws FrameworkException {
 
 		// If the sub pattern has a mapped attribute, set the extracted value
 		if (StringUtils.isNotEmpty(mappedAttribute)) {
 
 			// Extract the value for this sub pattern's selector
-			final String ex = doc.select(selector).text();
-
-			final ConfigurationProvider config  = StructrApp.getConfiguration();
+			final String ex       = doc.select(selector).text();
 			final PropertyKey key = StructrApp.key(type(mappedType), mappedAttribute);
 
 			if (StringUtils.isNotBlank(ex) && key != null) {
 
 				Object convertedValue = ex;
-				
+
 				if (StringUtils.isNotBlank(mappedAttributeFunction)) {
 
 					// input transformation requested
 					ActionContext ctx = new ActionContext(securityContext);
 					ctx.setConstant("input", convertedValue);
 					convertedValue = Scripting.evaluate(ctx, null, "${" + mappedAttributeFunction + "}", " virtual property " + mappedAttribute);
-				
-				} else {				
+
+				} else {
 
 					// if no custom transformation is given, try input converter
 					final PropertyConverter inputConverter = key.inputConverter(securityContext);
-				
+
 					if (inputConverter != null) {
 						convertedValue = inputConverter.convert(convertedValue);
 					}
 				}
-				
+
 				obj.setProperty(key, convertedValue);
 			}
 
@@ -174,7 +173,7 @@ public class SourcePattern extends AbstractNode {
 
 			final String pageUrl = subPage.getProperty(SourcePage.url);
 			final URI uri;
-			
+
 			try {
 				uri = new URI(pageUrl);
 			} catch (URISyntaxException ex) {
@@ -203,8 +202,8 @@ public class SourcePattern extends AbstractNode {
 
 //				final String subPagePatternSelector = subPagePattern.getProperty(SourcePattern.selectorProperty);
 //
-//				
-//				// Extract 
+//
+//				// Extract
 //				final String subEx = subDoc.select(subPagePatternSelector).text();
 //				final String subPagePatternType = subPagePattern.getProperty(SourcePattern.mappedTypeProperty);
 //
@@ -266,9 +265,9 @@ public class SourcePattern extends AbstractNode {
 
 	@Export
 	public void extract(final Map<String, Object> parameters) throws FrameworkException {
-		
+
 		final SourcePage page = getProperty(sourcePageProperty);
-		
+
 		if (page == null) {
 			throw new FrameworkException(422, "Pattern has no source page, exiting.");
 		}
@@ -283,23 +282,23 @@ public class SourcePattern extends AbstractNode {
 
 		final List<SourcePattern> subPatterns = getProperty(subPatternsProperty);
 
-		
+
 		Document doc = null;
 		NodeInterface parentObj = null;
-		
-			
+
+
 		if (parameters.containsKey("object")) {
 
 			parentObj = (NodeInterface) parameters.get("object");
 
 		}
-		
+
 		if (parameters.containsKey("document")) {
 
 			doc = (Document) parameters.get("document");
-			
+
 		} else {
-			
+
 			final String url      = page.getProperty(SourcePage.url);
 			if (url == null) {
 				throw new FrameworkException(422, "This pattern's source page has no URL, exiting.");
@@ -310,24 +309,24 @@ public class SourcePattern extends AbstractNode {
 
 			// Parse the document with Jsoup and extract the elements matched by the given selector
 			doc = Jsoup.parse(content);
-			
+
 		}
 
 		final String mappedType      = getProperty(mappedTypeProperty);
 		if (mappedType == null) {
 			throw new FrameworkException(422, "No mapped type given, exiting.");
 		}
-		
+
 		final Elements parts = doc.select(selector);
 
 		// Loop through all elements found for this pattern; if a start index is given, start at this element
 		for (int i = (from != null ? from.intValue() : 1); i<= (to != null ? to : parts.size()); i++) {
-			
+
 			// If no object was given (from a higher-level pattern), create a new object of the given type
 			final NodeInterface obj = (parentObj == null ? create(mappedType) : parentObj);
-			
+
 			if (subPatterns.size() > 0) {
-			
+
 				// Loop through the sub patterns of this pattern
 				for (final SourcePattern subPattern : subPatterns) {
 
@@ -340,16 +339,16 @@ public class SourcePattern extends AbstractNode {
 					extractAndSetValue(obj, doc, subSelector, mappedType, subPatternMappedAttribute, subPatternMappedAttributeFunction, subPatternSubPage);
 
 				}
-			
+
 			} else {
-				
+
 				final String mappedAttribute         = getProperty(mappedAttributeProperty);
 				final String mappedAttributeFunction = getProperty(mappedAttributeFunctionProperty);
-			
+
 				extractAndSetValue(obj, doc, selector, mappedType, mappedAttribute, mappedAttributeFunction, null);
-				
+
 			}
-			
+
 		}
 
 	}

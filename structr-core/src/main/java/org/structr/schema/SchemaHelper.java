@@ -1192,11 +1192,17 @@ public class SchemaHelper {
 
 			if (returnType != null && parameters != null) {
 
+				src.append("\n");
+
 				if (action.overrides()) {
-					src.append("\n\t@Override");
+					src.append("\t@Override\n");
 				}
 
-				src.append("\n\tpublic ");
+				if (action.doExport()) {
+					src.append("\t@Export\n");
+				}
+
+				src.append("\tpublic ");
 				src.append(returnType);
 				src.append(" ");
 				src.append(action.getName());
@@ -1654,7 +1660,7 @@ public class SchemaHelper {
 
 		if (type != null) {
 
-			final PropertyKey property = StructrApp.key(type, propertyName);
+			final PropertyKey property = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, propertyName, false);
 			if (property != null && property.isDynamic()) {
 
 				return true;

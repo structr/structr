@@ -63,6 +63,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String[]>           exceptions          = new ArrayProperty("exceptions", String.class);
 	public static final Property<Boolean>            callSuper           = new BooleanProperty("callSuper");
 	public static final Property<Boolean>            overridesExisting   = new BooleanProperty("overridesExisting");
+	public static final Property<Boolean>            doExport            = new BooleanProperty("doExport");
 	public static final Property<String>             codeType            = new StringProperty("codeType");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
@@ -100,6 +101,11 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		// check for overridden methods and determine method signature etc. from superclass(es)
 		if (getProperty(overridesExisting)) {
 			determineSignature(schemaEntity, entry, getProperty(name));
+		}
+
+		// check for overridden methods and determine method signature etc. from superclass(es)
+		if (getProperty(doExport)) {
+			entry.setDoExport(true);
 		}
 
 		return entry;

@@ -61,13 +61,10 @@ public interface AbstractMinifiedFile extends File {
 		type.overrideMethod("onModification", true,  AbstractMinifiedFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 
 		// relationships
-		final JsonObjectType file = (JsonObjectType)schema.getType("AbstractMinifiedFile");
-		if (file != null) {
+		final JsonObjectType file   = (JsonObjectType)schema.getType("AbstractMinifiedFile");
+		final JsonReferenceType rel = type.relate(file, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
 
-			final JsonReferenceType rel = type.relate(file, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
-
-			rel.addIntegerProperty("position", PropertyView.Public);
-		}
+		rel.addIntegerProperty("position", PropertyView.Public);
 	}}
 
 	int getMaxPosition();

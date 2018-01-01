@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -47,10 +48,6 @@ public class CsvFunctionsTest extends StructrCsvModuleTest {
 		List<CsvTestOne> csvTestOnes                = null;
 		CsvTestTwo csvTestTwo                       = null;
 		int index                                   = 0;
-		Localization indexLocalization              = null;
-		Localization nameLocalization               = null;
-		Localization indexLocalizationWithDomain    = null;
-		Localization nameLocalizationWithDomain     = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -62,30 +59,28 @@ public class CsvFunctionsTest extends StructrCsvModuleTest {
 			final PropertyMap indexLocalizationPropertiesWithDomain = new PropertyMap();
 			final PropertyMap nameLocalizationPropertiesWithDomain = new PropertyMap();
 
-			indexLocalizationProperties.put(Localization.name,                    "index");
-			indexLocalizationProperties.put(Localization.localizedName,           "Localized INDEX");
-			indexLocalizationProperties.put(Localization.locale,                  "en");
+			indexLocalizationProperties.put(StructrApp.key(Localization.class, "name"),                    "index");
+			indexLocalizationProperties.put(StructrApp.key(Localization.class, "localizedName"),           "Localized INDEX");
+			indexLocalizationProperties.put(StructrApp.key(Localization.class, "locale"),                  "en");
 
-			nameLocalizationProperties.put(Localization.name,                     "name");
-			nameLocalizationProperties.put(Localization.localizedName,            "Localized NAME");
-			nameLocalizationProperties.put(Localization.locale,                   "en");
+			nameLocalizationProperties.put(StructrApp.key(Localization.class, "name"),                     "name");
+			nameLocalizationProperties.put(StructrApp.key(Localization.class, "localizedName"),            "Localized NAME");
+			nameLocalizationProperties.put(StructrApp.key(Localization.class, "locale"),                   "en");
 
-			indexLocalizationPropertiesWithDomain.put(Localization.name,          "index");
-			indexLocalizationPropertiesWithDomain.put(Localization.localizedName, "Localized INDEX with DOMAIN");
-			indexLocalizationPropertiesWithDomain.put(Localization.locale,        "en");
-			indexLocalizationPropertiesWithDomain.put(Localization.domain,        "CSV TEST Domain");
+			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "name"),          "index");
+			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "localizedName"), "Localized INDEX with DOMAIN");
+			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "locale"),        "en");
+			indexLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "domain"),        "CSV TEST Domain");
 
-			nameLocalizationPropertiesWithDomain.put(Localization.name,           "name");
-			nameLocalizationPropertiesWithDomain.put(Localization.localizedName,  "Localized NAME with DOMAIN");
-			nameLocalizationPropertiesWithDomain.put(Localization.locale,         "en");
-			nameLocalizationPropertiesWithDomain.put(Localization.domain,         "CSV TEST Domain");
+			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "name"),           "name");
+			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "localizedName"),  "Localized NAME with DOMAIN");
+			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "locale"),         "en");
+			nameLocalizationPropertiesWithDomain.put(StructrApp.key(Localization.class, "domain"),         "CSV TEST Domain");
 
-
-			indexLocalization           = app.create(Localization.class, indexLocalizationProperties);
-			nameLocalization            = app.create(Localization.class, nameLocalizationProperties);
-			indexLocalizationWithDomain = app.create(Localization.class, indexLocalizationPropertiesWithDomain);
-			nameLocalizationWithDomain  = app.create(Localization.class, nameLocalizationPropertiesWithDomain);
-
+			app.create(Localization.class, indexLocalizationProperties);
+			app.create(Localization.class, nameLocalizationProperties);
+			app.create(Localization.class, indexLocalizationPropertiesWithDomain);
+			app.create(Localization.class, nameLocalizationPropertiesWithDomain);
 
 			for (final CsvTestOne csvTestOne : csvTestOnes) {
 

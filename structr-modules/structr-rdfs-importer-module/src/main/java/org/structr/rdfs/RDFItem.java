@@ -271,7 +271,7 @@ public abstract class RDFItem<T extends RDFItem> implements Comparable<RDFItem> 
 
 		if (convertedValue != null) {
 
-			final PropertyKey key = StructrApp.key(nodeType, propertyName, false);
+			final PropertyKey key = StructrApp.key(nodeType, propertyName);
 			if (key != null) {
 
 				final PropertyConverter inputConverter = key.inputConverter(SecurityContext.getSuperUserInstance());

@@ -167,10 +167,6 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		createElement2.addParameter("tag", "String");
 		createElement2.setSource("return " + Page.class.getName() + ".createElement(this, tag, false);");
 
-
-		/*
-		*/
-
 		site.relate(type, "CONTAINS", Cardinality.OneToMany, "site", "pages");
 	}}
 

@@ -27,11 +27,10 @@ import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -120,11 +119,11 @@ public class FulltextIndexingTest extends StructrTextSearchModuleTest {
 		// test result
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = app.nodeQuery(File.class).getFirst();
+			final File file = app.nodeQuery(File.class).getFirst();
 
 			Assert.assertNotNull("File should exist", file);
 
-			final String[] rawIndexedWords  = file.getProperty(Indexable.indexedWords);
+			final String[] rawIndexedWords  = file.getProperty(StructrApp.key(File.class, "indexedWords"));
 
 			Assert.assertNotNull("There should be at least one indexed word", rawIndexedWords);
 
@@ -151,11 +150,11 @@ public class FulltextIndexingTest extends StructrTextSearchModuleTest {
 		// test result
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = app.nodeQuery(File.class).getFirst();
+			final File file = app.nodeQuery(File.class).getFirst();
 
 			Assert.assertNotNull("File should exist", file);
 
-			final String[] rawIndexedWords  = file.getProperty(Indexable.indexedWords);
+			final String[] rawIndexedWords  = file.getProperty(StructrApp.key(File.class, "indexedWords"));
 
 			Assert.assertNotNull("There should be at least one indexed word", rawIndexedWords);
 
@@ -181,7 +180,7 @@ public class FulltextIndexingTest extends StructrTextSearchModuleTest {
 		} catch (Throwable t) { }
 	}
 
-	private String getContent(final FileBase file) {
+	private String getContent(final File file) {
 
 		try (final InputStream is = file.getInputStream()) {
 

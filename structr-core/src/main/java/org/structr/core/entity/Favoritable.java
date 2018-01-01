@@ -37,7 +37,6 @@ public interface Favoritable extends NodeInterface {
 	static class Impl { static {
 
 		final JsonSchema schema        = SchemaService.getDynamicSchema();
-		final JsonObjectType principal = (JsonObjectType)schema.addType("Principal");
 		final JsonObjectType type      = schema.addType("Favoritable");
 
 		type.setIsInterface();
@@ -45,15 +44,15 @@ public interface Favoritable extends NodeInterface {
 
 		type.addBooleanProperty("isFavoritable").addTransformer(ConstantBooleanTrue.class.getName());
 
-		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), PropertyView.Public);
-		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      PropertyView.Public);
-		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      PropertyView.Public);
+		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), "fav");
+		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      "fav");
+		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav");
 
 		type.addFunctionProperty("relationshipId", PropertyView.Public).setReadFunction("this._path.id");
 
-		if (principal != null) {
-			principal.relate(type, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
-		}
+		type.addViewProperty("fav", "id");
+		type.addViewProperty("fav", "name");
+		type.addViewProperty("fav", "type");
 	}}
 
 	/*

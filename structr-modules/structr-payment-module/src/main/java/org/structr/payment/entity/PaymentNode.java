@@ -23,19 +23,17 @@
 
 package org.structr.payment.entity;
 
-import java.util.LinkedList;
+import java.net.URI;
 import java.util.List;
-import org.structr.common.View;
+import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.NodeInterface;
 import org.structr.payment.api.APIError;
 import org.structr.payment.api.APIResponse;
 import org.structr.payment.api.BeginCheckoutResponse;
@@ -48,18 +46,135 @@ import org.structr.payment.api.PaymentState;
 import org.structr.payment.impl.paypal.PayPalErrorToken;
 import org.structr.payment.impl.paypal.PayPalPaymentProvider;
 import org.structr.payment.impl.stripe.StripePaymentProvider;
+import org.structr.payment.impl.test.TestPaymentProvider;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
  */
-public class PaymentNode extends AbstractNode implements Payment {
+public interface PaymentNode extends NodeInterface, Payment {
 
-	static {
+	static class Impl { static {
 
-		SchemaService.registerBuiltinTypeOverride("PaymentNode", PaymentNode.class.getName());
-	}
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("PaymentNode");
+		final JsonObjectType item = schema.addType("PaymentItemNode");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PaymentNode"));
+
+		type.addEnumProperty("state", PropertyView.Public).setEnumType(PaymentState.class);
+
+		type.addStringProperty("description",            PropertyView.Public).setIndexed(true);
+		type.addStringProperty("currency",               PropertyView.Public).setIndexed(true);
+		type.addStringProperty("token",                  PropertyView.Public).setIndexed(true);
+		type.addStringProperty("billingAgreementId",     PropertyView.Public);
+		type.addStringProperty("note",                   PropertyView.Public);
+		type.addStringProperty("billingAddressName",     PropertyView.Public);
+		type.addStringProperty("billingAddressStreet1",  PropertyView.Public);
+		type.addStringProperty("billingAddressStreet2",  PropertyView.Public);
+		type.addStringProperty("billingAddressZip",      PropertyView.Public);
+		type.addStringProperty("billingAddressCity",     PropertyView.Public);
+		type.addStringProperty("billingAddressCountry",  PropertyView.Public);
+		type.addStringProperty("invoiceId",              PropertyView.Public);
+		type.addStringProperty("payerAddressName",       PropertyView.Public);
+		type.addStringProperty("payerAddressStreet1",    PropertyView.Public);
+		type.addStringProperty("payerAddressStreet2",    PropertyView.Public);
+		type.addStringProperty("payerAddressZip",        PropertyView.Public);
+		type.addStringProperty("payerAddressCity",       PropertyView.Public);
+		type.addStringProperty("payerAddressCountry",    PropertyView.Public);
+		type.addStringProperty("payer",                  PropertyView.Public);
+		type.addStringProperty("payerBusiness",          PropertyView.Public);
+
+		type.addPropertyGetter("items",                  List.class);
+		type.addPropertyGetter("description",            String.class);
+		type.addPropertyGetter("currency",               String.class);
+		type.addPropertyGetter("token",                  String.class);
+		type.addPropertyGetter("billingAgreementId",     String.class);
+		type.addPropertyGetter("note",                   String.class);
+		type.addPropertyGetter("billingAddressName",     String.class);
+		type.addPropertyGetter("billingAddressStreet1",  String.class);
+		type.addPropertyGetter("billingAddressStreet2",  String.class);
+		type.addPropertyGetter("billingAddressZip",      String.class);
+		type.addPropertyGetter("billingAddressCity",     String.class);
+		type.addPropertyGetter("billingAddressCountry",  String.class);
+		type.addPropertyGetter("invoiceId",              String.class);
+		type.addPropertyGetter("payerAddressName",       String.class);
+		type.addPropertyGetter("payerAddressStreet1",    String.class);
+		type.addPropertyGetter("payerAddressStreet2",    String.class);
+		type.addPropertyGetter("payerAddressZip",        String.class);
+		type.addPropertyGetter("payerAddressCity",       String.class);
+		type.addPropertyGetter("payerAddressCountry",    String.class);
+		type.addPropertyGetter("payer",                  String.class);
+		type.addPropertyGetter("payerBusiness",          String.class);
+
+		type.addPropertySetter("description",            String.class);
+		type.addPropertySetter("currency",               String.class);
+		type.addPropertySetter("token",                  String.class);
+		type.addPropertySetter("billingAgreementId",     String.class);
+		type.addPropertySetter("note",                   String.class);
+		type.addPropertySetter("billingAddressName",     String.class);
+		type.addPropertySetter("billingAddressStreet1",  String.class);
+		type.addPropertySetter("billingAddressStreet2",  String.class);
+		type.addPropertySetter("billingAddressZip",      String.class);
+		type.addPropertySetter("billingAddressCity",     String.class);
+		type.addPropertySetter("billingAddressCountry",  String.class);
+		type.addPropertySetter("invoiceId",              String.class);
+		type.addPropertySetter("payerAddressName",       String.class);
+		type.addPropertySetter("payerAddressStreet1",    String.class);
+		type.addPropertySetter("payerAddressStreet2",    String.class);
+		type.addPropertySetter("payerAddressZip",        String.class);
+		type.addPropertySetter("payerAddressCity",       String.class);
+		type.addPropertySetter("payerAddressCountry",    String.class);
+		type.addPropertySetter("payer",                  String.class);
+		type.addPropertySetter("payerBusiness",          String.class);
+
+		type.addMethod("beginCheckout")
+			.setReturnType(GraphObject.class.getName())
+			.addParameter("arg0", String.class.getName())
+			.addParameter("arg1", String.class.getName())
+			.addParameter("arg2", String.class.getName())
+			.setSource("return " + PaymentNode.class.getName() + ".beginCheckout(this, arg0, arg1, arg2);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("cancelCheckout")
+			.addParameter("arg0", String.class.getName())
+			.addParameter("arg1", String.class.getName())
+			.setSource(PaymentNode.class.getName() + ".cancelCheckout(this, arg0, arg1);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("confirmCheckout")
+			.setReturnType(GraphObject.class.getName())
+			.addParameter("arg0", String.class.getName())
+			.addParameter("arg1", String.class.getName())
+			.addParameter("arg2", String.class.getName())
+			.addParameter("arg3", String.class.getName())
+			.setSource("return " + PaymentNode.class.getName() + ".confirmCheckout(this, arg0, arg1, arg2, arg3);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("getTotal").setSource("return " + PaymentNode.class.getName() + ".getTotal(this);").setReturnType("int");
+		type.addMethod("getCurrencyCode").setSource("return getProperty(currencyProperty);").setReturnType(String.class.getName());
+		type.addMethod("getPaymentState").setSource("return getProperty(stateProperty);").setReturnType(PaymentState.class.getName());
+
+		type.addMethod("setPaymentState")
+			.addParameter("state", PaymentState.class.getName())
+			.setSource("setProperty(stateProperty, state);")
+			.addException(FrameworkException.class.getName());
+
+		if (item != null) {
+
+			type.relate(item, "paymentItem", Cardinality.OneToMany, "payment", "items");
+
+			item.addViewProperty(PropertyView.Public, "paymentProperty");
+			type.addViewProperty(PropertyView.Public, "itemsProperty");
+		}
+	}}
+
+	/*
 	public static final Property<List<PaymentItemNode>> items                   = new EndNodes<>("items", PaymentItems.class);
 	public static final Property<PaymentState>          stateProperty           = new EnumProperty("state", PaymentState.class).indexed();
 	public static final Property<String>                descriptionProperty     = new StringProperty("description").indexed();
@@ -94,19 +209,19 @@ public class PaymentNode extends AbstractNode implements Payment {
 		billingAddressStreet1, billingAddressStreet2, billingAddressZip, billingAddressCity, billingAddressCountry, invoiceId,
 		payerAddressName, payerAddressStreet1, payerAddressStreet2, payerAddressZip, payerAddressCity, payerAddressCountry, payer, payerBusiness
 	);
+	*/
 
-	@Export
-	public GraphObject beginCheckout(final String providerName, final String successUrl, final String cancelUrl) throws FrameworkException {
+	public static GraphObject beginCheckout(final PaymentNode thisNode, final String providerName, final String successUrl, final String cancelUrl) throws FrameworkException {
 
-		final PaymentProvider provider = getPaymentProvider(providerName);
+		final PaymentProvider provider = PaymentNode.getPaymentProvider(providerName);
 		if (provider != null) {
 
-			final BeginCheckoutResponse response = provider.beginCheckout(this, successUrl, cancelUrl);
+			final BeginCheckoutResponse response = provider.beginCheckout(thisNode, successUrl, cancelUrl);
 			if (CheckoutState.Success.equals(response.getCheckoutState())) {
 
 				final GraphObjectMap data  = new GraphObjectMap();
 
-				data.put(tokenProperty, response.getToken());
+				data.put(StructrApp.key(PaymentNode.class, "token"), response.getToken());
 
 				return data;
 
@@ -123,13 +238,12 @@ public class PaymentNode extends AbstractNode implements Payment {
 		return null;
 	}
 
-	@Export
-	public void cancelCheckout(final String providerName, final String token) throws FrameworkException {
+	public static void cancelCheckout(final PaymentNode thisNode, final String providerName, final String token) throws FrameworkException {
 
-		final PaymentProvider provider = getPaymentProvider(providerName);
+		final PaymentProvider provider = PaymentNode.getPaymentProvider(providerName);
 		if (provider != null) {
 
-			provider.cancelCheckout(this);
+			provider.cancelCheckout(thisNode);
 
 		} else {
 
@@ -137,13 +251,12 @@ public class PaymentNode extends AbstractNode implements Payment {
 		}
 	}
 
-	@Export
-	public GraphObject confirmCheckout(final String providerName, final String notifyUrl, final String token, final String payerId) throws FrameworkException {
+	public static GraphObject confirmCheckout(final PaymentNode thisNode, final String providerName, final String notifyUrl, final String token, final String payerId) throws FrameworkException {
 
-		final PaymentProvider provider = getPaymentProvider(providerName);
+		final PaymentProvider provider = PaymentNode.getPaymentProvider(providerName);
 		if (provider != null) {
 
-			final ConfirmCheckoutResponse response = provider.confirmCheckout(this, notifyUrl, token, payerId);
+			final ConfirmCheckoutResponse response = provider.confirmCheckout(thisNode, notifyUrl, token, payerId);
 			if (CheckoutState.Success.equals(response.getCheckoutState())) {
 
 				// no return value neccessary, will result in code 200
@@ -151,6 +264,8 @@ public class PaymentNode extends AbstractNode implements Payment {
 
 			} else {
 
+				// FIXME: checkout error should NOT cause the transaction to be rolled back,
+				//        because we're losing information (payment state etc.)
 				throwErrors("Unable to confirm checkout", response);
 			}
 
@@ -163,40 +278,18 @@ public class PaymentNode extends AbstractNode implements Payment {
 	}
 
 	// ----- interface Payment -----
-	@Override
-	public List<PaymentItem> getItems() {
-		return new LinkedList<>(getProperty(items));
-	}
-
-	@Override
-	public int getTotal() {
+	public static int getTotal(final PaymentNode thisNode) {
 
 		int total = 0;
 
-		for (final PaymentItem item : getItems()) {
+		for (final PaymentItem item : thisNode.getItems()) {
 			total += item.getAmount() * item.getQuantity();
 		}
 
 		return total;
 	}
 
-	@Override
-	public String getCurrencyCode() {
-		return getProperty(currencyProperty);
-	}
-
-	@Override
-	public String getToken() {
-		return getProperty(tokenProperty);
-	}
-
-	@Override
-	public void setToken(String token) throws FrameworkException {
-		setProperty(tokenProperty, token);
-	}
-
-	// ----- private methods -----
-	private PaymentProvider getPaymentProvider(final String providerName) {
+	static PaymentProvider getPaymentProvider(final String providerName) {
 
 		switch (providerName) {
 
@@ -205,12 +298,15 @@ public class PaymentNode extends AbstractNode implements Payment {
 
 			case "stripe":
 				return new StripePaymentProvider();
+
+			case "test":
+				return new TestPaymentProvider();
 		}
 
 		return null;
 	}
 
-	private void throwErrors(final String cause, final APIResponse response) throws FrameworkException {
+	static void throwErrors(final String cause, final APIResponse response) throws FrameworkException {
 
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
@@ -220,195 +316,5 @@ public class PaymentNode extends AbstractNode implements Payment {
 		}
 
 		throw new FrameworkException(422, cause, errorBuffer);
-	}
-
-	@Override
-	public String getDescription() {
-		return getProperty(descriptionProperty);
-	}
-
-	@Override
-	public void setDescription(final String description) throws FrameworkException {
-		setProperty(descriptionProperty, description);
-	}
-
-	@Override
-	public PaymentState getPaymentState() {
-		return getProperty(stateProperty);
-	}
-
-	@Override
-	public void setPaymentState(final PaymentState state) throws FrameworkException {
-		setProperty(stateProperty, state);
-	}
-
-	@Override
-	public String getBillingAddressName() {
-		return getProperty(billingAddressName);
-	}
-
-	@Override
-	public void setBillingAddressName(final String billingAddressName) throws FrameworkException {
-		setProperty(PaymentNode.billingAddressName, billingAddressName);
-	}
-
-	@Override
-	public String getBillingAddressStreet1() {
-		return getProperty(PaymentNode.billingAddressStreet1);
-	}
-
-	@Override
-	public void setBillingAddressStreet1(final String billingAddressStreet1) throws FrameworkException {
-		setProperty(PaymentNode.billingAddressStreet1, billingAddressStreet1);
-	}
-
-	@Override
-	public String getBillingAddressStreet2() {
-		return getProperty(PaymentNode.billingAddressStreet2);
-	}
-
-	@Override
-	public void setBillingAddressStreet2(final String billingAddressStreet2) throws FrameworkException {
-			setProperty(PaymentNode.billingAddressStreet2, billingAddressStreet2);
-	}
-
-	@Override
-	public String getBillingAddressZip() {
-		return getProperty(PaymentNode.billingAddressZip);
-	}
-
-	@Override
-	public void setBillingAddressZip(final String billingAddressZip) throws FrameworkException {
-		setProperty(PaymentNode.billingAddressZip, billingAddressZip);
-	}
-
-	@Override
-	public String getBillingAddressCity() {
-		return getProperty(PaymentNode.billingAddressCity);
-	}
-
-	@Override
-	public void setBillingAddressCity(final String billingAddressCity) throws FrameworkException {
-		setProperty(PaymentNode.billingAddressCity, billingAddressCity);
-	}
-
-	@Override
-	public String getBillingAddressCountry() {
-		return getProperty(PaymentNode.billingAddressCountry);
-	}
-
-	@Override
-	public void setBillingAddressCountry(final String billingAddressCountry) throws FrameworkException {
-		setProperty(PaymentNode.billingAddressCountry, billingAddressCountry);
-	}
-
-	@Override
-	public String getPayer() {
-		return getProperty(PaymentNode.payer);
-	}
-
-	@Override
-	public void setPayer(final String payer) throws FrameworkException {
-			setProperty(PaymentNode.payer, payer);
-	}
-
-	@Override
-	public String getPayerBusiness() {
-		return getProperty(PaymentNode.payerBusiness);
-	}
-
-	@Override
-	public void setPayerBusiness(final String payerBusiness) throws FrameworkException {
-		setProperty(PaymentNode.payerBusiness, payerBusiness);
-	}
-
-	@Override
-	public String getPayerAddressName() {
-		return getProperty(PaymentNode.payerAddressName);
-	}
-
-	@Override
-	public void setPayerAddressName(final String payerAddressName) throws FrameworkException {
-			setProperty(PaymentNode.payerAddressName, payerAddressName);
-	}
-
-	@Override
-	public String getPayerAddressStreet1() {
-		return getProperty(PaymentNode.payerAddressStreet1);
-	}
-
-	@Override
-	public void setPayerAddressStreet1(final String payerAddressStreet1) throws FrameworkException {
-			setProperty(PaymentNode.payerAddressStreet1, payerAddressStreet1);
-	}
-
-	@Override
-	public String getPayerAddressStreet2() {
-		return getProperty(PaymentNode.payerAddressStreet2);
-	}
-
-	@Override
-	public void setPayerAddressStreet2(final String payerAddressStreet2) throws FrameworkException {
-			setProperty(PaymentNode.payerAddressStreet2, payerAddressStreet2);
-	}
-
-	@Override
-	public String getPayerAddressZip() {
-		return getProperty(PaymentNode.payerAddressZip);
-	}
-
-	@Override
-	public void setPayerAddressZip(final String payerAddressZip) throws FrameworkException {
-			setProperty(PaymentNode.payerAddressZip, payerAddressZip);
-	}
-
-	@Override
-	public String getPayerAddressCity() {
-		return getProperty(PaymentNode.payerAddressCity);
-	}
-
-	@Override
-	public void setPayerAddressCity(final String payerAddressCity) throws FrameworkException {
-			setProperty(PaymentNode.payerAddressCity, payerAddressCity);
-	}
-
-	@Override
-	public String getPayerAddressCountry() {
-		return getProperty(PaymentNode.payerAddressCountry);
-	}
-
-	@Override
-	public void setPayerAddressCountry(final String payerAddressCountry) throws FrameworkException {
-		setProperty(PaymentNode.payerAddressCountry, payerAddressCountry);
-	}
-
-	@Override
-	public String getBillingAgreementId() {
-		return getProperty(PaymentNode.billingAgreementId);
-	}
-
-	@Override
-	public void setBillingAgreementId(final String billingAgreementId) throws FrameworkException {
-		setProperty(PaymentNode.billingAgreementId, billingAgreementId);
-	}
-
-	@Override
-	public String getNote() {
-		return getProperty(PaymentNode.note);
-	}
-
-	@Override
-	public void setNote(final String note) throws FrameworkException {
-		setProperty(PaymentNode.note, note);
-	}
-
-	@Override
-	public String getInvoiceId() {
-		return getProperty(PaymentNode.invoiceId);
-	}
-
-	@Override
-	public void setInvoiceId(final String invoiceId) throws FrameworkException {
-		setProperty(PaymentNode.invoiceId, invoiceId);
 	}
 }

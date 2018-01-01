@@ -411,37 +411,24 @@ public class FileHelper {
 
 		// try name first, if not null
 		if (name != null) {
+
 			mimeType = mimeTypeMap.getContentType(name);
 			if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
 				return mimeType;
 			}
 		}
 
-		final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
+		try {
 
-		mimeType = mediaType.toString();
+			final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
+			mimeType = mediaType.toString();
 
-//		// then file content
-//		mimeType = Files.probeContentType(file.toPath());
-//		if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
-//
-//			return mimeType;
-//		}
-//
-//		// fallback: jmimemagic
-//		try {
-//			final MagicMatch match = Magic.getMagicMatch(file, false, true);
-//			if (match != null) {
-//
-//				return match.getMimeType();
-//			}
-//
-//		} catch (MagicParseException | MagicMatchNotFoundException | MagicException ignore) {
-//			// mlogger.warn("", ex);
-//		}
+			if (mimeType != null) {
+				return mimeType;
+			}
 
-		if (mimeType != null) {
-			return mimeType;
+		} catch (Throwable t) {
+			logger.warn("Unable to use DefaultDetector from Apache Tika: {}", t.getMessage());
 		}
 
 		// no success :(
