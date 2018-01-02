@@ -22,13 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
-import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.rest.service.HttpService;
 import org.structr.schema.action.Actions;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -71,14 +69,14 @@ public class LoginCommand extends AbstractCommand {
 					String sessionId = webSocketData.getSessionId();
 					if (sessionId == null) {
 						
-						logger.info("Unable to login {}: No sessionId found", new Object[]{ username, password });
+						logger.debug("Unable to login {}: No sessionId found", new Object[]{ username, password });
 						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 						return;
 
 					}
 
-					sessionId = Services.getInstance().getService(HttpService.class).getSessionCache().getSessionHandler().getSessionIdManager().getId(sessionId);
+					sessionId = SessionHelper.getShortSessionId(sessionId);
 
 					try {
 						Actions.call(Actions.NOTIFICATION_LOGIN, user);

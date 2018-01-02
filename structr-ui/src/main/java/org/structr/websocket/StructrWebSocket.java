@@ -44,7 +44,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.rest.service.HttpService;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
@@ -140,6 +139,11 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketText(final String data) {
 
+		if (!Services.getInstance().isInitialized()) {
+			// send 401 Authentication Required
+			send(MessageBuilder.status().code(503).message("System is not initialized yet").build(), true);
+		}		
+		
 		final Services servicesInstance = Services.getInstance();
 
 		// wait for service layer to be initialized
@@ -171,7 +175,7 @@ public class StructrWebSocket implements WebSocketListener {
 				if (sessionIdFromMessage != null) {
 
 					// try to authenticated this connection by sessionId
-					authenticate(Services.getInstance().getService(HttpService.class).getSessionCache().getSessionHandler().getSessionIdManager().getId(sessionIdFromMessage));
+					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage));
 				}
 
 				// we only permit LOGIN commands if authentication based on sessionId was not successful
@@ -430,7 +434,10 @@ public class StructrWebSocket implements WebSocketListener {
 				final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
 
 				if (sessionValid) {
-					this.setAuthenticated(sessionId, user);
+					
+					logger.debug("Valid session: " + sessionId);
+					setAuthenticated(sessionId, user);
+					
 				} else {
 
 					logger.warn("Session {} timed out - last accessed by {} ({})", sessionId, user.getName(), user.getUuid());
@@ -441,9 +448,9 @@ public class StructrWebSocket implements WebSocketListener {
 
 					AuthHelper.sendLogoutNotification(user);
 
-                    invalidateConsole();
+					invalidateConsole();
 
-					this.timedOut = true;
+					timedOut = true;
 
 				}
 
@@ -555,9 +562,12 @@ public class StructrWebSocket implements WebSocketListener {
 
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
-		this.securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-		this.securityContext.setSessionId(sessionId);
-		this.timedOut = false;
+		securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+		securityContext.setSessionId(sessionId);
+		
+		logger.debug("Session ID of security context " + securityContext + " set to " + sessionId);
+		
+		timedOut = false;
 	}
 
 	@Override

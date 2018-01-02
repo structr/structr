@@ -339,7 +339,7 @@ public class UiAuthenticator implements Authenticator {
 			final HttpSession session = request.getSession(false);
 			if (session != null) {
 
-				session.invalidate();
+				SessionHelper.invalidateSession(session);
 			}
 
 		} catch (IllegalStateException | FrameworkException ex) {
