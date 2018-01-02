@@ -278,8 +278,8 @@ var _Pages = {
 		pPager.activateFilterElements();
 
 		$.ajax({
-			url: "/structr/rest/Page/category",
-			success:function(data) {
+			url: '/structr/rest/Page/category',
+			success: function(data) {
 				var categories = [];
 				data.result.forEach(function(page) {
 					if (page.category !== null && categories.indexOf(page.category) === -1) {
@@ -288,11 +288,11 @@ var _Pages = {
 				});
 				categories.sort();
 
-				var helpText = "Here you can filter the pages list by page category.";
-				if(categories.length > 0) {
-					helpText += "Available categories are: \n\n" + categories.join("\n");
+				var helpText = 'Here you can filter the pages list by page category.';
+				if (categories.length > 0) {
+					helpText += 'Available categories are: \n\n' + categories.join('\n');
 				}
-				helpText += "\n\nPro Tip: If category names have identical substrings you can filter for multiple categories at once.";
+				helpText += '\n\nPro Tip: If category names have identical substrings you can filter for multiple categories at once.';
 
 				categoryFilter.attr('title', helpText);
 			}
