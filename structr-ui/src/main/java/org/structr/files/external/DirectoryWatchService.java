@@ -70,10 +70,11 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 	public void mountFolder(final Folder folder) {
 
-		final Integer scanInterval = folder.getProperty(Folder.mountScanInterval);
-		final String mountTarget   = folder.getProperty(Folder.mountTarget);
-		final String folderPath    = folder.getProperty(Folder.path);
-		final String uuid          = folder.getUuid();
+		final boolean watchContents = folder.getProperty(Folder.mountWatchContents);
+		final Integer scanInterval  = folder.getProperty(Folder.mountScanInterval);
+		final String mountTarget    = folder.getProperty(Folder.mountTarget);
+		final String folderPath     = folder.getProperty(Folder.path);
+		final String uuid           = folder.getUuid();
 
 		synchronized (watchedRoots) {
 
@@ -87,7 +88,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
 
-					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget, true)).start();
+					new Thread(new ScanWorker(watchContents, Paths.get(mountTarget), mountTarget, true)).start();
 				}
 
 			} else {
@@ -106,7 +107,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
 
-					new Thread(new ScanWorker(true, Paths.get(mountTarget), mountTarget, true)).start();
+					new Thread(new ScanWorker(watchContents, Paths.get(mountTarget), mountTarget, true)).start();
 
 				} else {
 
@@ -378,16 +379,6 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 					if (file.isDirectory()) {
 
 						directories.add(file);
-
-						if (registerWatchKey) {
-
-							// register directory with watch service
-							final WatchKey directoryKey = filePath.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
-							if (directoryKey != null) {
-
-								watchKeyMap.put(directoryKey, root);
-							}
-						}
 					}
 
 					// notify listener of directory discovery
