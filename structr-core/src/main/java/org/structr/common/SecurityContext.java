@@ -818,13 +818,13 @@ public class SecurityContext {
 	public String getSessionId() {
 
 		// return session id for HttpSession if present
-		if (getRequest() != null && getRequest().getSession() != null && getRequest().getSession().getId() != null) {
-			return getRequest().getSession().getId();
+		HttpSession session = getSession();
+		if (session != null) {
+			return session.getId();
 		}
 
 		// otherwise return cached session id if present (for websocket connections for example)
 		return sessionId;
-
 	}
 
 	public void setSessionId(String sessionId) {
