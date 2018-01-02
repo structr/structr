@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
+import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
@@ -157,7 +158,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 			term.print("Welcome to the ");
 			term.setBold(true);
-			term.print("Structr 2.1");
+			term.print("Structr " + VersionHelper.getFullVersionInfo());
 			term.setBold(false);
 			term.print(" JavaScript console. Use <Shift>+<Tab> to switch modes.");
 			term.println();
