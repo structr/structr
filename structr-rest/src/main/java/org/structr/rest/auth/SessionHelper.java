@@ -251,7 +251,7 @@ public class SessionHelper {
 				
 					// Not found, create new
 					SessionHelper.newSession(request);
-					logger.debug("3a. Created new session " + session.getId());
+					logger.debug("3a. Created new session");
 				
 					// remove session ID without session
 					SessionHelper.clearSession(requestedSessionId);
