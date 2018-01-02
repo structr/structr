@@ -31,6 +31,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import org.apache.cxf.helpers.IOUtils;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -266,6 +267,161 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				final FileBase check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
 
 				assertEquals("Invalid checksum of externally modified file", FileHelper.getMD5Checksum(file2), check2.getMD5());
+				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2.getFileOnDisk(false)));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			// unmount folder
+			try (final Tx tx = app.tx()) {
+
+				logger.info("Unmounting directory..");
+
+				final Folder mounted = app.nodeQuery(Folder.class).and(Folder.name, "mounted3").getFirst();
+
+				mounted.setProperty(Folder.mountTarget, null);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			try {
+
+				// cleanup
+				Files.walkFileTree(root, new FileVisitor<Path>() {
+
+					@Override
+					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+						return FileVisitResult.CONTINUE;
+					}
+
+					@Override
+					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+						try {
+							Files.delete(file);
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+						return FileVisitResult.CONTINUE;
+					}
+
+					@Override
+					public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+						return FileVisitResult.CONTINUE;
+					}
+
+					@Override
+					public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+						try {
+							Files.delete(dir);
+						} catch (Throwable t) {
+							t.printStackTrace();
+						}
+						return FileVisitResult.CONTINUE;
+					}
+				});
+
+			} catch (Throwable ex) {
+				ex.printStackTrace();
+			}
+		}
+
+	}
+
+	@Test
+	public void testDisableWatchKeyRegistration() {
+
+		Path root          = null;
+		java.io.File file1 = null;
+		java.io.File file2 = null;
+		java.io.File file3 = null;
+
+		try {
+
+			logger.info("Creating directory to mount..");
+
+			// create some files and folders on disk
+			root = Files.createTempDirectory("structr-mount-test");
+
+			root.resolve("parent1/child1/grandchild1").toFile().mkdirs();
+			root.resolve("parent2/child1/grandchild1").toFile().mkdirs();
+			root.resolve("parent3/child1/grandchild1").toFile().mkdirs();
+
+			logger.info("Creating files to mount..");
+
+			file1 = root.resolve("parent1/child1/grandchild1/test1.txt").toFile();
+			file2 = root.resolve("parent2/child1/grandchild1/test2.txt").toFile();
+			file3 = root.resolve("parent3/child1/grandchild1/test3.txt").toFile();
+
+			writeFile(file1, "test1 - before change");
+			writeFile(file2, "test2 - before change");
+			writeFile(file3, "test3 - before change");
+
+			// mount folder
+			try (final Tx tx = app.tx()) {
+
+				logger.info("Mounting directory..");
+
+				app.create(Folder.class,
+					new NodeAttribute<>(Folder.name, "mounted3"),
+					new NodeAttribute<>(Folder.mountTarget, root.toString()),
+					new NodeAttribute<>(Folder.mountWatchContents, false)
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+
+			// wait some time
+			try { Thread.sleep(5000); } catch (Throwable t) {}
+
+			// check that all files and folders exist
+			try (final Tx tx = app.tx()) {
+
+				logger.info("Checking directory..");
+
+				final FileBase check1 = app.nodeQuery(File.class).andName("test1.txt").getFirst();
+				final FileBase check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
+				final FileBase check3 = app.nodeQuery(File.class).andName("test3.txt").getFirst();
+
+				assertEquals("Invalid mount result", "/mounted3/parent1/child1/grandchild1/test1.txt", check1.getProperty(File.path));
+				assertEquals("Invalid mount result", "/mounted3/parent2/child1/grandchild1/test2.txt", check2.getProperty(File.path));
+				assertEquals("Invalid mount result", "/mounted3/parent3/child1/grandchild1/test3.txt", check3.getProperty(File.path));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			// test external changes to files
+			writeFile(file2, "test2 - AFTER change");
+
+			// wait some time
+			try { Thread.sleep(1000); } catch (InterruptedException ignore) {}
+
+			// check that external changes are NOT recorded
+			try (final Tx tx = app.tx()) {
+
+				logger.info("Checking directory..");
+
+				final FileBase check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
+
+				assertFalse("Invalid checksum of externally modified file", FileHelper.getMD5Checksum(file2).equals(check2.getMD5()));
 				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2.getFileOnDisk(false)));
 
 				tx.success();

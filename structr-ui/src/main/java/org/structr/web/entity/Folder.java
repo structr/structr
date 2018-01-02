@@ -72,11 +72,12 @@ public class Folder extends AbstractFile implements CMISInfo, CMISFolderInfo {
 
 	public static final Property<String>         mountTarget             = new StringProperty("mountTarget").indexed();
 	public static final Property<Boolean>        mountDoFulltextIndexing = new BooleanProperty("mountDoFulltextIndexing");
+	public static final Property<Boolean>        mountWatchContents      = new BooleanProperty("mountWatchContents").defaultValue(true);
 	public static final Property<Integer>        mountScanInterval       = new IntProperty("mountScanInterval");
 	public static final Property<Long>           mountLastScanned        = new LongProperty("mountLastScanned");
 
 	public static final Property<String>         enabledChecksums        = new StringProperty("enabledChecksums").indexed().hint("List of checksum types which are being automatically calculated on file creation.\nSupported values are: crc32, md5, sha1, sha512");
-	
+
 	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
 
 	public static final View publicView = new View(Folder.class, PropertyView.Public,
