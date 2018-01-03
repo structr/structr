@@ -19,18 +19,22 @@
 
 package org.structr.knowledge;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Base class of a preferred term as defined in ISO 25964
  */
 
-public class Language extends ThesaurusTerm {
-	
-	private static final Logger logger = LoggerFactory.getLogger(Language.class.getName());
-	
-	public static final Property<ThesaurusConcept> preferredLabels = new EndNode<>("preferredLabels", TermHasLabel.class);
+public interface Language extends ThesaurusTerm {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Language");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Language"));
+	}}
 }

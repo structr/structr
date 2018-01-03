@@ -23,7 +23,7 @@ public interface MQTTInfo {
 	public String getProtocol();
 	public String getUrl();
 	public int getPort();
-	public int getQoS();
+	public int getQos();
 	public String getUuid();
 
 	public String[] getTopics();

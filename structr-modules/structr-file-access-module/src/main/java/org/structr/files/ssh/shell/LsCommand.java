@@ -19,7 +19,6 @@
 package org.structr.files.ssh.shell;
 
 import java.io.IOException;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -49,11 +48,11 @@ public class LsCommand extends NonInteractiveShellCommand {
 			final Folder currentFolder = parent.getCurrentFolder();
 			if (currentFolder != null) {
 
-				listFolder(parent, currentFolder.getProperty(AbstractFile.children));
+				listFolder(parent, currentFolder.getChildren());
 
 			} else {
 
-				listFolder(parent, app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, null).getAsList());
+				listFolder(parent, app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList());
 			}
 
 			tx.success();
@@ -65,11 +64,15 @@ public class LsCommand extends NonInteractiveShellCommand {
 	}
 
 	// ----- private methods -----
-	private void listFolder(final StructrShellCommand parent, final List<AbstractFile> folder) throws FrameworkException, IOException {
+	private void listFolder(final StructrShellCommand parent, final Iterable<AbstractFile> folder) throws FrameworkException, IOException {
+
+		boolean hasContents = false;
 
 		for (final AbstractFile child : folder) {
 
 			if (parent.isAllowed(child, Permission.read, false)) {
+
+				hasContents = true;
 
 				if (child instanceof Folder) {
 
@@ -86,7 +89,7 @@ public class LsCommand extends NonInteractiveShellCommand {
 			}
 		}
 
-		if (!folder.isEmpty()) {
+		if (hasContents) {
 			term.println();
 		}
 	}

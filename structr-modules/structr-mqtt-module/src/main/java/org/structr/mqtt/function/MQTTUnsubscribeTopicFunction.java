@@ -44,6 +44,7 @@ public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
 			}
 
 			client.unsubscribeTopic(sources[1].toString());
+
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());

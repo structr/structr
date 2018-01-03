@@ -29,7 +29,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -38,8 +38,8 @@ import org.structr.web.entity.FileBase;
 public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrFtpFile.class.getName());
-	
-	public StructrFtpFile(final SecurityContext securityContext, final FileBase file) {
+
+	public StructrFtpFile(final SecurityContext securityContext, final File file) {
 		super(securityContext, file);
 	}
 
@@ -55,17 +55,17 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public long getSize() {
-		
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-		
-			final Long size = ((FileBase) structrFile).getSize();
-			
+
+			final Long size = ((File) structrFile).getSize();
+
 			tx.success();
-			
+
 			return size == null ? 0L : size;
-			
+
 		} catch (FrameworkException fex) {}
-		
+
 		return 0L;
 	}
 
@@ -77,19 +77,19 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public OutputStream createOutputStream(final long l) throws IOException {
-		
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-		
-			final OutputStream outputStream = ((FileBase) structrFile).getOutputStream();
-			
+
+			final OutputStream outputStream = ((File) structrFile).getOutputStream();
+
 			tx.success();
-			
+
 			return outputStream;
 
 		} catch (FrameworkException fex) {
 			logger.error(null, fex);
 		}
-		
+
 		return null;
 	}
 
@@ -98,7 +98,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final InputStream inputStream = ((FileBase) structrFile).getInputStream();
+			final InputStream inputStream = ((File) structrFile).getInputStream();
 
 			tx.success();
 
@@ -119,7 +119,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 	@Override
 	public Object getPhysicalFile() {
-		throw new UnsupportedOperationException("Not supported yet."); 
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 }

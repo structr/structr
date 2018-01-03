@@ -33,7 +33,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
@@ -87,21 +86,21 @@ public class StructrUserManager implements UserManager {
 
 				for (Principal p : result.getResults()) {
 
-					userNames.add(p.getProperty(AbstractUser.name));
+					userNames.add(p.getProperty(Principal.name));
 
 				}
 
 			}
 
 			tx.success();
-			
-			
+
+
 			return (String[]) userNames.toArray(new String[userNames.size()]);
 
 		} catch (FrameworkException fex) {
 			logger.error("Unable to get user by its name", fex);
 		}
-		
+
 		return null;
 	}
 
@@ -117,7 +116,7 @@ public class StructrUserManager implements UserManager {
 
 	@Override
 	public boolean doesExist(String string) throws FtpException {
-		
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			boolean exists = (getStructrUser(string) != null);
@@ -152,8 +151,8 @@ public class StructrUserManager implements UserManager {
 				userName = authentication.getUsername();
 				password = authentication.getPassword();
 
-				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(AbstractUser.name, userName, password);
-				
+				user = (org.structr.web.entity.User) AuthHelper.getPrincipalForPassword(Principal.name, userName, password);
+
 				securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 
 				tx.success();
@@ -187,10 +186,10 @@ public class StructrUserManager implements UserManager {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, userName);
-			
+			final org.structr.web.entity.User user = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Principal.name, userName);
+
 			tx.success();
-			
+
 			return user;
 
 		} catch (FrameworkException fex) {

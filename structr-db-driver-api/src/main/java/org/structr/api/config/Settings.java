@@ -324,7 +324,7 @@ public class Settings {
 
 		if (setting == null) {
 
-			setting = new StringSetting(miscGroup, key, "");
+			setting = new StringSetting(miscGroup, key, null);
 		}
 
 		return setting;
@@ -345,7 +345,7 @@ public class Settings {
 
 		if (setting == null) {
 
-			setting = new IntegerSetting(miscGroup, key, 0);
+			setting = new IntegerSetting(miscGroup, key, null);
 		}
 
 		return setting;
@@ -366,7 +366,7 @@ public class Settings {
 
 		if (setting == null) {
 
-			setting = new BooleanSetting(miscGroup, key, false);
+			setting = new BooleanSetting(miscGroup, key, null);
 		}
 
 		return setting;

@@ -33,41 +33,40 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 
 /**
  *
  */
 public class StructrPosixFileAttributes implements PosixFileAttributes {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(StructrPosixFileAttributes.class.getName());
-	
+
 	final AbstractFile file;
-	
+
 	StructrPosixFileAttributes(final StructrSSHFile path) {
 		file = ((StructrSSHFile) path).getActualFile();
 	}
-	
+
 	@Override
 	public UserPrincipal owner() {
 
 		UserPrincipal owner = null;
-		
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			owner = file.getOwnerNode()::getName;
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return owner;
 	}
 
 	@Override
 	public GroupPrincipal group() {
-		final List<Group> groups = file.getOwnerNode().getProperty(User.groups);
+		final List<Group> groups = file.getOwnerNode().getGroups();
 		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
 	}
 
@@ -82,25 +81,25 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 
 	@Override
 	public FileTime lastModifiedTime() {
-		
+
 		FileTime time = null;
-		
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			time = FileTime.fromMillis(file.getLastModifiedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return time;
-		
+
 	}
 
 	@Override
 	public FileTime lastAccessTime() {
 
 		FileTime time = null;
-		
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			// Same as lastModifiedTime() as we don't store last access time in Structr yet
 			time = FileTime.fromMillis(file.getLastModifiedDate().getTime());
@@ -108,52 +107,52 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return time;
 	}
 
 	@Override
 	public FileTime creationTime() {
-		
+
 		FileTime time = null;
-		
+
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			time = FileTime.fromMillis(file.getCreatedDate().getTime());
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return time;
 	}
 
 	@Override
 	public boolean isRegularFile() {
-		
+
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			isRegularFile = file.getProperty(FileBase.isFile);
+			isRegularFile = file instanceof File;
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return isRegularFile;
 	}
 
 	@Override
 	public boolean isDirectory() {
-		
+
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			isDirectory = file.getProperty(Folder.isFolder);
+			isDirectory = file instanceof Folder;
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return isDirectory;
 	}
 
@@ -170,22 +169,22 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 
 	@Override
 	public long size() {
-		
+
 		long size = 0;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			size = file.getProperty(FileBase.size);
+			size = ((File)file).getSize();
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return size;
 	}
 
 	@Override
 	public Object fileKey() {
-		
+
 		String uuid = null;
 		try (Tx tx = StructrApp.getInstance().tx()) {
 			uuid = file.getUuid();
@@ -193,7 +192,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
 		}
-		
+
 		return uuid;
 	}
 

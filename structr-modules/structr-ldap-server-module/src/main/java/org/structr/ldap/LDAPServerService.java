@@ -107,6 +107,8 @@ public class LDAPServerService implements SingletonService {
 
 		} catch (Throwable t) {
 
+			t.printStackTrace();
+
 			logger.warn("Unable to start LDAP server: {}", t.getMessage());
 
 			return false;

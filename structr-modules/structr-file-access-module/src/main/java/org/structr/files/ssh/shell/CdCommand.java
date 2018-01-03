@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.files.ssh.StructrShellCommand;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
@@ -59,7 +60,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 					case "..":
 						if (currentFolder != null) {
 
-							final Folder parentFolder = currentFolder.getProperty(AbstractFile.parent);
+							final Folder parentFolder = currentFolder.getParent();
 							if (parentFolder != null) {
 
 								if (parent.isAllowed(parentFolder, Permission.read, true)) {
@@ -134,9 +135,10 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 		if (line.contains(" ") && line.length() >= 3) {
 
-			String incompletePath = line.substring(line.indexOf(" ") + 1);
-			Folder baseFolder     = null;
-			String lastPathPart   = null;
+			final PropertyKey<AbstractFile> parentKey = StructrApp.key(AbstractFile.class, "parent");
+			String incompletePath                     = line.substring(line.indexOf(" ") + 1);
+			Folder baseFolder                         = null;
+			String lastPathPart                       = null;
 
 			if (incompletePath.startsWith("\"")) {
 
@@ -181,7 +183,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 						// skip empty path parts
 						if (StringUtils.isNotBlank(parts[i])) {
 
-							baseFolder = app.nodeQuery(Folder.class).and(AbstractFile.parent, baseFolder).and(Folder.name, parts[i]).getFirst();
+							baseFolder = app.nodeQuery(Folder.class).and(parentKey, baseFolder).and(Folder.name, parts[i]).getFirst();
 							if (baseFolder == null) {
 
 								return;
@@ -190,7 +192,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 					}
 				}
 
-				final List<Folder> allFolders = app.nodeQuery(Folder.class).and(AbstractFile.parent, baseFolder).getAsList();
+				final List<Folder> allFolders = app.nodeQuery(Folder.class).and(parentKey, baseFolder).getAsList();
 				final List<Folder> folders    = new LinkedList<>();
 
 				for (final Folder folder : allFolders) {
@@ -220,7 +222,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 							// only display autocomplete suggestions after second tab
 							if (tabCount > 1) {
 
-								displayAutocompleteSuggestions(parent, folder.getProperty(Folder.folders), line);
+								displayAutocompleteSuggestions(parent, folder.getFolders(), line);
 
 							} else {
 
@@ -260,7 +262,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 		if (target.startsWith("/")) {
 
-			final Folder folder = app.nodeQuery(Folder.class).and(Folder.path, target).getFirst();
+			final Folder folder = app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), target).getFirst();
 			if (folder != null) {
 
 				if (parent.isAllowed(folder, Permission.read, true)) {
@@ -312,29 +314,26 @@ public class CdCommand extends NonInteractiveShellCommand {
 		}
 	}
 
-	private void displayAutocompleteSuggestions(final StructrShellCommand parent, final List<Folder> folders, final String line) throws IOException {
+	private void displayAutocompleteSuggestions(final StructrShellCommand parent, final Iterable<Folder> folders, final String line) throws IOException {
 
-		if (!folders.isEmpty()) {
+		final StringBuilder buf = new StringBuilder();
 
-			final StringBuilder buf = new StringBuilder();
+		for (final Folder folder : folders) {
 
-			for (final Folder folder : folders) {
+			if (parent.isAllowed(folder, Permission.read, false)) {
 
-				if (parent.isAllowed(folder, Permission.read, false)) {
-
-					buf.append(folder.getName()).append("/  ");
-				}
+				buf.append(folder.getName()).append("/  ");
 			}
+		}
 
-			if (buf.length() > 0) {
+		if (buf.length() > 0) {
 
-				term.println();
-				term.print(buf.toString());
-				term.println();
+			term.println();
+			term.print(buf.toString());
+			term.println();
 
-				parent.displayPrompt();
-				term.print(line);
-			}
+			parent.displayPrompt();
+			term.print(line);
 		}
 	}
 }

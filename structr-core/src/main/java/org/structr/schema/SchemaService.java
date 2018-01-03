@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
-import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.Service;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessPathCache;
@@ -77,16 +76,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-
-		services.registerInitializationCallback(new InitializationCallback() {
-
-			@Override
-			public void initializationDone() {
-				reloadSchema(new ErrorBuffer(), null);
-			}
-		});
-
-		return true;
+		return reloadSchema(new ErrorBuffer(), null);
 	}
 
 	public static JsonSchema getDynamicSchema() {

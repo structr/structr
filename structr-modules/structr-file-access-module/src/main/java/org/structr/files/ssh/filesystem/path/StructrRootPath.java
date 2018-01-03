@@ -39,9 +39,7 @@ import org.structr.files.ssh.filesystem.AbstractDirectoryStream;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.StructrRootAttributes;
-import org.structr.files.ssh.filesystem.path.components.StructrComponentsPath;
 import org.structr.files.ssh.filesystem.path.file.StructrFilesPath;
-import org.structr.files.ssh.filesystem.path.page.StructrPagesPath;
 import org.structr.files.ssh.filesystem.path.schema.StructrSchemaPath;
 
 /**
@@ -61,10 +59,7 @@ public class StructrRootPath extends StructrPath {
 		this.rootPaths.put(StructrPath.CURRENT_DIRECTORY,    this);
 		this.rootPaths.put(StructrPath.ROOT_DIRECTORY,       this);
 		this.rootPaths.put(StructrPath.FILES_DIRECTORY,      new StructrFilesPath(fs, this));
-		this.rootPaths.put(StructrPath.PAGE_DIRECTORY,       new StructrPagesPath(fs, this));
-		//this.rootPaths.put(StructrPath.GRAPH_DIRECTORY,    new StructrGraphPath(fs, this));
 		this.rootPaths.put(StructrPath.SCHEMA_DIRECTORY,     new StructrSchemaPath(fs, this));
-		this.rootPaths.put(StructrPath.COMPONENTS_DIRECTORY, new StructrComponentsPath(fs, this));
 	}
 
 	@Override

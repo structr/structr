@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.web.files.SSHTest;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -157,12 +157,12 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+			final List<File> files = app.nodeQuery(File.class).getAsList();
 
 			assertEquals("Invalid number of test files", 2, files.size());
 
-			final FileBase file1 = files.get(0);
-			final FileBase file2 = files.get(1);
+			final File file1 = files.get(0);
+			final File file2 = files.get(1);
 
 			assertEquals("Invalid test file name", name1, file1.getName());
 			assertEquals("Invalid test file name", name2, file2.getName());
@@ -279,7 +279,7 @@ public class SSHFilesTest extends SSHTest {
 		final String name2        = "fileöäüß.txt";
 
 		String date = null;
-		
+
 		try {
 
 			sftp.mkdir("/files/dir1");
@@ -367,11 +367,11 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+			final List<File> files = app.nodeQuery(File.class).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
-			final FileBase file1 = files.get(0);
+			final File file1 = files.get(0);
 
 			assertEquals("Invalid test file name", name, file1.getName());
 
@@ -451,11 +451,11 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+			final List<File> files = app.nodeQuery(File.class).getAsList();
 
 			assertEquals("Invalid number of test files", 1, files.size());
 
-			final FileBase file1 = files.get(0);
+			final File file1 = files.get(0);
 
 			assertEquals("Invalid test file name", name, file1.getName());
 
@@ -485,7 +485,7 @@ public class SSHFilesTest extends SSHTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<FileBase> files = app.nodeQuery(FileBase.class).getAsList();
+			final List<File> files = app.nodeQuery(File.class).getAsList();
 
 			assertEquals("Invalid number of test files", 0, files.size());
 

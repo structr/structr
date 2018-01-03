@@ -18,54 +18,76 @@
  */
 package org.structr.ldap;
 
+import java.net.URI;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
 import org.apache.directory.api.ldap.model.exception.LdapInvalidAttributeValueException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.Services;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.app.StructrApp;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.User;
 
 /**
  *
  */
-public class LDAPUser extends User {
+public interface LDAPUser extends User {
 
-	private static final Logger logger = LoggerFactory.getLogger(LDAPUser.class);
-	
-	public static final Property<String> distinguishedName = new StringProperty("distinguishedName").unique().indexed();
-	public static final Property<String> description       = new StringProperty("description").indexed();
-	public static final Property<String> commonName        = new StringProperty("commonName").indexed();
-	public static final Property<String> entryUuid         = new StringProperty("entryUuid").unique().indexed();
+	static class Impl { static {
 
+		final JsonSchema schema    = SchemaService.getDynamicSchema();
+		final JsonObjectType type  = schema.addType("LDAPUser");
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(LDAPUser.class, PropertyView.Ui,
-		distinguishedName, entryUuid, commonName, description
-	);
+		type.setExtends(schema.getType("User"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LDAPUser"));
 
-	public static final org.structr.common.View publicView = new org.structr.common.View(LDAPUser.class, PropertyView.Public,
-		distinguishedName, entryUuid, commonName, description
-	);
+		type.addStringProperty("distinguishedName", PropertyView.Public).setUnique(true).setIndexed(true);
+		type.addStringProperty("description",       PropertyView.Public).setIndexed(true);
+		type.addStringProperty("commonName",        PropertyView.Public).setIndexed(true);
+		type.addStringProperty("entryUuid",         PropertyView.Public).setUnique(true).setIndexed(true);
 
-	public void initializeFrom(final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException {
+		type.addPropertyGetter("distinguishedName", String.class);
+		type.addPropertyGetter("description",       String.class);
+		type.addPropertyGetter("commonName",        String.class);
+		type.addPropertyGetter("entryUuid",         String.class);
 
-		setProperty(LDAPUser.description, getString(entry, "description"));
-		setProperty(LDAPUser.entryUuid,   getString(entry, "entryUUID"));
-		setProperty(LDAPUser.name,        getString(entry, "uid"));
-		setProperty(LDAPUser.commonName,  getString(entry, "cn"));
-		setProperty(LDAPUser.eMail,       getString(entry, "mail"));
+		type.addPropertySetter("distinguishedName", String.class);
+		type.addPropertySetter("description",       String.class);
+		type.addPropertySetter("commonName",        String.class);
+		type.addPropertySetter("entryUuid",         String.class);
+
+		type.overrideMethod("initializeFrom",  false, LDAPUser.class.getName() + ".initializeFrom(this, arg0);");
+		type.overrideMethod("printDebug",      false, LDAPUser.class.getName() + ".printDebug(this);").setDoExport(true);
+		type.overrideMethod("isValidPassword", false, "return " + LDAPUser.class.getName() + ".isValidPassword(this, arg0);");
+	}}
+
+	String getDistinguishedName();
+	String getDescription();
+	String getCommonName();
+	String getEntryUuid();
+
+	void initializeFrom(final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException;
+	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
+	void setDescription(final String description) throws FrameworkException;
+	void setCommonName(final String commonName) throws FrameworkException;
+	void setEntryUuid(final String uuid) throws FrameworkException;
+
+	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException {
+
+		thisUser.setProperty(StructrApp.key(LDAPUser.class, "description"), LDAPUser.getString(entry, "description"));
+		thisUser.setProperty(StructrApp.key(LDAPUser.class, "entryUuid"),   LDAPUser.getString(entry, "entryUUID"));
+		thisUser.setProperty(StructrApp.key(LDAPUser.class, "name"),        LDAPUser.getString(entry, "uid"));
+		thisUser.setProperty(StructrApp.key(LDAPUser.class, "commonName"),  LDAPUser.getString(entry, "cn"));
+		thisUser.setProperty(StructrApp.key(LDAPUser.class, "eMail"),       LDAPUser.getString(entry, "mail"));
 	}
 
-	@Override
-	public boolean isValidPassword(final String password) {
+	static boolean isValidPassword(final LDAPUser thisUser, final String password) {
 
 		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
-		final String dn               = getProperty(distinguishedName);
+		final String dn               = thisUser.getDistinguishedName();
 
 		if (ldapService != null) {
 
@@ -79,11 +101,10 @@ public class LDAPUser extends User {
 		return false;
 	}
 
-	@Export
-	public void printDebug() {
+	static void printDebug(final LDAPUser thisUser) {
 
 		final LDAPService ldapService = Services.getInstance().getService(LDAPService.class);
-		final String dn               = getProperty(distinguishedName);
+		final String dn               = thisUser.getDistinguishedName();
 
 		if (ldapService != null) {
 
@@ -95,10 +116,7 @@ public class LDAPUser extends User {
 		}
 	}
 
-
-
-	// ----- private methods -----
-	private String getString(final Entry entry, final String key) throws LdapInvalidAttributeValueException {
+	static String getString(final Entry entry, final String key) throws LdapInvalidAttributeValueException {
 
 		final Attribute attribute = entry.get(key);
 		if (attribute != null) {

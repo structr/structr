@@ -63,8 +63,6 @@ public class StructrHttpServiceConfig {
 
 		final String resourceProviderKeyName = "resourceprovider";
 		final String authenticatorKeyName    = "authenticator";
-		final String userAutoCreateKeyName   = "user.autocreate";
-		final String userAutoLoginKeyName    = "user.autologin";
 		final String defaultPropertyKeyName  = "defaultview";
 		final String nestingDepthKeyName     = "outputdepth";
 

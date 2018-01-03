@@ -46,8 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
@@ -60,10 +58,8 @@ public abstract class StructrPath implements Path {
 	public static final String ROOT_DIRECTORY      = "/";
 	public static final String CURRENT_DIRECTORY   = ".";
 	public static final String SCHEMA_DIRECTORY    = "schema";
-	public static final String PAGE_DIRECTORY      = "pages";
 	public static final String GRAPH_DIRECTORY     = "graph";
 	public static final String FILES_DIRECTORY     = "files";
-	public static final String COMPONENTS_DIRECTORY = "components";
 
 	protected StructrFilesystem fs = null;
 	protected StructrPath parent   = null;
@@ -379,63 +375,6 @@ public abstract class StructrPath implements Path {
 		dst = dst.replace('°', '_');
 
 		return dst;
-	}
-
-	protected String getName(final String tagName, final DOMNode node, final int position) {
-
-		final StringBuilder buf = new StringBuilder();
-		final int localPosition = getDomPosition(node, position);
-
-		if (localPosition < 10) {
-			buf.append("0");
-		}
-
-		if (localPosition < 100) {
-			buf.append("0");
-		}
-
-		if (localPosition < 1000) {
-			buf.append("0");
-		}
-
-		buf.append(localPosition);
-		buf.append("-");
-
-		if (node != null) {
-
-			if(node instanceof DOMElement) {
-
-				final DOMElement elem = (DOMElement)node;
-				buf.append(elem.getTagName());
-
-			} else {
-
-				// test
-				buf.append(node.getType().toLowerCase());
-			}
-
-		} else if (tagName != null) {
-
-			buf.append(tagName);
-		}
-
-		return buf.toString();
-	}
-
-	protected int getDomPosition(final DOMNode node, final int index) {
-
-		Integer localPosition = (index + 1) * 100;
-
-		if (node != null) {
-
-			final Integer storedPosition = node.getProperty(DOMNode.domSortPosition);
-			if (storedPosition != null) {
-
-				localPosition = storedPosition;
-			}
-		}
-
-		return localPosition;
 	}
 
 	// ----- nested classes -----

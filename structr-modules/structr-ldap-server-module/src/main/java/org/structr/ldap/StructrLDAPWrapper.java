@@ -55,13 +55,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.ldap.api.LDAPAttribute;
-import org.structr.ldap.api.LDAPNode;
-import org.structr.ldap.api.LDAPValue;
-import org.structr.ldap.entity.LDAPNodeImpl;
+import org.structr.ldap.entity.LDAPAttribute;
+import org.structr.ldap.entity.LDAPNode;
+import org.structr.ldap.entity.LDAPValue;
 
 
 public class StructrLDAPWrapper {
@@ -457,14 +455,15 @@ public class StructrLDAPWrapper {
 
 	private LDAPNode getRoot() throws FrameworkException {
 
-		final App app = app();
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass("LDAPNode");
+		final App app    = app();
 
 		LDAPNode root = (LDAPNode)app.nodeQuery(type).andName(partitionId).getFirst();
 		if (root == null) {
 
-			root = app.create(LDAPNodeImpl.class,
-				new NodeAttribute<>(AbstractNode.name, partitionId),
-				new NodeAttribute<>(LDAPNodeImpl.isRoot, true)
+			root = app.create(type,
+				new NodeAttribute<>(StructrApp.key(LDAPNode.class, "name"),   partitionId),
+				new NodeAttribute<>(StructrApp.key(LDAPNode.class, "isRoot"), true)
 			);
 		}
 

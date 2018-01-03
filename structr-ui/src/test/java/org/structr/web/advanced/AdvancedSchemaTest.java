@@ -45,10 +45,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.basic.FrontendTest;
 import org.structr.web.basic.ResourceAccessTest;
 import static org.structr.web.basic.ResourceAccessTest.createResourceAccess;
+import org.structr.web.entity.User;
 
 
 
@@ -997,5 +1000,42 @@ public class AdvancedSchemaTest extends FrontendTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
+	}
+
+	@Test
+	public void testIsValidPasswordMethodOfUser() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(User.class,
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.getType("User").overrideMethod("isValidPassword", false, "return true;");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		RestAssured
+
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.headers("X-User", "admin" , "X-Password", "wrong")
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+				.get("/User");
 	}
 }

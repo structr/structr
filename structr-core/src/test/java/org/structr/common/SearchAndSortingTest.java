@@ -391,7 +391,7 @@ public class SearchAndSortingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 1000;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
-			final int expectedNumber        = 1105;
+			final int expectedNumber        = 1106;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 

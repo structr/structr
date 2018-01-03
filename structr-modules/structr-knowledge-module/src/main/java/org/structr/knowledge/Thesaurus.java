@@ -19,20 +19,27 @@
 
 package org.structr.knowledge;
 
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
+import java.net.URI;
+import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Base class of a Thesaurus as defined in ISO 25964
  */
 
-public class Thesaurus extends AbstractNode {
-	
-	private static final Logger logger = LoggerFactory.getLogger(Thesaurus.class.getName());
-	
-	public static final Property<List<ThesaurusConcept>> concepts = new EndNodes<>("concepts", ThesaurusContainsConcepts.class);
+public interface Thesaurus extends NodeInterface {
+
+	static class Impl { static {
+
+		final JsonSchema schema      = SchemaService.getDynamicSchema();
+		final JsonObjectType type    = schema.addType("Thesaurus");
+		final JsonObjectType concept = schema.addType("ThesaurusConcept");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Thesaurus"));
+
+		type.relate(concept, "CONTAINS", Cardinality.OneToMany, "thesaurus", "concepts");
+	}}
 }

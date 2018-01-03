@@ -19,30 +19,54 @@
 package org.structr.web.entity;
 
 import java.io.InputStream;
+import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.rest.common.HttpHelper;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
  *
  */
-public class RemoteDocument extends AbstractNode implements Indexable {
+public interface RemoteDocument extends NodeInterface, Indexable {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("RemoteDocument");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/RemoteDocument"));
+		type.setImplements(URI.create("#/definitions/Indexable"));
+
+		type.addStringProperty("url",              PropertyView.Public);
+		type.addLongProperty("checksum",           PropertyView.Public).setReadOnly(true);
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
+		type.addIntegerProperty("version",         PropertyView.Public).setIndexed(true).setReadOnly(true);
+
+		type.addPropertyGetter("url", String.class);
+
+		type.overrideMethod("afterCreation",    true,  "update();");
+		type.overrideMethod("getSearchContext", false, "return " + RemoteDocument.class.getName() + ".getSearchContext(this, arg0, arg1);");
+		type.overrideMethod("getInputStream",   false, "return " + RemoteDocument.class.getName() + ".getInputStream(this);");
+
+		type.addMethod("update").setSource(RemoteDocument.class.getName() + ".update(this);").setDoExport(true);
+
+	}}
+
+	void update();
+	String getUrl();
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(RemoteDocument.class.getName());
 
@@ -59,26 +83,28 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 
 		update();
 	}
+	*/
 
-	@Export
-	public void update() {
+	static void update(final RemoteDocument thisDocument) {
+
+		final SecurityContext securityContext = thisDocument.getSecurityContext();
 
 		try {
 
 			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			indexer.addToFulltextIndex(this);
+			indexer.addToFulltextIndex(thisDocument);
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to index " + this, fex);
+			logger.warn("Unable to index " + thisDocument, fex);
 		}
 	}
 
-	@Export
-	@Override
-	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {
+	static GraphObject getSearchContext(final RemoteDocument thisDocument, final String searchTerm, final int contextLength) {
 
-		final String text = getProperty(extractedContent);
+		final SecurityContext securityContext = thisDocument.getSecurityContext();
+		final String text                     = thisDocument.getExtractedContent();
+
 		if (text != null) {
 
 			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
@@ -88,6 +114,7 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 		return null;
 	}
 
+	/*
 	public void increaseVersion() throws FrameworkException {
 
 		final Integer _version = getProperty(RemoteDocument.version);
@@ -102,11 +129,11 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 			setProperty(RemoteDocument.version, _version + 1);
 		}
 	}
+	*/
 
-	@Override
-	public InputStream getInputStream() {
+	static InputStream getInputStream(final RemoteDocument thisDocument) {
 
-		final String remoteUrl = getProperty(url);
+		final String remoteUrl = thisDocument.getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
 			return HttpHelper.getAsStream(remoteUrl);
@@ -114,8 +141,4 @@ public class RemoteDocument extends AbstractNode implements Indexable {
 
 		return null;
 	}
-
-	// ----- private methods -----
-
-
 }

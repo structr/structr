@@ -30,7 +30,6 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
 import org.structr.mqtt.entity.MQTTClient;
 
 public abstract class MQTTContext {
@@ -120,10 +119,10 @@ public abstract class MQTTContext {
 
 				for (final MQTTClient client : app.nodeQuery(MQTTClient.class).getAsList()) {
 
-					client.setProperties(client.getSecurityContext(), new PropertyMap(MQTTClient.isConnected, false));
+					client.setIsConnected(false);
 
 					// enable clients on startup
-					if (client.getProperty(MQTTClient.isEnabled)) {
+					if (client.getIsEnabled()) {
 
 						MQTTContext.connect(client);
 						MQTTContext.subscribeAllTopics(client);

@@ -63,10 +63,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -103,17 +102,17 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				OutputStream os = null;
 
-				FileBase actualFile = (FileBase) ((StructrSSHFile) path).getActualFile();
+				File actualFile = (File) ((StructrSSHFile) path).getActualFile();
 
 				try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 					if (actualFile == null) {
 
-						actualFile = (FileBase) create(path);
+						actualFile = (File) create(path);
 					}
 
 					if (actualFile != null) {
-						os = ((FileBase) actualFile).getOutputStream();
+						os = ((File) actualFile).getOutputStream();
 					}
 
 					tx.success();
@@ -136,7 +135,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-					final FileBase fileNode = (FileBase) ((StructrSSHFile) path).getActualFile();
+					final File fileNode = (File) ((StructrSSHFile) path).getActualFile();
 					inputStream = fileNode.getInputStream();
 
 					tx.success();
@@ -180,7 +179,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				SeekableByteChannel channel = null;
 
-				final FileBase fileNode = (FileBase) ((StructrSSHFile) path).getActualFile();
+				final File fileNode = (File) ((StructrSSHFile) path).getActualFile();
 
 				if (fileNode != null) {
 
@@ -223,7 +222,7 @@ public class StructrSSHFileSystem extends FileSystem {
 									files.add(new StructrSSHFile(thisDir, child.getName(), child));
 								}
 
-								for (final FileBase child : thisDir.getFiles()) {
+								for (final File child : thisDir.getFiles()) {
 									files.add(new StructrSSHFile(thisDir, child.getName(), child));
 								}
 
@@ -263,7 +262,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					final Folder folder = app.create(Folder.class,
 						new NodeAttribute(AbstractNode.name, name),
-						new NodeAttribute(AbstractFile.parent, parent != null ? parent.getActualFile() : null)
+						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parent != null ? parent.getActualFile() : null)
 					);
 
 					((StructrSSHFile) dir).setActualFile(folder);
@@ -413,7 +412,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					newFile = app.create(File.class,
 						new NodeAttribute(AbstractNode.name, fileName),
-						new NodeAttribute(AbstractFile.parent, parentFolder)
+						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parentFolder)
 					);
 
 					tx.success();

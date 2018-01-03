@@ -19,26 +19,35 @@
 
 package org.structr.knowledge;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
+import java.net.URI;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Base class of a custom term attribute as defined in ISO 25964
  */
 
-public class CustomTermAttribute extends AbstractNode {
-	
+public interface CustomTermAttribute extends NodeInterface {
+
+	static class Impl { static {
+
+		final JsonSchema schema            = SchemaService.getDynamicSchema();
+		final JsonObjectType type          = schema.addType("CustomTermAttribute");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/CustomTermAttribute"));
+	}}
+
+	/*
+
 	private static final Logger logger = LoggerFactory.getLogger(CustomTermAttribute.class.getName());
-	
+
 	public static final Property<ThesaurusTerm> term = new StartNode<>("term", TermHasCustomAttributes.class);
 
 	static {
 
 		SchemaService.registerBuiltinTypeOverride("CustomTermAttribute", CustomTermAttribute.class.getName());
-	}	
-
+	}
+	*/
 }

@@ -149,11 +149,11 @@ public class StructrOAuthClient {
 
 			if (authServer.equals(name)) {
 
-				String authLocation  = Settings.getOrCreateStringSetting("oauth", authServer, "authorization_location").getValue();
-				String tokenLocation = Settings.getOrCreateStringSetting("oauth", authServer, "token_location").getValue();
-				String clientId      = Settings.getOrCreateStringSetting("oauth", authServer, "client_id").getValue();
-				String clientSecret  = Settings.getOrCreateStringSetting("oauth", authServer, "client_secret").getValue();
-				String redirectUri   = Settings.getOrCreateStringSetting("oauth", authServer, "redirect_uri").getValue();
+				String authLocation  = Settings.getOrCreateStringSetting("oauth" + authServer + "authorization_location", "").getValue();
+				String tokenLocation = Settings.getOrCreateStringSetting("oauth" + authServer + "token_location", "").getValue();
+				String clientId      = Settings.getOrCreateStringSetting("oauth" + authServer + "client_id", "").getValue();
+				String clientSecret  = Settings.getOrCreateStringSetting("oauth" + authServer + "client_secret", "").getValue();
+				String redirectUri   = Settings.getOrCreateStringSetting("oauth" + authServer + "redirect_uri", "").getValue();
 
 				// Minumum required fields
 				if (clientId != null && clientSecret != null && redirectUri != null) {

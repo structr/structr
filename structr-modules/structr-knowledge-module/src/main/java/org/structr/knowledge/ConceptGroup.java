@@ -19,13 +19,22 @@
 
 package org.structr.knowledge;
 
-import org.structr.core.entity.AbstractNode;
+import java.net.URI;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Base class of a concept group as defined in ISO 25964
  */
+public interface ConceptGroup extends NodeInterface {
 
+	static class Impl { static {
 
-public class ConceptGroup extends AbstractNode {
-	
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("ConceptGroup");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroup"));
+	}}
 }

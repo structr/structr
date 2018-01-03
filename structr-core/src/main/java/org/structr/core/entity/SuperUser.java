@@ -560,4 +560,9 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public String getEMail() {
 		return null;
 	}
+
+	@Override
+	public List<Group> getGroups() {
+		return Collections.emptyList();
+	}
 }

@@ -132,7 +132,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 					FileHelper.updateMetadata(newFile);
 
 					// create link between the two videos
-					inputFile.setProperty(VideoFile.posterImage, newFile);
+					inputFile.setProperty(StructrApp.key(VideoFile.class, "posterImage"), newFile);
 				}
 
 				tx.success();

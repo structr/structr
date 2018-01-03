@@ -99,7 +99,7 @@ public class PasswordCommand extends InteractiveShellCommand {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					user.setProperty(User.password, firstPassword);
+					user.setProperty(StructrApp.key(User.class, "password"), firstPassword);
 
 					tx.success();
 

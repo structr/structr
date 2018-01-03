@@ -77,6 +77,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPropertyGetter("locale", String.class);
 		principal.addPropertyGetter("sessionData", String.class);
 		principal.addPropertyGetter("favorites", List.class);
+		principal.addPropertyGetter("groups", List.class);
 		principal.addPropertyGetter("eMail", String.class);
 
 		principal.addPropertySetter("sessionData", String.class);
@@ -108,6 +109,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	List<Favoritable> getFavorites();
 	List<Principal> getParents();
+	List<Group> getGroups();
 
 	boolean isValidPassword(final String password);
 
