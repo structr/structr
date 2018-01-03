@@ -1692,12 +1692,12 @@ var Structr = {
 	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
 
 		if (Structr.templateCache[templateName]) {
-			callback(Structr.templateCache[templateName](templateConfig));
+			callback(Structr.templateCache[templateName](templateConfig), true);
 		} else {
 
 			Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(result) {
 				Structr.templateCache[templateName] = new Function("config", "return `" + result + "`;");
-				callback(Structr.templateCache[templateName](templateConfig));
+				callback(Structr.templateCache[templateName](templateConfig), false);
 			});
 		}
 	}

@@ -129,9 +129,7 @@ var _Widgets = {
 				_Widgets.remoteWidgetData.forEach(function (obj) {
 					_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
 				});
-
 			}
-
 		}
 	},
 	getRemoteWidgets: function(baseUrl, callback, finishCallback) {
@@ -220,8 +218,7 @@ var _Widgets = {
 		var expanded = Structr.isExpanded(id);
 
 		parent.append('<div id="' + id + '_folder" class="widget node">'
-			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
-			+ '<b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b>'
+			+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" /><b title="' + name + '" class="name">' + fitStringToWidth(name, 200) + '</b>'
 			+ '<div id="' + id + '" class="node' + (expanded ? ' hidden' : '') + '"></div>'
 			+ '</div>');
 
@@ -252,7 +249,6 @@ var _Widgets = {
 				+ '<b title="' + widget.name + '" class="name_">' + fitStringToWidth(widget.name, 200) + '</b> <span class="id">' + widget.id + '</span>'
 				+ '</div>');
 			div = Structr.node(widget.id);
-
 		}
 
 		if (!div) {
@@ -298,15 +294,12 @@ var _Widgets = {
 				Command.get(widget.id, 'id,name,source,configuration,description', function(entity) {
 					_Widgets.editWidget(entity, true);
 				});
-
 			});
 
 			_Entities.appendEditPropertiesIcon(div, widget);
-
 		}
 
 		return div;
-
 	},
 	editWidget: function(entity, allowEdit) {
 
@@ -400,7 +393,6 @@ var _Widgets = {
 					activateTab('config');
 					alert('Configuration is not valid JSON - please review, otherwise the widget configuration dialog will not function correctly');
 				}
-
 			};
 
 			saveAndClose.on('click', function() {
@@ -410,11 +402,9 @@ var _Widgets = {
 			dialogSaveButton.on('click', function() {
 				saveWidgetFunction(false);
 			});
-
 		}
 
 		activateTab('source');
-
 	},
 	appendWidgetPropertyEditor: function (container, value, mode, allowEdit) {
 
@@ -427,86 +417,16 @@ var _Widgets = {
 			indentWithTabs: true,
 			readOnly: !allowEdit
 		});
-
 	},
 	appendWidgetHelpText: function(container) {
 
-		var helpText = "\
-		<h2>Source</h2>\
-		<p>The source HTML code of the widget (enriched with structr expressions etc).</p>\
-		<p>The easiest way to get this source is to build the functionality in a Structr page and then \"exporting\" the source of the page. This can be done by using the \"edit=1\" URL parameter. This way the structr-internal expressions and configuration attributes are output without being evaluated.</p>\
-		<h4>Example</h4>\
-		<ol>\
-			<li>Create your widget in the page \"myWidgetPage\"</li>\
-			<li>Go to http://localhost:8082/myWidgetPage?edit=1</li>\
-			<li>View and copy the source code of that page</li>\
-			<li>Paste it into the \"Source\" tab of the \"Edit Widget\" dialog</li>\
-		</ol>\
-		<h2>Configuration</h2>\
-		<p>You can create advanced widgets and make them configurable by inserting template expressions in the widget source and adding the expression into the configuration.\
-		Template expressions look like this \"[configSwitch]\" and can contain any characters (except the closing bracket). If a corresponding entry is found in the configuration, a dialog is displayed when adding the widget to a page.</p>\
-		<p>Elements that look like template expressions are only treated as such if a corresponding entry is found in the configuration. This allows the use of square brackets in the widget source without it being interpreted as a template expression.</p>\
-		<p>The configuration must be a valid JSON string (and is validated as such when trying to save the widget).</p>\
-		<p>Have a look at the widget configuration of \"configurable\" widgets for more examples.</p>\
-		<h4>Basic example</h4>\
-		<pre>\n\
-		{\n\
-			\"configSwitch\": {\n\
-				\"position\": 2,\n\
-				\"default\": \"This is the default text\"\n\
-			},\n\
-			\"selectArray\": {\n\
-				\"position\": 3,\n\
-				\"type\": \"select\",\n\
-				\"options\": [\n\
-					\"choice_one\",\n\
-					\"choice_two\",\n\
-					\"choice_three\"\n\
-				],\n\
-				\"default\": \"choice_two\"\n\
-			},\n\
-			\"selectObject\": {\n\
-				\"position\": 1,\n\
-				\"type\": \"select\",\n\
-				\"options\": {\n\
-					\"choice_one\": \"First choice\",\n\
-					\"choice_two\": \"Second choice\",\n\
-					\"choice_three\": \"Third choice\"\n\
-				},\n\
-				\"default\": \"choice_two\"\n\
-			},\n\
-			\"processDeploymentInfo\": true,\n\
-		}</pre>\
-		<p>Reserved top-level words:</p>\
-		<ul>\
-			<li><b>processDeploymentInfo</b> (<i>boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</li>\
-		</ul>\
-		<p>The supported attributes of the configuration elements are the following:</p>\
-		<ul>\
-			<li><b>title</b><br>The title which is displayed in the left column of the \"Add Widget to Page\" dialog. If this value does not exist, the name of the template expression itself is used.</li>\
-			<li><b>placeholder</b> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used..</li>\
-			<li><b>default</b><br>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</li>\
-			<li><b>position</b> <br> The options will be sorted according to this numeric attribute. If omitted, the object will occur after the objects with a set position in the natural order of the keys.</li>\
-			<li><b>help</b> <i>(optional)</i><br> The help text which will be displayed while hovering over the information icon.</li>\
-			<li><b>type</b>\
-				<ul><li><b>input</b>: A standard input field (<i>default if omitted</i>)</li><li><b>textarea</b>: A textarea with a customizable number of rows (default: 5)</li><li><b>select</b>: A select element</li></ul>\
-			</li>\
-			<li><b>options</b> <i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>\
-				If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</li>\
-			<li><b>dynamicOptionsFunction</b> <i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>\
-				The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</li>\\n\
-			<li><b>rows</b> <i>(only applicable to type=textarea)</i><br>The number of rows the textarea will have initially. If omitted, or not parseable as an integer, it will default to 5.</li>\
-		</ul>\
-		<h2>Description</h2>\
-		<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>";
-
-		container.append(helpText);
+		Structr.fetchHtmlTemplate('widgets/help', {}, function(html) {
+			container.append(html);
+		});
 	},
 	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
 
 		if (hasChildren) {
-
-			_Logger.log(_LogType.WIDGETS, 'appendExpandIcon hasChildren?', hasChildren, 'expand?', expand);
 
 			var typeIcon = $(el.children('.typeIcon').first());
 			var icon = $(el).children('.node').hasClass('hidden') ? _Icons.collapsed_icon : _Icons.expanded_icon;
@@ -525,7 +445,6 @@ var _Widgets = {
 				if (collapsed) {
 					Structr.addExpandedNode(id);
 					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
-
 				} else {
 					Structr.removeExpandedNode(id);
 					expandIcon.removeClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon));
@@ -540,18 +459,15 @@ var _Widgets = {
 
 				button.on('click', expandClickHandler);
 
-				// Prevent expand icon from being draggable
 				button.on('mousedown', function(e) {
 					e.stopPropagation();
 				});
 			}
-
 		} else {
 			el.children('.typeIcon').css({
 				paddingRight: '11px'
 			});
 		}
-
 	},
 	insertWidgetIntoPage: function(widget, target, pageId) {
 
@@ -598,7 +514,6 @@ var _Widgets = {
 						Object.keys(options).forEach(function (option) {
 							buffer += '<option' + ((option === defaultValue) ? ' selected' : '') + ' value="' + option + '">' + options[option] + '</option>';
 						});
-
 					}
 
 					return buffer;
@@ -640,7 +555,6 @@ var _Widgets = {
 							} else {
 
 								buffer += getOptionsAsText(options, defaultValue);
-
 							}
 
 							buffer += '</select></td></tr>';
@@ -667,7 +581,6 @@ var _Widgets = {
 							element: $('#label-' + cleanedLabel)
 						});
 					}
-
 				});
 
 				dialog.append('<button id="appendWidget">Append Widget</button>');
@@ -689,16 +602,11 @@ var _Widgets = {
 				});
 
 			} else {
-
-				// If no matches, directly append widget
 				Command.appendWidget(widgetSource, target.id, pageId, _Widgets.url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false));
-
 			}
-
 		} else {
 			new MessageBuilder().warning("Ignoring empty Widget").show();
 		}
-
 	},
 	sortWidgetConfigurationByPosition: function (config) {
 		var flattenedConfig = [];

@@ -1795,11 +1795,6 @@ button.add_property {
 	height: 100px;
 }
 
-.actions.schema-props .abs-pos-helper {
-	position: relative;
-	height: 100%;
-}
-
 .actions.schema-props .resize-handle {
 	cursor: ns-resize;
 }
