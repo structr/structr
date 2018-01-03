@@ -1,0 +1,87 @@
+<div id="${config.id}_head" class="schema-details">
+	<table id="relationship-options">
+		<tr>
+			<td colspan=2 id="basic-options">
+				<span class="relationship-emphasis"><span id="source-type-name" class="edit-schema-object"></span> &#8212;</span>
+				<select disabled id="source-multiplicity-selector" data-attr-name="sourceMultiplicity">
+					<option value="1">1</option>
+					<option value="*">*</option>
+				</select>
+				<span class="relationship-emphasis">&#8212;[</span>
+				<input disabled id="relationship-type-name" data-attr-name="relationshipType">
+				<span class="relationship-emphasis">]&#8212;</span>
+				<select disabled id="target-multiplicity-selector" data-attr-name="targetMultiplicity">
+					<option value="1">1</option>
+					<option value="*">*</option>
+				</select>
+				<span class="relationship-emphasis">&#8212;&#9658; <span id="target-type-name" class="edit-schema-object"></span></span>
+			</td>
+		</tr>
+		<tr>
+			<td id="cascading-options">
+				<h3>Cascading Delete</h3>
+				<p>Direction of automatic removal of related nodes when a node is deleted</p>
+				<select disabled id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag">
+					<option value="0">NONE</option>
+					<option value="1">SOURCE_TO_TARGET</option>
+					<option value="2">TARGET_TO_SOURCE</option>
+					<option value="3">ALWAYS</option>
+					<option value="4">CONSTRAINT_BASED</option>
+				</select>
+				<h3>Automatic Creation of Related Nodes</h3>
+				<p>Direction of automatic creation of related nodes when a node is created</p>
+				<select disabled id="autocreate-selector" data-attr-name="autocreationFlag">
+					<option value="0">NONE</option>
+					<option value="1">SOURCE_TO_TARGET</option>
+					<option value="2">TARGET_TO_SOURCE</option>
+					<option value="3">ALWAYS</option>
+				</select>
+			</td>
+			<td id="propagation-options">
+				<h3>Permission Resolution</h3>
+				<select disabled id="propagation-selector" data-attr-name="permissionPropagation"><option value="None">NONE</option><option value="Out">SOURCE_TO_TARGET</option><option value="In">TARGET_TO_SOURCE</option><option value="Both">ALWAYS</option></select>
+				<table style="margin: 12px 0 0 0;"><tr id="propagation-table">
+				<td class="selector">
+					<p>Read</p>
+					<select disabled id="read-selector" data-attr-name="readPropagation">
+						<option value="Add">Add</option>
+						<option value="Keep">Keep</option>
+						<option value="Remove">Remove</option>
+					</select>
+				</td>
+				<td class="selector">
+					<p>Write</p>
+					<select disabled id="write-selector" data-attr-name="writePropagation">
+						<option value="Add">Add</option>
+						<option value="Keep">Keep</option>
+						<option value="Remove">Remove</option>
+					</select>
+				</td>
+				<td class="selector">
+					<p>Delete</p>
+					<select disabled id="delete-selector" data-attr-name="deletePropagation">
+						<option value="Add">Add</option>
+						<option value="Keep">Keep</option>
+						<option value="Remove">Remove</option>
+					</select>
+				</td>
+				<td class="selector">
+					<p>AccessControl</p>
+					<select disabled id="access-control-selector" data-attr-name="accessControlPropagation">
+						<option value="Add">Add</option>
+						<option value="Keep">Keep</option>
+						<option value="Remove">Remove</option>
+					</select>
+				</td>
+				</tr></table>
+				<p style="margin-top:12px">Hidden properties</p><textarea disabled id="masked-properties" data-attr-name="propertyMask" />
+			</td>
+		</tr>
+	</table>
+	<button id="edit-rel-options-button"><i class="edit icon ${_Icons.getFullSpriteClass(_Icons.edit_icon)}" /> Edit relationship options</button>
+	<button id="save-rel-options-button"><i class="save icon ${_Icons.getFullSpriteClass(_Icons.tick_icon)}" /> Save changes</button>
+	<button id="cancel-rel-options-button"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}" /> Discard changes</button>
+	<div id="tabs" style="margin-top:20px;">
+		<ul></ul>
+	</div>
+</div>
