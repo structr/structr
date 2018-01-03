@@ -101,6 +101,10 @@ var _Icons = {
 	edition_enterprise_icon: 'icon/medal_gold_2.png',
 	import_icon: 'icon/table_lightning.png',
 	hamburger_icon: 'icon/hamburger_white.png',
+	connect_icon: 'icon/connect.png',
+	disconnect_icon: 'icon/disconnect.png',
+	folder_connect_icon: 'icon/folder_connect.png',
+	folder_disconnect_icon: 'icon/folder_disconnect.png',
 
 
 	getFullSpriteClass: function (key) {
@@ -200,6 +204,10 @@ var _Icons = {
 			case _Icons.edition_enterprise_icon:      return 'sprite-medal_gold_2';
 			case _Icons.import_icon:                  return 'sprite-table_lightning';
 			case _Icons.hamburger_icon:               return 'sprite-hamburger_white';
+			case _Icons.connect_icon:                 return 'sprite-connect';
+			case _Icons.disconnect_icon:              return 'sprite-disconnect';
+			case _Icons.folder_connect_icon:          return 'sprite-folder_connect';
+			case _Icons.folder_disconnect_icon:       return 'sprite-folder_disconnect';
 
 			default:                                  return 'sprite-error';
 		}

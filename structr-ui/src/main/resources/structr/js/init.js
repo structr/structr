@@ -210,6 +210,7 @@ var Structr = {
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
+	templateCache: {},
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -1686,6 +1687,18 @@ var Structr = {
 
 			}
 
+		}
+	},
+	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
+
+		if (Structr.templateCache[templateName]) {
+			callback(Structr.templateCache[templateName](templateConfig));
+		} else {
+
+			Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(result) {
+				Structr.templateCache[templateName] = new Function("config", "return `" + result + "`;");
+				callback(Structr.templateCache[templateName](templateConfig));
+			});
 		}
 	}
 };

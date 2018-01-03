@@ -534,7 +534,6 @@ var _Entities = {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
 	listProperties: function (entity, view, tabView, typeInfo) {
-
 		$.ajax({
 			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
 			dataType: 'json',
