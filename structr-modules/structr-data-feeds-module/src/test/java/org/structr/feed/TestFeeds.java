@@ -120,7 +120,7 @@ public class TestFeeds extends StructrDataFeedsModuleTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(StructrApp.key(DataFeed.class, "url"), "https://structr.org/blog")
+				new NodeAttribute<>(StructrApp.key(type, "url"), "https://structr.org/blog")
 			);
 
 			tx.success();
@@ -129,8 +129,6 @@ public class TestFeeds extends StructrDataFeedsModuleTest {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-		try { Thread.sleep(200000); } catch (InterruptedException ex) {}
 
 		RestAssured
 			.given()
