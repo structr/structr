@@ -1310,7 +1310,13 @@ var _Schema = {
 				appendProperty(prop);
 			});
 
-			viewSelectElem.chosen({ search_contains: true, width: '100%' }).chosenSortable(function() {
+			viewSelectElem.chosen({
+				search_contains: true,
+				width: '100%',
+				display_selected_options: false,
+				hide_results_on_select: false,
+				display_disabled_options: false
+			}).chosenSortable(function() {
 				_Schema.activateEditModeForViewRow(tr);
 			});
 		});
