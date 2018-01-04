@@ -233,10 +233,13 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Number s = ((File)file).getSize();
-			if (s != null) {
+			if (file instanceof File) {
 
-				size = s.longValue();
+				final Number s = ((File)file).getSize();
+				if (s != null) {
+
+					size = s.longValue();
+				}
 			}
 
 			tx.success();

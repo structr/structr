@@ -22,17 +22,13 @@ import java.io.InputStream;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.entity.feed.FeedItemContent;
 
 /**
  *
@@ -53,83 +49,18 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
 		type.addIntegerProperty("version",         PropertyView.Public).setIndexed(true).setReadOnly(true);
 
-		type.addPropertyGetter("url", String.class);
+		type.addPropertyGetter("url",              String.class);
+		type.addPropertyGetter("contentType",      String.class);
+		type.addPropertyGetter("extractedContent", String.class);
 
-		type.overrideMethod("afterCreation",    true,  "update();");
-		type.overrideMethod("getSearchContext", false, "return " + RemoteDocument.class.getName() + ".getSearchContext(this, arg0, arg1);");
+		// methods shared with FeedItemContent
+		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
+		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
+
 		type.overrideMethod("getInputStream",   false, "return " + RemoteDocument.class.getName() + ".getInputStream(this);");
-
-		type.addMethod("update").setSource(RemoteDocument.class.getName() + ".update(this);").setDoExport(true);
-
 	}}
 
-	void update();
 	String getUrl();
-
-	/*
-
-	private static final Logger logger = LoggerFactory.getLogger(RemoteDocument.class.getName());
-
-	public static final Property<String> url                     = new StringProperty("url");
-	public static final Property<Long> checksum                  = new LongProperty("checksum").indexed().unvalidated().readOnly();
-	public static final Property<Integer> cacheForSeconds        = new IntProperty("cacheForSeconds").cmis();
-	public static final Property<Integer> version                = new IntProperty("version").indexed().readOnly();
-
-	public static final View publicView = new View(RemoteDocument.class, PropertyView.Public, type, name, contentType, url, owner);
-	public static final View uiView = new View(RemoteDocument.class, PropertyView.Ui, type, contentType, url, checksum, version, cacheForSeconds, owner, extractedContent, indexedWords);
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-
-		update();
-	}
-	*/
-
-	static void update(final RemoteDocument thisDocument) {
-
-		final SecurityContext securityContext = thisDocument.getSecurityContext();
-
-		try {
-
-			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			indexer.addToFulltextIndex(thisDocument);
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("Unable to index " + thisDocument, fex);
-		}
-	}
-
-	static GraphObject getSearchContext(final RemoteDocument thisDocument, final String searchTerm, final int contextLength) {
-
-		final SecurityContext securityContext = thisDocument.getSecurityContext();
-		final String text                     = thisDocument.getExtractedContent();
-
-		if (text != null) {
-
-			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			return indexer.getContextObject(searchTerm, text, contextLength);
-		}
-
-		return null;
-	}
-
-	/*
-	public void increaseVersion() throws FrameworkException {
-
-		final Integer _version = getProperty(RemoteDocument.version);
-
-		unlockSystemPropertiesOnce();
-		if (_version == null) {
-
-			setProperty(RemoteDocument.version, 1);
-
-		} else {
-
-			setProperty(RemoteDocument.version, _version + 1);
-		}
-	}
-	*/
 
 	static InputStream getInputStream(final RemoteDocument thisDocument) {
 

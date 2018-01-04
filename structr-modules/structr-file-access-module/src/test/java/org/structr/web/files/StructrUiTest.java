@@ -126,7 +126,7 @@ public abstract class StructrUiTest {
 
 		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
-		Settings.Services.setValue("NodeService FtpService SSHService");
+		Settings.Services.setValue("NodeService SchemaService FtpService SSHService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup

@@ -62,50 +62,38 @@ public class SSHFilesTest extends SSHTest {
 			final Vector<LsEntry> entries = sftp.ls("/");
 
 			// listing contains "." => 5 entries
-			assertEquals("Invalid result size for SSH root directory", 5, entries.size());
+			assertEquals("Invalid result size for SSH root directory", 3, entries.size());
 
 			final LsEntry currentDir      = entries.get(0);
 			final LsEntry files           = entries.get(1);
-			final LsEntry pages           = entries.get(2);
-			final LsEntry schema          = entries.get(3);
-			final LsEntry components      = entries.get(4);
+			final LsEntry schema          = entries.get(2);
 
 			// check names
 			assertEquals("Invalid current directory name",    ".", currentDir.getFilename());
 			assertEquals("Invalid files directory name",      "files", files.getFilename());
-			assertEquals("Invalid pages directory name",      "pages", pages.getFilename());
 			assertEquals("Invalid schema directory name",     "schema", schema.getFilename());
-			assertEquals("Invalid components directory name", "components", components.getFilename());
 
 			// check permissions
 			assertEquals("Invalid permissions on . directory",          "dr--------", currentDir.getAttrs().getPermissionsString());
 			assertEquals("Invalid permissions on files directory",      "drwxrwxr-x", files.getAttrs().getPermissionsString());
-			assertEquals("Invalid permissions on pages directory",      "drwxrwxr-x", pages.getAttrs().getPermissionsString());
 			assertEquals("Invalid permissions on schema directory",     "drwxrwxr-x", schema.getAttrs().getPermissionsString());
-			assertEquals("Invalid permissions on components directory", "drwxrwxr-x", components.getAttrs().getPermissionsString());
 
 			// check flags (?)
 			assertEquals("Invalid flags on . directory",          12, currentDir.getAttrs().getFlags());
 			assertEquals("Invalid flags on files directory",      12, files.getAttrs().getFlags());
-			assertEquals("Invalid flags on pages directory",      12, pages.getAttrs().getFlags());
 			assertEquals("Invalid flags on schema directory",     12, schema.getAttrs().getFlags());
-			assertEquals("Invalid flags on components directory", 12, components.getAttrs().getFlags());
 
 			// check size
 			assertEquals("Invalid size on . directory",          0, currentDir.getAttrs().getSize());
 			assertEquals("Invalid size on files directory",      0, files.getAttrs().getSize());
-			assertEquals("Invalid size on pages directory",      0, pages.getAttrs().getSize());
 			assertEquals("Invalid size on schema directory",     0, schema.getAttrs().getSize());
-			assertEquals("Invalid size on components directory", 0, components.getAttrs().getSize());
 
 			final String date = getDateStringDependingOnCurrentDayOfMonth();
 
 			// check string representation
 			assertEquals("Invalid string representation of . directory",         "dr--------   1 superadmin superadmin        0 " + date + " .",          currentDir.getLongname());
 			assertEquals("Invalid string representation of files directory",     "drwxrwxr-x   1 superadmin superadmin        0 " + date + " files",      files.getLongname());
-			assertEquals("Invalid string representation of pages directory",     "drwxrwxr-x   1 superadmin superadmin        0 " + date + " pages",      pages.getLongname());
 			assertEquals("Invalid string representation of schema directory",    "drwxrwxr-x   1 superadmin superadmin        0 " + date + " schema",     schema.getLongname());
-			assertEquals("Invalid string representation of components directory","drwxrwxr-x   1 superadmin superadmin        0 " + date + " components", components.getLongname());
 
 			sftp.disconnect();
 

@@ -62,7 +62,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addBooleanProperty("hasParent", PropertyView.Public).setIndexed(true);
 		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public).setIndexed(true);
 
-		type.addPropertyGetter("hasParent", Boolean.class);
+		type.addPropertyGetter("hasParent", Boolean.TYPE);
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
 

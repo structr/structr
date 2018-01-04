@@ -19,83 +19,48 @@
 package org.structr.web.entity.feed;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
-import static org.structr.common.fulltext.Indexable.contentType;
-import static org.structr.common.fulltext.Indexable.extractedContent;
-import static org.structr.common.fulltext.Indexable.indexedWords;
-import org.structr.core.Export;
-import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.type;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import static org.structr.core.graph.NodeInterface.owner;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.relation.FeedItemContents;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Represents feed enclosures
  */
-public class FeedItemEnclosure extends AbstractNode implements Indexable {
+public interface FeedItemEnclosure extends NodeInterface, Indexable {
 
-    private static final Logger logger = LoggerFactory.getLogger(FeedItemContent.class.getName());
+	static class Impl { static {
 
-    public static final Property<String> url                     = new StringProperty("url");
-    public static final Property<Long> enclosureLength                  = new LongProperty("enclosureLength");
-    public static final Property<String> enclosureType             = new StringProperty("enclosureType");
-    public static final Property<FeedItem> item                 = new StartNode<>("item", FeedItemContents.class);
+		final JsonSchema schema        = SchemaService.getDynamicSchema();
+		final JsonObjectType type      = schema.addType("FeedItemEnclosure");
 
-    public static final View publicView = new View(FeedItemContent.class, PropertyView.Public, type, contentType, owner,
-            url, enclosureLength, enclosureType, item);
-    public static final View uiView     = new View(FeedItemContent.class, PropertyView.Ui, type, contentType, owner, extractedContent, indexedWords,
-            url, enclosureLength, enclosureType, item);
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItemEnclosure"));
+		type.setImplements(URI.create("#/definitions/Indexable"));
 
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
+ 		type.addStringProperty("url",           PropertyView.Public);
+ 		type.addLongProperty("enclosureLength", PropertyView.Public);
+ 		type.addStringProperty("enclosureType", PropertyView.Public);
 
-		try {
-			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			indexer.addToFulltextIndex(this);
+		type.addPropertyGetter("url",              String.class);
+		type.addPropertyGetter("contentType",      String.class);
+		type.addPropertyGetter("extractedContent", String.class);
 
-		} catch (FrameworkException fex) {
+		// methods shared with FeedItemContent
+		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
+		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
 
-			logger.warn("Unable to index " + this, fex);
-		}
+		type.overrideMethod("getInputStream",   false, "return " + FeedItemEnclosure.class.getName() + ".getInputStream(this);");
+
+	}}
+
+	String getUrl();
+
+	static InputStream getInputStream(final FeedItemEnclosure thisItem) {
+		return IOUtils.toInputStream(thisItem.getUrl(), Charset.forName("utf-8"));
 	}
-
-	@Export
-	@Override
-	public GraphObject getSearchContext(final String searchTerm, final int contextLength) {
-
-		final String text = getProperty(url);
-		if (text != null) {
-
-			final FulltextIndexer indexer = StructrApp.getInstance(securityContext).getFulltextIndexer();
-			return indexer.getContextObject(searchTerm, text, contextLength);
-		}
-
-		return null;
-	}
-
-	@Override
-	public InputStream getInputStream() {
-
-		return IOUtils.toInputStream(getProperty(url));
-	}
-
-
-        static {
-            SchemaService.registerBuiltinTypeOverride("FeedItemEnclosure", FeedItemEnclosure.class.getName());
-        }
 }

@@ -28,37 +28,91 @@ import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
 import java.net.URL;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
+import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.relation.FeedItems;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 
 
-public class DataFeed extends AbstractNode {
+public interface DataFeed extends NodeInterface {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("DataFeed");
+		final JsonObjectType item = (JsonObjectType)schema.addType("FeedItem");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DataFeed"));
+
+		type.addStringProperty("url",          PropertyView.Public).setIndexed(true);
+		type.addStringProperty("feedType",     PropertyView.Public).setIndexed(true);
+		type.addStringProperty("description",  PropertyView.Public).setIndexed(true);
+		type.addLongProperty("updateInterval", PropertyView.Public); // update interval in milliseconds
+		type.addDateProperty("lastUpdated",    PropertyView.Public);
+		type.addLongProperty("maxAge",         PropertyView.Public); // maximum age of the oldest feed entry in milliseconds
+		type.addIntegerProperty("maxItems",    PropertyView.Public); // maximum number of feed entries to retain
+
+		type.addPropertyGetter("items",            Iterable.class);
+		type.addPropertyGetter("url",              String.class);
+		type.addPropertyGetter("feedType",         String.class);
+		type.addPropertyGetter("description",      String.class);
+		type.addPropertyGetter("updateInterval",   Long.class);
+		type.addPropertyGetter("lastUpdated",      Date.class);
+		type.addPropertyGetter("maxAge",           Long.class);
+		type.addPropertyGetter("maxItems",         Integer.class);
+
+		type.overrideMethod("onCreation", true,  "updateFeed(true);");
+
+		type.addMethod("updateFeed")
+			.setSource("updateFeed(true);")
+			.setDoExport(true);
+
+		type.addMethod("updateFeed")
+			.addParameter("cleanUp", "boolean")
+			.setSource(DataFeed.class.getName() + ".updateFeed(this, cleanUp);")
+			.setDoExport(true);
+
+		type.addMethod("cleanUp").setSource(DataFeed.class.getName() + ".cleanUp(this);").setDoExport(true);
+		type.addMethod("updateIfDue").setSource(DataFeed.class.getName() + ".updateIfDue(this);").setDoExport(true);
+
+		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items");
+
+		type.addViewProperty(PropertyView.Public, "itemsProperty");
+	}}
+
+	void cleanUp();
+	void updateIfDue();
+	void updateFeed();
+	void updateFeed(final boolean cleanItems);
+
+	String getUrl();
+	String getFeedType();
+	String getDescription();
+	Long getUpdateInterval();
+	Date getLastUpdated();
+	Long getMaxAge();
+	Integer getMaxItems();
+
+	Iterable<FeedItem> getItems();
+
+	/*
 	private static final Logger logger = LoggerFactory.getLogger(DataFeed.class.getName());
 
 	public static final Property<List<FeedItem>> items          = new EndNodes<>("items", FeedItems.class);
@@ -88,31 +142,29 @@ public class DataFeed extends AbstractNode {
 		updateFeed(true);
 		return super.onCreation(securityContext, errorBuffer);
 	}
+	*/
 
-	/**
-	 * Clean-up feed items which are either too old or too many.
-	 */
-	@Export
-	public void cleanUp() {
+	static void cleanUp(final DataFeed thisFeed) {
 
-		final Integer maxItemsToRetain = getProperty(maxItems);
-		final Long    maxItemAge       = getProperty(maxAge);
+		final Integer maxItemsToRetain = thisFeed.getMaxItems();
+		final Long    maxItemAge       = thisFeed.getMaxAge();
 
 		int i = 0;
 
 		// Don't do anything if maxItems and maxAge are not set
 		if (maxItemsToRetain != null || maxItemAge != null) {
 
-			final List<FeedItem> feedItems = getProperty(items);
+			final List<FeedItem> feedItems  = Iterables.toList(thisFeed.getItems());
+			final PropertyKey<Date> dateKey = StructrApp.key(FeedItem.class, "pubDate");
 
 			// Sort by publication date, youngest items first
-			feedItems.sort(new GraphObjectComparator(FeedItem.pubDate, GraphObjectComparator.DESCENDING));
+			feedItems.sort(new GraphObjectComparator(dateKey, GraphObjectComparator.DESCENDING));
 
 			for (final FeedItem item : feedItems) {
 
 				i++;
 
-				final Date itemDate = item.getProperty(FeedItem.pubDate);
+				final Date itemDate = item.getProperty(dateKey);
 
 				if ((maxItemsToRetain != null && i > maxItemsToRetain) || (maxItemAge != null && itemDate.before(new Date(new Date().getTime() - maxItemAge)))) {
 
@@ -129,54 +181,43 @@ public class DataFeed extends AbstractNode {
 
 	}
 
-	/**
-	 * Update the feed only if it was last updated before the update interval.
-	 */
-	@Export
-	public void updateIfDue() {
+	static void updateIfDue(final DataFeed thisFeed) {
 
-		final Date lastUpdate = getProperty(lastUpdated);
-		final Long interval   = getProperty(updateInterval);
+		final Date lastUpdate = thisFeed.getLastUpdated();
+		final Long interval   = thisFeed.getUpdateInterval();
 
 		if (lastUpdate == null || (interval != null && new Date().after(new Date(lastUpdate.getTime() + interval)))) {
 
 			// Update feed and clean-up afterwards
-			updateFeed(true);
+			thisFeed.updateFeed(true);
 		}
 
 	}
-	@Export
-	public void updateFeed() {
-		updateFeed(true);
-	}
 
-	/**
-	 * Update the feed from the given URL.
-	 *
-	 * @param cleanUp	Clean-up old items after update
-	 */
-	@Export
-	public void updateFeed(final boolean cleanUp) {
+	static void updateFeed(final DataFeed thisFeed, final boolean cleanUp) {
 
-		final String remoteUrl = getProperty(url);
+		final String remoteUrl = thisFeed.getUrl();
 		if (StringUtils.isNotBlank(remoteUrl)) {
 
-			final App app = StructrApp.getInstance(securityContext);
+			final SecurityContext securityContext = thisFeed.getSecurityContext();
+			final App app                         = StructrApp.getInstance(securityContext);
 
 			try {
 
-                                final URL remote              = new URL(remoteUrl);
-                                final SyndFeedInput input     = new SyndFeedInput();
+				final PropertyKey<Date> dateKey  = StructrApp.key(FeedItem.class, "pubDate");
+				final PropertyKey<String> urlKey = StructrApp.key(FeedItem.class, "url");
+                                final URL remote                 = new URL(remoteUrl);
+                                final SyndFeedInput input        = new SyndFeedInput();
 
 				try (final Reader reader = new XmlReader(remote)) {
 
 					final SyndFeed      feed      = input.build(reader);
 					final List<SyndEntry> entries = feed.getEntries();
 
-					setProperty(feedType,    feed.getFeedType());
-					setProperty(description, feed.getDescription());
+					thisFeed.setProperty(StructrApp.key(DataFeed.class, "feedType"),    feed.getFeedType());
+					thisFeed.setProperty(StructrApp.key(DataFeed.class, "description"), feed.getDescription());
 
-					final List<FeedItem> newItems = getProperty(items);
+					final List<FeedItem> newItems = Iterables.toList(thisFeed.getItems());
 
 					for (final SyndEntry entry : entries) {
 
@@ -185,16 +226,16 @@ public class DataFeed extends AbstractNode {
 						final String link = entry.getLink();
 
 						// Check if item with this link already exists
-						if (app.nodeQuery(FeedItem.class).and(FeedItem.url, link).getFirst() == null) {
+						if (app.nodeQuery(FeedItem.class).and(urlKey, link).getFirst() == null) {
 
-							props.put(FeedItem.url, entry.getLink());
-							props.put(FeedItem.name, entry.getTitle());
-							props.put(FeedItem.author, entry.getAuthor());
-							props.put(FeedItem.comments, entry.getComments());
-							props.put(FeedItem.description, entry.getDescription().getValue());
+							props.put(urlKey,                                        entry.getLink());
+							props.put(StructrApp.key(FeedItem.class, "name"),        entry.getTitle());
+							props.put(StructrApp.key(FeedItem.class, "author"),      entry.getAuthor());
+							props.put(StructrApp.key(FeedItem.class, "comments"),    entry.getComments());
+							props.put(StructrApp.key(FeedItem.class, "description"), entry.getDescription().getValue());
 
 							final FeedItem item = app.create(FeedItem.class, props);
-							item.setProperty(FeedItem.pubDate, entry.getPublishedDate());
+							item.setProperty(dateKey, entry.getPublishedDate());
 
 							final List<FeedItemContent> itemContents = new LinkedList<>();
 							final List<FeedItemEnclosure> itemEnclosures = new LinkedList<>();
@@ -202,8 +243,9 @@ public class DataFeed extends AbstractNode {
 							//Get and add all contents
 							final List<SyndContent> contents = entry.getContents();
 							for (final SyndContent content : contents) {
+
 								final FeedItemContent itemContent = app.create(FeedItemContent.class);
-								itemContent.setProperty(FeedItemContent.value, content.getValue());
+								itemContent.setValue(content.getValue());
 
 								itemContents.add(itemContent);
 							}
@@ -211,36 +253,36 @@ public class DataFeed extends AbstractNode {
 							//Get and add all enclosures
 							final List<SyndEnclosure> enclosures = entry.getEnclosures();
 							for (final SyndEnclosure enclosure : enclosures){
-								final FeedItemEnclosure itemEnclosure= app.create(FeedItemEnclosure.class);
-								itemEnclosure.setProperty(FeedItemEnclosure.url, enclosure.getUrl());
-								itemEnclosure.setProperty(FeedItemEnclosure.enclosureLength, enclosure.getLength());
-								itemEnclosure.setProperty(FeedItemEnclosure.enclosureType, enclosure.getType());
+
+								final FeedItemEnclosure itemEnclosure = app.create(FeedItemEnclosure.class);
+
+								itemEnclosure.setProperty(StructrApp.key(FeedItemEnclosure.class, "url"),             enclosure.getUrl());
+								itemEnclosure.setProperty(StructrApp.key(FeedItemEnclosure.class, "enclosureLength"), enclosure.getLength());
+								itemEnclosure.setProperty(StructrApp.key(FeedItemEnclosure.class, "enclosureType"),   enclosure.getType());
 
 								itemEnclosures.add(itemEnclosure);
 							}
 
-							item.setProperty(FeedItem.contents, itemContents);
-							item.setProperty(FeedItem.enclosures, itemEnclosures);
+							item.setProperty(StructrApp.key(FeedItem.class, "contents"),   itemContents);
+							item.setProperty(StructrApp.key(FeedItem.class, "enclosures"), itemEnclosures);
 
 							newItems.add(item);
 
-							logger.debug("Created new item: {} ({}) ", new Object[]{item.getProperty(FeedItem.name), item.getProperty(FeedItem.pubDate)});
-
+							logger.debug("Created new item: {} ({}) ", item.getProperty(FeedItem.name), item.getProperty(dateKey));
 						}
 					}
 
-					setProperty(items, newItems);
-					setProperty(lastUpdated, new Date());
+					thisFeed.setProperty(StructrApp.key(DataFeed.class, "items"),       newItems);
+					thisFeed.setProperty(StructrApp.key(DataFeed.class, "lastUpdated"), new Date());
 				}
 
 			} catch (IllegalArgumentException | IOException | FeedException | FrameworkException ex) {
 				logger.error("Error while updating feed", ex);
 			}
-
 		}
 
 		if (cleanUp) {
-			cleanUp();
+			thisFeed.cleanUp();
 		}
 	}
 }
