@@ -67,8 +67,6 @@ public interface AccessControllable {
 	public boolean isVisibleToAuthenticatedUsers();
 	public boolean isNotHidden();
 	public boolean isHidden();
-	public Date getVisibilityStartDate();
-	public Date getVisibilityEndDate();
 
 	// access
 	public Date getCreatedDate();

@@ -378,16 +378,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Date getVisibilityStartDate() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public Date getVisibilityEndDate() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
 	public Date getCreatedDate() {
 		throw new UnsupportedOperationException("Not supported.");
 	}

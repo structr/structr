@@ -111,7 +111,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
+		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers
 	);
 
 	private final Map<AbstractNode, Map<String, Object>> tmpStorageContainer = new WeakHashMap<>(2);
@@ -1301,16 +1301,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		return getHidden();
 
-	}
-
-	@Override
-	public final Date getVisibilityStartDate() {
-		return getProperty(visibilityStartDate);
-	}
-
-	@Override
-	public final Date getVisibilityEndDate() {
-		return getProperty(visibilityEndDate);
 	}
 
 	@Override

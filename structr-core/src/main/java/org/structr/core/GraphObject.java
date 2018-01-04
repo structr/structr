@@ -80,8 +80,6 @@ public interface GraphObject {
 
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate").category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate").category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
 	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly().partOfBuiltInSchema();
 
 	// ----- methods common to both types -----

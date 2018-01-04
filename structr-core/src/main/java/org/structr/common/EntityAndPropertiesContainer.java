@@ -429,16 +429,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Date getVisibilityStartDate() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public Date getVisibilityEndDate() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
 	public Date getCreatedDate() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

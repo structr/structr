@@ -215,10 +215,10 @@ public class UiTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Folder test4 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/a");
-			Folder test3 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/c/b/a");
-			Folder test2 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/b/a");
-			Folder test1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/b/c");
+			FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/a");
+			FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/c/b/a");
+			FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/b/a");
+			FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 
 			tx.success();
 
@@ -239,6 +239,8 @@ public class UiTest extends StructrUiTest {
 			Folder c = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 			assertNotNull(c);
 			assertEquals(FileHelper.getFolderPath(c), "/a/b/c");
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
@@ -516,8 +518,6 @@ public class UiTest extends StructrUiTest {
 
 			fail("Unexpected exception");
 		}
-
-
 	}
 
 	// ----- private methods -----

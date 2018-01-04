@@ -176,8 +176,6 @@ public interface Image extends File {
 		// Copy visibility properties and owner to all thumbnails
 		if (visibleToPublicUsers.equals(key) ||
 			visibleToAuthenticatedUsers.equals(key) ||
-			visibilityStartDate.equals(key) ||
-			visibilityEndDate.equals(key) ||
 			owner.equals(key)) {
 
 			for (Image tn : thisImage.getThumbnails()) {
@@ -202,8 +200,6 @@ public interface Image extends File {
 
 					if (visibleToPublicUsers.equals(key) ||
 						visibleToAuthenticatedUsers.equals(key) ||
-						visibilityStartDate.equals(key) ||
-						visibilityEndDate.equals(key) ||
 						owner.equals(key)) {
 
 						propertiesCopiedToAllThumbnails.put(key, properties.get(key));

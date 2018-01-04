@@ -19,10 +19,9 @@
 package org.structr.core.entity;
 
 import java.net.URI;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -43,16 +42,17 @@ public interface Group extends Principal {
 		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
 		group.setExtends(URI.create("#/definitions/Principal"));
 
-		group.addBooleanProperty("isGroup").addTransformer(ConstantBooleanTrue.class.getName());
-
-		final Map<String, String> params = new LinkedHashMap<>();
-		params.put("member", Principal.class.getName());
+		group.addBooleanProperty("isGroup", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
 
 		group.addMethod("addMember").setSource("org.structr.core.entity.Group.addMember(this, member);").addParameter("member", Principal.class.getName());
 		group.addMethod("removeMember").setSource("org.structr.core.entity.Group.removeMember(this, member);").addParameter("member", Principal.class.getName());
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
+
+		// make name visible in public view
+		group.addViewProperty(PropertyView.Public, "membersProperty");
+		group.addViewProperty(PropertyView.Public, "name");
 	}}
 
 	void addMember(final Principal member);

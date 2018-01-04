@@ -27,6 +27,7 @@ import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.EMailValidator;
 import org.structr.common.LowercaseTransformator;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
@@ -50,7 +51,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
 
 		principal.addBooleanProperty("isAdmin").setReadOnly(true);
-		principal.addBooleanProperty("blocked");
+		principal.addBooleanProperty("blocked", PropertyView.Public);
 
 		// FIXME: indexedWhenEmpty() is not possible here, but needed?
 		principal.addStringArrayProperty("sessionIds").setIndexed(true);
