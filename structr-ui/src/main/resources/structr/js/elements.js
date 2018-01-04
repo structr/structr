@@ -360,9 +360,13 @@ var _Elements = {
 		dropBlocked = false;
 
 	},
+	clearUnattachedNodes: function() {
+		elementsSlideout.find(':not(.compTab)').remove();
+	},
 	reloadUnattachedNodes: function() {
 
-		elementsSlideout.find(':not(.compTab)').remove();
+		_Elements.clearUnattachedNodes();
+
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
