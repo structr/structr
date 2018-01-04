@@ -29,7 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.User;
-import org.structr.web.entity.feed.DataFeed;
+import org.structr.feed.entity.feed.DataFeed;
 
 /**
  */

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.cron;
+package org.structr.feed.cron;
 
 import java.util.Collections;
 import java.util.Date;
@@ -29,7 +29,7 @@ import org.structr.agent.Task;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.web.entity.feed.DataFeed;
+import org.structr.feed.entity.feed.DataFeed;
 
 
 

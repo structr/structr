@@ -20,8 +20,8 @@
 package org.structr.knowledge;
 
 import java.net.URI;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -30,7 +30,7 @@ import org.structr.schema.json.JsonSchema;
  * Base class of a thesaurus concept as defined in ISO 25964
  */
 
-public class ThesaurusConcept extends AbstractNode {
+public interface ThesaurusConcept extends NodeInterface {
 
 	static class Impl { static {
 
