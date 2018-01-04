@@ -990,6 +990,11 @@ var Structr = {
 				wasOpen = true;
 				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active');
+
+				var openSlideoutCallback = slideout.data('closeCallback');
+				if (typeof openSlideoutCallback === "function") {
+					openSlideoutCallback();
+				}
 			}
 		});
 		if (wasOpen) {
