@@ -210,7 +210,13 @@ var Structr = {
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
-	templateCache: {},
+	templateCache: new AsyncObjectCache(function(templateName) {
+
+		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
+			Structr.templateCache.addObject(templateHtml, templateName);
+		});
+
+	}),
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -1313,22 +1319,6 @@ var Structr = {
 				return ['Community'].indexOf(requiredEdition) !== -1;
 		};
 	},
-	guardExecution:function (callbackToGuard) {
-		var didRun = false;
-
-		var guardedFunction = function () {
-			if (didRun) {
-				return;
-			}
-			didRun = true;
-
-			if (typeof callbackToGuard === "function") {
-				callbackToGuard();
-			}
-		};
-
-		return guardedFunction;
-	},
 	updateMainHelpLink: function (newUrl) {
 		$('#main-help a').attr('href', newUrl);
 	},
@@ -1691,15 +1681,11 @@ var Structr = {
 	},
 	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
 
-		if (Structr.templateCache[templateName]) {
-			callback(Structr.templateCache[templateName](templateConfig), true);
-		} else {
-
-			Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(result) {
-				Structr.templateCache[templateName] = new Function("config", "return `" + result + "`;");
-				callback(Structr.templateCache[templateName](templateConfig), false);
-			});
-		}
+		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
+			var convertTemplateToLiteral = new Function("config", "return `" + templateHtml + "`;");
+			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			callback(parameterizedTemplate, cacheHit);
+		});
 	}
 };
 

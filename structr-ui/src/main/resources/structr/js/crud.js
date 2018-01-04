@@ -2004,7 +2004,7 @@ var _Crud = {
 		if (preloadedNode) {
 			nodeHandler(preloadedNode);
 		} else {
-			_Crud.crudCache.registerCallbackForId(id, nodeHandler);
+			_Crud.crudCache.registerCallback(id, id, nodeHandler);
 		}
 
 	},

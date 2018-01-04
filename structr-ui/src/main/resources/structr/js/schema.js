@@ -3481,8 +3481,7 @@ var _Schema = {
 		});
 	},
 	getMethodsInitFunction: function(container) {
-		return Structr.guardExecution(function() {
-
+		return (function() {
 			$('textarea.property-code', container).each(function(i, el) {
 				_Schema.initCodeMirrorForMethodCode(el);
 			});
@@ -3490,7 +3489,6 @@ var _Schema = {
 			$(' textarea.property-comment', container).each(function(i, el) {
 				_Schema.initCodeMirrorForMethodComment(el);
 			});
-
 			_Schema.restoreSchemaMethodsRowHeights(container);
 		});
 	},
@@ -3498,43 +3496,49 @@ var _Schema = {
 		return (contentText.substring(0, 1) === "{") ? 'javascript' : 'none';
 	},
 	initCodeMirrorForMethodCode: function(el) {
-		var cm = CodeMirror.fromTextArea(el, {
-			lineNumbers: true,
-			mode: _Schema.senseCodeMirrorMode($(el).val()),
-			lineWrapping: LSWrapper.getItem(lineWrappingKey),
-			extraKeys: {
-				"'.'":        _Contents.autoComplete,
-				"Ctrl-Space": _Contents.autoComplete
-			},
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: true
-		});
-		$(cm.getWrapperElement()).addClass('cm-schema-methods');
-		cm.refresh();
+		var existingCodeMirror = $('.CodeMirror', $(el).parent())[0];
+		if (!existingCodeMirror) {
+			var cm = CodeMirror.fromTextArea(el, {
+				lineNumbers: true,
+				mode: _Schema.senseCodeMirrorMode($(el).val()),
+				lineWrapping: LSWrapper.getItem(lineWrappingKey),
+				extraKeys: {
+					"'.'":        _Contents.autoComplete,
+					"Ctrl-Space": _Contents.autoComplete
+				},
+				indentUnit: 4,
+				tabSize: 4,
+				indentWithTabs: true
+			});
+			$(cm.getWrapperElement()).addClass('cm-schema-methods');
+			cm.refresh();
 
-		cm.on('change', function(cm, changeset) {
-			cm.save();
-			cm.setOption('mode', _Schema.senseCodeMirrorMode(cm.getValue()));
-			$(cm.getTextArea()).trigger('change');
-		});
+			cm.on('change', function(cm, changeset) {
+				cm.save();
+				cm.setOption('mode', _Schema.senseCodeMirrorMode(cm.getValue()));
+				$(cm.getTextArea()).trigger('change');
+			});
+		}
 	},
 	initCodeMirrorForMethodComment: function(el) {
-		var cm = CodeMirror.fromTextArea(el, {
-			theme: "no-lang",
-			lineNumbers: true,
-			lineWrapping: LSWrapper.getItem(lineWrappingKey),
-			indentUnit: 4,
-			tabSize: 4,
-			indentWithTabs: true
-		});
-		$(cm.getWrapperElement()).addClass('cm-schema-methods');
-		cm.refresh();
+		var existingCodeMirror = $('.CodeMirror', $(el).parent())[0];
+		if (!existingCodeMirror) {
+			var cm = CodeMirror.fromTextArea(el, {
+				theme: "no-lang",
+				lineNumbers: true,
+				lineWrapping: LSWrapper.getItem(lineWrappingKey),
+				indentUnit: 4,
+				tabSize: 4,
+				indentWithTabs: true
+			});
+			$(cm.getWrapperElement()).addClass('cm-schema-methods');
+			cm.refresh();
 
-		cm.on('change', function(cm, changeset) {
-			cm.save();
-			$(cm.getTextArea()).trigger('change');
-		});
+			cm.on('change', function(cm, changeset) {
+				cm.save();
+				$(cm.getTextArea()).trigger('change');
+			});
+		}
 	},
 	makeSchemaMethodRowResizable: function(tr) {
 		var initialRowHeight;

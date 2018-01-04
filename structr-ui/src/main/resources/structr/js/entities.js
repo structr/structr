@@ -706,7 +706,7 @@ var _Entities = {
 
 									var nodeId = res[key].id || res[key];
 
-									tempNodeCache.registerCallbackForId(nodeId, function(node) {
+									tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
 
 										_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 											$('.remove', nodeEl).on('click', function(e) {
@@ -731,7 +731,7 @@ var _Entities = {
 
 										var nodeId = obj.id || obj;
 
-										tempNodeCache.registerCallbackForId(nodeId, function(node) {
+										tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
 
 											_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 												$('.remove', nodeEl).on('click', function(e) {
