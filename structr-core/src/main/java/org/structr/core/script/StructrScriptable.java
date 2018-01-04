@@ -204,8 +204,10 @@ public class StructrScriptable extends ScriptableObject {
 					if (parameters.length == 1) {
 
 						final String fileName = parameters[0].toString();
+						final String source   = actionContext.getJavascriptLibraryCode(fileName);
 
-						context.evaluateString(scope, actionContext.getJavascriptLibraryCode(fileName), fileName, 1, null);
+						// use cached / compiled source code for JS libs
+						Scripting.compileOrGetCached(context, source, fileName, 1).exec(context, scope);
 
 					} else {
 

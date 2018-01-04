@@ -339,7 +339,7 @@ public class Scripting {
 		return buf.toString();
 	}
 
-	private static Script compileOrGetCached(final Context context, final String source, final String sourceName, final int lineNo) {
+	public static Script compileOrGetCached(final Context context, final String source, final String sourceName, final int lineNo) {
 
 		synchronized (compiledScripts) {
 
