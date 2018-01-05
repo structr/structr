@@ -35,6 +35,8 @@ import org.structr.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.html.Script;
+import org.structr.web.entity.html.relation.ResourceLink;
 import org.structr.web.importer.Importer;
 import org.w3c.dom.NodeList;
 
@@ -333,6 +335,48 @@ public class ImporterTest extends StructrUiTest {
 		);
 	}
 
+	
+
+	@Test
+	public void testWidgetWithScriptTags() {
+
+		try (final Tx tx = app.tx()) {
+			
+			Settings.JsonIndentation.setValue(true);
+			Settings.HtmlIndentation.setValue(true);
+			
+			final String source = testImportWidget(
+					"<div>\n"
+							+ "      <script src=\"/structr/js/lib/jquery-1.11.1.min.js\" type=\"text/javascript\"></script>\n"
+							+ "      <script type=\"text/javascript\"></script>\n"
+							+ "</div>",
+					RenderContext.EditMode.WIDGET, "https://widgets.structr.org/structr/rest/widgets");
+			
+			//System.out.println(source);
+			
+			assertEquals("<!DOCTYPE html>\n"
+					+ "<html>\n"
+					+ "	<head></head>\n"
+					+ "	<body>\n"
+					+ "		<div>\n"
+					+ "			<script src=\"/structr/js/lib/jquery-1.11.1.min.js\" type=\"text/javascript\"></script>\n"
+					+ "			<script type=\"text/javascript\"></script>\n"
+					+ "		</div>\n"
+					+ "	</body>\n"
+					+ "</html>",
+					source
+			);
+			
+			Script secondScriptElement = (Script) app.nodeQuery(Script.class).blank(Script._src).getFirst();
+			
+			assertNull(secondScriptElement.getOutgoingRelationship(ResourceLink.class));
+			
+
+		} catch (FrameworkException ex) {
+			logger.warn("", ex);
+		}
+	}
+	
 	private String testImport(final String address, final RenderContext.EditMode editMode) {
 
 		String sourceHtml = null;
@@ -362,6 +406,11 @@ public class ImporterTest extends StructrUiTest {
 
 	private String testImportWidget(final String code, final RenderContext.EditMode editMode) {
 
+		return testImportWidget(code, editMode, null);
+	}
+
+	private String testImportWidget(final String code, final RenderContext.EditMode editMode, final String address) {
+
 		String sourceHtml = null;
 
 		try {
@@ -369,7 +418,7 @@ public class ImporterTest extends StructrUiTest {
 			// render page into HTML string
 			try (final Tx tx = app.tx()) {
 
-				final Importer importer = new Importer(securityContext, code, null, "widget", true, true);
+				final Importer importer = new Importer(securityContext, code, address, "widget", true, true);
 
 				importer.parse(true);
 

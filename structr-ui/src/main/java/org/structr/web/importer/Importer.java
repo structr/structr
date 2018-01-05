@@ -583,6 +583,8 @@ public class Importer {
 
 						String downloadAddress = node.attr(downloadAddressAttr);
 						res = downloadFile(downloadAddress, originalUrl);
+					} else {
+						res = null;
 					}
 				}
 
