@@ -37,6 +37,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.TestEight;
@@ -51,6 +52,8 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -600,6 +603,46 @@ public class SystemTest extends StructrTest {
 		} catch (Throwable fex) {
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testGrantFunctionPerformance() {
+
+		// test setup, create a supernode with 10000 relationships
+		try (final Tx tx = app.tx()) {
+
+			// create test group
+			app.create(Group.class, "group");
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this)", "");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass("GrantTest");
+
+		try (final Tx tx = app.tx()) {
+
+			final long t0 = System.currentTimeMillis();
+			for (int i=0; i<10000; i++) {
+				app.create(type, "test" + i);
+			}
+			final long t1 = System.currentTimeMillis();
+
+			System.out.println((t1-t0) + " ms");
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fail("Unexpected exception");
+		}
+
 	}
 
 	@Test
