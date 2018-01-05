@@ -1746,7 +1746,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			try {
 
-				secRel = StructrApp.getInstance().create(principal, (NodeInterface)this, Security.class);
+				// ensureCardinality is not neccessary here
+				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+				securityContext.disableEnsureCardinality();
+
+				secRel = StructrApp.getInstance(securityContext).create(principal, (NodeInterface)this, Security.class);
 
 			} catch (FrameworkException ex) {
 

@@ -178,6 +178,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 				try {
 
 					// try to fetch existing relationship by node ID(s)
+					// FIXME: this call can be very slow when lots of relationships exist
 					tx.getLong("MATCH (n)-[r:" + type.name() + "]->(m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)", params);
 
 					// success
