@@ -500,7 +500,7 @@ public class SchemaHelper {
 
 		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
 		final App app                                          = StructrApp.getInstance();
-		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
+		final Map<String, List<ActionEntry>> methods           = new LinkedHashMap<>();
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final List<String> propertyValidators                  = new LinkedList<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
@@ -644,7 +644,7 @@ public class SchemaHelper {
 		src.append(SchemaHelper.extractProperties(schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
 		SchemaHelper.extractViews(schemaNode, viewProperties, errorBuffer);
-		SchemaHelper.extractMethods(schemaNode, saveActions);
+		SchemaHelper.extractMethods(schemaNode, methods);
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -685,7 +685,7 @@ public class SchemaHelper {
 		}
 
 		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, extendsAbstractNode, propertyValidators);
-		SchemaHelper.formatSaveActions(schemaNode, src, saveActions, implementedInterfaces);
+		SchemaHelper.formatMethods(schemaNode, src, methods, implementedInterfaces);
 
 		// insert dynamic code here
 		src.append(mixinCodeBuffer);
@@ -908,7 +908,7 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void extractMethods(final AbstractSchemaNode entity, final Map<Actions.Type, List<ActionEntry>> actions) throws FrameworkException {
+	public static void extractMethods(final AbstractSchemaNode entity, final Map<String, List<ActionEntry>> actions) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 
@@ -944,18 +944,18 @@ public class SchemaHelper {
 			for (final SchemaMethod schemaMethod : schemaMethods) {
 
 				final ActionEntry entry      = schemaMethod.getActionEntry(entity);
-				List<ActionEntry> actionList = actions.get(entry.getType());
+				final String name            = entry.getName();
+				List<ActionEntry> actionList = actions.get(name);
 
 				if (actionList == null) {
 
 					actionList = new LinkedList<>();
-					actions.put(entry.getType(), actionList);
+					actions.put(name, actionList);
 				}
 
 				actionList.add(entry);
 
 				Collections.sort(actionList);
-
 			}
 		}
 	}
@@ -1150,13 +1150,13 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void formatSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<Actions.Type, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
+	public static void formatMethods(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
 		// save actions..
-		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
+		for (final Map.Entry<String, List<ActionEntry>> entry : saveActions.entrySet()) {
 
 			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type            = entry.getKey();
+			final Actions.Type type            = determineActionType(actionList);
 
 			switch (type) {
 
@@ -1714,5 +1714,41 @@ public class SchemaHelper {
 
 	private static String cleanTypeName(final String src) {
 		return StringUtils.substringBefore(src, "<");
+	}
+
+	private static Actions.Type determineActionType(final List<ActionEntry> list) {
+
+		// count type instances
+		final Map<Actions.Type, Integer> frequency = new EnumMap(Actions.Type.class);
+
+		for (final ActionEntry entry : list) {
+
+			final Actions.Type type = entry.getType();
+			final Integer count     = frequency.get(type);
+
+			if (count == null) {
+
+				frequency.put(type, 1);
+
+			} else {
+
+				frequency.put(type, count + 1);
+			}
+		}
+
+		// more than one type: prioritize
+		if (frequency.size() > 1) {
+
+			// return Java
+			return Actions.Type.Java;
+		}
+
+		// only one type: no action
+		if (!frequency.isEmpty()) {
+			return frequency.keySet().iterator().next();
+		}
+
+		// fallback: no type
+		return null;
 	}
 }

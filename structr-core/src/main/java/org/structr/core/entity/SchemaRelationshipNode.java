@@ -65,7 +65,6 @@ import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionEntry;
-import org.structr.schema.action.Actions;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.schema.parser.Validator;
@@ -495,7 +494,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final Map<Actions.Type, List<ActionEntry>> actions = new LinkedHashMap<>();
+		final Map<String, List<ActionEntry>> actions       = new LinkedHashMap<>();
 		final Map<String, Set<String>> viewProperties      = new LinkedHashMap<>();
 		final StringBuilder src                            = new StringBuilder();
 		final Class baseType                               = AbstractRelationship.class;
@@ -599,7 +598,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t}\n\n");
 
 		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, false, propertyValidators);
-		SchemaHelper.formatSaveActions(this, src, actions, Collections.emptySet());
+		SchemaHelper.formatMethods(this, src, actions, Collections.emptySet());
 
 		formatRelationshipFlags(src);
 

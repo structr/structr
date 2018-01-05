@@ -23,7 +23,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -42,22 +44,49 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private String name                          = null;
 	private int position                         = 0;
 
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		if (returnType != null) {
+			buf.append(returnType);
+			buf.append(" ");
+		}
+
+		buf.append(name);
+		buf.append("(");
+		buf.append(StringUtils.join(parameters.entrySet().stream().map(k -> k.getKey() + " " + k.getValue()).collect(Collectors.toList()), ", "));
+		buf.append(")");
+
+		if (!exceptions.isEmpty()) {
+
+			buf.append(" throws ");
+			buf.append(StringUtils.join(exceptions, ", "));
+		}
+
+		return buf.toString();
+	}
+
 	public ActionEntry(final String sourceName, final String value, final String codeType) {
 
 		int positionOffset = 0;
 
 		if (sourceName.startsWith("___onSave")) {
 
+			this.name = "onModification";
 			this.type = Actions.Type.Save;
 			positionOffset = 9;
 
 		} else if (sourceName.startsWith("___onCreate")) {
 
+			this.name = "onCreation";
 			this.type = Actions.Type.Create;
 			positionOffset = 11;
 
 		} else if (sourceName.startsWith("___onDelete")) {
 
+			this.name = "afterDeletion";
 			this.type = Actions.Type.Delete;
 			positionOffset = 11;
 
