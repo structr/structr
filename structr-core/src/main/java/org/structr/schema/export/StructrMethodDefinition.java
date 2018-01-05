@@ -29,7 +29,6 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -245,27 +244,23 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
 
-		getOrCreateProperties.put(SchemaMethod.name,       getName());
-		getOrCreateProperties.put(SchemaMethod.signature,  getSignature());
-		getOrCreateProperties.put(SchemaMethod.schemaNode, schemaNode);
+		getOrCreateProperties.put(SchemaMethod.name,              getName());
+		getOrCreateProperties.put(SchemaMethod.signature,         getSignature());
+		getOrCreateProperties.put(SchemaMethod.codeType,          getCodeType());
+		getOrCreateProperties.put(SchemaMethod.returnType,        getReturnType());
+		getOrCreateProperties.put(SchemaMethod.schemaNode,        schemaNode);
+		getOrCreateProperties.put(SchemaMethod.source,            getSource());
+		getOrCreateProperties.put(SchemaMethod.comment,           getComment());
+		getOrCreateProperties.put(SchemaMethod.exceptions,        getExceptions().toArray(new String[0]));
+		getOrCreateProperties.put(SchemaMethod.overridesExisting, overridesExisting());
+		getOrCreateProperties.put(SchemaMethod.callSuper,         callSuper());
+		getOrCreateProperties.put(SchemaMethod.doExport,          doExport());
 
 		SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(getOrCreateProperties).getFirst();
 		if (method == null) {
 
 			method = app.create(SchemaMethod.class, getOrCreateProperties);
 		}
-
-		updateProperties.put(SchemaMethod.source,            source);
-		updateProperties.put(SchemaMethod.comment,           comment);
-		updateProperties.put(SchemaMethod.codeType,          codeType);
-		updateProperties.put(SchemaMethod.returnType,        returnType);
-		updateProperties.put(SchemaMethod.exceptions,        exceptions.toArray(new String[0]));
-		updateProperties.put(SchemaMethod.overridesExisting, overridesExisting);
-		updateProperties.put(SchemaMethod.callSuper,         callSuper);
-		updateProperties.put(SchemaMethod.doExport,          doExport);
-
-		// update properties
-		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// create database schema for method parameters
 		for (final StructrParameterDefinition param : parameters) {

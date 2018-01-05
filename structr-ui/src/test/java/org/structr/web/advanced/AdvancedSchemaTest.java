@@ -1038,4 +1038,23 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.when()
 				.get("/User");
 	}
+
+	@Test
+	public void testMultipleCallbackHandling() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.getType("User").addMethod("onCreate", "log('test')", "test");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+	}
 }

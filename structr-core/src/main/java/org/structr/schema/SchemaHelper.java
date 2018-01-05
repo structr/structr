@@ -1156,7 +1156,7 @@ public class SchemaHelper {
 		for (final Map.Entry<Actions.Type, List<ActionEntry>> entry : saveActions.entrySet()) {
 
 			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type = entry.getKey();
+			final Actions.Type type            = entry.getKey();
 
 			switch (type) {
 
@@ -1590,7 +1590,7 @@ public class SchemaHelper {
 
 		try {
 
-			return Class.forName(StringUtils.substringBefore(fqcn, "<"));
+			return Class.forName(cleanTypeName(fqcn));
 
 		} catch (Throwable t) {}
 
@@ -1694,9 +1694,14 @@ public class SchemaHelper {
 					localTypeName = schemaNode.getProperty(SchemaNode.extendsClass);
 					if (localTypeName != null) {
 
+						localTypeName = cleanTypeName(localTypeName);
 						localTypeName = localTypeName.substring(localTypeName.lastIndexOf(".") + 1);
 					}
 				}
+
+			} else {
+
+				break;
 			}
 		}
 
@@ -1705,5 +1710,9 @@ public class SchemaHelper {
 
 	private static boolean hasType(final String fqcn) {
 		return SchemaHelper.classForName(fqcn) != null;
+	}
+
+	private static String cleanTypeName(final String src) {
+		return StringUtils.substringBefore(src, "<");
 	}
 }
