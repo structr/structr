@@ -101,7 +101,7 @@ var _Crud = {
 					return;
 
 				var node = data.result;
-				_Crud.crudCache.addObject(node);
+				_Crud.crudCache.addObject(node, node.id);
 			}
 		});
 	}),
