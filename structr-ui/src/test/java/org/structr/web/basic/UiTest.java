@@ -18,19 +18,20 @@
  */
 package org.structr.web.basic;
 
-import org.structr.web.StructrUiTest;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.io.IOUtils;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
@@ -38,9 +39,11 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
+import org.structr.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
@@ -397,6 +400,159 @@ public class UiTest extends StructrUiTest {
 		}
 
 	}
+
+	@Test
+	public void testAutoRenameFileWithIdenticalPathInRootFolder() {
+
+		Settings.UniquePaths.setValue(Boolean.TRUE);
+
+		FileBase rootFile1 = null;
+		FileBase rootFile2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			rootFile1 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, "test.txt"));
+			assertNotNull(rootFile1);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			rootFile2 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, "test.txt"));
+			assertNotNull(rootFile2);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		assertNotEquals(rootFile1.getName(), rootFile2.getName());
+	}
+
+	@Test
+	public void testAutoRenameFileWithIdenticalPathInSubFolder() {
+
+		Settings.UniquePaths.setValue(Boolean.TRUE);
+
+		Folder folder = null;
+		FileBase file1 = null;
+		FileBase file2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			folder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder");
+
+			assertNotNull(folder);
+			assertEquals(folder.getFolderPath(), "/my/test/folder");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			file1 = app.create(File.class,
+				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(AbstractFile.parent, folder)
+			);
+
+			assertNotNull(file1);
+			assertEquals("Testfolder should have exactly one child", 1, folder.getProperty(Folder.childrenIds).size());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			file2 = app.create(File.class,
+				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(AbstractFile.parent, folder)
+			);
+
+			assertNotNull(file2);
+			assertEquals("Testfolder should have exactly two children", 2, folder.getProperty(Folder.childrenIds).size());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		assertNotEquals(file1.getName(), file2.getName());
+	}
+
+	@Test
+	public void testAutoRenameFileWhenMovingToFolderWhereIdenticalFilenameExists() {
+
+		Settings.UniquePaths.setValue(Boolean.TRUE);
+
+		Folder folder1 = null;
+		Folder folder2 = null;
+		FileBase file1 = null;
+		FileBase file2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			folder1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder");
+			assertNotNull(folder1);
+			assertEquals(folder1.getFolderPath(), "/my/test/folder");
+
+			folder2 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/another/directory");
+			assertNotNull(folder2);
+			assertEquals(folder2.getFolderPath(), "/another/directory");
+
+			tx.success();
+
+			file1 = app.create(File.class,
+				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(AbstractFile.parent, folder1)
+			);
+
+			assertNotNull(file1);
+			assertEquals("Testfolder 1 should have exactly one child", 1, folder1.getProperty(Folder.childrenIds).size());
+
+			file2 = app.create(File.class,
+				new NodeAttribute<>(AbstractNode.name, "test.txt"),
+				new NodeAttribute<>(AbstractFile.parent, folder2)
+			);
+
+			assertNotNull(file2);
+			assertEquals("Testfolder 2 should have exactly one child", 1, folder2.getProperty(Folder.childrenIds).size());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			folder2.treeRemoveChild(file2);
+			folder1.treeAppendChild(file2);
+
+			assertEquals("Testfolder 1 should have exactly two children", 2, folder1.getProperty(Folder.childrenIds).size());
+			assertEquals("Testfolder 2 should have no children", 0, folder2.getProperty(Folder.childrenIds).size());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
+		assertNotEquals(file1.getName(), file2.getName());
+	}
+
 
 	@Test
 	public void testExtensionBasedMimeTypeDetection() {

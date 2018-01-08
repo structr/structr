@@ -18,6 +18,9 @@
  */
 package org.structr.web.property;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -34,6 +37,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
 
 /**
@@ -99,15 +103,13 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		final App app                    = StructrApp.getInstance(securityContext);
 		final SourceSearchAttribute attr = new SourceSearchAttribute(occur);
 
-		final Query<AbstractFile> q = app.nodeQuery(AbstractFile.class).and(AbstractFile.name, PathHelper.getName(searchValue));
 		try {
-			for (final AbstractFile fileOrFolder : q.getAsList()) {
 
-				if (fileOrFolder != null && fileOrFolder.getProperty(AbstractFile.path).equals(searchValue)) {
-
-					attr.addToResult(fileOrFolder);
-				}
+			final List<String> parts = new ArrayList<>(Arrays.asList(PathHelper.getParts(searchValue)));
+			if (!parts.isEmpty()) {
+				searchRecursively(app, null, attr, parts);
 			}
+
 		} catch (FrameworkException ex) {
 
 			logger.error("", ex);
@@ -116,4 +118,21 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		return attr;
 	}
 
+	private void searchRecursively(final App app, final Folder parent, final SourceSearchAttribute attr, final List<String> parts) throws FrameworkException {
+
+		final String currentPart = parts.remove(0);
+		final List<AbstractFile> res = app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, (parent == null) ? null : parent).and(AbstractFile.name, currentPart).getAsList();
+
+		if (parts.isEmpty()) {
+			for (final AbstractFile fileOrFolder : res) {
+
+				attr.addToResult(fileOrFolder);
+			}
+
+		} else {
+			for (final AbstractFile folder : res) {
+				searchRecursively(app, (Folder)folder, attr, parts);
+			}
+		}
+	}
 }
