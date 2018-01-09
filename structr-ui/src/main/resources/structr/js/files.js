@@ -1511,7 +1511,10 @@ var _Files = {
 
 					var mountConfig = {};
 					$('.mount-option[type="text"]').each(function(i, el) {
-						mountConfig[$(el).data('attributeName')] = $(el).val();
+						var val = $(el).val();
+						if (val !== "") {
+							mountConfig[$(el).data('attributeName')] = val;
+						}
 					});
 					$('.mount-option[type="checkbox"]').each(function(i, el) {
 						mountConfig[$(el).data('attributeName')] = $(el).prop('checked');
