@@ -135,7 +135,7 @@ public abstract class Tag {
 
 		} else if (this.text != null) {
 
-			this.text = this.text.concat(",");
+			this.inline("span").css("comma").text(",");
 		}
 	}
 
