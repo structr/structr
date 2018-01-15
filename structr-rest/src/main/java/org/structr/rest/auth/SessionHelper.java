@@ -108,7 +108,7 @@ public class SessionHelper {
 
 		if (session != null) {
 			
-			logger.info("Created new session " + session.getId());
+			logger.debug("Created new session " + session.getId());
 		} else {
 
 			logger.warn("Request still has no valid session");
