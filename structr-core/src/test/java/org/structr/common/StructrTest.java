@@ -137,7 +137,7 @@ public class StructrTest {
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
-		Settings.LogSchemaOutput.setValue(true);
+		//Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 

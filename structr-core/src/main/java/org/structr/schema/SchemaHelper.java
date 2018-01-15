@@ -1152,33 +1152,92 @@ public class SchemaHelper {
 
 	public static void formatMethods(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
-		// save actions..
+		/*
+		Methods are collected and grouped by name. There can be multiple methods with the same
+		name, which must be combined into a single method.
+		*/
+
 		for (final Map.Entry<String, List<ActionEntry>> entry : saveActions.entrySet()) {
 
 			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type            = determineActionType(actionList);
+			final String name                  = entry.getKey();
 
-			switch (type) {
+			switch (name) {
 
-				case Java:
-					// java actions are exported java methods
-					// that can be called by POSTing on the entity
-					formatJavaActions(src, actionList);
+				case "onCreation":
+					formatCreationCallback(schemaNode, src, name, actionList);
 					break;
 
-				case Custom:
-					// active actions are exported stored functions
-					// that can be called by POSTing on the entity
-					formatActiveActions(src, actionList);
+				case "onModification":
+					formatModificationCallback(schemaNode, src, name, actionList);
+					break;
+
+				case "afterDeletion":
+					formatDeletionCallback(schemaNode, src, name, actionList);
 					break;
 
 				default:
-					// passive actions are actions that are executed
-					// automtatically on creation / modification etc.
-					formatPassiveSaveActions(schemaNode, src, type, actionList, implementedInterfaces);
+					formatJavaActions(src, actionList);
 					break;
 			}
 		}
+
+	}
+
+	public static void formatCreationCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
+
+		src.append("\n\t@Override\n");
+		src.append("\tpublic void ");
+		src.append(name);
+		src.append("(final SecurityContext arg0, final ErrorBuffer arg1) throws FrameworkException {\n\n");
+		src.append("\t\tsuper.");
+		src.append(name);
+		src.append("(arg0, arg1);\n\n");
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\t\t").append(action.getSource("this")).append(";\n");
+		}
+
+		src.append("\t}\n");
+
+	}
+
+	public static void formatModificationCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
+
+		src.append("\n\t@Override\n");
+		src.append("\tpublic void ");
+		src.append(name);
+		src.append("(final SecurityContext arg0, final ErrorBuffer arg1, final ModificationQueue arg2) throws FrameworkException {\n\n");
+		src.append("\t\tsuper.");
+		src.append(name);
+		src.append("(arg0, arg1, arg2);\n\n");
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\t\t").append(action.getSource("this")).append(";\n");
+		}
+
+		src.append("\t}\n");
+
+	}
+
+	public static void formatDeletionCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
+
+		src.append("\n\t@Override\n");
+		src.append("\tpublic void ");
+		src.append(name);
+		src.append("(final SecurityContext arg0, final PropertyMap arg1) throws FrameworkException {\n\n");
+		src.append("\t\tsuper.");
+		src.append(name);
+		src.append("(arg0, arg1);\n\n");
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\t\t").append(action.getSource("this")).append(";\n");
+		}
+
+		src.append("\t}\n");
 
 	}
 
@@ -1244,6 +1303,7 @@ public class SchemaHelper {
 
 			if (action.callSuper()) {
 
+				src.append("\n\t\t// call super\n");
 				src.append("\t\tsuper.");
 				src.append(action.getName());
 				src.append("(");
@@ -1255,14 +1315,56 @@ public class SchemaHelper {
 
 				src.append("\t\t");
 				src.append(source);
-				src.append("\n");
 
-			} else if (!"void".equals(returnType)) {
+				final String trimmed = source.trim();
+				if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
+
+					src.append(";");
+				}
+
+				src.append("\n");
+			}
+
+			if (StringUtils.isBlank(source) || (Actions.Type.Custom.equals(action.getType()) && !"void".equals(returnType))) {
 
 				src.append("\t\treturn null;\n");
 			}
 
 			src.append("\t}\n");
+		}
+
+	}
+
+	/*
+
+	public static void formatMethods(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
+
+		// save actions..
+		for (final Map.Entry<String, List<ActionEntry>> entry : saveActions.entrySet()) {
+
+			final List<ActionEntry> actionList = entry.getValue();
+			final Actions.Type type            = determineActionType(actionList);
+
+			switch (type) {
+
+				case Java:
+					// java actions are exported java methods
+					// that can be called by POSTing on the entity
+					formatJavaActions(src, actionList);
+					break;
+
+				case Custom:
+					// active actions are exported stored functions
+					// that can be called by POSTing on the entity
+					formatActiveActions(src, actionList);
+					break;
+
+				default:
+					// passive actions are actions that are executed
+					// automtatically on creation / modification etc.
+					formatPassiveSaveActions(schemaNode, src, type, actionList, implementedInterfaces);
+					break;
+			}
 		}
 
 	}
@@ -1328,6 +1430,7 @@ public class SchemaHelper {
 		src.append("\t}\n");
 
 	}
+	*/
 
 	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 

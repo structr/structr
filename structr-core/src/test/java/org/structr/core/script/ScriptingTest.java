@@ -39,6 +39,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
@@ -253,6 +254,8 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testGrantViaScripting() {
 
+		Settings.LogSchemaOutput.setValue(true);
+
 		// setup phase: create schema nodes
 		try (final Tx tx = app.tx()) {
 
@@ -266,7 +269,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1621,7 +1624,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid replace() result", "equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 			assertEquals("Invalid replace() result", "not equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 3),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
 
-			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,deleted,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,visibilityStartDate,visibilityEndDate", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
+			assertEquals("Invalid keys() / join() result", "id,name,owner,type,createdBy,deleted,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers", Scripting.replaceVariables(ctx, testOne, "${join(keys(this, 'ui'), ',')}"));
 			assertEquals("Invalid values() / join() result", "A-nice-little-name-for-my-test-object,1,String", Scripting.replaceVariables(ctx, testOne, "${join(values(this, 'protected'), ',')}"));
 
 			// test default values
