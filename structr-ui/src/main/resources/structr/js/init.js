@@ -70,6 +70,12 @@ $(function() {
 		e.stopPropagation();
 		Structr.doLogout();
 	});
+	
+	$(window).on('hashchange', function(e) {
+		var anchor = getAnchorFromUrl(window.location.href);
+		if (anchor === 'logout' || loginBox.is(':visible')) return
+		Structr.activateModule(e, anchor);
+	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function () {
 		var target = $(this).data("target");
@@ -273,7 +279,7 @@ var Structr = {
 		_Console.initConsole();
 		_Favorites.initFavorites();
 	},
-	updateUsername:function(name) {
+	updateUsername: function(name) {
 		if (name !== user) {
 			user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
@@ -333,7 +339,7 @@ var Structr = {
 			$('#errorText').html(text);
 		}
 
-		Structr.activateMenuEntry('logout');
+		//Structr.activateMenuEntry('logout');
 	},
 	doLogin: function(username, password) {
 		Structr.renewSessionId(function () {
@@ -1208,7 +1214,7 @@ var Structr = {
 				$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
 				var ui = envInfo.components['structr-ui'];
-				if (ui !== null) {
+				if (ui) {
 
 					var version = ui.version;
 					var build = ui.build;
