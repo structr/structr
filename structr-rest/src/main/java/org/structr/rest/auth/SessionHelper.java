@@ -26,6 +26,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.server.session.SessionHandler;
+import org.eclipse.jetty.websocket.servlet.UpgradeHttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -91,23 +92,26 @@ public class SessionHelper {
 	public static HttpSession newSession(final HttpServletRequest request) {
 
 		HttpSession session = request.getSession(true);
-
+		
 		if (session == null) {
 
-			// try again
-			session = request.getSession(true);
+			if (request instanceof UpgradeHttpServletRequest) {
+				logger.debug("Requested to create a new session on a Websocket request, aborting");
+				return null;
+			}
 
+			request.changeSessionId();
+
+			// try again with new session id
+			session = request.getSession(false);
 		}
 
 		if (session != null) {
-
-			synchronized (Services.getInstance()) {
-				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
-			}
-
+			
+			logger.info("Created new session " + session.getId());
 		} else {
 
-			logger.warn("Unable to create new session after two attempts");
+			logger.warn("Request still has no valid session");
 		}
 
 		return session;
