@@ -77,8 +77,8 @@ public class ParallelLoginTest extends SeleniumTest {
 				WebDriver driver = new ChromeDriver(chromeOptions);
 
 				try {
-					// Wait 60 s for successful login
-					loginAsAdmin(menuEntry, driver, 60);
+					// Wait 10 min for successful login
+					loginAsAdmin(menuEntry, driver, 600);
 				} catch (Exception ex) {
 					logger.error("Error in nested test in thread " +  Thread.currentThread().toString(), ex);
 					return ex;
