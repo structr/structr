@@ -52,6 +52,12 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
 			<optional>true</optional>
+		 <exclusions>
+		  <exclusion>
+		   <groupId>com.google.guava</groupId>
+		   <artifactId>guava</artifactId>
+		  </exclusion>
+		 </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -140,10 +146,22 @@
 			<artifactId>sshd-core</artifactId>
 			<version>1.2.0</version>
 		</dependency>
+<!--		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-server</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>-->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.google.javascript</groupId>
 			<artifactId>closure-compiler</artifactId>
-			<version>v20160208</version>
+			<version>v20180101</version>
 		</dependency>
 	</dependencies>
 	<build>

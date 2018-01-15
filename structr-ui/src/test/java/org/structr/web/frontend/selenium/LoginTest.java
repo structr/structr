@@ -1,0 +1,189 @@
+/**
+ * Copyright (C) 2010-2017 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.web.frontend.selenium;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.structr.web.basic.SeleniumTest;
+
+/**
+ * Test basic backend login as admin/admin
+ */
+public class LoginTest extends SeleniumTest {
+
+	@Test
+	public void testUsernameAndPasswordFieldsExist() {
+		
+		driver.get("http://localhost:8875/structr/#");
+		
+		assertEquals("Username field not found", 1, driver.findElements(By.id("usernameField")).size());
+		assertEquals("Password field not found", 1, driver.findElements(By.id("passwordField")).size());
+	}
+	
+	@Test
+	public void testSuccessfulLogin() {
+		
+		createAdminUser();
+		
+		driver.get("http://localhost:8875/structr/#dashboard");
+		
+		assertEquals("Username field not found", 1, driver.findElements(By.id("usernameField")).size());
+		assertEquals("Password field not found", 1, driver.findElements(By.id("passwordField")).size());
+		assertEquals("Login button not found",   1, driver.findElements(By.id("loginButton")).size());
+
+		final WebDriverWait wait = new WebDriverWait(driver, 2);
+		
+		final WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usernameField")));
+		usernameField.sendKeys("admin");
+
+		final WebElement passwordField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("passwordField")));
+		passwordField.sendKeys("admin");
+
+		final WebElement loginButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loginButton")));
+		loginButton.click();
+		
+		wait.until(ExpectedConditions.titleIs("Structr Dashboard"));
+		assertEquals("Structr Dashboard", driver.getTitle());
+	}
+
+	@Test
+	public void testFailedLogin() {
+		
+		createAdminUser();
+		
+		driver.get("http://localhost:8875/structr/#dashboard");
+		
+		assertEquals("Username field not found", 1, driver.findElements(By.id("usernameField")).size());
+		assertEquals("Password field not found", 1, driver.findElements(By.id("passwordField")).size());
+		assertEquals("Login button not found",   1, driver.findElements(By.id("loginButton")).size());
+
+		final WebDriverWait wait = new WebDriverWait(driver, 2);
+		
+		final WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("usernameField")));
+		usernameField.sendKeys("admin");
+
+		final WebElement passwordField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("passwordField")));
+		passwordField.sendKeys("wrongpassword");
+
+		final WebElement loginButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("loginButton")));
+		loginButton.click();
+		
+		wait.until(ExpectedConditions.textToBe(By.id("errorText"), "Wrong username or password!"));
+	}
+		
+	@Test
+	public void testLoginToPages() {
+		loginAsAdmin("Pages");
+	}
+
+	@Test
+	public void testLoginToFiles() {
+		loginAsAdmin("Files");
+	}
+
+	@Test
+	public void testLoginToSecurity() {
+		loginAsAdmin("Security");
+	}
+
+	@Test
+	public void testLoginToDashboard() {
+		loginAsAdmin("Dashboard");
+	}
+
+//	@Test
+//	public void testParallelLogin() {
+//		
+//		try {
+//			Thread.sleep(2000L);
+//		} catch (InterruptedException ex) {}
+//
+//		createAdminUser();
+//		
+//		final Thread t1 = new Thread() {
+//			
+//			@Override
+//			public void run() {
+//				
+//				final String menuEntry = "Pages";
+//				
+//				System.setProperty("webdriver.chrome.driver", "src/test/selenium/chromedriver");
+//				final ChromeOptions chromeOptions = new ChromeOptions();
+//				//chromeOptions.setHeadless(true);
+//				WebDriver driver = new ChromeDriver(chromeOptions);
+//				
+//				loginAsAdmin(menuEntry, driver);
+//
+//				try {
+//					Thread.sleep(10000L);
+//				} catch (InterruptedException ex) {}
+//				
+//				driver.quit();
+//			}
+//		};
+//		
+//		final Thread t2 = new Thread() {
+//			
+//			@Override
+//			public void run() {
+//				
+//				final String menuEntry = "Files";
+//				
+//				System.setProperty("webdriver.chrome.driver", "src/test/selenium/chromedriver");
+//				final ChromeOptions chromeOptions = new ChromeOptions();
+//				//chromeOptions.setHeadless(true);
+//				WebDriver driver = new ChromeDriver(chromeOptions);
+//				
+//				loginAsAdmin(menuEntry, driver);
+//
+//				try {
+//					Thread.sleep(10000L);
+//				} catch (InterruptedException ex) {}
+//				
+//				driver.quit();
+//			}
+//		};
+//		
+//		try {
+//			Thread.sleep(10000L);
+//		} catch (InterruptedException ex) {}
+//
+//		t1.start();
+//		t2.start();
+//		
+//		// Keep main thread alive
+//		try {
+//			Thread.sleep(60000L);
+//		} catch (InterruptedException ex) {}
+//		
+//		t1.stop();
+//		t2.stop();
+//
+//	}
+	
+}
