@@ -18,21 +18,10 @@
  */
 package org.structr.web.frontend.selenium;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
@@ -40,16 +29,16 @@ import org.slf4j.LoggerFactory;
 import org.structr.web.basic.SeleniumTest;
 
 /**
- * Test basic backend login as admin/admin with Chrome
+ * Test basic backend login as admin/admin with Firefox
  */
-public class LoginTestChrome extends SeleniumTest {
+public class LoginFirefoxTest extends SeleniumTest {
 	
-	private static final Logger logger = LoggerFactory.getLogger(LoginTestChrome.class.getName());
-
+	private static final Logger logger = LoggerFactory.getLogger(LoginFirefoxTest.class.getName());
+	
 	static {
-		activeBrowser = SupportedBrowsers.CHROME;
+		activeBrowser = SupportedBrowsers.FIREFOX;
 	}
-	
+
 	@Test
 	public void testUsernameAndPasswordFieldsExist() {
 		
