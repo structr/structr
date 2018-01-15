@@ -42,15 +42,15 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class SeleniumTest extends FrontendTest {
 	
 	protected WebDriver driver;
-	private enum SupportedBrowsers { FIREFOX, CHROME };
+	protected enum SupportedBrowsers { FIREFOX, CHROME, NONE };
 	
-	protected SupportedBrowsers activeBrowser = SupportedBrowsers.FIREFOX;
+	protected static SupportedBrowsers activeBrowser = SupportedBrowsers.FIREFOX;
 	
 	@Before
 	public void startDriver() {
 
 		switch (activeBrowser) {
-			
+
 			case FIREFOX :
 		
 				System.setProperty("webdriver.gecko.driver", "src/test/selenium/geckodriver");
@@ -74,6 +74,11 @@ public class SeleniumTest extends FrontendTest {
 				driver = new ChromeDriver(chromeOptions);
 				
 				break;
+
+			case NONE :
+				
+				// Don't create a driver in main thread, useful for parallel testing
+				break;
 		}
 	}
 	
@@ -95,14 +100,15 @@ public class SeleniumTest extends FrontendTest {
 	 * 
 	 * @param menuEntry
 	 * @param driver
+	 * @param waitForSeconds
 	 */
-	protected void loginAsAdmin(final String menuEntry, final WebDriver driver) {
+	protected void loginAsAdmin(final String menuEntry, final WebDriver driver, final int waitForSeconds) {
 		
 		createAdminUser();
 		
 		driver.get("http://localhost:8875/structr/#" + menuEntry.toLowerCase());
 
-		final WebDriverWait wait = new WebDriverWait(driver, 2);
+		final WebDriverWait wait = new WebDriverWait(driver, waitForSeconds);
 		//wait.until((ExpectedCondition<Boolean>) (final WebDriver f) -> (Boolean) ((JavascriptExecutor) f).executeScript("LSWrapper.isLoaded()"));
 		
 		assertEquals("Username field not found", 1, driver.findElements(By.id("usernameField")).size());
@@ -127,7 +133,7 @@ public class SeleniumTest extends FrontendTest {
 	 * @param menuEntry
 	 */
 	protected void loginAsAdmin(final String menuEntry) {
-		loginAsAdmin(menuEntry, driver);
+		loginAsAdmin(menuEntry, driver, 5);
 	}
 	
 }

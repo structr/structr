@@ -18,9 +18,15 @@
  */
 package org.structr.web.frontend.selenium;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -29,13 +35,21 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.web.basic.SeleniumTest;
 
 /**
- * Test basic backend login as admin/admin
+ * Test basic backend login as admin/admin with Chrome
  */
-public class LoginTest extends SeleniumTest {
+public class LoginTestChrome extends SeleniumTest {
+	
+	private static final Logger logger = LoggerFactory.getLogger(LoginTestChrome.class.getName());
 
+	static {
+		activeBrowser = SupportedBrowsers.CHROME;
+	}
+	
 	@Test
 	public void testUsernameAndPasswordFieldsExist() {
 		
@@ -116,74 +130,4 @@ public class LoginTest extends SeleniumTest {
 		loginAsAdmin("Dashboard");
 	}
 
-//	@Test
-//	public void testParallelLogin() {
-//		
-//		try {
-//			Thread.sleep(2000L);
-//		} catch (InterruptedException ex) {}
-//
-//		createAdminUser();
-//		
-//		final Thread t1 = new Thread() {
-//			
-//			@Override
-//			public void run() {
-//				
-//				final String menuEntry = "Pages";
-//				
-//				System.setProperty("webdriver.chrome.driver", "src/test/selenium/chromedriver");
-//				final ChromeOptions chromeOptions = new ChromeOptions();
-//				//chromeOptions.setHeadless(true);
-//				WebDriver driver = new ChromeDriver(chromeOptions);
-//				
-//				loginAsAdmin(menuEntry, driver);
-//
-//				try {
-//					Thread.sleep(10000L);
-//				} catch (InterruptedException ex) {}
-//				
-//				driver.quit();
-//			}
-//		};
-//		
-//		final Thread t2 = new Thread() {
-//			
-//			@Override
-//			public void run() {
-//				
-//				final String menuEntry = "Files";
-//				
-//				System.setProperty("webdriver.chrome.driver", "src/test/selenium/chromedriver");
-//				final ChromeOptions chromeOptions = new ChromeOptions();
-//				//chromeOptions.setHeadless(true);
-//				WebDriver driver = new ChromeDriver(chromeOptions);
-//				
-//				loginAsAdmin(menuEntry, driver);
-//
-//				try {
-//					Thread.sleep(10000L);
-//				} catch (InterruptedException ex) {}
-//				
-//				driver.quit();
-//			}
-//		};
-//		
-//		try {
-//			Thread.sleep(10000L);
-//		} catch (InterruptedException ex) {}
-//
-//		t1.start();
-//		t2.start();
-//		
-//		// Keep main thread alive
-//		try {
-//			Thread.sleep(60000L);
-//		} catch (InterruptedException ex) {}
-//		
-//		t1.stop();
-//		t2.stop();
-//
-//	}
-	
 }
