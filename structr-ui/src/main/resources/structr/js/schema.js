@@ -1637,7 +1637,7 @@ var _Schema = {
 	},
 	showGlobalSchemaMethods: function () {
 
-		Command.query('SchemaMethod', 100, 1, 'name', 'ascending', {schemaNode: null}, function (methods) {
+		Command.rest('SchemaMethod?schemaNode=null&sort=name&order=ascending', function (methods) {
 
 			Structr.dialog('Global Schema Methods', function() {
 				dialogMeta.show();
