@@ -105,7 +105,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		try {
 
-			final List<String> parts = new ArrayList<>(Arrays.asList(PathHelper.getParts(searchValue)));
+			final ArrayList<String> parts = new ArrayList<>(Arrays.asList(PathHelper.getParts(searchValue)));
 			if (!parts.isEmpty()) {
 				searchRecursively(app, null, attr, parts);
 			}
@@ -118,7 +118,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		return attr;
 	}
 
-	private void searchRecursively(final App app, final Folder parent, final SourceSearchAttribute attr, final List<String> parts) throws FrameworkException {
+	private void searchRecursively(final App app, final Folder parent, final SourceSearchAttribute attr, final ArrayList<String> parts) throws FrameworkException {
 
 		final String currentPart = parts.remove(0);
 		final List<AbstractFile> res = app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, (parent == null) ? null : parent).and(AbstractFile.name, currentPart).getAsList();
@@ -131,7 +131,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		} else {
 			for (final AbstractFile folder : res) {
-				searchRecursively(app, (Folder)folder, attr, parts);
+				searchRecursively(app, (Folder)folder, attr, (ArrayList<String>) parts.clone());
 			}
 		}
 	}
