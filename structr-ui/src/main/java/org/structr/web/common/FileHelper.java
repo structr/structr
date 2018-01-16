@@ -128,18 +128,7 @@ public class FileHelper {
 	public static <T extends org.structr.web.entity.FileBase> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
 			throws FrameworkException, IOException {
 
-		PropertyMap props = new PropertyMap();
-
-		props.put(AbstractNode.name, name);
-
-		T newFile = (T) StructrApp.getInstance(securityContext).create(fileType, props);
-
-		setFileData(newFile, fileStream, contentType);
-
-		// schedule indexing
-		newFile.notifyUploadCompletion();
-
-		return newFile;
+		return createFile(securityContext, fileStream, contentType, fileType, name, null);
 
 	}
 
@@ -544,11 +533,10 @@ public class FileHelper {
 	}
 
 	/**
-	 * Write binary data from FileInputStream to a file and reference the file on disk at the
-	 * given file node
+	 * Write binary data from FileInputStream to a file and reference the file on disk at the given file node
 	 *
 	 * @param fileNode
-	 * @param data
+	 * @param data	The input stream from which to read the file data (Stream is not closed automatically - has to be handled by caller)
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -559,8 +547,6 @@ public class FileHelper {
 		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
 
 			IOUtils.copy(data, out);
-
-			data.close();
 		}
 	}
 

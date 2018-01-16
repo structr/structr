@@ -179,145 +179,128 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		final BufferedInputStream bufferedIs = new BufferedInputStream(is);
 
+
 		switch (ArchiveStreamFactory.detect(bufferedIs)) {
 
 			// 7z doesn't support streaming
-			case ArchiveStreamFactory.SEVEN_Z:
-
-				SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
-
-				SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
-
+			case ArchiveStreamFactory.SEVEN_Z: {
 				int overallCount = 0;
 
-				while (sevenZEntry != null) {
+				logger.info("7-Zip archive format detected");
 
-					try (final Tx tx = app.tx(true, true, false)) {
+				try (final Tx outertx = app.tx()) {
+					SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
 
-						int count = 0;
+					SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
 
-						while (sevenZEntry != null && count++ < 50) {
+					while (sevenZEntry != null) {
 
-							final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
-							logger.info("Entry path: {}", entryPath);
+						try (final Tx tx = app.tx(true, true, false)) {
 
-							if (sevenZEntry.isDirectory()) {
+							int count = 0;
 
-								handleDirectory(securityContext, existingParentFolder, entryPath);
+							while (sevenZEntry != null && count++ < 50) {
 
-							} else {
+								final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
+								logger.info("Entry path: {}", entryPath);
 
-								byte[] buf = new byte[(int) sevenZEntry.getSize()];
-								sevenZFile.read(buf, 0, buf.length);
+								if (sevenZEntry.isDirectory()) {
 
-								final ByteArrayInputStream in = new ByteArrayInputStream(buf);
+									handleDirectory(securityContext, existingParentFolder, entryPath);
 
-								handleFile(securityContext, in, existingParentFolder, entryPath);
+								} else {
+
+									byte[] buf = new byte[(int) sevenZEntry.getSize()];
+									sevenZFile.read(buf, 0, buf.length);
+
+									try (final ByteArrayInputStream in = new ByteArrayInputStream(buf)) {
+										handleFile(securityContext, in, existingParentFolder, entryPath);
+									}
+								}
+
+								sevenZEntry = sevenZFile.getNextEntry();
+
+								overallCount++;
 							}
 
-							sevenZEntry = sevenZFile.getNextEntry();
-
-							overallCount++;
+							logger.info("Committing transaction after {} entries.", overallCount);
+							tx.success();
 						}
-
-						logger.info("Committing transaction after {} entries.", overallCount);
-
-						tx.success();
 
 					}
 
+					logger.info("Unarchived {} files.", overallCount);
+					outertx.success();
 				}
 
-				logger.info("Unarchived {} files.", overallCount);
-
 				break;
+			}
 
 			// ZIP needs special treatment to support "unsupported feature data descriptor"
-			case ArchiveStreamFactory.ZIP:
+			case ArchiveStreamFactory.ZIP: {
+
+				logger.info("Zip archive format detected");
 
 				try (final ZipArchiveInputStream in = new ZipArchiveInputStream(bufferedIs, null, false, true)) {
 
-					ArchiveEntry entry = in.getNextEntry();
-					overallCount = 0;
-
-					while (entry != null) {
-
-						try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
-
-							int count = 0;
-
-							while (entry != null && count++ < 50) {
-
-								final String entryPath = "/" + PathHelper.clean(entry.getName());
-								logger.info("Entry path: {}", entryPath);
-
-								if (entry.isDirectory()) {
-
-									handleDirectory(securityContext, existingParentFolder, entryPath);
-
-								} else {
-
-									handleFile(securityContext, in, existingParentFolder, entryPath);
-								}
-
-								entry = in.getNextEntry();
-
-								overallCount++;
-							}
-
-							logger.info("Committing transaction after {} entries.", overallCount);
-
-							tx.success();
-						}
-					}
+					handleArchiveInputStream(in, app, securityContext, existingParentFolder);
 				}
 
-				logger.info("Unarchived {} entries.", overallCount);
-
 				break;
-			default:
+			}
+
+			default: {
+
+				logger.info("Default archive format detected");
 
 				try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(bufferedIs)) {
 
-					ArchiveEntry entry = in.getNextEntry();
-					overallCount = 0;
-
-					while (entry != null) {
-
-						try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
-
-							int count = 0;
-
-							while (entry != null && count++ < 50) {
-
-								final String entryPath = "/" + PathHelper.clean(entry.getName());
-								logger.info("Entry path: {}", entryPath);
-
-								if (entry.isDirectory()) {
-
-									handleDirectory(securityContext, existingParentFolder, entryPath);
-
-								} else {
-
-									handleFile(securityContext, in, existingParentFolder, entryPath);
-								}
-
-								entry = in.getNextEntry();
-
-								overallCount++;
-							}
-
-							logger.info("Committing transaction after {} entries.", overallCount);
-
-							tx.success();
-						}
-					}
+					handleArchiveInputStream(in, app, securityContext, existingParentFolder);
 				}
-
-				logger.info("Unarchived {} entries.", overallCount);
+			}
 		}
 
 		getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
+	}
+
+	private void handleArchiveInputStream(final ArchiveInputStream in, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {
+
+		int overallCount = 0;
+
+		ArchiveEntry entry = in.getNextEntry();
+
+		while (entry != null) {
+
+			try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+
+				int count = 0;
+
+				while (entry != null && count++ < 50) {
+
+					final String entryPath = "/" + PathHelper.clean(entry.getName());
+					logger.info("Entry path: {}", entryPath);
+
+					if (entry.isDirectory()) {
+
+						handleDirectory(securityContext, existingParentFolder, entryPath);
+
+					} else {
+
+						handleFile(securityContext, in, existingParentFolder, entryPath);
+					}
+
+					entry = in.getNextEntry();
+
+					overallCount++;
+				}
+
+				logger.info("Committing transaction after {} entries.", overallCount);
+
+				tx.success();
+			}
+		}
+
+		logger.info("Unarchived {} entries.", overallCount);
 	}
 
 	private void handleDirectory(final SecurityContext securityContext, final Folder existingParentFolder, final String entryPath) throws FrameworkException {

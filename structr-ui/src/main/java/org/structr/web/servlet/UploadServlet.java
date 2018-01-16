@@ -20,6 +20,7 @@ package org.structr.web.servlet;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -288,20 +289,23 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							try (final Tx tx = StructrApp.getInstance().tx()) {
 
-								newFile = FileHelper.createFile(securityContext, item.openStream(), contentType, cls, name, uploadFolder);
-								newFile.validateAndRenameFileOnce(securityContext, null);
+								try (final InputStream is = item.openStream()) {
 
-								final PropertyMap changedProperties = new PropertyMap();
+									newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+									newFile.validateAndRenameFileOnce(securityContext, null);
 
-								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+									final PropertyMap changedProperties = new PropertyMap();
 
-								// Update type as it could have changed
-								changedProperties.put(AbstractNode.type, type);
+									changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
-								newFile.unlockSystemPropertiesOnce();
-								newFile.setProperties(securityContext, changedProperties);
+									// Update type as it could have changed
+									changedProperties.put(AbstractNode.type, type);
 
-								uuid = newFile.getUuid();
+									newFile.unlockSystemPropertiesOnce();
+									newFile.setProperties(securityContext, changedProperties);
+
+									uuid = newFile.getUuid();
+								}
 
 								tx.success();
 
@@ -430,11 +434,14 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						final FileBase file = (FileBase) node;
 						if (file.isGranted(Permission.write, securityContext)) {
 
-							FileHelper.writeToFile(file, fileItem.openStream());
-							file.increaseVersion();
+							try (final InputStream is = fileItem.openStream()) {
 
-							// upload trigger
-							file.notifyUploadCompletion();
+								FileHelper.writeToFile(file, is);
+								file.increaseVersion();
+
+								// upload trigger
+								file.notifyUploadCompletion();
+							}
 
 						} else {
 

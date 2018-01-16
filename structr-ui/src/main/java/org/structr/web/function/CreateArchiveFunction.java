@@ -18,9 +18,16 @@
  */
 package org.structr.web.function;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.ConfigurationProvider;
@@ -29,14 +36,6 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import org.apache.commons.compress.utils.IOUtils;
 
 public class CreateArchiveFunction extends UiFunction {
 
@@ -121,7 +120,9 @@ public class CreateArchiveFunction extends UiFunction {
 
 			}
 
-			return FileHelper.createFile(ctx.getSecurityContext(), new FileInputStream(newArchive), "application/zip", archiveClass, sources[0].toString() + ".zip");
+			try (final FileInputStream fis = new FileInputStream(newArchive)) {
+				return FileHelper.createFile(ctx.getSecurityContext(), fis, "application/zip", archiveClass, sources[0].toString() + ".zip");
+			}
 
 		} catch (IOException e) {
 

@@ -53,8 +53,9 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.odt");
-			FileHelper.createFile(securityContext, is, "", File.class, "test.odt");
+			try( final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.odt")) {
+				FileHelper.createFile(securityContext, is, "", File.class, "test.odt");
+			}
 
 			tx.success();
 
@@ -71,8 +72,9 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.pdf");
-			FileHelper.createFile(securityContext, is, "", File.class, "test.pdf");
+			try (final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.pdf")) {
+				FileHelper.createFile(securityContext, is, "", File.class, "test.pdf");
+			}
 
 			tx.success();
 
@@ -89,8 +91,9 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.txt");
-			FileHelper.createFile(securityContext, is, "", File.class, "test.txt");
+			try(final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.txt")) {
+				FileHelper.createFile(securityContext, is, "", File.class, "test.txt");
+			}
 
 			tx.success();
 
@@ -107,8 +110,9 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test2.txt");
-			FileHelper.createFile(securityContext, is, "", File.class, "test2.txt");
+			try(final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test2.txt")) {
+				FileHelper.createFile(securityContext, is, "", File.class, "test2.txt");
+			}
 
 			tx.success();
 
