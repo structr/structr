@@ -60,6 +60,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addBooleanProperty("includeInFrontendExport", PropertyView.Public).setIndexed(true);
 		type.addBooleanProperty("isExternal", PropertyView.Public).setIndexed(true);
 		type.addBooleanProperty("hasParent", PropertyView.Public).setIndexed(true);
+		type.addLongProperty("lastSeenMounted");
+
 		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public).setIndexed(true);
 
 		type.addPropertyGetter("hasParent", Boolean.TYPE);

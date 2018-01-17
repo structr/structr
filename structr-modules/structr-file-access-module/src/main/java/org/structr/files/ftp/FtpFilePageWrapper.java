@@ -61,7 +61,7 @@ public class FtpFilePageWrapper implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			final String path = page.getFolderPath();
+			final String path = page.getPath();
 			tx.success();
 
 			return path;

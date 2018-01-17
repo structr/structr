@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.openqa.selenium.WebDriver;
@@ -40,7 +39,7 @@ import org.structr.web.basic.SeleniumTest;
  * Parallel login login tests
  */
 public class ParallelLoginTest extends SeleniumTest {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(ParallelLoginTest.class.getName());
 
 	static {
@@ -49,24 +48,24 @@ public class ParallelLoginTest extends SeleniumTest {
 
 	@Test
 	public void testParallelLogin() {
-		
+
 		// Wait for the backend to finish initialization
 		try {
 			Thread.sleep(2000L);
 		} catch (InterruptedException ex) {}
-		
+
 		createAdminUser();
-		
+
 		final int numberOfRequests        = 100;
 		final int numberOfParallelThreads = 4;
-		
+
 		final ExecutorService service = Executors.newFixedThreadPool(numberOfParallelThreads);
 		final List<Future<Exception>> results = new ArrayList<>();
-		
+
 		for (int i = 0; i< numberOfRequests; i++) {
 
 			Future<Exception> result = service.submit(() -> {
-				
+
 				System.out.println(SimpleDateFormat.getDateInstance().format(new Date()) + " Login attempt from thread " + Thread.currentThread().toString());
 
 				final String menuEntry = "Pages";
@@ -88,10 +87,10 @@ public class ParallelLoginTest extends SeleniumTest {
 
 				return null;
 			});
-			
+
 			results.add(result);
 		}
-		
+
 		for (final Future<Exception> result : results) {
 
 			try {
@@ -100,12 +99,12 @@ public class ParallelLoginTest extends SeleniumTest {
 				logger.error("Error while checking result of nested test", ex);
 			}
 		}
-		
+
 		try {
 			Thread.sleep(numberOfRequests * 1000L);
 		} catch (InterruptedException ex) {}
 
 		service.shutdown();
 	}
-	
+
 }

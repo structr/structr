@@ -233,15 +233,15 @@ public class UiTest extends StructrUiTest {
 
 			Folder a = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a");
 			assertNotNull(a);
-			assertEquals(a.getFolderPath(), "/a");
+			assertEquals(a.getPath(), "/a");
 
 			Folder b = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b");
 			assertNotNull(b);
-			assertEquals(b.getFolderPath(), "/a/b");
+			assertEquals(b.getPath(), "/a/b");
 
 			Folder c = (Folder) FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), "/a/b/c");
 			assertNotNull(c);
-			assertEquals(c.getFolderPath(), "/a/b/c");
+			assertEquals(c.getPath(), "/a/b/c");
 
 			tx.success();
 
@@ -343,10 +343,10 @@ public class UiTest extends StructrUiTest {
 
 			File file1 = (File) app.create(File.class, "file1");
 			assertNotNull(file1);
-			assertEquals(file1.getFolderPath(), "/file1");
+			assertEquals(file1.getPath(), "/file1");
 
 			file1.setProperty(StructrApp.key(File.class, "parent"), folder1);
-			assertEquals(FileHelper.getFolderPath(file1), "/folder1/file1");
+			assertEquals(FileHelper.getPath(file1), "/folder1/file1");
 
 			tx.success();
 
@@ -358,10 +358,10 @@ public class UiTest extends StructrUiTest {
 
 			Image image1 = (Image) app.create(Image.class, "image1");
 			assertNotNull(image1);
-			assertEquals(image1.getFolderPath(), "/image1");
+			assertEquals(image1.getPath(), "/image1");
 
 			image1.setProperty(StructrApp.key(File.class, "parent"), folder1);
-			assertEquals(FileHelper.getFolderPath(image1), "/folder1/image1");
+			assertEquals(FileHelper.getPath(image1), "/folder1/image1");
 
 			tx.success();
 
@@ -459,7 +459,7 @@ public class UiTest extends StructrUiTest {
 			folder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder");
 
 			assertNotNull(folder);
-			assertEquals(folder.getFolderPath(), "/my/test/folder");
+			assertEquals(folder.getPath(), "/my/test/folder");
 
 			tx.success();
 
@@ -516,11 +516,11 @@ public class UiTest extends StructrUiTest {
 
 			folder1 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/my/test/folder");
 			assertNotNull(folder1);
-			assertEquals(folder1.getFolderPath(), "/my/test/folder");
+			assertEquals(folder1.getPath(), "/my/test/folder");
 
 			folder2 = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), "/another/directory");
 			assertNotNull(folder2);
-			assertEquals(folder2.getFolderPath(), "/another/directory");
+			assertEquals(folder2.getPath(), "/another/directory");
 
 			tx.success();
 

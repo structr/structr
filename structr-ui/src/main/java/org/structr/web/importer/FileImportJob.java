@@ -34,7 +34,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 abstract class FileImportJob extends ScheduledJob {
 
@@ -46,7 +46,7 @@ abstract class FileImportJob extends ScheduledJob {
 	protected Long fileSize;
 	protected Integer processedChunks = 0;
 
-	public FileImportJob (final FileBase file, final Principal user, final Map<String, Object> configuration) {
+	public FileImportJob (final File file, final Principal user, final Map<String, Object> configuration) {
 
 		super(file.getUuid(), user, configuration);
 
@@ -167,8 +167,8 @@ abstract class FileImportJob extends ScheduledJob {
 
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file = app.get(FileBase.class, fileUuid);
-			is                  = file.getInputStream();
+			final File file = app.get(File.class, fileUuid);
+			is              = file.getInputStream();
 
 			tx.success();
 

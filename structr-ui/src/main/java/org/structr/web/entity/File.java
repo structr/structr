@@ -107,6 +107,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addLongProperty("size", PropertyView.Public).setIndexed(true);
 		type.addLongProperty("checksum", PropertyView.Public).setIndexed(true);
+		type.addLongProperty("fileModificationDate");
+
 		type.addStringProperty("md5");
 		type.addStringProperty("sha1");
 		type.addStringProperty("sha512");
@@ -114,6 +116,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addPropertyGetter("relativeFilePath", String.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("checksum", Long.class);
+		type.addPropertyGetter("md5", String.class);
 
 		type.addPropertyGetter("version", Integer.class);
 		type.addPropertyGetter("contentType", String.class);
@@ -237,6 +240,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	Integer getCacheForSeconds();
 
 	Long getChecksum();
+	String getMd5();
 
 
 	// ----- static methods -----

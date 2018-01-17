@@ -55,14 +55,14 @@ public class CsvImportTest extends StructrApiModuleTest {
 		try (final Tx tx = app.tx()) {
 
 			final String csvData =
-					
+
 				"id;type;name;Test header with whitespace;ümläüt header\n" +
 				"0;One;name: one;11;22\n" +
 				"1;Two;name: two;22;33\n" +
 				"2;Three;name: three;33;44";
-			
+
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final FileBase file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -81,9 +81,9 @@ public class CsvImportTest extends StructrApiModuleTest {
 
 			// create test user
 			app.create(User.class,
-				new NodeAttribute<>(Principal.name,     "admin"),
-				new NodeAttribute<>(Principal.password, "admin"),
-				new NodeAttribute<>(Principal.isAdmin,  true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			tx.success();
@@ -170,7 +170,7 @@ public class CsvImportTest extends StructrApiModuleTest {
 		}
 
 	}
-	
+
 	@Test
 	public void testCsvFileImportSingleQuotes() {
 
@@ -180,12 +180,12 @@ public class CsvImportTest extends StructrApiModuleTest {
 		try (final Tx tx = app.tx()) {
 
 			final String csvData =
-					
+
 				"'id';'type';'name';'Test header with whitespace';'ümläüt header'\n" +
 				"'0';'One';'name: one';'11';'22'\n" +
 				"'1';'Two';'name: two';'22';'33'\n" +
 				"'2';'Three';'name: three';'33';'44'";
-			
+
 			final byte[] fileData = csvData.getBytes("utf-8");
 			final File file       = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
 
@@ -305,14 +305,14 @@ public class CsvImportTest extends StructrApiModuleTest {
 		try (final Tx tx = app.tx()) {
 
 			final String csvData =
-					
+
 				"\"id\";\"type\";\"name\";\"Test header with whitespace\";\"ümläüt header\"\n" +
 				"\"0\";\"One\";\"name: one\";\"11\";\"22\"\n" +
 				"\"1\";\"Two\";\"name: two\";\"22\";\"33\"\n" +
 				"\"2\";\"Three\";\"name: three\";\"33\";\"44\"";
-			
+
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final FileBase file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -331,9 +331,9 @@ public class CsvImportTest extends StructrApiModuleTest {
 
 			// create test user
 			app.create(User.class,
-				new NodeAttribute<>(Principal.name,     "admin"),
-				new NodeAttribute<>(Principal.password, "admin"),
-				new NodeAttribute<>(Principal.isAdmin,  true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			tx.success();
@@ -420,8 +420,8 @@ public class CsvImportTest extends StructrApiModuleTest {
 		}
 
 	}
-	
-	
+
+
 	@Test
 	public void testCsvFileImportSingleQuotesLineBreakInCell() {
 
@@ -431,14 +431,14 @@ public class CsvImportTest extends StructrApiModuleTest {
 		try (final Tx tx = app.tx()) {
 
 			final String csvData =
-					
+
 				"'id';'type';'name';'Test header with whitespace';'ümläüt header'\n" +
 				"'0';'One';'name:\none';'11';'22'\n" +
 				"'1';'Two';'name: two';'22';'33'\n" +
 				"'2';'Three';'name: three';'33';'44'";
-			
+
 			final byte[] fileData = csvData.getBytes("utf-8");
-			final FileBase file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
+			final File file   = FileHelper.createFile(securityContext, fileData, "text/csv", File.class, "test.csv");
 
 			// extract UUID for later use
 			newFileId = file.getUuid();
@@ -457,9 +457,9 @@ public class CsvImportTest extends StructrApiModuleTest {
 
 			// create test user
 			app.create(User.class,
-				new NodeAttribute<>(Principal.name,     "admin"),
-				new NodeAttribute<>(Principal.password, "admin"),
-				new NodeAttribute<>(Principal.isAdmin,  true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
 			);
 
 			tx.success();
@@ -545,5 +545,5 @@ public class CsvImportTest extends StructrApiModuleTest {
 			fail("Unexpected exception.");
 		}
 
-	}	
+	}
 }

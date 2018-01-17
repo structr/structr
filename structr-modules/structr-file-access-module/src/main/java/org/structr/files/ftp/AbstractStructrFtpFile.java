@@ -74,7 +74,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			String path = structrFile.getFolderPath();
+			String path = structrFile.getPath();
 
 			tx.success();
 
