@@ -909,8 +909,8 @@ public class BasicTest extends StructrTest {
 					// For Location, set coordinates
 					if (type.equals(Location.class)) {
 
-						props.put(Location.latitude, 12.34);
-						props.put(Location.longitude, 56.78);
+						props.put(StructrApp.key(Location.class, "latitude"),  12.34);
+						props.put(StructrApp.key(Location.class, "longitude"), 56.78);
 
 					}
 

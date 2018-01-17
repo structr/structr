@@ -32,6 +32,9 @@ public interface Iframe extends DOMElement {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Iframe");
 
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Iframe"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
 		type.addStringProperty("_html_name",            PropertyView.Html);
 		type.addStringProperty("_html_src",             PropertyView.Html);
 		type.addStringProperty("_html_srcdoc",          PropertyView.Html);
@@ -40,8 +43,5 @@ public interface Iframe extends DOMElement {
 		type.addStringProperty("_html_allowfullscreen", PropertyView.Html);
 		type.addStringProperty("_html_width",           PropertyView.Html);
 		type.addStringProperty("_html_height",          PropertyView.Html);
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Iframe"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
 	}}
 }

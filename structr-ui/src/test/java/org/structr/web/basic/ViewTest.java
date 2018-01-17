@@ -56,7 +56,7 @@ public class ViewTest extends StructrUiTest {
 
 		viewMap.put("Group", Arrays.asList(
 				toMap("public", publicBase, "name", "members", "blocked", "isGroup"),
-				toMap("public", uiBase,     "members", "blocked", "isGroup")
+				toMap("ui",     uiBase,     "members", "blocked", "isGroup")
 			)
 		);
 

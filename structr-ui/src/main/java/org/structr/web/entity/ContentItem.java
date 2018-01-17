@@ -18,24 +18,35 @@
  */
 package org.structr.web.entity;
 
-import java.util.List;
+import java.net.URI;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.web.entity.relation.ContainerContentItems;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Base class for all content items.
  */
-public abstract class ContentItem extends AbstractNode {
+public interface ContentItem extends NodeInterface {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("ContentItem");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ContentItem"));
+
+		type.addBooleanProperty("isContentItem", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+	}}
+
+	/*
 	public static final Property<List<ContentContainer>>   containers    = new StartNodes<>("containers", ContainerContentItems.class);
 	public static final Property<Boolean>                  isContentItem = new ConstantBooleanProperty("isContentItem", true);
 
 	public static final View publicView = new View(Folder.class, PropertyView.Public, id, type, name, owner, containers, isContentItem);
 	public static final View uiView     = new View(Folder.class, PropertyView.Ui, id, type, name, owner, containers, isContentItem);
-	
+	*/
+
 }

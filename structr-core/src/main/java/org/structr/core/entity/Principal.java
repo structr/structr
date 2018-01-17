@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
+import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.EMailValidator;
@@ -95,7 +96,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
 		principal.overrideMethod("addSessionId",                    false, Principal.class.getName() + ".addSessionId(this, arg0);");
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
-		principal.overrideMethod("getProperty",                     false, "if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
+
+		// override getProperty
+		principal.addMethod("getProperty")
+			.setReturnType("<T> T")
+			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
+			.addParameter("arg1", Predicate.class.getName() + "<GraphObject>")
+			.setSource("if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
 
 		// create relationships
 		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");

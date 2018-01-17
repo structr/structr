@@ -30,9 +30,9 @@ public interface Label extends DOMElement {
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Link");
+		final JsonObjectType type = schema.addType("Label");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Link"));
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Label"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
 		type.addStringProperty("_html_for",  PropertyView.Html);

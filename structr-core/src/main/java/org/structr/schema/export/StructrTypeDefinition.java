@@ -219,7 +219,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "get" + StringUtils.capitalize(propertyName));
 
 		newMethod.setSource("return getProperty(" + propertyName + "Property);");
-		newMethod.setReturnType(type.getName());
+		newMethod.setReturnType(type.getName().replace("$", "."));
 		newMethod.setCodeType("java");
 
 		methods.add(newMethod);

@@ -45,6 +45,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	private JsonMethod parent = null;
 	private String name       = null;
 	private String type       = null;
+	private int index         = 0;
 
 	StructrParameterDefinition(final JsonMethod parent, final String name) {
 
@@ -120,6 +121,17 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	@Override
+	public int getIndex() {
+		return index;
+	}
+
+	@Override
+	public JsonParameter setIndex(final int index) {
+		this.index = index;
+		return this;
+	}
+
+	@Override
 	public int compareTo(final JsonParameter o) {
 		return getName().compareTo(o.getName());
 	}
@@ -130,7 +142,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 	}
 
 	// ----- package methods -----
-	SchemaMethodParameter createDatabaseSchema(final App app, final SchemaMethod schemaMethod) throws FrameworkException {
+	SchemaMethodParameter createDatabaseSchema(final App app, final SchemaMethod schemaMethod, final int index) throws FrameworkException {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
@@ -145,6 +157,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		}
 
 		updateProperties.put(SchemaMethodParameter.parameterType, type);
+		updateProperties.put(SchemaMethodParameter.index, index);
 
 		// update properties
 		parameter.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
@@ -161,12 +174,19 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 
 			this.type = (String)_type;
 		}
+
+		final Object _index = source.get(JsonSchema.KEY_PARAMETER_INDEX);
+		if (_index != null && _index instanceof Number) {
+
+			this.index = ((Number)_index).intValue();
+		}
 	}
 
 	void deserialize(final SchemaMethodParameter method) {
 
 		setName(method.getName());
 		setType(method.getProperty(SchemaMethodParameter.parameterType));
+		setIndex(method.getProperty(SchemaMethodParameter.index));
 	}
 
 	Map<String, Object> serialize() {
@@ -174,6 +194,7 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put(JsonSchema.KEY_PARAMETER_TYPE, type);
+		map.put(JsonSchema.KEY_PARAMETER_INDEX, index);
 
 		return map;
 	}

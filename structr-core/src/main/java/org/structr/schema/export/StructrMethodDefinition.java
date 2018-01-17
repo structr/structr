@@ -242,7 +242,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
+		int index                               = 0;
 
 		getOrCreateProperties.put(SchemaMethod.name,              getName());
 		getOrCreateProperties.put(SchemaMethod.signature,         getSignature());
@@ -264,7 +264,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		// create database schema for method parameters
 		for (final StructrParameterDefinition param : parameters) {
-			param.createDatabaseSchema(app, method);
+			param.createDatabaseSchema(app, method, index++);
 		}
 
 		// return modified property

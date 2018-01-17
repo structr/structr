@@ -23,9 +23,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.ContentContainer;
 import org.structr.web.entity.ContentItem;
 import org.structr.websocket.StructrWebSocket;
@@ -102,9 +102,11 @@ public class AppendContentItemCommand extends AbstractCommand {
 			if (item != null) {
 
 				try {
-					final List<ContentItem> items = container.getProperty(ContentContainer.items);
+					final List<ContentItem> items = container.getItems();
+
 					items.add(item);
-					container.setProperties(container.getSecurityContext(), new PropertyMap(ContentContainer.items, items));
+
+					container.setProperty(StructrApp.key(ContentContainer.class, "items"), items);
 
 					TransactionCommand.registerNodeCallback(item, callback);
 

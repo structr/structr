@@ -22,7 +22,9 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedList;
 import java.util.List;
+import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasSize;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
@@ -108,10 +110,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.expect()
 					.statusCode(200)
-
-					.body("result",	                   hasSize(47))
-					.body("result[46].jsonName",       equalTo("testFile"))
-					.body("result[46].declaringClass", equalTo("File"))
+					.body("result", Matchers.hasSize(45))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 
 				.when()
 					.get("/_schema/File/ui");
@@ -140,10 +140,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.expect()
 					.statusCode(200)
-
-					.body("result",	                   hasSize(61))
-					.body("result[33].jsonName",       equalTo("testFile"))
-					.body("result[33].declaringClass", equalTo("File"))
+					.body("result", Matchers.hasSize(59))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 
 				.when()
 					.get("/_schema/Image/ui");
@@ -232,11 +230,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(48))
-					.body("result[33].jsonName",       equalTo("testFile"))
-					.body("result[33].declaringClass", equalTo("File"))
-					.body("result[47].jsonName",       equalTo("testSubFile"))
-					.body("result[47].declaringClass", equalTo("SubFile"))
+					.body("result",	hasSize(46))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", "File"))))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
 				.when()
 					.get("/_schema/SubFile/ui");
@@ -326,11 +322,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	                   hasSize(62))
-					.body("result[33].jsonName",       equalTo("testFile"))
-					.body("result[33].declaringClass", equalTo("File"))
-					.body("result[61].jsonName",       equalTo("testSubFile"))
-					.body("result[61].declaringClass", equalTo("SubFile"))
+					.body("result",	hasSize(60))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", "File"))))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
 				.when()
 					.get("/_schema/SubFile/ui");
@@ -1041,7 +1035,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 	}
 
 	@Test
-	public void testMultipleCallbackHandling() {
+	public void testMixedOnCreateMethods() {
 
 		Settings.LogSchemaOutput.setValue(true);
 
@@ -1050,6 +1044,28 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
 			schema.getType("User").addMethod("onCreate", "log('test')", "test");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		Settings.LogSchemaOutput.setValue(false);
+	}
+
+	@Test
+	public void testCustomSchemaMethod() {
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.getType("User").addMethod("simpleTest", "log('test')", "test");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

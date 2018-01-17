@@ -24,12 +24,14 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -80,9 +82,13 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public ActionEntry getActionEntry(final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
-		final ActionEntry entry  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
+		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
+		final List<SchemaMethodParameter> params = getProperty(parameters);
 
-		for (final SchemaMethodParameter parameter : getProperty(parameters)) {
+		// Parameters must be sorted by index
+		Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
+
+		for (final SchemaMethodParameter parameter : params) {
 
 			entry.addParameter(parameter.getParameterType(), parameter.getName());
 		}

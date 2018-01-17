@@ -79,6 +79,7 @@ public interface JsonSchema {
 	public static final String KEY_DO_EXPORT               = "doExport";
 	public static final String KEY_PARAMETERS              = "parameters";
 	public static final String KEY_PARAMETER_TYPE          = "parameterType";
+	public static final String KEY_PARAMETER_INDEX         = "parameterIndex";
 	public static final String KEY_COMMENT                 = "comment";
 	public static final String KEY_CONTENT_TYPE            = "contentType";
 	public static final String KEY_RELATIONSHIP            = "rel";

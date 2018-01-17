@@ -52,7 +52,6 @@ import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import static org.structr.web.entity.ContentContainer.path;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
@@ -173,7 +172,7 @@ public class StructrFilePath extends StructrPath {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("Unable to open file channel for writing of {}: {}", new Object[] { path, fex.getMessage() });
+				logger.warn("Unable to open file channel for writing of {}: {}", new Object[] { actualFile.getPath(), fex.getMessage() });
 			}
 
 		} else {
@@ -188,13 +187,13 @@ public class StructrFilePath extends StructrPath {
 
 				} catch (FrameworkException fex) {
 
-					logger.warn("Unable to open file channel for reading of {}: {}", new Object[] { path, fex.getMessage() });
+					logger.warn("Unable to open file channel for reading of {}: {}", new Object[] { actualFile.getPath(), fex.getMessage() });
 
 				}
 
 			} else {
 
-				throw new FileNotFoundException("File " + path.toString() + " does not exist.");
+				throw new FileNotFoundException("File " + actualFile.getPath() + " does not exist.");
 			}
 		}
 
@@ -217,7 +216,7 @@ public class StructrFilePath extends StructrPath {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Unable to delete file {}: {}", new Object[] { path, fex.getMessage() } );
+			logger.warn("Unable to delete file {}: {}", new Object[] { getActualFile().getPath(), fex.getMessage() } );
 		}
 	}
 
@@ -232,7 +231,7 @@ public class StructrFilePath extends StructrPath {
 			// if a folder is to be deleted, check contents
 			if (actualFile instanceof Folder && ((Folder)actualFile).getChildren().iterator().hasNext()) {
 
-				throw new DirectoryNotEmptyException(path.toString());
+				throw new DirectoryNotEmptyException(getActualFile().getPath());
 
 			} else {
 
@@ -245,7 +244,7 @@ public class StructrFilePath extends StructrPath {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("Unable to delete file {}: {}", new Object[] { path, fex.getMessage() } );
+			logger.warn("Unable to delete file {}: {}", new Object[] { getActualFile().getPath(), fex.getMessage() } );
 		}
 	}
 

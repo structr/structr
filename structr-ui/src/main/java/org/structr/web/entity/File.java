@@ -72,7 +72,6 @@ import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
-import static org.structr.web.entity.ContentContainer.path;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.DataImportManager;
 import org.structr.web.importer.XMLFileImportJob;
@@ -333,7 +332,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		if (thisFile.isTemplate()) {
 
-			logger.error("File is in template mode, no write access allowed: {}", path);
+			logger.error("File is in template mode, no write access allowed: {}", thisFile.getPath());
 			return null;
 		}
 
@@ -343,7 +342,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return new ClosingFileOutputStream(thisFile, append, notifyIndexerAfterClosing);
 
 		} catch (IOException e) {
-			logger.error("Unable to open file output stream for {}: {}", path, e.getMessage());
+			logger.error("Unable to open file output stream for {}: {}", thisFile.getPath(), e.getMessage());
 		}
 
 		return null;

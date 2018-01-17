@@ -48,7 +48,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 	@Override
 	public JsonEnumProperty setEnumType(final Class type) {
 
-		this.fqcn = type.getName();
+		this.fqcn = type.getName().replace("$", ".");
 
 		return this;
 	}

@@ -61,22 +61,21 @@ public class ContentPathProperty extends AbstractReadOnlyProperty<String> {
 
 	@Override
 	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
-		
-		ContentContainer parentContainer = obj.getProperty(ContentContainer.parent);
 
-		String containerPath = obj.getProperty(AbstractFile.name);
+		ContentContainer parentContainer = ((ContentContainer)obj).getParent();
+		String containerPath             = obj.getProperty(AbstractFile.name);
 
 		if (containerPath == null) {
 			containerPath = obj.getProperty(GraphObject.id);
 		}
 
 		while (parentContainer != null) {
+
 			containerPath = parentContainer.getName().concat("/").concat(containerPath);
-			parentContainer = parentContainer.getProperty(ContentContainer.parent);
+			parentContainer = parentContainer.getParent();
 		}
 
 		return "/".concat(containerPath);
-
 	}
 
 	@Override

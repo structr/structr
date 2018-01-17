@@ -33,6 +33,7 @@ public interface Kbd extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Kbd"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		
 		type.overrideMethod("avoidWhitespace", false, "return true;");
 	}}
 }

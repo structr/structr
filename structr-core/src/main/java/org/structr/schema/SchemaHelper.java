@@ -1177,7 +1177,7 @@ public class SchemaHelper {
 					break;
 
 				default:
-					formatJavaActions(src, actionList);
+					formatCustomMethods(src, actionList);
 					break;
 			}
 		}
@@ -1241,102 +1241,107 @@ public class SchemaHelper {
 
 	}
 
-	public static void formatJavaActions(final StringBuilder src, final List<ActionEntry> actionList) {
+	public static void formatCustomMethods(final StringBuilder src, final List<ActionEntry> actionList) {
 
 		for (final ActionEntry action : actionList) {
 
-			final String source                  = action.getSource("this", true);
-			final String returnType              = action.getReturnType();
-			final Map<String, String> parameters = action.getParameters();
+			if (Actions.Type.Custom.equals(action.getType())) {
 
-			if (returnType != null && parameters != null) {
-
-				src.append("\n");
-
-				if (action.overrides()) {
-					src.append("\t@Override\n");
-				}
-
-				if (action.doExport()) {
-					src.append("\t@Export\n");
-				}
-
-				src.append("\tpublic ");
-				src.append(returnType);
-				src.append(" ");
-				src.append(action.getName());
-				src.append("(");
-
-				// output parameters
-				for (final Iterator<Entry<String, String>> it = parameters.entrySet().iterator(); it.hasNext();) {
-
-					final Entry<String, String> entry = it.next();
-
-					src.append("final ");
-					src.append(entry.getValue());
-					src.append(" ");
-					src.append(entry.getKey());
-
-					if (it.hasNext()) {
-						src.append(", ");
-					}
-				}
-
-				src.append(")");
-
-				final List<String> exceptions = action.getExceptions();
-				if (!exceptions.isEmpty()) {
-
-					src.append(" throws ");
-					src.append(StringUtils.join(exceptions, ", "));
-				}
-
-				src.append(" {\n");
+				formatActiveAction(src, action);
 
 			} else {
 
-				src.append("\n\t@Export\n");
-				src.append("\tpublic java.lang.Object ");
-				src.append(action.getName());
-				src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
-			}
+				final String source                  = action.getSource("this", true);
+				final String returnType              = action.getReturnType();
+				final Map<String, String> parameters = action.getParameters();
 
-			if (action.callSuper()) {
+				if (returnType != null && parameters != null) {
 
-				src.append("\n\t\t// call super\n");
-				src.append("\t\tsuper.");
-				src.append(action.getName());
-				src.append("(");
-				src.append(StringUtils.join(parameters.keySet(), ", "));
-				src.append(");\n\n");
-			}
+					src.append("\n");
 
-			if (StringUtils.isNotBlank(source)) {
+					if (action.overrides()) {
+						src.append("\t@Override\n");
+					}
 
-				src.append("\t\t");
-				src.append(source);
+					if (action.doExport()) {
+						src.append("\t@Export\n");
+					}
 
-				final String trimmed = source.trim();
-				if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
+					src.append("\tpublic ");
+					src.append(returnType);
+					src.append(" ");
+					src.append(action.getName());
+					src.append("(");
 
-					src.append(";");
+					// output parameters
+					for (final Iterator<Entry<String, String>> it = parameters.entrySet().iterator(); it.hasNext();) {
+
+						final Entry<String, String> entry = it.next();
+
+						src.append("final ");
+						src.append(entry.getValue());
+						src.append(" ");
+						src.append(entry.getKey());
+
+						if (it.hasNext()) {
+							src.append(", ");
+						}
+					}
+
+					src.append(")");
+
+					final List<String> exceptions = action.getExceptions();
+					if (!exceptions.isEmpty()) {
+
+						src.append(" throws ");
+						src.append(StringUtils.join(exceptions, ", "));
+					}
+
+					src.append(" {\n");
+
+				} else {
+
+					src.append("\n\t@Export\n");
+					src.append("\tpublic java.lang.Object ");
+					src.append(action.getName());
+					src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
 				}
 
-				src.append("\n");
+				if (action.callSuper()) {
+
+					src.append("\n\t\t// call super\n");
+					src.append("\t\tsuper.");
+					src.append(action.getName());
+					src.append("(");
+					src.append(StringUtils.join(parameters.keySet(), ", "));
+					src.append(");\n\n");
+				}
+
+				if (StringUtils.isNotBlank(source)) {
+
+					src.append("\t\t");
+					src.append(source);
+
+					final String trimmed = source.trim();
+					if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
+
+						src.append(";");
+					}
+
+					src.append("\n");
+				}
+
+				if (!"void".equals(returnType) && (StringUtils.isBlank(source) || Actions.Type.Custom.equals(action.getType()))) {
+
+					src.append("\t\treturn null;\n");
+				}
+
+				src.append("\t}\n");
 			}
-
-			if (StringUtils.isBlank(source) || (Actions.Type.Custom.equals(action.getType()) && !"void".equals(returnType))) {
-
-				src.append("\t\treturn null;\n");
-			}
-
-			src.append("\t}\n");
 		}
-
 	}
 
 	/*
-
 	public static void formatMethods(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
 		// save actions..
@@ -1368,24 +1373,22 @@ public class SchemaHelper {
 		}
 
 	}
+	*/
 
-	public static void formatActiveActions(final StringBuilder src, final List<ActionEntry> actionList) {
+	public static void formatActiveAction(final StringBuilder src, final ActionEntry action) {
 
-		for (final ActionEntry action : actionList) {
+		src.append("\n\t@Export\n");
+		src.append("\tpublic java.lang.Object ");
+		src.append(action.getName());
+		src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
 
-			src.append("\n\t@Export\n");
-			src.append("\tpublic java.lang.Object ");
-			src.append(action.getName());
-			src.append("(final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {\n\n");
-
-			src.append("\t\treturn ");
-			src.append(action.getSource("this", true));
-			src.append(";\n\n");
-			src.append("\t}\n");
-		}
-
+		src.append("\t\treturn ");
+		src.append(action.getSource("this", true));
+		src.append(";\n\n");
+		src.append("\t}\n");
 	}
 
+	/*
 	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList, final Set<String> implementedInterfaces) {
 
 		src.append("\n\t@Override\n");
@@ -1714,19 +1717,6 @@ public class SchemaHelper {
 
 	private static String uiViewResourceSignature(final String signature) {
 		return signature + "/_Ui";
-	}
-
-	private static boolean hasMethod(final Class type, final String name, final Class... parameters) {
-
-		try {
-
-			return type.getDeclaredMethod(name, parameters) != null;
-
-		} catch (NoSuchMethodException nex) {
-
-		}
-
-		return false;
 	}
 
 	private static boolean hasRelationshipNode(final SchemaNode schemaNode, final String propertyName) throws FrameworkException {

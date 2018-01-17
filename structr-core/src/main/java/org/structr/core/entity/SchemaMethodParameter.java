@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import org.structr.core.entity.relationship.SchemaMethodParameters;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
@@ -30,6 +31,7 @@ public class SchemaMethodParameter extends SchemaReloadingNode {
 
 	public static final Property<SchemaMethod> schemaMethod = new StartNode<>("schemaMethod", SchemaMethodParameters.class);
 	public static final Property<String> parameterType      = new StringProperty("parameterType");
+	public static final Property<Integer> index             = new IntProperty("index");
 
 	public String getParameterType() {
 		return getProperty(parameterType);
