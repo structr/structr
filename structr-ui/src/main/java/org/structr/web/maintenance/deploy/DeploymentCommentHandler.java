@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
+import org.structr.web.maintenance.DeployCommand;
 
 /**
  *
@@ -89,6 +90,13 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 					linkSource.setLinkable(file);
 				}
+			}
+		});
+
+		handlers.put("pagelink", (Page page, DOMNode node, final String parameters) -> {
+
+			if (node instanceof LinkSource) {
+				DeployCommand.addDeferredPagelink(node.getUuid(), parameters);
 			}
 		});
 

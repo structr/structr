@@ -32,6 +32,7 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.activation.DataSource;
 import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.IOUtils;
@@ -73,7 +74,6 @@ import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.importer.CSVFileImportJob;
-import org.structr.web.importer.DataImportManager;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
 
@@ -81,7 +81,7 @@ import org.structr.web.property.FileDataProperty;
  *
  *
  */
-public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable {
+public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable, DataSource {
 
 	static class Impl { static {
 
@@ -107,6 +107,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addLongProperty("size", PropertyView.Public).setIndexed(true);
 		type.addLongProperty("checksum", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("md5");
+		type.addStringProperty("sha1");
+		type.addStringProperty("sha512");
 
 		type.addPropertyGetter("relativeFilePath", String.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
@@ -217,6 +220,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	FileOutputStream getOutputStream();
 	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
 
+	java.io.File getFileOnDisk(final boolean doCreate);
 	java.io.File getFileOnDisk();
 
 	boolean isTemplate();

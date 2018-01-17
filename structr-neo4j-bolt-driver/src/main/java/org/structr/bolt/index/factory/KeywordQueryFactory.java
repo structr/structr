@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -78,7 +78,10 @@ public class KeywordQueryFactory extends AbstractQueryFactory {
 
 			if (value != null && isString) {
 
-				query.addSimpleParameter(name, "=~", "(?i).*" + escape(value) + ".*");
+				//query.addSimpleParameter(name, "=~", "(?i).*" + escape(value) + ".*");    // doesn't support multi-line values properly
+				//query.addSimpleParameter(name, "=~", "(?ims).*" + escape(value) + ".*");  // works but slow
+				//query.addSimpleParameter(name, "CONTAINS", escape(value), true, true);            // works and takes half the time
+				query.addSimpleParameter(name, "CONTAINS", value, true, true);            // works and takes half the time
 
 			} else {
 

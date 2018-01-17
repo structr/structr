@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,7 +59,7 @@ var _Contents = {
 		});
 
 		Structr.makePagesMenuDroppable();
-		Structr.adaptUiToPresentModules();
+		Structr.adaptUiToAvailableFeatures();
 	},
 	resize: function() {
 

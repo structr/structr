@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 $(document).ready(function() {
 
 	Structr.registerModule(Importer);
@@ -48,32 +47,20 @@ var Importer = {
 	onload: function() {
 		Importer.init();
 
-		main.append(
-			'<div id="importer-main" class="resourceBox full-height-box">' +
-					'<button class="refresh">Refresh</button>' +
-					'<table id="importer-jobs-table">' +
-						'<thead><tr>' +
-							'<th>Job ID</th>' +
-							'<th>File UUID</th>' +
-							'<th>File path</th>' +
-							'<th>File size</th>' +
-							'<th>User</th>' +
-							'<th>Processed Chunks</th>' +
-							'<th>Status</th>' +
-							'<th>Action</th>' +
-						'</tr></thead>' +
-						'<tbody></tbody>' +
-					'</table>' +
-			'</div>'
-		);
+		Structr.fetchHtmlTemplate('importer/main', {}, function(html) {
 
-		$('#importer-main .refresh').click(function () {
+			main.append(html);
+
+			$('#importer-main .refresh').click(function () {
+				Importer.updateJobTable();
+			});
+
 			Importer.updateJobTable();
+
+			Structr.unblockMenu(100);
+
 		});
 
-		Importer.updateJobTable();
-
-		Structr.unblockMenu(100);
 	},
 	unload: function() {
 
@@ -99,7 +86,7 @@ var Importer = {
 					});
 
 				} else {
-					tbody.append('<td colspan=8>No import jobs</td>');
+					tbody.append('<td colspan=9>No import jobs</td>');
 				}
 
 			});
@@ -111,26 +98,46 @@ var Importer = {
 
 	},
 	createRowForJob: function (job) {
-		return $('<tr><td>' + job.jobId + '</td><td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.username + '</td><td>' + job.processedChunks + '</td><td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
+		return $('<tr><td>' + job.jobId + '</td><td>' + job.jobtype + '</td><td>' + job.username + '</td>' + Importer.createJobInfoHTML(job) + '<td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
+	},
+	createJobInfoHTML:function(job) {
+		switch (job.jobtype) {
+			case 'XML':
+			case 'CSV':
+				return '<td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.processedChunks + '</td>';
+
+			default:
+				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';
+		}
 	},
 	createActionButtons: function (job) {
 		var actionHtml = '';
 
-		switch (job.status) {
-			case 'QUEUED':
-				actionHtml += Importer.createActionButton('start', job.jobId, 'Start');
-				actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+		switch (job.jobtype) {
+			case 'XML':
+			case 'CSV':
+				switch (job.status) {
+					case 'QUEUED':
+						actionHtml += Importer.createActionButton('start', job.jobId, 'Start');
+						actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+						break;
+
+					case 'PAUSED':
+						actionHtml += Importer.createActionButton('resume', job.jobId, 'Resume');
+						actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+						break;
+
+					case 'RUNNING':
+						actionHtml += Importer.createActionButton('pause', job.jobId, 'Pause');
+						actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+						break;
+				}
 				break;
 
-			case 'PAUSED':
-				actionHtml += Importer.createActionButton('resume', job.jobId, 'Resume');
-				actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
-				break;
-
-			case 'RUNNING':
-				actionHtml += Importer.createActionButton('pause', job.jobId, 'Pause');
-				actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
-				break;
+			default:
+				if (job.status === 'QUEUED') {
+					actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+				}
 		}
 
 		return actionHtml;
@@ -175,160 +182,131 @@ var Importer = {
 	importCSVDialog: function(file) {
 
 		Structr.dialog('Import CSV from ' + file.name, function() {}, function() {});
-		dialog.append('<div id="csv-import"><div id="sample"></div></div>');
+
 		Importer.initializeButtons(true, false, false, true);
 
-		dialogBox.append(
-			'<div id="csv-configurations">' +
-			'<select id="load-csv-config-name">' +
-			'<option value="">--- Select configuration to load ---</option>' +
-			'</select>' +
-			'<button id="load-csv-config-button">Load</button>' +
-			'<button id="delete-csv-config-button">Delete</button>' +
-			'<input id="csv-config-name" type="text" placeholder="Enter name for configuration" />' +
-			'<button id="save-csv-config">Save</button>' +
-			'</div>');
+		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'csv'}, function(html) {
 
-		Command.appData('list', Importer.appDataCSVKey, null, null, function(result) {
+			dialogBox.append(html);
 
-			result[0].names.forEach(function(v) {
-				$('#load-csv-config-name').append('<option>' + v + '</option>');
+			Command.appData('list', Importer.appDataCSVKey, null, null, function(result) {
+
+				result[0].names.forEach(function(v) {
+					$('#load-csv-config-name').append('<option>' + v + '</option>');
+				});
 			});
-		});
 
-		$('#load-csv-config-button').on('click', function() {
+			$('#load-csv-config-button').on('click', function() {
 
-			var name = $('#load-csv-config-name').val();
-			if (name && name.length) {
+				var name = $('#load-csv-config-name').val();
+				if (name && name.length) {
 
-				Command.appData('get', Importer.appDataCSVKey, name, null, function(result) {
+					Command.appData('get', Importer.appDataCSVKey, name, null, function(result) {
 
-					if (result && result.value) {
+						if (result && result.value) {
 
-						var config = JSON.parse(result.value);
+							var config = JSON.parse(result.value);
 
-						$('#delimiter').val(config.delimiter);
-						$('#quote-char').val(config.quoteChar);
-						$('#record-separator').val(config.recordSeparator);
-						$('#target-type-select').val(config.targetType).trigger('change', [config]);
-						$('#commit-interval').val(config.commitInterval)
-						$('#ignore-invalid').prop('checked', config.ignoreInvalid),
-						$('#range').val(config.range)
-					}
-				});
-			}
-		});
+							$('#delimiter').val(config.delimiter);
+							$('#quote-char').val(config.quoteChar);
+							$('#record-separator').val(config.recordSeparator);
+							$('#target-type-select').val(config.targetType).trigger('change', [config]);
+							$('#commit-interval').val(config.commitInterval);
+							$('#ignore-invalid').prop('checked', config.ignoreInvalid),
+							$('#range').val(config.range);
+						}
+					});
+				}
+			});
 
-		$('#save-csv-config').on('click', function() {
+			$('#save-csv-config').on('click', function() {
 
-			var name = $('#csv-config-name').val();
-			if (name && name.length) {
+				var name = $('#csv-config-name').val();
+				if (name && name.length) {
 
-				// collect mappings and transforms
-				var mappings   = {};
-				var transforms = {};
+					// collect mappings and transforms
+					var mappings   = {};
+					var transforms = {};
 
-				$('select.attr-mapping').each(function(i, elem) {
+					$('select.attr-mapping').each(function(i, elem) {
 
-					var e     = $(elem);
-					var name  = e.prop('name');
-					var value = e.val();
+						var e     = $(elem);
+						var name  = e.prop('name');
+						var value = e.val();
 
-					if (value && value.length) {
-						mappings[name] = value;
-					}
+						if (value && value.length) {
+							mappings[name] = value;
+						}
 
-					var transform = $('input#transform' + i).val();
-					if (transform && transform.length) {
-						transforms[name] = transform;
-					}
-				});
+						var transform = $('input#transform' + i).val();
+						if (transform && transform.length) {
+							transforms[name] = transform;
+						}
+					});
 
-				// mode, category, name, value, callback
-				Command.appData('add', Importer.appDataCSVKey, name, JSON.stringify({
-					delimiter: $('#delimiter').val(),
-					quoteChar: $('#quote-char').val(),
-					recordSeparator: $('#record-separator').val(),
-					targetType: $('#target-type-select').val(),
-					commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
-					ignoreInvalid: $('#ignore-invalid').prop('checked'),
-					range: $('#range').val(),
-					mappings: mappings,
-					transforms: transforms
-				}));
-			}
-		});
+					// mode, category, name, value, callback
+					Command.appData('add', Importer.appDataCSVKey, name, JSON.stringify({
+						delimiter: $('#delimiter').val(),
+						quoteChar: $('#quote-char').val(),
+						recordSeparator: $('#record-separator').val(),
+						targetType: $('#target-type-select').val(),
+						commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+						ignoreInvalid: $('#ignore-invalid').prop('checked'),
+						range: $('#range').val(),
+						mappings: mappings,
+						transforms: transforms
+					}));
+				}
+			});
 
-		$('#delete-csv-config-button').on('click', function() {
+			$('#delete-csv-config-button').on('click', function() {
 
-			var name = $('#load-csv-config-name').val();
-			if (name && name.length) {
+				var name = $('#load-csv-config-name').val();
+				if (name && name.length) {
 
-				Command.appData('delete', Importer.appDataCSVKey, name, null, function(result) {
-					$('#load-csv-config-name option:selected').remove();
-				});
-			}
-		});
+					Command.appData('delete', Importer.appDataCSVKey, name, null, function(result) {
+						$('#load-csv-config-name option:selected').remove();
+					});
+				}
+			});
 
-		var container = $('#csv-import');
-		var sample    = $('#sample');
 
-		// load first lines to display a sample of the data
-		$.post(rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
 
-			if (data && data.result) {
+			// load first lines to display a sample of the data
+			$.post(rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
 
-				sample.append('<h3>Data Sample</h3>');
-				sample.append('<pre class="csv-preview">' + data.result.lines + '</pre>');
+				if (data && data.result) {
 
-				var results = Papa.parse(data.result.lines);
-				var delim = results.meta.delimiter;
-				var qc    = data.result.lines.substring(0,1);
+					var results = Papa.parse(data.result.lines);
+					var delim = results.meta.delimiter;
+					var qc    = data.result.lines.substring(0,1);
 
-				// import options
-				container.append('<h3>Import Options</h3>');
-				container.append('<table id="csv-import"><tbody><tr id="options-row1"></tr><tr id="options-row2"></tr></tbody></table>');
+					Structr.fetchHtmlTemplate('importer/dialog.csv', { data: data, delim: delim, qc: qc }, function(html) {
 
-				var row1 = $('#options-row1');
-				var row2 = $('#options-row2');
+						var container = $(html);
+						dialog.append(container);
 
-				row1.append('<td><label>Delimiter:</label><select id="delimiter" class="import-option"><option' + (delim === ',' ? ' selected' : '') + '>,</option><option' + (delim === ';' ? ' selected' : '') + '>;</option><option' + (delim === '|' ? ' selected' : '') + '>|</option></select></td>');
-				row1.append('<td><label>Quote character:</label><select id="quote-char" class="import-option"><option' + (qc === '"' ? ' selected' : '') + '>&quot;</option><option' + (qc === '\'' ? ' selected' : '') + '>\'</option></select></td>');
-				row1.append('<td><label>Record separator:</label><select id="record-separator" class="import-option"></select></td>');
+						var targetTypeSelector = $('#target-type-select', container);
 
-				row2.append('<td><label>Commit interval:</label><input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit."></td>');
-				row2.append('<td><label>Ignore invalid lines:</label><input type="checkbox" id="ignore-invalid" /></td>');
-				row2.append('<td><label>Line range:</label><input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" /></td>');
-				row2.append('</tr></tbody></table>');
+						$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
 
-				// target selection
-				container.append('<h3>Select target type</h3>');
-				container.append('<select id="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
-				container.append('<div id="property-select"></div>');
+							if (data && data.result) {
 
-				$('#record-separator').append(
-					'<option ' + (data.result.separator ===    'LF' ? 'selected="selected"' : '') + '>LF</option>' +
-					'<option ' + (data.result.separator ===    'CR' ? 'selected="selected"' : '') + '>CR</option>' +
-					'<option ' + (data.result.separator === 'CR+LF' ? 'selected="selected"' : '') + '>CR+LF</option>'
-				);
+								data.result.forEach(function(r) {
 
-				var targetTypeSelector = $('#target-type-select');
-
-				$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
-
-					if (data && data.result) {
-
-						data.result.forEach(function(r) {
-
-							targetTypeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
+									targetTypeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
+								});
+							}
 						});
-					}
-				});
 
-				targetTypeSelector.on('change', function(e, data) { Importer.updateMapping(file, data) });
-				$(".import-option", container).on('change', function(e, data) { Importer.updateMapping(file, data) });
-			}
+						targetTypeSelector.on('change', function(e, data) { Importer.updateMapping(file, data); });
+						$(".import-option", container).on('change', function(e, data) { Importer.updateMapping(file, data); });
+					});
+				}
+			});
+
 		});
+
 	},
 	updateMapping: function(file, data) {
 
@@ -513,218 +491,212 @@ var Importer = {
 
 		Importer.initializeButtons(true, true, true, true, true);
 
-		dialogBox.append(
-			'<div id="xml-configurations">' +
-			'<select id="load-xml-config-name">' +
-			'<option value="">--- Select configuration to load ---</option>' +
-			'</select>' +
-			'<button id="load-xml-config-button">Load</button>' +
-			'<button id="delete-xml-config-button">Delete</button>' +
-			'<input id="xml-config-name" type="text" placeholder="Enter name for configuration" />' +
-			'<button id="save-xml-config">Save</button>' +
-			'</div>');
+		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'xml'}, function(html) {
 
-		Command.appData('list', Importer.appDataXMLKey, null, null, function(result) {
+			dialogBox.append(html);
 
-			result[0].names.forEach(function(v) {
-				$('#load-xml-config-name').append('<option>' + v + '</option>');
-			});
-		});
+			Command.appData('list', Importer.appDataXMLKey, null, null, function(result) {
 
-		$('#load-xml-config-button').on('click', function() {
-
-			var name = $('#load-xml-config-name').val();
-			if (name && name.length) {
-
-				Command.appData('get', Importer.appDataXMLKey, name, null, function(result) {
-					if (result && result.value) {
-						var config = JSON.parse(result.value);
-						Object.keys(config).forEach(function(k) {
-							configuration[k] = config[k];
-
-							switch (configuration[k].action) {
-								case 'createNode':
-									Importer.updateStructureSelector('', k, configuration[k].type);
-									break;
-
-								case 'setProperty':
-									Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
-									break;
-
-								default:
-									console.log("Unknown action: ", configuration[k].action);
-							}
-						});
-					}
+				result[0].names.forEach(function(v) {
+					$('#load-xml-config-name').append('<option>' + v + '</option>');
 				});
-			}
-		});
-
-		dialog.append('<div id="xml-import"></div>');
-
-		$('#cancel-button').on('click', function() {
-			// close dialog
-			$.unblockUI({
-				fadeOut: 25
 			});
-			Importer.restoreButtons();
-		});
 
-		$('#next-element').on('click', function() {
-			var elem = $('td.xml-mapping.selected').parent('tr').next().children('td.xml-mapping');
-			if (elem && elem.get(0)) {
-				elem.get(0).scrollIntoView(false);
-				elem.click();
-			}
-		});
+			$('#load-xml-config-button').on('click', function() {
 
-		$('#prev-element').on('click', function() {
-			var elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
-			if (elem && elem.get(0)) {
-				elem.get(0).scrollIntoView(false);
-				elem.click();
-			}
-		});
+				var name = $('#load-xml-config-name').val();
+				if (name && name.length) {
 
-		$('#start-import').on('click', function() {
+					Command.appData('get', Importer.appDataXMLKey, name, null, function(result) {
+						if (result && result.value) {
+							var config = JSON.parse(result.value);
+							Object.keys(config).forEach(function(k) {
+								configuration[k] = config[k];
 
-			$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
-		});
-
-		$('#save-xml-config').on('click', function() {
-
-			var name = $('#xml-config-name').val();
-			if (name && name.length) {
-
-				// mode, category, name, value, callback
-				Command.appData('add', Importer.appDataXMLKey, name, JSON.stringify(configuration));
-			}
-		});
-
-		$('#delete-xml-config-button').on('click', function() {
-
-			var name = $('#load-xml-config-name').val();
-			if (name && name.length) {
-
-				Command.appData('delete', Importer.appDataXMLKey, name, null, function(result) {
-					$('#load-xml-config-name option:selected').remove();
-				});
-			}
-		});
-
-		var container = $('#xml-import');
-
-		container.append('<div id="left"><h2>Document Structure</h2><div class="xml-mapping"><table><thead id="structure"></thead></table></div></div><div id="right"><div id="xml-config"></div></div>');
-		container.append('<div style="clear: both;"></div>');
-
-		var xmlConfig = $('#xml-config');
-
-		xmlConfig.append(
-			'<p class="hint">' +
-			'Please click one of the XML elements on the left to configure the XML import for that element.<br /><br />' +
-			'Use the &laquo;Next&raquo; and &laquo;Prev&raquo; buttons below to step through the XML elements.' +
-			'</p>');
-
-		$.post(rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
-
-			if (data && data.result) {
-
-				var structure  = JSON.parse(data.result);
-				var attributes = {};
-
-				function buildTree(htmlElement, parentKey, treeElement, path, level) {
-
-					Object.keys(treeElement).forEach(function(key) {
-
-						// store attributes
-						if (key === '::attributes') {
-							if (!attributes[parentKey]) {
-								attributes[parentKey] = {};
-							}
-							var map = attributes[parentKey];
-							treeElement[key].forEach(function(attr) {
-								map[attr] = 1;
-							});
-							return;
-						}
-
-
-						var hasChildren = Object.keys(treeElement[key]).length > 1;
-						var localPath   = path + '/' + key;
-
-						htmlElement.append(
-							'<tr><td data-name="' + localPath + '" data-level="' + level + '"' +
-							' class="xml-mapping" ' +
-							' style="padding-left: ' + (level * 30) + 'px;">' +
-							_Icons.getHtmlForIcon(_Icons.collapsed_icon) +
-							'&nbsp;&nbsp;' + key + '</td></tr>'
-						);
-
-						$('td[data-name="' + localPath + '"]').on('click', function() {
-
-							$('td.xml-mapping').removeClass('selected');
-							$(this).addClass('selected');
-
-							xmlConfig.empty();
-							xmlConfig.append('<h2>&nbsp;</h2>');
-							xmlConfig.append('<div id="config"></div>');
-
-							var config = $('#config');
-							config.append('<label>Select action:</label>');
-							config.append('<select id="action-select" class="xml-config-select"></select>');
-
-							var action = $('#action-select');
-							action.append('<option value="">Skip</option>');
-							action.append('<option value="ignore">Ignore branch</option>');
-							action.append('<option value="createNode">Create node</option>');
-							action.append('<option value="setProperty">Set property</option>');
-
-							config.append('<div id="options"></div>');
-							var options = $('#options');
-
-							action.on('change', function() {
-
-								// remove dialog options
-								$('#options').empty();
-
-								switch ($(this).val()) {
-									case "createNode":
-										Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
+								switch (configuration[k].action) {
+									case 'createNode':
+										Importer.updateStructureSelector('', k, configuration[k].type);
 										break;
-									case "setProperty":
-										Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
-										break;
-									case "ignore":
-										// reset configuration
-										configuration[localPath] = { action: 'ignore' };
-										Importer.updateStructureSelector(localPath);
+
+									case 'setProperty':
+										Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
 										break;
 
 									default:
-										configuration[localPath] = {};
-										Importer.updateStructureSelector(localPath);
-										break;
+										console.log("Unknown action: ", configuration[k].action);
 								}
 							});
-
-							// activate elements for existing configuration
-							var typeConfig = configuration[localPath];
-							if (typeConfig && typeConfig.action) {
-
-								$('#action-select').val(typeConfig.action).trigger('change');
-							}
-						});
-
-						var value = treeElement[key];
-						if (value) {
-
-							buildTree(htmlElement, key, value, localPath, level + 1);
 						}
 					});
 				}
+			});
 
-				buildTree($('#structure'), '', structure, '', 0);
-			}
+			dialog.append('<div id="xml-import"></div>');
+
+			$('#cancel-button').on('click', function() {
+				// close dialog
+				$.unblockUI({
+					fadeOut: 25
+				});
+				Importer.restoreButtons();
+			});
+
+			$('#next-element').on('click', function() {
+				var elem = $('td.xml-mapping.selected').parent('tr').next().children('td.xml-mapping');
+				if (elem && elem.get(0)) {
+					elem.get(0).scrollIntoView(false);
+					elem.click();
+				}
+			});
+
+			$('#prev-element').on('click', function() {
+				var elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
+				if (elem && elem.get(0)) {
+					elem.get(0).scrollIntoView(false);
+					elem.click();
+				}
+			});
+
+			$('#start-import').on('click', function() {
+
+				$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
+			});
+
+			$('#save-xml-config').on('click', function() {
+
+				var name = $('#xml-config-name').val();
+				if (name && name.length) {
+
+					// mode, category, name, value, callback
+					Command.appData('add', Importer.appDataXMLKey, name, JSON.stringify(configuration));
+				}
+			});
+
+			$('#delete-xml-config-button').on('click', function() {
+
+				var name = $('#load-xml-config-name').val();
+				if (name && name.length) {
+
+					Command.appData('delete', Importer.appDataXMLKey, name, null, function(result) {
+						$('#load-xml-config-name option:selected').remove();
+					});
+				}
+			});
+
+			var container = $('#xml-import');
+
+			container.append('<div id="left"><h2>Document Structure</h2><div class="xml-mapping"><table><thead id="structure"></thead></table></div></div><div id="right"><div id="xml-config"></div></div>');
+			container.append('<div style="clear: both;"></div>');
+
+			var xmlConfig = $('#xml-config');
+
+			xmlConfig.append(
+				'<p class="hint">' +
+				'Please click one of the XML elements on the left to configure the XML import for that element.<br /><br />' +
+				'Use the &laquo;Next&raquo; and &laquo;Prev&raquo; buttons below to step through the XML elements.' +
+				'</p>');
+
+			$.post(rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
+
+				if (data && data.result) {
+
+					var structure  = JSON.parse(data.result);
+					var attributes = {};
+
+					function buildTree(htmlElement, parentKey, treeElement, path, level) {
+
+						Object.keys(treeElement).forEach(function(key) {
+
+							// store attributes
+							if (key === '::attributes') {
+								if (!attributes[parentKey]) {
+									attributes[parentKey] = {};
+								}
+								var map = attributes[parentKey];
+								treeElement[key].forEach(function(attr) {
+									map[attr] = 1;
+								});
+								return;
+							}
+
+
+							var hasChildren = Object.keys(treeElement[key]).length > 1;
+							var localPath   = path + '/' + key;
+
+							htmlElement.append(
+								'<tr><td data-name="' + localPath + '" data-level="' + level + '"' +
+								' class="xml-mapping" ' +
+								' style="padding-left: ' + (level * 30) + 'px;">' +
+								_Icons.getHtmlForIcon(_Icons.collapsed_icon) +
+								'&nbsp;&nbsp;' + key + '</td></tr>'
+							);
+
+							$('td[data-name="' + localPath + '"]').on('click', function() {
+
+								$('td.xml-mapping').removeClass('selected');
+								$(this).addClass('selected');
+
+								xmlConfig.empty();
+								xmlConfig.append('<h2>&nbsp;</h2>');
+								xmlConfig.append('<div id="config"></div>');
+
+								var config = $('#config');
+								config.append('<label>Select action:</label>');
+								config.append('<select id="action-select" class="xml-config-select"></select>');
+
+								var action = $('#action-select');
+								action.append('<option value="">Skip</option>');
+								action.append('<option value="ignore">Ignore branch</option>');
+								action.append('<option value="createNode">Create node</option>');
+								action.append('<option value="setProperty">Set property</option>');
+
+								config.append('<div id="options"></div>');
+								var options = $('#options');
+
+								action.on('change', function() {
+
+									// remove dialog options
+									$('#options').empty();
+
+									switch ($(this).val()) {
+										case "createNode":
+											Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
+											break;
+										case "setProperty":
+											Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
+											break;
+										case "ignore":
+											// reset configuration
+											configuration[localPath] = { action: 'ignore' };
+											Importer.updateStructureSelector(localPath);
+											break;
+
+										default:
+											configuration[localPath] = {};
+											Importer.updateStructureSelector(localPath);
+											break;
+									}
+								});
+
+								// activate elements for existing configuration
+								var typeConfig = configuration[localPath];
+								if (typeConfig && typeConfig.action) {
+
+									$('#action-select').val(typeConfig.action).trigger('change');
+								}
+							});
+
+							var value = treeElement[key];
+							if (value) {
+
+								buildTree(htmlElement, key, value, localPath, level + 1);
+							}
+						});
+					}
+
+					buildTree($('#structure'), '', structure, '', 0);
+				}
+			});
 		});
 	},
 	hasRoot: function(configuration) {

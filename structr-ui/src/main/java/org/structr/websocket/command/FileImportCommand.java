@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,7 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.Property;
-import org.structr.web.importer.DataImportManager;
+import org.structr.core.scheduler.JobQueueManager;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -60,7 +60,7 @@ public class FileImportCommand extends AbstractCommand {
 		final String mode                     = (String) properties.get("mode");		// default: list    start | pause | resume | cancel | abort
 		final Long jobId                      = (Long) properties.get("jobId");
 
-		final DataImportManager mgr = DataImportManager.getInstance();
+		final JobQueueManager mgr = JobQueueManager.getInstance();
 
 		final List<GraphObject> result = new LinkedList<>();
 

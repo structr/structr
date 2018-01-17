@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,7 +58,9 @@ public class DefaultResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), GlobalSchemaMethodResource.class);
 
 		resourceMap.put(Pattern.compile("_schema"),		SchemaResource.class);			// special resource for schema information
+		resourceMap.put(Pattern.compile("_schemaJson"), SchemaJsonResource.class);	// special resource for schema json import and export !needs to be below any type match
 		resourceMap.put(Pattern.compile("[a-z_A-Z][a-z_A-Z0-9]*"), TypeResource.class);			// any type match
+
 
 		return resourceMap;
 	}

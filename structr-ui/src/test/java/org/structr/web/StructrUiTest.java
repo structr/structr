@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -119,7 +119,7 @@ public abstract class StructrUiTest {
 
 		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
-		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.Services.setValue("NodeService HttpService SchemaService DirectoryWatchService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup
@@ -174,9 +174,9 @@ public abstract class StructrUiTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			 logger.error("Exception while trying to clean database: {}", fex);
+			 logger.error("Exception while trying to clean database: {}", t);
 		}
 	}
 

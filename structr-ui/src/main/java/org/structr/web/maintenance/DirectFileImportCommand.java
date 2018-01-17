@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -244,7 +244,6 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 		try (final Tx tx = app.tx()) {
 
-			final String filesPath    = Settings.FilesPath.getValue();
 			final String relativePath = PathHelper.getRelativeNodePath(path.toString(), file.toString());
 			String parentPath         = targetPath + PathHelper.getFolderPath(relativePath);
 
@@ -318,11 +317,8 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 
-				final String uuid             = newFile.getUuid();
-				final String relativeFilePath = File.getDirectoryPath(uuid) + "/" + uuid;
-				final Path fullFolderPath     = Paths.get(filesPath + "/" + relativeFilePath);
-
-				newFile.setProperty(StructrApp.key(File.class, "relativeFilePath"), relativeFilePath);
+				final java.io.File fileOnDisk = newFile.getFileOnDisk(false);
+				final Path fullFolderPath     = fileOnDisk.toPath();
 
 				Files.createDirectories(fullFolderPath.getParent());
 

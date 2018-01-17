@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,8 @@ public class StringSettingTest {
 	@Test
 	public void testFromString() {
 
-		final SettingsGroup testGroup = new SettingsGroup("test", "test");
-		final StringSetting setting = new StringSetting(testGroup, "key", "value");
+		final SettingsGroup testGroup = new SettingsGroup("testString", "testString");
+		final StringSetting setting = new StringSetting(testGroup, "keyString", "value");
 
 		// test invalid values that must not throw an exception
 		setting.fromString(null);
@@ -37,6 +37,6 @@ public class StringSettingTest {
 		assertEquals("Setting should contain empty value when given an empty value", "", setting.getValue());
 
 		setting.fromString("newValue");
-		assertEquals("Setting should contain new value when given a null value", "newValue", setting.getValue());
+		assertEquals("Setting should contain new value when given a new value", "newValue", setting.getValue());
 	}
 }

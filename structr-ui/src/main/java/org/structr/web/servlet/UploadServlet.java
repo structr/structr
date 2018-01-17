@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,10 @@
  */
 package org.structr.web.servlet;
 
+
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import javax.servlet.ServletException;
@@ -29,9 +29,9 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -62,6 +62,8 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 
+
+//~--- classes ----------------------------------------------------------------
 /**
  * Simple upload servlet.
  */
@@ -72,8 +74,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
 	private static final String APPEND_UUID_ON_REDIRECT_PARAMETER  = "appendUuidOnRedirect";
 	private static final String UPLOAD_FOLDER_PATH_PARAMETER       = "uploadFolderPath";
-	private static final int MEGABYTE                              = 1024 * 1024;
-	private static final int MEMORY_THRESHOLD                      = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
+	private static final long MEGABYTE                              = 1024 * 1024;
 
 	// non-static fields
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
@@ -97,17 +98,8 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	public void init() {
 
-		DiskFileItemFactory fileFactory = new DiskFileItemFactory();
-		fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
+		uploader = new ServletFileUpload();
 
-		filesDir = new java.io.File(Settings.TmpPath.getValue());
-		if (!filesDir.exists()) {
-
-			filesDir.mkdir();
-		}
-
-		fileFactory.setRepository(filesDir);
-		uploader = new ServletFileUpload(fileFactory);
 	}
 
 	@Override
@@ -193,39 +185,39 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Settings.UploadMaxFileSize.getValue());
-			uploader.setSizeMax(MEGABYTE * Settings.UploadMaxRequestSize.getValue());
+			uploader.setFileSizeMax((long) MEGABYTE * Settings.UploadMaxFileSize.getValue());
+			uploader.setSizeMax((long) MEGABYTE * Settings.UploadMaxRequestSize.getValue());
 
 			response.setContentType("text/html");
 
-			List<FileItem> fileItemsList = uploader.parseRequest(request);
-			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
+			FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
 
 			final Map<String, Object> params = new HashMap<>();
 
 			while (fileItemsIterator.hasNext()) {
 
-				final FileItem item = fileItemsIterator.next();
+				final FileItemStream item = fileItemsIterator.next();
 
 				if (item.isFormField()) {
 
 					final String fieldName = item.getFieldName();
+					final String fieldValue = IOUtils.toString(item.openStream(), "UTF-8");
 
 					if (REDIRECT_AFTER_UPLOAD_PARAMETER.equals(fieldName)) {
 
-						redirectUrl = item.getString();
+						redirectUrl = fieldValue;
 
 					} else if (APPEND_UUID_ON_REDIRECT_PARAMETER.equals(fieldName)) {
 
-						appendUuidOnRedirect = "true".equalsIgnoreCase(item.getString());
+						appendUuidOnRedirect = "true".equalsIgnoreCase(fieldValue);
 
 					} else if (UPLOAD_FOLDER_PATH_PARAMETER.equals(fieldName)) {
 
-						path = item.getString();
+						path = fieldValue;
 
 					} else {
 
-						params.put(item.getFieldName(), item.getString());
+						params.put(fieldName, fieldValue);
 					}
 
 				} else {
@@ -281,42 +273,39 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							retry = false;
 
+							Folder uploadFolder = null;
+							final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
+
+							// If a path attribute was sent, create all folders on the fly.
+							if (path != null) {
+
+								uploadFolder = getOrCreateFolderPath(securityContext, path);
+
+							} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
+
+								uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+
+							}
+
 							try (final Tx tx = StructrApp.getInstance().tx()) {
 
-								newFile = FileHelper.createFile(securityContext, IOUtils.toByteArray(item.getInputStream()), contentType, cls);
+								try (final InputStream is = item.openStream()) {
 
-								final PropertyMap changedProperties = new PropertyMap();
+									newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+									newFile.validateAndRenameFileOnce(securityContext, null);
 
-								changedProperties.put(AbstractNode.name, PathHelper.getName(name));
-								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+									final PropertyMap changedProperties = new PropertyMap();
 
-								// Update type as it could have changed
-								changedProperties.put(AbstractNode.type, type);
+									changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
-								Folder uploadFolder = null;
-								final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
+									// Update type as it could have changed
+									changedProperties.put(AbstractNode.type, type);
 
-								// If a path attribute was sent, create all folders on the fly
-								if (path != null) {
+									newFile.unlockSystemPropertiesOnce();
+									newFile.setProperties(securityContext, changedProperties);
 
-									uploadFolder = FileHelper.createFolderPath(securityContext, path);
-
-								} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
-
-									uploadFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
-
+									uuid = newFile.getUuid();
 								}
-
-								// can only happen if the configuration value is invalid or maps to the root folder
-								if (uploadFolder != null) {
-
-									changedProperties.put(StructrApp.key(File.class, "hasParent"), true);
-									changedProperties.put(StructrApp.key(File.class, "parent"),    uploadFolder);
-								}
-
-								newFile.setProperties(securityContext, changedProperties);
-
-								uuid = newFile.getUuid();
 
 								tx.success();
 
@@ -423,12 +412,11 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			uploader.setFileSizeMax(MEGABYTE * Settings.UploadMaxFileSize.getValue());
 			uploader.setSizeMax(MEGABYTE * Settings.UploadMaxRequestSize.getValue());
 
-			List<FileItem> fileItemsList = uploader.parseRequest(request);
-			Iterator<FileItem> fileItemsIterator = fileItemsList.iterator();
+			FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
 
 			while (fileItemsIterator.hasNext()) {
 
-				final FileItem fileItem = fileItemsIterator.next();
+				final FileItemStream fileItem = fileItemsIterator.next();
 
 				try {
 
@@ -446,11 +434,14 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						final File file = (File) node;
 						if (file.isGranted(Permission.write, securityContext)) {
 
-							FileHelper.writeToFile(file, fileItem.getInputStream());
-							file.increaseVersion();
+							try (final InputStream is = fileItem.openStream()) {
 
-							// upload trigger
-							file.notifyUploadCompletion();
+								FileHelper.writeToFile(file, is);
+								file.increaseVersion();
+
+								// upload trigger
+								file.notifyUploadCompletion();
+							}
 
 						} else {
 
@@ -473,6 +464,22 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
+	}
+
+	private synchronized Folder getOrCreateFolderPath(SecurityContext securityContext, String path) {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			Folder folder = FileHelper.createFolderPath(securityContext, path);
+			tx.success();
+
+			return folder;
+
+		} catch (FrameworkException ex) {
+			logger.warn("", ex);
+		}
+
+		return null;
 	}
 
 	private String errorPage(final Throwable t) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,7 +50,7 @@ public class Settings {
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
 	// general settings
-	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,   "Application", "application.title",          "Structr 2.1");
+	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,   "Application", "application.title",          "Structr");
 	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,   "Application", "application.instance.name",  "");
 	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,   "Application", "application.instance.stage", "");
 	public static final Setting<String> MenuEntries           = new StringSetting(generalGroup,   "Application", "application.menu.main",      "Pages,Files,Security,Schema,Data", "The main menu entries - all other entries remain in the submenu");
@@ -119,18 +119,21 @@ public class Settings {
 	public static final Setting<Boolean> SyncDebugging         = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
 
 	// application settings
-	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup, "Security",   "application.security.resolution.depth",     5);
-	public static final Setting<String> OwnerlessNodes        = new StringSetting(applicationGroup,  "Security",   "application.security.ownerless.nodes",      "read");
-	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",             false);
-	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",            false);
-	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",       true);
-	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",     50000);
-	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength", 4);
-	public static final Setting<Integer> IndexingMaxLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxlength", 40);
-	public static final Setting<String> DefaultUploadFolder   = new StringSetting(applicationGroup,  "Filesystem", "application.uploads.folder",                "");
-	public static final Setting<String> HttpProxyUrl          = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.url",                "");
-	public static final Setting<String> HttpProxyUser         = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.username",           "");
-	public static final Setting<String> HttpProxyPassword     = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.password",           "");
+	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup, "Security",   "application.security.resolution.depth",       5);
+	public static final Setting<String> OwnerlessNodes        = new StringSetting(applicationGroup,  "Security",   "application.security.ownerless.nodes",        "read");
+	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",               false);
+	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",              false);
+	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",         true);
+	public static final Setting<String> DefaultChecksums      = new StringSetting(applicationGroup,  "Filesystem", "application.filesystem.checksums.default",    "md5", "List of checksums to be calculated on file creation by default.");
+	public static final Setting<Integer> IndexingMaxFileSize  = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxsize",     10);
+	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",       50000);
+	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength",   3);
+	public static final Setting<Integer> IndexingMaxLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxlength",   30);
+	public static final Setting<Boolean> FollowSymlinks       = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.mount.followSymlinks", true);
+	public static final Setting<String> DefaultUploadFolder   = new StringSetting(applicationGroup,  "Filesystem", "application.uploads.folder",                  "");
+	public static final Setting<String> HttpProxyUrl          = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.url",                  "");
+	public static final Setting<String> HttpProxyUser         = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.username",             "");
+	public static final Setting<String> HttpProxyPassword     = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.password",             "");
 
 	// mail settings
 	public static final Setting<String> SmtpHost              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.host",         "localhost");
@@ -506,6 +509,14 @@ public class Settings {
 	}
 
 	static void registerSetting(final Setting setting) {
+
+		final Setting oldSetting = settings.get(setting.getKey());
+
+		if (oldSetting != null) {
+			setting.setValue(oldSetting.getValue());
+			oldSetting.unregister();
+		}
+
 		settings.put(setting.getKey(), setting);
 	}
 

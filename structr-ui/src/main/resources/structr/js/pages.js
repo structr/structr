@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -149,22 +149,19 @@ var _Pages = {
 		paletteSlideout = $('#palette');
 		componentsSlideout = $('#components');
 		elementsSlideout = $('#elements');
+		elementsSlideout.data('closeCallback', _Elements.clearUnattachedNodes);
 
 		rsw = widgetsSlideout.width() + 12;
 
-		$('#pagesTab').on('click', function() {
+		var pagesTabSlideoutAction = function() {
 			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, templatesSlideout], _Pages.activeTabLeftKey, function (params) {
 				_Pages.resize(params.sw, 0);
 				_Pages.pagesTabResizeContent();
 			}, _Pages.leftSlideoutClosedCallback);
-		}).droppable({
+		};
+		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
 			tolerance: 'touch',
-			over: function() {
-				_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, templatesSlideout], _Pages.activeTabLeftKey, function (params) {
-					_Pages.resize(params.sw, 0);
-					_Pages.pagesTabResizeContent();
-				}, _Pages.leftSlideoutClosedCallback);
-			}
+			over: pagesTabSlideoutAction
 		});
 
 		$('#activeElementsTab').on('click', function() {
@@ -188,34 +185,24 @@ var _Pages = {
 		});
 
 		$('#widgetsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], false, function() {
-				_Widgets.reloadWidgets();
-			});
+			_Pages.rightSlideoutClickTrigger(this, widgetsSlideout, [paletteSlideout, componentsSlideout, elementsSlideout], false, _Widgets.reloadWidgets);
 		});
 
 		$('#paletteTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], false, function() {
-				_Elements.reloadPalette();
-			});
+			_Pages.rightSlideoutClickTrigger(this, paletteSlideout, [widgetsSlideout, componentsSlideout, elementsSlideout], false, _Elements.reloadPalette);
 		});
 
 		$('#componentsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], false, function() {
-				_Elements.reloadComponents();
-			});
+			_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], false, _Elements.reloadComponents);
 		}).droppable({
 			tolerance: 'touch',
 			over: function(e, ui) {
-				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], true, function() {
-					_Elements.reloadComponents();
-				});
+				_Pages.rightSlideoutClickTrigger(this, componentsSlideout, [widgetsSlideout, paletteSlideout, elementsSlideout], true, _Elements.reloadComponents);
 			}
 		});
 
 		$('#elementsTab').on('click', function() {
-			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], false, function() {
-				_Elements.reloadUnattachedNodes();
-			});
+			_Pages.rightSlideoutClickTrigger(this, elementsSlideout, [widgetsSlideout, paletteSlideout, componentsSlideout], false, _Elements.reloadUnattachedNodes);
 		});
 
 		previewTabs = $('<ul id="previewTabs"></ul>');
@@ -245,14 +232,12 @@ var _Pages = {
 		});
 
 		Structr.unblockMenu(500);
-
 	},
 	clearPreviews: function() {
 
 		if (previewTabs && previewTabs.length) {
 			previewTabs.children('.page').remove();
 		}
-
 	},
 	refresh: function() {
 
@@ -278,8 +263,8 @@ var _Pages = {
 		pPager.activateFilterElements();
 
 		$.ajax({
-			url: "/structr/rest/Page/category",
-			success:function(data) {
+			url: '/structr/rest/Page/category',
+			success: function(data) {
 				var categories = [];
 				data.result.forEach(function(page) {
 					if (page.category !== null && categories.indexOf(page.category) === -1) {
@@ -288,11 +273,11 @@ var _Pages = {
 				});
 				categories.sort();
 
-				var helpText = "Here you can filter the pages list by page category.";
-				if(categories.length > 0) {
-					helpText += "Available categories are: \n\n" + categories.join("\n");
+				var helpText = 'Here you can filter the pages list by page category.';
+				if (categories.length > 0) {
+					helpText += 'Available categories are: \n\n' + categories.join('\n');
 				}
-				helpText += "\n\nPro Tip: If category names have identical substrings you can filter for multiple categories at once.";
+				helpText += '\n\nPro Tip: If category names have identical substrings you can filter for multiple categories at once.';
 
 				categoryFilter.attr('title', helpText);
 			}
@@ -305,11 +290,7 @@ var _Pages = {
 		$('#import_page', previewTabs).on('click', function(e) {
 			e.stopPropagation();
 
-			Structr.dialog('Import Template', function() {
-				return true;
-			}, function() {
-				return true;
-			});
+			Structr.dialog('Import Template', function() {}, function() {});
 
 			dialog.empty();
 			dialogMsg.empty();
@@ -324,16 +305,11 @@ var _Pages = {
 					+ '<tr><td><label for="processDeploymentInfo">Process deployment annotations</label></td><td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>'
 					+ '</table>');
 
-			var addressField = $('#_address', dialog);
-
-			_Logger.log(_LogType.PAGES, 'addressField', addressField);
-
-			addressField.on('blur', function() {
+			$('#_address', dialog).on('blur', function() {
 				var addr = $(this).val().replace(/\/+$/, "");
 				_Logger.log(_LogType.PAGES, addr);
 				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
-
 
 			dialog.append('<button id="startImport">Start Import</button>');
 
@@ -368,7 +344,7 @@ var _Pages = {
 			Command.createSimplePage();
 		});
 
-		Structr.adaptUiToPresentModules();
+		Structr.adaptUiToAvailableFeatures();
 
 	},
 	addTab: function(entity) {

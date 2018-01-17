@@ -1,0 +1,44 @@
+<table id="admin-tools-table">
+	<tr><td colspan="3"><h3>General</h3></td></tr>
+	<tr id="general-operations">
+		<td><button id="rebuild-index"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}" /> Rebuild Index</button></td>
+		<td><button id="flush-caches"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}" /> Flush Caches</button></td>
+		<td><button id="clear-schema"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}" /> Clear Schema</button></td>
+	</tr>
+	<tr>
+		<td><label for="rebuild-index">Rebuild database index<br>for all nodes and relationships</label></td>
+		<td><label for="flush-caches">Flushes internal caches<br>to refresh schema information</label></td>
+		<td><label for="clear-schema">Delete all schema nodes and<br>relationships in custom schema</label></td>
+	</tr>
+	<tr>
+		<td colspan="3"><h3>Nodes</h3></td>
+	</tr>
+	<tr>
+		<td colspan="3" id="node-operations">
+			<select id="node-type-selector">
+				<option selected value="">-- Select Node Type --</option>
+				<option disabled>──────────</option>
+				<option value="allNodes">All Node Types</option>
+				<option disabled>──────────</option>
+			</select>
+			<button id="reindex-nodes">Re-Index Nodes</button>
+			<button id="add-node-uuids">Add UUIDs</button>
+			<button id="create-labels">Create Labels</button>
+		</td>
+	</tr>
+	<tr>
+		<td colspan="3"><h3>Relationships</h3></td>
+	</tr>
+	<tr>
+		<td colspan="3" id="rel-operations">
+			<select id="rel-type-selector">
+				<option selected value="">-- Select Relationship Type --</option>
+				<option disabled>──────────</option>
+				<option value="allRels">All Relationship Types</option>
+				<option disabled>──────────</option>
+			</select>
+			<button id="reindex-rels">Re-Index Relationships</button>
+			<button id="add-rel-uuids">Add UUIDs</button>
+		</td>
+	</tr>
+</table>

@@ -52,6 +52,12 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
 			<optional>true</optional>
+		 <exclusions>
+		  <exclusion>
+		   <groupId>com.google.guava</groupId>
+		   <artifactId>guava</artifactId>
+		  </exclusion>
+		 </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -140,10 +146,22 @@
 			<artifactId>sshd-core</artifactId>
 			<version>1.2.0</version>
 		</dependency>
+<!--		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-server</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>-->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.google.javascript</groupId>
 			<artifactId>closure-compiler</artifactId>
-			<version>v20160208</version>
+			<version>v20180101</version>
 		</dependency>
 	 <dependency>
 	  <groupId>org.seleniumhq.selenium</groupId>
@@ -276,7 +294,7 @@
 						<exclude>src/main/deb/**</exclude>
 					</excludes>
 					<properties>
-						<year>2017</year>
+						<year>2018</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
@@ -406,7 +424,7 @@
 			<name>GNU Affero General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2017 Structr GmbH
+				Copyright (C) 2010-2018 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

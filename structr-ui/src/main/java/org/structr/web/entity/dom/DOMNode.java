@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -631,7 +631,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 					properties.put(key, thisNode.getProperty(key));
 				}
 			}
-
+			
 			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
 			for (Iterator<PropertyKey> it = thisNode.getPropertyKeys(PropertyView.Html).iterator(); it.hasNext();) {
 
@@ -645,7 +645,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				if (!key.isUnvalidated()) {
 					properties.put(key, thisNode.getProperty(key));
 				}
-			}
+}
+
 
 			if (thisNode instanceof LinkSource) {
 
@@ -1108,10 +1109,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (linkable != null) {
 
-				final String path = linkable.getPath();
+				final String linkableInstruction = (linkable instanceof Page) ? "pagelink" : "link";
+				final String path                = linkable.getPath();
+
 				if (path != null) {
 
-					instructions.add("@structr:link(" + path + ")");
+					instructions.add("@structr:" + linkableInstruction + "(" + path + ")");
 
 				} else {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,7 +42,7 @@ import org.structr.core.property.RelationProperty;
  *
  *
  */
-public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterface> implements DeserializationStrategy<S, T> {
+public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterface> extends DeserializationStrategy<S, T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 

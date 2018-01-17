@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,6 +69,12 @@ $(function() {
 	$('#logout_').on('click', function(e) {
 		e.stopPropagation();
 		Structr.doLogout();
+	});
+	
+	$(window).on('hashchange', function(e) {
+		var anchor = getAnchorFromUrl(window.location.href);
+		if (anchor === 'logout' || loginBox.is(':visible')) return
+		Structr.activateModule(e, anchor);
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function () {
@@ -205,10 +211,18 @@ $(function() {
 var Structr = {
 	modules: {},
 	activeModules: {},
+	edition: '',
 	classes: [],
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
+	templateCache: new AsyncObjectCache(function(templateName) {
+
+		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
+			Structr.templateCache.addObject(templateHtml, templateName);
+		});
+
+	}),
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -265,7 +279,7 @@ var Structr = {
 		_Console.initConsole();
 		_Favorites.initFavorites();
 	},
-	updateUsername:function(name) {
+	updateUsername: function(name) {
 		if (name !== user) {
 			user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
@@ -325,7 +339,7 @@ var Structr = {
 			$('#errorText').html(text);
 		}
 
-		Structr.activateMenuEntry('logout');
+		//Structr.activateMenuEntry('logout');
 	},
 	doLogin: function(username, password) {
 		Structr.renewSessionId(function () {
@@ -378,7 +392,7 @@ var Structr = {
 			var module = Structr.modules[lastMenuEntry];
 			if (module) {
 				module.onload();
-				Structr.adaptUiToPresentModules();
+				Structr.adaptUiToAvailableFeatures();
 				if (module.resize) {
 					module.resize();
 				}
@@ -816,7 +830,7 @@ var Structr = {
 			Structr.clearMain();
 			Structr.activateMenuEntry(name);
 			Structr.modules[name].onload();
-			Structr.adaptUiToPresentModules();
+			Structr.adaptUiToAvailableFeatures();
 		}
 	},
 	activateMenuEntry: function(name) {
@@ -956,7 +970,7 @@ var Structr = {
 				}
 
 				Structr.modules['pages'].onload();
-				Structr.adaptUiToPresentModules();
+				Structr.adaptUiToAvailableFeatures();
 				_Pages.resize();
 				$('a#pages_').removeClass('nodeHover').droppable('enable');
 			}
@@ -982,6 +996,11 @@ var Structr = {
 				wasOpen = true;
 				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active');
+
+				var openSlideoutCallback = slideout.data('closeCallback');
+				if (typeof openSlideoutCallback === "function") {
+					openSlideoutCallback();
+				}
 			}
 		});
 		if (wasOpen) {
@@ -1195,7 +1214,7 @@ var Structr = {
 				$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
 				var ui = envInfo.components['structr-ui'];
-				if (ui !== null) {
+				if (ui) {
 
 					var version = ui.version;
 					var build = ui.build;
@@ -1207,6 +1226,8 @@ var Structr = {
 					}
 
 					if (envInfo.edition) {
+
+						Structr.edition = envInfo.edition;
 
 						var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
 						if (envInfo.licensee) {
@@ -1240,7 +1261,7 @@ var Structr = {
 				});
 
 				Structr.activeModules = envInfo.modules;
-				Structr.adaptUiToPresentModules();
+				Structr.adaptUiToAvailableFeatures();
 			}
 		});
 	},
@@ -1268,7 +1289,11 @@ var Structr = {
 	getActiveElementId: function(element) {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
-	adaptUiToPresentModules: function() {
+	adaptUiToAvailableFeatures: function() {
+		Structr.adaptUiToAvailableModules();
+		Structr.adaptUiToEdition();
+	},
+	adaptUiToAvailableModules: function() {
 		$('.module-dependend').each(function(idx, element) {
 			var el = $(element);
 			var module = el.data('structr-module');
@@ -1282,21 +1307,28 @@ var Structr = {
 	isModulePresent: function(moduleName) {
 		return Structr.activeModules[moduleName] !== undefined;
 	},
-	guardExecution:function (callbackToGuard) {
-		var didRun = false;
+	adaptUiToEdition: function() {
+		$('.edition-dependend').each(function(idx, element) {
+			var el = $(element);
 
-		var guardedFunction = function () {
-			if (didRun) {
-				return;
+			if (Structr.isAvailableInEdition(el.data('structr-edition'))) {
+				if (!el.is(':visible')) el.show();
+			} else {
+				el.hide();
 			}
-			didRun = true;
-
-			if (typeof callbackToGuard === "function") {
-				callbackToGuard();
-			}
+		});
+	},
+	isAvailableInEdition: function (requiredEdition) {
+		switch(Structr.edition) {
+			case 'Enterprise':
+				return true;
+			case 'Small Business':
+				return ['Small Business', 'Basic', 'Community'].indexOf(requiredEdition) !== -1;
+			case 'Basic':
+				return ['Basic', 'Community'].indexOf(requiredEdition) !== -1;
+			case 'Community':
+				return ['Community'].indexOf(requiredEdition) !== -1;
 		};
-
-		return guardedFunction;
 	},
 	updateMainHelpLink: function (newUrl) {
 		$('#main-help a').attr('href', newUrl);
@@ -1396,16 +1428,17 @@ var Structr = {
 	},
 	appendInfoTextToElement: function (config) {
 
-		var element           = config.element;
-		var appendToElement   = config.appendToElement || element;
-		var text              = config.text || 'No text supplied!';
-		var toggleElementCss  = config.css || {};
-		var elementCss        = config.elementCss || {};
-		var helpElementCss    = config.helpElementCss || {};
-		var customToggleIcon  = config.customToggleIcon || _Icons.information_icon;
-		var insertAfter       = config.insertAfter || false;
-		var offsetX           = config.offsetX || 0;
-		var offsetY           = config.offsetY || 0;
+		var element            = config.element;
+		var appendToElement    = config.appendToElement || element;
+		var text               = config.text || 'No text supplied!';
+		var toggleElementCss   = config.css || {};
+		var toggleElementClass = config.class || undefined;
+		var elementCss         = config.elementCss || {};
+		var helpElementCss     = config.helpElementCss || {};
+		var customToggleIcon   = config.customToggleIcon || _Icons.information_icon;
+		var insertAfter        = config.insertAfter || false;
+		var offsetX            = config.offsetX || 0;
+		var offsetY            = config.offsetY || 0;
 
 		var customToggleElement = true;
 		var toggleElement = config.toggleElement;
@@ -1414,6 +1447,9 @@ var Structr = {
 			toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(customToggleIcon) + '"></span>');
 		}
 
+		if (toggleElementClass) {
+			toggleElement.addClass(toggleElementClass);
+		}
 		toggleElement.css(toggleElementCss);
 		appendToElement.css(elementCss);
 
@@ -1470,7 +1506,7 @@ var Structr = {
 		};
 
 		var fileImportTexts = {
-			QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running import(s)',
+			QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running/queued job(s)',
 			BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
 			CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
 			END: 'Finished importing data from <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
@@ -1479,6 +1515,17 @@ var Structr = {
 			WAIT_PAUSE: 'The import of <b>' + data.filename + '</b> will be paused after finishing the current chunk',
 			PAUSED: 'The import of <b>' + data.filename + '</b> has been paused',
 			RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
+		};
+
+		var scriptJobTitles = {
+			QUEUED: 'Script added to queue',
+			BEGIN: 'Script started',
+			END: 'Script finished'
+		};
+		var scriptJobTexts = {
+			QUEUED: 'Script job # ' + data.jobId + ' will begin after currently running/queued job(s)',
+			BEGIN: 'Started script job #' + data.jobId,
+			END: 'Finished script job #' + data.jobId
 		};
 
 		switch (data.type) {
@@ -1519,9 +1566,9 @@ var Structr = {
 				if (me.username === data.username) {
 
 					var msg = new MessageBuilder()
-							.title(data.importtype + ' ' + fileImportTitles[data.subtype])
+							.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
 							.info(fileImportTexts[data.subtype])
-							.uniqueClass(data.importtype + '-import-status-' + data.filepath);
+							.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
 
 					if (data.subtype !== 'QUEUED') {
 						msg.updatesText().requiresConfirmation();
@@ -1545,7 +1592,7 @@ var Structr = {
 					}
 
 					new MessageBuilder()
-							.title("Exception while importing " + data.importtype)
+							.title("Exception while importing " + data.jobtype)
 							.error("File: " + data.filepath + "<br>" + text)
 							.requiresConfirmation()
 							.show();
@@ -1556,27 +1603,72 @@ var Structr = {
 				}
 				break;
 
-			case "DEPLOYMENT_STATUS":
+			case "SCRIPT_JOB_STATUS":
+
+				if (me.username === data.username) {
+
+					var msg = new MessageBuilder()
+							.title(scriptJobTitles[data.subtype])
+							.info(scriptJobTexts[data.subtype])
+							.uniqueClass(data.jobtype + '-status-' + data.jobId);
+
+					if (data.subtype !== 'QUEUED') {
+						msg.updatesText().requiresConfirmation();
+					}
+
+					msg.show();
+
+					if (Structr.isModuleActive(Importer)) {
+						Importer.updateJobTable();
+					}
+				}
+				break;
+
+			case "DEPLOYMENT_IMPORT_STATUS":
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Any changes made during a deployment might get lost or conflict with the deployment!<br>"
-							+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment finished successfully.<br><br>"
-							+ "Deployment started : " + new Date(data.start) + "<br>";
+					var text = "Deployment Import started: " + new Date(data.start) + "<br>"
+							+ "Importing from: " + data.source + "<br><br>"
+							+ "Please wait until the import process is finished. any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>";
 
-					new MessageBuilder().title("Deployment in progress").info(text).uniqueClass('deployment-import').requiresConfirmation().uniqueClass('deployment-import').updatesText().show();
+					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Deployment in progress").info("Step " + data.step + ": " + data.message).requiresConfirmation().uniqueClass('deployment-import').appendsText().show();
+					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info("Step " + data.step + ": " + data.message).requiresConfirmation().appendsText().show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Deployment finished: " + new Date(data.end)
+					var text = "<br>Deployment Import finished: " + new Date(data.end)
 							+ "<br>Total duration: " + data.duration
 							+ "<br><br>Reload the page to see the new data.";
 
-					new MessageBuilder().title("Deployment finished").info(text).uniqueClass('deployment-import').specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").appendsText().updatesButtons().show();
+					new MessageBuilder().title("Deployment Import finished").uniqueClass('deployment-import').info(text).specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").appendsText().updatesButtons().show();
+
+				}
+				break;
+
+			case "DEPLOYMENT_EXPORT_STATUS":
+
+				if (data.subtype === 'BEGIN') {
+
+					var text = "Deployment Export started: " + new Date(data.start) + "<br>"
+							+ "Exporting to: " + data.target + "<br><br>"
+							+ "System performance may be affected during Export.<br>";
+
+					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info(text).requiresConfirmation().updatesText().show();
+
+				} else if (data.subtype === 'PROGRESS') {
+
+					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info("Step " + data.step + ": " + data.message).requiresConfirmation().appendsText().show();
+
+				} else if (data.subtype === 'END') {
+
+					var text = "<br>Deployment Export finished: " + new Date(data.end)
+							+ "<br>Total duration: " + data.duration;
+
+					new MessageBuilder().title("Deployment Export finished").uniqueClass('deployment-export').info(text).appendsText().requiresConfirmation().show();
 
 				}
 				break;
@@ -1597,6 +1689,14 @@ var Structr = {
 			}
 
 		}
+	},
+	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
+
+		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
+			var convertTemplateToLiteral = new Function("config", "return `" + templateHtml + "`;");
+			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			callback(parameterizedTemplate, cacheHit);
+		});
 	}
 };
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -61,7 +61,7 @@ public class FtpFilePageWrapper implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			final String path = page.getPath();
+			final String path = page.getFolderPath();
 			tx.success();
 
 			return path;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -164,6 +164,10 @@ public class MaintenanceResource extends Resource {
 			this.taskOrCommand = param.getMaintenanceCommand();
 
 			return this;
+		}
+
+		if(next instanceof SchemaJsonResource) {
+			return next;
 		}
 
 		// accept global schema methods resource as successor

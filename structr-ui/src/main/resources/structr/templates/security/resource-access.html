@@ -1,0 +1,32 @@
+<table id="resourceAccessesTable">
+	<thead>
+		<tr>
+			<th></th>
+			<th colspan="6" class="center">Authenticated users</th>
+			<th colspan="6" class="center">Non-authenticated (public) users</th>
+			<th colspan="3"></th>
+		</tr>
+		<tr>
+			<th class="title-cell">Signature</th>
+			<th>GET</th>
+			<th>PUT</th>
+			<th>POST</th>
+			<th>DELETE</th>
+			<th>OPTIONS</th>
+			<th>HEAD</th>
+			<th>GET</th>
+			<th>PUT</th>
+			<th>POST</th>
+			<th>DELETE</th>
+			<th>OPTIONS</th>
+			<th>HEAD</th>
+			<th>Bitmask</th>
+			<th></th>
+		</tr>
+		<tr>
+			<th><input type="text" class="filter" data-attribute="signature" placeholder="Filter..."></th>
+			<th colspan="15"></th>
+		</tr>
+	</thead>
+</table>
+Signature: <input type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><i title="Add Resource Grant" class="${_Icons.getFullSpriteClass(_Icons.key_add_icon)}" /> Add Grant</button>

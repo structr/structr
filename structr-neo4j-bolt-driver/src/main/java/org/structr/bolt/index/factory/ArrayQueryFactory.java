@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,7 +39,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 
 			if (predicate.isExactMatch()) {
 
-				query.addListParameter(name, value != null ? "=" : "is", value);
+				query.addListParameter(name, "=", value);
 
 			} else {
 

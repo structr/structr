@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -167,8 +167,13 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	//public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
 	//public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
-	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public, path);
-	public static final View uiView      = new View(AbstractFile.class, PropertyView.Ui, path);
+	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public,
+		path, isExternal, isMounted, lastSeenMounted
+	);
+
+	public static final View uiView = new View(AbstractFile.class, PropertyView.Ui,
+		path, isExternal, isMounted, lastSeenMounted
+	);
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -188,7 +193,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		boolean valid = true;
 
 		if (Settings.UniquePaths.getValue()) {
-			valid = validatePath(securityContext, errorBuffer);
+			valid = validateAndRenameFileOnce(securityContext, errorBuffer);
 		}
 
 		return valid && super.onModification(securityContext, errorBuffer, modificationQueue);

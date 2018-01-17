@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,29 +26,35 @@ import java.util.Map;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeInterface;
 
 /**
  *
  *
  */
-public class AbstractTask<T extends NodeInterface> implements Task<T> {
+public class AbstractTask<T> implements Task<T> {
 
 	private final Map<String, Object> statusProperties = new LinkedHashMap<>();
-	private final List<T> nodes                        = new LinkedList<>();
+	private final List<T> objects                      = new LinkedList<>();
 	private Principal user                             = null;
 	private int priority                               = 0;
 	private Date scheduledTime                         = null;
 	private Date creationTime                          = null;
 	private String type                                = null;
 	private long delay                                 = 0L;
+	private int retryCount                             = 0;
 
+	public AbstractTask(final String type, final Principal user) {
+		this(type, user, null);
+	}
+	
 	public AbstractTask(final String type, final Principal user, final T node) {
 
 		this.type = type;
 		this.user = user;
 
-		this.nodes.add(node);
+		if (node != null) {
+			this.objects.add(node);
+		}
 	}
 
 	@Override
@@ -57,8 +63,8 @@ public class AbstractTask<T extends NodeInterface> implements Task<T> {
 	}
 
 	@Override
-	public List<T> getNodes() {
-		return nodes;
+	public List<T> getWorkObjects() {
+		return objects;
 	}
 
 	@Override
@@ -101,7 +107,7 @@ public class AbstractTask<T extends NodeInterface> implements Task<T> {
 	}
 
 	public void addNode(final T node) {
-		this.nodes.add(node);
+		this.objects.add(node);
 	}
 
 	public void setUser(final Principal user) {
@@ -134,5 +140,15 @@ public class AbstractTask<T extends NodeInterface> implements Task<T> {
 		final long otherDelay = other.getDelay(TimeUnit.MILLISECONDS);
 
 		return delay > otherDelay ? 1 : delay < otherDelay ? -1 : 0;
+	}
+
+	@Override
+	public void incrementRetryCount() {
+		retryCount++;
+	}
+
+	@Override
+	public int getRetryCount() {
+		return retryCount;
 	}
 }

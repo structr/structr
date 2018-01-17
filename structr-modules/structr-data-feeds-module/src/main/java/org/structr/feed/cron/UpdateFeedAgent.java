@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.feed.cron;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
@@ -37,14 +36,14 @@ public class UpdateFeedAgent<T extends DataFeed> extends Agent<T> {
 	private static final Logger logger = LoggerFactory.getLogger(UpdateFeedAgent.class.getName());
 
 	@Override
-	public ReturnValue processTask(final Task task) throws Throwable {
+	public ReturnValue processTask(final Task<T> task) throws Throwable {
 
 		logger.debug("Processing task {}", task.getClass().getName());
 
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx(true, true, false)) {
 
-			for (DataFeed feed : (List<T>) task.getNodes()) {
+			for (DataFeed feed : task.getWorkObjects()) {
 
 				logger.debug("Updating data feed {} if due", feed.getProperty(DataFeed.name));
 

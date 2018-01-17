@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,15 +20,13 @@ package org.structr.cmis.info;
 
 /**
  * Optional interface for CMIS support in Structr core.
- *
- *
  */
 public interface CMISDocumentInfo extends CMISObjectInfo {
 
 	public String getChangeToken();
 	public String getContentType();
 	public String getParentId();
-	public String getPath();
+	public String getFolderPath();
 
 	public Long getSize();
 

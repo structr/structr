@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -249,6 +249,12 @@ public class StructrLicenseManager implements LicenseManager {
 		return false;
 	}
 
+	/**
+	 *
+	 * @param codeSigners
+	 * @return
+	 */
+	@Override
 	public boolean isValid(final CodeSigner[] codeSigners) {
 
 		if (codeSigners != null && codeSigners.length > 0) {
@@ -440,25 +446,11 @@ public class StructrLicenseManager implements LicenseManager {
 		try {
 
 			final byte[] byteKey = Base64.decode(src.getBytes());
-			final KeySpec key    = new X509EncodedKeySpec(byteKey);
 
 			return CertificateFactory.getInstance("X.509").generateCertificate(new ByteArrayInputStream(byteKey));
 
 		} catch (Throwable t) {
 			logger.warn("Unable to decode public key.", t);
-		}
-
-		return null;
-	}
-
-	private String toBase64(final Key key) {
-
-		try {
-
-			return Base64.encodeToString(key.getEncoded(), true);
-
-		} catch (Throwable t) {
-			logger.warn("Unable to encode key.", t);
 		}
 
 		return null;
@@ -490,31 +482,6 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		return null;
-	}
-
-	private byte[] toBytes(final String stringOrNull) {
-
-		if (stringOrNull != null) {
-
-			try {
-
-				return stringOrNull.getBytes(CharSet);
-
-			} catch (UnsupportedEncodingException ex) {}
-		}
-
-		return new byte[0];
-	}
-
-	private byte[] toBytes(final int value) {
-
-		try {
-
-			return Integer.toString(value).getBytes(CharSet);
-
-		} catch (UnsupportedEncodingException ex) {}
-
-		return new byte[0];
 	}
 
 	private Iterable<NetworkInterface> getNetworkInterfaces() {
@@ -556,35 +523,6 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	// ----- private static methods -----
-	private static String readFile(final String name) {
-
-		try (final InputStream is = new FileInputStream(name)) {
-
-			return IOUtils.toString(is, "utf-8");
-
-		} catch (IOException ioex) {
-			logger.warn("Unable to read file.", ioex);
-		}
-
-		return null;
-	}
-
-	private static PrivateKey privateFromBase64(final String src) {
-
-		try {
-
-			final byte[] byteKey = Base64.decode(src.getBytes());
-			final KeySpec key    = new PKCS8EncodedKeySpec(byteKey);
-			final KeyFactory kf  = KeyFactory.getInstance(KeyAlgorithm);
-
-			return kf.generatePrivate(key);
-
-		} catch (Throwable t) {
-			logger.warn("Unable to decode private key.", t);
-		}
-
-		return null;
-	}
 
 	private static String collect(final Map<String, String> properties) {
 
@@ -647,7 +585,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 	private static void write(final Map<String, String> properties, final String fileName) {
 
-		final Encoder base64Encoder = java.util.Base64.getMimeEncoder();
+		final Encoder base64Encoder = java.util.Base64.getEncoder();
 
 		try (final Writer writer = new OutputStreamWriter(base64Encoder.wrap(new FileOutputStream(fileName)))) {
 

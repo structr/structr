@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -112,6 +112,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.expect()
 					.statusCode(200)
+
 					.body("result", Matchers.hasSize(45))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 
@@ -142,6 +143,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.expect()
 					.statusCode(200)
+
 					.body("result", Matchers.hasSize(59))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 

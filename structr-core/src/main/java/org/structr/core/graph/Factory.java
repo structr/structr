@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,6 +55,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	// encapsulates all criteria for node creation
 	protected FactoryDefinition factoryDefinition = StructrApp.getConfiguration().getFactoryDefinition();
 	protected FactoryProfile factoryProfile       = null;
+	protected boolean disablePaging               = false;
 
 	public Factory(final SecurityContext securityContext) {
 
@@ -118,7 +119,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			final int page     = factoryProfile.getPage();
 			int fromIndex;
 
-			if (page < 0) {
+			if (page < 0 && !disablePaging) {
 
 				final List<S> rawNodes = read(input);
 				final int size         = rawNodes.size();
@@ -187,6 +188,10 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		return adapt(from);
 	}
 
+	public void disablePaging() {
+		this.disablePaging = true;
+	}
+
 	protected Class<T> getClassForName(final String rawType) {
 		return SchemaHelper.getEntityClassForRawType(rawType);
 	}
@@ -224,12 +229,12 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 					overallCount++;
 					position++;
 
-					if (position > offset && position <= offset + pageSize) {
+					if (disablePaging || (position > offset && position <= offset + pageSize)) {
 
 						nodes.add(n);
 
 						// stop if we got enough nodes
-						if (++count == pageSize && dontCheckCount) {
+						if (++count == pageSize && dontCheckCount && !disablePaging) {
 							break;
 						}
 					}

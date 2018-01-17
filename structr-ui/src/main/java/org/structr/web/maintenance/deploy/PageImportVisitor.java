@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -184,74 +184,80 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final PropertyKey<String> contentTypeKey = StructrApp.key(Page.class, "contentType");
-			final PropertyMap properties             = getPropertiesForPage(name);
-			final Page existingPage                  = getExistingPage(name);
+			final PropertyMap properties = getPropertiesForPage(name);
 
-			if (existingPage != null) {
+			if (properties == null) {
 
-				deletePage(app, name);
-			}
-
-			final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
-			final String contentType = get(properties, contentTypeKey, "text/html");
-
-			boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
-			boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-
-			final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
-
-			// enable literal import of href attributes
-			importer.setIsDeployment(true);
-
-			if (StringUtils.startsWithIgnoreCase(src, DoctypeString) && "text/html".equals(contentType)) {
-
-				// Import document starts with <!DOCTYPE> definition, so we treat it as an HTML
-				// document and use the Structr HTML importer.
-
-				final boolean parseOk = importer.parse();
-				if (parseOk) {
-
-					logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
-
-					// set comment handler that can parse and apply special Structr comments in HTML source files
-					importer.setCommentHandler(new DeploymentCommentHandler());
-
-					// parse page
-					final Page newPage = importer.readPage();
-
-					// remove duplicate elements
-					fixDocumentElements(newPage);
-
-					// store properties from pages.json if present
-					if (properties != null) {
-						newPage.setProperties(securityContext, properties);
-					}
-				}
-
+				logger.info("Ignoring {} (not in pages.json)", fileName);
 			} else {
 
-				// Import document does NOT start with a <!DOCTYPE> definition, so we assume a
-				// template or shared component that we need to parse.
+				final Page existingPage      = getExistingPage(name);
 
-				final boolean parseOk = importer.parse(true);
-				if (parseOk) {
+				if (existingPage != null) {
 
-					logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
+					deletePage(app, name);
+				}
 
-					// set comment handler that can parse and apply special Structr comments in HTML source files
-					importer.setCommentHandler(new DeploymentCommentHandler());
+				final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
+				final String contentType = get(properties, StructrApp.key(Page.class, "contentType"), "text/html");
 
-					// parse page
-					final Page newPage = app.create(Page.class, name);
+				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
+				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
 
-					// store properties from pages.json if present
-					if (properties != null) {
-						newPage.setProperties(securityContext, properties);
+				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
+
+				// enable literal import of href attributes
+				importer.setIsDeployment(true);
+
+				if (StringUtils.startsWithIgnoreCase(src, DoctypeString) && "text/html".equals(contentType)) {
+
+					// Import document starts with <!DOCTYPE> definition, so we treat it as an HTML
+					// document and use the Structr HTML importer.
+
+					final boolean parseOk = importer.parse();
+					if (parseOk) {
+
+						logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
+
+						// set comment handler that can parse and apply special Structr comments in HTML source files
+						importer.setCommentHandler(new DeploymentCommentHandler());
+
+						// parse page
+						final Page newPage = importer.readPage();
+
+						// remove duplicate elements
+						fixDocumentElements(newPage);
+
+						// store properties from pages.json if present
+						if (properties != null) {
+							newPage.setProperties(securityContext, properties);
+						}
 					}
 
-					// add children
-					importer.createChildNodes(newPage, newPage);
+				} else {
+
+					// Import document does NOT start with a <!DOCTYPE> definition, so we assume a
+					// template or shared component that we need to parse.
+
+					final boolean parseOk = importer.parse(true);
+					if (parseOk) {
+
+						logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
+
+						// set comment handler that can parse and apply special Structr comments in HTML source files
+						importer.setCommentHandler(new DeploymentCommentHandler());
+
+						// parse page
+						final Page newPage = app.create(Page.class, name);
+
+						// store properties from pages.json if present
+						if (properties != null) {
+							newPage.setProperties(securityContext, properties);
+						}
+
+						// add children
+						importer.createChildNodes(newPage, newPage);
+					}
 				}
 			}
 

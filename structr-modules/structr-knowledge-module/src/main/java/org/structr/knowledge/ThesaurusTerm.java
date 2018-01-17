@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.knowledge;
 
 import java.net.URI;
@@ -55,7 +54,6 @@ public interface ThesaurusTerm extends NodeInterface {
 	private static final Logger logger = LoggerFactory.getLogger(ThesaurusTerm.class.getName());
 
 	public static final Property<ThesaurusConcept> concept = new StartNode<>("concept", ConceptTerm.class);
-
 	public static final Property<String>   name            = new StringProperty("name").indexedWhenEmpty().cmis().notNull();
 	public static final Property<String[]> normalizedWords = new ArrayProperty("normalizedWords", String.class).indexedWhenEmpty();
 	public static final Property<String>   lang            = new StringProperty("lang");

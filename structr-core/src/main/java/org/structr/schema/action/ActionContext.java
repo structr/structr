@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,17 +51,19 @@ public class ActionContext {
 
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 
-	protected SecurityContext securityContext = null;
-	protected Predicate predicate             = null;
-	protected Map<String, String> headers     = new HashMap<>();
-	protected Map<String, Object> constants   = new HashMap<>();
-	protected Map<String, Object> tmpStore    = new HashMap<>();
-	protected Map<String, Date> timerStore    = new HashMap<>();
-	protected Map<Integer, Integer> counters  = new HashMap<>();
-	protected ErrorBuffer errorBuffer         = new ErrorBuffer();
-	protected StringBuilder outputBuffer      = new StringBuilder();
-	protected Locale locale                   = Locale.getDefault();
-	private boolean javaScriptContext         = false;
+	// cache is not static => library cache is per request
+	private final Map<String, String> libraryCache = new HashMap<>();
+	protected SecurityContext securityContext      = null;
+	protected Predicate predicate                  = null;
+	protected Map<String, String> headers          = new HashMap<>();
+	protected Map<String, Object> constants        = new HashMap<>();
+	protected Map<String, Object> tmpStore         = new HashMap<>();
+	protected Map<String, Date> timerStore         = new HashMap<>();
+	protected Map<Integer, Integer> counters       = new HashMap<>();
+	protected ErrorBuffer errorBuffer              = new ErrorBuffer();
+	protected StringBuilder outputBuffer           = new StringBuilder();
+	protected Locale locale                        = Locale.getDefault();
+	private boolean javaScriptContext              = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -385,48 +387,58 @@ public class ActionContext {
 
 	public String getJavascriptLibraryCode(String fileName) {
 
-		final StringBuilder buf = new StringBuilder();
-		final App app           = StructrApp.getInstance();
+		synchronized (libraryCache) {
 
-		try (final Tx tx = app.tx()) {
+			String cachedSource = libraryCache.get(fileName);
+			if (cachedSource == null) {
 
-			final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-				.and(JavaScriptSource.name, fileName)
-				.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
-				.getAsList();
+				final StringBuilder buf = new StringBuilder();
+				final App app           = StructrApp.getInstance();
 
-			if (jsFiles.isEmpty()) {
-				logger.warn("No JavaScript library found with fileName: {}", fileName );
-			}
+				try (final Tx tx = app.tx()) {
 
-			for (final JavaScriptSource jsLibraryFile : jsFiles) {
+					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
+						.and(JavaScriptSource.name, fileName)
+						.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+						.getAsList();
 
-				final String contentType = jsLibraryFile.getContentType();
-				if (contentType != null) {
-
-					final String lowerCaseContentType = contentType.toLowerCase();
-					if ("text/javascript".equals(lowerCaseContentType) || "application/javascript".equals(lowerCaseContentType)) {
-
-						buf.append(jsLibraryFile.getJavascriptLibraryCode());
-
-					} else {
-
-						logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+					if (jsFiles.isEmpty()) {
+						logger.warn("No JavaScript library found with fileName: {}", fileName );
 					}
 
-				} else {
+					for (final JavaScriptSource jsLibraryFile : jsFiles) {
 
-					logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+						final String contentType = jsLibraryFile.getContentType();
+						if (contentType != null) {
+
+							final String lowerCaseContentType = contentType.toLowerCase();
+							if ("text/javascript".equals(lowerCaseContentType) || "application/javascript".equals(lowerCaseContentType)) {
+
+								buf.append(jsLibraryFile.getJavascriptLibraryCode());
+
+							} else {
+
+								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+							}
+
+						} else {
+
+							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+						}
+					}
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+					logger.warn("", fex);
 				}
+
+				cachedSource = buf.toString();
+				libraryCache.put(fileName, cachedSource);
 			}
 
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			return cachedSource;
 		}
-
-		return buf.toString();
 	}
 
 	public void setPredicate(final Predicate predicate) {

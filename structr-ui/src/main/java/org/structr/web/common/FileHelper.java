@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.web.common;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,15 +56,13 @@ import org.structr.web.entity.Folder;
 
 /**
  * File utility class.
- *
  */
 public class FileHelper {
 
-	private static final String UNKNOWN_MIME_TYPE = "application/octet-stream";
-	private static final Logger logger = LoggerFactory.getLogger(FileHelper.class.getName());
+	private static final String UNKNOWN_MIME_TYPE         = "application/octet-stream";
+	private static final Logger logger                    = LoggerFactory.getLogger(FileHelper.class.getName());
 	private static final MimetypesFileTypeMap mimeTypeMap = new MimetypesFileTypeMap(FileHelper.class.getResourceAsStream("/mime.types"));
 
-	//~--- methods --------------------------------------------------------
 	/**
 	 * Transform an existing file into the target class.
 	 *
@@ -127,10 +127,48 @@ public class FileHelper {
 	 * @throws IOException
 	 */
 	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
+			throws FrameworkException, IOException {
+
+		return createFile(securityContext, fileStream, contentType, fileType, name, null);
+
+	}
+
+	/**
+	 * Create a new file node from the given input stream and sets the parentFolder
+	 *
+	 * @param <T>
+	 * @param securityContext
+	 * @param fileStream
+	 * @param contentType
+	 * @param fileType defaults to File.class if null
+	 * @param name
+	 * @param parentFolder
+	 * @return file
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name, final Folder parentFolder)
 		throws FrameworkException, IOException {
 
-		final byte[] data = IOUtils.toByteArray(fileStream);
-		return createFile(securityContext, data, contentType, fileType, name);
+		PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.name, name);
+
+		if (parentFolder != null) {
+
+			props.put(StructrApp.key(File.class, "hasParent"), true);
+			props.put(StructrApp.key(File.class, "parent"), parentFolder);
+
+		}
+
+		T newFile = (T) StructrApp.getInstance(securityContext).create(fileType, props);
+
+		setFileData(newFile, fileStream, contentType);
+
+		// schedule indexing
+		newFile.notifyUploadCompletion();
+
+		return newFile;
 
 	}
 
@@ -199,7 +237,7 @@ public class FileHelper {
 	}
 
 	/**
-	 * Write image data to the given file node and set checksum and size.
+	 * Write image data from the given byte[] to the given file node and set checksum and size.
 	 *
 	 * @param file
 	 * @param fileData
@@ -210,15 +248,42 @@ public class FileHelper {
 	public static void setFileData(final File file, final byte[] fileData, final String contentType) throws FrameworkException, IOException {
 
 		FileHelper.writeToFile(file, fileData);
+		setFileProperties(file, contentType);
+	}
 
+	/**
+	 * Write image data from the given InputStream to the given file node and set checksum and size.
+	 *
+	 * @param file
+	 * @param fileStream
+	 * @param contentType if null, try to auto-detect content type
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void setFileData(final File file, final InputStream fileStream, final String contentType) throws FrameworkException, IOException {
+
+		FileHelper.writeToFile(file, fileStream);
+		setFileProperties(file, contentType);
+	}
+
+	/**
+	 * Set the contentType, checksum, size and version properties of the given fileNode
+	 *
+	 * @param file
+	 * @param contentType if null, try to auto-detect content type
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void setFileProperties (final File file, final String contentType) throws IOException, FrameworkException {
+
+		final java.io.File fileOnDisk            = file.getFileOnDisk(false);
+		final PropertyMap map                    = new PropertyMap();
 		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
-		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
 		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
 		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
-		final PropertyMap map                    = new PropertyMap();
 
+		map.putAll(getChecksums(file, fileOnDisk));
 		map.put(contentTypeKey, contentType != null ? contentType : getContentMimeType(file));
-		map.put(checksumKey,    FileHelper.getChecksum(file));
 		map.put(sizeKey,        FileHelper.getSize(file));
 		map.put(versionKey,     1);
 
@@ -226,50 +291,160 @@ public class FileHelper {
 	}
 
 	/**
-	 * Update checksum, content type, size and additional properties of the given file
+	 * Set the uuid and the path of a newly created fileNode
+	 *
+	 * @param fileNode
+	 * @throws FrameworkException
+	 */
+	public static void setFileProperties (File fileNode) throws FrameworkException {
+
+		final PropertyMap properties = new PropertyMap();
+
+		String id = fileNode.getProperty(GraphObject.id);
+		if (id == null) {
+
+			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
+			id = newUuid;
+
+			fileNode.unlockSystemPropertiesOnce();
+			properties.put(GraphObject.id, newUuid);
+		}
+
+		fileNode.unlockSystemPropertiesOnce();
+		fileNode.setProperties(fileNode.getSecurityContext(), properties);
+
+	}
+
+	/**
+	 * Calculate checksums that are configured in settings of parent folder.
+	 *
+	 * @param file
+	 * @param fileOnDisk
+	 * @return
+	 * @throws IOException
+	 */
+	private static PropertyMap getChecksums(final File file, final java.io.File fileOnDisk) throws IOException {
+
+		final PropertyMap propreriesWithChecksums = new PropertyMap();
+
+		Folder parentFolder = file.getParent();
+		String checksums = null;
+
+		while (parentFolder != null && checksums == null) {
+
+			checksums    = parentFolder.getEnabledChecksums();
+			parentFolder = parentFolder.getParent();
+		}
+
+		if (checksums == null) {
+			checksums = Settings.DefaultChecksums.getValue();
+		}
+
+		if (StringUtils.contains(checksums, "crc32"))	{
+			propreriesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(fileOnDisk));
+		}
+
+		if (StringUtils.contains(checksums, "md5"))	{
+			propreriesWithChecksums.put(StructrApp.key(File.class, "md5"), FileHelper.getMD5Checksum(file));
+		}
+
+		if (StringUtils.contains(checksums, "sha1"))	{
+			propreriesWithChecksums.put(StructrApp.key(File.class, "sha1"), FileHelper.getSHA1Checksum(file));
+		}
+
+		if (StringUtils.contains(checksums, "sha512"))	{
+			propreriesWithChecksums.put(StructrApp.key(File.class, "sha512"), FileHelper.getSHA512Checksum(file));
+		}
+
+		return propreriesWithChecksums;
+	}
+
+	/**
+	 * Update checksums, content type, size and additional properties of the given file
 	 *
 	 * @param file the file
 	 * @param map  additional properties
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final File file, final PropertyMap map) throws FrameworkException {
+		updateMetadata(file, map, false);
+	}
 
+	/**
+	 * Update checksums (optional), content type, size and additional properties of the given file
+	 *
+	 * @param file the file
+	 * @param map  additional properties
+	 * @param calcChecksums
+	 * @throws FrameworkException
+	 */
+	public static void updateMetadata(final File file, final PropertyMap map, final boolean calcChecksums) throws FrameworkException {
+
+		final java.io.File fileOnDisk = file.getFileOnDisk(false);
 		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
 		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
 		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
 
-		// Don't overwrite existing MIME type
-		if (StringUtils.isBlank(file.getContentType())) {
+		if (fileOnDisk != null && fileOnDisk.exists()) {
+
+			/*
+
+				FIXME
 
 			try {
 
-				map.put(contentTypeKey, getContentMimeType(file));
 
-			} catch (IOException ex) {
-				logger.debug("Unable to detect content MIME type", ex);
+				//map.put(FileBase.fileModificationDate, fileOnDisk.lastModified());
+
+				if (calcChecksums) {
+					map.putAll(getChecksums(file, fileOnDisk));
+				}
+
+				final String contentType = file.getContentType();
+				if (contentType != null) {
+
+					// modify type when image type is detected
+					if (contentType.startsWith("image/")) {
+						map.put(AbstractNode.type, Image.class.getSimpleName());
+					}
+				}
+
+				long fileSize = FileHelper.getSize(fileOnDisk);
+				if (fileSize > 0) {
+
+					map.put(size, fileSize);
+				}
+
+				file.unlockSystemPropertiesOnce();
+				file.setProperties(file.getSecurityContext(), map);
+
+			} catch (IOException ioex) {
+				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
 			}
+
+			*/
 		}
-
-		map.put(checksumKey, FileHelper.getChecksum(file));
-
-		long fileSize = FileHelper.getSize(file);
-		if (fileSize > 0) {
-
-			map.put(sizeKey, fileSize);
-		}
-
-		file.unlockSystemPropertiesOnce();
-		file.setProperties(file.getSecurityContext(), map);
 	}
 
 	/**
-	 * Update checksum content type and size of the given file
+	 * Update checksums, content type and size of the given file
 	 *
 	 * @param file the file
 	 * @throws FrameworkException
 	 */
 	public static void updateMetadata(final File file) throws FrameworkException {
-		updateMetadata(file, new PropertyMap());
+		updateMetadata(file, new PropertyMap(), false);
+	}
+
+	/**
+	 * Update checksums, content type and size of the given file
+	 *
+	 * @param file the file
+	 * @param calcChecksums
+	 * @throws FrameworkException
+	 */
+	public static void updateMetadata(final File file, final boolean calcChecksums) throws FrameworkException {
+		updateMetadata(file, new PropertyMap(), calcChecksums);
 	}
 
 	public static String getBase64String(final File file) {
@@ -324,66 +499,38 @@ public class FileHelper {
 		}
 	}
 
-	/**
-	 * Write binary data to a file and reference the file on disk at the
-	 * given file node
-	 *
-	 * @param fileNode
-	 * @param inStream
-	 * @throws FrameworkException
-	 * @throws IOException
-	 */
-	public static void writeToFile(final File fileNode, final InputStream inStream) throws FrameworkException, IOException {
-		writeToFile(fileNode, IOUtils.toByteArray(inStream));
-	}
-
-	/**
-	 * Write binary data to a file and reference the file on disk at the
-	 * given file node
-	 *
-	 * @param fileNode
-	 * @param data
-	 * @throws FrameworkException
-	 * @throws IOException
-	 * @return the file on disk
-	 */
-	public static java.io.File writeToFile(final File fileNode, final byte[] data) throws FrameworkException, IOException {
-
-		final PropertyKey<String> relPathKey = StructrApp.key(File.class, "relativeFilePath");
-		final PropertyMap properties         = new PropertyMap();
-
-		String id = fileNode.getProperty(GraphObject.id);
-		if (id == null) {
-
-			final String newUuid = UUID.randomUUID().toString().replaceAll("[\\-]+", "");
-			id = newUuid;
-
-			fileNode.unlockSystemPropertiesOnce();
-			properties.put(GraphObject.id, newUuid);
-		}
-
-		properties.put(relPathKey, File.getDirectoryPath(id) + "/" + id);
-
-		fileNode.unlockSystemPropertiesOnce();
-		fileNode.setProperties(fileNode.getSecurityContext(), properties);
-
-		final String filesPath = Settings.FilesPath.getValue();
-
-		final java.io.File fileOnDisk = new java.io.File(filesPath + "/" + fileNode.getRelativeFilePath());
-
-		fileOnDisk.getParentFile().mkdirs();
-		FileUtils.writeByteArrayToFile(fileOnDisk, data);
-
-		return fileOnDisk;
-
-	}
-
 	public static java.io.File getFile(final File file) {
 		return new java.io.File(getFilePath(file.getRelativeFilePath()));
 	}
 
 	public static Path getPath(final File file) {
 		return Paths.get(getFilePath(file.getRelativeFilePath()));
+	}
+
+	public static void writeToFile(final File fileNode, final byte[] data) throws FrameworkException, IOException {
+
+		setFileProperties(fileNode);
+
+		FileUtils.writeByteArrayToFile(fileNode.getFileOnDisk(), data);
+
+	}
+
+	/**
+	 * Write binary data from FileInputStream to a file and reference the file on disk at the given file node
+	 *
+	 * @param fileNode
+	 * @param data	The input stream from which to read the file data (Stream is not closed automatically - has to be handled by caller)
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
+	public static void writeToFile(final File fileNode, final InputStream data) throws FrameworkException, IOException {
+
+		setFileProperties(fileNode);
+
+		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
+
+			IOUtils.copy(data, out);
+		}
 	}
 
 	/**
@@ -521,7 +668,8 @@ public class FileHelper {
 				.and(pathKey, absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
-			logger.warn("File not found: {}", new Object[] { absolutePath });
+			ex.printStackTrace();
+			logger.warn("File not found: {}", absolutePath);
 		}
 
 		return null;
@@ -688,6 +836,141 @@ public class FileHelper {
 	}
 
 	public static String getDateString() {
-		return new SimpleDateFormat("yyyy-MM-dd-HHmmss").format(new Date());
+		return new SimpleDateFormat("yyyy-MM-dd-HHmmssSSS").format(new Date());
+	}
+
+	public static String getMD5Checksum(final File file) {
+
+		try {
+			return DigestUtils.md5Hex(file.getInputStream());
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate MD5 checksum of file represented by node " + file, ex);
+		}
+
+		return null;
+	}
+
+	public static String getMD5Checksum(final java.io.File fileOnDisk) {
+
+		try {
+			return DigestUtils.md5Hex(FileUtils.openInputStream(fileOnDisk));
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate MD5 checksum of file " + fileOnDisk, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA1Checksum(final File file) {
+
+		try {
+			return DigestUtils.sha1Hex(file.getInputStream());
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-1 checksum of file represented by node " + file, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA1Checksum(final java.io.File fileOnDisk) {
+
+		try {
+			return DigestUtils.sha1Hex(FileUtils.openInputStream(fileOnDisk));
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-1 checksum of file " + fileOnDisk, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA256Checksum(final File file) {
+
+		try {
+			return DigestUtils.sha256Hex(file.getInputStream());
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-256 checksum of file represented by node " + file, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA256Checksum(final java.io.File fileOnDisk) {
+
+		try {
+			return DigestUtils.sha256Hex(FileUtils.openInputStream(fileOnDisk));
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-256 checksum of file " + fileOnDisk, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA384Checksum(final File file) {
+
+		try {
+			return DigestUtils.sha384Hex(file.getInputStream());
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-384 checksum of file represented by node " + file, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA384Checksum(final java.io.File fileOnDisk) {
+
+		try {
+			return DigestUtils.sha384Hex(FileUtils.openInputStream(fileOnDisk));
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-384 checksum of file " + fileOnDisk, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA512Checksum(final File file) {
+
+		try {
+			return DigestUtils.sha512Hex(file.getInputStream());
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-512 checksum of file represented by node " + file, ex);
+		}
+
+		return null;
+	}
+
+	public static String getSHA512Checksum(final java.io.File fileOnDisk) {
+
+		try {
+			return DigestUtils.sha512Hex(FileUtils.openInputStream(fileOnDisk));
+
+		} catch (final IOException ex) {
+			logger.warn("Unable to calculate SHA-512 checksum of file " + fileOnDisk, ex);
+		}
+
+		return null;
+	}
+
+	public static long getSize(final java.io.File file) {
+
+		try {
+
+			return file.length();
+
+		} catch (Exception ex) {
+
+			logger.warn("Could not calculate file size of file {}: {}", file.getPath(), ex.getMessage());
+		}
+
+		return -1;
+
 	}
 }

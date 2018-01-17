@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,57 +22,65 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Delayed;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeInterface;
 
 /**
  * A task that an {@link Agent} can operate on.
-
- *
  */
-public interface Task<T extends NodeInterface> extends Delayed, StatusInfo {
+public interface Task<T> extends Delayed, StatusInfo {
 
-    /**
-     * Principal to process the task as
-     *
-     * @return user
-     */
-    public Principal getUser();
+	/**
+	 * Principal to process the task as
+	 *
+	 * @return user
+	 */
+	Principal getUser();
 
-    /**
-     * Returns the nodes this task should operate on.
-     *
-     * @return a set of nodes relevant to this task.
-     */
-    public List<T> getNodes();
+	/**
+	 * Returns the objects this task should operate on.
+	 *
+	 * @return a list of objects relevant to this task.
+	 */
+	List<T> getWorkObjects();
 
-    /**
-     * Returns the priority of this task.
-     *
-     * @return the priority of this task
-     */
-    public int priority();
+	/**
+	 * Returns the priority of this task.
+	 *
+	 * @return the priority of this task
+	 */
+	int priority();
 
-    /**
-     * Returns the time this task is scheduled for.
-     *
-     * TODO: return Date, long, or Calendar, or something else?
-     * TODO: relative / absolute time? (relative only with timestamped tasks)
-     *
-     * @return date
-     */
-    public Date getScheduledTime();
+	/**
+	 * Returns the time this task is scheduled for.
+	 *
+	 * TODO: return Date, long, or Calendar, or something else? TODO: relative / absolute time? (relative only with timestamped tasks)
+	 *
+	 * @return date
+	 */
+	Date getScheduledTime();
 
-    /**
-     * Returns the time this task was created.
-     *
-     * @return the time this task was created
-     */
-    public Date getCreationTime();
+	/**
+	 * Returns the time this task was created.
+	 *
+	 * @return the time this task was created
+	 */
+	Date getCreationTime();
 
-    /**
-     * Returns the task type
-     *
-     * @return the task type
-     */
-    public String getType();
+	/**
+	 * Returns the task type
+	 *
+	 * @return the task type
+	 */
+	String getType();
+
+	/**
+	 * Increment retry count to allow agent service to
+	 * limit the number of retries.
+	 */
+	void incrementRetryCount();
+
+	/**
+	 * Return retry count
+	 * @return the retry count
+	 */
+	int getRetryCount();
 }

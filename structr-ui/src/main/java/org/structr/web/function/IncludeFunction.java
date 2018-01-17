@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -144,11 +144,11 @@ public class IncludeFunction extends Function<Object, Object> {
 
 					if (contentType.startsWith("text/css")) {
 
-						return "<link href=\"" + file.getPath() + "\" rel=\"stylesheet\">";
+						return "<link href=\"" + file.getFolderPath() + "\" rel=\"stylesheet\">";
 
 					} else if (contentType.contains("/javascript")) {
 
-						return "<script src=\"" + file.getPath() + "\"></script>";
+						return "<script src=\"" + file.getFolderPath() + "\"></script>";
 
 					} else if (contentType.startsWith("image/svg")) {
 
@@ -165,11 +165,11 @@ public class IncludeFunction extends Function<Object, Object> {
 
 						}
 
-						return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+						return "<img alt=\"" + name + "\" src=\"" + file.getFolderPath() + "\">";
 
 					} else if (contentType.startsWith("image/")) {
 
-						return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+						return "<img alt=\"" + name + "\" src=\"" + file.getFolderPath() + "\">";
 
 					} else {
 

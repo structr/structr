@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,6 +52,8 @@ import org.structr.web.property.ThumbnailProperty;
  * An image whose binary data will be stored on disk.
  */
 public interface Image extends File {
+
+	static final String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
 
 	static class Impl { static {
 
@@ -139,9 +141,6 @@ public interface Image extends File {
 	Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit);
 
 	List<Image> getThumbnails();
-
-	//public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
-
 
 	/* TODO
 		public static final Property<Image> tnSmall                   = new ThumbnailProperty("tnSmall").format("100, 100, false");
@@ -243,33 +242,6 @@ public interface Image extends File {
 				}
 			}
 		}
-	}
-
-	/*
-
-	public Integer getWidth() {
-
-		return getProperty(Image.width);
-
-	}
-
-	public Integer getHeight() {
-
-		return getProperty(Image.height);
-
-	}
-
-	public List<Image> getThumbnails() {
-
-		final List<Image> thumbnails = new LinkedList<>();
-
-		for (final AbstractRelationship s : getThumbnailRelationships()) {
-
-			thumbnails.add((Image) s.getTargetNode());
-		}
-
-		return thumbnails;
-
 	}
 
 	/**
@@ -428,6 +400,7 @@ public interface Image extends File {
 						app.create(originalImage, thumbnail, Thumbnails.class, relProperties);
 
 						final PropertyMap properties = new PropertyMap();
+
 						properties.put(StructrApp.key(Image.class, "width"),                              tnWidth);
 						properties.put(StructrApp.key(Image.class, "height"),                             tnHeight);
 						properties.put(StructrApp.key(AbstractNode.class, "hidden"),                      originalImage.getProperty(AbstractNode.hidden));

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -178,6 +178,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 				try {
 
 					// try to fetch existing relationship by node ID(s)
+					// FIXME: this call can be very slow when lots of relationships exist
 					tx.getLong("MATCH (n)-[r:" + type.name() + "]->(m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)", params);
 
 					// success
@@ -396,11 +397,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			final StringBuilder buf = new StringBuilder();
 
-			buf.append(sourceNode.getId());
-			buf.append("-");
-			buf.append(relType);
-			buf.append("-");
-			buf.append(targetNode.getId());
+			if (sourceNode != null && targetNode != null) {
+
+				buf.append(sourceNode.getId());
+				buf.append("-");
+				buf.append(relType);
+				buf.append("-");
+				buf.append(targetNode.getId());
+			}
 
 			return buf.toString();
 		}

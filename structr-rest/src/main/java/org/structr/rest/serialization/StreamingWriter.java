@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -137,6 +137,7 @@ public abstract class StreamingWriter {
 
 		// result fields in alphabetical order
 		List<? extends GraphObject> results = result.getResults();
+		Integer outputNestingDepth          = result.getOutputNestingDepth();
 		Integer page                        = result.getPage();
 		Integer pageCount                   = result.getPageCount();
 		Integer pageSize                    = result.getPageSize();
@@ -151,6 +152,10 @@ public abstract class StreamingWriter {
 
 		// open result set
 		writer.beginObject();
+
+		if (outputNestingDepth != null) {
+			writer.name("output_nesting_depth").value(outputNestingDepth);
+		}
 
 		if (page != null) {
 			writer.name("page").value(page);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,9 @@
  */
 package org.structr.web.property;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -33,8 +36,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
-import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
 
 /**
@@ -77,7 +80,8 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		if (obj instanceof AbstractFile) {
 
-			return FileHelper.getFolderPath((AbstractFile) obj);
+			final AbstractFile file = (AbstractFile)obj;
+			return file.getPath();
 		}
 
 		return null;
@@ -101,13 +105,12 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		final Query<AbstractFile> q      = app.nodeQuery(AbstractFile.class).and(AbstractFile.name, PathHelper.getName(searchValue));
 
 		try {
-			for (final AbstractFile fileOrFolder : q.getAsList()) {
 
-				if (fileOrFolder != null && fileOrFolder.getPath().equals(searchValue)) {
-
-					attr.addToResult(fileOrFolder);
-				}
+			final ArrayList<String> parts = new ArrayList<>(Arrays.asList(PathHelper.getParts(searchValue)));
+			if (!parts.isEmpty()) {
+				searchRecursively(app, null, attr, parts);
 			}
+
 		} catch (FrameworkException ex) {
 
 			logger.error("", ex);
@@ -116,4 +119,21 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 		return attr;
 	}
 
+	private void searchRecursively(final App app, final Folder parent, final SourceSearchAttribute attr, final ArrayList<String> parts) throws FrameworkException {
+
+		final String currentPart = parts.remove(0);
+		final List<AbstractFile> res = app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "parent"), (parent == null) ? null : parent).and(AbstractFile.name, currentPart).getAsList();
+
+		if (parts.isEmpty()) {
+			for (final AbstractFile fileOrFolder : res) {
+
+				attr.addToResult(fileOrFolder);
+			}
+
+		} else {
+			for (final AbstractFile folder : res) {
+				searchRecursively(app, (Folder)folder, attr, (ArrayList<String>) parts.clone());
+			}
+		}
+	}
 }

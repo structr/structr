@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.web.entity;
 import com.google.javascript.jscomp.BasicErrorManager;
 import com.google.javascript.jscomp.CheckLevel;
 import com.google.javascript.jscomp.CommandLineRunner;
-import com.google.javascript.jscomp.Compiler;
 import com.google.javascript.jscomp.CompilationLevel;
 import com.google.javascript.jscomp.CompilerOptions;
 import com.google.javascript.jscomp.JSError;
@@ -76,10 +75,10 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 		logger.info("Running minify: {}", thisFile.getUuid());
 
-		final SecurityContext securityContext = thisFile.getSecurityContext();
-		final Compiler compiler               = new Compiler();
-		final CompilerOptions options         = new CompilerOptions();
-		final CompilationLevel selectedLevel  = CompilationLevel.valueOf(thisFile.getOptimizationLevel());
+		final com.google.javascript.jscomp.Compiler compiler = new com.google.javascript.jscomp.Compiler();
+		final SecurityContext securityContext                = thisFile.getSecurityContext();
+		final CompilerOptions options                        = new CompilerOptions();
+		final CompilationLevel selectedLevel                 = CompilationLevel.valueOf(thisFile.getOptimizationLevel());
 
 		selectedLevel.setOptionsForCompilationLevel(options);
 
@@ -103,7 +102,7 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 			}
 		});
 
-		compiler.compile(CommandLineRunner.getBuiltinExterns(options), MinifiedJavaScriptFile.getSourceFileList(thisFile), options);
+		compiler.compile(CommandLineRunner.getBuiltinExterns(options.getEnvironment()), MinifiedJavaScriptFile.getSourceFileList(thisFile), options);
 
 		FileHelper.setFileData(thisFile, compiler.toSource().getBytes(), thisFile.getContentType());
 

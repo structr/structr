@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,74 +19,34 @@
 package org.structr.feed.cron;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.agent.Task;
+import org.structr.agent.AbstractTask;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.feed.entity.feed.DataFeed;
 
-
-
-public class UpdateFeedTask<T extends DataFeed> implements Task<T> {
+public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(UpdateFeedTask.class.getName());
 
-	@Override
-	public Principal getUser() {
-		return null;
+	public UpdateFeedTask() {
+		super("UpdateFeedTask", null);
 	}
 
 	@Override
-	public List<T> getNodes() {
+	public List<T> getWorkObjects() {
 
 		try {
+
 			return (List<T>) StructrApp.getInstance().get(DataFeed.class);
+
 		} catch (FrameworkException ex) {
-			logger.error("", ex);
+
+			logger.error("Unable to fetch list of DataFeeds: {}", ex.getMessage());
 		}
 
 		return Collections.EMPTY_LIST;
 	}
-
-	@Override
-	public int priority() {
-		return 0;
-	}
-
-	@Override
-	public Date getScheduledTime() {
-		return new Date();
-	}
-
-	@Override
-	public Date getCreationTime() {
-		return new Date();
-	}
-
-	@Override
-	public String getType() {
-		return "UpdateFeedTask";
-	}
-
-	@Override
-	public long getDelay(TimeUnit unit) {
-		return 0;
-	}
-
-	@Override
-	public int compareTo(Delayed o) {
-		return 0;
-	}
-
-	@Override
-	public Object getStatusProperty(String key) {
-		return null;
-	}
-
 }

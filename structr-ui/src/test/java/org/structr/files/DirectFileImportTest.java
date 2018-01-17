@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import java.util.stream.Collectors;
 import org.apache.tika.io.IOUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -46,6 +46,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.maintenance.DirectFileImportCommand;
+
 
 /**
  */
@@ -543,7 +544,6 @@ public class DirectFileImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<File> files = app.nodeQuery(File.class).getAsList();
-			final SimpleDateFormat df  = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Two files should exist after import", 2, files.size());
@@ -557,7 +557,7 @@ public class DirectFileImportTest extends StructrUiTest {
 			assertEquals("Test file content does not match source", "test file content 1", getContent(file1));
 
 			assertNotNull("Test file should have been created by import", file2);
-			assertEquals("Existing file should be renamed", "test.txt_" + df.format(System.currentTimeMillis()), file2.getName());
+			assertNotEquals("Existing file should be renamed", "test.txt", file2.getName());
 			assertNull("Test file should NOT have a parent folder", file2.getParent());
 			assertEquals("Test file content does not match source", "initial content", getContent(file2));
 
@@ -930,7 +930,6 @@ public class DirectFileImportTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<File> files = app.nodeQuery(File.class).getAsList();
-			final SimpleDateFormat df  = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
 
 			// import mode SKIP => no change, no additional file
 			assertEquals("Two files should exist after import", 2, files.size());
@@ -945,8 +944,9 @@ public class DirectFileImportTest extends StructrUiTest {
 			assertNull("Test file should NOT have a parent folder", file1.getParent());
 			assertEquals("Test file content does not match source", "test file content 1", getContent(file1));
 
+
 			assertNotNull("Test file should have been created by import", file2);
-			assertEquals("Existing file should be renamed", "test.txt_" + df.format(System.currentTimeMillis()), file2.getName());
+			assertNotEquals("Existing file should be renamed", "test.txt", file2.getName());
 			assertNull("Test file should NOT have a parent folder", file2.getParent());
 			assertEquals("Test file content does not match source", "initial content", getContent(file2));
 

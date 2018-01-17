@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -139,7 +139,7 @@ var _Entities = {
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-type',                 'Data type', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-placeholder',          'Placeholder text', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-custom-options-query', 'Custom REST query', typeInfo);
-		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Attribute key', typeInfo);
+		_Entities.appendRowWithInputField(entity, t, 'data-structr-options-key',          'Options attribute key', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-raw-value',            'Raw value', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-hide',                 'Hide mode(s)', typeInfo);
 		_Entities.appendRowWithInputField(entity, t, 'data-structr-edit-class',           'Edit mode CSS class', typeInfo);
@@ -186,7 +186,7 @@ var _Entities = {
 			Structr.appendInfoTextToElement({
 				element: el,
 				text: typeInfo[key].hint,
-				css: { float: "right" }
+				class: 'hint'
 			});
 		}
 
@@ -534,7 +534,6 @@ var _Entities = {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
 	listProperties: function (entity, view, tabView, typeInfo) {
-
 		$.ajax({
 			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
 			dataType: 'json',
@@ -545,7 +544,7 @@ var _Entities = {
 
 				var tempNodeCache = new AsyncObjectCache(function(id) {
 					Command.getProperties(id, 'id,name,type,tag,isContent,content', function (node) {
-						tempNodeCache.addObject(node);
+						tempNodeCache.addObject(node, node.id);
 					});
 				});
 
@@ -707,7 +706,7 @@ var _Entities = {
 
 									var nodeId = res[key].id || res[key];
 
-									tempNodeCache.registerCallbackForId(nodeId, function(node) {
+									tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
 
 										_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 											$('.remove', nodeEl).on('click', function(e) {
@@ -732,7 +731,7 @@ var _Entities = {
 
 										var nodeId = obj.id || obj;
 
-										tempNodeCache.registerCallbackForId(nodeId, function(node) {
+										tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
 
 											_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 												$('.remove', nodeEl).on('click', function(e) {
@@ -1860,29 +1859,32 @@ var _Entities = {
 };
 
 function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
-	if (obj === null) {
-		if (isMultiline) {
-			return '<textarea name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value=""></textarea>';
-		} else {
-			return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + ' value="">';
-		}
-	} else if (obj.constructor === Object) {
-		var node = obj;
-		var displayName = _Crud.displayName(node);
-		return '<div title="' + displayName + '" id="_' + node.id + '" class="node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
-	} else if (obj.constructor === Array) {
-		var out = '';
-		$(obj).each(function(i, v) {
-			out += formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
-		});
-		return out;
-		//return '<textarea name="' + key + '"' + (isReadOnly?'readonly class="readonly"':'') + '>' + out + '</textarea>';
-	} else {
-		if (isMultiline) {
-			return '<textarea name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + '>' + escapeForHtmlAttributes(obj) + '</textarea>';
-		} else {
-			return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" ' + (isReadOnly ? 'readonly class="readonly"' : '') + 'value="' + escapeForHtmlAttributes(obj) + '">';
-		}
-	}
-}
 
+	if (obj === null) {
+
+		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
+
+	} else if (obj.constructor === Object) {
+
+		var displayName = _Crud.displayName(obj);
+		return '<div title="' + displayName + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_">' + fitStringToWidth(displayName, 80) + '<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>';
+
+	} else if (obj.constructor === Array) {
+
+		return obj.reduce(function (acc, v) {
+			return acc + formatValueInputField(key, v, isPassword, isReadOnly, isMultiline) + '<br>';
+		}, '');
+
+	} else {
+
+		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
+	}
+};
+
+function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
+	if (isMultiline) {
+		return '<textarea name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + '>' + value + '</textarea>';
+	} else {
+		return '<input name="' + key + '" type="' + (isPassword ? 'password" autocomplete="new-password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + '>';
+	}
+};

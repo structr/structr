@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.Email;
-import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.SimpleEmail;
@@ -48,8 +47,22 @@ public abstract class MailHelper {
 
 	//~--- methods --------------------------------------------------------
 	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
-					final String htmlContent, final String textContent, final EmailAttachment... attachments)
+					final String htmlContent, final String textContent)
 		throws EmailException {
+
+		return _sendHtmlMail(from, fromName, to, toName, cc, bcc, bounce, subject, htmlContent, textContent, null);
+	}
+
+	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
+					final String htmlContent, final String textContent, final List<DynamicMailAttachment> attachments)
+		throws EmailException {
+
+		return _sendHtmlMail(from, fromName, to, toName, cc, bcc, bounce, subject, htmlContent, textContent, attachments);
+	}
+
+	private static String _sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,
+					final String htmlContent, final String textContent, final List<DynamicMailAttachment> attachments)
+			throws EmailException {
 
 		if (Settings.SmtpTesting.getValue()) {
 			return "Testing";
@@ -63,12 +76,18 @@ public abstract class MailHelper {
 
 		if (attachments != null) {
 
-			for (final EmailAttachment attachment : attachments) {
-				mail.attach(attachment);
+			for (final DynamicMailAttachment attachment : attachments) {
+				if(attachment.isDynamic()) {
+					mail.attach(attachment.getDataSource(), attachment.getName(), attachment.getDescription(), attachment.getDisposition());
+				} else {
+					mail.attach(attachment);
+				}
+
 			}
 		}
 
 		return mail.send();
+
 	}
 
 	public static String sendSimpleMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject,

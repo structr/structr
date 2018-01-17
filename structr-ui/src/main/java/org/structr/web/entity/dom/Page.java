@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -975,8 +975,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	}
 
 	@Override
-	public String getPath() {
-		return getProperty(path);
+	public String getFolderPath() {
+		return (getProperty(path) == null) ? getProperty(name) : getProperty(path);
 	}
 
 	// ----- diff methods -----

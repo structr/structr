@@ -1,0 +1,56 @@
+<div id="csv-import">
+	<div id="sample">
+		<h3>Data Sample</h3>
+		<pre class="csv-preview">${config.data.result.lines}</pre>
+	</div>
+	<h3>Import Options</h3>
+	<table id="csv-import">
+		<tbody>
+			<tr id="options-row1">
+				<td>
+					<label>Delimiter:</label>
+					<select id="delimiter" class="import-option">
+						<option ${(config.delim === ',' ? 'selected' : '')}>,</option>
+						<option ${(config.delim === ';' ? 'selected' : '')}>;</option>
+						<option ${(config.delim === '|' ? 'selected' : '')}>|</option>
+					</select>
+				</td>
+				<td>
+					<label>Quote character:</label>
+					<select id="quote-char" class="import-option">
+						<option ${(config.qc === '' ? 'selected' : '')}></option>
+						<option ${(config.qc === '"' ? 'selected' : '')}>&quot;</option>
+						<option ${(config.qc === '\'' ? 'selected' : '')}>\'</option>
+					</select>
+				</td>
+				<td>
+					<label>Record separator:</label>
+					<select id="record-separator" class="import-option">
+						<option ${(config.data.result.separator ===    'LF' ? 'selected' : '')}>LF</option>
+						<option ${(config.data.result.separator ===    'CR' ? 'selected' : '')}>CR</option>
+						<option ${(config.data.result.separator === 'CR+LF' ? 'selected' : '')}>CR+LF</option>
+					</select>
+				</td>
+			</tr>
+			<tr id="options-row2">
+				<td>
+					<label>Commit interval:</label>
+					<input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit.">
+				</td>
+				<td>
+					<label>Ignore invalid lines:</label>
+					<input type="checkbox" id="ignore-invalid" />
+				</td>
+				<td>
+					<label>Line range:</label>
+					<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<h3>Select target type</h3>
+	<select id="target-type-select" name="targetType">
+		<option value="" disabled="disabled" selected="selected">Select target type..</option>
+	</select>
+	<div id="property-select"></div>
+</div>

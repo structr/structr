@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,7 +52,11 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.addIntegerProperty("position", PropertyView.Public).setIndexed(true);
 		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);
 
+		type.addStringProperty("enabledChecksums");
+
 		type.addPropertyGetter("mountTarget", String.class);
+		type.addPropertyGetter("enabledChecksums", String.class);
+
 		type.addPropertyGetter("children", List.class);
 
 		type.overrideMethod("onCreation",     true, Folder.class.getName() + ".setHasParent(this);");
@@ -61,7 +65,6 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.overrideMethod("getFiles",       false, "return " + Folder.class.getName() + ".getFiles(this);");
 		type.overrideMethod("getFolders",     false, "return " + Folder.class.getName() + ".getFolders(this);");
 		type.overrideMethod("getImages",      false, "return " + Folder.class.getName() + ".getImages(this);");
-
 		type.overrideMethod("isMounted",      false, "return " + Folder.class.getName() + ".isMounted(this);");
 
 		// ----- CMIS support -----
@@ -84,8 +87,8 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 	}}
 
-	boolean isMounted();
 	String getMountTarget();
+	String getEnabledChecksums();
 
 	Iterable<AbstractFile> getChildren();
 	Iterable<Folder> getFolders();

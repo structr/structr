@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,7 +40,7 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
 
-			final Object toCopy = sources[0];
+			final Object toCopy       = sources[0];
 			final Object toBeReplaced = sources[1];
 
 			if (toCopy instanceof File && toBeReplaced instanceof File) {
@@ -78,7 +78,7 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 					changedProperties.put(versionKey, 0);
 					changedProperties.put(new StringProperty("contentType"), nodeToCopy.getProperty(new StringProperty("contentType")));
 
-					long fileSize = FileHelper.getSize(nodeToBeReplaced);
+					long fileSize = FileHelper.getSize(fileToBeReplaced);
 					if (fileSize > 0) {
 						
 						changedProperties.put(sizeKey, fileSize);

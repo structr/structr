@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -42,7 +43,7 @@ import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
 import org.structr.web.entity.File;
 
-public class CSVFileImportJob extends ImportJob {
+public class CSVFileImportJob extends FileImportJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(CSVFileImportJob.class.getName());
 
@@ -115,8 +116,8 @@ public class CSVFileImportJob extends ImportJob {
 
 				final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
 				final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
-				final char fieldSeparator          = delimiter.charAt(0);
-				final char quoteCharacter          = quoteChar.charAt(0);
+				final Character fieldSeparator     = delimiter.charAt(0);
+				final Character quoteCharacter     = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
 				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings));
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
@@ -170,25 +171,25 @@ public class CSVFileImportJob extends ImportJob {
 				} catch (FrameworkException ex) {
 					logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
 				}
-			}
 
-			jobFinished();
+				jobFinished();
+			}
 		};
 
 	}
 
 	@Override
-	public String getImportType() {
+	public String getJobType() {
 		return "CSV";
 	}
 
 	@Override
-	public String getImportStatusType() {
+	public String getJobStatusType() {
 		return "FILE_IMPORT_STATUS";
 	}
 
 	@Override
-	public String getImportExceptionMessageType() {
+	public String getJobExceptionMessageType() {
 		return "FILE_IMPORT_EXCEPTION";
 	}
 }

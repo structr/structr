@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,9 +75,19 @@ public abstract class ImageHelper extends FileHelper {
 	 * @throws IOException
 	 */
 	public static Image createImage(final SecurityContext securityContext, final InputStream imageStream, final String contentType, final Class<? extends Image> imageType, final String name, final boolean markAsThumbnail)
-		throws FrameworkException, IOException {
+			throws FrameworkException, IOException {
 
-		return createImageNode(securityContext, IOUtils.toByteArray(imageStream), contentType, imageType, name, markAsThumbnail);
+		final PropertyKey<Boolean> isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
+		final PropertyMap props = new PropertyMap();
+
+		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
+		props.put(isThumbnailKey,    markAsThumbnail);
+		props.put(AbstractNode.name, name);
+
+		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
+		setFileData(newImage, imageStream, contentType);
+
+		return newImage;
 
 	}
 
@@ -393,8 +403,6 @@ public abstract class ImageHelper extends FileHelper {
 				properties.put(height, sourceHeight);
 				originalImage.setProperties(originalImage.getSecurityContext(), properties);
 
-				BufferedImage result    = null;
-
 				final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
 				final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
 
@@ -414,9 +422,7 @@ public abstract class ImageHelper extends FileHelper {
 			} else {
 
 				logger.debug("Cropped image could not be created");
-
 				return null;
-
 			}
 
 			final long end  = System.nanoTime();

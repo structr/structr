@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -77,6 +77,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	@Override
 	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
+
+		if (!basePath.equals(dir)) {
+			createFolder(dir);
+		}
+
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -138,7 +143,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (File)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
 
 						} else {
-							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
+							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getFolderPath(), positionString);
 						}
 					}
 
@@ -164,6 +169,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				final PropertyMap properties = getPropertiesForFileOrFolder(folder.getPath());
 				if (properties != null) {
 
+					folder.unlockSystemPropertiesOnce();
 					folder.setProperties(securityContext, properties);
 				}
 			}

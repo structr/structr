@@ -1,0 +1,12 @@
+<tr>
+	<td style="width:20%;">
+		<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? escapeForHtmlAttributes(config.view.name) : '')}" ${(config.view && config.view.isBuiltinView ? 'disabled' : '')}>
+	</td>
+	<td class="view-properties-select"></td>
+	<td>
+		<i title="Save changes" class="visible-in-edit-mode create-icon save-action ${_Icons.getFullSpriteClass(_Icons.tick_icon)}" />
+		<i title="Discard changes" class="visible-in-edit-mode discard-icon cancel-action ${_Icons.getFullSpriteClass(_Icons.cross_icon)}" />
+		<i title="${(config.view && config.view.isBuiltinView ? 'Reset built-in view' : 'Remove view')}" class="hidden-in-edit-mode remove-icon remove-action ${_Icons.getFullSpriteClass((config.view && config.view.isBuiltinView ? _Icons.arrow_undo_icon : _Icons.delete_icon))}" />
+		<a class="hidden-in-edit-mode preview-action" target="_blank"><i title="Preview (with pageSize=1)" class="preview-icon ${_Icons.getFullSpriteClass(_Icons.eye_icon)}" /></a>
+	</td>
+</tr>

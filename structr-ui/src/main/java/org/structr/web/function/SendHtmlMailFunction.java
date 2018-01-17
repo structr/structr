@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.DynamicMailAttachment;
 import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -63,7 +64,7 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 			}
 
 			List<File> fileNodes = null;
-			List<EmailAttachment> attachments   = new ArrayList<>();
+			List<DynamicMailAttachment> attachments   = new ArrayList<>();
 
 			try {
 
@@ -73,17 +74,28 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 
 					for (File fileNode : fileNodes) {
 
-						final EmailAttachment attachment = new EmailAttachment();
+						final DynamicMailAttachment attachment = new DynamicMailAttachment();
 						attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
 						attachment.setName(fileNode.getProperty(File.name));
 						attachment.setDisposition(EmailAttachment.ATTACHMENT);
-						
+
+						if(fileNode.isTemplate()) {
+
+							attachment.setIsDynamic(true);
+							attachment.setDataSource(fileNode);
+
+						} else {
+
+							attachment.setIsDynamic(false);
+							attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
+						}
+
 						attachments.add(attachment);
 					}
 				}
 
 
-				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent, attachments.isEmpty() ? null : attachments.toArray(new EmailAttachment[attachments.size()]));
+				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent,attachments);
 
 			} catch (EmailException | MalformedURLException ex) {
 

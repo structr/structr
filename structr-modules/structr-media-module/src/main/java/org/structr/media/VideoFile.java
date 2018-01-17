@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -138,7 +138,7 @@ public interface VideoFile extends File {
 	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(VideoFile.class, PropertyView.Ui,
-		type, name, contentType, size, relativeFilePath, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
+		type, name, contentType, size, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
 		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height, originalVideo, convertedVideos,
 		posterImage
 	);

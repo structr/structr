@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,7 +45,7 @@ public class LogoutCommand extends AbstractCommand {
 
 		if (user != null) {
 
-			final String sessionId = webSocketData.getSessionId();
+			final String sessionId = SessionHelper.getShortSessionId(webSocketData.getSessionId());
 			if (sessionId != null) {
 
 				SessionHelper.clearSession(sessionId);
