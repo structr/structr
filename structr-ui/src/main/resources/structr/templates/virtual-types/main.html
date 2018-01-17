@@ -1,0 +1,63 @@
+<div id="virtual-types-main">
+	<div id="virtual-types-list" class="resourceBox full-height-box">
+		<div id="virtual-types-pager"></div>
+		<button id="create-virtual-type"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> New Virtual Type</button>
+		<table id="virtual-types-table">
+			<thead>
+				<tr>
+					<th class="narrow"><a class="sort" data-sort="position">Pos.</a></th>
+					<th><a class="sort" data-sort="name">Name</a></th>
+					<th><a class="sort" data-sort="sourceType">Source Type</a></th>
+					<th class="narrow">Actions</th>
+				</tr>
+			</thead>
+			<tbody>
+
+			</tbody>
+		</table>
+	</div>
+	<div id="virtual-type-detail" class="resourceBox full-height-box">
+		<div class="resource-link hide-in-create-mode"><a target="_blank" href="">/</a></div>
+		<h2><span class="show-in-create-mode">New </span>Virtual Type</h2>
+		<table id="virtual-type-detail-table">
+			<thead><tr>
+				<th class="position" data-info-text="The position attribute for virtual types is mostly for sorting them in the left column">Position</th>
+				<th class="name" data-info-text="The name under which the virtual type can be queried via REST">Name</th>
+				<th class="sourceType" data-info-text="Specifies the source type of the type mapping">Source Type</th>
+				<th class="filterExpression" data-info-text="Can be used to remove entities from the target collection, e.g. filter entities with invalid names etc. The filter expression is a StructrScript (JavaScript may severely impact performance) expression that will be called for every entity in the source collection, with the current entity being available under the keyword <code>this</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">Filter Expression</th>
+				<th>Visible To Public Users</th>
+				<th>Visible To Authenticated Users</th>
+				<th class="show-in-create-mode"></th>
+			</tr></thead>
+			<tbody><tr>
+				<td><input class="property" data-property="position" size="3" /></td>
+				<td><input class="property" data-property="name" /></td>
+				<td><input class="property" data-property="sourceType" /></td>
+				<td><textarea class="property" data-property="filterExpression"></textarea></td>
+				<td><input class="property" type="checkbox" data-property="visibleToPublicUsers" /></td>
+				<td><input class="property" type="checkbox" data-property="visibleToAuthenticatedUsers" /></td>
+				<td class="show-in-create-mode actions"></td>
+			</tr></tbody>
+		</table>
+		<div id="virtual-properties" class="hide-in-create-mode">
+			<h3>Virtual Properties</h3>
+			<table id="virtual-properties-table">
+				<thead>
+					<tr>
+						<th class="position" data-info-text="Specifies the position of the property in the output JSON document">position</th>
+						<th class="sourceName" data-info-text="Specifies the property key of the source entity">sourceName</th>
+						<th class="targetName" data-info-text="The desired target property name. If left empty, the source property name is used">targetName</th>
+						<th class="inputFunction" data-info-text="An optional input transformation when writing to this virtual property. The input data is made available via the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">inputFunction</th>
+						<th class="outputFunction" data-info-text="An optional scripting expression that creates or transforms the output value for the current property. It can be either a constant value, or a function that transforms the input value, which is provided using the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">outputFunction</th>
+						<th>Visible To Public Users</th>
+						<th>Visible To Authenticated Users</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

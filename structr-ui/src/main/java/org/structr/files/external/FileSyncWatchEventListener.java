@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
@@ -179,12 +180,9 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(fileBase);
 				}
 
-				if (file != null) {
-					FileHelper.updateMetadata(fileBase, true);
-				}
-			}
+				FileHelper.updateMetadata(fileBase, new PropertyMap(AbstractFile.lastSeenMounted, System.currentTimeMillis()), true);
 
-			if (file instanceof AbstractFile) {
+			} else if (file instanceof AbstractFile) {
 
 				final AbstractFile abstractFile = (AbstractFile)file;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -360,9 +360,13 @@ var _Elements = {
 		dropBlocked = false;
 
 	},
+	clearUnattachedNodes: function() {
+		elementsSlideout.find(':not(.compTab)').remove();
+	},
 	reloadUnattachedNodes: function() {
 
-		elementsSlideout.find(':not(.compTab)').remove();
+		_Elements.clearUnattachedNodes();
+
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 

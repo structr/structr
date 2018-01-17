@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -178,9 +178,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				sources.add((SourceSearchAttribute)attr);
 
-				// don't remove attribute from filter list
-				//it.remove();
-
 				hasGraphSources = true;
 			}
 
@@ -206,6 +203,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			final Index<S> index = getIndex();
 			if (index != null) {
+
+				// paging needs to be done AFTER instantiating all nodes
+				if (hasEmptySearchFields) {
+					factory.disablePaging();
+				}
 
 				// do query
 				final QueryResult hits = getIndex().query(rootGroup);

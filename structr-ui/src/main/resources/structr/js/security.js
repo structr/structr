@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,30 +38,42 @@ var _Security = {
 		_Security.init();
 
 		Structr.updateMainHelpLink('https://support.structr.com/article/207');
-		_Logger.log(_LogType.SECURTIY, 'onload');
 
-		main.append(
-			'<div id="securityTabs">' +
-				'<ul id="securityTabsMenu"><li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li><li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li></ul>' +
-				'<div id="usersAndGroups"><div id="users"></div><div id="groups"></div></div><div id="resourceAccess"><div id="resourceAccesses"></div></div>' +
-			'</div>'
-		);
+//		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
-		_Security.groups = $('#groups');
-		_Security.users = $('#users');
-		_Security.resourceAccesses = $('#resourceAccesses');
+			var html = '<div id="securityTabs">' +
+				'	<ul id="securityTabsMenu">' +
+				'		<li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li>' +
+				'		<li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li>' +
+				'	</ul>' +
+				'	<div id="usersAndGroups">' +
+				'		<div id="users"></div>' +
+				'		<div id="groups"></div>' +
+				'	</div>' +
+				'	<div id="resourceAccess">' +
+				'		<div id="resourceAccesses"></div>' +
+				'	</div>' +
+				'</div>';
 
-		var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
-		_Security.selectTab(activeTab);
 
-		$('#securityTabs').tabs({
-			active: (activeTab === 'usersAndGroups' ? 0 : 1),
-			activate: function(event, ui) {
-				_Security.selectTab(ui.newPanel[0].id);
-			}
-		});
+			main.append(html);
 
-		Structr.unblockMenu(100);
+			_Security.groups = $('#groups');
+			_Security.users = $('#users');
+			_Security.resourceAccesses = $('#resourceAccesses');
+
+			var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
+			_Security.selectTab(activeTab);
+
+			$('#securityTabs').tabs({
+				active: (activeTab === 'usersAndGroups' ? 0 : 1),
+				activate: function(event, ui) {
+					_Security.selectTab(ui.newPanel[0].id);
+				}
+			});
+
+			Structr.unblockMenu(100);
+//		});
 	},
 	selectTab: function (tab) {
 
@@ -183,7 +195,6 @@ var _UsersAndGroups = {
 					});
 				});
 
-
 				$(grpEl).append(groupDiv.css({
 					top: 0,
 					left: 0
@@ -206,12 +217,9 @@ var _UsersAndGroups = {
 					});
 				}
 			});
-
 		}
-
 	},
 	deleteUser: function(button, user) {
-		_Logger.log(_LogType.SECURTIY, 'deleteUser ' + user);
 		_Entities.deleteNode(button, user);
 	},
 	refreshGroups: function() {
@@ -335,26 +343,27 @@ var _ResourceAccessGrants = {
 
 		Structr.ensureIsAdmin(_Security.resourceAccesses, function() {
 
-			var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
+			Structr.fetchHtmlTemplate('security/resource-access', {}, function (html) {
 
-			raPager.cleanupFunction = function () {
-				$('#resourceAccesses table tbody tr').remove();
-			};
+				var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
 
-			_Security.resourceAccesses.append('<table id="resourceAccessesTable"><thead><tr><th></th><th colspan="6" class="center">Authenticated users</th><th colspan="6" class="center">Non-authenticated (public) users</th><th colspan="3"></th></tr><tr><th class="title-cell">Signature</th><th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th>'
-					+ '<th>GET</th><th>PUT</th><th>POST</th><th>DELETE</th><th>OPTIONS</th><th>HEAD</th><th>Bitmask</th><th></th></tr><tr><th><input type="text" class="filter" data-attribute="signature" placeholder="Filter..."></th><th colspan="15"></th></tr></thead></table>');
-			_Security.resourceAccesses.append('Signature: <input type="text" size="20" id="resource-signature"> <button class="add_grant_icon button"><i title="Add Resource Grant" class="' + _Icons.getFullSpriteClass(_Icons.key_add_icon) + '" /> Add Grant</button>');
+				raPager.cleanupFunction = function () {
+					$('#resourceAccesses table tbody tr').remove();
+				};
 
-			raPager.activateFilterElements(_Security.resourceAccesses);
+				_Security.resourceAccesses.append(html);
 
-			$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
-				_ResourceAccessGrants.addResourceGrant(e);
-			});
+				raPager.activateFilterElements(_Security.resourceAccesses);
 
-			$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
-				if (e.keyCode === 13) {
+				$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
 					_ResourceAccessGrants.addResourceGrant(e);
-				}
+				});
+
+				$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
+					if (e.keyCode === 13) {
+						_ResourceAccessGrants.addResourceGrant(e);
+					}
+				});
 			});
 		});
 	},
@@ -471,7 +480,5 @@ var _ResourceAccessGrants = {
 				_ResourceAccessGrants.appendResourceAccessElement(obj);
 			});
 		});
-
 	}
-
 };

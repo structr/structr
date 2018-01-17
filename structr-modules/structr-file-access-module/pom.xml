@@ -138,7 +138,7 @@
 						<exclude>src/**/*.xml</exclude>
 					</excludes>
 					<properties>
-						<year>2017</year>
+						<year>2018</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
@@ -221,7 +221,7 @@
 			<name>GNU Affero General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2017 Structr GmbH
+				Copyright (C) 2010-2018 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

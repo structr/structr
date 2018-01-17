@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.auth.UiAuthenticator;
@@ -115,7 +114,22 @@ public abstract class FrontendTest extends StructrUiTest {
 		}
 	}
 
-	protected User createAdminUser() throws FrameworkException {
+	protected void clearLocalStorage() {
+		
+		final User user;
+		
+		try (final Tx tx = app.tx()) {
+
+			user = app.nodeQuery(User.class).andName("admin").getFirst();
+			user.setProperty(User.localStorage, null);
+			tx.success();
+
+		} catch (Throwable t) {
+			logger.warn("", t);
+		}
+	}
+	
+	protected User createAdminUser() {
 
 		final PropertyMap properties = new PropertyMap();
 
@@ -129,16 +143,13 @@ public abstract class FrontendTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			user = app.create(User.class, properties);
-			//user.setProperty(User.password, "admin");
 			tx.success();
 
 		} catch (Throwable t) {
-
 			logger.warn("", t);
 		}
 
 		return user;
-
 	}
 
 	protected String createEntityAsAdmin(String resource, String... body) {

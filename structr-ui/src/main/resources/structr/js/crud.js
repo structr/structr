@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -101,7 +101,7 @@ var _Crud = {
 					return;
 
 				var node = data.result;
-				_Crud.crudCache.addObject(node);
+				_Crud.crudCache.addObject(node, node.id);
 			}
 		});
 	}),
@@ -2004,7 +2004,7 @@ var _Crud = {
 		if (preloadedNode) {
 			nodeHandler(preloadedNode);
 		} else {
-			_Crud.crudCache.registerCallbackForId(id, nodeHandler);
+			_Crud.crudCache.registerCallback(id, id, nodeHandler);
 		}
 
 	},

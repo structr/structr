@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -93,7 +93,7 @@ public class MinifiedJavaScriptFile extends AbstractMinifiedFile {
 				}
 			}
 		});
-		compiler.compile(CommandLineRunner.getBuiltinExterns(options), getSourceFileList(), options);
+		compiler.compile(CommandLineRunner.getBuiltinExterns(options.getEnvironment()), getSourceFileList(), options);
 
 		FileHelper.setFileData(this, compiler.toSource().getBytes(), getProperty(contentType));
 

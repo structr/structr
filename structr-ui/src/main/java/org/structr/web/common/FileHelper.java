@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -129,18 +128,7 @@ public class FileHelper {
 	public static <T extends org.structr.web.entity.FileBase> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
 			throws FrameworkException, IOException {
 
-		PropertyMap props = new PropertyMap();
-
-		props.put(AbstractNode.name, name);
-
-		T newFile = (T) StructrApp.getInstance(securityContext).create(fileType, props);
-
-		setFileData(newFile, fileStream, contentType);
-
-		// schedule indexing
-		newFile.notifyUploadCompletion();
-
-		return newFile;
+		return createFile(securityContext, fileStream, contentType, fileType, name, null);
 
 	}
 
@@ -293,7 +281,7 @@ public class FileHelper {
 		map.put(FileBase.contentType, contentType != null ? contentType : FileHelper.getContentMimeType(fileOnDisk, file.getProperty(FileBase.name)));
 
 		map.putAll(getChecksums(file, fileOnDisk));
-		
+
 		map.put(FileBase.size,        FileHelper.getSize(fileOnDisk));
 		map.put(FileBase.version,     1);
 
@@ -327,49 +315,45 @@ public class FileHelper {
 
 	/**
 	 * Calculate checksums that are configured in settings of parent folder.
-	 * 
+	 *
 	 * @param file
 	 * @param fileOnDisk
 	 * @return
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	private static PropertyMap getChecksums(final FileBase file, final java.io.File fileOnDisk) throws IOException {
 
 		final PropertyMap propreriesWithChecksums = new PropertyMap();
-		
-		final Folder parentFolder = file.getProperty(FileBase.parent);
-		String checksums;
-		
-		final String defaultChecksumsDefaultValue = Settings.getStringSetting(Settings.DefaultChecksums.getKey()).getDefaultValue();
-		
-		if (parentFolder == null) {
-			
-			checksums = Settings.getStringSetting(Settings.DefaultChecksums.getKey()).getValue(defaultChecksumsDefaultValue);
-		
-		} else {
-		
+
+		Folder parentFolder = file.getProperty(FileBase.parent);
+		String checksums = null;
+
+		while (parentFolder != null && checksums == null) {
+
 			checksums = parentFolder.getProperty(Folder.enabledChecksums);
-			if (checksums == null) {
-				checksums = defaultChecksumsDefaultValue;
-			}
+			parentFolder = parentFolder.getProperty(FileBase.parent);
 		}
-		
+
+		if (checksums == null) {
+			checksums = Settings.DefaultChecksums.getValue();
+		}
+
 		if (StringUtils.contains(checksums, "crc32"))	{
 			propreriesWithChecksums.put(FileBase.checksum,    FileHelper.getChecksum(fileOnDisk));
 		}
-		
+
 		if (StringUtils.contains(checksums, "md5"))	{
 			propreriesWithChecksums.put(FileBase.md5,         FileHelper.getMD5Checksum(file));
 		}
-		
+
 		if (StringUtils.contains(checksums, "sha1"))	{
 			propreriesWithChecksums.put(FileBase.sha1,        FileHelper.getSHA1Checksum(file));
 		}
-		
+
 		if (StringUtils.contains(checksums, "sha512"))	{
 			propreriesWithChecksums.put(FileBase.sha512,      FileHelper.getSHA512Checksum(file));
 		}
-		
+
 		return propreriesWithChecksums;
 	}
 	/**
@@ -382,7 +366,7 @@ public class FileHelper {
 	public static void updateMetadata(final FileBase file, final PropertyMap map) throws FrameworkException {
 		updateMetadata(file, map, false);
 	}
-	
+
 	/**
 	 * Update checksums (optional), content type, size and additional properties of the given file
 	 *
@@ -398,7 +382,7 @@ public class FileHelper {
 		if (fileOnDisk != null && fileOnDisk.exists()) {
 
 			try {
-			
+
 				String contentType = file.getContentType();
 
 				// Don't overwrite existing MIME type
@@ -436,7 +420,7 @@ public class FileHelper {
 
 				file.unlockSystemPropertiesOnce();
 				file.setProperties(file.getSecurityContext(), map);
-				
+
 			} catch (IOException ioex) {
 				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
 			}
@@ -549,11 +533,10 @@ public class FileHelper {
 	}
 
 	/**
-	 * Write binary data from FileInputStream to a file and reference the file on disk at the
-	 * given file node
+	 * Write binary data from FileInputStream to a file and reference the file on disk at the given file node
 	 *
 	 * @param fileNode
-	 * @param data
+	 * @param data	The input stream from which to read the file data (Stream is not closed automatically - has to be handled by caller)
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
@@ -564,8 +547,6 @@ public class FileHelper {
 		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
 
 			IOUtils.copy(data, out);
-
-			data.close();
 		}
 	}
 
@@ -762,122 +743,122 @@ public class FileHelper {
 	}
 
 	public static String getMD5Checksum(final FileBase file) {
-		
+
 		try {
 			return DigestUtils.md5Hex(file.getInputStream());
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate MD5 checksum of file represented by node " + file, ex);
 		}
-		
+
 		return null;
 	}
-	
+
 	public static String getMD5Checksum(final java.io.File fileOnDisk) {
-		
+
 		try {
 			return DigestUtils.md5Hex(FileUtils.openInputStream(fileOnDisk));
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate MD5 checksum of file " + fileOnDisk, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA1Checksum(final FileBase file) {
-		
+
 		try {
 			return DigestUtils.sha1Hex(file.getInputStream());
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-1 checksum of file represented by node " + file, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA1Checksum(final java.io.File fileOnDisk) {
-		
+
 		try {
 			return DigestUtils.sha1Hex(FileUtils.openInputStream(fileOnDisk));
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-1 checksum of file " + fileOnDisk, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA256Checksum(final FileBase file) {
-		
+
 		try {
 			return DigestUtils.sha256Hex(file.getInputStream());
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-256 checksum of file represented by node " + file, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA256Checksum(final java.io.File fileOnDisk) {
-		
+
 		try {
 			return DigestUtils.sha256Hex(FileUtils.openInputStream(fileOnDisk));
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-256 checksum of file " + fileOnDisk, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA384Checksum(final FileBase file) {
-		
+
 		try {
 			return DigestUtils.sha384Hex(file.getInputStream());
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-384 checksum of file represented by node " + file, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA384Checksum(final java.io.File fileOnDisk) {
-		
+
 		try {
 			return DigestUtils.sha384Hex(FileUtils.openInputStream(fileOnDisk));
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-384 checksum of file " + fileOnDisk, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA512Checksum(final FileBase file) {
-		
+
 		try {
 			return DigestUtils.sha512Hex(file.getInputStream());
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-512 checksum of file represented by node " + file, ex);
 		}
-		
+
 		return null;
 	}
 
 	public static String getSHA512Checksum(final java.io.File fileOnDisk) {
-		
+
 		try {
 			return DigestUtils.sha512Hex(FileUtils.openInputStream(fileOnDisk));
-			
+
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-512 checksum of file " + fileOnDisk, ex);
 		}
-		
+
 		return null;
 	}
 

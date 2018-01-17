@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.web.entity.feed;
 
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.relation.FeedItemContents;
+import org.structr.web.entity.relation.FeedItemEnclosures;
 
 /**
  * Represents feed enclosures
@@ -51,15 +52,19 @@ public class FeedItemEnclosure extends AbstractNode implements Indexable {
 
     private static final Logger logger = LoggerFactory.getLogger(FeedItemContent.class.getName());
 
-    public static final Property<String> url                     = new StringProperty("url");
-    public static final Property<Long> enclosureLength                  = new LongProperty("enclosureLength");
-    public static final Property<String> enclosureType             = new StringProperty("enclosureType");
-    public static final Property<FeedItem> item                 = new StartNode<>("item", FeedItemContents.class);
+    public static final Property<String> url                    = new StringProperty("url");
+    public static final Property<Long> enclosureLength          = new LongProperty("enclosureLength");
+    public static final Property<String> enclosureType          = new StringProperty("enclosureType");
+    public static final Property<FeedItem> item                 = new StartNode<>("item", FeedItemEnclosures.class);
 
     public static final View publicView = new View(FeedItemContent.class, PropertyView.Public, type, contentType, owner,
             url, enclosureLength, enclosureType, item);
     public static final View uiView     = new View(FeedItemContent.class, PropertyView.Ui, type, contentType, owner, extractedContent, indexedWords,
             url, enclosureLength, enclosureType, item);
+
+	static {
+		SchemaService.registerBuiltinTypeOverride("FeedItemEnclosure", FeedItemEnclosure.class.getName());
+	}
 
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
@@ -91,11 +96,7 @@ public class FeedItemEnclosure extends AbstractNode implements Indexable {
 	@Override
 	public InputStream getInputStream() {
 
-		return IOUtils.toInputStream(getProperty(url));
+		return IOUtils.toInputStream(getProperty(url), Charset.defaultCharset());
 	}
 
-
-        static {
-            SchemaService.registerBuiltinTypeOverride("FeedItemEnclosure", FeedItemEnclosure.class.getName());
-        }
 }

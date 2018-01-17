@@ -119,7 +119,7 @@
 			<name>GNU General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2017 Structr GmbH, structr &lt;structr@structr.org&gt;
+				Copyright (C) 2010-2018 Structr GmbH, structr &lt;structr@structr.org&gt;
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 
@@ -144,19 +144,19 @@
 		<connection>scm:git:https://github.com:structr/structr.git</connection>
 		<developerConnection>scm:git:git@github.com:structr/structr.git</developerConnection>
 	</scm>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <debug>true</debug>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <distributionManagement>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<debug>true</debug>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<distributionManagement>
 		<repository>
 			<id>sonatype-nexus-staging</id>
 			<name>Maven Central Staging</name>

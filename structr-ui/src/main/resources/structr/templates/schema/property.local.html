@@ -1,0 +1,12 @@
+<tr class="${config.property.name}">
+	<td><input size="15" type="text" class="property-name" value="${escapeForHtmlAttributes(config.property.name)}"></td>
+	<td><input size="15" type="text" class="property-dbname" value="${escapeForHtmlAttributes(config.property.dbName)}"></td>
+	<td>${_Schema.typeOptions}</td>
+	<td>${((config.property.propertyType !== 'Function') ? '<input size="15" type="text" class="property-format" value="' + (config.property.format ? escapeForHtmlAttributes(config.property.format) : '') + '">' : '<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button>')}</td>
+	<td><input class="not-null" type="checkbox" ${(config.property.notNull ? 'checked' : '')}></td>
+	<td><input class="compound" type="checkbox" ${(config.property.compound ? 'checked' : '')}></td>
+	<td><input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')}></td>
+	<td><input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}></td>
+	<td><input type="text" size="10" class="property-default" value="${escapeForHtmlAttributes(config.property.defaultValue)}"></td>
+	<td>${config.property.isBuiltinProperty ? '' : '<i title="Remove property" class="remove-icon remove-property ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'}</td>
+</tr>

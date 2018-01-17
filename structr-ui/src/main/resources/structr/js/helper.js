@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1070,7 +1070,7 @@ var _Favorites = new (function () {
 });
 
 /**
- * A cache for async GET requests which allows ensures that certain requests are only made once - if used correctly.<br>
+ * A cache for async GET requests which ensures that certain requests are only made once - if used correctly.<br>
  * The cache has one argument - the fetch function - which handles fetching a single object.<br>
  * Upon successfully loading the object, it must be added to the cache via the `addObject` method.<br>
  * It is possible to attach callbacks to the ID we ware waiting for. After the object is loaded<br>
@@ -1084,34 +1084,33 @@ var AsyncObjectCache = function(fetchFunction) {
 	var _cache = {};
 
 	/**
-	 * This methods registers a callback for an object ID.<br>
-	 * If the ID has not been requested before, the fetch function is executed.<br>
-	 * If the ID has been requested before, the callback is added to the callbacks list.<br>
-	 * If the object associated with the ID is present in the cache, the callback is executed directly.
+	 * This methods registers a callback for a resource.<br>
+	 * If the resource has not been requested before, the fetch function is executed.<br>
+	 * If the resource has been requested before, the callback is added to the callbacks list.<br>
+	 * If the result for the cacheId is present in the cache, the callback is executed directly.
 	 *
-	 * @param {string} id The ID to fetch
+	 * @param {string} resource The parameter to pass in the fetchFunction
+	 * @param {string} cacheId The ID under which to cache the result
 	 * @param {function} callback The callback to execute with the fetched object. Needs to take the object as single paramter.
 	 */
-	this.registerCallbackForId = function(id, callback) {
+	this.registerCallback = function(resource, cacheId, callback) {
 
-		if (_cache[id] === undefined) {
+		if (_cache[cacheId] === undefined) {
 
-			_cache[id] = {
+			_cache[cacheId] = {
 				callbacks: [callback]
 			};
 
-			fetchFunction(id);
+			fetchFunction(resource);
 
-		} else if (_cache[id].value === undefined) {
+		} else if (_cache[cacheId].value === undefined) {
 
-			_cache[id].callbacks.push(callback);
+			_cache[cacheId].callbacks.push(callback);
 
 		} else {
 
-			_runSingleCallback(id, callback);
-
+			_runSingleCallback(cacheId, callback, true);
 		}
-
 	};
 
 	/**
@@ -1119,49 +1118,45 @@ var AsyncObjectCache = function(fetchFunction) {
 	 * Callbacks associated with that object will be executed afterwards.
 	 *
 	 * @param {object} obj The object to store in the cache
+	 * @param {string} cacheId The cache identifier for the object - usually a UUID, but also used as a URI
 	 */
-	this.addObject = function(obj) {
+	this.addObject = function(obj, cacheId) {
 
-		if (_cache[obj.id] === undefined) {
+		if (_cache[cacheId] === undefined) {
 
 			// no registered callbacks - simply set the cache object
-			_cache[obj.id] = {
+			_cache[cacheId] = {
 				value: obj
 			};
 
-		} else if (_cache[obj.id].value === undefined) {
+		} else if (_cache[cacheId].value === undefined) {
 
 			// set the cache object and run all registered callbacks
-			_cache[obj.id].value = obj;
-			_runRegisteredCallbacks(obj.id);
-
+			_cache[cacheId].value = obj;
+			_runRegisteredCallbacks(cacheId);
 		}
-
 	};
 
 	this.clear = function() {
 		_cache = {};
 	};
 
-	function _runRegisteredCallbacks (id) {
+	function _runRegisteredCallbacks (cacheId) {
 
-		if (_cache[id] !== undefined && _cache[id].callbacks) {
+		if (_cache[cacheId] !== undefined && _cache[cacheId].callbacks) {
 
-			_cache[id].callbacks.forEach(function(callback) {
-				_runSingleCallback(id, callback);
+			_cache[cacheId].callbacks.forEach(function(callback) {
+				_runSingleCallback(cacheId, callback, false);
 			});
 
-			_cache[id].callbacks = [];
+			_cache[cacheId].callbacks = [];
 		}
-
 	};
 
-	function _runSingleCallback(id, callback) {
+	function _runSingleCallback(cacheId, callback, cacheHit) {
 
 		if (typeof callback === "function") {
-			callback(_cache[id].value);
+			callback(_cache[cacheId].value, cacheHit);
 		}
-
 	};
-
 };

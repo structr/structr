@@ -1,0 +1,34 @@
+<div id="localization-main">
+	<div id="localizations-list" class="resourceBox full-height-box">
+		<div id="localizations-pager"></div>
+		<button class="create"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> Prepare new Localization</button>
+		<table id="localizations-table">
+			<thead><tr>
+				<th><a class="sort" data-sort="key">Key</a></th>
+				<th><a class="sort" data-sort="domain">Domain</a></th>
+				<th class="narrow">Actions</th>
+			</tr></thead>
+			<tbody></tbody>
+		</table>
+	</div>
+	<div id="localization-detail" class="resourceBox full-height-box">
+		<strong>Key:</strong> <input id="localization-key" class="disabled" disabled /> <strong>Domain:</strong> <input id="localization-domain" class="disabled" disabled />
+		 <a title="Edit" class="edit" id="localization-fields-edit"><i class="${_Icons.getFullSpriteClass(_Icons.edit_icon)}" /></a>
+		 <a title="Save" class="save" id="localization-fields-save"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}" /></a>
+		 <a title="Discard" class="discard" id="localization-fields-discard"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}" /></a>
+		<p><button class="create"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> New Localization</button></p>
+		<table id="localization-detail-table">
+			<thead><tr>
+				<th>ID</th>
+				<th>Locale</th>
+				<th>Localized Value</th>
+				<th>Description</th>
+				<th>visibleToPublicUsers</th>
+				<th>visibleToAuthenticatedUsers</th>
+				<th>Imported</th>
+				<th>Actions</th>
+			</tr></thead>
+			<tbody></tbody>
+		</table>
+	</div>
+</div>

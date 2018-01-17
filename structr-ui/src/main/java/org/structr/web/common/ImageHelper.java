@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,7 +53,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
 import org.structr.util.Base64;
-import static org.structr.web.common.FileHelper.setFileData;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
@@ -387,8 +386,6 @@ public abstract class ImageHelper extends FileHelper {
 				properties.put(Image.height, sourceHeight);
 				originalImage.setProperties(originalImage.getSecurityContext(), properties);
 
-				BufferedImage result    = null;
-
 				final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
 				final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
 
@@ -408,9 +405,7 @@ public abstract class ImageHelper extends FileHelper {
 			} else {
 
 				logger.debug("Cropped image could not be created");
-
 				return null;
-
 			}
 
 			final long end  = System.nanoTime();

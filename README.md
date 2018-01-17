@@ -46,6 +46,6 @@ https://structr.com/services
 
 ## Copyright and License
 
-Copyright 2010-2017 Structr GmbH
+Copyright 2010-2018 Structr GmbH
 
 Structr is dual licensed under the GPLv3/AGPLv3 and a commercial license. [Commercial editions](https://structr.com/editions) and [support plans](https://structr.com/support) also available.

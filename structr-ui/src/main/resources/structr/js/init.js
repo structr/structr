@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,6 +69,12 @@ $(function() {
 	$('#logout_').on('click', function(e) {
 		e.stopPropagation();
 		Structr.doLogout();
+	});
+	
+	$(window).on('hashchange', function(e) {
+		var anchor = getAnchorFromUrl(window.location.href);
+		if (anchor === 'logout' || loginBox.is(':visible')) return
+		Structr.activateModule(e, anchor);
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function () {
@@ -210,6 +216,13 @@ var Structr = {
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
+	templateCache: new AsyncObjectCache(function(templateName) {
+
+		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
+			Structr.templateCache.addObject(templateHtml, templateName);
+		});
+
+	}),
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -266,7 +279,7 @@ var Structr = {
 		_Console.initConsole();
 		_Favorites.initFavorites();
 	},
-	updateUsername:function(name) {
+	updateUsername: function(name) {
 		if (name !== user) {
 			user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
@@ -326,7 +339,7 @@ var Structr = {
 			$('#errorText').html(text);
 		}
 
-		Structr.activateMenuEntry('logout');
+		//Structr.activateMenuEntry('logout');
 	},
 	doLogin: function(username, password) {
 		Structr.renewSessionId(function () {
@@ -983,6 +996,11 @@ var Structr = {
 				wasOpen = true;
 				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active');
+
+				var openSlideoutCallback = slideout.data('closeCallback');
+				if (typeof openSlideoutCallback === "function") {
+					openSlideoutCallback();
+				}
 			}
 		});
 		if (wasOpen) {
@@ -1196,7 +1214,7 @@ var Structr = {
 				$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
 				var ui = envInfo.components['structr-ui'];
-				if (ui !== null) {
+				if (ui) {
 
 					var version = ui.version;
 					var build = ui.build;
@@ -1311,22 +1329,6 @@ var Structr = {
 			case 'Community':
 				return ['Community'].indexOf(requiredEdition) !== -1;
 		};
-	},
-	guardExecution:function (callbackToGuard) {
-		var didRun = false;
-
-		var guardedFunction = function () {
-			if (didRun) {
-				return;
-			}
-			didRun = true;
-
-			if (typeof callbackToGuard === "function") {
-				callbackToGuard();
-			}
-		};
-
-		return guardedFunction;
 	},
 	updateMainHelpLink: function (newUrl) {
 		$('#main-help a').attr('href', newUrl);
@@ -1687,6 +1689,14 @@ var Structr = {
 			}
 
 		}
+	},
+	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
+
+		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
+			var convertTemplateToLiteral = new Function("config", "return `" + templateHtml + "`;");
+			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			callback(parameterizedTemplate, cacheHit);
+		});
 	}
 };
 

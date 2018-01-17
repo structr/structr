@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -362,7 +363,9 @@ public class StructrScriptable extends ScriptableObject {
 
 				return wrap(context, scope, null, function.apply(actionContext, entity, unwrappedParameters));
 
-			} catch (FrameworkException fex) {
+			} catch (final UnlicensedException uex) {
+				uex.log(logger);
+			} catch (final FrameworkException fex) {
 				exception = fex;
 			}
 

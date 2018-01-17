@@ -1,0 +1,46 @@
+<div id="mail-templates-main">
+	<div id="mail-templates-list" class="resourceBox full-height-box">
+		<div id="mail-templates-pager"></div>
+		<button id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}" /> New Mail Template</button>
+		<table id="mail-templates-table">
+			<thead><tr>
+				<th><a class="sort" data-sort="name">Name</a></th>
+				<th class="narrow"><a class="sort" data-sort="sourceType">Locale</a></th>
+				<th class="narrow">Actions</th>
+			</tr></thead>
+			<tbody></tbody>
+		</table>
+	</div>
+	<div id="mail-template-detail" class="resourceBox full-height-box">
+		<h2><span class="show-in-modes" data-modes="create">New </span>Mail Template<span class="show-in-modes" data-modes="preview"> Preview</span></h2>
+		<iframe id="mail-template-preview" class="show-in-modes" data-modes="preview"></iframe>
+		<div class="actions">
+			<button class="exit-preview show-in-modes" data-modes="preview"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}" /> Exit Preview</button>
+		</div>
+		<div id="mail-template-detail-wrapper">
+			<table id="mail-template-detail-table" class="show-in-modes" data-modes="edit|create">
+				<tr>
+					<th class="name">Name</th>
+					<td><input type="text" class="property" data-property="name" /></td>
+				</tr><tr>
+					<th>Locale</th>
+					<td><input type="text" class="property" data-property="locale" /></td>
+				</tr><tr>
+					<th>Visible To Public Users</th>
+					<td><input class="property" type="checkbox" data-property="visibleToPublicUsers" /></td>
+				</tr><tr>
+					<th>Visible To Authenticated Users</th>
+					<td><input class="property" type="checkbox" data-property="visibleToAuthenticatedUsers" /></td>
+				</tr><tr>
+					<th>Text</th>
+					<td><textarea class="property" data-property="text"></textarea></td>
+				</tr></tbody>
+			</table>
+			<div class="actions">
+				<button class="save show-in-modes" data-modes="create"><i class="${_Icons.getFullSpriteClass(_Icons.tick_icon)}" /> Save</button>
+				<button class="cancel show-in-modes" data-modes="create"><i class="${_Icons.getFullSpriteClass(_Icons.cross_icon)}" /> Cancel</button>
+				<button class="preview show-in-modes" data-modes="edit"><i class="${_Icons.getFullSpriteClass(_Icons.search_icon)}" /> Preview HTML</button>
+			</div>
+		</div>
+	</div>
+</div>

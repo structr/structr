@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -50,11 +49,11 @@ public class SetFunction extends Function<Object, Object> {
 			if (sources[0] instanceof GraphObject) {
 
 				final GraphObject source = (GraphObject)sources[0];
-				
+
 				final Map<String, Object> properties = new LinkedHashMap<>();
 				final SecurityContext securityContext = ctx.getSecurityContext();
 				source.setSecurityContext(securityContext);
-				
+
 				final Gson gson = new GsonBuilder().create();
 				final Class type = source.getClass();
 				final int sourceCount = sources.length;
@@ -77,11 +76,7 @@ public class SetFunction extends Function<Object, Object> {
 				}
 
 				// store values in entity
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(securityContext, type, properties);
-				for (final Map.Entry<PropertyKey, Object> entry : map.entrySet()) {
-
-					source.setProperty(entry.getKey(), entry.getValue());
-				}
+				source.setProperties(securityContext, PropertyMap.inputTypeToJavaType(securityContext, type, properties));
 
 			} else {
 
@@ -91,7 +86,6 @@ public class SetFunction extends Function<Object, Object> {
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
 		}
 
 		return "";
@@ -106,5 +100,4 @@ public class SetFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Sets a value on an entity";
 	}
-
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.web.entity.feed;
 
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +58,10 @@ public class FeedItemContent extends AbstractNode implements Indexable {
 	public static final View uiView     = new View(FeedItemContent.class, PropertyView.Ui, type, contentType, owner, extractedContent, indexedWords,
 		mode, itemType, value, item);
 
+	static {
+		SchemaService.registerBuiltinTypeOverride("FeedItemContent", FeedItemContent.class.getName());
+	}
+
 	@Override
 	public void afterCreation(SecurityContext securityContext) {
 
@@ -87,13 +92,7 @@ public class FeedItemContent extends AbstractNode implements Indexable {
 	@Override
 	public InputStream getInputStream() {
 
-		return IOUtils.toInputStream(getProperty(value));
+		return IOUtils.toInputStream(getProperty(value), Charset.defaultCharset());
 	}
 
-	// ----- private methods -----
-
-
-        static{
-            SchemaService.registerBuiltinTypeOverride("FeedItemContent", FeedItemContent.class.getName());
-        }
 }

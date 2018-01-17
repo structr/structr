@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -281,30 +281,18 @@ public class SecurityContext {
 
 		if (request != null) {
 
-			final HttpSession session = request.getSession(false);
-			if (session != null) {
-
-				session.setMaxInactiveInterval(Services.getGlobalSessionTimeout());
-			}
-
-			return session;
-
+			return request.getSession(false);
 		}
 
 		return null;
-
 	}
 
 	public HttpServletRequest getRequest() {
-
 		return request;
-
 	}
 
 	public HttpServletResponse getResponse() {
-
 		return response;
-
 	}
 
 	public String getCachedUserId() {
