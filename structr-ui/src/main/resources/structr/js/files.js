@@ -529,8 +529,8 @@ var _Files = {
 				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
 			}
 
-			_Pager.initPager('filesystem-files', 'FileBase', 1, 25, 'name', 'asc');
-			page['FileBase'] = 1;
+			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
+			page['File'] = 1;
 
 			var filterOptions = {
 				parentId: (parentIsRoot ? '' : id),
@@ -541,9 +541,9 @@ var _Files = {
 				filterOptions.isThumbnail = false;
 			}
 
-			_Pager.initFilters('filesystem-files', 'FileBase', filterOptions);
+			_Pager.initFilters('filesystem-files', 'File', filterOptions);
 
-			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'FileBase', 'public', handleChildren);
+			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'File', 'public', handleChildren);
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -845,7 +845,7 @@ var _Files = {
 		}
 		div.children('.delete_icon').on('click', function(e) {
 			e.stopPropagation();
-			
+
 			selectedElements = $('.node.selected');
 			var selectedCount = selectedElements.length;
 
@@ -980,7 +980,7 @@ var _Files = {
 
 				selectedElements = $('.node.selected');
 				var selectedCount = selectedElements.length;
-				
+
 				if (selectedCount > 1) {
 
 					var files = [];
@@ -988,11 +988,11 @@ var _Files = {
 					$.each(selectedElements, function(i, el) {
 						files.push(Structr.entityFromElement(el));
 					});
-					
+
 					_Entities.deleteNodes(this, files, true, function() {
 						_Files.refreshTree();
 					});
-					
+
 				} else {
 					_Entities.deleteNode(this, d);
 				}
