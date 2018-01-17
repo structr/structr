@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -50,6 +51,7 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.basic.FrontendTest;
 import org.structr.web.basic.ResourceAccessTest;
@@ -1066,6 +1068,30 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 
 			schema.getType("User").addMethod("simpleTest", "log('test')", "test");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		Settings.LogSchemaOutput.setValue(false);
+	}
+
+	@Test
+	public void testViewProperties() {
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addStringProperty("test", PropertyView.Public);
+			type.addViewProperty(PropertyView.Public, "test");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

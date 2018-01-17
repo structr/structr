@@ -130,6 +130,7 @@ public class SchemaHelper {
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
 	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
+	private static final Set<String> basePropertyNames = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
 
 	static {
 
@@ -892,9 +893,13 @@ public class SchemaHelper {
 
 							view.add(SchemaHelper.cleanPropertyName(propertyName + "Property"));
 
-						} else {
+						} else if (basePropertyNames.contains(propertyName)) {
 
 							view.add(SchemaHelper.cleanPropertyName(propertyName));
+
+						} else {
+
+							logger.warn("Unknown property {} in non-graph properties, ignoring.", propertyName);
 						}
 					}
 				}
