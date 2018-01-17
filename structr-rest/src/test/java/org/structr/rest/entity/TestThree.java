@@ -22,7 +22,18 @@ import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.*;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.BooleanArrayProperty;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.ConstantBooleanProperty;
+import org.structr.core.property.DoubleProperty;
+import org.structr.core.property.EnumProperty;
+import org.structr.core.property.ISO8601DateProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.LongProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.rest.common.TestEnum;
 
 /**
@@ -49,6 +60,8 @@ public class TestThree extends AbstractNode {
 	public static final Property<Date>          dateProperty                = new ISO8601DateProperty("dateProperty").indexed().indexedWhenEmpty();
 	public static final Property<TestEnum>      enumProperty                = new EnumProperty("enumProperty", TestEnum.class).indexed();
 	public static final Property<Boolean>       constantBooleanProperty     = new ConstantBooleanProperty("constantBooleanProperty", true);
+
+	public static final Property<TestFive>      oneToOneTestFive            = new StartNode<>("oneToOneTestFive",  FiveThreeOneToOne.class);
 
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
 		name, stringProperty, stringArrayProperty, booleanProperty, booleanArrayProperty, doubleProperty, doubleArrayProperty,

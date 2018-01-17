@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -31,8 +32,11 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.common.StructrRestTest;
+import org.structr.rest.entity.TestFive;
 import org.structr.rest.entity.TestOne;
+import org.structr.rest.entity.TestThree;
 import org.structr.rest.entity.TestUser;
 
 /**
@@ -439,4 +443,86 @@ public class AdvancedPagingTest extends StructrRestTest {
 			.when()
 				.get("/test_ones?deleted=false&sort=name&pageSize=1&page=1");
 	}
+
+	/**
+	 * This tests the scenario that the pagesize is taken into account **before** the filter has been taken into account
+	 * which results in less (or no) results being returned.
+	 */
+	@Test
+	public void testPagingWithPageSizeAndFilterOnRemoteObject() {
+
+		/* Test Setup */
+		final String connectedNodeName    = "Test3-First-Connected";
+		final String notConnectedNodeName = "Test3-Second";
+		TestThree t3_connected            = null;
+		TestThree t3_not_connected        = null;
+		TestFive  t5                      = null;
+
+		try (final Tx tx = app.tx(true, false, false)) {
+
+			t3_connected     = app.create(TestThree.class, connectedNodeName);
+			t3_not_connected = app.create(TestThree.class, notConnectedNodeName);
+
+			final PropertyMap t5Map = new PropertyMap(TestFive.oneToOneTestThree, t3_connected);
+			t5 = app.create(TestFive.class, t5Map);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+		}
+
+		Assert.assertNotNull(t3_connected);
+		Assert.assertNotNull(t3_not_connected);
+		Assert.assertNotNull(t5);
+
+		/* Test 1: Test that we created two TestThrees */
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",				hasSize(2))
+				.body("result_count",		equalTo(2))
+			.when()
+				.get("/test_threes");
+
+		/* Test 2: Test that we created one TestFive */
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",				hasSize(1))
+				.body("result_count",		equalTo(1))
+			.when()
+				.get("/test_fives");
+
+		/* Test 3: Test that we can correctly search for objects **without** a connection to another node */
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",				hasSize(1))
+				.body("result[0].name",		equalTo(notConnectedNodeName))
+				.body("result[0].id",		equalTo(t3_not_connected.getUuid()))
+			.when()
+				.get("/test_threes?oneToOneTestFive=null");
+
+
+		/* Test 4: Test that we can correctly search for objects **without** a connection to another node WHILE also reducing pagesize to 1	*/
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",				hasSize(1))
+				.body("result[0].name",		equalTo(notConnectedNodeName))
+				.body("result[0].id",		equalTo(t3_not_connected.getUuid()))
+			.when()
+				.get("/test_threes?oneToOneTestFive=null&pageSize=1");
+
+	}
+
 }
