@@ -29,6 +29,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -482,8 +483,8 @@ public class AdvancedPagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result",				hasSize(2))
-				.body("result_count",		equalTo(2))
+				.body("result",        hasSize(2))
+				.body("result_count",  equalTo(2))
 			.when()
 				.get("/test_threes");
 
@@ -493,8 +494,8 @@ public class AdvancedPagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result",				hasSize(1))
-				.body("result_count",		equalTo(1))
+				.body("result",       hasSize(1))
+				.body("result_count", equalTo(1))
 			.when()
 				.get("/test_fives");
 
@@ -504,24 +505,34 @@ public class AdvancedPagingTest extends StructrRestTest {
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
-				.body("result",				hasSize(1))
-				.body("result[0].name",		equalTo(notConnectedNodeName))
-				.body("result[0].id",		equalTo(t3_not_connected.getUuid()))
+				.body("result",         hasSize(1))
+				.body("result[0].name", equalTo(notConnectedNodeName))
+				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
 			.when()
 				.get("/test_threes?oneToOneTestFive=null");
 
 
-		/* Test 4: Test that we can correctly search for objects **without** a connection to another node WHILE also reducing pagesize to 1	*/
-		RestAssured
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result",				hasSize(1))
-				.body("result[0].name",		equalTo(notConnectedNodeName))
-				.body("result[0].id",		equalTo(t3_not_connected.getUuid()))
-			.when()
-				.get("/test_threes?oneToOneTestFive=null&pageSize=1");
+		try {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			/* Test 4: Test that we can correctly search for objects **without** a connection to another node WHILE also reducing pagesize to 1	*/
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+					.statusCode(200)
+					.body("result",         hasSize(1))
+					.body("result[0].name", equalTo(notConnectedNodeName))
+					.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
+				.when()
+					.get("/test_threes?oneToOneTestFive=null&pageSize=1");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
 
 	}
 
