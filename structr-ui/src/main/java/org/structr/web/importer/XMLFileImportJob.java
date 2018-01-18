@@ -93,6 +93,9 @@ public class XMLFileImportJob extends FileImportJob {
 			threadContext.setDoTransactionNotifications(false);
 			threadContext.disableEnsureCardinality();
 
+			// experimental: instruct deserialization strategies to set properties on related nodes
+			threadContext.setAttribute("setNestedProperties", true);
+
 			try (final InputStream is = getFileInputStream(threadContext)) {
 
 				try (final Reader reader = new InputStreamReader(is)) {
