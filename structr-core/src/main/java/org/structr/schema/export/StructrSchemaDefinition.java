@@ -193,28 +193,23 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			throw new IllegalStateException("Invalid JSON object for schema definitions, missing value for 'definitions'.");
 		}
 
-		final Object schemaMethodsObject = source.get(JsonSchema.KEY_METHODS);
-		if (schemaMethodsObject != null) {
+		final List<Map<String, Object>> globalSchemaMethods = (List<Map<String, Object>>) source.get(JsonSchema.KEY_METHODS);
+		if (globalSchemaMethods != null) {
 
-			final Set<Map<String, Object>> globalSchemaMethods = new LinkedHashSet<>((List<Map<String, Object>>)schemaMethodsObject);
-			if (globalSchemaMethods != null) {
+			globalMethods.deserialize(globalSchemaMethods);
 
-				globalMethods.deserialize(globalSchemaMethods);
+		} else {
 
-			} else {
+			final String title = "Deprecation warning";
+			final String text = "This schema snapshot was created with an older version of structr. Newer versions contain global schema methods. Re-create the snapshot with the current version to avoid compatibility issues.";
 
-				final String title = "Deprecation warning";
-				final String text = "This schema snapshot was created with an older version of structr. Newer versions contain global schema methods. Re-create the snapshot with the current version to avoid compatibility issues.";
+			final Map<String, Object> deprecationBroadcastData = new TreeMap();
+			deprecationBroadcastData.put("type", "WARNING");
+			deprecationBroadcastData.put("title", title);
+			deprecationBroadcastData.put("text", text);
+			TransactionCommand.simpleBroadcastGenericMessage(deprecationBroadcastData);
 
-				final Map<String, Object> deprecationBroadcastData = new TreeMap();
-				deprecationBroadcastData.put("type", "WARNING");
-				deprecationBroadcastData.put("title", title);
-				deprecationBroadcastData.put("text", text);
-				TransactionCommand.simpleBroadcastGenericMessage(deprecationBroadcastData);
-
-				logger.info(title + ": " + text);
-
-			}
+			logger.info(title + ": " + text);
 		}
 
 		final Object idValue = source.get(JsonSchema.KEY_ID);
