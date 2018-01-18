@@ -60,6 +60,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addStringProperty("sessionData");
 
 		principal.addStringProperty("eMail")
+			.setIndexed(true)
 			.setUnique(true)
 			.addValidator(EMailValidator.class.getName())
 			.addTransformer(LowercaseTransformator.class.getName());

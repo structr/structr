@@ -89,10 +89,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<String>     targetMultiplicity     = new StringProperty("targetMultiplicity");
 	public static final Property<String>     sourceNotion           = new StringProperty("sourceNotion");
 	public static final Property<String>     targetNotion           = new StringProperty("targetNotion");
-	public static final Property<String>     sourceJsonName         = new StringProperty("sourceJsonName");
-	public static final Property<String>     targetJsonName         = new StringProperty("targetJsonName");
-	public static final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName");
-	public static final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName");
+	public static final Property<String>     sourceJsonName         = new StringProperty("sourceJsonName").indexed();
+	public static final Property<String>     targetJsonName         = new StringProperty("targetJsonName").indexed();
+	public static final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName").indexed();
+	public static final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName").indexed();
 	public static final Property<String>     extendsClass           = new StringProperty("extendsClass").indexed();
 	public static final Property<Long>       cascadingDeleteFlag    = new LongProperty("cascadingDeleteFlag");
 	public static final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");

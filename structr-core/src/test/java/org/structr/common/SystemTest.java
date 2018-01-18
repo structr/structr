@@ -652,7 +652,7 @@ public class SystemTest extends StructrTest {
 			app.create(Group.class, "group");
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this)", "");
+			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this, 'read')", "");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

@@ -59,6 +59,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
 import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.rest.common.XMLStructureAnalyzer;
@@ -989,7 +990,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final SecurityContext securityContext = thisFile.getSecurityContext();
 		final CSVFileImportJob job            = new CSVFileImportJob(thisFile, securityContext.getUser(false), config);
 
-		DataImportManager.getInstance().addJob(job);
+		JobQueueManager.getInstance().addJob(job);
 	}
 
 	public static String getXMLStructure(final File thisFile) throws FrameworkException {
@@ -1018,7 +1019,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final SecurityContext securityContext = thisFile.getSecurityContext();
 		final XMLFileImportJob job = new XMLFileImportJob(thisFile, securityContext.getUser(false), config);
 
-		DataImportManager.getInstance().addJob(job);
+		JobQueueManager.getInstance().addJob(job);
 	}
 
 	/**

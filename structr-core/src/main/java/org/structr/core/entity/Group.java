@@ -51,7 +51,7 @@ public interface Group extends Principal {
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
 
 		// make name visible in public view
-		group.addViewProperty(PropertyView.Public, "membersProperty");
+		group.addViewProperty(PropertyView.Public, "members");
 		group.addViewProperty(PropertyView.Public, "name");
 	}}
 
