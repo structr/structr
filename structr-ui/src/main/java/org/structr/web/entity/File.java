@@ -141,7 +141,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.overrideMethod("notifyUploadCompletion",      false, File.class.getName() + ".notifyUploadCompletion(this);");
 		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
 
-		type.overrideMethod("getFileOnDisk",               false, "return " + File.class.getName() + ".getFileOnDisk(this);");
 		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
 		type.overrideMethod("getSearchContext",            false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1);");
 		type.overrideMethod("getJavascriptLibraryCode",    false, "return " + File.class.getName() + ".getJavascriptLibraryCode(this);");
@@ -177,6 +176,15 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
 		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
 		getOutputStream2.setReturnType(FileOutputStream.class.getName());
+
+		type.addMethod("getFileOnDisk")
+			.setReturnType(java.io.File.class.getName())
+			.setSource("return " + File.class.getName() + ".getFileOnDisk(this);");
+
+		type.addMethod("getFileOnDisk")
+			.setReturnType(java.io.File.class.getName())
+			.addParameter("doCreate", "boolean")
+			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);");
 
 		// relationships
 		final JsonObjectType minifiedFile = (JsonObjectType)schema.getType("AbstractMinifiedFile");
@@ -221,7 +229,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	}}
 
-	FileOutputStream getOutputStream();
 	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
 
 	java.io.File getFileOnDisk(final boolean doCreate);
