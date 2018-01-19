@@ -96,7 +96,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
 
-		type.addStringProperty("relativeFilePath", PropertyView.Public);
 		type.addStringProperty("url", PropertyView.Public);
 
 		type.addBooleanProperty("isFile", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
@@ -114,7 +113,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addStringProperty("sha1");
 		type.addStringProperty("sha512");
 
-		type.addPropertyGetter("relativeFilePath", String.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("checksum", Long.class);
 		type.addPropertyGetter("md5", String.class);
@@ -239,8 +237,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	void notifyUploadCompletion();
 	void increaseVersion() throws FrameworkException;
 	void triggerMinificationIfNeeded(final ModificationQueue modificationQueue) throws FrameworkException;
-
-	String getRelativeFilePath();
 
 	void setVersion(final int version) throws FrameworkException;
 	Integer getVersion();
@@ -598,7 +594,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		String filePath = null;
 		try {
-			final String path = thisFile.getRelativeFilePath();
+			final String path = thisFile.getPath();
 			if (path != null) {
 
 				filePath = FileHelper.getFilePath(path);

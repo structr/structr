@@ -53,6 +53,7 @@ import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 
 /**
  * File utility class.
@@ -381,26 +382,35 @@ public class FileHelper {
 	public static void updateMetadata(final File file, final PropertyMap map, final boolean calcChecksums) throws FrameworkException {
 
 		final java.io.File fileOnDisk = file.getFileOnDisk(false);
-		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
-		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
-		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
+		final PropertyKey<Long> fileModificationDate = StructrApp.key(File.class, "fileModificationDate");
+		final PropertyKey<String> contentTypeKey     = StructrApp.key(File.class, "contentType");
+		final PropertyKey<Long> sizeKey              = StructrApp.key(File.class, "size");
 
 		if (fileOnDisk != null && fileOnDisk.exists()) {
 
-			/*
-
-				FIXME
-
 			try {
 
+				String contentType = file.getContentType();
 
-				//map.put(FileBase.fileModificationDate, fileOnDisk.lastModified());
+				// Don't overwrite existing MIME type
+				if (StringUtils.isBlank(contentType)) {
+
+					try {
+
+						contentType = FileHelper.getContentMimeType(file);
+						map.put(contentTypeKey, contentType);
+
+					} catch (IOException ex) {
+						logger.debug("Unable to detect content MIME type", ex);
+					}
+				}
+
+				map.put(fileModificationDate, fileOnDisk.lastModified());
 
 				if (calcChecksums) {
 					map.putAll(getChecksums(file, fileOnDisk));
 				}
 
-				final String contentType = file.getContentType();
 				if (contentType != null) {
 
 					// modify type when image type is detected
@@ -412,7 +422,7 @@ public class FileHelper {
 				long fileSize = FileHelper.getSize(fileOnDisk);
 				if (fileSize > 0) {
 
-					map.put(size, fileSize);
+					map.put(sizeKey, fileSize);
 				}
 
 				file.unlockSystemPropertiesOnce();
@@ -421,8 +431,6 @@ public class FileHelper {
 			} catch (IOException ioex) {
 				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
 			}
-
-			*/
 		}
 	}
 

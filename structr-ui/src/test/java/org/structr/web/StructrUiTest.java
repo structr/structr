@@ -139,7 +139,7 @@ public abstract class StructrUiTest {
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
 
-		Settings.LogSchemaOutput.setValue(true);
+		//Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 
