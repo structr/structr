@@ -73,7 +73,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T transformFile(final SecurityContext securityContext, final String uuid, final Class<T> fileType) throws FrameworkException, IOException {
+	public static <T extends File> T transformFile(final SecurityContext securityContext, final String uuid, final Class<T> fileType) throws FrameworkException, IOException {
 
 		AbstractFile existingFile = getFileByUuid(securityContext, uuid);
 
@@ -104,7 +104,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
+	public static <T extends File> T createFileBase64(final SecurityContext securityContext, final String rawData, final Class<T> t) throws FrameworkException, IOException {
 
 		Base64URIData uriData = new Base64URIData(rawData);
 
@@ -125,7 +125,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
+	public static <T extends File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name)
 			throws FrameworkException, IOException {
 
 		return createFile(securityContext, fileStream, contentType, fileType, name, null);
@@ -146,7 +146,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name, final Folder parentFolder)
+	public static <T extends File> T createFile(final SecurityContext securityContext, final InputStream fileStream, final String contentType, final Class<T> fileType, final String name, final Folder parentFolder)
 		throws FrameworkException, IOException {
 
 		PropertyMap props = new PropertyMap();
@@ -184,7 +184,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name)
+	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t, final String name)
 		throws FrameworkException, IOException {
 
 		PropertyMap props = new PropertyMap();
@@ -213,7 +213,7 @@ public class FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static <T extends org.structr.web.entity.File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t)
+	public static <T extends File> T createFile(final SecurityContext securityContext, final byte[] fileData, final String contentType, final Class<T> t)
 		throws FrameworkException, IOException {
 
 		return createFile(securityContext, fileData, contentType, t, null);
@@ -377,13 +377,14 @@ public class FileHelper {
 	public static void updateMetadata(final File file, final PropertyMap map, final boolean calcChecksums) throws FrameworkException {
 
 		final java.io.File fileOnDisk = file.getFileOnDisk(false);
-		final PropertyKey<Long> fileModificationDate = StructrApp.key(File.class, "fileModificationDate");
-		final PropertyKey<String> contentTypeKey     = StructrApp.key(File.class, "contentType");
-		final PropertyKey<Long> sizeKey              = StructrApp.key(File.class, "size");
 
 		if (fileOnDisk != null && fileOnDisk.exists()) {
 
 			try {
+
+				final PropertyKey<Long> fileModificationDateKey = StructrApp.key(File.class, "fileModificationDate");
+				final PropertyKey<String> contentTypeKey        = StructrApp.key(File.class, "contentType");
+				final PropertyKey<Long> sizeKey                 = StructrApp.key(File.class, "sizeKey");
 
 				String contentType = file.getContentType();
 
@@ -400,7 +401,7 @@ public class FileHelper {
 					}
 				}
 
-				map.put(fileModificationDate, fileOnDisk.lastModified());
+				map.put(fileModificationDateKey, fileOnDisk.lastModified());
 
 				if (calcChecksums) {
 					map.putAll(getChecksums(file, fileOnDisk));

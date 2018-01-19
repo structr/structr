@@ -31,7 +31,6 @@ import org.structr.common.fulltext.Indexable;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
 import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.JavaScriptSource;
@@ -45,7 +44,7 @@ import org.structr.web.property.FileDataProperty;
  *
  *
  */
-public interface File extends NodeInterface, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable, DataSource {
+public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable, DataSource {
 
 	static class Impl { static {
 
