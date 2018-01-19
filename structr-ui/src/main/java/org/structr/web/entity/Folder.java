@@ -18,20 +18,14 @@
  */
 package org.structr.web.entity;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISFolderInfo;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation.Cardinality;
-import org.structr.core.property.PropertyKey;
 import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -39,6 +33,7 @@ import org.structr.schema.json.JsonSchema;
 
 
 public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
+
 
 	static class Impl { static {
 
@@ -101,55 +96,162 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 	Iterable<Image> getImages();
 	Iterable<File> getFiles();
 
-	static void setHasParent(final Folder folder) throws FrameworkException {
+	/*
 
-		synchronized (folder) {
+	private static final Logger logger                                   = LoggerFactory.getLogger(Folder.class);
 
-			// save current security context
-			final SecurityContext previousSecurityContext = folder.getSecurityContext();
-			final PropertyKey<Boolean> hasParentKey       = StructrApp.key(Folder.class, "hasParent");
-			final PropertyKey<String> parentIdKey         = StructrApp.key(Folder.class, "parentId");
+	public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
+	public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
+	public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
+	public static final Property<Boolean>        isFolder                = new ConstantBooleanProperty("isFolder", true);
+	public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
 
-			// replace with SU context
-			folder.setSecurityContext(SecurityContext.getSuperUserInstance());
+	public static final Property<String>         mountTarget             = new StringProperty("mountTarget").indexed();
+	public static final Property<Boolean>        mountDoFulltextIndexing = new BooleanProperty("mountDoFulltextIndexing");
+	public static final Property<Boolean>        mountWatchContents      = new BooleanProperty("mountWatchContents").defaultValue(true);
+	public static final Property<Integer>        mountScanInterval       = new IntProperty("mountScanInterval");
+	public static final Property<Long>           mountLastScanned        = new LongProperty("mountLastScanned");
 
-			// set property as super user
-			folder.setProperty(hasParentKey, folder.getProperty(parentIdKey) != null);
+	public static final Property<String>         enabledChecksums        = new StringProperty("enabledChecksums").indexed().hint("List of checksum types which are being automatically calculated on file creation.\nSupported values are: crc32, md5, sha1, sha512");
 
-			// restore previous security context
-			folder.setSecurityContext(previousSecurityContext);
+	public static final Property<Integer>        position                = new IntProperty("position").cmis().indexed();
+
+	public static final View publicView = new View(Folder.class, PropertyView.Public,
+		id, type, name, owner, isFolder, folders, files, parentId, visibleToPublicUsers, visibleToAuthenticatedUsers,
+		mountTarget, mountDoFulltextIndexing, mountScanInterval, mountLastScanned, enabledChecksums
+	);
+
+	public static final View uiView = new View(Folder.class, PropertyView.Ui,
+		parent, owner, folders, files, images, isFolder, includeInFrontendExport, mountTarget,
+		mountDoFulltextIndexing, mountScanInterval, mountLastScanned, enabledChecksums
+	);
+
+	// register this type as an overridden builtin type
+	static {
+		SchemaService.registerBuiltinTypeOverride("Folder", Folder.class.getName());
+	}
+
+	@Override
+	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (super.onCreation(securityContext, errorBuffer)) {
+
+			setHasParent();
+
+			// only update watch service for root folder of mounted hierarchy
+			if (getProperty(mountTarget) != null || !isMounted()) {
+
+				updateWatchService(true);
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+
+			setHasParent();
+
+			// only update watch service for root folder of mounted hierarchy
+			if (getProperty(mountTarget) != null || !isMounted()) {
+
+				updateWatchService(true);
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+
+		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+
+			// only update watch service for root folder of mounted hierarchy
+			if (properties.get(mountTarget) != null) {
+
+				updateWatchService(false);
+			}
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public void deleteRecursively(final boolean deleteRoot) throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		for (final Folder folder : getProperty(Folder.folders)) {
+			folder.deleteRecursively(true);
+		}
+
+		for (final FileBase file : getProperty(Folder.files)) {
+			app.delete(file);
+		}
+
+		if (deleteRoot) {
+
+			// delete post-ordered
+			app.delete(this);
 		}
 	}
 
-	static Iterable<File> getFiles(final Folder thisFolder) {
-		return Iterables.map(s -> (File)s, Iterables.filter((AbstractFile value) -> value instanceof File, thisFolder.getChildren()));
+	// ----- interface Syncable -----
+	@Override
+	public List<GraphObject> getSyncData() throws FrameworkException {
+
+		final List<GraphObject> data = super.getSyncData();
+
+		// add full folder structure when resource sync is requested
+		//if (state.hasFlag(SyncState.Flag.Images)) {
+
+			data.addAll(getProperty(images));
+			data.addAll(Iterables.toList(getOutgoingRelationships(Images.class)));
+		//}
+
+		// add full folder structure when resource sync is requested
+		//if (state.hasFlag(SyncState.Flag.Files)) {
+
+			data.addAll(getProperty(files));
+			data.addAll(Iterables.toList(getOutgoingRelationships(Files.class)));
+		//}
+
+		// add full folder structure when resource sync is requested
+		//if (state.hasFlag(SyncState.Flag.Folders)) {
+
+			data.addAll(getProperty(folders));
+			data.addAll(Iterables.toList(getOutgoingRelationships(Folders.class)));
+		//}
+
+		// parent only
+		//data.add(getProperty(parent));
+		//data.add(getIncomingRelationship(Folders.class));
+
+		return data;
 	}
 
-	static Iterable<Folder> getFolders(final Folder thisFolder) {
-		return Iterables.map(s -> (Folder)s, Iterables.filter((AbstractFile value) -> value instanceof Folder, thisFolder.getChildren()));
-	}
+	public java.io.File getFileOnDisk(final FileBase file, final String path, final boolean create) {
 
-	static Iterable<Image> getImages(final Folder thisFolder) {
-		return Iterables.map(s -> (Image)s, Iterables.filter((AbstractFile value) -> value instanceof Image, thisFolder.getChildren()));
-	}
+		final Folder parentFolder = getProperty(Folder.parent);
+		final String _mountTarget = getProperty(Folder.mountTarget);
 
-	public static java.io.File getFileOnDisk(final Folder thisFolder, final File file, final String path, final boolean create) {
-
-		final Folder parentFolder = thisFolder.getParent();
-		if (parentFolder != null) {
-
-			return Folder.getFileOnDisk(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, create);
-		}
-
-		final String _mountTarget = thisFolder.getMountTarget();
 		if (_mountTarget != null) {
 
-			final String fullPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getName());
+			final String fullPath         = removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(FileBase.name));
 			final java.io.File fileOnDisk = new java.io.File(fullPath);
 
 			fileOnDisk.getParentFile().mkdirs();
 
-			if (create && !thisFolder.isExternal()) {
+			if (create && !isExternal()) {
 
 				try {
 
@@ -162,33 +264,116 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 			}
 
 			return fileOnDisk;
+
+		} else if (parentFolder != null) {
+
+			return parentFolder.getFileOnDisk(file, getProperty(Folder.name) + "/" + path, create);
 		}
 
 		// default implementation (store in UUID-indexed tree)
-		return AbstractFile.defaultGetFileOnDisk(file, create);
+		return defaultGetFileOnDisk(file, create);
 	}
 
-	static String removeDuplicateSlashes(final String src) {
+	// ----- CMIS support -----
+	@Override
+	public CMISInfo getCMISInfo() {
+		return this;
+	}
+
+	@Override
+	public BaseTypeId getBaseTypeId() {
+		return BaseTypeId.CMIS_FOLDER;
+	}
+
+	@Override
+	public CMISFolderInfo getFolderInfo() {
+		return this;
+	}
+
+	@Override
+	public CMISDocumentInfo getDocumentInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISItemInfo geItemInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISRelationshipInfo getRelationshipInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISPolicyInfo getPolicyInfo() {
+		return null;
+	}
+
+	@Override
+	public CMISSecondaryInfo getSecondaryInfo() {
+		return null;
+	}
+
+	@Override
+	public String getParentId() {
+		return getProperty(FileBase.parentId);
+	}
+
+	@Override
+	public String getPath() {
+		return getProperty(AbstractFile.path);
+	}
+
+	@Override
+	public AllowableActions getAllowableActions() {
+		return StructrFolderActions.getInstance();
+	}
+
+	@Override
+	public String getChangeToken() {
+
+		// versioning not supported yet.
+		return null;
+	}
+
+	// ----- private methods -----
+	private void setHasParent() throws FrameworkException {
+
+		synchronized (this) {
+
+			// save current security context
+			final SecurityContext previousSecurityContext = securityContext;
+
+			// replace with SU context
+			this.securityContext = SecurityContext.getSuperUserInstance();
+
+			// set property as super user
+			setProperties(this.securityContext, new PropertyMap(hasParent, getProperty(parentId) != null));
+
+			// restore previous security context
+			this.securityContext = previousSecurityContext;
+		}
+	}
+
+	private String removeDuplicateSlashes(final String src) {
 		return src.replaceAll("[/]+", "/");
 	}
 
-	public static boolean isMounted(final Folder thisFolder) {
+	private void updateWatchService(final boolean mount) {
 
-		final Folder parent = thisFolder.getParent();
-		if (parent != null) {
+		final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
+		if (service != null && service.isRunning()) {
 
-			return parent.isMounted();
+			if (mount) {
+
+				service.mountFolder(this);
+
+			} else {
+
+				service.unmountFolder(this);
+			}
 		}
-
-		return thisFolder.getMountTarget() != null;
 	}
-
-
-	/*TODO:
-
-		public static final Property<List<Folder>>   folders                 = new EndNodes<>("folders", Folders.class, new PropertySetNotion(id, name));
-		public static final Property<List<FileBase>> files                   = new EndNodes<>("files", Files.class, new PropertySetNotion(id, name));
-		public static final Property<List<Image>>    images                  = new EndNodes<>("images", Images.class, new PropertySetNotion(id, name));
-		public static final Property<User>           homeFolderOfUser        = new StartNode<>("homeFolderOfUser", UserHomeDir.class);
 	*/
 }
