@@ -23,8 +23,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -277,16 +275,14 @@ public class FileHelper {
 	 */
 	public static void setFileProperties (final File file, final String contentType) throws IOException, FrameworkException {
 
-		final java.io.File fileOnDisk            = file.getFileOnDisk(false);
-		final PropertyMap map                    = new PropertyMap();
-		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
-		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
-		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
+		final java.io.File fileOnDisk = file.getFileOnDisk(false);
+		final PropertyMap map         = new PropertyMap();
+
+		map.put(StructrApp.key(File.class, "contentType"), contentType != null ? contentType : FileHelper.getContentMimeType(fileOnDisk, file.getProperty(File.name)));
+		map.put(StructrApp.key(File.class, "size"),        FileHelper.getSize(fileOnDisk));
+		map.put(StructrApp.key(File.class, "version"),     1);
 
 		map.putAll(getChecksums(file, fileOnDisk));
-		map.put(contentTypeKey, contentType != null ? contentType : getContentMimeType(file));
-		map.put(sizeKey,        FileHelper.getSize(file));
-		map.put(versionKey,     1);
 
 		file.setProperties(file.getSecurityContext(), map);
 	}
@@ -359,7 +355,6 @@ public class FileHelper {
 
 		return propreriesWithChecksums;
 	}
-
 	/**
 	 * Update checksums, content type, size and additional properties of the given file
 	 *
@@ -397,7 +392,7 @@ public class FileHelper {
 
 					try {
 
-						contentType = FileHelper.getContentMimeType(file);
+						contentType = getContentMimeType(file);
 						map.put(contentTypeKey, contentType);
 
 					} catch (IOException ex) {
@@ -415,7 +410,7 @@ public class FileHelper {
 
 					// modify type when image type is detected
 					if (contentType.startsWith("image/")) {
-						map.put(AbstractNode.type, Image.class.getSimpleName());
+						map.put(File.type, Image.class.getSimpleName());
 					}
 				}
 
@@ -507,14 +502,15 @@ public class FileHelper {
 		}
 	}
 
-	public static java.io.File getFile(final File file) {
-		return new java.io.File(getFilePath(file.getRelativeFilePath()));
-	}
-
-	public static Path getPath(final File file) {
-		return Paths.get(getFilePath(file.getRelativeFilePath()));
-	}
-
+	/**
+	 * Write binary data from byte[] to a file and reference the file on disk at the
+	 * given file node
+	 *
+	 * @param fileNode
+	 * @param data
+	 * @throws FrameworkException
+	 * @throws IOException
+	 */
 	public static void writeToFile(final File fileNode, final byte[] data) throws FrameworkException, IOException {
 
 		setFileProperties(fileNode);
@@ -566,94 +562,22 @@ public class FileHelper {
 
 		// try name first, if not null
 		if (name != null) {
-
 			mimeType = mimeTypeMap.getContentType(name);
 			if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
 				return mimeType;
 			}
 		}
 
-		try {
+		final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
 
-			final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
-			mimeType = mediaType.toString();
+		mimeType = mediaType.toString();
+		if (mimeType != null) {
 
-			if (mimeType != null) {
-				return mimeType;
-			}
-
-		} catch (Throwable t) {
-			logger.warn("Unable to use DefaultDetector from Apache Tika: {}", t.getMessage());
+			return mimeType;
 		}
 
 		// no success :(
 		return UNKNOWN_MIME_TYPE;
-	}
-
-	/**
-	 * Calculate CRC32 checksum of given file
-	 *
-	 * @param file
-	 * @return checksum
-	 */
-	public static Long getChecksum(final File file) {
-
-		String relativeFilePath = file.getRelativeFilePath();
-
-		if (relativeFilePath != null) {
-
-			try {
-
-				String filePath = getFilePath(relativeFilePath);
-
-				return getChecksum(new java.io.File(filePath));
-
-			} catch (IOException ex) {
-
-				logger.warn("Could not calculate checksum of file {}: {}", relativeFilePath, ex.getMessage());
-			}
-		}
-
-		return null;
-	}
-
-	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
-		return FileUtils.checksumCRC32(fileOnDisk);
-	}
-
-	/**
-	 * Return size of file on disk, or -1 if not possible
-	 *
-	 * @param file
-	 * @return size
-	 */
-	public static long getSize(final File file) {
-
-		String path = file.getRelativeFilePath();
-
-		if (path != null) {
-
-			String filePath = getFilePath(path);
-
-			try {
-
-				java.io.File fileOnDisk = new java.io.File(filePath);
-				long fileSize = fileOnDisk.length();
-
-				logger.debug("File size of node {} ({}): {}", new Object[]{file.getUuid(), filePath, fileSize});
-
-				return fileSize;
-
-			} catch (Exception ex) {
-
-				logger.warn("Could not calculate file size of file {}: {}", filePath, ex);
-
-			}
-
-		}
-
-		return -1;
-
 	}
 
 	/**
@@ -669,11 +593,7 @@ public class FileHelper {
 
 		try {
 
-			final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
-
-			return StructrApp.getInstance(securityContext)
-				.nodeQuery(AbstractFile.class)
-				.and(pathKey, absolutePath).getFirst();
+			return StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "path"), absolutePath).getFirst();
 
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();
@@ -725,12 +645,11 @@ public class FileHelper {
 		logger.debug("Search for file with name: {}", name);
 
 		try {
-			final List<AbstractFile> files      = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
-			final PropertyKey<String> parentKey = StructrApp.key(AbstractFile.class, "parent");
+			final List<AbstractFile> files = StructrApp.getInstance(securityContext).nodeQuery(AbstractFile.class).andName(name).getAsList();
 
 			for (final AbstractFile file : files) {
 
-				if (file.getProperty(parentKey) == null) {
+				if (file.getParent() == null) {
 					return file;
 				}
 
@@ -742,47 +661,6 @@ public class FileHelper {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Return the virtual folder path of any
-	 * {@link File} or
-	 * {@link org.structr.web.entity.Folder}
-	 *
-	 * @param file
-	 * @return path
-	 */
-	public static String getFolderPath(final AbstractFile file) {
-
-		Folder parentFolder = file.getParent();
-		String folderPath   = file.getProperty(AbstractFile.name);
-
-		if (folderPath == null) {
-			folderPath = file.getProperty(GraphObject.id);
-		}
-
-		while (parentFolder != null) {
-
-			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
-			parentFolder = parentFolder.getParent();
-		}
-
-		return "/".concat(folderPath);
-	}
-
-	public static String getFilePath(final String... pathParts) {
-
-		final String filePath          = Settings.FilesPath.getValue();
-		final StringBuilder returnPath = new StringBuilder();
-
-		returnPath.append(filePath);
-		returnPath.append(filePath.endsWith("/") ? "" : "/");
-
-		for (String pathPart : pathParts) {
-			returnPath.append(pathPart);
-		}
-
-		return returnPath.toString();
 	}
 
 	/**
@@ -845,6 +723,10 @@ public class FileHelper {
 
 	public static String getDateString() {
 		return new SimpleDateFormat("yyyy-MM-dd-HHmmssSSS").format(new Date());
+	}
+
+	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
+		return FileUtils.checksumCRC32(fileOnDisk);
 	}
 
 	public static String getMD5Checksum(final File file) {

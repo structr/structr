@@ -75,6 +75,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
 		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
 		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
+		type.overrideMethod("getFolderPath",               false, "return " + AbstractFile.class.getName() + ".getFolderPath(this);");
 		type.overrideMethod("validatePath",                false, "return " + AbstractFile.class.getName() + ".validatePath(this, arg0, arg1);");
 		type.overrideMethod("validateAndRenameFileOnce",   false, "return " + AbstractFile.class.getName() + ".validateAndRenameFileOnce(this, arg0, arg1);");
 		type.overrideMethod("includeInFrontendExport",     false, "return " + AbstractFile.class.getName() + ".includeInFrontendExport(this);");
@@ -94,6 +95,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		parentRel.addIntegerProperty("position");
 	}}
 
+	String getFolderPath();
 	String getPath();
 
 	Folder getParent();
