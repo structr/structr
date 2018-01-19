@@ -143,7 +143,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (File)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
 
 						} else {
-							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getFolderPath(), positionString);
+							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
 						}
 					}
 

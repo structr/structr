@@ -144,11 +144,11 @@ public class IncludeFunction extends Function<Object, Object> {
 
 					if (contentType.startsWith("text/css")) {
 
-						return "<link href=\"" + file.getFolderPath() + "\" rel=\"stylesheet\">";
+						return "<link href=\"" + file.getPath() + "\" rel=\"stylesheet\">";
 
 					} else if (contentType.contains("/javascript")) {
 
-						return "<script src=\"" + file.getFolderPath() + "\"></script>";
+						return "<script src=\"" + file.getPath() + "\"></script>";
 
 					} else if (contentType.startsWith("image/svg")) {
 
@@ -165,11 +165,11 @@ public class IncludeFunction extends Function<Object, Object> {
 
 						}
 
-						return "<img alt=\"" + name + "\" src=\"" + file.getFolderPath() + "\">";
+						return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
 
 					} else if (contentType.startsWith("image/")) {
 
-						return "<img alt=\"" + name + "\" src=\"" + file.getFolderPath() + "\">";
+						return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
 
 					} else {
 

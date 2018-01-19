@@ -51,7 +51,7 @@ abstract class FileImportJob extends ScheduledJob {
 		super(file.getUuid(), user, configuration);
 
 		this.fileUuid = file.getUuid();
-		this.filePath = file.getFolderPath();
+		this.filePath = file.getPath();
 		this.fileName = file.getName();
 		this.fileSize = file.getSize();
 	}

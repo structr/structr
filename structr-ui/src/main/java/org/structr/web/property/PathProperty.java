@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.AbstractReadOnlyProperty;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
@@ -80,8 +81,7 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		if (obj instanceof AbstractFile) {
 
-			final AbstractFile file = (AbstractFile)obj;
-			return file.getPath();
+			return FileHelper.getFolderPath((AbstractFile)obj);
 		}
 
 		return null;
@@ -102,7 +102,6 @@ public class PathProperty extends AbstractReadOnlyProperty<String> {
 
 		final App app                    = StructrApp.getInstance(securityContext);
 		final SourceSearchAttribute attr = new SourceSearchAttribute(occur);
-		final Query<AbstractFile> q      = app.nodeQuery(AbstractFile.class).and(AbstractFile.name, PathHelper.getName(searchValue));
 
 		try {
 

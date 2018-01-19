@@ -26,7 +26,7 @@ public interface CMISDocumentInfo extends CMISObjectInfo {
 	public String getChangeToken();
 	public String getContentType();
 	public String getParentId();
-	public String getFolderPath();
+	public String getPath();
 
 	public Long getSize();
 
