@@ -446,7 +446,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static InputStream getInputStream(final File thisFile) {
 
-		final java.io.File fileOnDisk = thisFile.getFileOnDisk(false);
+		final java.io.File fileOnDisk = thisFile.getFileOnDisk();
 
 		try {
 
