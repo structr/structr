@@ -29,6 +29,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
@@ -41,7 +42,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.property.PathProperty;
 
 /**
- * Base class for filesystem objects in Structr.
+ * Base class for filesystem objects in structr.
  */
 public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
@@ -68,6 +69,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
 
+		type.addPropertySetter("hasParent", Boolean.TYPE);
+
 		type.overrideMethod("getPositionProperty",         false, "return FolderCONTAINSAbstractFile.positionProperty;");
 
 		type.overrideMethod("onCreation",                  true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validateAndRenameFileOnce(arg0, arg1); }");
@@ -75,6 +78,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
 		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
 		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
+		type.overrideMethod("isBinaryDataAccessible",      false, "return !isExternal() || isMounted();").setDoExport(true);
+		type.overrideMethod("isMounted",                   false, "return " + AbstractFile.class.getName() + ".isMounted(this);");
 		type.overrideMethod("getFolderPath",               false, "return " + AbstractFile.class.getName() + ".getFolderPath(this);");
 		type.overrideMethod("validatePath",                false, "return " + AbstractFile.class.getName() + ".validatePath(this, arg0, arg1);");
 		type.overrideMethod("validateAndRenameFileOnce",   false, "return " + AbstractFile.class.getName() + ".validateAndRenameFileOnce(this, arg0, arg1);");
@@ -95,81 +100,40 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		parentRel.addIntegerProperty("position");
 	}}
 
-	String getFolderPath();
-	String getPath();
-
+	void setParent(final Folder parent) throws FrameworkException;
+	void setHasParent(final boolean hasParent) throws FrameworkException;
 	Folder getParent();
-	boolean getHasParent();
-	void setParent(final Folder folder) throws FrameworkException;
 
-	boolean isExternal();
+	String getPath();
+	String getFolderPath();
+
 	boolean isMounted();
+	boolean isExternal();
+	boolean getHasParent();
+	boolean isBinaryDataAccessible();
 	boolean includeInFrontendExport();
+
 	boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 	boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 
-	public static String getFolderPath(final AbstractFile thisFile) {
-
-		Folder parentFolder = thisFile.getParent();
-		String folderPath   = thisFile.getName();
-
-		if (folderPath == null) {
-			folderPath = thisFile.getUuid();
-		}
-
-		while (parentFolder != null) {
-
-			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
-			parentFolder = parentFolder.getParent();
-		}
-
-		return "/".concat(folderPath);
-	}
-
-	public static String getDirectoryPath(final String uuid) {
-
-		return (uuid != null)
-			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
-			: null;
-	}
-
-	public static java.io.File defaultGetFileOnDisk(final AbstractFile fileBase, final boolean create) {
-
-		final String uuid       = fileBase.getUuid();
-		final String filePath   = Settings.FilesPath.getValue();
-		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
-		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
-
-		// create parent directory tree
-		file.getParentFile().mkdirs();
-
-		// create file only if requested
-		if (create && !file.exists() && !fileBase.isExternal()) {
-
-			try {
-
-				file.createNewFile();
-
-			} catch (IOException ioex) {
-
-				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
-			}
-		}
-
-		return file;
-	}
-
 	/*
-	//public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);
-	//public static final Property<List<AbstractFile>> children      = new EndNodes<>("children", FileChildren.class);
-	//public static final Property<AbstractFile> previousSibling     = new StartNode<>("previousSibling", FileSiblings.class);
-	//public static final Property<AbstractFile> nextSibling         = new EndNode<>("nextSibling", FileSiblings.class);
-	//public static final Property<List<String>> childrenIds         = new CollectionIdProperty("childrenIds", children);
-	//public static final Property<String> nextSiblingId             = new EntityIdProperty("nextSiblingId", nextSibling);
-	//public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
-	//public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
-	//public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
-	//public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
+	private static final Logger logger = LoggerFactory.getLogger(AbstractFile.class.getName());
+
+	public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);
+	public static final Property<List<AbstractFile>> children      = new EndNodes<>("children", FileChildren.class);
+	public static final Property<AbstractFile> previousSibling     = new StartNode<>("previousSibling", FileSiblings.class);
+	public static final Property<AbstractFile> nextSibling         = new EndNode<>("nextSibling", FileSiblings.class);
+	public static final Property<List<String>> childrenIds         = new CollectionIdProperty("childrenIds", children);
+	public static final Property<String> nextSiblingId             = new EntityIdProperty("nextSiblingId", nextSibling);
+	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
+	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
+	public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
+
+	public static final Property<Long> lastSeenMounted             = new LongProperty("lastSeenMounted");
+	public static final Property<Boolean> isExternal               = new BooleanProperty("isExternal").writeOnce();
+	public static final Property<Boolean> isMounted                = new MethodCallProperty<>("isMounted", AbstractFile.class, "isMounted");
+
+	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
 
 	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public,
 		path, isExternal, isMounted, lastSeenMounted
@@ -204,10 +168,10 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	}
 	*/
 
-	public static boolean validatePath(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	static boolean validatePath(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final PropertyKey<String> pathKey = StructrApp.key(File.class, "path");
-		final String filePath             = thisFile.getPath();
+		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
+		final String filePath             = thisFile.getProperty(pathKey);
 
 		if (filePath != null) {
 
@@ -232,16 +196,17 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		return true;
 	}
 
-	public static boolean validateAndRenameFileOnce(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	static boolean validateAndRenameFileOnce(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		boolean valid = thisFile.validatePath(securityContext, null);
+		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
+		boolean valid                     = thisFile.validatePath(securityContext, null);
 
 		if (!valid) {
 
-			final String originalPath = thisFile.getPath();
+			final String originalPath = thisFile.getProperty(pathKey);
 			final String newName      = thisFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
 
-			thisFile.setProperty(AbstractFile.name, newName);
+			thisFile.setProperty(AbstractNode.name, newName);
 
 			valid = thisFile.validatePath(securityContext, errorBuffer);
 
@@ -254,35 +219,30 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		}
 
 		return valid;
+
 	}
 
-	/*
+	static String getFolderPath(final AbstractFile thisFile) {
 
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+		Folder parentFolder = thisFile.getParent();
+		String folderPath   = thisFile.getProperty(AbstractFile.name);
 
-		boolean valid = super.isValid(errorBuffer);
+		if (folderPath == null) {
+			folderPath = thisFile.getUuid();
+		}
 
-		valid &= nonEmpty(AbstractFile.name, errorBuffer);
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[^\\/\\x00]+", errorBuffer);
+		while (parentFolder != null) {
 
-		return valid;
+			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
+			parentFolder = parentFolder.getParent();
+		}
+
+		return "/".concat(folderPath);
 	}
 
-	@Override
-	public Class<FileChildren> getChildLinkType() {
-		return FileChildren.class;
-	}
+	static boolean includeInFrontendExport(final AbstractFile thisFile) {
 
-	@Override
-	public Class<FileSiblings> getSiblingLinkType() {
-		return FileSiblings.class;
-	}
-	*/
-
-	public static boolean includeInFrontendExport(final AbstractFile thisFile) {
-
-		if (thisFile.getProperty(StructrApp.key(AbstractFile.class, "includeInFrontendExport"))) {
+		if (thisFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport"))) {
 
 			return true;
 		}
@@ -296,4 +256,114 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		return false;
 	}
+
+	static boolean isMounted(final AbstractFile thisFile) {
+
+		if (thisFile.getProperty(StructrApp.key(Folder.class, "mountTarget")) != null) {
+			return true;
+		}
+
+		final Folder parent = thisFile.getParent();
+		if (parent != null) {
+
+			return parent.isMounted();
+		}
+
+		return false;
+	}
+
+	// ----- protected methods -----
+	static java.io.File defaultGetFileOnDisk(final File fileBase, final boolean create) {
+
+		final String uuid       = fileBase.getUuid();
+		final String filePath   = Settings.FilesPath.getValue();
+		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
+		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
+
+		// create parent directory tree
+		file.getParentFile().mkdirs();
+
+		// create file only if requested
+		if (create && !file.exists() && !fileBase.isExternal()) {
+
+			try {
+
+				file.createNewFile();
+
+			} catch (IOException ioex) {
+
+				logger.error("Unable to create file {}: {}", file, ioex.getMessage());
+			}
+		}
+
+		return file;
+	}
+
+	static String getDirectoryPath(final String uuid) {
+
+		return (uuid != null)
+			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			: null;
+
+	}
+
+	/*
+	// ----- nested classes -----
+	private static class MethodCallProperty<T> extends AbstractReadOnlyProperty<T> {
+
+		private Method method = null;
+
+		public MethodCallProperty(final String name, final Class type, final String methodName) {
+
+			super(name);
+
+			try {
+
+				this.method = type.getDeclaredMethod(methodName);
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		@Override
+		public Class valueType() {
+			return Boolean.class;
+		}
+
+		@Override
+		public Class relatedType() {
+			return null;
+		}
+
+		@Override
+		public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+			return getProperty(securityContext, obj, applyConverter, null);
+		}
+
+		@Override
+		public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+
+			try {
+
+				return (T)method.invoke(obj);
+
+			} catch (Throwable t) {
+				logger.warn("Unable to call method {}: {}", method.getName(), t.getMessage());
+			}
+
+			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+
+		@Override
+		public SortType getSortType() {
+			return SortType.Default;
+		}
+	}
+	*/
 }

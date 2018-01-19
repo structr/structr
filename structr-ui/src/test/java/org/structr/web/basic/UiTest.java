@@ -346,7 +346,7 @@ public class UiTest extends StructrUiTest {
 			assertEquals(file1.getPath(), "/file1");
 
 			file1.setProperty(StructrApp.key(File.class, "parent"), folder1);
-			assertEquals(FileHelper.getPath(file1), "/folder1/file1");
+			assertEquals(file1.getPath(), "/folder1/file1");
 
 			tx.success();
 
@@ -361,7 +361,7 @@ public class UiTest extends StructrUiTest {
 			assertEquals(image1.getPath(), "/image1");
 
 			image1.setProperty(StructrApp.key(File.class, "parent"), folder1);
-			assertEquals(FileHelper.getPath(image1), "/folder1/image1");
+			assertEquals(image1.getPath(), "/folder1/image1");
 
 			tx.success();
 

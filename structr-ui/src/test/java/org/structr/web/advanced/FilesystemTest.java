@@ -51,6 +51,7 @@ public class FilesystemTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

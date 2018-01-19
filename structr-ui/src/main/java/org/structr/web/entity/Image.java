@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -174,13 +174,11 @@ public interface Image extends File {
 	public static Object setProperty(final Image thisImage, final PropertyKey key, final Object value) throws FrameworkException {
 
 		// Copy visibility properties and owner to all thumbnails
-		if (visibleToPublicUsers.equals(key) ||
-			visibleToAuthenticatedUsers.equals(key) ||
-			owner.equals(key)) {
+		if (visibleToPublicUsers.equals(key) || visibleToAuthenticatedUsers.equals(key) || owner.equals(key)) {
 
 			for (Image tn : thisImage.getThumbnails()) {
 
-				if (!tn.getUuid().equals(getUuid())) {
+				if (!tn.getUuid().equals(thisImage.getUuid())) {
 
 					tn.setProperty(key, value);
 				}
@@ -198,9 +196,7 @@ public interface Image extends File {
 
 			for (final PropertyKey key : properties.keySet()) {
 
-					if (visibleToPublicUsers.equals(key) ||
-						visibleToAuthenticatedUsers.equals(key) ||
-						owner.equals(key)) {
+					if (visibleToPublicUsers.equals(key) || visibleToAuthenticatedUsers.equals(key) || owner.equals(key)) {
 
 						propertiesCopiedToAllThumbnails.put(key, properties.get(key));
 					}
@@ -212,7 +208,7 @@ public interface Image extends File {
 
 				for (Image tn : thumbnails) {
 
-					if (!tn.getUuid().equals(getUuid())) {
+					if (!tn.getUuid().equals(thisImage.getUuid())) {
 
 						tn.setProperties(tn.getSecurityContext(), propertiesCopiedToAllThumbnails);
 					}
@@ -317,16 +313,22 @@ public interface Image extends File {
 		final Integer origWidth                         = originalImage.getWidth();
 		final Integer origHeight                        = originalImage.getHeight();
 		final Long currentChecksum                      = originalImage.getChecksum();
-		final Long newChecksum;
+		Long newChecksum                                = 0L;
 
 		if (currentChecksum == null || currentChecksum == 0) {
 
-			newChecksum = FileHelper.getChecksum(originalImage);
+			try {
 
-			if (newChecksum == null || newChecksum == 0) {
+				newChecksum = FileHelper.getChecksum(originalImage.getFileOnDisk());
 
-				logger.debug("Unable to create scaled image, file {} is not ready.", originalImage.getName());
-				return null;
+				if (newChecksum == null || newChecksum == 0) {
+
+					logger.warn("Unable to calculate checksum of {}", originalImage.getName());
+					return null;
+				}
+
+			} catch (IOException ex) {
+				logger.warn("Unable to calculate checksum of {}: {}", originalImage.getName(), ex.getMessage());
 			}
 
 		} else {

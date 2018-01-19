@@ -384,7 +384,7 @@ public class FileHelper {
 
 				final PropertyKey<Long> fileModificationDateKey = StructrApp.key(File.class, "fileModificationDate");
 				final PropertyKey<String> contentTypeKey        = StructrApp.key(File.class, "contentType");
-				final PropertyKey<Long> sizeKey                 = StructrApp.key(File.class, "sizeKey");
+				final PropertyKey<Long> sizeKey                 = StructrApp.key(File.class, "size");
 
 				String contentType = file.getContentType();
 
