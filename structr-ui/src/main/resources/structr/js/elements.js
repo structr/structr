@@ -252,7 +252,7 @@ var _Elements = {
 		thead    : [ "tr" ],
 		tbody    : [ "tr" ],
 		tfoot    : [ "tr" ],
-		tr       : ["th", "td" ],
+		tr       : [ "th", "td" ],
 		ul       : [ "li" ],
 		ol       : [ "li" ],
 		dir      : [ "li" ],
@@ -1122,7 +1122,7 @@ var _Elements = {
 				{
 					name: 'Access Control and Visibility',
 					clickHandler: function() {
-						_Entities.showAccessControlDialog(entity.id);
+						_Entities.showAccessControlDialog(entity);
 						return false;
 					}
 				},
