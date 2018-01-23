@@ -113,7 +113,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result", Matchers.hasSize(45))
+					.body("result", Matchers.hasSize(49))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 
 				.when()
@@ -144,7 +144,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result", Matchers.hasSize(59))
+					.body("result", Matchers.hasSize(63))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 
 				.when()
@@ -234,7 +234,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	hasSize(46))
+					.body("result",	hasSize(50))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", "File"))))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
@@ -326,7 +326,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	hasSize(60))
+					.body("result",	hasSize(64))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", "File"))))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 

@@ -484,7 +484,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return fis;
 
 		} catch (IOException ex) {
-			logger.warn("File not found: {}", fileOnDisk);
+			logger.warn("Unable to open input stream for {}: {}", fileOnDisk.getPath(), ex.getMessage());
 		}
 
 		return null;

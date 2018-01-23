@@ -77,6 +77,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted1"),
+				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
 			);
 
@@ -147,6 +148,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted2"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent2),
+				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
 			);
 
@@ -221,6 +223,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
+				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), root.toString())
 				);
 

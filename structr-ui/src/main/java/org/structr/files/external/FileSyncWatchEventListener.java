@@ -177,8 +177,8 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		void handle() throws FrameworkException {
 
-			final PropertyKey<Boolean> doFulltextIndexing = StructrApp.key(AbstractFile.class, "mountDoFulltextIndexing");
-			final PropertyKey<Long> lastSeenMounted       = StructrApp.key(AbstractFile.class, "mountDoFulltextIndexing");
+			final PropertyKey<Boolean> doFulltextIndexing = StructrApp.key(Folder.class, "mountDoFulltextIndexing");
+			final PropertyKey<Long> lastSeenMounted       = StructrApp.key(AbstractFile.class, "lastSeenMounted");
 
 			if (file instanceof File) {
 

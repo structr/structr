@@ -180,16 +180,12 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 	public static java.io.File getFileOnDisk(final Folder thisFolder, final File file, final String path, final boolean create) {
 
-		final Folder parentFolder = thisFolder.getParent();
-		if (parentFolder != null) {
-
-			return Folder.getFileOnDisk(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, create);
-		}
-
 		final String _mountTarget = thisFolder.getMountTarget();
+		final Folder parentFolder = thisFolder.getParent();
+
 		if (_mountTarget != null) {
 
-			final String fullPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getName());
+			final String fullPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(File.name));
 			final java.io.File fileOnDisk = new java.io.File(fullPath);
 
 			fileOnDisk.getParentFile().mkdirs();
@@ -207,6 +203,10 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 			}
 
 			return fileOnDisk;
+
+		} else if (parentFolder != null) {
+
+			return parentFolder.getFileOnDisk(file, thisFolder.getProperty(Folder.name) + "/" + path, create);
 		}
 
 		// default implementation (store in UUID-indexed tree)

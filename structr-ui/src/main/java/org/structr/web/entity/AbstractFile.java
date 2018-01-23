@@ -74,7 +74,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.overrideMethod("getPositionProperty",         false, "return FolderCONTAINSAbstractFile.positionProperty;");
 
 		type.overrideMethod("onCreation",                  true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validateAndRenameFileOnce(arg0, arg1); }");
-		type.overrideMethod("onModification",              true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validatePath(arg0, arg1); }");
+		type.overrideMethod("onModification",              true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validateAndRenameFileOnce(arg0, arg1); }");
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
 		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
 		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
@@ -284,7 +284,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		file.getParentFile().mkdirs();
 
 		// create file only if requested
-		if (create && !file.exists() && !fileBase.isExternal()) {
+		if (!file.exists() && create && !fileBase.isExternal()) {
 
 			try {
 

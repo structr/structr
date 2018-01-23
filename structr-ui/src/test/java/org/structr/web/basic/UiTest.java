@@ -557,7 +557,7 @@ public class UiTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.error("", ex);
+			ex.printStackTrace();
 		}
 
 		assertNotEquals(file1.getName(), file2.getName());
