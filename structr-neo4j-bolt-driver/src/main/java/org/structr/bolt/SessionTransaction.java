@@ -142,6 +142,46 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		this.closed = closed;
 	}
 
+	public boolean getBoolean(final String statement) {
+
+		final long t0 = System.currentTimeMillis();
+
+		try {
+
+			return getBoolean(statement, Collections.EMPTY_MAP);
+
+		} catch (TransientException tex) {
+			closed = true;
+			throw new RetryException(tex);
+		} catch (NoSuchRecordException nex) {
+			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
+		} finally {
+			logQuery(statement, t0);
+		}
+	}
+
+	public boolean getBoolean(final String statement, final Map<String, Object> map) {
+
+		final long t0 = System.currentTimeMillis();
+
+		try {
+
+			return tx.run(statement, map).next().get(0).asBoolean();
+
+		} catch (TransientException tex) {
+			closed = true;
+			throw new RetryException(tex);
+		} catch (NoSuchRecordException nex) {
+			throw new NotFoundException(nex);
+		} catch (ServiceUnavailableException ex) {
+			throw new NetworkException(ex.getMessage(), ex);
+		} finally {
+			logQuery(statement, map, t0);
+		}
+	}	
+	
 	public long getLong(final String statement) {
 
 		final long t0 = System.currentTimeMillis();
