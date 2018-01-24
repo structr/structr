@@ -113,7 +113,8 @@ public class FileBase extends AbstractFile implements Indexable, Linkable, JavaS
 	public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
 	public static final Property<Boolean> isTemplate                             = new BooleanProperty("isTemplate");
 
-	public static final Property<Long> checksum                                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
+	public static final Property<Long> checksum                                  = new LongProperty("checksum").unvalidated().systemInternal().readOnly();
+	public static final Property<Long> crc32                                     = new LongProperty("crc32").unvalidated().systemInternal().readOnly();
 	public static final Property<String> md5                                     = new StringProperty("md5").unvalidated().systemInternal().readOnly();
 	public static final Property<String> sha1                                    = new StringProperty("sha1").unvalidated().systemInternal().readOnly();
 	public static final Property<String> sha512                                  = new StringProperty("sha512").unvalidated().systemInternal().readOnly();

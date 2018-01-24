@@ -124,7 +124,7 @@ public class Settings {
 	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",               false);
 	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",              false);
 	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",         true);
-	public static final Setting<String> DefaultChecksums      = new StringSetting(applicationGroup,  "Filesystem", "application.filesystem.checksums.default",    "md5", "List of checksums to be calculated on file creation by default.");
+	public static final Setting<String> DefaultChecksums      = new StringSetting(applicationGroup,  "Filesystem", "application.filesystem.checksums.default",    "", "List of checksums to be calculated on file creation by default.");
 	public static final Setting<Integer> IndexingMaxFileSize  = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxsize",     10);
 	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",       50000);
 	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength",   3);
