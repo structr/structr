@@ -465,8 +465,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			if (map != null && map.size() > 0) {
 
 				System.out.print(StringUtils.leftPad(log, 5) + " ");
-				System.out.println(statement + "\t\t Parameters: " + map.toString());
-
+				if (statement.contains("extractedContent")) {
+					System.out.println(statement + "\t\t SET on extractedContent - value suppressed");
+				} else {
+					System.out.println(statement + "\t\t Parameters: " + map.toString());
+				}
 			} else {
 
 				System.out.print(StringUtils.leftPad(log, 5) + " ");
