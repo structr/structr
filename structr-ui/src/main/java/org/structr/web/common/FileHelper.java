@@ -339,22 +339,22 @@ public class FileHelper {
 		}
 
 		// New, very fast xxHash default checksum, will always be calculated
-		propertiesWithChecksums.put(FileBase.checksum, FileHelper.getChecksum(fileOnDisk));
+		propertiesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(fileOnDisk));
 
 		if (StringUtils.contains(checksums, "crc32"))	{
-			propreriesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(fileOnDisk));
+			propertiesWithChecksums.put(StructrApp.key(File.class, "crc32"), FileHelper.getChecksum(fileOnDisk));
 		}
 
 		if (StringUtils.contains(checksums, "md5"))	{
-			propreriesWithChecksums.put(StructrApp.key(File.class, "md5"), FileHelper.getMD5Checksum(file));
+			propertiesWithChecksums.put(StructrApp.key(File.class, "md5"), FileHelper.getMD5Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha1"))	{
-			propreriesWithChecksums.put(StructrApp.key(File.class, "sha1"), FileHelper.getSHA1Checksum(file));
+			propertiesWithChecksums.put(StructrApp.key(File.class, "sha1"), FileHelper.getSHA1Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "sha512"))	{
-			propreriesWithChecksums.put(StructrApp.key(File.class, "sha512"), FileHelper.getSHA512Checksum(file));
+			propertiesWithChecksums.put(StructrApp.key(File.class, "sha512"), FileHelper.getSHA512Checksum(file));
 		}
 
 		return propertiesWithChecksums;

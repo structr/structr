@@ -30,17 +30,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Test access control based on custom queries.
- *
  */
 public class CustomPermissionQueriesTest extends StructrTest {
 
@@ -49,16 +43,14 @@ public class CustomPermissionQueriesTest extends StructrTest {
 	@Test
 	public void test01SimplePermissionResolutionRead() {
 
-		SchemaRelationshipNode rel = null;
-		PropertyKey key            = null;
-		TestUser user1             = null;
-		Class type1                = null;
-		Class type2                = null;
+		final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+		Principal user1                      = null;
+		Class type1                          = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create a test user
-			user1 = app.create(TestUser.class, "user1");
+			user1 = app.create(principalType, "user1");
 
 			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
 
@@ -105,7 +97,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always true if user exists
-			user1.setProperty(Principal.customPermissionQueryRead, "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NOT NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NOT NULL");
 
 			tx.success();
 
@@ -130,7 +122,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always false if user exists
-			user1.setProperty(Principal.customPermissionQueryRead, "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NULL");
 
 			tx.success();
 
@@ -155,16 +147,14 @@ public class CustomPermissionQueriesTest extends StructrTest {
 	@Test
 	public void test02SimplePermissionResolutionWrite() {
 
-		SchemaRelationshipNode rel = null;
-		PropertyKey key            = null;
-		TestUser user1             = null;
-		Class type1                = null;
-		Class type2                = null;
+		final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
+		Principal user1                      = null;
+		Class type1                          = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create a test user
-			user1 = app.create(TestUser.class, "user1");
+			user1 = app.create(principalType, "user1");
 
 			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
 
@@ -188,8 +178,8 @@ public class CustomPermissionQueriesTest extends StructrTest {
 			Assert.assertNotNull("Instance of type Type1 should exist", instance1);
 
 			// make instance1 visible to user1
-			instance1.grant(Permission.read, user1);			
-			
+			instance1.grant(Permission.read, user1);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -213,7 +203,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always true if user exists
-			user1.setProperty(Principal.customPermissionQueryWrite, "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NOT NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryWrite"), "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NOT NULL");
 
 			tx.success();
 
@@ -238,7 +228,7 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			// query returns always false if user exists
-			user1.setProperty(Principal.customPermissionQueryRead, "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NULL");
+			user1.setProperty(StructrApp.key(Principal.class, "customPermissionQueryRead"), "MATCH (p:Principal {id: {principalUuid}}) RETURN p IS NULL");
 
 			tx.success();
 

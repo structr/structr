@@ -77,6 +77,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 		//type.addStringArrayProperty("sessionIds");
 		principal.addStringArrayProperty("publicKeys");
 
+		principal.addStringProperty("customPermissionQueryRead");
+		principal.addStringProperty("customPermissionQueryWrite");
+		principal.addStringProperty("customPermissionQueryDelete");
+		principal.addStringProperty("customPermissionQueryAccessControl");
+
 		principal.addPropertyGetter("locale", String.class);
 		principal.addPropertyGetter("sessionData", String.class);
 		principal.addPropertyGetter("favorites", List.class);

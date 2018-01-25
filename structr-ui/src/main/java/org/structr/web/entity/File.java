@@ -108,6 +108,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addLongProperty("size", PropertyView.Public).setIndexed(true);
 		type.addLongProperty("checksum", PropertyView.Public).setIndexed(true);
+		type.addLongProperty("crc32", PropertyView.Public).setIndexed(true);
 		type.addLongProperty("fileModificationDate");
 
 		type.addStringProperty("md5");
