@@ -41,6 +41,7 @@ import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -53,6 +54,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
+import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -845,6 +847,39 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			final Security security = getSecurityRelationship(accessingUser);
 			if (security != null && security.isAllowed(permission)) {
 				return true;
+			}
+			
+			// new experimental custom permission resultion based on query
+			PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
+			final String customPermissionQuery = accessingUser.getProperty(permissionPropertyKey);
+
+			if (StringUtils.isNotEmpty(customPermissionQuery)) {
+
+				final Map<String, Object> params = new HashMap<>();
+				
+				params.put("principalUuid", accessingUser.getUuid());
+				params.put("principalId", accessingUser.getUuid());
+				params.put("principalType", accessingUser.getType());
+				
+				params.put("targetNodeUuid", this.getUuid());
+				params.put("targetNodeId", this.getId());
+				params.put("targetNodeType", this.getType());
+				
+				boolean result = false;
+				try {
+					
+					result = ((NodeWrapper) getNode()).evaluateCustomQuery(customPermissionQuery, params);
+					
+				} catch (final Exception ex) {
+					logger.error("Error in custom permission resolution", ex);
+				}
+				
+				logger.info("CPQ (" + permission.name() + ") '" + customPermissionQuery + "': "+ result);
+				
+				if (result) {
+					return true;
+				}
+				
 			}
 
 			// Check permissions from domain relationships

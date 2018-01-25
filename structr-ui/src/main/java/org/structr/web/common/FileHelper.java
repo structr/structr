@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import javax.activation.MimetypesFileTypeMap;
+import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -322,7 +323,7 @@ public class FileHelper {
 	 */
 	private static PropertyMap getChecksums(final File file, final java.io.File fileOnDisk) throws IOException {
 
-		final PropertyMap propreriesWithChecksums = new PropertyMap();
+		final PropertyMap propertiesWithChecksums = new PropertyMap();
 
 		Folder parentFolder = file.getParent();
 		String checksums = null;
@@ -336,6 +337,9 @@ public class FileHelper {
 		if (checksums == null) {
 			checksums = Settings.DefaultChecksums.getValue();
 		}
+
+		// New, very fast xxHash default checksum, will always be calculated
+		propertiesWithChecksums.put(FileBase.checksum, FileHelper.getChecksum(fileOnDisk));
 
 		if (StringUtils.contains(checksums, "crc32"))	{
 			propreriesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(fileOnDisk));
@@ -353,7 +357,7 @@ public class FileHelper {
 			propreriesWithChecksums.put(StructrApp.key(File.class, "sha512"), FileHelper.getSHA512Checksum(file));
 		}
 
-		return propreriesWithChecksums;
+		return propertiesWithChecksums;
 	}
 	/**
 	 * Update checksums, content type, size and additional properties of the given file
@@ -727,6 +731,10 @@ public class FileHelper {
 	}
 
 	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
+		return LongHashFunction.xx().hashBytes(FileUtils.readFileToByteArray(fileOnDisk));
+	}
+
+	public static Long getCRC32Checksum(final java.io.File fileOnDisk) throws IOException {
 		return FileUtils.checksumCRC32(fileOnDisk);
 	}
 

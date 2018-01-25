@@ -253,6 +253,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		parent.addIntegerProperty("position");
 	}}
 
+	static final String PAGE_CATEGORY              = "Page Structure";
+	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
+	static final String QUERY_CATEGORY             = "Query and Data Binding";
+	
 	// ----- error messages for DOMExceptions -----
 	public static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
 	public static final String INVALID_ACCESS_ERR_MESSAGE              = "Permission denied.";

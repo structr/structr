@@ -62,25 +62,22 @@ public interface GraphObject {
 
 	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
-	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
-	static final String QUERY_CATEGORY = "Query and Data Binding";
+	static final String SYSTEM_CATEGORY     = "System";
 	static final String VISIBILITY_CATEGORY = "Visibility";
-	static final String PAGE_CATEGORY = "Page Structure";
-
 
 	public static final Property<String>  base                        = new StringProperty("base").partOfBuiltInSchema();
-	public static final Property<String>  type                        = new TypeProperty().partOfBuiltInSchema();
-	public static final Property<String>  id                          = new UuidProperty().partOfBuiltInSchema();
+	public static final Property<String>  type                        = new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  id                          = new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema();
-	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema();
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema();
-	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated().partOfBuiltInSchema();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
-	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema();
-	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly().partOfBuiltInSchema();
+	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
 	/**
