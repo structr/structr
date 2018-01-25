@@ -110,8 +110,8 @@ var _Minification = {
 	},
 	getJavaScriptSpecificRows: function (file) {
 		return '<tr><td class="head">Optimization Level</td><td><select class="optimizationLevel" data-target="optimizationLevel" data-before="' + file.optimizationLevel + '"><option>WHITESPACE_ONLY</option><option>SIMPLE_OPTIMIZATIONS</option><option>ADVANCED_OPTIMIZATIONS</option></select></td></tr>'
-			+ '<tr><td class="head">Errors</td><td>' + (file.errors ? file.errors.replaceAll('\n', '<br>') : '') + '</td></tr>'
-			+ '<tr><td class="head">Warnings</td><td>' + (file.warnings ? file.warnings.replaceAll('\n', '<br>') : '') + '</td></tr>';
+			+ '<tr><td class="head">Errors</td><td class="minification-scrollable-cell"><div class="scrollable-cell-content">' + (file.errors ? file.errors.replaceAll('\n', '<br>') : '') + '</div></td></tr>'
+			+ '<tr><td class="head">Warnings</td><td class="minification-scrollable-cell"><div class="scrollable-cell-content">' + (file.warnings ? file.warnings.replaceAll('\n', '<br>') : '') + '</div></td></tr>';
 	},
 	printMinificationSourcesTable: function (file) {
 

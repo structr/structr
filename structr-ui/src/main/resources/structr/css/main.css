@@ -3855,6 +3855,17 @@ input#element-class {
 	padding: 6px 8px;
 }
 
+#minify-options td.minification-scrollable-cell {
+    padding: 0;
+    margin: 0;
+}
+
+.scrollable-cell-content {
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 6px 8px;
+}
+
 #minify-options td.head {
 	font-weight: bold;
 	width: 110px;
