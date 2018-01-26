@@ -38,13 +38,13 @@ import org.neo4j.driver.v1.exceptions.TransientException;
 import org.neo4j.driver.v1.types.Entity;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
+import org.structr.api.ConstraintViolationException;
+import org.structr.api.DataFormatException;
 import org.structr.api.NativeResult;
+import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
-import org.structr.api.ConstraintViolationException;
-import org.structr.api.DataFormatException;
-import org.structr.api.NetworkException;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.mapper.RecordLongMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
@@ -180,8 +180,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		} finally {
 			logQuery(statement, map, t0);
 		}
-	}	
-	
+	}
+
 	public long getLong(final String statement) {
 
 		final long t0 = System.currentTimeMillis();
@@ -324,7 +324,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} finally {
-			logQuery(statement, t0);
+			logQuery(statement, map, t0);
 		}
 	}
 
@@ -465,8 +465,11 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			if (map != null && map.size() > 0) {
 
 				System.out.print(StringUtils.leftPad(log, 5) + " ");
-				System.out.println(statement + "\t\t Parameters: " + map.toString());
-
+				if (statement.contains("extractedContent")) {
+					System.out.println(statement + "\t\t SET on extractedContent - value suppressed");
+				} else {
+					System.out.println(statement + "\t\t Parameters: " + map.toString());
+				}
 			} else {
 
 				System.out.print(StringUtils.leftPad(log, 5) + " ");

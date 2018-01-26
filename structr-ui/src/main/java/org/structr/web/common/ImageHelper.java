@@ -34,6 +34,7 @@ import java.awt.image.ColorModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import net.coobird.thumbnailator.Thumbnails;
@@ -149,7 +150,11 @@ public abstract class ImageHelper extends FileHelper {
 		final Integer origHeight = originalImage.getHeight();
 
 		if (origWidth == null || origHeight == null) {
-			logger.info("Could not determine width and heigth for {}", originalImage.getName());
+
+			if (!Arrays.asList("image/svg+xml", "image/x-icon", "image/x-photoshop").contains(originalImage.getProperty(Image.contentType))) {
+				logger.info("Could not determine width and heigth for {}", originalImage.getName());
+			}
+
 			return;
 		}
 

@@ -202,8 +202,8 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		if (list == null) {
 
-			final SessionTransaction tx                 = db.getCurrentTransaction();
-			final Map<String, Object> map               = new HashMap<>();
+			final SessionTransaction tx   = db.getCurrentTransaction();
+			final Map<String, Object> map = new HashMap<>();
 
 			map.put("id", id);
 

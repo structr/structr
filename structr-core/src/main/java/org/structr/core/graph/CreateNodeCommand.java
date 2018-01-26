@@ -160,7 +160,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				}
 			}
 
-			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, nodeType, labels, tmp.getData()), nodeType, null, isCreation);
+			node = (T) nodeFactory.instantiateWithType(createNode(graphDb, user, labels, tmp.getData()), nodeType, null, isCreation);
 			if (node != null) {
 
 				TransactionCommand.nodeCreated(user, node);
@@ -207,7 +207,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 	}
 
 	// ----- private methods -----
-	private Node createNode(final DatabaseService graphDb, final Principal user, final Class nodeType, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
+	private Node createNode(final DatabaseService graphDb, final Principal user, final Set<String> labels, final Map<String, Object> properties) throws FrameworkException {
 
 		final Map<String, Object> parameters         = new HashMap<>();
 		final Map<String, Object> ownsProperties     = new HashMap<>();
