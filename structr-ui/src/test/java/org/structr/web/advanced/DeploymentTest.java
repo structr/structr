@@ -1995,9 +1995,9 @@ public class DeploymentTest extends StructrUiTest {
 				fail("Unable to create temporary directory.");
 			}
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			logger.warn("", fex);
+			t.printStackTrace();
 
 		} finally {
 

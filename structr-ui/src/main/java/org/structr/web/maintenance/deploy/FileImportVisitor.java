@@ -150,58 +150,47 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	}
 
 	// ----- private methods -----
-	private Folder getExistingFolder(final String path) {
-
-		Folder folder = null;
-
-		try (final Tx tx = app.tx()) {
-
-			folder = app.nodeQuery(Folder.class).and(AbstractFile.path, path).getFirst();
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-		}
-
-		return folder;
+	private Folder getExistingFolder(final String path) throws FrameworkException {
+		return app.nodeQuery(Folder.class).and(AbstractFile.path, path).getFirst();
 	}
 
 	private void createFolder(final Path folderObj) {
 
 		final String folderPath = "/" + basePath.relativize(folderObj).toString();
 
-		if (getExistingFolder(folderPath) == null) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
-			final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
+			if (getExistingFolder(folderPath) == null) {
 
-			if (!basePath.equals(folderObj.getParent())) {
+				final PropertyMap folderProperties = new PropertyMap(AbstractNode.name, folderObj.getFileName().toString());
 
-				final String parentPath = "/" + basePath.relativize(folderObj.getParent()).toString();
-				folderProperties.put(Folder.parent, getExistingFolder(parentPath));
-			}
+				if (!basePath.equals(folderObj.getParent())) {
 
-			try (final Tx tx = app.tx(true, false, false)) {
-
-				// set properties from files.json
-				final PropertyMap properties = getPropertiesForFileOrFolder(folderPath);
-				if (properties != null) {
-					folderProperties.putAll(properties);
+					final String parentPath = "/" + basePath.relativize(folderObj.getParent()).toString();
+					folderProperties.put(Folder.parent, getExistingFolder(parentPath));
 				}
 
-				app.create(Folder.class, folderProperties);
+					// set properties from files.json
+					final PropertyMap properties = getPropertiesForFileOrFolder(folderPath);
+					if (properties != null) {
+						folderProperties.putAll(properties);
+					}
 
-				tx.success();
-
-			} catch (Exception ex) {
-				logger.error("Error occured while importing folder " + folderObj, ex);
+					app.create(Folder.class, folderProperties);
 			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("Error occured while importing folder " + folderObj, ex);
 		}
 	}
 
 	private void createFile(final Path path, final String fileName) throws IOException {
 
-		try {
+		String newFileUuid = null;
+
+		try (final Tx tx = app.tx(true, false, false)) {
 
 			final String fullPath = "/" + basePath.relativize(path).toString();
 			final PropertyMap fileProperties = getPropertiesForFileOrFolder(fullPath);
@@ -221,95 +210,80 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					parent = getExistingFolder(parentPath);
 				}
 
-				String newFileUuid = null;
-				try (final Tx tx = app.tx(true, false, false)) {
+				boolean skipFile         = false;
 
-					boolean skipFile         = false;
+				FileBase file = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
 
-					FileBase file = app.nodeQuery(FileBase.class).and(FileBase.parent, parent).and(FileBase.name, fileName).getFirst();
+				if (file != null) {
 
-					if (file != null) {
+					final Long checksumOfExistingFile = file.getChecksum();
+					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
-						final Long checksumOfExistingFile = file.getChecksum();
-						final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
+					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
 
-						if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile)) {
+						skipFile = true;
 
-							skipFile = true;
+					} else {
 
-						} else {
-
-							// remove existing file first!
-							app.delete(file);
-						}
+						// remove existing file first!
+						app.delete(file);
 					}
+				}
 
-					if (!skipFile) {
+				if (!skipFile) {
 
-						logger.info("Importing {}...", fullPath);
+					logger.info("Importing {}...", fullPath);
 
-						try (final FileInputStream fis = new FileInputStream(path.toFile())) {
+					try (final FileInputStream fis = new FileInputStream(path.toFile())) {
 
-							// create file in folder structure
-							file                     = FileHelper.createFile(securityContext, fis, null, File.class, fileName, parent);
-							final String contentType = file.getContentType();
+						// create file in folder structure
+						file                     = FileHelper.createFile(securityContext, fis, null, File.class, fileName, parent);
+						final String contentType = file.getContentType();
 
-							// modify file type according to content
-							if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(file.getProperty(name))) {
+						// modify file type according to content
+						if (StringUtils.startsWith(contentType, "image") || ImageHelper.isImageType(file.getProperty(name))) {
 
-								file.unlockSystemPropertiesOnce();
-								file.setProperties(securityContext, new PropertyMap(NodeInterface.type, Image.class.getSimpleName()));
-							}
-
-							newFileUuid = file.getUuid();
-						}
-					}
-
-					if (file != null) {
-
-						if (fileProperties.containsKey(AbstractMinifiedFile.minificationSources)) {
-							deferredFiles.add(file);
-						} else {
 							file.unlockSystemPropertiesOnce();
-							file.setProperties(securityContext, fileProperties);
+							file.setProperties(securityContext, new PropertyMap(NodeInterface.type, Image.class.getSimpleName()));
 						}
+
+						newFileUuid = file.getUuid();
 					}
+				}
 
-					tx.success();
+				if (file != null) {
 
-				} catch (Exception ex) {
-					logger.error("Error occured while importing file " + fileName, ex);
+					if (fileProperties.containsKey(AbstractMinifiedFile.minificationSources)) {
+						deferredFiles.add(file);
+					} else {
+						file.unlockSystemPropertiesOnce();
+						file.setProperties(securityContext, fileProperties);
+					}
 				}
 
 				if (newFileUuid != null) {
 
-					try (final Tx tx = app.tx(true, false, false)) {
+					final FileBase createdFile = app.get(FileBase.class, newFileUuid);
+					String type                = createdFile.getType();
+					boolean isImage            = createdFile.getProperty(Image.isImage);
+					boolean isThumbnail        = createdFile.getProperty(Image.isThumbnail);
 
-						final FileBase createdFile = app.get(FileBase.class, newFileUuid);
-						String type                = createdFile.getType();
-						boolean isImage            = createdFile.getProperty(Image.isImage);
-						boolean isThumbnail        = createdFile.getProperty(Image.isThumbnail);
+					logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
 
-						logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
+					if (isImage) {
 
-						if (isImage) {
+						try {
+							ImageHelper.updateMetadata(createdFile);
+							handleThumbnails((Image) createdFile);
 
-							try {
-								ImageHelper.updateMetadata(createdFile);
-								handleThumbnails((Image) createdFile);
-
-							} catch (Throwable t) {
-								logger.warn("Unable to update metadata: {}", t.getMessage());
-							}
+						} catch (Throwable t) {
+							logger.warn("Unable to update metadata: {}", t.getMessage());
 						}
-
-						tx.success();
-
-					} catch (Exception ex) {
-						logger.error("Error occured while importing file " + fileName, ex);
 					}
 				}
 			}
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.error("Error occured while reading file properties " + fileName, ex);
