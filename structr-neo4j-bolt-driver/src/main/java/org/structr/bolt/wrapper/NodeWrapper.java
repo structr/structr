@@ -202,8 +202,8 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		if (list == null) {
 
-			final SessionTransaction tx                 = db.getCurrentTransaction();
-			final Map<String, Object> map               = new HashMap<>();
+			final SessionTransaction tx   = db.getCurrentTransaction();
+			final Map<String, Object> map = new HashMap<>();
 
 			map.put("id", id);
 
@@ -290,7 +290,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	/**
 	 * Evaluate a custom query and return result as a boolean value
-	 * 
+	 *
 	 * @param customQuery
 	 * @param parameters
 	 * @return
@@ -301,10 +301,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		try {
 			result = tx.getBoolean(customQuery, parameters);
 		} catch (Exception ignore) {}
-		
+
 		return result;
 	}
-	
+
 	@Override
 	public void delete() {
 

@@ -180,8 +180,8 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		} finally {
 			logQuery(statement, map, t0);
 		}
-	}	
-	
+	}
+
 	public long getLong(final String statement) {
 
 		final long t0 = System.currentTimeMillis();

@@ -56,6 +56,11 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	public abstract void clearCaches();
 
 	@Override
+	public String toString() {
+		return (this instanceof NodeWrapper ? "N" : "R") + getId();
+	}
+
+	@Override
 	public long getId() {
 		return id;
 	}
