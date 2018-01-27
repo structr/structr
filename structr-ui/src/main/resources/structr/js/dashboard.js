@@ -261,7 +261,7 @@ var _Dashboard = {
 						$('#log-output').append('Running method..\n');
 
 						var params = {};
-						$('#params .param').each(function (el) {
+						$('#params .param').each(function (index, el) {
 							var name = $('.param-name', el).val();
 							var val = $('.param-value', el).val();
 							if (name) {
