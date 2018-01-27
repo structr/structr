@@ -19,17 +19,17 @@
 package org.structr.web.basic;
 
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.Matchers;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -1521,8 +1521,6 @@ public class ViewTest extends StructrUiTest {
 					final String viewName    = view.getKey();
 					final List<String> keys  = view.getValue();
 
-					System.out.println(viewName + "-> " + keys);
-
 					// create entity
 					final String uuid = StringUtils.substringAfterLast(RestAssured
 						.given()
@@ -1536,16 +1534,32 @@ public class ViewTest extends StructrUiTest {
 						.header("Location"), "/");
 
 					// check entity
-					RestAssured
+					final Map<String, Object> result = RestAssured
 						.given()
-						.filter(ResponseLoggingFilter.logResponseTo(System.out))
 						.header("X-User", "admin")
 						.header("X-Password", "admin")
 						.expect()
 						.statusCode(200)
-						.body("result", Matchers.allOf(keys.stream().map(k -> Matchers.hasKey(k)).collect(Collectors.toList())))
 						.when()
-						.get("/" + typeName + "/" + uuid + "/" + viewName);
+						.get("/" + typeName + "/" + uuid + "/" + viewName)
+						.andReturn()
+						.body()
+						.as(Map.class);
+
+					final Map<String, Object> item = (Map<String, Object>)result.get("result");
+					final Set<String> expectedKeys = new TreeSet<>(keys);
+					final Set<String> itemKeySet   = item.keySet();
+
+					expectedKeys.removeAll(itemKeySet);
+
+					assertTrue("\"" + viewName + "\" view of type \"" + type.getSimpleName() + "\" is missing the following keys: " + expectedKeys, expectedKeys.isEmpty());
+
+					expectedKeys.clear();
+					expectedKeys.addAll(keys);
+
+					itemKeySet.removeAll(expectedKeys);
+
+					assertTrue("\"" + viewName + "\" view of type \"" + type.getSimpleName() + "\" contains keys that are not listed in the specification: " + itemKeySet, itemKeySet.isEmpty());
 				}
 
 			}

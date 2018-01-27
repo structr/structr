@@ -151,7 +151,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		if (origWidth == null || origHeight == null) {
 
-			if (!Arrays.asList("image/svg+xml", "image/x-icon", "image/x-photoshop").contains(originalImage.getProperty(Image.contentType))) {
+			if (!Arrays.asList("image/svg+xml", "image/x-icon", "image/x-photoshop").contains(originalImage.getContentType())) {
 				logger.info("Could not determine width and heigth for {}", originalImage.getName());
 			}
 
