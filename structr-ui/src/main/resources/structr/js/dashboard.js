@@ -225,9 +225,8 @@ var _Dashboard = {
 				if (result.comment && result.comment.trim() !== '') {
 					Structr.appendInfoTextToElement({
 						element: methodName,
-						text: result.comment,
+						text: result.comment.replaceAll("\n", "<br>"),
 						helpElementCss: {
-							"white-space": "pre",
 							"line-height": "initial"
 						}
 					});
