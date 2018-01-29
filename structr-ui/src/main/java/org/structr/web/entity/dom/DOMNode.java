@@ -114,11 +114,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addBooleanProperty("renderDetails");
 		type.addBooleanProperty("hideOnIndex");
 		type.addBooleanProperty("hideOnDetail");
-		type.addBooleanProperty("dontCache", PropertyView.Public).setDefaultValue("false");
+		type.addBooleanProperty("dontCache").setDefaultValue("false");
 		type.addBooleanProperty("isDOMNode",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		type.addIntegerProperty("domSortPosition");
-
 
 		type.addPropertyGetter("restQuery", String.class);
 		type.addPropertyGetter("cypherQuery", String.class);
@@ -251,12 +250,20 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		// sort position of children in page
 		parent.addIntegerProperty("position");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "children");
+		type.addViewProperty(PropertyView.Public, "pageId");
+		type.addViewProperty(PropertyView.Public, "parent");
+		type.addViewProperty(PropertyView.Public, "sharedComponent");
+		type.addViewProperty(PropertyView.Public, "syncedNodes");
 	}}
 
 	static final String PAGE_CATEGORY              = "Page Structure";
 	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
 	static final String QUERY_CATEGORY             = "Query and Data Binding";
-	
+
 	// ----- error messages for DOMExceptions -----
 	public static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
 	public static final String INVALID_ACCESS_ERR_MESSAGE              = "Permission denied.";
@@ -635,7 +642,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 					properties.put(key, thisNode.getProperty(key));
 				}
 			}
-			
+
 			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
 			for (Iterator<PropertyKey> it = thisNode.getPropertyKeys(PropertyView.Html).iterator(); it.hasNext();) {
 

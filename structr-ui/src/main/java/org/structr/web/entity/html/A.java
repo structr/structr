@@ -35,12 +35,13 @@ public interface A extends LinkSource {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/A"));
 		type.setExtends(URI.create("#/definitions/LinkSource"));
 
-		type.addStringProperty("_html_href",   PropertyView.Html);
-		type.addStringProperty("_html_target", PropertyView.Html);
-		type.addStringProperty("_html_ping",   PropertyView.Html);
-		type.addStringProperty("_html_rel",    PropertyView.Html);
-		type.addStringProperty("_html_media",  PropertyView.Html);
-		type.addStringProperty("_html_type",   PropertyView.Html);
+		type.addStringProperty("_html_href",     PropertyView.Html);
+		type.addStringProperty("_html_target",   PropertyView.Html);
+		type.addStringProperty("_html_ping",     PropertyView.Html);
+		type.addStringProperty("_html_rel",      PropertyView.Html);
+		type.addStringProperty("_html_media",    PropertyView.Html);
+		type.addStringProperty("_html_hreflang", PropertyView.Html);
+		type.addStringProperty("_html_type",     PropertyView.Html);
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");
 		type.overrideMethod("getHtmlAttributes", false, "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());");

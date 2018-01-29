@@ -19,6 +19,7 @@
 package org.structr.core.app;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -117,9 +118,9 @@ public class StructrApp implements App {
 				// overwrite type information when creating a node (adhere to type specified by resource!)
 				properties.put(AbstractNode.type, type.getSimpleName());
 
-			} else if (actualType.isInterface()) {
+			} else if (actualType.isInterface() || Modifier.isAbstract(actualType.getModifiers())) {
 
-				throw new FrameworkException(422, "Invalid interface type " + type.getSimpleName() + ", please supply a non-interface class name in the type property");
+				throw new FrameworkException(422, "Invalid abstract type " + type.getSimpleName() + ", please supply a non-abstract class name in the type property");
 
 			} else {
 
