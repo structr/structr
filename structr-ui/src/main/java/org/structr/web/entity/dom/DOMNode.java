@@ -252,7 +252,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		parent.addIntegerProperty("position");
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
 		type.addViewProperty(PropertyView.Public, "children");
 		type.addViewProperty(PropertyView.Public, "pageId");
 		type.addViewProperty(PropertyView.Public, "parent");

@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -507,6 +506,7 @@ public class SchemaHelper {
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
 		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
+		final Set<String> relationshipPropertyNames            = new LinkedHashSet<>();
 		final Set<Validator> validators                        = new LinkedHashSet<>();
 		final Set<String> implementedInterfaces                = new LinkedHashSet<>();
 		final List<String> importStatements                    = new LinkedList<>();
@@ -629,6 +629,7 @@ public class SchemaHelper {
 
 			addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 
+			relationshipPropertyNames.add(propertyName);
 		}
 
 		// output related node definitions, collect property views
@@ -640,11 +641,12 @@ public class SchemaHelper {
 
 			SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 
+			relationshipPropertyNames.add(propertyName);
 		}
 
 		src.append(SchemaHelper.extractProperties(schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
-		SchemaHelper.extractViews(schemaNode, viewProperties, errorBuffer);
+		SchemaHelper.extractViews(schemaNode, viewProperties, relationshipPropertyNames, errorBuffer);
 		SchemaHelper.extractMethods(schemaNode, methods);
 
 		// output possible enum definitions
@@ -782,7 +784,7 @@ public class SchemaHelper {
 		return src.toString();
 	}
 
-	public static void extractViews(final Schema entity, final Map<String, Set<String>> views, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static void extractViews(final Schema entity, final Map<String, Set<String>> views, final Set<String> relPropertyNames, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final ConfigurationProvider config        = StructrApp.getConfiguration();
@@ -892,6 +894,10 @@ public class SchemaHelper {
 						if (SchemaHelper.isDynamic(entity.getClassName(), propertyName)) {
 
 							view.add(SchemaHelper.cleanPropertyName(propertyName + "Property"));
+
+						} else if (relPropertyNames.contains(propertyName)) {
+
+							view.add(SchemaHelper.cleanPropertyName(propertyName) + "Property");
 
 						} else if (basePropertyNames.contains(propertyName)) {
 
@@ -1030,15 +1036,7 @@ public class SchemaHelper {
 
 		for (final Iterator<String> it = viewProperties.iterator(); it.hasNext();) {
 
-			String propertyName = it.next();
-
-			// convert _-prefixed property names to "real" name
-			// FIXME: this is a workaround and had to be disabled
-			if (false && propertyName.startsWith("_")) {
-				propertyName = propertyName.substring(1) + "Property";
-			}
-
-			src.append(propertyName);
+			src.append(it.next());
 
 			if (it.hasNext()) {
 				src.append(", ");
@@ -1346,40 +1344,6 @@ public class SchemaHelper {
 		}
 	}
 
-	/*
-	public static void formatMethods(final AbstractSchemaNode schemaNode, final StringBuilder src, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
-
-		// save actions..
-		for (final Map.Entry<String, List<ActionEntry>> entry : saveActions.entrySet()) {
-
-			final List<ActionEntry> actionList = entry.getValue();
-			final Actions.Type type            = determineActionType(actionList);
-
-			switch (type) {
-
-				case Java:
-					// java actions are exported java methods
-					// that can be called by POSTing on the entity
-					formatJavaActions(src, actionList);
-					break;
-
-				case Custom:
-					// active actions are exported stored functions
-					// that can be called by POSTing on the entity
-					formatActiveActions(src, actionList);
-					break;
-
-				default:
-					// passive actions are actions that are executed
-					// automtatically on creation / modification etc.
-					formatPassiveSaveActions(schemaNode, src, type, actionList, implementedInterfaces);
-					break;
-			}
-		}
-
-	}
-	*/
-
 	public static void formatActiveAction(final StringBuilder src, final ActionEntry action) {
 
 		src.append("\n\t@Export\n");
@@ -1392,53 +1356,6 @@ public class SchemaHelper {
 		src.append(";\n\n");
 		src.append("\t}\n");
 	}
-
-	/*
-	public static void formatPassiveSaveActions(final AbstractSchemaNode schemaNode, final StringBuilder src, final Actions.Type type, final List<ActionEntry> actionList, final Set<String> implementedInterfaces) {
-
-		src.append("\n\t@Override\n");
-		src.append("\tpublic void ");
-		src.append(type.getMethod());
-		src.append("(");
-		src.append(type.getSignature());
-		src.append(") throws FrameworkException {\n\n");
-		src.append("\t\tsuper.");
-		src.append(type.getMethod());
-		src.append("(");
-		src.append(type.getParameters());
-		src.append(");\n\n");
-
-		for (final String interfaceName : implementedInterfaces) {
-
-			final Class iface = classForName(interfaceName);
-			if (iface != null) {
-
-				if (hasMethod(iface, type.getMethod(), type.getParameterTypes())) {
-
-					src.append("\t\t");
-					src.append(iface.getName());
-					src.append(".super.");
-					src.append(type.getMethod());
-					src.append("(");
-					src.append(type.getParameters());
-					src.append(");\n");
-				}
-			}
-		}
-
-		for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
-			module.insertSaveAction(schemaNode, src, type);
-		}
-
-		for (final ActionEntry action : actionList) {
-
-			src.append("\t\t").append(action.getSource("this")).append(";\n");
-		}
-
-		src.append("\t}\n");
-
-	}
-	*/
 
 	private static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Class type, final String propertyView) throws FrameworkException {
 
@@ -1812,41 +1729,5 @@ public class SchemaHelper {
 
 	private static String cleanTypeName(final String src) {
 		return StringUtils.substringBefore(src, "<");
-	}
-
-	private static Actions.Type determineActionType(final List<ActionEntry> list) {
-
-		// count type instances
-		final Map<Actions.Type, Integer> frequency = new EnumMap(Actions.Type.class);
-
-		for (final ActionEntry entry : list) {
-
-			final Actions.Type type = entry.getType();
-			final Integer count     = frequency.get(type);
-
-			if (count == null) {
-
-				frequency.put(type, 1);
-
-			} else {
-
-				frequency.put(type, count + 1);
-			}
-		}
-
-		// more than one type: prioritize
-		if (frequency.size() > 1) {
-
-			// return Java
-			return Actions.Type.Java;
-		}
-
-		// only one type: no action
-		if (!frequency.isEmpty()) {
-			return frequency.keySet().iterator().next();
-		}
-
-		// fallback: no type
-		return null;
 	}
 }

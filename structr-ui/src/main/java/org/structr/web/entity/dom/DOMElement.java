@@ -228,6 +228,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		// CMISInfo
 		type.overrideMethod("getSchemaTypeInfo",      false, "return null;");
 
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+
 	}}
 
 	String getTag();

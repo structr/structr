@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.StructrUiTest;
@@ -58,7 +59,7 @@ public class ViewTest extends StructrUiTest {
 
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
 		baseMap.put("public", Arrays.asList("id", "type"));
-		baseMap.put("ui",     Arrays.asList("id", "name", "owner", "createdBy", "deleted", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
+		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "deleted", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
 
 		try (final InputStream is = ViewTest.class.getResourceAsStream("/test/views.properties")) {
 
@@ -126,9 +127,10 @@ public class ViewTest extends StructrUiTest {
 			final Class type                        = SchemaHelper.getEntityClassForRawType(typeName);
 			int i                                   = 0;
 
-			if (type != null && !Modifier.isAbstract(type.getModifiers()) && !type.isInterface()) {
+			// only test node types for now..
+			if (type != null && !Modifier.isAbstract(type.getModifiers()) && !type.isInterface() && !RelationshipInterface.class.isAssignableFrom(type)) {
 
-				System.out.println("##### Testing type " + type + "...");
+				System.out.println("\n##### Testing type " + type + "...");
 
 				for (final Entry<String, List<String>> view : typeMap.entrySet()) {
 

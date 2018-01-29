@@ -19,6 +19,7 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.structr.common.PropertyView;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
@@ -36,6 +37,12 @@ public interface Component extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Component"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addIntegerProperty("position", PropertyView.Public);
+		type.addStringProperty("kind", PropertyView.Public);
+
+
+		// FIXME: do we need this type?
 	}}
 
 	/*

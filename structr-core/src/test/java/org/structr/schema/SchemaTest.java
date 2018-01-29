@@ -565,6 +565,41 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testViewInheritedFromInterface() {
+
+		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			// make test type inherit from Favoritable (should add views)
+			type.setImplements(URI.create("#/definitions/Favoritable"));
+
+			// ----- interface Favoritable -----
+			type.overrideMethod("setFavoriteContent",         false, "");
+			type.overrideMethod("getFavoriteContent",         false, "return \"getFavoriteContent();\";");
+			type.overrideMethod("getFavoriteContentType",     false, "return \"getContentType();\";");
+			type.overrideMethod("getContext",                 false, "return \"getContext();\";");
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final Class testType        = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final Set<String> views     = StructrApp.getConfiguration().getPropertyViewsForType(testType);
+
+		assertTrue("Property view is not inherited correctly", views.contains("fav"));
+	}
+
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 

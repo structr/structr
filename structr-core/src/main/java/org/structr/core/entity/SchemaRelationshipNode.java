@@ -545,7 +545,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
-		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
+		SchemaHelper.extractViews(this, viewProperties, Collections.EMPTY_SET, errorBuffer);
 		SchemaHelper.extractMethods(this, actions);
 
 		// source and target id properties

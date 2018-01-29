@@ -42,7 +42,7 @@ public interface Group extends Principal {
 		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
 		group.setExtends(URI.create("#/definitions/Principal"));
 
-		group.addBooleanProperty("isGroup", PropertyView.Public).addTransformer(ConstantBooleanTrue.class.getName());
+		group.addBooleanProperty("isGroup", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		group.addMethod("addMember").setSource("org.structr.core.entity.Group.addMember(this, member);").addParameter("member", Principal.class.getName());
 		group.addMethod("removeMember").setSource("org.structr.core.entity.Group.removeMember(this, member);").addParameter("member", Principal.class.getName());

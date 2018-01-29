@@ -61,7 +61,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		final JsonObjectType type = schema.addType("Content");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Content"));
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
+		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
 		type.addBooleanProperty("isContent",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
@@ -112,6 +112,13 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("deleteData",                 false, Content.class.getName() + ".deleteData(this, arg0, arg1);");
 		type.overrideMethod("replaceData",                false, Content.class.getName() + ".replaceData(this, arg0, arg1, arg2);");
 
+		type.addViewProperty(PropertyView.Public, "hideConditions");
+		type.addViewProperty(PropertyView.Public, "showConditions");
+		type.addViewProperty(PropertyView.Public, "hideForLocales");
+		type.addViewProperty(PropertyView.Public, "showForLocales");
+		type.addViewProperty(PropertyView.Public, "sharedComponentConfiguration");
+		type.addViewProperty(PropertyView.Public, "hideOnIndex");
+		type.addViewProperty(PropertyView.Public, "hideOnDetail");
 	}}
 
 	String getContentType();

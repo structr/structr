@@ -42,30 +42,19 @@ public interface Favoritable extends NodeInterface {
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
 
-		type.addBooleanProperty("isFavoritable").addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isFavoritable", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), "fav");
 		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      "fav");
 		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav");
 
-		type.addFunctionProperty("relationshipId", PropertyView.Public).setReadFunction("this._path.id");
+		// add relationshipId to public and fav view
+		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id");
 
 		type.addViewProperty("fav", "id");
 		type.addViewProperty("fav", "name");
 		type.addViewProperty("fav", "type");
 	}}
-
-	/*
-	public static final Property<String>  favoriteContentType = new FavoriteContentTypeProperty("favoriteContentType");
-	public static final Property<String>  favoriteContent     = new FavoriteContentProperty("favoriteContent");
-	public static final Property<String>  favoriteContext     = new FavoriteContextProperty("favoriteContext");
-	public static final Property<String>  relIdProperty       = new FunctionProperty("relationshipId").readFunction("this._path.id");
-	public static final Property<Boolean> isFavoritable       = new ConstantBooleanProperty("isFavoritable", true);
-
-	public static final View favView = new View(Favoritable.class, "fav",
-		id, name, type, favoriteContext, favoriteContent, favoriteContentType, relIdProperty
-	);
-	*/
 
 	String getContext();
 	String getFavoriteContent();
