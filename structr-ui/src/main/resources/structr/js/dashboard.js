@@ -222,10 +222,12 @@ var _Dashboard = {
 				methodRow.append(methodName).append('<button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button>');
 				maintenanceList.append(methodRow);
 
-				if (result.comment && result.comment.trim() !== '') {
+				var cleanedComment = (result.comment && result.comment.trim() !== '') ? result.comment.replaceAll("\n", "<br>") : '';
+
+				if (cleanedComment.trim() !== '') {
 					Structr.appendInfoTextToElement({
 						element: methodName,
-						text: result.comment.replaceAll("\n", "<br>"),
+						text: cleanedComment,
 						helpElementCss: {
 							"line-height": "initial"
 						}
@@ -248,6 +250,10 @@ var _Dashboard = {
 					var addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" />');
 					paramsBox.append(addParamBtn);
 					dialog.append(paramsOuterBox);
+
+					if (cleanedComment.trim() !== '') {
+						dialog.append('<div id="global-method-comment"><h3 class="heading-narrow">Comment</h3>' + cleanedComment + '</div>');
+					}
 
 					Structr.appendInfoTextToElement({
 						element: $('#params h3'),
