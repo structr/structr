@@ -627,7 +627,8 @@ public class SchemaHelper {
 
 			src.append(outRel.getPropertySource(propertyName, true));
 
-			addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+			// do not add properties automatically...
+			//addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 
 			relationshipPropertyNames.add(propertyName);
 		}
@@ -639,7 +640,8 @@ public class SchemaHelper {
 
 			src.append(inRel.getPropertySource(propertyName, false));
 
-			SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+			// do not add properties automatically...
+			//SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
 
 			relationshipPropertyNames.add(propertyName);
 		}
@@ -768,8 +770,12 @@ public class SchemaHelper {
 						compoundIndexKeys.addAll(parser.getCompoundIndexKeys());
 						enums.addAll(parser.getEnumDefinitions());
 
-						// register property in default view
-						addPropertyToView(PropertyView.Ui, propertyName, views);
+						// built-in schema properties are configured manually
+						if (!schemaProperty.isPartOfBuiltInSchema()) {
+
+							// register property in default view
+							addPropertyToView(PropertyView.Ui, propertyName, views);
+						}
 					}
 				}
 

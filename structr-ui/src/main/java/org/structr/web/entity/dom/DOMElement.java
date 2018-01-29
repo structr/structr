@@ -75,9 +75,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
 		*/
 
-		type.addStringProperty("tag",              PropertyView.Public).setIndexed(true);
-		type.addStringProperty("path",             PropertyView.Public).setIndexed(true);
-		type.addStringProperty("partialUpdateKey", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("tag",              PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("path",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("partialUpdateKey", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addStringProperty("_html_onabort", PropertyView.Html);
 		type.addStringProperty("_html_onblur", PropertyView.Html);
@@ -135,32 +135,32 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_data", PropertyView.Html);
 
 		// data-structr-* attibutes
-		type.addBooleanProperty("data-structr-reload");
-		type.addBooleanProperty("data-structr-confirm");
-		type.addBooleanProperty("data-structr-append-id");
-		type.addStringProperty("data-structr-action");
-		type.addStringProperty("data-structr-attributes");
-		type.addStringProperty("data-structr-attr");
-		type.addStringProperty("data-structr-name");
-		type.addStringProperty("data-structr-hide");
-		type.addStringProperty("data-structr-raw-value");
-		type.addStringProperty("data-structr-placeholder");
-		type.addStringProperty("data-structr-type");
-		type.addStringProperty("data-structr-custom-options-query");
-		type.addStringProperty("data-structr-options-key");
-		type.addStringProperty("data-structr-edit-class");
-		type.addStringProperty("data-structr-return");
+		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui);
+		type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui);
+		type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui);
+		type.addStringProperty("data-structr-action",               PropertyView.Ui);
+		type.addStringProperty("data-structr-attributes",           PropertyView.Ui);
+		type.addStringProperty("data-structr-attr",                 PropertyView.Ui);
+		type.addStringProperty("data-structr-name",                 PropertyView.Ui);
+		type.addStringProperty("data-structr-hide",                 PropertyView.Ui);
+		type.addStringProperty("data-structr-raw-value",            PropertyView.Ui);
+		type.addStringProperty("data-structr-placeholder",          PropertyView.Ui);
+		type.addStringProperty("data-structr-type",                 PropertyView.Ui);
+		type.addStringProperty("data-structr-custom-options-query", PropertyView.Ui);
+		type.addStringProperty("data-structr-options-key",          PropertyView.Ui);
+		type.addStringProperty("data-structr-edit-class",           PropertyView.Ui);
+		type.addStringProperty("data-structr-return",               PropertyView.Ui);
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
-		type.addStringProperty("_html_class", PropertyView.Html);
+		type.addStringProperty("_html_class", PropertyView.Html, PropertyView.Ui);
 		type.addStringProperty("_html_contenteditable", PropertyView.Html);
 		type.addStringProperty("_html_contextmenu", PropertyView.Html);
 		type.addStringProperty("_html_dir", PropertyView.Html);
 		type.addStringProperty("_html_draggable", PropertyView.Html);
 		type.addStringProperty("_html_dropzone", PropertyView.Html);
 		type.addStringProperty("_html_hidden", PropertyView.Html);
-		type.addStringProperty("_html_id", PropertyView.Html);
+		type.addStringProperty("_html_id", PropertyView.Html, PropertyView.Ui);
 		type.addStringProperty("_html_lang", PropertyView.Html);
 		type.addStringProperty("_html_spellcheck", PropertyView.Html);
 		type.addStringProperty("_html_style", PropertyView.Html);

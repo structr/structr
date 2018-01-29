@@ -42,11 +42,11 @@ public interface Favoritable extends NodeInterface {
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
 
-		type.addBooleanProperty("isFavoritable", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isFavoritable", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
-		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), "fav");
-		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      "fav");
-		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav");
+		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), PropertyView.Ui, "fav");
+		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      PropertyView.Ui, "fav");
+		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      PropertyView.Ui, "fav");
 
 		// add relationshipId to public and fav view
 		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id");

@@ -57,9 +57,9 @@ public class ViewTest extends StructrUiTest {
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
 		boolean fail                                         = false;
 
+		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "deleted", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
 		baseMap.put("public", Arrays.asList("id", "type"));
-		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "deleted", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
 
 		try (final InputStream is = ViewTest.class.getResourceAsStream("/test/views.properties")) {
 
@@ -130,24 +130,22 @@ public class ViewTest extends StructrUiTest {
 			// only test node types for now..
 			if (type != null && !Modifier.isAbstract(type.getModifiers()) && !type.isInterface() && !RelationshipInterface.class.isAssignableFrom(type)) {
 
-				System.out.println("\n##### Testing type " + type + "...");
+				// create entity
+				final String uuid = StringUtils.substringAfterLast(RestAssured
+					.given()
+					.header("X-User",     "admin")
+					.header("X-Password", "admin")
+					.body("{ name: 'test" + i++ + "' }")
+					.expect()
+					.statusCode(201)
+					.when()
+					.post("/" + typeName)
+					.header("Location"), "/");
 
 				for (final Entry<String, List<String>> view : typeMap.entrySet()) {
 
 					final String viewName    = view.getKey();
 					final List<String> keys  = view.getValue();
-
-					// create entity
-					final String uuid = StringUtils.substringAfterLast(RestAssured
-						.given()
-						.header("X-User",     "admin")
-						.header("X-Password", "admin")
-						.body("{ name: 'test" + i++ + "' }")
-						.expect()
-						.statusCode(201)
-						.when()
-						.post("/" + typeName)
-						.header("Location"), "/");
 
 					// check entity
 					final Map<String, Object> result = RestAssured
@@ -169,7 +167,8 @@ public class ViewTest extends StructrUiTest {
 					expectedKeys.removeAll(itemKeySet);
 
 					if (!expectedKeys.isEmpty()) {
-						System.out.println("\"" + viewName + "\" view of type \"" + type.getSimpleName() + "\" is missing the following keys: " + expectedKeys);
+
+						System.out.println(type.getSimpleName() + "." + viewName + " is missing the following keys: " + expectedKeys);
 						fail = true;
 					}
 
@@ -180,7 +179,7 @@ public class ViewTest extends StructrUiTest {
 
 					if (!itemKeySet.isEmpty()) {
 
-						System.out.println("\"" + viewName + "\" view of type \"" + type.getSimpleName() + "\" contains keys that are not listed in the specification: " + itemKeySet);
+						System.out.println(type.getSimpleName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
 						fail = true;
 					}
 				}

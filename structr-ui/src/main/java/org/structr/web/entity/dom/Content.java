@@ -64,9 +64,9 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
-		type.addBooleanProperty("isContent",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addStringProperty("contentType", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("content",     PropertyView.Public).setIndexed(true);
+		type.addBooleanProperty("isContent",  PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addStringProperty("contentType", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("content",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("contentType", String.class);
 		type.addPropertySetter("contentType", String.class);

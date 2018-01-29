@@ -95,27 +95,27 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
 		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.dom.DOMNode"));
 
-		type.addStringProperty("dataKey",       PropertyView.Public).setIndexed(true);
-		type.addStringProperty("cypherQuery",   PropertyView.Public);
-		type.addStringProperty("xpathQuery",    PropertyView.Public);
-		type.addStringProperty("restQuery",     PropertyView.Public);
-		type.addStringProperty("functionQuery", PropertyView.Public);
+		type.addStringProperty("dataKey",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("cypherQuery",   PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("xpathQuery",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("restQuery",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("functionQuery", PropertyView.Public, PropertyView.Ui);
 
-		type.addStringProperty("showForLocales");
-		type.addStringProperty("hideForLocales");
-		type.addStringProperty("showConditions");
-		type.addStringProperty("hideConditions");
+		type.addStringProperty("showForLocales", PropertyView.Ui);
+		type.addStringProperty("hideForLocales", PropertyView.Ui);
+		type.addStringProperty("showConditions", PropertyView.Ui);
+		type.addStringProperty("hideConditions", PropertyView.Ui);
 
-		type.addStringProperty("sharedComponentConfiguration").setFormat("multi-line");
+		type.addStringProperty("sharedComponentConfiguration", PropertyView.Ui).setFormat("multi-line");
 
-		type.addStringProperty("data-structr-id");
+		type.addStringProperty("data-structr-id", PropertyView.Ui);
 		type.addStringProperty("data-structr-hash");
 
-		type.addBooleanProperty("renderDetails");
-		type.addBooleanProperty("hideOnIndex");
-		type.addBooleanProperty("hideOnDetail");
+		type.addBooleanProperty("renderDetails", PropertyView.Ui);
+		type.addBooleanProperty("hideOnIndex", PropertyView.Ui);
+		type.addBooleanProperty("hideOnDetail", PropertyView.Ui);
 		type.addBooleanProperty("dontCache").setDefaultValue("false");
-		type.addBooleanProperty("isDOMNode",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isDOMNode",  PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		type.addIntegerProperty("domSortPosition");
 
@@ -257,6 +257,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addViewProperty(PropertyView.Public, "parent");
 		type.addViewProperty(PropertyView.Public, "sharedComponent");
 		type.addViewProperty(PropertyView.Public, "syncedNodes");
+
+		type.addViewProperty(PropertyView.Ui, "pageId");
+		type.addViewProperty(PropertyView.Ui, "children");
+		type.addViewProperty(PropertyView.Ui, "childrenIds");
+		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "sharedComponent");
+		type.addViewProperty(PropertyView.Ui, "syncedNodes");
 	}}
 
 	static final String PAGE_CATEGORY              = "Page Structure";
