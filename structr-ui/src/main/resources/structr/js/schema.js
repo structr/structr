@@ -3196,12 +3196,12 @@ var _Schema = {
 	},
 	appendTypeVisibilityOptionsToContainer: function(container) {
 
-		container.append('<table class="props" id="schema-options-table"><tr><th>Type</th><th>Visible <input type="checkbox" id="toggle-all-types"><i id="invert-all-types" class="invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" /></button></th></table>');
+		container.append('<table class="props" id="schema-options-table"><tr><th class="toggle-column-header"><input type="checkbox" id="toggle-all-types"><i id="invert-all-types" class="invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" /> Visible</th><th>Type</th></tr></table>');
 		var schemaOptionsTable = $('#schema-options-table');
 
 		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', null, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
-				schemaOptionsTable.append('<tr><td>' + schemaNode.name + '</td><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td></tr>');
+				schemaOptionsTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
 			});
 
 			$('#toggle-all-types', schemaOptionsTable).on('click', function() {

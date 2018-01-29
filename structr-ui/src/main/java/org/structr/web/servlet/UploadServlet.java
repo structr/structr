@@ -287,7 +287,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							}
 
-							try (final Tx tx = StructrApp.getInstance().tx()) {
+							try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 								try (final InputStream is = item.openStream()) {
 

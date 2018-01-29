@@ -216,7 +216,22 @@ var _Dashboard = {
 
 			data.result.forEach(function(result) {
 
-				maintenanceList.append('<div class="dashboard-info" style="border-bottom: 1px solid #ddd; padding-bottom: 2px;"><span style="line-height: 2em;">' + result.name + '</span><button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button></div>');
+				var methodRow = $('<div class="dashboard-info" style="border-bottom: 1px solid #ddd; padding-bottom: 2px;"></div>');
+				var methodName = $('<span style="line-height: 2em;">' + result.name + ' </span>');
+
+				methodRow.append(methodName).append('<button id="run-' + result.id + '" class="pull-right" style="margin-left: 1em;">Run now</button>');
+				maintenanceList.append(methodRow);
+
+				if (result.comment && result.comment.trim() !== '') {
+					Structr.appendInfoTextToElement({
+						element: methodName,
+						text: result.comment.replaceAll("\n", "<br>"),
+						helpElementCss: {
+							"line-height": "initial"
+						}
+					});
+				}
+
 				$('button#run-' + result.id).on('click', function() {
 
 					Structr.dialog('Run global schema method ' + result.name, function() {}, function() {
@@ -261,7 +276,7 @@ var _Dashboard = {
 						$('#log-output').append('Running method..\n');
 
 						var params = {};
-						$('#params .param').each(function (el) {
+						$('#params .param').each(function (index, el) {
 							var name = $('.param-name', el).val();
 							var val = $('.param-value', el).val();
 							if (name) {
