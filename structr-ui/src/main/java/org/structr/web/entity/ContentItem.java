@@ -38,7 +38,15 @@ public interface ContentItem extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ContentItem"));
 
-		type.addBooleanProperty("isContentItem", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isContentItem", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+
+		type.addViewProperty(PropertyView.Public, "containers");
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "owner");
+
+		type.addViewProperty(PropertyView.Ui, "containers");
+		type.addViewProperty(PropertyView.Ui, "name");
+		type.addViewProperty(PropertyView.Ui, "owner");
 	}}
 
 	/*

@@ -97,23 +97,22 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
 
-		type.addStringProperty("url", PropertyView.Public);
+		type.addStringProperty("url", PropertyView.Public, PropertyView.Ui);
 
-		type.addBooleanProperty("isFile", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addBooleanProperty("isTemplate", PropertyView.Public);
+		type.addBooleanProperty("isFile", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isTemplate", PropertyView.Public, PropertyView.Ui);
 
-		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
-		type.addIntegerProperty("version", PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("position", PropertyView.Public).setIndexed(true);
+		type.addLongProperty("size",                 PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("fileModificationDate", PropertyView.Public);
 
-		type.addLongProperty("size", PropertyView.Public).setIndexed(true);
-		type.addLongProperty("checksum", PropertyView.Public).setIndexed(true);
-		type.addLongProperty("crc32", PropertyView.Public).setIndexed(true);
-		type.addLongProperty("fileModificationDate");
-
-		type.addStringProperty("md5");
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
+		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("checksum",           PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("md5",              PropertyView.Ui);
+		type.addLongProperty("crc32").setIndexed(true);
 		type.addStringProperty("sha1");
 		type.addStringProperty("sha512");
+		type.addIntegerProperty("position").setIndexed(true);
 
 		type.addPropertyGetter("minificationTargets", List.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
@@ -222,6 +221,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "owner");
 
 		/* TODO:
 			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);

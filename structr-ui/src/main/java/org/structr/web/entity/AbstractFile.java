@@ -58,12 +58,13 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		type.addStringProperty("name", PropertyView.Public).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
 
-		type.addBooleanProperty("includeInFrontendExport", PropertyView.Public).setIndexed(true);
-		type.addBooleanProperty("isExternal", PropertyView.Public).setIndexed(true);
-		type.addBooleanProperty("hasParent", PropertyView.Public).setIndexed(true);
-		type.addLongProperty("lastSeenMounted");
+		type.addBooleanProperty("includeInFrontendExport", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("isExternal",              PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("lastSeenMounted",            PropertyView.Public, PropertyView.Ui);
 
-		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public).setIndexed(true);
+		type.addBooleanProperty("hasParent", PropertyView.Ui).setIndexed(true);
+
+		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("hasParent", Boolean.TYPE);
 		type.addPropertyGetter("parent", Folder.class);
@@ -98,6 +99,12 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		// sort position of children in page
 		parentRel.addIntegerProperty("position");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "visibleToAuthenticatedUsers");
+		type.addViewProperty(PropertyView.Public, "visibleToPublicUsers");
+
+		type.addViewProperty(PropertyView.Ui, "parent");
 	}}
 
 	void setParent(final Folder parent) throws FrameworkException;

@@ -54,13 +54,13 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.addIntegerProperty("position", PropertyView.Public).setIndexed(true);
 		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);
 
-		type.addStringProperty("enabledChecksums");
+		type.addStringProperty("enabledChecksums",         PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("mountTarget",              PropertyView.Ui);
+		type.addBooleanProperty("mountDoFulltextIndexing", PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("mountScanInterval",       PropertyView.Public, PropertyView.Ui);
+		type.addLongProperty("mountLastScanned",           PropertyView.Public, PropertyView.Ui);
 
-		type.addStringProperty("mountTarget");
-		type.addBooleanProperty("mountDoFulltextIndexing");
-		type.addBooleanProperty("mountWatchContents");
-		type.addIntegerProperty("mountScanInterval");
-		type.addLongProperty("mountLastScanned");
+		type.addBooleanProperty("mountWatchContents",      PropertyView.Ui);
 
 		type.addPropertyGetter("mountTarget", String.class);
 		type.addPropertyGetter("enabledChecksums", String.class);
@@ -94,6 +94,10 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.relate(type, "CONTAINS", Cardinality.OneToMany, "folderParent", "folders");
 		type.relate(type, "CONTAINS", Cardinality.OneToMany, "fileParent",   "files");
 		type.relate(type, "CONTAINS", Cardinality.OneToMany, "imageParent",  "images");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "parent");
+		type.addViewProperty(PropertyView.Public, "owner");
 
 	}}
 

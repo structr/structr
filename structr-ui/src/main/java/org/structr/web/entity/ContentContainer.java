@@ -42,8 +42,8 @@ public interface ContentContainer extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ContentContainer"));
 
-		type.addBooleanProperty("isContentContainer", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addCustomProperty("path", ContentPathProperty.class.getName(), PropertyView.Public).setIndexed(true).setReadOnly(true);
+		type.addBooleanProperty("isContentContainer",                       PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addCustomProperty("path", ContentPathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setReadOnly(true).setIndexed(true);
 
 		type.addPropertyGetter("parent", ContentContainer.class);
 		type.addPropertyGetter("items", List.class);
@@ -54,8 +54,15 @@ public interface ContentContainer extends NodeInterface {
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "childContainers");
 		type.addViewProperty(PropertyView.Public, "items");
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "owner");
+		type.addViewProperty(PropertyView.Public, "parent");
 
+		type.addViewProperty(PropertyView.Ui, "childContainers");
+		type.addViewProperty(PropertyView.Ui, "items");
 		type.addViewProperty(PropertyView.Ui, "name");
+		type.addViewProperty(PropertyView.Ui, "owner");
+		type.addViewProperty(PropertyView.Ui, "parent");
 	}}
 
 	ContentContainer getParent();

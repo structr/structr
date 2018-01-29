@@ -40,10 +40,9 @@ public interface Indexable extends NodeInterface {
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Indexable"));
 
-		type.addStringProperty("extractedContent", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("contentType",      PropertyView.Public);
-
-		type.addStringArrayProperty("indexedWords", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("contentType",       PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("extractedContent",  PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("indexedWords", PropertyView.Ui).setIndexed(true);
 	}}
 
 	String getContentType();

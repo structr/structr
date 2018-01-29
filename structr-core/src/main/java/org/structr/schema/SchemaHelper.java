@@ -129,7 +129,7 @@ public class SchemaHelper {
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
 	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
-	private static final Set<String> basePropertyNames = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
+	private static final Set<String> basePropertyNames = new LinkedHashSet<>(Arrays.asList("id", "type", "name", "owner", "visibleToAuthenticatedUsers", "visibleToPublicUsers"));
 
 	static {
 

@@ -19,6 +19,7 @@
 package org.structr.web.entity;
 
 import java.net.URI;
+import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -38,8 +39,11 @@ public interface Linkable extends NodeInterface {
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Linkable"));
 
-		type.addBooleanProperty("enableBasicAuth").setDefaultValue("false").setIndexed(true);
-		type.addStringProperty("basicAuthRealm");
+		type.addBooleanProperty("enableBasicAuth", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
+		type.addStringProperty("basicAuthRealm",   PropertyView.Ui);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Ui, "linkingElements");
 	}}
 
 	boolean getEnableBasicAuth();
