@@ -19,6 +19,7 @@
 package org.structr.web.basic;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Modifier;
@@ -54,12 +55,17 @@ public class ViewTest extends StructrUiTest {
 	public void testViews() {
 
 		final Map<String, Map<String, List<String>>> viewMap = new LinkedHashMap<>();
+		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
 		boolean fail                                         = false;
 
 		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "deleted", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
 		baseMap.put("public", Arrays.asList("id", "type"));
+
+		requiredAttributes.put("DynamicResourceAccess", Arrays.asList("signature", "i:flags"));
+		requiredAttributes.put("Localization",          Arrays.asList("locale"));
+		requiredAttributes.put("ResourceAccess",        Arrays.asList("signature", "i:flags"));
 
 		try (final InputStream is = ViewTest.class.getResourceAsStream("/test/views.properties")) {
 
@@ -130,12 +136,19 @@ public class ViewTest extends StructrUiTest {
 			// only test node types for now..
 			if (type != null && !Modifier.isAbstract(type.getModifiers()) && !type.isInterface() && !RelationshipInterface.class.isAssignableFrom(type)) {
 
+				final String body = createPostBody(requiredAttributes.get(typeName));
+
 				// create entity
 				final String uuid = StringUtils.substringAfterLast(RestAssured
 					.given()
 					.header("X-User",     "admin")
 					.header("X-Password", "admin")
-					.body("{ name: 'test" + i++ + "' }")
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.body(body.toString())
 					.expect()
 					.statusCode(201)
 					.when()
@@ -193,5 +206,51 @@ public class ViewTest extends StructrUiTest {
 		if (fail) {
 			fail("View configuration does not match expected configuration, see log output for details.");
 		}
+	}
+
+	int count = 0;
+
+	private String createPostBody(final List<String> required) {
+
+		final StringBuilder body = new StringBuilder("{ name: ");
+
+		body.append("'test");
+		body.append(++count);
+		body.append("'");
+
+		if (required != null) {
+
+			for (final String key : required) {
+
+				body.append(", ");
+
+				// integer?
+				if (key.startsWith("i:")) {
+
+					body.append(key.substring(2));
+					body.append(": ");
+					body.append(count);
+
+				// boolean?
+				} else if (key.startsWith("b:")) {
+
+					body.append(key.substring(2));
+					body.append(": true");
+
+				} else {
+
+					body.append(key);
+					body.append(": '");
+					body.append(key);
+					body.append(count);
+					body.append("'");
+				}
+			}
+		}
+
+		body.append(" }");
+
+
+		return body.toString();
 	}
 }
