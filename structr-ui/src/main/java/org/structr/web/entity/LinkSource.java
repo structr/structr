@@ -54,6 +54,7 @@ public interface LinkSource extends DOMElement {
 		type.addIdReferenceProperty("linkableId", rel.getTargetProperty());
 
 		// view configuration
+		type.addViewProperty(PropertyView.Ui, "children");
 		type.addViewProperty(PropertyView.Ui, "linkable");
 		type.addViewProperty(PropertyView.Ui, "linkableId");
 	}}

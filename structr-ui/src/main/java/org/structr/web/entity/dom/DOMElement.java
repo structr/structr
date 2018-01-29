@@ -230,6 +230,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "children");
+
+		type.addViewProperty(PropertyView.Ui, "data-structr-id");
+		type.addViewProperty(PropertyView.Ui, "renderDetails");
+		type.addViewProperty(PropertyView.Ui, "children");
+		type.addViewProperty(PropertyView.Ui, "childrenIds");
 
 	}}
 

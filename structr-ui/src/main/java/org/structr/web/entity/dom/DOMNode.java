@@ -108,10 +108,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		type.addStringProperty("sharedComponentConfiguration", PropertyView.Ui).setFormat("multi-line");
 
-		type.addStringProperty("data-structr-id", PropertyView.Ui);
+		type.addStringProperty("data-structr-id");
 		type.addStringProperty("data-structr-hash");
 
-		type.addBooleanProperty("renderDetails", PropertyView.Ui);
+		type.addBooleanProperty("renderDetails");
 		type.addBooleanProperty("hideOnIndex", PropertyView.Ui);
 		type.addBooleanProperty("hideOnDetail", PropertyView.Ui);
 		type.addBooleanProperty("dontCache").setDefaultValue("false");
@@ -252,15 +252,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		parent.addIntegerProperty("position");
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "children");
 		type.addViewProperty(PropertyView.Public, "pageId");
 		type.addViewProperty(PropertyView.Public, "parent");
 		type.addViewProperty(PropertyView.Public, "sharedComponent");
 		type.addViewProperty(PropertyView.Public, "syncedNodes");
 
 		type.addViewProperty(PropertyView.Ui, "pageId");
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "childrenIds");
 		type.addViewProperty(PropertyView.Ui, "parent");
 		type.addViewProperty(PropertyView.Ui, "sharedComponent");
 		type.addViewProperty(PropertyView.Ui, "syncedNodes");

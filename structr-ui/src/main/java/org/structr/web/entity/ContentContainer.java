@@ -51,8 +51,11 @@ public interface ContentContainer extends NodeInterface {
 		type.relate(type, "CONTAINS", Cardinality.OneToMany,  "parent",     "childContainers");
 		type.relate(item, "CONTAINS", Cardinality.ManyToMany, "containers", "items");
 
+		// view configuration
 		type.addViewProperty(PropertyView.Public, "childContainers");
 		type.addViewProperty(PropertyView.Public, "items");
+
+		type.addViewProperty(PropertyView.Ui, "name");
 	}}
 
 	ContentContainer getParent();

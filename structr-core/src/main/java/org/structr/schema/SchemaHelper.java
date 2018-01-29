@@ -912,6 +912,7 @@ public class SchemaHelper {
 						} else {
 
 							logger.warn("Unknown property {} in non-graph properties, ignoring.", propertyName);
+							System.out.println(SchemaHelper.isDynamic(entity.getClassName(), propertyName));
 						}
 					}
 				}
@@ -1652,6 +1653,8 @@ public class SchemaHelper {
 		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
 			.and(SchemaRelationshipNode.sourceNode, schemaNode)
 			.and()
+				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
+				.or(SchemaRelationshipNode.targetJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
 
@@ -1663,6 +1666,8 @@ public class SchemaHelper {
 		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
 			.and(SchemaRelationshipNode.targetNode, schemaNode)
 			.and()
+				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
+				.or(SchemaRelationshipNode.targetJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
 

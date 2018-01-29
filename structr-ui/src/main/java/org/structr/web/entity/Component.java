@@ -38,8 +38,8 @@ public interface Component extends DOMElement {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Component"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		type.addIntegerProperty("position", PropertyView.Public);
-		type.addStringProperty("kind", PropertyView.Public);
+		type.addIntegerProperty("position");
+		type.addStringProperty("kind", PropertyView.Public, PropertyView.Ui);
 
 
 		// FIXME: do we need this type?
