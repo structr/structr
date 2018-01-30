@@ -29,11 +29,12 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Relation.Cardinality;
 import static org.structr.core.entity.SchemaMethod.source;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.schema.json.JsonType;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
@@ -47,44 +48,29 @@ public interface Widget extends NodeInterface {
 
 	static class Impl { static {
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("Widget");
+		final JsonSchema schema    = SchemaService.getDynamicSchema();
+		final JsonObjectType type  = schema.addType("Widget");
+		final JsonObjectType image = schema.addType("Image");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
 
-		type.addStringProperty("source",        PropertyView.Public);
-		type.addStringProperty("description",   PropertyView.Public);
-		type.addStringProperty("configuration", PropertyView.Public);
-		type.addStringProperty("treePath",      PropertyView.Public);
+		type.addStringProperty("source",        PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("description",   PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("configuration", PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("treePath",      PropertyView.Ui, PropertyView.Public);
+		type.addBooleanProperty("isWidget",     PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
-		type.addBooleanProperty("isWidget",  PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.relate(image, "PICTURE_OF", Cardinality.OneToMany, "widget", "pictures");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "pictures");
+
+		type.addViewProperty(PropertyView.Ui, "pictures");
 	}}
 
 	static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 
-	/*
-
-	public static final Property<String>      source        = new StringProperty("source").cmis();
-	public static final Property<String>      description   = new StringProperty("description").cmis();
-	public static final Property<String>      configuration = new StringProperty("configuration").cmis();
-	public static final Property<String>      treePath      = new StringProperty("treePath").cmis().indexed();
-	public static final Property<List<Image>> pictures      = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
-	public static final Property<Boolean>     isWidget      = new ConstantBooleanProperty("isWidget", true);
-
-	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
-		type, name, source, description, configuration, pictures, treePath, isWidget
-	);
-
-	public static final org.structr.common.View publicView = new org.structr.common.View(Widget.class, PropertyView.Public,
-		type, name, source, description, configuration, pictures, treePath, isWidget
-	);
-
-	// register this type as an overridden builtin type
-	static {
-		SchemaService.registerBuiltinTypeOverride("Widget", Widget.class.getName());
-	}
-
-	*/
 	public static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
 		String _source          = (String)parameters.get("source");

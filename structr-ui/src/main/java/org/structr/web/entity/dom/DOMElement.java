@@ -229,13 +229,40 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("getSchemaTypeInfo",      false, "return null;");
 
 		// view configuration
+		type.addViewProperty(PropertyView.Public, "isDOMNode");
+		type.addViewProperty(PropertyView.Public, "pageId");
+		type.addViewProperty(PropertyView.Public, "parent");
+		type.addViewProperty(PropertyView.Public, "sharedComponent");
+		type.addViewProperty(PropertyView.Public, "syncedNodes");
 		type.addViewProperty(PropertyView.Public, "name");
 		type.addViewProperty(PropertyView.Public, "children");
+		type.addViewProperty(PropertyView.Public, "dataKey");
+		type.addViewProperty(PropertyView.Public, "cypherQuery");
+		type.addViewProperty(PropertyView.Public, "xpathQuery");
+		type.addViewProperty(PropertyView.Public, "restQuery");
+		type.addViewProperty(PropertyView.Public, "functionQuery");
 
+		type.addViewProperty(PropertyView.Ui, "hideOnDetail");
+		type.addViewProperty(PropertyView.Ui, "hideOnIndex");
+		type.addViewProperty(PropertyView.Ui, "sharedComponentConfiguration");
+		type.addViewProperty(PropertyView.Ui, "isDOMNode");
+		type.addViewProperty(PropertyView.Ui, "pageId");
+		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "sharedComponent");
+		type.addViewProperty(PropertyView.Ui, "syncedNodes");
 		type.addViewProperty(PropertyView.Ui, "data-structr-id");
 		type.addViewProperty(PropertyView.Ui, "renderDetails");
 		type.addViewProperty(PropertyView.Ui, "children");
 		type.addViewProperty(PropertyView.Ui, "childrenIds");
+		type.addViewProperty(PropertyView.Ui, "showForLocales");
+		type.addViewProperty(PropertyView.Ui, "hideForLocales");
+		type.addViewProperty(PropertyView.Ui, "showConditions");
+		type.addViewProperty(PropertyView.Ui, "hideConditions");
+		type.addViewProperty(PropertyView.Ui, "dataKey");
+		type.addViewProperty(PropertyView.Ui, "cypherQuery");
+		type.addViewProperty(PropertyView.Ui, "xpathQuery");
+		type.addViewProperty(PropertyView.Ui, "restQuery");
+		type.addViewProperty(PropertyView.Ui, "functionQuery");
 
 	}}
 

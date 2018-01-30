@@ -42,7 +42,7 @@ public interface Group extends Principal {
 		group.setImplements(URI.create("https://structr.org/v1.1/definitions/Group"));
 		group.setExtends(URI.create("#/definitions/Principal"));
 
-		group.addBooleanProperty("isGroup", PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		group.addBooleanProperty("isGroup", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		group.addMethod("addMember").setSource("org.structr.core.entity.Group.addMember(this, member);").addParameter("member", Principal.class.getName());
 		group.addMethod("removeMember").setSource("org.structr.core.entity.Group.removeMember(this, member);").addParameter("member", Principal.class.getName());
@@ -50,8 +50,15 @@ public interface Group extends Principal {
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
 
-		// make name visible in public view
+		// view configuration
+		group.addViewProperty(PropertyView.Ui, "members");
+		group.addViewProperty(PropertyView.Ui, "customPermissionQueryRead");
+		group.addViewProperty(PropertyView.Ui, "customPermissionQueryWrite");
+		group.addViewProperty(PropertyView.Ui, "customPermissionQueryDelete");
+		group.addViewProperty(PropertyView.Ui, "customPermissionQueryAccessControl");
+
 		group.addViewProperty(PropertyView.Public, "members");
+		group.addViewProperty(PropertyView.Public, "blocked");
 		group.addViewProperty(PropertyView.Public, "name");
 	}}
 

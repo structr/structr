@@ -31,15 +31,20 @@ public interface Site extends NodeInterface {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Site");
-		final JsonObjectType page = (JsonObjectType)schema.getType("Page");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Site"));
 
-		type.addStringProperty("hostname", PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("port", PropertyView.Public).setIndexed(true);
+		type.addStringProperty("hostname", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("port",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("hostname", String.class);
 		type.addPropertyGetter("port",     Integer.class);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Ui, "pages");
+
+		type.addViewProperty(PropertyView.Public, "pages");
+		type.addViewProperty(PropertyView.Public, "name");
 	}}
 
 	String getHostname();

@@ -49,7 +49,7 @@ public interface MinifiedCssFile extends AbstractMinifiedFile {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MinifiedCssFile"));
 		type.setExtends(URI.create("#/definitions/AbstractMinifiedFile"));
 
-		type.addIntegerProperty("lineBreak", PropertyView.Public).setDefaultValue("-1");
+		type.addIntegerProperty("lineBreak", PropertyView.Public, PropertyView.Ui).setDefaultValue("-1");
 
 		type.addPropertyGetter("lineBreak", Integer.class);
 

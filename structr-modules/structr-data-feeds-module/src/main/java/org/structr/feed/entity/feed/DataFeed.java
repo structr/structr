@@ -61,13 +61,14 @@ public interface DataFeed extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DataFeed"));
 
-		type.addStringProperty("url",          PropertyView.Public).setIndexed(true);
-		type.addStringProperty("feedType",     PropertyView.Public).setIndexed(true);
-		type.addStringProperty("description",  PropertyView.Public).setIndexed(true);
-		type.addLongProperty("updateInterval", PropertyView.Public); // update interval in milliseconds
-		type.addDateProperty("lastUpdated",    PropertyView.Public);
-		type.addLongProperty("maxAge",         PropertyView.Public); // maximum age of the oldest feed entry in milliseconds
-		type.addIntegerProperty("maxItems",    PropertyView.Public); // maximum number of feed entries to retain
+		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("feedType",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("description",  PropertyView.Public, PropertyView.Ui).setIndexed(true);
+
+		type.addLongProperty("updateInterval", PropertyView.Ui);  // update interval in milliseconds
+		type.addDateProperty("lastUpdated",    PropertyView.Ui);  // last updated
+		type.addLongProperty("maxAge",         PropertyView.Ui);  // maximum age of the oldest feed entry in milliseconds
+		type.addIntegerProperty("maxItems",    PropertyView.Ui);  // maximum number of feed entries to retain
 
 		type.addPropertyGetter("items",            Iterable.class);
 		type.addPropertyGetter("url",              String.class);
@@ -94,7 +95,9 @@ public interface DataFeed extends NodeInterface {
 
 		type.relate(item, "HAS_FEED_ITEMS", Cardinality.OneToMany, "feed", "items");
 
-		type.addViewProperty(PropertyView.Public, "itemsProperty");
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "items");
+		type.addViewProperty(PropertyView.Ui, "items");
 	}}
 
 	void cleanUp();

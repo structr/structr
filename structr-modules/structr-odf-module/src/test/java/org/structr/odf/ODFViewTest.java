@@ -16,35 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.relation;
+package org.structr.odf;
 
-import org.structr.core.entity.ManyToOne;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
+import org.junit.Test;
+import org.structr.web.common.TestHelper;
 
 /**
- *
- *
  */
-public class UserWorkDir extends ManyToOne<User, Folder> {
+public class ODFViewTest extends StructrODFModuleTest {
 
-	@Override
-	public Class<User> getSourceType() {
-		return User.class;
-	}
+	@Test
+	public void testViews() {
 
-	@Override
-	public Class<Folder> getTargetType() {
-		return Folder.class;
-	}
-
-	@Override
-	public String name() {
-		return "WORKING_DIR";
-	}
-
-	@Override
-	public boolean isInternal() {
-		return true;
+		TestHelper.testViews(app, ODFViewTest.class.getResourceAsStream("/views.properties"), null);
 	}
 }

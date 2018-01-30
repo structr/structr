@@ -55,18 +55,18 @@ public interface VideoFile extends File {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VideoFile"));
 		type.setExtends(URI.create("#/definitions/File"));
 
-		type.addBooleanProperty("isVideo").setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isVideo", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
-		type.addStringProperty("videoCodecName", PropertyView.Public);
-		type.addStringProperty("videoCodec",     PropertyView.Public);
-		type.addStringProperty("pixelFormat",    PropertyView.Public);
-		type.addStringProperty("audioCodecName", PropertyView.Public);
-		type.addStringProperty("audioCodec",     PropertyView.Public);
-		type.addIntegerProperty("audioChannels", PropertyView.Public);
-		type.addNumberProperty("sampleRate",     PropertyView.Public).setIndexed(true);
-		type.addNumberProperty("duration",       PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("width",         PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("height",        PropertyView.Public).setIndexed(true);
+		type.addStringProperty("videoCodecName", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("videoCodec",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("pixelFormat",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("audioCodecName", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("audioCodec",     PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("audioChannels", PropertyView.Public, PropertyView.Ui);
+		type.addNumberProperty("sampleRate",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addNumberProperty("duration",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("width",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("height",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.overrideMethod("onCreation",      true,  "updateVideoInfo();");
 		type.overrideMethod("onModification",  true,  "updateVideoInfo();");
@@ -112,6 +112,18 @@ public interface VideoFile extends File {
 
 		type.relate(type, "HAS_CONVERTED_VIDEO", Cardinality.OneToMany, "originalVideo",      "convertedVideos").setCascadingDelete(Cascade.sourceToTarget);
 		type.relate(img,  "HAS_POSTER_IMAGE",    Cardinality.OneToOne,  "posterImageOfVideo", "posterImage").setCascadingDelete(Cascade.sourceToTarget);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "parent");
+		type.addViewProperty(PropertyView.Public, "checksum");
+		type.addViewProperty(PropertyView.Public, "convertedVideos");
+		type.addViewProperty(PropertyView.Public, "posterImage");
+
+		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "originalVideo");
+		type.addViewProperty(PropertyView.Ui, "convertedVideos");
+		type.addViewProperty(PropertyView.Ui, "posterImage");
 	}}
 
 	String getDiskFilePath(final SecurityContext securityContext);

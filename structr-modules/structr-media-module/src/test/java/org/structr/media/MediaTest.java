@@ -69,7 +69,7 @@ public class MediaTest extends StructrMediaModuleTest {
 			.body("result[0].type",                  equalTo("VideoFile"))
 			.body("result[0].name",                  equalTo("test.mp4"))
 			.body("result[0].path",                  equalTo("/test.mp4"))
-			.body("result[0].checksum",              equalTo(1127531069))
+			.body("result[0].checksum",              equalTo(3346681520328299771L))
 			.body("result[0].size",                  equalTo(91960))
 			.body("result[0].duration",              equalTo(34.77f))
 			.body("result[0].width",                 equalTo(18))

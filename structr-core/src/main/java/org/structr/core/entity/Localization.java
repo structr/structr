@@ -36,15 +36,17 @@ public interface Localization extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Localization"));
 
-		type.addStringProperty("localizedName", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("description",   PropertyView.Public);
-		type.addStringProperty("domain",        PropertyView.Public).setIndexed(true);
-		type.addStringProperty("locale",        PropertyView.Public).setRequired(true).setIndexed(true);
-		type.addBooleanProperty("imported",     PropertyView.Public).setIndexed(true);
+		type.addStringProperty("localizedName", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("description",   PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("domain",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("locale",        PropertyView.Public, PropertyView.Ui).setRequired(true).setIndexed(true);
+		type.addBooleanProperty("imported",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.overrideMethod("onCreation",     true, "org.structr.core.entity.Localization.onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification", true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
 
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
 	}}
 
 	public static void onCreation(final Localization localization, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {

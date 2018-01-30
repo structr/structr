@@ -64,28 +64,27 @@ public interface PaymentNode extends NodeInterface, Payment {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PaymentNode"));
 
-		type.addEnumProperty("state", PropertyView.Public).setEnumType(PaymentState.class);
-
-		type.addStringProperty("description",            PropertyView.Public).setIndexed(true);
-		type.addStringProperty("currency",               PropertyView.Public).setIndexed(true);
-		type.addStringProperty("token",                  PropertyView.Public).setIndexed(true);
-		type.addStringProperty("billingAgreementId",     PropertyView.Public);
-		type.addStringProperty("note",                   PropertyView.Public);
-		type.addStringProperty("billingAddressName",     PropertyView.Public);
-		type.addStringProperty("billingAddressStreet1",  PropertyView.Public);
-		type.addStringProperty("billingAddressStreet2",  PropertyView.Public);
-		type.addStringProperty("billingAddressZip",      PropertyView.Public);
-		type.addStringProperty("billingAddressCity",     PropertyView.Public);
-		type.addStringProperty("billingAddressCountry",  PropertyView.Public);
-		type.addStringProperty("invoiceId",              PropertyView.Public);
-		type.addStringProperty("payerAddressName",       PropertyView.Public);
-		type.addStringProperty("payerAddressStreet1",    PropertyView.Public);
-		type.addStringProperty("payerAddressStreet2",    PropertyView.Public);
-		type.addStringProperty("payerAddressZip",        PropertyView.Public);
-		type.addStringProperty("payerAddressCity",       PropertyView.Public);
-		type.addStringProperty("payerAddressCountry",    PropertyView.Public);
-		type.addStringProperty("payer",                  PropertyView.Public);
-		type.addStringProperty("payerBusiness",          PropertyView.Public);
+		type.addEnumProperty("state",                    PropertyView.Public, PropertyView.Ui).setEnumType(PaymentState.class);
+		type.addStringProperty("description",            PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("currency",               PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("token",                  PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("billingAgreementId",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("note",                   PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("billingAddressName",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("billingAddressStreet1",  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("billingAddressStreet2",  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("billingAddressZip",      PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("billingAddressCity",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("billingAddressCountry",  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("invoiceId",              PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payerAddressName",       PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payerAddressStreet1",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payerAddressStreet2",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payerAddressZip",        PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payerAddressCity",       PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payerAddressCountry",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payer",                  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("payerBusiness",          PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("items",                  List.class);
 		type.addPropertyGetter("description",            String.class);
@@ -165,51 +164,11 @@ public interface PaymentNode extends NodeInterface, Payment {
 			.setSource("setProperty(stateProperty, state);")
 			.addException(FrameworkException.class.getName());
 
-		if (item != null) {
+		type.relate(item, "paymentItem", Cardinality.OneToMany, "payment", "items");
 
-			type.relate(item, "paymentItem", Cardinality.OneToMany, "payment", "items");
-
-			item.addViewProperty(PropertyView.Public, "paymentProperty");
-			type.addViewProperty(PropertyView.Public, "itemsProperty");
-		}
+		type.addViewProperty(PropertyView.Public, "items");
+		type.addViewProperty(PropertyView.Ui, "items");
 	}}
-
-	/*
-	public static final Property<List<PaymentItemNode>> items                   = new EndNodes<>("items", PaymentItems.class);
-	public static final Property<PaymentState>          stateProperty           = new EnumProperty("state", PaymentState.class).indexed();
-	public static final Property<String>                descriptionProperty     = new StringProperty("description").indexed();
-	public static final Property<String>                currencyProperty        = new StringProperty("currency").indexed();
-	public static final Property<String>                tokenProperty           = new StringProperty("token").indexed();
-	public static final Property<String>                billingAgreementId      = new StringProperty("billingAgreementId");
-	public static final Property<String>                note                    = new StringProperty("note");
-	public static final Property<String>                billingAddressName      = new StringProperty("billingAddressName");
-	public static final Property<String>                billingAddressStreet1   = new StringProperty("billingAddressStreet1");
-	public static final Property<String>                billingAddressStreet2   = new StringProperty("billingAddressStreet2");
-	public static final Property<String>                billingAddressZip       = new StringProperty("billingAddressZip");
-	public static final Property<String>                billingAddressCity      = new StringProperty("billingAddressCity");
-	public static final Property<String>                billingAddressCountry   = new StringProperty("billingAddressCountry");
-	public static final Property<String>                invoiceId               = new StringProperty("invoiceId");
-	public static final Property<String>                payerAddressName        = new StringProperty("payerAddressName");
-	public static final Property<String>                payerAddressStreet1     = new StringProperty("payerAddressStreet1");
-	public static final Property<String>                payerAddressStreet2     = new StringProperty("payerAddressStreet2");
-	public static final Property<String>                payerAddressZip         = new StringProperty("payerAddressZip");
-	public static final Property<String>                payerAddressCity        = new StringProperty("payerAddressCity");
-	public static final Property<String>                payerAddressCountry     = new StringProperty("payerAddressCountry");
-	public static final Property<String>                payer                   = new StringProperty("payer");
-	public static final Property<String>                payerBusiness           = new StringProperty("payerBusiness");
-
-	public static final View publicView = new View(PaymentNode.class, "public",
-		descriptionProperty, items, currencyProperty, tokenProperty, stateProperty, billingAgreementId, note, billingAddressName,
-		billingAddressStreet1, billingAddressStreet2, billingAddressZip, billingAddressCity, billingAddressCountry, invoiceId,
-		payerAddressName, payerAddressStreet1, payerAddressStreet2, payerAddressZip, payerAddressCity, payerAddressCountry, payer, payerBusiness
-	);
-
-	public static final View uiView = new View(PaymentNode.class, "ui",
-		descriptionProperty, items, currencyProperty, tokenProperty, stateProperty, billingAgreementId, note, billingAddressName,
-		billingAddressStreet1, billingAddressStreet2, billingAddressZip, billingAddressCity, billingAddressCountry, invoiceId,
-		payerAddressName, payerAddressStreet1, payerAddressStreet2, payerAddressZip, payerAddressCity, payerAddressCountry, payer, payerBusiness
-	);
-	*/
 
 	public static GraphObject beginCheckout(final PaymentNode thisNode, final String providerName, final String successUrl, final String cancelUrl) throws FrameworkException {
 

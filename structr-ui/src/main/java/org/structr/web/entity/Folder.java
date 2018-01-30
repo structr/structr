@@ -46,13 +46,15 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Folder");
+		final JsonObjectType img  = schema.addType("Image");
+		final JsonObjectType file = schema.addType("File");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Folder"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
 
-		type.addBooleanProperty("isFolder").setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addIntegerProperty("position", PropertyView.Public).setIndexed(true);
+		type.addBooleanProperty("isFolder", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);
+		type.addIntegerProperty("position").setIndexed(true);
 
 		type.addStringProperty("enabledChecksums",         PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("mountTarget",              PropertyView.Ui);
@@ -60,7 +62,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.addIntegerProperty("mountScanInterval",       PropertyView.Public, PropertyView.Ui);
 		type.addLongProperty("mountLastScanned",           PropertyView.Public, PropertyView.Ui);
 
-		type.addBooleanProperty("mountWatchContents",      PropertyView.Ui);
+		type.addBooleanProperty("mountWatchContents");
 
 		type.addPropertyGetter("mountTarget", String.class);
 		type.addPropertyGetter("enabledChecksums", String.class);
@@ -92,12 +94,18 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.overrideMethod("getChangeToken",      false, "return null;");
 
 		type.relate(type, "CONTAINS", Cardinality.OneToMany, "folderParent", "folders");
-		type.relate(type, "CONTAINS", Cardinality.OneToMany, "fileParent",   "files");
-		type.relate(type, "CONTAINS", Cardinality.OneToMany, "imageParent",  "images");
+		type.relate(file, "CONTAINS", Cardinality.OneToMany, "fileParent",   "files");
+		type.relate(img,  "CONTAINS", Cardinality.OneToMany, "imageParent",  "images");
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "parent");
+		type.addViewProperty(PropertyView.Public, "parentId");
 		type.addViewProperty(PropertyView.Public, "owner");
+		type.addViewProperty(PropertyView.Public, "folders");
+		type.addViewProperty(PropertyView.Public, "files");
+
+		type.addViewProperty(PropertyView.Ui, "folders");
+		type.addViewProperty(PropertyView.Ui, "files");
+		type.addViewProperty(PropertyView.Ui, "images");
 
 	}}
 

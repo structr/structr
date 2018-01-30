@@ -99,9 +99,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.addStringProperty("url", PropertyView.Public, PropertyView.Ui);
 
-		type.addBooleanProperty("isFile", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addBooleanProperty("isTemplate", PropertyView.Public, PropertyView.Ui);
-
+		type.addBooleanProperty("isFile",            PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isTemplate",        PropertyView.Public, PropertyView.Ui);
 		type.addLongProperty("size",                 PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("fileModificationDate", PropertyView.Public);
 
@@ -223,7 +222,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			.setDoExport(true);
 
 		// view configuration
+		type.addViewProperty(PropertyView.Public, "includeInFrontendExport");
 		type.addViewProperty(PropertyView.Public, "owner");
+
+		type.addViewProperty(PropertyView.Ui, "hasParent");
 
 		/* TODO:
 			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
@@ -673,10 +675,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		if (_owner != null && _owner instanceof User) {
 
-			workingOrHomeDir = _owner.getProperty(User.workingDirectory);
+			final User user = (User)_owner;
+
+			workingOrHomeDir = user.getWorkingDirectory();
 			if (workingOrHomeDir == null) {
 
-				workingOrHomeDir = _owner.getProperty(User.homeDirectory);
+				workingOrHomeDir = user.getHomeDirectory();
 			}
 		}
 

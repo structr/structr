@@ -37,16 +37,16 @@ public interface Location extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Location"));
 
-		type.addNumberProperty("latitude",      PropertyView.Public).setIndexed(true);
-		type.addNumberProperty("longitude",     PropertyView.Public).setIndexed(true);
-		type.addNumberProperty("altitude",      PropertyView.Public).setIndexed(true);
-		type.addStringProperty("country",       PropertyView.Public);
-		type.addStringProperty("postalCode",    PropertyView.Public);
-		type.addStringProperty("city",          PropertyView.Public);
-		type.addStringProperty("street",        PropertyView.Public);
-		type.addStringProperty("houseNumber",   PropertyView.Public);
-		type.addStringProperty("state",         PropertyView.Public);
-		type.addStringProperty("stateDistrict", PropertyView.Public);
+		type.addNumberProperty("latitude",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addNumberProperty("longitude",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addNumberProperty("altitude",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("country");
+		type.addStringProperty("postalCode");
+		type.addStringProperty("city");
+		type.addStringProperty("street");
+		type.addStringProperty("houseNumber");
+		type.addStringProperty("state");
+		type.addStringProperty("stateDistrict");
 	}}
 
 	/*

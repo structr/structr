@@ -118,7 +118,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 					// set home directory first
 					if (Settings.FilesystemEnabled.getValue()) {
 
-						currentFolder = user.getProperty(User.homeDirectory);
+						currentFolder = user.getHomeDirectory();
 					}
 				}
 				tx.success();
@@ -244,7 +244,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 
 				String folderPart = currentFolder.getPath();
 
-				final Folder homeFolder = user.getProperty(User.homeDirectory);
+				final Folder homeFolder = user.getHomeDirectory();
 				if (homeFolder != null) {
 
 					// replace home directory with ~ if at the beginning of the full path

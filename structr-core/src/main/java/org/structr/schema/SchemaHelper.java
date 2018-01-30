@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import javatools.parsers.PlingStemmer;
@@ -912,7 +913,7 @@ public class SchemaHelper {
 						} else {
 
 							logger.warn("Unknown property {} in non-graph properties, ignoring.", propertyName);
-							System.out.println(SchemaHelper.isDynamic(entity.getClassName(), propertyName));
+							SchemaHelper.isDynamic(entity.getClassName(), propertyName);
 						}
 					}
 				}
@@ -1115,16 +1116,25 @@ public class SchemaHelper {
 		final String _implementsInterfaces = schemaInfo.getProperty(SchemaNode.implementsInterfaces);
 		if (StringUtils.isNotBlank(_implementsInterfaces)) {
 
-			final String[] parts = _implementsInterfaces.split("[, ]+");
-			for (final String part : parts) {
+			interfaces.addAll(collectInterfaces(_implementsInterfaces));
+		}
+	}
 
-				final String trimmed = part.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
+	public static Set<String> collectInterfaces(final String src) {
 
-					interfaces.add(trimmed);
-				}
+		final Set<String> interfaces = new LinkedHashSet<>();
+		final String[] parts         = src.split("[, ]+");
+
+		for (final String part : parts) {
+
+			final String trimmed = part.trim();
+			if (StringUtils.isNotBlank(trimmed)) {
+
+				interfaces.add(trimmed);
 			}
 		}
+
+		return interfaces;
 	}
 
 	public static String cleanPropertyName(final String propertyName) {
@@ -1702,32 +1712,57 @@ public class SchemaHelper {
 
 	private static boolean hasSchemaProperty(final String typeName, final String propertyName) throws FrameworkException {
 
-		final App app        = StructrApp.getInstance();
-		String localTypeName = typeName;
+		final Set<String> visited = new LinkedHashSet<>();
+		final Queue<String> types = new LinkedList<>();
+		final App app             = StructrApp.getInstance();
 
-		while (StringUtils.isNotBlank(localTypeName) && !AbstractNode.class.getSimpleName().equals(localTypeName)) {
+		types.add(typeName);
 
-			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(localTypeName).getFirst();
-			if (schemaNode != null) {
+		while (!types.isEmpty()) {
 
-				final SchemaProperty schemaProperty = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
-				if (schemaProperty != null || hasRelationshipNode(schemaNode, propertyName)) {
+			final String type = types.poll();
 
-					return true;
+			if (!visited.contains(type)) {
+
+				visited.add(type);
+
+				final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+				if (schemaNode != null) {
+
+					final SchemaProperty schemaProperty = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+					if (schemaProperty != null || hasRelationshipNode(schemaNode, propertyName)) {
+
+						return true;
+
+					} else {
+
+						// add superclass AND interfaces
+						String localTypeName = schemaNode.getProperty(SchemaNode.extendsClass);
+						if (localTypeName != null) {
+
+							localTypeName = cleanTypeName(localTypeName);
+							localTypeName = localTypeName.substring(localTypeName.lastIndexOf(".") + 1);
+
+							types.add(localTypeName);
+						}
+
+						final String interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
+						if (StringUtils.isNotBlank(interfaces)) {
+
+							for (final String iface : collectInterfaces(interfaces)) {
+
+								String cleaned = cleanTypeName(iface);
+								cleaned        = cleaned.substring(cleaned.lastIndexOf(".") + 1);
+
+								types.add(cleaned);
+							}
+						}
+					}
 
 				} else {
 
-					localTypeName = schemaNode.getProperty(SchemaNode.extendsClass);
-					if (localTypeName != null) {
-
-						localTypeName = cleanTypeName(localTypeName);
-						localTypeName = localTypeName.substring(localTypeName.lastIndexOf(".") + 1);
-					}
+					break;
 				}
-
-			} else {
-
-				break;
 			}
 		}
 

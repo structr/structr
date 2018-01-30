@@ -112,6 +112,11 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.overrideMethod("deleteData",                 false, Content.class.getName() + ".deleteData(this, arg0, arg1);");
 		type.overrideMethod("replaceData",                false, Content.class.getName() + ".replaceData(this, arg0, arg1, arg2);");
 
+		type.addViewProperty(PropertyView.Public, "isDOMNode");
+		type.addViewProperty(PropertyView.Public, "pageId");
+		type.addViewProperty(PropertyView.Public, "parent");
+		type.addViewProperty(PropertyView.Public, "sharedComponent");
+		type.addViewProperty(PropertyView.Public, "syncedNodes");
 		type.addViewProperty(PropertyView.Public, "hideConditions");
 		type.addViewProperty(PropertyView.Public, "showConditions");
 		type.addViewProperty(PropertyView.Public, "hideForLocales");
@@ -119,6 +124,29 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.addViewProperty(PropertyView.Public, "sharedComponentConfiguration");
 		type.addViewProperty(PropertyView.Public, "hideOnIndex");
 		type.addViewProperty(PropertyView.Public, "hideOnDetail");
+		type.addViewProperty(PropertyView.Public, "dataKey");
+		type.addViewProperty(PropertyView.Public, "cypherQuery");
+		type.addViewProperty(PropertyView.Public, "xpathQuery");
+		type.addViewProperty(PropertyView.Public, "restQuery");
+		type.addViewProperty(PropertyView.Public, "functionQuery");
+
+		type.addViewProperty(PropertyView.Ui, "hideOnDetail");
+		type.addViewProperty(PropertyView.Ui, "hideOnIndex");
+		type.addViewProperty(PropertyView.Ui, "sharedComponentConfiguration");
+		type.addViewProperty(PropertyView.Ui, "isDOMNode");
+		type.addViewProperty(PropertyView.Ui, "pageId");
+		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "sharedComponent");
+		type.addViewProperty(PropertyView.Ui, "syncedNodes");
+		type.addViewProperty(PropertyView.Ui, "showForLocales");
+		type.addViewProperty(PropertyView.Ui, "hideForLocales");
+		type.addViewProperty(PropertyView.Ui, "showConditions");
+		type.addViewProperty(PropertyView.Ui, "hideConditions");
+		type.addViewProperty(PropertyView.Ui, "dataKey");
+		type.addViewProperty(PropertyView.Ui, "cypherQuery");
+		type.addViewProperty(PropertyView.Ui, "xpathQuery");
+		type.addViewProperty(PropertyView.Ui, "restQuery");
+		type.addViewProperty(PropertyView.Ui, "functionQuery");
 	}}
 
 	String getContentType();

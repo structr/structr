@@ -110,6 +110,7 @@
 						<exclude>**/README</exclude>
 						<exclude>src/**/.directory</exclude>
 						<exclude>src/**/*.sh</exclude>
+						<exclude>src/test/resources/**/*.properties</exclude>
 					</excludes>
 					<properties>
 						<year>2018</year>

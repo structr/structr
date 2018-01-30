@@ -16,18 +16,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.basic;
+package org.structr.knowledge;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.structr.web.common.TestHelper;
-import org.structr.web.StructrUiTest;
 
-
-public abstract class ViewTest extends StructrUiTest {
+/**
+ */
+public class KnowledgeViewTest extends StructrKnowledgeModuleTest {
 
 	@Test
 	public void testViews() {
 
-		TestHelper.testViews(app, ViewTest.class.getResourceAsStream("/views.properties"), null);
+		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
+
+		//requiredAttributes.put("FeedItem", Arrays.asList("url"));
+
+		TestHelper.testViews(app, KnowledgeViewTest.class.getResourceAsStream("/views.properties"), requiredAttributes);
 	}
 }

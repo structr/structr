@@ -52,7 +52,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
 
 		principal.addBooleanProperty("isAdmin").setReadOnly(true);
-		principal.addBooleanProperty("blocked", PropertyView.Public);
+		principal.addBooleanProperty("blocked", PropertyView.Ui);
 
 		// FIXME: indexedWhenEmpty() is not possible here, but needed?
 		principal.addStringArrayProperty("sessionIds").setIndexed(true);

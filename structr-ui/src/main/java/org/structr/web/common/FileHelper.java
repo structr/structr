@@ -573,12 +573,19 @@ public class FileHelper {
 			}
 		}
 
-		final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
+		try {
+			final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
+			if (mediaType != null) {
 
-		mimeType = mediaType.toString();
-		if (mimeType != null) {
+				mimeType = mediaType.toString();
+				if (mimeType != null) {
 
-			return mimeType;
+					return mimeType;
+				}
+			}
+
+		} catch (NoClassDefFoundError t) {
+			logger.warn("Unable to instantiate MIME type detector: {}", t.getMessage());
 		}
 
 		// no success :(

@@ -75,7 +75,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Principal.name, user.getName());
 
-			final Folder homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
+			final Folder homeDir = structrUser.getHomeDirectory();
 
 			tx.success();
 

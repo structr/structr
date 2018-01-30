@@ -65,6 +65,10 @@ public interface AbstractMinifiedFile extends File {
 		final JsonReferenceType rel = type.relate(file, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
 
 		rel.addIntegerProperty("position", PropertyView.Public);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "minificationSources");
+		type.addViewProperty(PropertyView.Ui,     "minificationSources");
 	}}
 
 	int getMaxPosition();

@@ -49,9 +49,9 @@ public interface FeedItemContent extends NodeInterface, Indexable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItemContent"));
 		type.setImplements(URI.create("#/definitions/Indexable"));
 
-		type.addStringProperty("mode",     PropertyView.Public);
-		type.addStringProperty("itemType", PropertyView.Public);
-		type.addStringProperty("value",    PropertyView.Public);
+		type.addStringProperty("mode",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("itemType", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("value",    PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("value",            String.class);
 		type.addPropertyGetter("contentType",      String.class);
@@ -63,6 +63,9 @@ public interface FeedItemContent extends NodeInterface, Indexable {
 		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
 		type.overrideMethod("getInputStream",   false, "return " + FeedItemContent.class.getName() + ".getInputStream(this);");
 
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "owner");
+		type.addViewProperty(PropertyView.Ui, "item");
 	}}
 
 	String getValue();

@@ -27,7 +27,6 @@ import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
- *
  */
 public class CustomPropertyParser extends PropertySourceGenerator {
 

@@ -145,8 +145,8 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, Collections.emptyMap());
-		final int nodeCount   = 1500;
-		final int relCount    = 2133;
+		final int nodeCount   = 1524;
+		final int relCount    = 1853;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
@@ -156,7 +156,6 @@ public class ConsoleTest extends StructrUiTest {
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
 			"RebuildRelIndex: 1000 objects processed\r\n" +
-			"RebuildRelIndex: 2000 objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
@@ -171,7 +170,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String relIndexRebuildOutput =
 			"Relationship type not set, starting (re-)indexing all relationships\r\n" +
 			"RebuildRelIndex: 1000 objects processed\r\n" +
-			"RebuildRelIndex: 2000 objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"RebuildRelIndex: " + relCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + relCount + " relationships\r\n";
@@ -206,7 +204,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String createRelUuidsOutput =
 			"Start setting UUID on all rels\r\n" +
 			"SetRelationshipUuid: 1000 objects processed\r\n" +
-			"SetRelationshipUuid: 2000 objects processed\r\n" +
 			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
 			"SetRelationshipUuid: " + relCount + " objects processed\r\n" +
 			"Done with setting UUID on " + relCount + " relationships\r\n";

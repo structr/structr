@@ -20,7 +20,6 @@ package org.structr.payment.entity;
 
 import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.payment.api.PaymentItem;
 import org.structr.schema.SchemaService;
@@ -35,17 +34,16 @@ public interface PaymentItemNode extends NodeInterface, PaymentItem {
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("PaymentItemNode");
-		final JsonObjectType payment = schema.addType("PaymentNode");
+		final JsonSchema schema      = SchemaService.getDynamicSchema();
+		final JsonObjectType type    = schema.addType("PaymentItemNode");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PaymentItemNode"));
 
-		type.addIntegerProperty("amount",     PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("quantity",   PropertyView.Public).setIndexed(true);
-		type.addStringProperty("description", PropertyView.Public);
-		type.addStringProperty("number",      PropertyView.Public);
-		type.addStringProperty("url",         PropertyView.Public);
+		type.addIntegerProperty("amount",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("quantity",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("description", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("number",      PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("url",         PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("amount",      Integer.TYPE);
 		type.addPropertyGetter("quantity",    Integer.TYPE);
@@ -62,12 +60,7 @@ public interface PaymentItemNode extends NodeInterface, PaymentItem {
 		type.addMethod("getItemNumber").setSource("return getProperty(numberProperty);").setReturnType(String.class.getName());
 		type.addMethod("getItemUrl").setSource("return getProperty(urlProperty);").setReturnType(String.class.getName());
 
-		if (payment != null) {
-
-			payment.relate(type, "paymentItem", Cardinality.OneToMany, "payment", "items");
-
-			payment.addViewProperty(PropertyView.Public, "itemsProperty");
-			type.addViewProperty(PropertyView.Public, "paymentProperty");
-		}
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
 	}}
 }

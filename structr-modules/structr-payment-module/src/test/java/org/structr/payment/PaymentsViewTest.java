@@ -16,35 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.relation;
+package org.structr.payment;
 
-import org.structr.core.entity.OneToOne;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
+import org.junit.Test;
+import org.structr.web.common.TestHelper;
 
 /**
- *
- *
  */
-public class UserHomeDir extends OneToOne<User, Folder> {
+public class PaymentsViewTest extends StructrPaymentModuleTest {
 
-	@Override
-	public Class<User> getSourceType() {
-		return User.class;
-	}
+	@Test
+	public void testViews() {
 
-	@Override
-	public Class<Folder> getTargetType() {
-		return Folder.class;
-	}
-
-	@Override
-	public String name() {
-		return "HOME_DIR";
-	}
-
-	@Override
-	public boolean isInternal() {
-		return true;
+		TestHelper.testViews(app, PaymentsViewTest.class.getResourceAsStream("/views.properties"), null);
 	}
 }

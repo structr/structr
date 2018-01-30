@@ -42,9 +42,9 @@ public interface FeedItemEnclosure extends NodeInterface, Indexable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItemEnclosure"));
 		type.setImplements(URI.create("#/definitions/Indexable"));
 
- 		type.addStringProperty("url",           PropertyView.Public);
- 		type.addLongProperty("enclosureLength", PropertyView.Public);
- 		type.addStringProperty("enclosureType", PropertyView.Public);
+ 		type.addStringProperty("url",           PropertyView.Public, PropertyView.Ui);
+ 		type.addLongProperty("enclosureLength", PropertyView.Public, PropertyView.Ui);
+ 		type.addStringProperty("enclosureType", PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("url",              String.class);
 		type.addPropertyGetter("contentType",      String.class);
@@ -56,6 +56,11 @@ public interface FeedItemEnclosure extends NodeInterface, Indexable {
 
 		type.overrideMethod("getInputStream",   false, "return " + FeedItemEnclosure.class.getName() + ".getInputStream(this);");
 
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "item");
+		type.addViewProperty(PropertyView.Public, "owner");
+
+		type.addViewProperty(PropertyView.Ui, "item");
 	}}
 
 	String getUrl();

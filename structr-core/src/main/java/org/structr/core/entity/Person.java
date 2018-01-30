@@ -36,27 +36,31 @@ public interface Person extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Person"));
 
-		type.addStringProperty("salutation",          PropertyView.Public);
-		type.addStringProperty("firstName",           PropertyView.Public);
-		type.addStringProperty("middleNameOrInitial", PropertyView.Public);
-		type.addStringProperty("lastName",            PropertyView.Public);
+		type.addStringProperty("salutation",          PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("firstName",           PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("middleNameOrInitial", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("lastName",            PropertyView.Public, PropertyView.Ui);
 
-		type.addStringProperty("twitterName",         PropertyView.Public);
-		type.addStringProperty("eMail",               PropertyView.Public);
-		type.addStringProperty("eMail2",              PropertyView.Public);
+		type.addStringProperty("twitterName",         PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("eMail",               PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("eMail2",              PropertyView.Ui);
 
-		type.addStringProperty("phoneNumber1",        PropertyView.Public);
-		type.addStringProperty("phoneNumber2",        PropertyView.Public);
-		type.addStringProperty("faxNumber1",          PropertyView.Public);
-		type.addStringProperty("faxNumber2",          PropertyView.Public);
+		type.addStringProperty("phoneNumber1",        PropertyView.Ui);
+		type.addStringProperty("phoneNumber2",        PropertyView.Ui);
+		type.addStringProperty("faxNumber1",          PropertyView.Ui);
+		type.addStringProperty("faxNumber2",          PropertyView.Ui);
 
-		type.addStringProperty("street",              PropertyView.Public);
-		type.addStringProperty("zipCode",             PropertyView.Public);
-		type.addStringProperty("city",                PropertyView.Public);
-		type.addStringProperty("state",               PropertyView.Public);
+		type.addStringProperty("country",             PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("street",              PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("zipCode",             PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("city",                PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("state",               PropertyView.Public, PropertyView.Ui);
 
-		type.addDateProperty("birthday",              PropertyView.Public);
-		type.addStringProperty("gender",              PropertyView.Public);
-		type.addBooleanProperty("newsletter",         PropertyView.Public);
+		type.addDateProperty("birthday",              PropertyView.Ui);
+		type.addStringProperty("gender",              PropertyView.Ui);
+		type.addBooleanProperty("newsletter",         PropertyView.Ui);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
 	}}
 }

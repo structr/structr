@@ -137,10 +137,15 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public String getHomeDirectory() {
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			final String homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory).getProperty(Folder.name);
+
+			final String homeDir = ((org.structr.web.entity.User)structrUser).getHomeDirectory().getProperty(Folder.name);
+
 			tx.success();
+
 			return homeDir;
+
 		} catch (Exception fex) { }
 
 		return null;

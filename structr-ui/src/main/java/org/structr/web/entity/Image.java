@@ -61,19 +61,19 @@ public interface Image extends File {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Image"));
 		type.setExtends(URI.create("#/definitions/File"));
 
-		type.addIntegerProperty("width",           PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("height",          PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("orientation",     PropertyView.Public).setIndexed(true);
-		type.addStringProperty("exifIFD0Data",     PropertyView.Public).setIndexed(true);
-		type.addStringProperty("exifSubIFDData",   PropertyView.Public).setIndexed(true);
-		type.addStringProperty("gpsData",          PropertyView.Public).setIndexed(true);
-		type.addBooleanProperty("isImage",         PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addBooleanProperty("isThumbnail",     PropertyView.Public).setIndexed(true);
-		type.addBooleanProperty("isCreatingThumb", PropertyView.Public).setIndexed(true);
+		type.addIntegerProperty("width",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("height",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("orientation",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("exifIFD0Data",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("exifSubIFDData",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("gpsData",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("isImage",         PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isThumbnail",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("isCreatingThumb").setIndexed(true);
 
 		type.addCustomProperty("imageData", ImageDataProperty.class.getName());
-		type.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public).setFormat("100, 100, false");
-		type.addCustomProperty("tnMid",     ThumbnailProperty.class.getName(), PropertyView.Public).setFormat("300, 300, false");
+		type.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat("100, 100, false");
+		type.addCustomProperty("tnMid",     ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat("300, 300, false");
 
 		type.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
 		type.addPropertySetter("isCreatingThumb", Boolean.TYPE);
@@ -119,6 +119,9 @@ public interface Image extends File {
 		getScaledImage4.addParameter("arg2", "boolean");
 
 		type.relate(type, "THUMBNAIL", Cardinality.OneToMany, "originalImage", "thumbnails").setCascadingDelete(Cascade.sourceToTarget);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "parent");
 	}}
 
 	void setIsCreatingThumb(final boolean isCreatingThumb) throws FrameworkException;

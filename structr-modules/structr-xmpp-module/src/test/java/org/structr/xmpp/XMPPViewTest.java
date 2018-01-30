@@ -16,35 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.relation;
+package org.structr.xmpp;
 
-import org.structr.core.entity.OneToOne;
-import org.structr.web.entity.Image;
-import org.structr.web.entity.User;
+import org.junit.Test;
+import org.structr.web.common.TestHelper;
 
 /**
- *
- *
  */
-public class UserImage extends OneToOne<Image, User> {
+public class XMPPViewTest extends StructrXMPPModuleTest {
 
-	@Override
-	public Class<User> getTargetType() {
-		return User.class;
-	}
+	@Test
+	public void testViews() {
 
-	@Override
-	public Class<Image> getSourceType() {
-		return Image.class;
-	}
-
-	@Override
-	public String name() {
-		return "PICTURE_OF";
-	}
-
-	@Override
-	public boolean isInternal() {
-		return true;
+		TestHelper.testViews(app, XMPPViewTest.class.getResourceAsStream("/views.properties"), null);
 	}
 }

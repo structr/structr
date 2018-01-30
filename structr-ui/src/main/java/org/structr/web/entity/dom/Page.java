@@ -75,21 +75,21 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.setImplements(URI.create("#/definitions/Linkable"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
-		type.addBooleanProperty("isPage",    PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isPage", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
 		type.addBooleanProperty("pageCreatesRawData", PropertyView.Public).setDefaultValue("false");
 
-		type.addIntegerProperty("version",         PropertyView.Public).setIndexed(true).setReadOnly(true);
-		type.addIntegerProperty("position",        PropertyView.Public).setIndexed(true);
-		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
+		type.addIntegerProperty("version",         PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true);
+		type.addIntegerProperty("position",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Public, PropertyView.Ui);
 
-		type.addStringProperty("path",             PropertyView.Public).setIndexed(true);
-		type.addStringProperty("showOnErrorCodes", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("contentType",      PropertyView.Public).setIndexed(true);
+		type.addStringProperty("path",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("showOnErrorCodes", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("contentType",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		// category is part of a special view named "category"
-		type.addStringProperty("category", PropertyView.Public, "category" ).setIndexed(true);
+		type.addStringProperty("category", PropertyView.Public, PropertyView.Ui, "category" ).setIndexed(true);
 
 		type.addPropertyGetter("path", String.class);
 		type.addPropertyGetter("elements", List.class);
@@ -168,6 +168,21 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		createElement2.setSource("return " + Page.class.getName() + ".createElement(this, tag, false);");
 
 		site.relate(type, "CONTAINS", Cardinality.OneToMany, "site", "pages");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "linkingElements");
+		type.addViewProperty(PropertyView.Public, "enableBasicAuth");
+		type.addViewProperty(PropertyView.Public, "basicAuthRealm");
+		type.addViewProperty(PropertyView.Public, "dontCache");
+		type.addViewProperty(PropertyView.Public, "children");
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "owner");
+		type.addViewProperty(PropertyView.Public, "site");
+
+		type.addViewProperty(PropertyView.Ui, "pageCreatesRawData");
+		type.addViewProperty(PropertyView.Ui, "dontCache");
+		type.addViewProperty(PropertyView.Ui, "children");
+		type.addViewProperty(PropertyView.Ui, "site");
 	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));

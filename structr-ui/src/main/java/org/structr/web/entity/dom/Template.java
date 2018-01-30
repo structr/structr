@@ -47,6 +47,13 @@ public interface Template extends Content {
 
 		type.overrideMethod("renderContent", false, Template.class.getName() + ".renderContent(this, arg0, arg1);");
 
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "children");
+		type.addViewProperty(PropertyView.Public, "childrenIds");
+		
+		type.addViewProperty(PropertyView.Ui, "children");
+		type.addViewProperty(PropertyView.Ui, "childrenIds");
+
 	}}
 
 	/*

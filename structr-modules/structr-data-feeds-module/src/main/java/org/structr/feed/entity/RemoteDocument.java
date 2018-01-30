@@ -44,10 +44,10 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/RemoteDocument"));
 		type.setImplements(URI.create("#/definitions/Indexable"));
 
-		type.addStringProperty("url",              PropertyView.Public);
-		type.addLongProperty("checksum",           PropertyView.Public).setReadOnly(true);
-		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
-		type.addIntegerProperty("version",         PropertyView.Public).setIndexed(true).setReadOnly(true);
+		type.addStringProperty("url",              PropertyView.Ui, PropertyView.Public);
+		type.addLongProperty("checksum",           PropertyView.Ui).setReadOnly(true);
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
+		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true).setReadOnly(true);
 
 		type.addPropertyGetter("url",              String.class);
 		type.addPropertyGetter("contentType",      String.class);
@@ -56,8 +56,11 @@ public interface RemoteDocument extends NodeInterface, Indexable {
 		// methods shared with FeedItemContent
 		type.overrideMethod("afterCreation",    false,             FeedItemContent.class.getName() + ".updateIndex(this, arg0);");
 		type.overrideMethod("getSearchContext", false, "return " + FeedItemContent.class.getName() + ".getSearchContext(this, arg0, arg1);").setDoExport(true);
-
 		type.overrideMethod("getInputStream",   false, "return " + RemoteDocument.class.getName() + ".getInputStream(this);");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "owner");
+		type.addViewProperty(PropertyView.Public, "name");
 	}}
 
 	String getUrl();

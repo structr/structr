@@ -50,14 +50,14 @@ public interface FeedItem extends NodeInterface, Indexable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/FeedItem"));
 		type.setImplements(URI.create("#/definitions/Indexable"));
 
-		type.addStringProperty("url",              PropertyView.Public).setRequired(true).setUnique(true).setIndexed(true);
-		type.addStringProperty("author",           PropertyView.Public);
-		type.addStringProperty("comments",         PropertyView.Public);
-		type.addStringProperty("description",      PropertyView.Public);
-		type.addDateProperty("pubDate",            PropertyView.Public).setIndexed(true);
-		type.addLongProperty("checksum",           PropertyView.Public).setIndexed(true).setReadOnly(true);
-		type.addIntegerProperty("cacheForSeconds", PropertyView.Public);
-		type.addIntegerProperty("version",         PropertyView.Public).setIndexed(true).setReadOnly(true);
+		type.addStringProperty("url",              PropertyView.Public, PropertyView.Ui).setRequired(true).setUnique(true).setIndexed(true);
+		type.addStringProperty("author",           PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("comments",         PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("description",      PropertyView.Public, PropertyView.Ui);
+		type.addDateProperty("pubDate",            PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("checksum",           PropertyView.Ui).setIndexed(true).setReadOnly(true);
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
+		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true).setReadOnly(true);
 
 		type.addPropertyGetter("url",              String.class);
 		type.addPropertyGetter("contentType",      String.class);
@@ -72,6 +72,16 @@ public interface FeedItem extends NodeInterface, Indexable {
 
 		type.relate(content,   "FEED_ITEM_CONTENTS",   Cardinality.OneToMany, "item", "contents").setCascadingDelete(Cascade.sourceToTarget);
 		type.relate(enclosure, "FEED_ITEM_ENCLOSURES", Cardinality.OneToMany, "item", "enclosures").setCascadingDelete(Cascade.sourceToTarget);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "enclosures");
+		type.addViewProperty(PropertyView.Public, "contents");
+		type.addViewProperty(PropertyView.Public, "owner");
+		type.addViewProperty(PropertyView.Public, "name");
+
+		type.addViewProperty(PropertyView.Ui, "enclosures");
+		type.addViewProperty(PropertyView.Ui, "contents");
+		type.addViewProperty(PropertyView.Ui, "feed");
 	}}
 
 	String getUrl();

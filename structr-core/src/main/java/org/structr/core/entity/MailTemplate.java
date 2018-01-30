@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.net.URI;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
@@ -36,12 +37,16 @@ public interface MailTemplate extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MailTemplate"));
 
-		type.addStringProperty("text");
-		type.addStringProperty("locale");
+		type.addStringProperty("text",   PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("locale", PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("text", String.class);
 		type.addPropertyGetter("locale", String.class);
 		type.addPropertySetter("locale", String.class);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+
 	}}
 
 	String getText();

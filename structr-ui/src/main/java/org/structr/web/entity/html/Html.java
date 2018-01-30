@@ -35,8 +35,8 @@ public interface Html extends DOMElement {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Html"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		type.addStringProperty("_html_manifest",   PropertyView.Html);
-		type.addStringProperty("customOpeningTag");
+		type.addStringProperty("_html_manifest",   PropertyView.Html, PropertyView.Ui);
+		type.addStringProperty("customOpeningTag", PropertyView.Ui);
 
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
 		type.overrideMethod("openingTag", false,

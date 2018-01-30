@@ -39,6 +39,7 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.FileHelper;
+import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
 
 /**
@@ -58,11 +59,12 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		type.addStringProperty("name", PropertyView.Public).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
 
-		type.addBooleanProperty("includeInFrontendExport", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty("isExternal",              PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addLongProperty("lastSeenMounted",            PropertyView.Public, PropertyView.Ui);
+		type.addCustomProperty("isMounted", MethodProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat(AbstractFile.class.getName() + ", isMounted");
+		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
 
-		type.addBooleanProperty("hasParent", PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("hasParent").setIndexed(true);
 
 		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
@@ -261,4 +263,5 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 			: null;
 
 	}
+	// ----- nested classes -----
 }

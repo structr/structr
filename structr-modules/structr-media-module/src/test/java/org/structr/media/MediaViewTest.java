@@ -16,18 +16,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.basic;
+package org.structr.media;
 
 import org.junit.Test;
 import org.structr.web.common.TestHelper;
-import org.structr.web.StructrUiTest;
 
-
-public abstract class ViewTest extends StructrUiTest {
+/**
+ */
+public class MediaViewTest extends StructrMediaModuleTest {
 
 	@Test
 	public void testViews() {
 
-		TestHelper.testViews(app, ViewTest.class.getResourceAsStream("/views.properties"), null);
+		TestHelper.testViews(app, MediaViewTest.class.getResourceAsStream("/views.properties"), null);
 	}
 }

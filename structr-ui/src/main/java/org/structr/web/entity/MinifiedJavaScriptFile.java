@@ -54,10 +54,9 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MinifiedJavaScriptFile"));
 		type.setExtends(URI.create("#/definitions/AbstractMinifiedFile"));
 
-		type.addEnumProperty("optimizationLevel", PropertyView.Public).setEnums("WHITESPACE_ONLY", "SIMPLE_OPTIMIZATIONS", "ADVANCED_OPTIMIZATIONS").setDefaultValue("WHITESPACE_ONLY");
-
-		type.addStringProperty("warnings", PropertyView.Public);
-		type.addStringProperty("errors",   PropertyView.Public);
+		type.addEnumProperty("optimizationLevel", PropertyView.Public, PropertyView.Ui).setEnums("WHITESPACE_ONLY", "SIMPLE_OPTIMIZATIONS", "ADVANCED_OPTIMIZATIONS").setDefaultValue("WHITESPACE_ONLY");
+		type.addStringProperty("warnings",        PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("errors",          PropertyView.Public, PropertyView.Ui);
 
 		type.overrideMethod("getOptimizationLevel",                 false, "return getProperty(optimizationLevelProperty).name();");
 		type.overrideMethod("shouldModificationTriggerMinifcation", false, "return " + MinifiedJavaScriptFile.class.getName() + ".shouldModificationTriggerMinifcation(this, arg0);");

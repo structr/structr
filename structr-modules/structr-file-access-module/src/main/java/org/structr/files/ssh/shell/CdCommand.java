@@ -33,7 +33,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.files.ssh.StructrShellCommand;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 
 /**
  *
@@ -83,7 +82,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 						break;
 
 					case "~":
-						parent.setCurrentFolder(user.getProperty(User.homeDirectory));
+						parent.setCurrentFolder(user.getHomeDirectory());
 						break;
 
 					default:
@@ -93,7 +92,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 
 			} else {
 
-				parent.setCurrentFolder(user.getProperty(User.homeDirectory));
+				parent.setCurrentFolder(user.getHomeDirectory());
 			}
 
 			tx.success();
