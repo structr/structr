@@ -32,8 +32,8 @@ import org.structr.schema.action.Function;
  */
 public class HttpDeleteFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_DELETE    = "Usage: ${DELETE(URL[, contentType, charset])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json', 'utf-8')}";
-	public static final String ERROR_MESSAGE_DELETE_JS = "Usage: ${{Structr.DELETE(URL[, contentType, charset])}}. Example: ${{Structr.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json', 'utf-8')}}";
+	public static final String ERROR_MESSAGE_DELETE    = "Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}";
+	public static final String ERROR_MESSAGE_DELETE_JS = "Usage: ${{Structr.DELETE(URL[, contentType])}}. Example: ${{Structr.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}";
 
 	@Override
 	public String getName() {
@@ -47,16 +47,10 @@ public class HttpDeleteFunction extends Function<Object, Object> {
 
 			final String uri = sources[0].toString();
 			String contentType = "application/json";
-			String charset = "utf-8";
 
 			// override default content type
 			if (sources.length >= 3 && sources[2] != null) {
 				contentType = sources[2].toString();
-			}
-
-			// override default content type
-			if (sources.length >= 4 && sources[3] != null) {
-				charset = sources[3].toString();
 			}
 
 			final Map<String, String> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders());

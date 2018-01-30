@@ -60,7 +60,7 @@ public class HttpPostFunction extends Function<Object, Object> {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders());
+			final Map<String, String> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset);
 
 			final int statusCode = Integer.parseInt(responseData.get("status"));
 			responseData.remove("status");
