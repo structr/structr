@@ -2054,14 +2054,23 @@ input.property-name:disabled {
 	position: relative;
 }
 
+#schema-options-table .toggle-column-header {
+   width: 80px;
+}
+
 #schema-options-table th .invert-icon {
 	position: absolute;
 	right: 26px;
 	top: 8px;
 	cursor: pointer;
+	margin-left: 40px;
 }
 
-#schema-options-table th #toggle-all-types {
+#schema-options-table td .toggle-type {
+	float: right;
+}
+
+#schema-options-table th #toggle-all-types{
 	position: absolute;
 	right: 6px;
 	top: 6px;
@@ -2661,9 +2670,22 @@ input.bitmask {
 	margin: 4px 0;
 }
 
+#params {
+	display: inline-block;
+	width: 50%;
+	vertical-align: top;
+}
+
 #params i.button.sprite-delete {
 	margin-left: 2px;
 	vertical-align: sub;
+}
+
+#global-method-comment {
+	display: inline-block;
+	width: 47.5%;
+	margin-left: 2.5%;
+	vertical-align: top;
 }
 
 /*
@@ -3853,6 +3875,17 @@ input#element-class {
 
 #minify-options td {
 	padding: 6px 8px;
+}
+
+#minify-options td.minification-scrollable-cell {
+    padding: 0;
+    margin: 0;
+}
+
+.scrollable-cell-content {
+    max-height: 120px;
+    overflow-y: auto;
+    padding: 6px 8px;
 }
 
 #minify-options td.head {

@@ -52,12 +52,12 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
 			<optional>true</optional>
-		 <exclusions>
-		  <exclusion>
-		   <groupId>com.google.guava</groupId>
-		   <artifactId>guava</artifactId>
-		  </exclusion>
-		 </exclusions>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -146,7 +146,7 @@
 			<artifactId>sshd-core</artifactId>
 			<version>1.2.0</version>
 		</dependency>
-<!--		<dependency>
+		<!--		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-server</artifactId>
 			<version>3.8.1</version>
@@ -163,6 +163,11 @@
 			<artifactId>closure-compiler</artifactId>
 			<version>v20180101</version>
 		</dependency>
+		<dependency>
+			<groupId>net.openhft</groupId>
+			<artifactId>zero-allocation-hashing</artifactId>
+			<version>0.8</version>
+		</dependency>		
 	</dependencies>
 	<build>
 		<resources>

@@ -62,27 +62,24 @@ public interface GraphObject {
 
 	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
-	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
-	static final String QUERY_CATEGORY = "Query and Data Binding";
+	static final String SYSTEM_CATEGORY     = "System";
 	static final String VISIBILITY_CATEGORY = "Visibility";
-	static final String PAGE_CATEGORY = "Page Structure";
-
 
 	public static final Property<String>  base                        = new StringProperty("base");
-	public static final Property<String>  type                        = new TypeProperty();
-	public static final Property<String>  id                          = new UuidProperty();
+	public static final Property<String>  type                        = new TypeProperty().category(SYSTEM_CATEGORY);
+	public static final Property<String>  id                          = new UuidProperty().category(SYSTEM_CATEGORY);
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce();
-	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated();
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce().category(SYSTEM_CATEGORY);
+	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().category(SYSTEM_CATEGORY);
 
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated();
-	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated().category(SYSTEM_CATEGORY);
+	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated().category(SYSTEM_CATEGORY);
 
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY);
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY);
 	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate").category(VISIBILITY_CATEGORY);
 	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate").category(VISIBILITY_CATEGORY);
-	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly();
+	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
 	/**

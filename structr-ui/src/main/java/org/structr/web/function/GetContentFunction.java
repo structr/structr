@@ -36,7 +36,7 @@ public class GetContentFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "include()";
+		return "get_content()";
 	}
 
 	@Override

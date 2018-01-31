@@ -535,7 +535,7 @@ var _Entities = {
 	},
 	listProperties: function (entity, view, tabView, typeInfo) {
 		$.ajax({
-			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
+			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=100', // TODO: Implement paging or scroll-into-view here
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
@@ -559,7 +559,7 @@ var _Entities = {
 
 					if (typeInfo) {
 						keys.forEach(function(key) {
-							if (typeInfo[key] && typeInfo[key].category) {
+							if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== "System") {
 
 								var category = typeInfo[key].category;
 								if (!groupedKeys[category]) {

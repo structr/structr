@@ -711,8 +711,7 @@ function StructrApp(baseUrl, locale) {
 			var inp = s.input(el);
 			if (inp) {
 				if (inp.is('select')) {
-					var selection = $(':selected', inp);
-					val = selection.attr('value');
+					val = inp.val();
 				} else {
 					val = rawVal || (inp.val() && inp.val().replace(/<br>/gi, '\n'));
 				}

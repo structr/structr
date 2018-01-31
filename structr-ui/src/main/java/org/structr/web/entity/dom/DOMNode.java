@@ -104,6 +104,10 @@ public abstract class DOMNode extends LinkedTreeNode<DOMChildren, DOMSiblings, D
 
 	private static final Logger logger = LoggerFactory.getLogger(DOMNode.class.getName());
 
+	static final String PAGE_CATEGORY              = "Page Structure";
+	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
+	static final String QUERY_CATEGORY             = "Query and Data Binding";
+	
 	// ----- error messages for DOMExceptions -----
 	protected static final String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
 	protected static final String INVALID_ACCESS_ERR_MESSAGE              = "Permission denied.";

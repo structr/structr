@@ -266,7 +266,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				final FileBase check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
 
-				assertEquals("Invalid checksum of externally modified file", FileHelper.getMD5Checksum(file2), check2.getMD5());
+				assertEquals("Invalid checksum of externally modified file", FileHelper.getChecksum(file2), check2.getChecksum());
 				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2.getFileOnDisk(false)));
 
 				tx.success();

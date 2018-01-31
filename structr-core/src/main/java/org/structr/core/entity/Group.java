@@ -34,7 +34,7 @@ public class Group extends AbstractUser implements Principal {
 	public static final Property<Boolean>        isGroup  = new ConstantBooleanProperty("isGroup", true);
 
 	public static final org.structr.common.View uiView = new org.structr.common.View(Group.class, PropertyView.Ui,
-		type, name, members, blocked, isGroup
+		type, name, members, blocked, isGroup, customPermissionQueryRead, customPermissionQueryWrite, customPermissionQueryDelete, customPermissionQueryAccessControl
 	);
 
 	public static final org.structr.common.View publicView = new org.structr.common.View(Group.class, PropertyView.Public,

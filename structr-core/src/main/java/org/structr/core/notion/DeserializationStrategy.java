@@ -58,7 +58,10 @@ public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 				final Object newValue  = entry.getValue();
 				final Object oldValue = obj.getProperty(key);
 
-				mergedProperties.put(key, merge(oldValue, newValue));
+				if (newValue != null && !newValue.equals(oldValue)) {
+
+					mergedProperties.put(key, merge(oldValue, newValue));
+				}
 			}
 
 			obj.setProperties(securityContext, mergedProperties);

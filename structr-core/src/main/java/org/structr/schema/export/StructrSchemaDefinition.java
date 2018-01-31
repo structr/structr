@@ -210,7 +210,6 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			TransactionCommand.simpleBroadcastGenericMessage(deprecationBroadcastData);
 
 			logger.info(title + ": " + text);
-
 		}
 
 		final Object idValue = source.get(JsonSchema.KEY_ID);

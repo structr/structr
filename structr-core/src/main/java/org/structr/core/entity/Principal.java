@@ -36,24 +36,32 @@ import org.structr.core.property.StringProperty;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
+	static final String PERMISSION_CATEGORY = "Permissions";
+	static final String PROXY_CATEGORY      = "Proxies";
+	
 	public static final String SUPERUSER_ID =                    "00000000000000000000000000000000";
 	public static final String ANONYMOUS                         = "anonymous";
 	public static final String ANYONE                            = "anyone";
 
-	public static final Property<String[]> sessionIds            = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty();
+	public static final Property<String[]> sessionIds            = new ArrayProperty("sessionIds", String.class).indexedWhenEmpty().category(PERMISSION_CATEGORY);
 	public static final Property<String> sessionData             = new StringProperty("sessionData");
 	public static final Property<List<NodeInterface>> ownedNodes = new EndNodes<>("ownedNodes", PrincipalOwnsNode.class);
-	public static final Property<Boolean> blocked                = new BooleanProperty("blocked");
+	public static final Property<Boolean> blocked                = new BooleanProperty("blocked").category(PERMISSION_CATEGORY);
 	public static final Property<String> eMail                   = new LowercaseStringProperty("eMail").cmis().indexed();
 	public static final Property<String> password                = new PasswordProperty("password");
 	public static final Property<String> salt                    = new StringProperty("salt");
-	public static final Property<Boolean> isAdmin                = new BooleanProperty("isAdmin").indexed().readOnly();
+	public static final Property<Boolean> isAdmin                = new BooleanProperty("isAdmin").indexed().readOnly().category(PERMISSION_CATEGORY);
 	public static final Property<String> locale                  = new StringProperty("locale");
-	public static final Property<String> publicKey               = new StringProperty("publicKey");
-	public static final Property<String[]> publicKeys            = new ArrayProperty("publicKeys", String.class);
-	public static final Property<String> proxyUrl                = new StringProperty("proxyUrl");
-	public static final Property<String> proxyUsername           = new StringProperty("proxyUsername");
-	public static final Property<String> proxyPassword           = new StringProperty("proxyPassword");
+	public static final Property<String> publicKey               = new StringProperty("publicKey").category(PERMISSION_CATEGORY);
+	public static final Property<String[]> publicKeys            = new ArrayProperty("publicKeys", String.class).category(PERMISSION_CATEGORY);
+	public static final Property<String> proxyUrl                = new StringProperty("proxyUrl").category(PROXY_CATEGORY);
+	public static final Property<String> proxyUsername           = new StringProperty("proxyUsername").category(PROXY_CATEGORY);
+	public static final Property<String> proxyPassword           = new StringProperty("proxyPassword").category(PROXY_CATEGORY);
+	
+	public static final Property<String> customPermissionQueryRead          = new StringProperty("customPermissionQueryRead").category(PERMISSION_CATEGORY);
+	public static final Property<String> customPermissionQueryWrite         = new StringProperty("customPermissionQueryWrite").category(PERMISSION_CATEGORY);
+	public static final Property<String> customPermissionQueryDelete        = new StringProperty("customPermissionQueryDelete").category(PERMISSION_CATEGORY);
+	public static final Property<String> customPermissionQueryAccessControl = new StringProperty("customPermissionQueryAccessControl").category(PERMISSION_CATEGORY);
 
 	public List<Principal> getParents();
 
