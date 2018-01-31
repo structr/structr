@@ -163,8 +163,6 @@ public class StructrXMPPModuleTest {
 
 		Settings.Servlets.setValue("JsonRestServlet");
 
-		Settings.LogSchemaOutput.setValue(true);
-
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
@@ -197,7 +195,7 @@ public class StructrXMPPModuleTest {
 			}
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			logger.warn("Unable to delete test directory {}: {}", basePath, t.getMessage());
 		}
 	}
 

@@ -68,6 +68,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public String toString() {
+		return getType() + " " + name;
+	}
+
+	@Override
 	public int hashCode() {
 		return name.hashCode();
 	}

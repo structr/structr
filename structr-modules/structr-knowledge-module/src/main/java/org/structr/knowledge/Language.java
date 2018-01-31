@@ -35,5 +35,6 @@ public interface Language extends ThesaurusTerm {
 		final JsonObjectType type = schema.addType("Language");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Language"));
+		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
 	}}
 }

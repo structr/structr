@@ -41,12 +41,20 @@ public interface ThesaurusTerm extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ThesaurusTerm"));
 
-		type.addStringArrayProperty("normalizedWords", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("lang",                 PropertyView.Public);
+		type.addStringArrayProperty("normalizedWords", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("lang",                 PropertyView.Public, PropertyView.Ui);
 
 		type.relate(attr, "HAS_CUSTOM_ATTRIBUTE", Cardinality.OneToMany, "term", "customAttributes");
 		type.relate(lang, "HAS_LABEL",            Cardinality.OneToMany, "term", "preferredLabels");
 
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "concept");
+		type.addViewProperty(PropertyView.Public, "customAttributes");
+		type.addViewProperty(PropertyView.Public, "normalizedWords");
+
+		type.addViewProperty(PropertyView.Ui, "name");
+		type.addViewProperty(PropertyView.Ui, "concept");
+		type.addViewProperty(PropertyView.Ui, "customAttributes");
 	}}
 
 	/*

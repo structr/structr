@@ -18,9 +18,6 @@
  */
 package org.structr.knowledge;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.junit.Test;
 import org.structr.web.common.TestHelper;
 
@@ -31,10 +28,6 @@ public class KnowledgeViewTest extends StructrKnowledgeModuleTest {
 	@Test
 	public void testViews() {
 
-		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
-
-		//requiredAttributes.put("FeedItem", Arrays.asList("url"));
-
-		TestHelper.testViews(app, KnowledgeViewTest.class.getResourceAsStream("/views.properties"), requiredAttributes);
+		TestHelper.testViews(app, KnowledgeViewTest.class.getResourceAsStream("/views.properties"), null);
 	}
 }

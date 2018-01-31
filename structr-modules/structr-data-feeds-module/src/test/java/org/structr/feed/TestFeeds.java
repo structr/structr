@@ -91,7 +91,7 @@ public class TestFeeds extends StructrDataFeedsModuleTest {
 				.body("result[0].items[1].type",  equalTo("FeedItem"))
 				.body("result[0].items[2].type",  equalTo("FeedItem"))
 			.when()
-				.get("/DataFeed");
+				.get("/DataFeed/ui");
 
 	}
 

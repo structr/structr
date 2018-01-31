@@ -54,12 +54,12 @@ public interface MQTTClient extends NodeInterface, MQTTInfo {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MQTTClient"));
 
-		type.addStringProperty("protocol",     PropertyView.Public).setDefaultValue("tcp://");
-		type.addStringProperty("url",          PropertyView.Public);
-		type.addIntegerProperty("port",        PropertyView.Public);
-		type.addIntegerProperty("qos",         PropertyView.Public).setDefaultValue("0");
-		type.addBooleanProperty("isEnabled",   PropertyView.Public);
-		type.addBooleanProperty("isConnected", PropertyView.Public);
+		type.addStringProperty("protocol",     PropertyView.Public, PropertyView.Ui).setDefaultValue("tcp://");
+		type.addStringProperty("url",          PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("port",        PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("qos",         PropertyView.Public, PropertyView.Ui).setDefaultValue("0");
+		type.addBooleanProperty("isEnabled",   PropertyView.Public, PropertyView.Ui);
+		type.addBooleanProperty("isConnected", PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("isConnected", Boolean.TYPE);
 		type.addPropertyGetter("isEnabled",   Boolean.TYPE);
@@ -84,7 +84,8 @@ public interface MQTTClient extends NodeInterface, MQTTInfo {
 
 		type.relate(sub, "HAS_SUBSCRIBER", Cardinality.OneToMany, "client", "subscribers");
 
-		type.addViewProperty(PropertyView.Public, "subscribersProperty");
+		type.addViewProperty(PropertyView.Public, "subscribers");
+		type.addViewProperty(PropertyView.Ui, "subscribers");
 
 	}}
 

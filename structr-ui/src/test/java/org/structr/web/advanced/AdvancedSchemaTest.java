@@ -32,7 +32,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -1044,8 +1043,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 	@Test
 	public void testMixedOnCreateMethods() {
 
-		Settings.LogSchemaOutput.setValue(true);
-
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -1059,14 +1056,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-
-		Settings.LogSchemaOutput.setValue(false);
 	}
 
 	@Test
 	public void testCustomSchemaMethod() {
-
-		Settings.LogSchemaOutput.setValue(true);
 
 		try (final Tx tx = app.tx()) {
 
@@ -1081,14 +1074,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-
-		Settings.LogSchemaOutput.setValue(false);
 	}
 
 	@Test
 	public void testViewProperties() {
-
-		Settings.LogSchemaOutput.setValue(true);
 
 		try (final Tx tx = app.tx()) {
 
@@ -1105,7 +1094,5 @@ public class AdvancedSchemaTest extends FrontendTest {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-
-		Settings.LogSchemaOutput.setValue(false);
 	}
 }

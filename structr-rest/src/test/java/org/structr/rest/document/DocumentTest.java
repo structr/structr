@@ -1408,7 +1408,6 @@ public class DocumentTest extends StructrRestTest {
 
 			.when()
 			.get("/Task/ui");
-
 	}
 
 	private String createSchemaNode(final String name, Pair... properties) {

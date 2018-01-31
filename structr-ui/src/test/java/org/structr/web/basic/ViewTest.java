@@ -22,12 +22,11 @@ import org.junit.Test;
 import org.structr.web.common.TestHelper;
 import org.structr.web.StructrUiTest;
 
-
-public abstract class ViewTest extends StructrUiTest {
+public class ViewTest extends StructrUiTest {
 
 	@Test
 	public void testViews() {
 
-		TestHelper.testViews(app, ViewTest.class.getResourceAsStream("/views.properties"), null);
+		TestHelper.testViews(app, ViewTest.class.getResourceAsStream("/test/views.properties"), null);
 	}
 }

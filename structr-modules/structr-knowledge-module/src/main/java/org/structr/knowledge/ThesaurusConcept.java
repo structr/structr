@@ -19,6 +19,7 @@
 package org.structr.knowledge;
 
 import java.net.URI;
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
@@ -44,6 +45,24 @@ public interface ThesaurusConcept extends NodeInterface {
 		type.relate(preferredTerm, "HAS_PREFERRED_TERM", Cardinality.OneToMany,  "preferredLabel", "preferredTerms");
 		type.relate(type,          "BROADER_TERM",       Cardinality.ManyToMany, "broaderTerms",   "narrowerTerms");
 		type.relate(type,          "RELATED_TERM",       Cardinality.ManyToMany, "relatedTermsOf", "relatedTerms");
+
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "terms");
+		type.addViewProperty(PropertyView.Public, "thesaurus");
+		type.addViewProperty(PropertyView.Public, "preferredTerms");
+		type.addViewProperty(PropertyView.Public, "narrowerTerms");
+		type.addViewProperty(PropertyView.Public, "broaderTerms");
+		type.addViewProperty(PropertyView.Public, "relatedTerms");
+		type.addViewProperty(PropertyView.Public, "relatedTermsOf");
+
+		type.addViewProperty(PropertyView.Ui, "name");
+		type.addViewProperty(PropertyView.Ui, "terms");
+		type.addViewProperty(PropertyView.Ui, "thesaurus");
+		type.addViewProperty(PropertyView.Ui, "preferredTerms");
+		type.addViewProperty(PropertyView.Ui, "broaderTerms");
+		type.addViewProperty(PropertyView.Ui, "narrowerTerms");
+		type.addViewProperty(PropertyView.Ui, "relatedTerms");
+		type.addViewProperty(PropertyView.Ui, "relatedTermsOf");
 	}}
 
 	/*

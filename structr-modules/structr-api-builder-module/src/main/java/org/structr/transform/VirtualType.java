@@ -61,9 +61,9 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VirtualType"));
 
-		type.addStringProperty("filterExpression", PropertyView.Public);
-		type.addStringProperty("sourceType",       PropertyView.Public);
-		type.addIntegerProperty("position",        PropertyView.Public).setIndexed(true);
+		type.addStringProperty("filterExpression", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("sourceType",       PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("position",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("filterExpression", String.class);
 		type.addPropertyGetter("sourceType",       String.class);
@@ -76,6 +76,11 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 		type.relate(prop, "virtualProperty", Relation.Cardinality.OneToMany, "virtualType", "properties").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
 
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "properties");
+
+		type.addViewProperty(PropertyView.Ui, "properties");
 
 		/*
 	public Result transformOutput(final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {

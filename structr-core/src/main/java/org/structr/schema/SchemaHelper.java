@@ -628,8 +628,11 @@ public class SchemaHelper {
 
 			src.append(outRel.getPropertySource(propertyName, true));
 
-			// do not add properties automatically...
-			//addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+			// built-in schema views are controlled manually, but all user-generated
+			// schema changes are expected to be added to "ui" view.
+			if (!outRel.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema)) {
+				addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+			}
 
 			relationshipPropertyNames.add(propertyName);
 		}
@@ -641,8 +644,11 @@ public class SchemaHelper {
 
 			src.append(inRel.getPropertySource(propertyName, false));
 
-			// do not add properties automatically...
-			//SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+			// built-in schema views are controlled manually, but all user-generated
+			// schema changes are expected to be added to "ui" view.
+			if (!inRel.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema)) {
+				SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+			}
 
 			relationshipPropertyNames.add(propertyName);
 		}

@@ -661,6 +661,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		// views
 		if (!views.isEmpty()) {
+
+			// FIXME: views are different
+
 			serializedForm.put(JsonSchema.KEY_VIEWS, views);
 		}
 

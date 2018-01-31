@@ -46,8 +46,8 @@ public interface MQTTSubscriber extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MQTTSubscriber"));
 
-		type.addStringProperty("topic",  PropertyView.Public);
-		type.addStringProperty("source", PropertyView.Public);
+		type.addStringProperty("topic",  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("source", PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("topic",  String.class);
 		type.addPropertyGetter("source", String.class);
@@ -62,6 +62,9 @@ public interface MQTTSubscriber extends NodeInterface {
 			.setSource("return " + MQTTSubscriber.class.getName() + ".onMessage(this, topic, message);")
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
+
+		type.addViewProperty(PropertyView.Public, "client");
+		type.addViewProperty(PropertyView.Ui, "client");
 	}}
 
 	String getTopic();

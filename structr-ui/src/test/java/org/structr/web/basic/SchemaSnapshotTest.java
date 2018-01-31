@@ -87,6 +87,16 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 			source = sourceSchema.toString();
 
+			try (final FileWriter writer = new FileWriter("/home/chrisi/export1.txt")) {
+
+				writer.append(source);
+				writer.flush();
+
+			} catch (IOException ioex) {
+
+				ioex.printStackTrace();
+			}
+
 			StructrSchema.replaceDatabaseSchema(app, sourceSchema);
 
 
@@ -109,6 +119,16 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			file = new File(basePath + "/snapshots").listFiles()[0];
 
 			export = IOUtils.toString(new FileInputStream(file)).trim();
+
+			try (final FileWriter writer = new FileWriter("/home/chrisi/export3.txt")) {
+
+				writer.append(export);
+				writer.flush();
+
+			} catch (IOException ioex) {
+
+				ioex.printStackTrace();
+			}
 
 			assertEquals("Invalid schema export result, ", source, export);
 
@@ -143,16 +163,6 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 			fail("Unexpected exception");
-		}
-
-		try (final FileWriter writer = new FileWriter("/home/chrisi/export1.txt")) {
-
-			writer.append(source);
-			writer.flush();
-
-		} catch (IOException ioex) {
-
-			ioex.printStackTrace();
 		}
 
 		try (final FileWriter writer = new FileWriter("/home/chrisi/export2.txt")) {

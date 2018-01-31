@@ -82,9 +82,13 @@ public interface ODFExporter extends NodeInterface {
 		type.relate(file, "USES_TEMPLATE",            Relation.Cardinality.OneToOne, "odfExporter", "documentTemplate");
 		type.relate(virt, "GETS_TRANSFORMATION_FROM", Relation.Cardinality.OneToOne, "odfExporter", "transformationProvider");
 
-		type.addViewProperty(PropertyView.Public, "transformationProviderProperty");
-		type.addViewProperty(PropertyView.Public, "documentTemplateProperty");
-		type.addViewProperty(PropertyView.Public, "resultDocumentProperty");
+		type.addViewProperty(PropertyView.Public, "transformationProvider");
+		type.addViewProperty(PropertyView.Public, "documentTemplate");
+		type.addViewProperty(PropertyView.Public, "resultDocument");
+
+		type.addViewProperty(PropertyView.Ui, "transformationProvider");
+		type.addViewProperty(PropertyView.Ui, "documentTemplate");
+		type.addViewProperty(PropertyView.Ui, "resultDocument");
 	}}
 
 	//General ODF specific constants and field specifiers

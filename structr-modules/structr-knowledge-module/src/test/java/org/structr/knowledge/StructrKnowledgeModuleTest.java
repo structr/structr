@@ -163,8 +163,6 @@ public class StructrKnowledgeModuleTest {
 
 		Settings.Servlets.setValue("JsonRestServlet");
 
-		Settings.LogSchemaOutput.setValue(true);
-
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized

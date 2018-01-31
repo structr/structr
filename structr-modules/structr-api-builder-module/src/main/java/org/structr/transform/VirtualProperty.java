@@ -38,11 +38,11 @@ public interface VirtualProperty extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VirtualProperty"));
 
-		type.addIntegerProperty("position",      PropertyView.Public).setIndexed(true);
-		type.addStringProperty("sourceName",     PropertyView.Public);
-		type.addStringProperty("targetName",     PropertyView.Public);
-		type.addStringProperty("inputFunction",  PropertyView.Public);
-		type.addStringProperty("outputFunction", PropertyView.Public);
+		type.addIntegerProperty("position",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("sourceName",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("targetName",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("inputFunction",  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("outputFunction", PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("position",       Integer.class);
 		type.addPropertyGetter("sourceName",     String.class);
@@ -51,6 +51,10 @@ public interface VirtualProperty extends NodeInterface {
 		type.addPropertyGetter("outputFunction", String.class);
 
 		type.overrideMethod("getTransformation", false, "return " + VirtualProperty.class.getName() + ".getTransformation(this, arg0);");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "virtualType");
+		type.addViewProperty(PropertyView.Ui, "virtualType");
 	}}
 
 	Transformation getTransformation(final Class type) throws FrameworkException;

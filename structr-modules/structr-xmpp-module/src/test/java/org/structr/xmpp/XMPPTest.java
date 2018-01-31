@@ -51,17 +51,6 @@ public class XMPPTest extends StructrXMPPModuleTest {
 			t.printStackTrace();
 		}
 
-		/*
-
-
-
-
-
-
-
-		*/
-
-
 		try (final Tx tx = app.tx()) {
 
 			app.create(clientType,
@@ -78,7 +67,6 @@ public class XMPPTest extends StructrXMPPModuleTest {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-
 
 		// use RestAssured to check file
 		RestAssured

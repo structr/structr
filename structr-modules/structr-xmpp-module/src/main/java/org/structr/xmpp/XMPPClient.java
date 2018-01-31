@@ -30,6 +30,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -39,6 +40,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonSchema.Cascade;
 
 /**
  *
@@ -48,20 +50,21 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("XMPPClient");
+		final JsonSchema schema      = SchemaService.getDynamicSchema();
+		final JsonObjectType type    = schema.addType("XMPPClient");
+		final JsonObjectType request = schema.addType("XMPPRequest");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/XMPPClient"));
 
-		type.addFunctionProperty("xmppHandle", PropertyView.Public).setFormat("concat(this.xmppUsername, '@', this.xmppHost)").setIndexed(true);
-		type.addStringProperty("xmppUsername", PropertyView.Public).setIndexed(true);
-		type.addStringProperty("xmppPassword", PropertyView.Public);
-		type.addStringProperty("xmppService",  PropertyView.Public);
-		type.addStringProperty("xmppHost",     PropertyView.Public);
-		type.addIntegerProperty("xmppPort",    PropertyView.Public);
-		type.addEnumProperty("presenceMode",   PropertyView.Public).setEnumType(Mode.class);
-		type.addBooleanProperty("isEnabled",   PropertyView.Public);
-		type.addBooleanProperty("isConnected", PropertyView.Public);
+		type.addFunctionProperty("xmppHandle", PropertyView.Public, PropertyView.Ui).setFormat("concat(this.xmppUsername, '@', this.xmppHost)").setIndexed(true);
+		type.addStringProperty("xmppUsername", PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("xmppPassword", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("xmppService",  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("xmppHost",     PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("xmppPort",    PropertyView.Public, PropertyView.Ui);
+		type.addEnumProperty("presenceMode",   PropertyView.Public, PropertyView.Ui).setEnumType(Mode.class);
+		type.addBooleanProperty("isEnabled",   PropertyView.Public, PropertyView.Ui);
+		type.addBooleanProperty("isConnected", PropertyView.Public, PropertyView.Ui);
 
 		type.addPropertyGetter("isConnected",  Boolean.TYPE);
 		type.addPropertyGetter("isEnabled",    Boolean.TYPE);
@@ -125,6 +128,13 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 			.addParameter("password", String.class.getName())
 			.setSource("return " + XMPPClient.class.getName() + ".doSendChatMessage(this, chatroom, message, password);")
 			.addException(FrameworkException.class.getName());
+
+		type.relate(request, "PENDING_REQUEST", Cardinality.OneToMany, "client", "pendingRequests").setCascadingDelete(Cascade.sourceToTarget);
+
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "pendingRequests");
+		type.addViewProperty(PropertyView.Ui,     "pendingRequests");
 	}}
 
 	void setIsConnected(final boolean value) throws FrameworkException;
@@ -340,11 +350,11 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 			if (client != null) {
 
 				app.create(XMPPRequest.class,
-					new NodeAttribute(XMPPRequest.client, client),
-					new NodeAttribute(XMPPRequest.sender, request.getFrom()),
-					new NodeAttribute(XMPPRequest.owner, client.getProperty(XMPPClient.owner)),
-					new NodeAttribute(XMPPRequest.content, request.toXML().toString()),
-					new NodeAttribute(XMPPRequest.requestType, request.getType())
+					new NodeAttribute(StructrApp.key(XMPPRequest.class, "client"),      client),
+					new NodeAttribute(StructrApp.key(XMPPRequest.class, "sender"),      request.getFrom()),
+					new NodeAttribute(StructrApp.key(XMPPRequest.class, "owner"),       client.getProperty(XMPPClient.owner)),
+					new NodeAttribute(StructrApp.key(XMPPRequest.class, "content"),     request.toXML().toString()),
+					new NodeAttribute(StructrApp.key(XMPPRequest.class, "requestType"), request.getType())
 				);
 			}
 

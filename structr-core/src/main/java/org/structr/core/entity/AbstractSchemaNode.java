@@ -85,7 +85,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
 
 	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		super.onCreation(securityContext, errorBuffer);
 
@@ -94,9 +94,10 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	}
 
 	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
+
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
@@ -147,7 +148,6 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 			viewNames.add(View.INTERNAL_GRAPH_VIEW);
 			viewNames.add(PropertyView.All);
 
-			// create set of existing views
 			for (final SchemaView view : node.getProperty(schemaViews)) {
 				viewNames.add(view.getProperty(AbstractNode.name));
 			}
@@ -170,7 +170,10 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 						// collect names of properties in the given view
 						for (final PropertyKey key : config.getPropertySet(builtinClass, view)) {
-							viewPropertyNames.add(key.jsonName());
+
+							if (key.isPartOfBuiltInSchema()) {
+								viewPropertyNames.add(key.jsonName());
+							}
 						}
 
 						// collect schema properties that match the view

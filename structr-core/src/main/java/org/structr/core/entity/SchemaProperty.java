@@ -241,7 +241,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		// automatically add new property to the ui view..
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
-		if (parent != null) {
+		if (parent != null && getProperty(isBuiltinProperty)) {
 
 			for (final SchemaView view : parent.getProperty(AbstractSchemaNode.schemaViews)) {
 
