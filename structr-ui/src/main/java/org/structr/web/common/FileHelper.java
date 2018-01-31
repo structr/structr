@@ -414,8 +414,8 @@ public class FileHelper {
 				if (contentType != null) {
 
 					// modify type when image type is detected
-					if (contentType.startsWith("image/")) {
-						map.put(File.type, Image.class.getSimpleName());
+					if (contentType.startsWith("image/") && Boolean.FALSE.equals(Image.class.isAssignableFrom(file.getClass()))) {
+						map.put(AbstractNode.type, Image.class.getSimpleName());
 					}
 				}
 

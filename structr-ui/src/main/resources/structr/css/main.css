@@ -2670,9 +2670,22 @@ input.bitmask {
 	margin: 4px 0;
 }
 
+#params {
+	display: inline-block;
+	width: 50%;
+	vertical-align: top;
+}
+
 #params i.button.sprite-delete {
 	margin-left: 2px;
 	vertical-align: sub;
+}
+
+#global-method-comment {
+	display: inline-block;
+	width: 47.5%;
+	margin-left: 2.5%;
+	vertical-align: top;
 }
 
 /*

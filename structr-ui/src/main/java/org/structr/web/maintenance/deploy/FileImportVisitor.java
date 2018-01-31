@@ -25,6 +25,7 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -61,7 +62,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	private SecurityContext securityContext = null;
 	private Path basePath                   = null;
 	private App app                         = null;
-	private List<File> deferredFiles    = null;
+	private List<File> deferredFiles        = null;
+	private Map<String, Folder> folderCache = null;
 
 	public FileImportVisitor(final Path basePath, final Map<String, Object> config) {
 
@@ -71,6 +73,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		this.config          = config;
 		this.app             = StructrApp.getInstance(this.securityContext);
 		this.deferredFiles   = new ArrayList<>();
+		this.folderCache     = new HashMap<>();
 	}
 
 	@Override
@@ -150,7 +153,21 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	// ----- private methods -----
 	private Folder getExistingFolder(final String path) throws FrameworkException {
-		return app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "path"), path).getFirst();
+
+		Folder existingFolder = this.folderCache.get(path);
+		if (existingFolder != null) {
+
+			return existingFolder;
+
+		} else {
+
+			existingFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "path"), path).getFirst();
+			if (existingFolder != null) {
+				this.folderCache.put(path, existingFolder);
+			}
+
+			return existingFolder;
+		}
 	}
 
 	private void createFolder(final Path folderObj) {
@@ -175,7 +192,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 						folderProperties.putAll(properties);
 					}
 
-					app.create(Folder.class, folderProperties);
+					final Folder newFolder = app.create(Folder.class, folderProperties);
+
+					this.folderCache.put(folderPath, newFolder);
 			}
 
 			tx.success();
