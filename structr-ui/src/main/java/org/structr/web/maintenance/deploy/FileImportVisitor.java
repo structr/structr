@@ -25,9 +25,9 @@ import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +74,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		this.config          = config;
 		this.app             = StructrApp.getInstance(this.securityContext);
 		this.deferredFiles   = new ArrayList<>();
-		this.folderCache     = new TreeMap<>();
+		this.folderCache     = new HashMap<>();
 	}
 
 	@Override
@@ -155,13 +155,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	// ----- private methods -----
 	private Folder getExistingFolder(final String path) throws FrameworkException {
 
-		if (this.folderCache.containsKey(path)) {
+		Folder existingFolder = this.folderCache.get(path);
 
-			return this.folderCache.get(path);
+		if (existingFolder != null) {
+
+			return existingFolder;
 
 		} else {
 
-			final Folder existingFolder = app.nodeQuery(Folder.class).and(AbstractFile.path, path).getFirst();
+			existingFolder = app.nodeQuery(Folder.class).and(AbstractFile.path, path).getFirst();
 			if (existingFolder != null) {
 				this.folderCache.put(path, existingFolder);
 			}
