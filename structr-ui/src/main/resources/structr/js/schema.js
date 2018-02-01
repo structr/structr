@@ -1459,7 +1459,7 @@ var _Schema = {
 		tr.addClass(method.name).data('type-name', (entity ? entity.name : 'global_schema_method')).data('method-name', method.name);
 		$('.property-name', tr).val(method.name);
 		$('.property-code', tr).text(method.source);
-		$('.property-comment', tr).text(method.comment);
+		$('.property-comment', tr).text(method.comment || '');
 
 		_Schema.makeSchemaMethodRowResizable(resizeHandlerRow);
 		_Schema.initMethodRow(tr, entity, method);
