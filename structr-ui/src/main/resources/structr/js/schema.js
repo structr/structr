@@ -24,6 +24,26 @@ var inheritanceTree, inheritanceSlideout;
 $(document).ready(function() {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
+
+	$(document).on('click', '#inheritance-tree .edit_icon', function(e) {
+		var nodeId = $(e.target).closest('li').data('id');
+		if (nodeId) {
+			_Schema.openEditDialog(nodeId);
+		}
+	});
+
+	$(document).on('click', '#inheritance-tree .delete_icon', function(e) {
+		var nodeId = $(e.target).closest('li').data('id');
+		if (nodeId) {
+			Structr.confirmation(
+				'<h3>Delete schema node \'' + $(e.target).closest('a').text() + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>',
+				function() {
+					$.unblockUI({ fadeOut: 25 });
+					_Schema.deleteNode(nodeId);
+				}
+			);
+		}
+	});
 });
 
 var _Schema = {
@@ -875,7 +895,7 @@ var _Schema = {
 
 		headContentDiv.append('<b>' + entity.name + '</b>');
 
-		if (!entity.isBuiltinType) {
+		if (!entity.isBuiltinType && (!entity.extendsClass || entity.extendsClass.slice(-1) !== '>') ) {
 			headContentDiv.append(' extends <select class="extends-class-select"></select>');
 			headContentDiv.append(' <i id="edit-parent-class" class="icon edit ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" title="Edit parent class" />');
 
@@ -3490,31 +3510,6 @@ var _Schema = {
 			} else {
 				var query = $('#search-classes').val();
 				inheritanceTree.jstree(true).search(query, true, true);
-			}
-
-			_Schema.enableEditFunctionsInClassTree();
-		});
-
-		_Schema.enableEditFunctionsInClassTree();
-	},
-	enableEditFunctionsInClassTree: function() {
-		$('.edit_icon', inheritanceTree).off('click').on('click', function(e) {
-			var nodeId = $(this).closest('li').data('id');
-			if (nodeId) {
-				_Schema.openEditDialog(nodeId);
-			}
-		});
-
-		$('.delete_icon', inheritanceTree).off('click').on('click', function(e) {
-			var nodeId = $(this).closest('li').data('id');
-			if (nodeId) {
-				Structr.confirmation(
-					'<h3>Delete schema node \'' + $(this).closest('a').text() + '\'?</h3><p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>',
-					function() {
-						$.unblockUI({ fadeOut: 25 });
-						_Schema.deleteNode(nodeId);
-					}
-				);
 			}
 		});
 	},
