@@ -36,6 +36,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
@@ -48,8 +49,6 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.AbstractMinifiedFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.relation.MinificationSource;
-import org.structr.web.entity.relation.Thumbnails;
 import org.structr.web.entity.File;
 
 /**
@@ -111,6 +110,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	public void handleDeferredFiles() {
 
+		final Class<Relation> relType          = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> positionKey = StructrApp.key(relType, "position");
+
 		if (!this.deferredFiles.isEmpty()) {
 
 			for (File file : this.deferredFiles) {
@@ -135,7 +137,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 						if (source != null) {
 
-							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (File)source, MinificationSource.class, new PropertyMap(MinificationSource.position, position));
+							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (File)source, relType, new PropertyMap(positionKey, position));
 
 						} else {
 							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
@@ -310,10 +312,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private void handleThumbnails(final Image img) {
 
+		final Class<Relation> thumbnailRel = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+
 		if (img.getProperty(StructrApp.key(Image.class, "isThumbnail"))) {
 
 			// thumbnail image
-			if (img.getIncomingRelationship(Thumbnails.class) == null) {
+			if (img.getIncomingRelationship(thumbnailRel) == null) {
 
 				ImageHelper.findAndReconnectOriginalImage(img);
 			}
@@ -321,7 +325,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		} else {
 
 			// original image
-			if (!img.getOutgoingRelationships(Thumbnails.class).iterator().hasNext()) {
+			if (!img.getOutgoingRelationships(thumbnailRel).iterator().hasNext()) {
 
 				ImageHelper.findAndReconnectThumbnails(img);
 

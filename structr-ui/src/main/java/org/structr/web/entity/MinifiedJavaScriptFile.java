@@ -37,12 +37,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationEvent;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.relation.MinificationSource;
 
 public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
@@ -115,7 +115,8 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 	static ArrayList<SourceFile> getSourceFileList(final MinifiedJavaScriptFile thisFile) throws FrameworkException, IOException {
 
-		final SecurityContext securityContext  = thisFile.getSecurityContext();
+		final Class<Relation> type             = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key         = StructrApp.key(type, "position");
 		final ArrayList<SourceFile> sourceList = new ArrayList();
 
 		int cnt = 0;
@@ -124,11 +125,11 @@ public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 
 			final File src = (File)rel.getTargetNode();
 
-			sourceList.add(SourceFile.fromCode(src.getProperty(File.name), FileUtils.readFileToString(src.getFileOnDisk())));
+			sourceList.add(SourceFile.fromCode(src.getProperty(File.name), FileUtils.readFileToString(src.getFileOnDisk(), "utf-8")));
 
 			// compact the relationships (if necessary)
-			if (rel.getProperty(MinificationSource.position) != cnt) {
-				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, cnt));
+			if (rel.getProperty(key) != cnt) {
+				rel.setProperty(key, cnt);
 			}
 			cnt++;
 		}

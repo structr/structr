@@ -22,8 +22,8 @@ import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.relation.Sync;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -41,10 +41,11 @@ public class SyncModeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		final Class<Relation> relType         = StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodeSYNCDOMNode");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		String sourceId                       = webSocketData.getId();
-		Map<String, Object> properties        = webSocketData.getNodeData();
-		String targetId                       = (String) properties.get("targetId");
+		final String sourceId                 = webSocketData.getId();
+		final Map<String, Object> properties  = webSocketData.getNodeData();
+		final String targetId                 = (String) properties.get("targetId");
 		final String syncMode                 = (String) properties.get("syncMode");
 		final DOMNode sourceNode              = (DOMNode) getNode(sourceId);
 		final DOMNode targetNode              = (DOMNode) getNode(targetId);
@@ -54,11 +55,11 @@ public class SyncModeCommand extends AbstractCommand {
 
 			try {
 
-				app.create(sourceNode, targetNode, Sync.class);
+				app.create(sourceNode, targetNode, relType);
 
 				if (syncMode.equals("bidir")) {
 
-					app.create(targetNode, sourceNode, Sync.class);
+					app.create(targetNode, sourceNode, relType);
 				}
 
 			} catch (Throwable t) {

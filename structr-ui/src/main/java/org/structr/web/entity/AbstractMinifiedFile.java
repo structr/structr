@@ -36,12 +36,10 @@ import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.web.entity.relation.MinificationSource;
 
 /**
  * Base class for minifiable files in Structr.
@@ -64,7 +62,11 @@ public interface AbstractMinifiedFile extends File {
 		final JsonObjectType file   = (JsonObjectType)schema.getType("AbstractMinifiedFile");
 		final JsonReferenceType rel = type.relate(file, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
 
+		// add method
+		rel.overrideMethod("onRelationshipCreation", true, "try { setProperty(positionProperty, getSourceNode().getMaxPosition()); } catch (FrameworkException fex) { /* ignore? */ }");
+
 		rel.addIntegerProperty("position", PropertyView.Public);
+		rel.addPropertyGetter("position", Integer.TYPE);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "minificationSources");
@@ -77,10 +79,12 @@ public interface AbstractMinifiedFile extends File {
 
 	public static int getMaxPosition (final AbstractMinifiedFile thisFile) {
 
-		int max = -1;
+		final Class<Relation> type     = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key = StructrApp.key(type, "position");
+		int max                        = -1;
 
-		for (final MinificationSource neighbor : thisFile.getOutgoingRelationships(MinificationSource.class)) {
-			max = Math.max(max, neighbor.getProperty(MinificationSource.position));
+		for (final Relation neighbor : AbstractMinifiedFile.getSortedRelationships(thisFile)) {
+			max = Math.max(max, neighbor.getProperty(key));
 		}
 
 		return max;
@@ -97,9 +101,7 @@ public interface AbstractMinifiedFile extends File {
 			if (myUUID.equals(modState.getUuid())) {
 
 				shouldMinify = shouldMinify || thisFile.shouldModificationTriggerMinifcation(modState);
-
 			}
-
 		}
 
 		if (shouldMinify) {
@@ -116,7 +118,8 @@ public interface AbstractMinifiedFile extends File {
 
 	public static String getConcatenatedSource(final AbstractMinifiedFile thisFile) throws FrameworkException, IOException {
 
-		final SecurityContext securityContext  = thisFile.getSecurityContext();
+		final Class<Relation> type             = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key         = StructrApp.key(type, "position");
 		final StringBuilder concatenatedSource = new StringBuilder();
 		int cnt = 0;
 
@@ -127,9 +130,9 @@ public interface AbstractMinifiedFile extends File {
 			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk(), Charset.forName("utf-8")));
 
 			// compact the relationships (if necessary)
-			if (rel.getProperty(MinificationSource.position) != cnt) {
+			if (rel.getProperty(key) != cnt) {
 
-				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, cnt));
+				rel.setProperty(key, cnt);
 			}
 
 			cnt++;

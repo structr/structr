@@ -51,6 +51,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.util.Base64;
@@ -141,6 +142,7 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectThumbnails(final Image originalImage) {
 
+		final Class<Relation> thumbnailRel  = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
 		final PropertyKey<Image> tnSmallKey = StructrApp.key(Image.class, "tnSmall");
 		final PropertyKey<Image> tnMidKey   = StructrApp.key(Image.class, "tnMid");
 		final PropertyKey<String> pathKey   = StructrApp.key(Image.class, "path");
@@ -175,7 +177,7 @@ public abstract class ImageHelper extends FileHelper {
 				final Image thumbnail = (Image) app.nodeQuery(Image.class).and(pathKey, PathHelper.getFolderPath(originalImage.getProperty(pathKey)) + PathHelper.PATH_SEP + tnName).getFirst();
 
 				if (thumbnail != null) {
-					app.create(originalImage, thumbnail, org.structr.web.entity.relation.Thumbnails.class);
+					app.create(originalImage, thumbnail, thumbnailRel);
 				}
 
 			} catch (FrameworkException ex) {
@@ -187,8 +189,9 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectOriginalImage(final Image thumbnail) {
 
-		final PropertyKey<String> pathKey = StructrApp.key(Image.class, "path");
-		final String originalImageName    = thumbnail.getOriginalImageName();
+		final Class<Relation> thumbnailRel = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final PropertyKey<String> pathKey  = StructrApp.key(Image.class, "path");
+		final String originalImageName     = thumbnail.getOriginalImageName();
 
 		try {
 
@@ -202,7 +205,7 @@ public abstract class ImageHelper extends FileHelper {
 				relProperties.put(StructrApp.key(Image.class, "height"),                 thumbnail.getHeight());
 				relProperties.put(StructrApp.key(Image.class, "checksum"),               originalImage.getChecksum());
 
-				app.create(originalImage, thumbnail, org.structr.web.entity.relation.Thumbnails.class, relProperties);
+				app.create(originalImage, thumbnail, thumbnailRel, relProperties);
 			}
 
 		} catch (FrameworkException ex) {

@@ -62,6 +62,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.Security;
@@ -96,7 +97,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
@@ -1162,9 +1162,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putIf(config, "optimizationLevel",    mjf.getOptimizationLevel());
 			}
 
-			Map<Integer, String> minifcationSources = new TreeMap<>();
-			for(MinificationSource minificationSourceRel : abstractFile.getOutgoingRelationships(MinificationSource.class)) {
-				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getPath());
+			final Class<Relation> relType                 = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+			final PropertyKey<Integer> positionKey        = StructrApp.key(relType, "position");
+			final Map<Integer, String> minifcationSources = new TreeMap<>();
+
+			for(Relation minificationSourceRel : AbstractMinifiedFile.getSortedRelationships((AbstractMinifiedFile)abstractFile)) {
+
+				final File file = (File)minificationSourceRel.getTargetNode();
+
+				minifcationSources.put(minificationSourceRel.getProperty(positionKey), file.getPath());
 			}
 			putIf(config, "minificationSources",     minifcationSources);
 

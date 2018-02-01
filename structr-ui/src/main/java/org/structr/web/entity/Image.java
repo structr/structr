@@ -44,7 +44,6 @@ import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
-import org.structr.web.entity.relation.Thumbnails;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
 
@@ -308,7 +307,8 @@ public interface Image extends File {
 	 * */
 	public static Image getScaledImage(final Image thisImage, final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
-		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage"));
+		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
 		final SecurityContext securityContext           = thisImage.getSecurityContext();
 		final List<Image> oldThumbnails                 = new LinkedList<>();
 		Image thumbnail                                 = null;
@@ -430,7 +430,7 @@ public interface Image extends File {
 						relProperties.put(StructrApp.key(Image.class, "height"),                 tnHeight);
 						relProperties.put(StructrApp.key(Image.class, "checksum"),               newChecksum);
 
-						app.create(originalImage, thumbnail, Thumbnails.class, relProperties);
+						app.create(originalImage, thumbnail, thumbnailRel, relProperties);
 
 						final PropertyMap properties = new PropertyMap();
 						properties.put(StructrApp.key(Image.class, "width"),                              tnWidth);
