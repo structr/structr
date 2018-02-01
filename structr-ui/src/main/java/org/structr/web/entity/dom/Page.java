@@ -47,6 +47,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
+import org.structr.web.entity.html.Html;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.DOMException;
@@ -80,7 +81,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		// if enabled, prevents asynchronous page rendering; enable this flag when using the stream() builtin method
 		type.addBooleanProperty("pageCreatesRawData", PropertyView.Public).setDefaultValue("false");
 
-		type.addIntegerProperty("version",         PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true);
+		type.addIntegerProperty("version",         PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true).setDefaultValue("0");
 		type.addIntegerProperty("position",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addIntegerProperty("cacheForSeconds", PropertyView.Public, PropertyView.Ui);
 
@@ -95,6 +96,9 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addPropertyGetter("elements", List.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("site", Site.class);
+
+		type.addPropertyGetter("version", Integer.TYPE);
+		type.addPropertySetter("version", Integer.TYPE);
 
 		type.overrideMethod("updateFromNode",     false, "");
 		type.overrideMethod("contentEquals",      false, "return false;");
@@ -119,6 +123,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.overrideMethod("normalizeDocument",           false, "normalize();");
 		type.overrideMethod("renderContent",               false, "");
 
+		type.overrideMethod("checkHierarchy",              true,  Page.class.getName() + ".checkHierarchy(this, arg0);");
 		type.overrideMethod("handleNewChild",              false, Page.class.getName() + ".handleNewChild(this, arg0);");
 		type.overrideMethod("renameNode",                  false, "return " + Page.class.getName() + ".renameNode(this, arg0, arg1, arg2);");
 		type.overrideMethod("doAdopt",                     false, "return " + Page.class.getName() + ".doAdopt(this, arg0);");
@@ -155,6 +160,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.overrideMethod("getStrictErrorChecking",      false, "return true;");
 		type.overrideMethod("setStrictErrorChecking",      false, "");
 		type.overrideMethod("getContextName",              false, "return getProperty(name);");
+
+		type.overrideMethod("increaseVersion",             false, Page.class.getName() + ".increaseVersion(this);");
 
 		final JsonMethod createElement1 = type.addMethod("createElement");
 		createElement1.setReturnType("org.w3c.dom.Element");
@@ -193,6 +200,10 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	List<DOMNode> getElements();
 
 	Site getSite();
+
+	void setVersion(int version) throws FrameworkException;
+	void increaseVersion() throws FrameworkException;
+	int getVersion();
 
 
 
@@ -783,12 +794,10 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		}
 	}
 
-	/*
-	@Override
-	protected void checkHierarchy(Node otherNode) throws DOMException {
+	static void checkHierarchy(final Page thisPage, final Node otherNode) throws DOMException {
 
 		// verify that this document has only one document element
-		if (getDocumentElement() != null) {
+		if (thisPage.getDocumentElement() != null) {
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT);
 		}
 
@@ -796,10 +805,9 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 			throw new DOMException(DOMException.HIERARCHY_REQUEST_ERR, HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 		}
-
-		super.checkHierarchy(otherNode);
 	}
 
+	/*
 	@Override
 	public boolean hasChildNodes() {
 		return true;
@@ -816,22 +824,22 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		return _children;
 	}
 
-	/*
-	public void increaseVersion() throws FrameworkException {
+	static void increaseVersion(final Page thisPage) throws FrameworkException {
 
-		final Integer _version = getProperty(Page.version);
+		final Integer _version = thisPage.getVersion();
 
-		unlockReadOnlyPropertiesOnce();
+		thisPage.unlockReadOnlyPropertiesOnce();
 		if (_version == null) {
 
-			setProperties(securityContext, new PropertyMap(Page.version, 1));
+			thisPage.setVersion(1);
 
 		} else {
 
-			setProperties(securityContext, new PropertyMap(Page.version, _version + 1));
+			thisPage.setVersion(_version + 1);
 		}
 	}
 
+	/*
 	@Override
 	public void normalizeDocument() {
 		normalize();

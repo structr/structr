@@ -22,6 +22,8 @@ import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -57,6 +59,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.importer.GraphGistImporter;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
@@ -1006,7 +1009,93 @@ public class SimpleTest extends StructrUiTest {
 			.statusCode(200)
 			.when()
 			.get("http://127.0.0.1:8875/test");
+	}
 
+	@Test
+	public void testIncreasePageVersion() {
+
+		Page page = null;
+
+		try (final Tx tx = app.tx()) {
+
+			page = Page.createSimplePage(securityContext, "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unepxected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Page version is not increased on modification", 0, page.getVersion());
+
+			final Element div = page.createElement("div");
+
+			// add new element
+			page.getElementsByTagName("div").item(0).appendChild(div);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unepxected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Page version is not increased on modification", 3, page.getVersion());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unepxected exception.");
+		}
+	}
+
+	@Test
+	public void testIncreaseFileVersion() {
+
+		File file = null;
+
+		try (final Tx tx = app.tx()) {
+
+			file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) { }
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Page version is not increased on modification", Integer.valueOf(0), file.getVersion());
+
+			try (final OutputStream os = file.getOutputStream(true, true)) {
+
+				os.write("test".getBytes("utf-8"));
+				os.flush();
+
+			} catch (IOException ioex) {
+			}
+
+			assertEquals("Page version is not increased on modification", Integer.valueOf(1), file.getVersion());
+
+			tx.success();
+
+		} catch (FrameworkException fex) { }
+	}
+
+	@Test
+	public void testNameCheckInDOMNode() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page.createSimplePage(securityContext, "te/st");
+
+			tx.success();
+
+			fail("DOMNode names may not contain the slash character.");
+
+		} catch (FrameworkException fex) { }
 	}
 
 	// ----- private methods -----

@@ -262,35 +262,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	Folder getCurrentWorkingDir();
 
-
-	/*
-	private static final Logger logger = LoggerFactory.getLogger(FileBase.class.getName());
-
-	public static final Property<Long> size                                      = new LongProperty("size").indexed().systemInternal();
-	public static final Property<Long> fileModificationDate                      = new LongProperty("fileModificationDate").indexed().systemInternal();
-	public static final Property<String> url                                     = new StringProperty("url");
-	public static final Property<Integer> cacheForSeconds                        = new IntProperty("cacheForSeconds").cmis();
-	public static final Property<Integer> version                                = new IntProperty("version").indexed().systemInternal();
-	public static final Property<String> base64Data                              = new FileDataProperty<>("base64Data");
-	public static final Property<Boolean> isFile                                 = new ConstantBooleanProperty("isFile", true);
-	public static final Property<List<AbstractMinifiedFile>> minificationTargets = new StartNodes<>("minificationTarget", MinificationSource.class);
-	public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
-	public static final Property<Boolean> isTemplate                             = new BooleanProperty("isTemplate");
-
-	public static final Property<Long> checksum                                  = new LongProperty("checksum").indexed().unvalidated().systemInternal();
-	public static final Property<String> md5                                     = new StringProperty("md5").unvalidated().systemInternal().readOnly();
-	public static final Property<String> sha1                                    = new StringProperty("sha1").unvalidated().systemInternal().readOnly();
-	public static final Property<String> sha512                                  = new StringProperty("sha512").unvalidated().systemInternal().readOnly();
-
-	public static final View publicView = new View(FileBase.class, PropertyView.Public,
-		type, name, size, url, owner, path, isFile, visibleToPublicUsers, visibleToAuthenticatedUsers, includeInFrontendExport, isFavoritable, isTemplate, fileModificationDate
-	);
-
-	public static final View uiView = new View(FileBase.class, PropertyView.Ui,
-		type, size, url, parent, checksum, md5, version, cacheForSeconds, owner, isFile, hasParent, includeInFrontendExport, isFavoritable, isTemplate
-	);
-	*/
-
 	static void onCreation(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent()) {

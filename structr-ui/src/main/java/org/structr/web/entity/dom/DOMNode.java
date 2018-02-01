@@ -19,6 +19,7 @@
 package org.structr.web.entity.dom;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,7 +38,9 @@ import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -47,6 +50,7 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.Security;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
@@ -135,6 +139,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.addPropertyGetter("ownerDocument", Page.class);
 		type.addPropertyGetter("sharedComponent", DOMNode.class);
 		type.addPropertyGetter("sharedComponentConfiguration", String.class);
+
+		type.overrideMethod("onCreation",                  true,  DOMNode.class.getName() + ".onCreation(this, arg0, arg1);");
+		type.overrideMethod("onModification",              true,  DOMNode.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 
 		type.overrideMethod("getPositionProperty",         false, "return DOMNodeCONTAINSDOMNode.positionProperty;");
 
@@ -368,6 +375,17 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 
 	// ----- static methods -----
+	static void onCreation(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		DOMNode.checkName(thisNode, errorBuffer);
+	}
+
+	static void onModification(final DOMNode thisNode, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		DOMNode.increasePageVersion(thisNode);
+		DOMNode.checkName(thisNode, errorBuffer);
+	}
+
 	public static String escapeForHtml(final String raw) {
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 	}
@@ -1725,17 +1743,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		return false;
 	}
+	*/
 
-	// ----- private methods -----
 	/**
 	 * Get all ancestors of this node
 	 *
 	 * @return list of ancestors
-	private List<Node> getAncestors() {
+	 */
+	static List<Node> getAncestors(final DOMNode thisNode) {
 
-		List<Node> ancestors = new ArrayList();
+		List<Node> ancestors = new ArrayList<>();
 
-		Node _parent = getParentNode();
+		Node _parent = thisNode.getParentNode();
 		while (_parent != null) {
 
 			ancestors.add(_parent);
@@ -1743,7 +1762,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 
 		return ancestors;
-
 	}
 
 	/**
@@ -1752,40 +1770,44 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	 * A {@link Page} is a {@link DOMNode} as well, so we have to check 'this' as well.
 	 *
 	 * @throws FrameworkException
-	protected void increasePageVersion() throws FrameworkException {
+	 */
+	static void increasePageVersion(final DOMNode thisNode) throws FrameworkException {
 
 		Page page = null;
 
-		if (this instanceof Page) {
+		if (thisNode instanceof Page) {
 
-			page = (Page)this;
+			page = (Page)thisNode;
 
 		} else {
 
 			// ignore page-less nodes
-			if (getProperty(DOMNode.parent) == null) {
+			if (thisNode.getParent() == null) {
 				return;
 			}
 		}
 
 		if (page == null) {
 
-			final List<Node> ancestors = getAncestors();
+			final List<Node> ancestors = DOMNode.getAncestors(thisNode);
 			if (!ancestors.isEmpty()) {
 
 				final DOMNode rootNode = (DOMNode)ancestors.get(ancestors.size() - 1);
 				if (rootNode instanceof Page) {
+
 					page = (Page)rootNode;
+
 				} else {
-					rootNode.increasePageVersion();
+
+					DOMNode.increasePageVersion(rootNode);
 				}
 
 			} else {
 
-				final List<DOMNode> _syncedNodes = getProperty(DOMNode.syncedNodes);
+				final List<DOMNode> _syncedNodes = thisNode.getSyncedNodes();
 				for (final DOMNode syncedNode : _syncedNodes) {
 
-					syncedNode.increasePageVersion();
+					DOMNode.increasePageVersion(syncedNode);
 				}
 			}
 
@@ -1799,6 +1821,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	}
 
+	/*
 	protected boolean avoidWhitespace() {
 
 		return false;
@@ -2077,6 +2100,15 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return cachedPagePath;
 	}
 
+	static void checkName(final DOMNode thisNode, final ErrorBuffer errorBuffer) {
+
+		final String _name = thisNode.getProperty(AbstractNode.name);
+		if (_name != null && _name.contains("/")) {
+
+			errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+		}
+	}
+
 	/*
 
 	public void setVisibility(final boolean publicUsers, final boolean authenticatedUsers) throws FrameworkException {
@@ -2090,18 +2122,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	}
 
 	// ----- private methods -----
-	private boolean checkName(final ErrorBuffer errorBuffer) {
-
-		final String _name = getProperty(AbstractNode.name);
-		if (_name != null && _name.contains("/")) {
-
-			errorBuffer.add(new SemanticErrorToken(getType(), AbstractNode.name, "may_not_contain_slashes", _name));
-
-			return false;
-		}
-
-		return true;
-	}
 	*/
 
 	// ----- nested classes -----
