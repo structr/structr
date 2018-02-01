@@ -28,7 +28,6 @@ import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.feed.entity.feed.FeedItemContent;
 
 /**
  *

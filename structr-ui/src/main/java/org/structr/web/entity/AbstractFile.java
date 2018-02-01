@@ -33,6 +33,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -76,16 +77,14 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		type.overrideMethod("getPositionProperty",         false, "return FolderCONTAINSAbstractFile.positionProperty;");
 
-		type.overrideMethod("onCreation",                  true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validateAndRenameFileOnce(arg0, arg1); }");
-		type.overrideMethod("onModification",              true, "if (org.structr.api.config.Settings.UniquePaths.getValue()) { validateAndRenameFileOnce(arg0, arg1); }");
+		type.overrideMethod("onCreation",                  true,  AbstractFile.class.getName() + ".onCreation(this, arg0, arg1);");
+		type.overrideMethod("onModification",              true,  AbstractFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
 		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
 		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
 		type.overrideMethod("isBinaryDataAccessible",      false, "return !isExternal() || isMounted();").setDoExport(true);
 		type.overrideMethod("isMounted",                   false, "return " + AbstractFile.class.getName() + ".isMounted(this);");
 		type.overrideMethod("getFolderPath",               false, "return " + AbstractFile.class.getName() + ".getFolderPath(this);");
-		type.overrideMethod("validatePath",                false, "return " + AbstractFile.class.getName() + ".validatePath(this, arg0, arg1);");
-		type.overrideMethod("validateAndRenameFileOnce",   false, "return " + AbstractFile.class.getName() + ".validateAndRenameFileOnce(this, arg0, arg1);");
 		type.overrideMethod("includeInFrontendExport",     false, "return " + AbstractFile.class.getName() + ".includeInFrontendExport(this);");
 
 		type.addMethod("setParent")
@@ -122,8 +121,23 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	boolean isBinaryDataAccessible();
 	boolean includeInFrontendExport();
 
-	boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
-	boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	static void onCreation(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		thisFile.setHasParent(thisFile.getParent() != null);
+
+		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
+			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
+		}
+	}
+
+	static void onModification(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		thisFile.setHasParent(thisFile.getParent() != null);
+
+		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
+			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
+		}
+	}
 
 	static boolean validatePath(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -156,7 +170,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	static boolean validateAndRenameFileOnce(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
-		boolean valid                     = thisFile.validatePath(securityContext, null);
+		boolean valid                     = AbstractFile.validatePath(thisFile, securityContext, null);
 
 		if (!valid) {
 
@@ -165,7 +179,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 			thisFile.setProperty(AbstractNode.name, newName);
 
-			valid = thisFile.validatePath(securityContext, errorBuffer);
+			valid = AbstractFile.validatePath(thisFile, securityContext, errorBuffer);
 
 			if (valid) {
 				logger.warn("File {} already exists, renaming to {}", new Object[] { originalPath, newName });

@@ -26,7 +26,7 @@ import org.structr.agent.Task;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.feed.entity.feed.DataFeed;
+import org.structr.feed.entity.DataFeed;
 
 /**
  *

@@ -301,8 +301,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				thisFile.setParent(workingOrHomeDir);
 			}
 		}
-
-		thisFile.setHasParent(thisFile.getParent() != null);
 	}
 
 	static void onModification(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -323,8 +321,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 
 		thisFile.triggerMinificationIfNeeded(modificationQueue);
-
-		thisFile.setHasParent(thisFile.getParent() != null);
 	}
 
 	static void onNodeDeletion(final File thisFile) {

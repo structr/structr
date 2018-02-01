@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.agent.AbstractTask;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.feed.entity.feed.DataFeed;
+import org.structr.feed.entity.DataFeed;
 
 public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 

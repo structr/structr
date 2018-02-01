@@ -283,29 +283,65 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String tmp = getProperty(extendsClass);
 		if (tmp != null) {
 
-			// remove optional generic parts from class name
-			final String _extendsClass = StringUtils.substringBefore(tmp, "<");
 
-			// we need to migrate
+			final String interfaces = getProperty(implementsInterfaces);
+			String _extendsClass = StringUtils.substringBefore(tmp, "<"); // remove optional generic parts from class name
+
+			// migrate FileBase
 			if (_extendsClass.equals("org.structr.web.entity.FileBase")) {
 
 				removeProperty(extendsClass);
-				setProperty(implementsInterfaces, "org.structr.web.entity.File");
+				setProperty(implementsInterfaces, addToList(interfaces, "org.structr.web.entity.File"));
+				return;
+			}
 
-			} else if (_extendsClass.startsWith("org.structr.") && _extendsClass.endsWith("Impl")) {
+			// migrate Person
+			if (_extendsClass.equals("org.structr.core.entity.Person")) {
 
-				// do nothing, prevents internal types from being moved to implementsInterfaces
+				setProperty(extendsClass, "org.structr.dynamic.Person");
+				return;
+			}
 
-			} else if (_extendsClass.startsWith("org.structr.") && !_extendsClass.startsWith("org.structr.dynamic.") && !AbstractNode.class.getName().equals(_extendsClass)) {
+			// migrate XMPPClient
+			if (_extendsClass.equals("org.structr.xmpp.XMPPClient")) {
 
-				// move extendsClass to implementsInterfaces
-				setProperty(implementsInterfaces, _extendsClass);
+				setProperty(implementsInterfaces, addToList(interfaces, "org.structr.xmpp.XMPPClient"));
+				removeProperty(extendsClass);
+				return;
+			}
+
+			// we need to migrate the feed package
+			if (_extendsClass.startsWith("org.structr.web.entity.feed.")) {
+
+				_extendsClass = _extendsClass.replace("org.structr.web.entity.feed.", "org.structr.feed.entity.");
+				setProperty(extendsClass, _extendsClass);
+			}
+
+			// move most of the extendsClass to implementsInterfaces
+			if (!_extendsClass.endsWith("Impl") && _extendsClass.contains(".entity.") && _extendsClass.startsWith("org.structr.") && !_extendsClass.startsWith("org.structr.dynamic.") && !AbstractNode.class.getName().equals(_extendsClass)) {
+
+				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
 				removeProperty(extendsClass);
 			}
 		}
 	}
 
 	// ----- private methods -----
+	private String addToList(final String source, final String value) {
+
+		final List<String> list = new LinkedList<>();
+
+		if (source != null) {
+
+			list.addAll(Arrays.asList(source.split(",")));
+		}
+
+		list.add(value);
+
+		return StringUtils.join(list, ",");
+	}
+
+
 	private String getRelatedType(final SchemaNode schemaNode, final String propertyNameToCheck) {
 
 		final Set<String> existingPropertyNames = new LinkedHashSet<>();

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.feed.entity.feed;
+package org.structr.feed.entity;
 
 
 import com.rometools.rome.feed.synd.SyndContent;

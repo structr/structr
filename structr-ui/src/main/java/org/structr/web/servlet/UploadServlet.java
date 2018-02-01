@@ -58,6 +58,7 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
@@ -292,7 +293,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 								try (final InputStream is = item.openStream()) {
 
 									newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
-									newFile.validateAndRenameFileOnce(securityContext, null);
+									AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
 
 									final PropertyMap changedProperties = new PropertyMap();
 
