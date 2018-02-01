@@ -3401,13 +3401,23 @@ var _Schema = {
 			}
 		};
 
+		var getParentClassName = function (str) {
+			if (str.slice(-1) === '>') {
+				var res = str.match("([^<]*)<([^>]*)>");
+				return getParentClassName(res[1]) + "&lt;" + getParentClassName(res[2]) + "&gt;";
+
+			} else {
+				return str.slice(str.lastIndexOf('.') + 1);
+			}
+		};
+
 		schemaNodes.forEach(function(schemaNode) {
 
 			if (!schemaNode.isBuiltinType) {
 
 				var classObj = {
 					name: schemaNode.name,
-					parent: (schemaNode.extendsClass === null ? 'AbstractNode' : schemaNode.extendsClass.slice(schemaNode.extendsClass.lastIndexOf('.')+1))
+					parent: (schemaNode.extendsClass === null ? 'AbstractNode' : getParentClassName(schemaNode.extendsClass))
 				};
 
 				classnameToId[classObj.name] = schemaNode.id;
