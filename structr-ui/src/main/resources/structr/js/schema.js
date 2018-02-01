@@ -64,7 +64,6 @@ var _Schema = {
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
-	activeSchemaToolsSelectedTabLevel2Key: 'structrSchemaToolsSelectedTabLevel2_' + port,
 	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
 	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
 	selectionInProgress: false,
@@ -3134,10 +3133,6 @@ var _Schema = {
 		ul.append('<li data-name="visibility">Visibility</li>');
 		ul.append('<li data-name="snapshots">Snapshots</li>');
 
-		if (Structr.isModulePresent('cloud')) {
-			ul.append('<li id="tab" data-name="schema-sync">Schema Sync</li>');
-		}
-
 		var activateTab = function(tabName) {
 			$('.tools-tab-content', contentDiv).hide();
 			$('li', ul).removeClass('active');
@@ -3163,78 +3158,8 @@ var _Schema = {
 		contentDiv.append('<div class="tab tools-tab-content" id="tabView-snapshots"></div>');
 		_Schema.appendSnapshotsDialogToContainer($('#tabView-snapshots', contentDiv));
 
-		if (Structr.isModulePresent('cloud')) {
-			contentDiv.append('<div class="tab tools-tab-content" id="tabView-schema-sync"></div>');
-			_Schema.appendSyncOptionsToContainer($('#tabView-schema-sync', contentDiv));
-		}
-
 		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel1Key) || 'admin';
 		activateTab(activeTab);
-	},
-	appendSyncOptionsToContainer: function(container) {
-
-		var id = "schema-tools-sync";
-		container.append('<div id="' + id + '_head"><div class="data-tabs level-two"><ul id="schema-tools-sync-tabs"></ul></div></div>');
-
-		var ul = $('#schema-tools-sync-tabs', container);
-		ul.append('<li id="tab" data-name="to-remote">Local -> Remote</li>');
-		ul.append('<li id="tab" data-name="from-remote">Remote -> Local</li>');
-
-		var activateTab = function(tabName) {
-			$('.sync-tab-content', container).hide();
-			$('li', ul).removeClass('active');
-			$('#tabView-' + tabName, container).show();
-			$('li[data-name="' + tabName + '"]', ul).addClass('active');
-			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedTabLevel2Key, tabName);
-		};
-
-		$('#schema-tools-sync-tabs > li', container).on('click', function(e) {
-			e.stopPropagation();
-			activateTab($(this).data('name'));
-		});
-
-		container.append('<div id="' + id + '_content"></div>');
-		var contentEl = $('#' + id + '_content', container);
-		contentEl.append('<div class="tab sync-tab-content" id="tabView-to-remote"></div>');
-		_Schema.appendSyncToRemoteOptionsToContainer($('#tabView-to-remote', contentEl));
-
-		contentEl.append('<div class="tab sync-tab-content" id="tabView-from-remote"></div>');
-		Structr.pullDialog('SchemaNode,SchemaRelationshipNode', $('#tabView-from-remote', contentEl));
-
-		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedTabLevel2Key) || 'to-remote';
-		activateTab(activeTab);
-
-	},
-	appendSyncToRemoteOptionsToContainer: function(container) {
-
-		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
-
-		container.append('To sync <b>all schema nodes and relationships</b> to the remote server, ');
-		container.append('enter host, port, username and password of your remote instance and click Start.');
-
-		container.append('<table class="props push">'
-				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
-				+ '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
-				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
-				+ '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
-				+ '</table>'
-				+ '<button id="start-push">Start</button>');
-
-		$('#start-push', container).on('click', function() {
-			var host = $('#push-host', container).val();
-			var port = parseInt($('#push-port', container).val());
-			var username = $('#push-username', container).val();
-			var password = $('#push-password', container).val();
-			var key = 'key_push_schema';
-
-			pushConf = {host: host, port: port, username: username, password: password};
-			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
-
-			Command.pushSchema(host, port, username, password, key, function() {
-				new MessageBuilder().success("Schema pushed successfully").show();
-			});
-		});
-
 	},
 	appendTypeVisibilityOptionsToContainer: function(container) {
 

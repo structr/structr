@@ -33,7 +33,6 @@ var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var detailsObjectId = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
-var pushConfigKey = 'structrPushConfigKey_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
@@ -70,7 +69,7 @@ $(function() {
 		e.stopPropagation();
 		Structr.doLogout();
 	});
-	
+
 	$(window).on('hashchange', function(e) {
 		var anchor = getAnchorFromUrl(window.location.href);
 		if (anchor === 'logout' || loginBox.is(':visible')) return
@@ -1072,125 +1071,6 @@ var Structr = {
 			}
 		});
 		LSWrapper.removeItem(activeTabKey);
-	},
-	pushDialog: function(id, recursive) {
-
-		var obj = StructrModel.obj(id);
-
-		Structr.dialog('Push node to remote server', function() {}, function() {});
-
-		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
-
-		dialog.append('Do you want to transfer <b>' + (obj.name || obj.id) + '</b> to the remote server?');
-
-		dialog.append('<table class="props push">'
-				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
-				+ '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
-				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
-				+ '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
-				+ '</table>'
-				+ '<button id="start-push">Start</button>');
-
-		$('#start-push', dialog).on('click', function() {
-			var host = $('#push-host', dialog).val();
-			var port = parseInt($('#push-port', dialog).val());
-			var username = $('#push-username', dialog).val();
-			var password = $('#push-password', dialog).val();
-			var key = 'key_' + obj.id;
-
-			pushConf = {host: host, port: port, username: username, password: password};
-			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
-
-			Command.push(obj.id, host, port, username, password, key, recursive, function() {
-				dialog.empty();
-				dialogCancelButton.click();
-			});
-		});
-
-		return false;
-	},
-	pullDialog: function(type, optionalContainer) {
-
-		var container;
-
-		if (optionalContainer) {
-			 container = optionalContainer;
-			 container.append('<h3>Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server</h3>');
-		} else {
-			container = dialog;
-			Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function() {}, function() {});
-		}
-
-		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
-
-		container.append('<table class="props push">'
-				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td>'
-				+ '<td>Port</td><td><input id="push-port" type="text" length="32" value="' + (pushConf.port || '') + '"></td></tr>'
-				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="32" value="' + (pushConf.username || '') + '"></td>'
-				+ '<td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
-				+ '</table>'
-				+ '<button id="show-syncables">Show available entities</button>'
-				+ '<table id="syncables" class="props push"><tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>'
-				+ '</table>'
-				);
-
-		$('#show-syncables', container).on('click', function() {
-
-			var syncables = $("#syncables");
-			var host = $('#push-host', container).val();
-			var port = parseInt($('#push-port', container).val());
-			var username = $('#push-username', container).val();
-			var password = $('#push-password', container).val();
-			var key = 'syncables';
-
-			pushConf = {host: host, port: port, username: username, password: password};
-			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
-
-			fastRemoveAllChildren(syncables[0]);
-			syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
-
-			Command.listSyncables(host, port, username, password, key, type, function(result) {
-
-				result.forEach(function(syncable) {
-
-					syncables.append(
-							'<tr>'
-							+ '<td>' + syncable.name + '</td>'
-							+ '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
-							+ '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
-							+ '<td>' + syncable.type + '</td>'
-							+ '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
-							+ '<td><button id="pull-' + syncable.id + '"></td>'
-							+ '</tr>'
-							);
-
-					var syncButton = $('#pull-' + syncable.id, container);
-
-					if (syncable.isSynchronized) {
-						syncButton.empty();
-						syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Update');
-					} else {
-						syncButton.empty();
-						syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /> Import');
-					}
-
-					syncButton.on('click', function() {
-
-						syncButton.empty();
-						syncButton.append('Importing..');
-
-						var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
-						Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
-							syncButton.empty();
-							syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Update');
-						});
-					});
-				});
-
-			});
-		});
-
-		return false;
 	},
 	ensureIsAdmin: function(el, callback) {
 		Structr.ping(function() {
