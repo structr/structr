@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var pages, shadowPage, pageVersion = {};
+var pages, shadowPage;
 var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
 var rsw;
 var components, elements;
@@ -570,8 +570,7 @@ var _Pages = {
 		}
 		_Pages.unloadIframes();
 		var iframe = $('#preview_' + id);
-		Command.get(id, "id,name,version", function(obj) {
-			pageVersion[id] = obj.version;
+		Command.get(id, "id,name", function(obj) {
 			var url = viewRootUrl + obj.name + (LSWrapper.getItem(detailsObjectId + id) ? '/' + LSWrapper.getItem(detailsObjectId + id) : '') + '?edit=2';
 			iframe.prop('src', url);
 			_Logger.log(_LogType.PAGES, 'iframe', id, 'activated');
@@ -581,25 +580,16 @@ var _Pages = {
 		});
 	},
 	/**
-	 * Reload preview iframe with given id if it is the active tab
-	 * and the page's version attribute is higher than the stored version.
+	 * Reload preview iframe with given id
 	 */
 	reloadIframe: function(id) {
 		if (!id || id !== activeTab || !_Pages.isPageTabPresent(id)) {
 			return false;
 		}
 		var autoRefreshDisabled = LSWrapper.getItem(autoRefreshDisabledKey + id);
+
 		if (!autoRefreshDisabled && id) {
-			Command.get(id, "id,name,version", function(obj) {
-				_Logger.log(_LogType.PAGES, 'reloading preview iframe', id, obj.name);
-				var v = obj.version || 0;
-				var s = pageVersion[id] || 0;
-				_Logger.log(_LogType.PAGES, 'stored version:', s, 'current version:', v);
-				if (v > s) {
-					pageVersion[id] = v;
-					_Pages.loadIframe(id);
-				}
-			});
+			_Pages.loadIframe(id);
 		}
 	},
 	/**
@@ -612,8 +602,7 @@ var _Pages = {
 		_Logger.log(_LogType.PAGES, 'unloading all preview iframes');
 		_Pages.clearIframeDroppables();
 		$('iframe', $('#previews')).each(function() {
-			var self = $(this);
-			var pageId = self.prop('id').substring('preview_'.length);
+			var pageId = $(this).prop('id').substring('preview_'.length);
 			var iframe = $('#preview_' + pageId);
 			try {
 				iframe.contents().empty();
@@ -622,8 +611,7 @@ var _Pages = {
 		});
 	},
 	/**
-	 * Reload all previews. This means, reload only the active preview iframe.
-	 * This method is typically called by websocket broadcasts.
+	 * Reload "all" previews. This means, reload only the active preview iframe.
 	 */
 	reloadPreviews: function() {
 		_Pages.reloadIframe(activeTab);
