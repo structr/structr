@@ -46,11 +46,11 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.AbstractMinifiedFile;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.relation.MinificationSource;
 import org.structr.web.entity.relation.Thumbnails;
-import org.structr.web.entity.File;
 
 /**
  *
@@ -154,14 +154,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	// ----- private methods -----
 	private Folder getExistingFolder(final String path) throws FrameworkException {
 
-		Folder existingFolder = this.folderCache.get(path);
-		if (existingFolder != null) {
+		if (this.folderCache.containsKey(path)) {
 
-			return existingFolder;
+			return  this.folderCache.get(path);
 
 		} else {
 
-			existingFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "path"), path).getFirst();
+			final Folder existingFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "path"), path).getFirst();
 			if (existingFolder != null) {
 				this.folderCache.put(path, existingFolder);
 			}
@@ -283,10 +282,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 					final File createdFile = app.get(File.class, newFileUuid);
 					String type            = createdFile.getType();
-					boolean isImage        = createdFile.getProperty(StructrApp.key(Image.class, "isImage"));
-					boolean isThumbnail    = createdFile.getProperty(StructrApp.key(Image.class, "isThumbnail"));
+					boolean isImage        = createdFile instanceof Image;
 
-					logger.debug("File {}: {}, isImage? {}, isThumbnail? {}", new Object[] { createdFile.getName(), type, isImage, isThumbnail});
+					logger.debug("File {}: {}, isImage? {}", new Object[] { createdFile.getName(), type, isImage });
 
 					if (isImage) {
 
