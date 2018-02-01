@@ -446,7 +446,7 @@ function wsConnect() {
 							if (synced && synced.length) {
 
 								// Change icon
-								$.each(entity.syncedNodes, function (i, id) {
+								$.each(synced, function (i, id) {
 									var el = Structr.node(id);
 									if (el && el.length) {
 										var icon = entity.isTemplate ? _Icons.icon_shared_template : (entity.isContent ? _Icons.active_content_icon : _Icons.comp_icon);
@@ -454,7 +454,6 @@ function wsConnect() {
 										_Entities.removeExpandIcon(el);
 									}
 								});
-
 							}
 						}
 					}
@@ -468,15 +467,14 @@ function wsConnect() {
 						}
 					} else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
 						_Files.uploadFile(entity);
+					} else if (entity.pageId) {
+						_Pages.reloadIframe(entity.pageId);
 					}
 
 					StructrModel.callCallback(data.callback, entity);
 
 				});
 
-				if (!LSWrapper.getItem(autoRefreshDisabledKey + activeTab)) {
-					_Pages.reloadPreviews();
-				}
 			} else if (command === 'PROGRESS') {
 
 				if (dialogMsg.is(':visible')) {

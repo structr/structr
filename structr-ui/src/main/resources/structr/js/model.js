@@ -239,7 +239,6 @@ var StructrModel = {
 			});
 
 			StructrModel.refresh(obj.id);
-
 		}
 
 		return obj;
@@ -310,6 +309,9 @@ var StructrModel = {
 
 					attrElement.text(newValue);
 
+					if (Structr.isModuleActive(_Pages)) {
+						_Pages.reloadIframe(obj.pageId);
+					}
 				}
 			}
 		}
@@ -330,7 +332,6 @@ var StructrModel = {
 
 					_Logger.log(_LogType.MODEL, 'Model: Reload iframe', id, newValue);
 					_Pages.reloadIframe(id);
-
 				}
 
 			} else if (Structr.getClass(element) === 'folder') {
@@ -338,11 +339,8 @@ var StructrModel = {
 				if (Structr.isModuleActive(_Files)) {
 					_Files.refreshTree();
 				}
-
 			}
 		}
-
-
 	},
 	/**
 	 * Refresh the object's UI representation
@@ -455,11 +453,8 @@ var StructrModel = {
 				} else {
 					element.children('.name_').attr('title', displayName).html(fitStringToWidth(displayName, 200));
 				}
-
 			}
-
 		}
-
 	},
 	/**
 	 * Fetch data from server. This will trigger a refresh of the model.
