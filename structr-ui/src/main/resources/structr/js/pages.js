@@ -284,7 +284,6 @@ var _Pages = {
 		});
 
 		previewTabs.append('<li id="import_page" title="Import Template" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /></li>');
-		previewTabs.append('<li id="pull_page" title="Sync page from remote instance" class="button module-dependend" data-structr-module="cloud"><i class="pull_page_button icon ' + _Icons.getFullSpriteClass(_Icons.pull_page_icon) + '" /></li>');
 		previewTabs.append('<li id="add_page" title="Add page" class="button"><i class="add_button icon ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /></li>');
 
 		$('#import_page', previewTabs).on('click', function(e) {
@@ -711,13 +710,6 @@ var _Pages = {
 		});
 
 		_Elements.enableContextMenuOnElement(div, entity);
-
-		div.append('<i title="Sync page \'' + entity.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
-		div.children('.push_icon').on('click', function() {
-			Structr.pushDialog(entity.id, true);
-			return false;
-		});
-
 		_Entities.setMouseOver(div);
 
 		var tab = _Pages.addTab(entity);

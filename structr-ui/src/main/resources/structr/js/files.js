@@ -174,7 +174,6 @@ var _Files = {
 				+ '<button class="add_file_icon button"><i title="Add File" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '" /> Add File</button>'
 				+ '<button class="add_minified_css_file_icon button"><i title="Add Minified CSS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_css_icon) + '" />' + ' Add Minified CSS File</button>'
 				+ '<button class="add_minified_js_file_icon button"><i title="Add Minified JS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_js_icon) + '" />' + ' Add Minified JS File</button>'
-				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><i title="Sync Files" class="' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /> Sync Files</button>'
 				+ '<button class="duplicate_finder button"><i title="Find duplicates" class="' + _Icons.getFullSpriteClass(_Icons.search_icon) + '" /> Find Duplicates</button>'
 				+ '<button class="mount_folder button"><i title="Mount Folder" class="' + _Icons.getFullSpriteClass(_Icons.folder_connect_icon) + '" /> Mount Folder</button>'
 				);
@@ -189,10 +188,6 @@ var _Files = {
 
 		$('.add_minified_js_file_icon', main).on('click', function(e) {
 			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
-
-		$('.pull_file_icon', main).on('click', function(e) {
-			Structr.pullDialog('File,Folder');
 		});
 
 		$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
@@ -490,6 +485,7 @@ var _Files = {
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		var handleChildren = function(children) {
+			console.warn(children);
 			if (children && children.length) {
 				children.forEach(_Files.appendFileOrFolder);
 			}
