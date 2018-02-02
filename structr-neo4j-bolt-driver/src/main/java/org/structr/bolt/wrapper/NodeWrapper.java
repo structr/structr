@@ -67,8 +67,13 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	@Override
 	public void clearCaches() {
+
 		relationshipCache.clear();
 		inTransactions--;
+
+		if (inTransactions < 0) {
+			inTransactions = 0;
+		}
 	}
 
 	@Override
