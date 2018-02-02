@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -598,6 +599,54 @@ public class SchemaTest extends StructrTest {
 		final Set<String> views     = StructrApp.getConfiguration().getPropertyViewsForType(testType);
 
 		assertTrue("Property view is not inherited correctly", views.contains("fav"));
+	}
+
+	@Test
+	public void testBuiltinTypeFlag() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			// verify that all schema nodes have isBuiltinType set to true
+			// except "Test"
+			for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
+
+				final String name  = schemaNode.getName();
+				final boolean flag = schemaNode.getProperty(SchemaNode.isBuiltinType);
+
+				if (name.equals("Test")) {
+
+					assertFalse("Non-builtin type Test has isBuiltinType flag set", flag);
+
+				} else {
+
+					assertTrue("Builtin type " + name + " is missing isBuiltinType flag", flag);
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
 	}
 
 	// ----- private methods -----

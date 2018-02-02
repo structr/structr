@@ -46,6 +46,7 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonBooleanArrayProperty;
 import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonDateProperty;
@@ -984,6 +985,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		schemaNode.setProperty(SchemaNode.isInterface, isInterface);
 		schemaNode.setProperty(SchemaNode.isAbstract, isAbstract);
+		schemaNode.setProperty(SchemaNode.isBuiltinType, SchemaService.DynamicSchemaRootURI.equals(root.getId()));
 
 		return schemaNode;
 	}

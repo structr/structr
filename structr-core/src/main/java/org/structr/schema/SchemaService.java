@@ -76,20 +76,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-
-		/*
-		services.registerInitializationCallback(new InitializationCallback() {
-
-			@Override
-			public void initializationDone() {
-				reloadSchema(new ErrorBuffer(), null);
-			}
-		});
-
 		return true;
-		*/
-
-		return reloadSchema(new ErrorBuffer(), null);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -218,6 +205,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public void initialized() {
+		reloadSchema(new ErrorBuffer(), null);
 	}
 
 	@Override

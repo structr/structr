@@ -250,7 +250,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 				throw new NotFoundException(nex);
 			}
 
-			stale  = false;
+			stale = false;
 		}
 	}
 

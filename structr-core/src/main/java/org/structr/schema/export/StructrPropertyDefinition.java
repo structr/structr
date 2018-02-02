@@ -253,18 +253,18 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		SchemaProperty property = app.nodeQuery(SchemaProperty.class).and(getOrCreateProperties).getFirst();
 		if (property == null) {
 
+			getOrCreateProperties.put(SchemaProperty.compound, isCompoundUnique());
+			getOrCreateProperties.put(SchemaProperty.unique, isUnique());
+			getOrCreateProperties.put(SchemaProperty.indexed, isIndexed());
+			getOrCreateProperties.put(SchemaProperty.notNull, isRequired());
+			getOrCreateProperties.put(SchemaProperty.readOnly, isReadOnly());
+			getOrCreateProperties.put(SchemaProperty.format, getFormat());
+			getOrCreateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
+			getOrCreateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
+			getOrCreateProperties.put(SchemaProperty.defaultValue, defaultValue);
+
 			property = app.create(SchemaProperty.class, getOrCreateProperties);
 		}
-
-		updateProperties.put(SchemaProperty.compound, isCompoundUnique());
-		updateProperties.put(SchemaProperty.unique, isUnique());
-		updateProperties.put(SchemaProperty.indexed, isIndexed());
-		updateProperties.put(SchemaProperty.notNull, isRequired());
-		updateProperties.put(SchemaProperty.readOnly, isReadOnly());
-		updateProperties.put(SchemaProperty.format, getFormat());
-		updateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
-		updateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
-		updateProperties.put(SchemaProperty.defaultValue, defaultValue);
 
 		if (parent != null) {
 
