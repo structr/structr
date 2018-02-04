@@ -44,7 +44,6 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	private final Map<String, Map<String, List<Relationship>>> relationshipCache = new HashMap<>();
 	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
-	private int inTransactions                                                   = 0;
 
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
@@ -67,13 +66,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	@Override
 	public void clearCaches() {
-
 		relationshipCache.clear();
-		inTransactions--;
-
-		if (inTransactions < 0) {
-			inTransactions = 0;
-		}
 	}
 
 	@Override
@@ -83,8 +76,6 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
-
-		inTransactions++;
 
 		assertNotStale();
 
@@ -165,14 +156,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		AssociationList list = (AssociationList)getList(Direction.OUTGOING, type);
-		if (list != null && inTransactions == 0) {
+		if (list != null) {
 
 			return list.containsAssociation(this, type, targetNode);
 
 		} else {
 
 			list = (AssociationList)getList(Direction.INCOMING, type);
-			if (list != null && inTransactions == 0) {
+			if (list != null) {
 
 				return list.containsAssociation(targetNode, type, this);
 
@@ -210,7 +201,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final SessionTransaction tx                 = db.getCurrentTransaction();
 		List<Relationship> list                     = getList(null, null);
 
-		if (list == null || inTransactions != 0) {
+		if (list == null) {
 
 			final Map<String, Object> map = new HashMap<>();
 
@@ -234,7 +225,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final SessionTransaction tx                 = db.getCurrentTransaction();
 		List<Relationship> list                     = getList(direction, null);
 
-		if (list == null || inTransactions != 0) {
+		if (list == null) {
 
 			final Map<String, Object> map = new HashMap<>();
 
@@ -270,7 +261,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final SessionTransaction tx                 = db.getCurrentTransaction();
 		List<Relationship> list                     = getList(direction, relationshipType);
 
-		if (list == null || inTransactions != 0) {
+		if (list == null) {
 
 			final Map<String, Object> map = new HashMap<>();
 
