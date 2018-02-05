@@ -29,8 +29,8 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
  */
 public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
-	public CypherRelationshipIndex(final BoltDatabaseService db, final int queryCacheSize) {
-		super(db, queryCacheSize);
+	public CypherRelationshipIndex(final BoltDatabaseService db) {
+		super(db);
 	}
 
 	@Override
