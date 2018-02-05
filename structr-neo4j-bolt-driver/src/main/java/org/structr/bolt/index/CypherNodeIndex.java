@@ -29,9 +29,8 @@ import org.structr.bolt.mapper.NodeNodeMapper;
  */
 public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
-	public CypherNodeIndex(final BoltDatabaseService db, final int queryCacheSize) {
-
-		super(db, queryCacheSize);
+	public CypherNodeIndex(final BoltDatabaseService db) {
+		super(db);
 	}
 
 	@Override

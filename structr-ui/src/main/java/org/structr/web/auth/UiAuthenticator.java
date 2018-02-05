@@ -494,7 +494,6 @@ public class UiAuthenticator implements Authenticator {
 			if (session != null) {
 
 				user = AuthHelper.getPrincipalForSessionId(session.getId());
-
 			}
 		}
 
