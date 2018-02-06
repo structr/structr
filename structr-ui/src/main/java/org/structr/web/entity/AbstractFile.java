@@ -58,7 +58,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
 		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.AbstractFile"));
 
-		type.addStringProperty("name", PropertyView.Public).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
+		type.addStringProperty("name", PropertyView.Public).setIndexed(true).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
 
 		type.addCustomProperty("isMounted", MethodProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat(AbstractFile.class.getName() + ", isMounted");
 		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);

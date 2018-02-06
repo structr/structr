@@ -124,7 +124,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 			// the file is commited, do not use the actual file object because
 			// each thread needs a separate AbstractNode object
 			final File file = StructrApp.getInstance().get(File.class, indexableId);
-			if (file != null) {
+			if (file != null && !file.isTemplate()) {
 
 				// first, check for things we cannot scan
 				final String contentType = file.getContentType();

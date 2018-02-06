@@ -457,9 +457,9 @@ public class FileHelper {
 
 	public static String getBase64String(final File file) {
 
-		try {
 
-			final InputStream is = file.getInputStream();
+		try (final InputStream is = file.getInputStream()) {
+
 			if (is != null) {
 
 				return Base64.encodeToString(IOUtils.toByteArray(is), false);
@@ -747,8 +747,9 @@ public class FileHelper {
 
 	public static String getMD5Checksum(final File file) {
 
-		try {
-			return DigestUtils.md5Hex(file.getInputStream());
+		try (final InputStream is = file.getInputStream()) {
+
+			return DigestUtils.md5Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate MD5 checksum of file represented by node " + file, ex);
@@ -759,8 +760,9 @@ public class FileHelper {
 
 	public static String getMD5Checksum(final java.io.File fileOnDisk) {
 
-		try {
-			return DigestUtils.md5Hex(FileUtils.openInputStream(fileOnDisk));
+		try (final InputStream is = FileUtils.openInputStream(fileOnDisk)) {
+
+			return DigestUtils.md5Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate MD5 checksum of file " + fileOnDisk, ex);
@@ -771,8 +773,9 @@ public class FileHelper {
 
 	public static String getSHA1Checksum(final File file) {
 
-		try {
-			return DigestUtils.sha1Hex(file.getInputStream());
+		try (final InputStream is = file.getInputStream()) {
+
+			return DigestUtils.sha1Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-1 checksum of file represented by node " + file, ex);
@@ -783,8 +786,9 @@ public class FileHelper {
 
 	public static String getSHA1Checksum(final java.io.File fileOnDisk) {
 
-		try {
-			return DigestUtils.sha1Hex(FileUtils.openInputStream(fileOnDisk));
+		try (final InputStream is = FileUtils.openInputStream(fileOnDisk)) {
+
+			return DigestUtils.sha1Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-1 checksum of file " + fileOnDisk, ex);
@@ -795,8 +799,9 @@ public class FileHelper {
 
 	public static String getSHA256Checksum(final File file) {
 
-		try {
-			return DigestUtils.sha256Hex(file.getInputStream());
+		try (final InputStream is = file.getInputStream()) {
+
+			return DigestUtils.sha256Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-256 checksum of file represented by node " + file, ex);
@@ -807,8 +812,9 @@ public class FileHelper {
 
 	public static String getSHA256Checksum(final java.io.File fileOnDisk) {
 
-		try {
-			return DigestUtils.sha256Hex(FileUtils.openInputStream(fileOnDisk));
+		try (final InputStream is = FileUtils.openInputStream(fileOnDisk)) {
+
+			return DigestUtils.sha256Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-256 checksum of file " + fileOnDisk, ex);
@@ -819,8 +825,9 @@ public class FileHelper {
 
 	public static String getSHA384Checksum(final File file) {
 
-		try {
-			return DigestUtils.sha384Hex(file.getInputStream());
+		try (final InputStream is = file.getInputStream()) {
+
+			return DigestUtils.sha384Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-384 checksum of file represented by node " + file, ex);
@@ -831,8 +838,9 @@ public class FileHelper {
 
 	public static String getSHA384Checksum(final java.io.File fileOnDisk) {
 
-		try {
-			return DigestUtils.sha384Hex(FileUtils.openInputStream(fileOnDisk));
+		try (final InputStream is = FileUtils.openInputStream(fileOnDisk)) {
+
+			return DigestUtils.sha384Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-384 checksum of file " + fileOnDisk, ex);
@@ -843,8 +851,9 @@ public class FileHelper {
 
 	public static String getSHA512Checksum(final File file) {
 
-		try {
-			return DigestUtils.sha512Hex(file.getInputStream());
+		try (final InputStream is = file.getInputStream()) {
+
+			return DigestUtils.sha512Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-512 checksum of file represented by node " + file, ex);
@@ -855,8 +864,9 @@ public class FileHelper {
 
 	public static String getSHA512Checksum(final java.io.File fileOnDisk) {
 
-		try {
-			return DigestUtils.sha512Hex(FileUtils.openInputStream(fileOnDisk));
+		try (final InputStream is = FileUtils.openInputStream(fileOnDisk)) {
+
+			return DigestUtils.sha512Hex(is);
 
 		} catch (final IOException ex) {
 			logger.warn("Unable to calculate SHA-512 checksum of file " + fileOnDisk, ex);

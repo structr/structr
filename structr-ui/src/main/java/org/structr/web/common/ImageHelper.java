@@ -440,9 +440,7 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static BufferedImage getRotatedImage(final File originalImage) {
 
-		try {
-
-			final ImageInputStream in = ImageIO.createImageInputStream(originalImage.getInputStream());
+		try (final ImageInputStream in = ImageIO.createImageInputStream(originalImage.getInputStream())) {
 
 			final int           orientation = getOrientation(originalImage);
 			final BufferedImage source      = ImageIO.read(in);
@@ -590,9 +588,9 @@ public abstract class ImageHelper extends FileHelper {
 	 */
 	public static void updateMetadata(final File image, final InputStream fis) throws FrameworkException {
 
-		try {
-			final BufferedImage source = ImageIO.read(fis);
+		try (final InputStream is = fis) {
 
+			final BufferedImage source = ImageIO.read(is);
 			if (source != null) {
 
 				final int sourceWidth  = source.getWidth();
@@ -635,8 +633,7 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static String getBase64String(final File file) {
 
-		try {
-			final InputStream dataStream = file.getInputStream();
+		try (final InputStream dataStream = file.getInputStream()) {
 
 			if (dataStream != null) {
 				return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
@@ -734,9 +731,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		Metadata metadata = new Metadata();
 
-		try {
-
-			final InputStream in = originalImage.getInputStream();
+		try (final InputStream in = originalImage.getInputStream()) {
 
 			if (in != null && in.available() > 0) {
 

@@ -441,6 +441,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 					final String content = IOUtils.toString(fis, "UTF-8");
 
+					// close input stream here
+					fis.close();
+
 					try {
 
 						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content);
