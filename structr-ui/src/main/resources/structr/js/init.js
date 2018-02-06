@@ -705,7 +705,13 @@ var Structr = {
 				errorText = url + ': ';
 			}
 
-			errorText += response.code + ' ' + response.message;
+			errorText += response.code + '<br>';
+
+			Object.keys(response).forEach(function(key) {
+				if (key !== 'code') {
+					errorText += '<b>' + key.capitalize() + '</b>: ' + response[key] + '<br>';
+				}
+			});
 		}
 
 		var message = new MessageBuilder().error(errorText);
