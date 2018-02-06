@@ -318,7 +318,17 @@ public class SchemaNode extends AbstractSchemaNode {
 			}
 
 			// move most of the extendsClass to implementsInterfaces
-			if (!_extendsClass.endsWith("Impl") && _extendsClass.contains(".entity.") && _extendsClass.startsWith("org.structr.") && !_extendsClass.startsWith("org.structr.dynamic.") && !AbstractNode.class.getName().equals(_extendsClass)) {
+			if (
+				_extendsClass.startsWith("org.structr.knowledge.")
+				||
+				(
+					!_extendsClass.endsWith("Impl") &&
+					_extendsClass.contains(".entity.") &&
+					_extendsClass.startsWith("org.structr.") &&
+					!_extendsClass.startsWith("org.structr.dynamic.") &&
+					!AbstractNode.class.getName().equals(_extendsClass)
+				)
+			) {
 
 				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
 				removeProperty(extendsClass);
