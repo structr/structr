@@ -272,13 +272,7 @@ public abstract class ImageHelper extends FileHelper {
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final Thumbnail tn               = new Thumbnail();
 
-		try (final InputStream in = originalImage.getInputStream()) {
-
-			if (in == null || in.available() <= 0) {
-
-				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getId(), in != null ? in.available() : -1 });
-				return null;
-			}
+		try {
 
 			final long start = System.nanoTime();
 			BufferedImage source = getRotatedImage(originalImage);
@@ -440,8 +434,10 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static BufferedImage getRotatedImage(final File originalImage) {
 
-		try (final ImageInputStream in = ImageIO.createImageInputStream(originalImage.getInputStream())) {
+		try {
 
+			// no need for try-with-resources for the below InputStream because ImageIO.read() closes its input stream
+			final ImageInputStream in = ImageIO.createImageInputStream(originalImage.getInputStream());
 			final int           orientation = getOrientation(originalImage);
 			final BufferedImage source      = ImageIO.read(in);
 
