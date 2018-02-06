@@ -54,8 +54,8 @@ import org.structr.common.fulltext.Indexable;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
-import static org.structr.core.graph.NodeInterface.owner;
 import org.structr.dynamic.File;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 
 /**
@@ -127,7 +127,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 			// the file is commited, do not use the actual file object because
 			// each thread needs a separate AbstractNode object
 			final FileBase file = StructrApp.getInstance().get(File.class, indexableId);
-			if (file != null) {
+			if (file != null && !file.getProperty(AbstractFile.isTemplate)) {
 
 				// first, check for things we cannot scan
 				final String contentType = file.getContentType();

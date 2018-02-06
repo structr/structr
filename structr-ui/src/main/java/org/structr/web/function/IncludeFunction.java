@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
@@ -150,10 +151,10 @@ public class IncludeFunction extends Function<Object, Object> {
 
 					} else if (contentType.startsWith("image/svg")) {
 
-						try {
+						try (final InputStream is = file.getInputStream()) {
 
 							final byte[] buffer = new byte[file.getSize().intValue()];
-							IOUtils.read(file.getInputStream(), buffer);
+							IOUtils.read(is, buffer);
 							return StringUtils.toEncodedString(buffer, Charset.forName(charset));
 
 						} catch (IOException ex) {

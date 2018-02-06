@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import java.io.IOException;
 import java.io.InputStream;
 import org.asciidoctor.internal.IOUtils;
 import org.structr.common.error.FrameworkException;
@@ -42,17 +43,17 @@ public class GetContentFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		try {
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof FileBase)) {
-				return null;
-			}
+		if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof FileBase)) {
+			return null;
+		}
 
-			final FileBase file  = (FileBase)sources[0];
-			final InputStream is = file.getInputStream();
+		final FileBase file  = (FileBase)sources[0];
+
+		try (final InputStream is = file.getInputStream()) {
 
 			return IOUtils.readFull(is);
 
-		} catch (final IllegalArgumentException e) {
+		} catch (final IOException | IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
