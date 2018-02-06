@@ -24,11 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
@@ -246,11 +244,18 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 				data.clear();
 				update(tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map).asMap());
 
-			} catch (NoSuchRecordException nex) {
-				throw new NotFoundException(nex);
-			}
+				stale = false;
 
-			stale = false;
+			} catch (Throwable t) {
+
+				// log error
+				logger.warn("Unable to update stale node {} from thread {} because of {}", id, Thread.currentThread().getId(), t.getMessage());
+
+				Thread.dumpStack();
+
+				// re-throw exception
+				throw t;
+			}
 		}
 	}
 
