@@ -105,10 +105,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 						final Indexable indexable = StructrApp.getInstance().nodeQuery(Indexable.class).and(GraphObject.id, indexableId).getFirst();
 						if (indexable != null) {
 
-							if (!doIndexing(indexable)) {
+							doIndexing(indexable);
 
-								return ReturnValue.Abort;
-							}
+							// only try indexing once..
+							return ReturnValue.Success;
 						}
 
 						tx.success();
@@ -116,7 +116,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 					} catch (FrameworkException fex) {}
 
 					// wait for the transaction in a different thread to finish
-					try { Thread.sleep(200); } catch (InterruptedException ex) {}
+					try { Thread.sleep(1000); } catch (InterruptedException ex) {}
 				}
 			}
 
