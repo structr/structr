@@ -265,7 +265,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (Throwable t) {
 				logger.warn("", t);
-				publishDeploymentWarnigMessage("Exception caught while importing pre-deploy.conf", t.toString());
+				publishDeploymentWarningMessage("Exception caught while importing pre-deploy.conf", t.toString());
 			}
 		}
 
@@ -293,7 +293,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
 
 			info(title + ": " + text);
-			publishDeploymentWarnigMessage(title, text);
+			publishDeploymentWarningMessage(title, text);
 
 			importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
 		}
@@ -412,9 +412,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
 
 				module.importDeploymentData(moduleFolder, getGson());
-
 			}
-
 		}
 
 
@@ -534,7 +532,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (Throwable t) {
 				logger.warn("", t);
-				publishDeploymentWarnigMessage("Exception caught while importing post-deploy.conf", t.toString());
+				publishDeploymentWarningMessage("Exception caught while importing post-deploy.conf", t.toString());
 			}
 		}
 
@@ -569,7 +567,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	}
 
-	private void publishDeploymentWarnigMessage (final String title, final String text) {
+	private void publishDeploymentWarningMessage (final String title, final String text) {
 
 		final Map<String, Object> warningMsgData = new HashMap();
 		warningMsgData.put("type", DEPLOYMENT_WARNING);
