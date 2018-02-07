@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -76,6 +77,7 @@ public interface Image extends File {
 
 		type.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
 		type.addPropertySetter("isCreatingThumb", Boolean.TYPE);
+		type.addPropertyGetter("originalImage",   Image.class);
 		type.addPropertyGetter("thumbnails",      List.class);
 
 		type.addPropertyGetter("width",       Integer.class);
@@ -90,6 +92,7 @@ public interface Image extends File {
 		type.overrideMethod("setProperty",          true,  "return " + Image.class.getName() + ".setProperty(this, arg0, arg1);");
 		type.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 		type.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
+		type.overrideMethod("isGranted",            false, "if (this.isThumbnail()) { final org.structr.web.entity.Image originalImage = getOriginalImage(); if (originalImage != null) { return originalImage.isGranted(arg0, arg1); } } return super.isGranted(arg0, arg1);");
 
 		final JsonMethod getScaledImage1 = type.addMethod("getScaledImage");
 		getScaledImage1.setReturnType(Image.class.getName());
@@ -132,6 +135,7 @@ public interface Image extends File {
 	Integer getWidth();
 	Integer getHeight();
 
+	Image getOriginalImage();
 	String getOriginalImageName();
 
 	Image getScaledImage(final String maxWidthString, final String maxHeightString);
@@ -172,6 +176,20 @@ public interface Image extends File {
 		type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage
 	);
 	*/
+
+	public static boolean isGranted(final Image thisImage, final Permission permission, final SecurityContext context) {
+
+		if (thisImage.isThumbnail()) {
+
+			final Image originalImage = thisImage.getOriginalImage();
+			if (originalImage != null) {
+
+				return originalImage.isGranted(permission, context);
+			}
+		}
+
+		return thisImage.isGranted(permission, context);
+	}
 
 	public static Object setProperty(final Image thisImage, final PropertyKey key, final Object value) throws FrameworkException {
 

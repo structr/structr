@@ -81,9 +81,9 @@ public interface User extends Principal {
 			.addException(FrameworkException.class.getName())
 			.addParameter("workingDirectory", "org.structr.web.entity.Folder");
 
-		user.relate(image,  "PICTURE_OF",  Cardinality.OneToOne,  "pictureOfUser", "img");
-		user.relate(folder, "HOME_DIR",    Cardinality.ManyToOne, "homeDirectoryOfUsers", "homeDirectory");
-		user.relate(folder, "WORKING_DIR", Cardinality.ManyToOne, "workDirectoryOfUsers", "workingDirectory");
+		user.relate(image,  "PICTURE_OF",  Cardinality.OneToOne,  "pictureOfUser",     "img");
+		user.relate(folder, "HOME_DIR",    Cardinality.ManyToOne, "homeFolderOfUser",  "homeDirectory");
+		user.relate(folder, "WORKING_DIR", Cardinality.ManyToOne, "workFolderOfUsers", "workingDirectory");
 
 		// view configuration
 		user.addViewProperty(PropertyView.Public, "name");

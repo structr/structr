@@ -34,8 +34,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessMode;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
@@ -52,6 +55,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.User;
 import org.structr.web.property.ThumbnailProperty;
 
 
@@ -673,6 +677,65 @@ public class UiTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testImageAndThumbnailDelete() {
+
+		User tester = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final Image image = ImageHelper.createFileBase64(securityContext, base64Image, Image.class);
+			tester            = app.create(User.class, "tester");
+
+			image.setProperty(Image.name, "test.png");
+
+			// allow non-admin user to delete the image
+			image.grant(Permission.delete, tester);
+			image.grant(Permission.read,   tester);
+
+			image.getProperty(StructrApp.key(Image.class, "tnSmall"));
+			image.getProperty(StructrApp.key(Image.class, "tnMid"));
+
+			assertEquals("Image should have two thumbnails", 2, image.getThumbnails().size());
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final SecurityContext ctx = SecurityContext.getInstance(tester, AccessMode.Backend);
+		final App testerApp       = StructrApp.getInstance(ctx);
+
+		try (final Tx tx = testerApp.tx()) {
+
+			final Image deleteMe = testerApp.nodeQuery(Image.class).getFirst();
+
+			assertNotNull("Image should be visible to test user", deleteMe);
+
+			testerApp.delete(deleteMe);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = testerApp.tx()) {
+
+			assertEquals("No images should be visible to test user", 0, testerApp.nodeQuery(Image.class).getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
 		}
 	}
 

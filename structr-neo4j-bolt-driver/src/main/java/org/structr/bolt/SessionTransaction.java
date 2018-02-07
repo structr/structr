@@ -121,6 +121,12 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		} finally {
 
+			// Notify all nodes that are modified in this transaction
+			// so that the relationship caches are rebuilt.
+			for (final EntityWrapper entity : modifiedEntities) {
+				entity.onClose();
+			}
+
 			// make sure that the resources are freed
 			if (session.isOpen()) {
 				session.close();
