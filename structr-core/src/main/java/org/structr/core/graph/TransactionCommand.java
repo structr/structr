@@ -36,6 +36,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.TransactionSource;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
@@ -395,10 +396,17 @@ public class TransactionCommand extends NodeServiceCommand implements AutoClosea
 
 	public static void simpleBroadcast (final String messageName, final Map<String, Object> data, final String exemptedSessionId) {
 
-		for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
-			listener.simpleBroadcast(messageName, data, exemptedSessionId);
-		}
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
+			for (final StructrTransactionListener listener : TransactionCommand.getTransactionListeners()) {
+				listener.simpleBroadcast(messageName, data, exemptedSessionId);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Exception during simple broadcast", fex);
+		}
 	}
 
 	public static boolean inTransaction() {

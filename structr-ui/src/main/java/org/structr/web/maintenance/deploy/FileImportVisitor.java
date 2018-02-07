@@ -187,15 +187,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					folderProperties.put(StructrApp.key(Folder.class, "parent"), getExistingFolder(parentPath));
 				}
 
-					// set properties from files.json
-					final PropertyMap properties = getPropertiesForFileOrFolder(folderPath);
-					if (properties != null) {
-						folderProperties.putAll(properties);
-					}
+				// set properties from files.json
+				final PropertyMap properties = getPropertiesForFileOrFolder(folderPath);
+				if (properties != null) {
+					folderProperties.putAll(properties);
+				}
 
-					final Folder newFolder = app.create(Folder.class, folderProperties);
+				final Folder newFolder = app.create(Folder.class, folderProperties);
 
-					this.folderCache.put(folderPath, newFolder);
+				this.folderCache.put(folderPath, newFolder);
 			}
 
 			tx.success();
