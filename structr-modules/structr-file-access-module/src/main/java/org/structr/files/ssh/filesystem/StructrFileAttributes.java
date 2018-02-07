@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,9 +45,8 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 
 /**
  *
@@ -107,7 +106,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 			final Principal owner = file.getOwnerNode();
 			if (owner != null) {
 
-				groups.addAll(owner.getProperty(User.groups));
+				groups.addAll(owner.getGroups());
 			}
 
 			tx.success();
@@ -184,7 +183,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isRegularFile = file.getProperty(FileBase.isFile);
+			isRegularFile = file instanceof File;
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -203,7 +202,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isDirectory = file.getProperty(Folder.isFolder);
+			isDirectory = file instanceof Folder;
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -234,10 +233,13 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Number s = file.getProperty(FileBase.size);
-			if (s != null) {
+			if (file instanceof File) {
 
-				size = s.longValue();
+				final Number s = ((File)file).getSize();
+				if (s != null) {
+
+					size = s.longValue();
+				}
 			}
 
 			tx.success();

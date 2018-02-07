@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,7 +51,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return typeDefinitions;
 	}
 
-	public JsonType getType(final String name) {
+	public JsonType getType(final String name, final boolean create) {
 
 		for (final JsonType type : typeDefinitions) {
 
@@ -60,10 +60,22 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
+		if (create) {
+
+			// create
+			return addType(name);
+		}
+
 		return null;
 	}
 
 	public JsonObjectType addType(final String name) {
+
+		final JsonType type = getType(name, false);
+		if (type != null) {
+
+			return (JsonObjectType)type;
+		}
 
 		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, name);
 

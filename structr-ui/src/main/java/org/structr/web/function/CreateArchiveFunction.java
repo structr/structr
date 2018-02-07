@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,22 @@
  */
 package org.structr.web.function;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
-import org.apache.commons.compress.utils.IOUtils;
 
 public class CreateArchiveFunction extends UiFunction {
 
@@ -50,7 +47,7 @@ public class CreateArchiveFunction extends UiFunction {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (!(sources[1] instanceof FileBase || sources[1] instanceof Folder || sources[1] instanceof Collection || sources.length < 2)) {
+		if (!(sources[1] instanceof File || sources[1] instanceof Folder || sources[1] instanceof Collection || sources.length < 2)) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
@@ -61,7 +58,7 @@ public class CreateArchiveFunction extends UiFunction {
 
 		try {
 
-			File newArchive = File.createTempFile(sources[0].toString(), "zip");
+			java.io.File newArchive = java.io.File.createTempFile(sources[0].toString(), "zip");
 
 			ZipArchiveOutputStream zaps = new ZipArchiveOutputStream(newArchive);
 			zaps.setEncoding("UTF8");
@@ -69,30 +66,30 @@ public class CreateArchiveFunction extends UiFunction {
 			zaps.setCreateUnicodeExtraFields(ZipArchiveOutputStream.UnicodeExtraFieldPolicy.ALWAYS);
 			zaps.setFallbackToUTF8(true);
 
-			if (sources[1] instanceof FileBase) {
+			if (sources[1] instanceof File) {
 
-				FileBase file = (FileBase) sources[1];
+				File file = (File) sources[1];
 				addFileToZipArchive(file.getProperty(AbstractFile.name), file, zaps);
 
 			} else if (sources[1] instanceof Folder) {
 
 				Folder folder = (Folder) sources[1];
-				addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.files), zaps);
-				addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.folders), zaps);
+				addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zaps);
+				addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zaps);
 
 			} else 	if (sources[1] instanceof Collection) {
 
 				for (Object fileOrFolder : (Collection) sources[1]) {
 
-					if (fileOrFolder instanceof FileBase) {
+					if (fileOrFolder instanceof File) {
 
-						FileBase file = (FileBase) fileOrFolder;
+						File file = (File) fileOrFolder;
 						addFileToZipArchive(file.getProperty(AbstractFile.name), file, zaps);
 					} else if (fileOrFolder instanceof Folder) {
 
 						Folder folder = (Folder) fileOrFolder;
-						addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.files), zaps);
-						addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.folders), zaps);
+						addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zaps);
+						addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zaps);
 					} else {
 
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -117,11 +114,12 @@ public class CreateArchiveFunction extends UiFunction {
 
 			if(archiveClass == null) {
 
-				archiveClass = org.structr.dynamic.File.class;
-
+				archiveClass = org.structr.web.entity.File.class;
 			}
 
-			return FileHelper.createFile(ctx.getSecurityContext(), new FileInputStream(newArchive), "application/zip", archiveClass, sources[0].toString() + ".zip");
+			try (final FileInputStream fis = new FileInputStream(newArchive)) {
+				return FileHelper.createFile(ctx.getSecurityContext(), fis, "application/zip", archiveClass, sources[0].toString() + ".zip");
+			}
 
 		} catch (IOException e) {
 
@@ -144,7 +142,7 @@ public class CreateArchiveFunction extends UiFunction {
 
 	}
 
-	private void addFileToZipArchive(String path, FileBase file, ArchiveOutputStream aps) throws IOException {
+	private void addFileToZipArchive(String path, File file, ArchiveOutputStream aps) throws IOException {
 
 		logger.info("Adding File \"{}\" to new archive...", path);
 
@@ -159,20 +157,20 @@ public class CreateArchiveFunction extends UiFunction {
 		aps.closeArchiveEntry();
 	}
 
-	private void addFilesToArchive(String path, List<FileBase> list, ArchiveOutputStream aps) throws IOException {
+	private void addFilesToArchive(String path, Iterable<File> list, ArchiveOutputStream aps) throws IOException {
 
-		for(FileBase fileForArchive : list) {
+		for(File fileForArchive : list) {
 
 			addFileToZipArchive(path + fileForArchive.getProperty(AbstractFile.name), fileForArchive,  aps);
 		}
 	}
 
-	private void addFoldersToArchive(String path, List<Folder> list, ArchiveOutputStream aps) throws IOException {
+	private void addFoldersToArchive(String path, Iterable<Folder> list, ArchiveOutputStream aps) throws IOException {
 
 		for(Folder folder : list) {
 
-			addFilesToArchive(path + folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.files), aps);
-			addFoldersToArchive(path + folder.getProperty(Folder.name) + "/", folder.getProperty(Folder.folders), aps);
+			addFilesToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFiles(), aps);
+			addFoldersToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFolders(), aps);
 		}
 	}
 }

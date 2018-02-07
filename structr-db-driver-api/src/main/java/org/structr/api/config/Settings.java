@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,7 +50,7 @@ public class Settings {
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
 	// general settings
-	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,   "Application", "application.title",          "Structr 2.1");
+	public static final Setting<String> ApplicationTitle      = new StringSetting(generalGroup,   "Application", "application.title",          "Structr");
 	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,   "Application", "application.instance.name",  "");
 	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,   "Application", "application.instance.stage", "");
 	public static final Setting<String> MenuEntries           = new StringSetting(generalGroup,   "Application", "application.menu.main",      "Pages,Files,Security,Schema,Data", "The main menu entries - all other entries remain in the submenu");
@@ -124,6 +124,7 @@ public class Settings {
 	public static final Setting<Boolean> ChangelogEnabled     = new BooleanSetting(applicationGroup, "Changelog",  "application.changelog.enabled",               false);
 	public static final Setting<Boolean> FilesystemEnabled    = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.enabled",              false);
 	public static final Setting<Boolean> UniquePaths          = new BooleanSetting(applicationGroup, "Filesystem", "application.filesystem.unique.paths",         true);
+	public static final Setting<String> DefaultChecksums      = new StringSetting(applicationGroup,  "Filesystem", "application.filesystem.checksums.default",    "", "List of checksums to be calculated on file creation by default.");
 	public static final Setting<Integer> IndexingMaxFileSize  = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.maxsize",     10);
 	public static final Setting<Integer> IndexingLimit        = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.limit",       50000);
 	public static final Setting<Integer> IndexingMinLength    = new IntegerSetting(applicationGroup, "Filesystem", "application.filesystem.indexing.minlength",   3);
@@ -326,7 +327,7 @@ public class Settings {
 
 		if (setting == null) {
 
-			setting = new StringSetting(miscGroup, key, "");
+			setting = new StringSetting(miscGroup, key, null);
 		}
 
 		return setting;
@@ -347,7 +348,7 @@ public class Settings {
 
 		if (setting == null) {
 
-			setting = new IntegerSetting(miscGroup, key, 0);
+			setting = new IntegerSetting(miscGroup, key, null);
 		}
 
 		return setting;
@@ -368,7 +369,7 @@ public class Settings {
 
 		if (setting == null) {
 
-			setting = new BooleanSetting(miscGroup, key, false);
+			setting = new BooleanSetting(miscGroup, key, null);
 		}
 
 		return setting;

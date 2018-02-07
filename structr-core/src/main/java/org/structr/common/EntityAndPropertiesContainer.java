@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -264,17 +264,17 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
@@ -429,16 +429,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Date getVisibilityStartDate() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public Date getVisibilityEndDate() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
 	public Date getCreatedDate() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
@@ -450,6 +440,36 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public Class getEntityType() {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public List<Security> getSecurityRelationships() {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public Map<String, Object> getTemporaryStorage() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 }

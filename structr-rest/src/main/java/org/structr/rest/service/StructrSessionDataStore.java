@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,28 +42,28 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
 	private final App app;
-	
+
 	public StructrSessionDataStore() {
 		app = StructrApp.getInstance();
 	}
-	
+
 	@Override
 	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
-		
+
 		try (final Tx tx = app.tx(false, false, false)) {
-		
+
 			final Principal user = AuthHelper.getPrincipalForSessionId(id);
 
 			// store sessions only for authenticated users
 			if (user != null) {
 
-				user.setProperty(Principal.sessionData, Base64.encode(SerializationUtils.serialize(data)));
+				user.setSessionData(Base64.encode(SerializationUtils.serialize(data)));
 			}
-		
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
-			
+
 			logger.info("Unable to store session data for session id " + id + ".", ex);
 		}
 	}
@@ -80,20 +80,20 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public boolean exists(final String id) throws Exception {
-		
+
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			final boolean exists = AuthHelper.getPrincipalForSessionId(id) != null;
-			
+
 			tx.success();
-			
+
 			return exists;
-			
+
 		} catch (FrameworkException ex) {
-			
+
 			logger.info("Unable to determine if session " + id + " exists.", ex);
 		}
-		
+
 		return false;
 	}
 
@@ -101,46 +101,45 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	public SessionData load(final String id) throws Exception {
 
 		SessionData sessionData = null;
-		
+
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(id);
 
-			
+
 			// store sessions only for authenticated users
 			if (user != null) {
 
-				final String sessionDataString = user.getProperty(Principal.sessionData);
-				
+				final String sessionDataString = user.getSessionData();
 				if (sessionDataString != null) {
-				
+
 					sessionData = SerializationUtils.deserialize(Base64.decode(sessionDataString));
 				}
 			}
-			
+
 			tx.success();
-			
+
 		} catch (FrameworkException ex) {
-			
+
 			logger.info("Unable to load session data for session id " + id + ".", ex);
 		}
-		
+
 		return sessionData;
 	}
 
 	@Override
 	public boolean delete(final String id) throws Exception {
-		
+
 		try (final Tx tx = app.tx(false, false, false)) {
 
 			SessionHelper.clearSession(id);
 
 			tx.success();
-			
+
 			return true;
-		
+
 		} catch (FrameworkException ex) {
-			
+
 			logger.info("Unable to load session data for session id " + id + ".", ex);
 		}
 

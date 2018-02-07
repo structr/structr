@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,9 +34,6 @@ public enum RelType implements RelationshipType {
 	DEFINES_PROPERTY,
 	PAGE,
 	ROOT,
-	RENDER_NODE,
-	RENDER_LIST,
-	RENDER_TREE,
 	SYNC,
 	LINK,
 

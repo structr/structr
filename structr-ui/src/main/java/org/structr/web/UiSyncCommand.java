@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,13 +38,14 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -112,7 +113,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// collect folders that are marked for export
-			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.includeInFrontendExport, true).getAsList()) {
+			for (final Folder folder : app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "includeInFrontendExport"), true).getAsList()) {
 
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}
@@ -142,14 +143,15 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 			final List<ShadowDocument> shadowDocuments = app.nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
-				final List<DOMNode> collectiveChildren = new LinkedList<>();
+				final PropertyKey<List<DOMNode>> elementsKey = StructrApp.key(Page.class, "elements");
+				final List<DOMNode> collectiveChildren       = new LinkedList<>();
 
 				// sort by node id (higher node ID is newer entity)
 				Collections.sort(shadowDocuments, new Comparator<ShadowDocument>() {
 
 					@Override
 					public int compare(final ShadowDocument t1, final ShadowDocument t2) {
-						return t2.getNodeId().compareTo(t1.getNodeId());
+						return Long.valueOf(t2.getId()).compareTo(t1.getId());
 					}
 				});
 
@@ -157,14 +159,14 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 				final ShadowDocument newShadowDoc      = shadowDocuments.get(1);
 
 				// collect children of both shadow documents
-				collectiveChildren.addAll(previousShadowDoc.getProperty(Page.elements));
-				collectiveChildren.addAll(newShadowDoc.getProperty(Page.elements));
+				collectiveChildren.addAll(previousShadowDoc.getProperty(elementsKey));
+				collectiveChildren.addAll(newShadowDoc.getProperty(elementsKey));
 
 				// delete old shadow document
 				app.delete(previousShadowDoc);
 
 				// add children to new shadow document
-				newShadowDoc.setProperties(securityContext, new PropertyMap(Page.elements, collectiveChildren));
+				newShadowDoc.setProperties(securityContext, new PropertyMap(elementsKey, collectiveChildren));
 			}
 
 			tx.success();
@@ -176,7 +178,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		if (root.isNode()) {
 
 			final NodeInterface node = root.getSyncNode();
-			if (node instanceof FileBase) {
+			if (node instanceof File) {
 
 				final String fileUuid = node.getUuid();
 				files.add(fileUuid);

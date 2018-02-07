@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.TooShortToken;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
@@ -80,7 +81,8 @@ public class PasswordProperty extends StringProperty {
 
 			String salt = RandomStringUtils.randomAlphanumeric(16);
 
-			obj.setProperty(Principal.salt, salt);
+			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
+
 			return super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
 
 		} else {

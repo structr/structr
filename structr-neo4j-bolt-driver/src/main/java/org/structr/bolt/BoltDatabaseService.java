@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -85,7 +85,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
-	private int queryCacheSize                                        = 1000;
 
 	@Override
 	public boolean initialize() {
@@ -145,7 +144,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 			final int relCacheSize  = Settings.RelationshipCacheSize.getValue();
 			final int nodeCacheSize = Settings.NodeCacheSize.getValue();
-			this.queryCacheSize     = Settings.QueryCacheSize.getValue();
 
 			NodeWrapper.initialize(nodeCacheSize);
 			logger.info("Node cache size set to {}", nodeCacheSize);
@@ -308,7 +306,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public Index<Node> nodeIndex() {
 
 		if (nodeIndex == null) {
-			nodeIndex = new CypherNodeIndex(this, queryCacheSize);
+			nodeIndex = new CypherNodeIndex(this);
 		}
 
 		return nodeIndex;
@@ -318,7 +316,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public Index<Relationship> relationshipIndex() {
 
 		if (relationshipIndex == null) {
-			relationshipIndex = new CypherRelationshipIndex(this, queryCacheSize);
+			relationshipIndex = new CypherRelationshipIndex(this);
 		}
 
 		return relationshipIndex;
@@ -332,18 +330,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public NativeResult execute(final String nativeQuery) {
 		return execute(nativeQuery, Collections.EMPTY_MAP);
-	}
-
-	@Override
-	public void invalidateQueryCache() {
-
-		if (nodeIndex != null) {
-			nodeIndex.invalidateCache();
-		}
-
-		if (relationshipIndex != null) {
-			relationshipIndex.invalidateCache();
-		}
 	}
 
 	public SessionTransaction getCurrentTransaction() {

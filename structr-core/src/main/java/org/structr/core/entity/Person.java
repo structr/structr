@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,52 +18,49 @@
  */
 package org.structr.core.entity;
 
-import java.util.Date;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
- *
- *
  */
-public class Person extends AbstractNode {
+public interface Person extends NodeInterface {
 
-	public static final Property<String>  salutation          = new StringProperty("salutation").cmis();
-	public static final Property<String>  firstName           = new StringProperty("firstName").cmis().indexed();
-	public static final Property<String>  middleNameOrInitial = new StringProperty("middleNameOrInitial").cmis();
-	public static final Property<String>  lastName            = new StringProperty("lastName").cmis().indexed();
+	static class Impl { static {
 
-	public static final Property<String>  twitterName         = new StringProperty("twitterName").cmis().indexed();
-	public static final Property<String>  eMail               = new StringProperty("eMail").cmis().indexed();
-	public static final Property<String>  eMail2              = new StringProperty("eMail2").cmis();
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Person");
 
-	public static final Property<String>  phoneNumber1        = new StringProperty("phoneNumber1").cmis();
-	public static final Property<String>  phoneNumber2        = new StringProperty("phoneNumber2").cmis();
-	public static final Property<String>  faxNumber1          = new StringProperty("faxNumber1").cmis();
-	public static final Property<String>  faxNumber2          = new StringProperty("faxNumber2").cmis();
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Person"));
 
-	public static final Property<String>  street              = new StringProperty("street").cmis().indexed();
-	public static final Property<String>  zipCode             = new StringProperty("zipCode").cmis().indexed();
-	public static final Property<String>  city                = new StringProperty("city").cmis().indexed();
-	public static final Property<String>  state               = new StringProperty("state").cmis().indexed();
-	public static final Property<String>  country             = new StringProperty("country").cmis().indexed();
+		type.addStringProperty("salutation",          PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("firstName",           PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("middleNameOrInitial", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("lastName",            PropertyView.Public, PropertyView.Ui);
 
-	public static final Property<Date>    birthday            = new ISO8601DateProperty("birthday").cmis();
-	public static final Property<String>  gender              = new StringProperty("gender").cmis();
-	public static final Property<Boolean> newsletter          = new BooleanProperty("newsletter").cmis();
+		type.addStringProperty("twitterName",         PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("eMail",               PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("eMail2",              PropertyView.Ui);
 
-	public static final View publicView = new View(Person.class, PropertyView.Public,
-		id, name, salutation, firstName, middleNameOrInitial, lastName, twitterName, eMail, zipCode, city, state, country
-	);
+		type.addStringProperty("phoneNumber1",        PropertyView.Ui);
+		type.addStringProperty("phoneNumber2",        PropertyView.Ui);
+		type.addStringProperty("faxNumber1",          PropertyView.Ui);
+		type.addStringProperty("faxNumber2",          PropertyView.Ui);
 
-	public static final View uiView = new View(Person.class, PropertyView.Ui,
-		id, name, salutation, firstName, middleNameOrInitial, lastName, twitterName, eMail, eMail2, phoneNumber1, phoneNumber2, faxNumber1, faxNumber2, zipCode, city, state, country, birthday, gender, newsletter
-	);
+		type.addStringProperty("country",             PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("street",              PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("zipCode",             PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("city",                PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("state",               PropertyView.Public, PropertyView.Ui);
 
+		type.addDateProperty("birthday",              PropertyView.Ui);
+		type.addStringProperty("gender",              PropertyView.Ui);
+		type.addBooleanProperty("newsletter",         PropertyView.Ui);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+	}}
 }

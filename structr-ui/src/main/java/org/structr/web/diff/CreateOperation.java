@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 
 /**
  *
@@ -56,10 +56,12 @@ public class CreateOperation extends InvertibleModificationOperation {
 
 			return "Create Content(" + newNode.getIdHashOrProperty() + ")";
 
-		} else {
+		} else if (newNode instanceof DOMElement) {
 
-			return "Create " + newNode.getProperty(DOMElement.tag) + "(" + newNode.getIdHashOrProperty() + ")";
+			return "Create " + ((DOMElement)newNode).getTag() + "(" + newNode.getIdHashOrProperty() + ")";
 		}
+
+		return "Create " + newNode.getUuid() + "(" + newNode.getIdHashOrProperty() + ")";
 	}
 
 	// ----- interface InvertibleModificationOperation -----
@@ -77,14 +79,14 @@ public class CreateOperation extends InvertibleModificationOperation {
 				if (sourcePage != null) {
 					sourcePage.adoptNode(newNode);
 				}
-				
+
 				parent.insertBefore(newNode, sibling);
 
 				// make existing node known to other operations
 				hashMappedExistingNodes.put(newNode.getIdHashOrProperty(), newNode);
 
 				// remove children of new node so that existing nodes can be moved later
-				for (final DOMChildren childRel : newNode.getChildRelationships()) {
+				for (final RelationshipInterface childRel : newNode.getChildRelationships()) {
 					app.delete(childRel);
 				}
 			}

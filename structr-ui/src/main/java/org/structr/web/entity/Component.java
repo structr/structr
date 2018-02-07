@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,32 +18,34 @@
  */
 package org.structr.web.entity;
 
-import java.util.*;
-import javax.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.Content;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
 
 /**
  * Represents a component. A component is an assembly of elements
  */
-public class Component extends DOMElement {
+public interface Component extends DOMElement {
+
+	static class Impl { static {
+
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("Component");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Component"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addIntegerProperty("position");
+		type.addStringProperty("kind", PropertyView.Public, PropertyView.Ui);
+
+
+		// FIXME: do we need this type?
+	}}
+
+	/*
 
 	private static final int MAX_DEPTH                          = 10;
 	public static final String REQUEST_CONTAINS_UUID_IDENTIFIER = "request_contains_uuids";
@@ -226,8 +228,6 @@ public class Component extends DOMElement {
 		return false;
 	}
 
-	//~--- set methods ----------------------------------------------------
-
 	@Override
 	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
 
@@ -259,4 +259,5 @@ public class Component extends DOMElement {
 	public void render(RenderContext renderContext, int depth) throws FrameworkException {
 		super.render(renderContext, depth - 1);
 	}
+	*/
 }

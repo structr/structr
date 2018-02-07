@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,28 +16,41 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.knowledge;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
+import java.net.URI;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Base class of a preferred term as defined in ISO 25964
  */
 
-public class PreferredTerm extends ThesaurusTerm {
-	
+public interface PreferredTerm extends ThesaurusTerm {
+
+	static class Impl { static {
+
+		final JsonSchema schema      = SchemaService.getDynamicSchema();
+		final JsonObjectType type    = schema.addType("PreferredTerm");
+		final JsonObjectType concept = schema.addType("ThesaurusConcept");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PreferredTerm"));
+		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
+
+		type.relate(concept, "HAS_LABEL", Cardinality.ManyToOne, null, "preferredLabels");
+	}}
+
+	/*
+
 	private static final Logger logger = LoggerFactory.getLogger(PreferredTerm.class.getName());
-	
+
 	public static final Property<ThesaurusConcept> preferredLabels = new EndNode<>("preferredLabels", TermHasLabel.class);
 
 	static {
 
 		SchemaService.registerBuiltinTypeOverride("PreferredTerm", PreferredTerm.class.getName());
-	}	
-
+	}
+	*/
 }

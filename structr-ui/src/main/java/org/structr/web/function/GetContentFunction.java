@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,13 @@
  */
 package org.structr.web.function;
 
+import java.io.IOException;
 import java.io.InputStream;
 import org.asciidoctor.internal.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 /**
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
@@ -36,23 +37,23 @@ public class GetContentFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "include()";
+		return "get_content()";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		try {
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof FileBase)) {
-				return null;
-			}
+		if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof File)) {
+			return null;
+		}
 
-			final FileBase file  = (FileBase)sources[0];
-			final InputStream is = file.getInputStream();
+		final File file  = (File)sources[0];
+
+		try (final InputStream is = file.getInputStream()) {
 
 			return IOUtils.readFull(is);
 
-		} catch (final IllegalArgumentException e) {
+		} catch (final IOException | IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 

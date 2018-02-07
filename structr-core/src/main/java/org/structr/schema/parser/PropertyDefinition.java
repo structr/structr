@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,18 +26,23 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public interface PropertyDefinition {
 
-	public String getPropertyName();
-	public Type getPropertyType();
-	public String getRawSource();
-	public String getSource();
-	public String getDbName();
-	public String getFormat();
-	public boolean isNotNull();
-	public boolean isCompound();
-	public boolean isUnique();
-	public boolean isIndexed();
-	public String getDefaultValue();
-	public String getContentType();
-	public String getReadFunction();
-	public String getWriteFunction();
+	String getPropertyName();
+	Type getPropertyType();
+	String getRawSource();
+	String getSource();
+	String getDbName();
+	String getFormat();
+	String getFqcn();
+	boolean isNotNull();
+	boolean isCompound();
+	boolean isUnique();
+	boolean isIndexed();
+	boolean isReadOnly();
+	boolean isPartOfBuiltInSchema();
+	String getDefaultValue();
+	String getContentType();
+	String getReadFunction();
+	String getWriteFunction();
+	String[] getTransformators();
+	String[] getValidators();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.files.cmis.wrapper;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -28,7 +27,7 @@ import java.nio.file.StandardOpenOption;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
 import org.structr.cmis.common.CMISExtensionsData;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 /**
  * An implementation of the CMIS ContentStream interface using a MappedByteBuffer.
@@ -40,13 +39,13 @@ public class CMISContentStream extends CMISExtensionsData implements ContentStre
 	private String contentType = null;
 	private String name        = null;
 	private long length        = 0L;
-	private File file          = null;
+	private java.io.File file  = null;
 	private long offset        = 0L;
 
 
-	public CMISContentStream(final FileBase file, final BigInteger offset, final BigInteger length) {
+	public CMISContentStream(final File file, final BigInteger offset, final BigInteger length) {
 
-		this.contentType = file.getProperty(FileBase.contentType);
+		this.contentType = file.getContentType();
 		this.name        = file.getName();
 		this.file        = file.getFileOnDisk();
 		this.offset      = offset != null ? offset.longValue() : 0L;

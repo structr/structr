@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
+import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
@@ -130,7 +131,7 @@ public class TypedIdResource extends FilterableResource {
 			final String type       = SchemaHelper.normalizeEntityName(typeResource.getRawType());
 			final String entityType = entity.getClass().getSimpleName();
 
-			if (SearchCommand.getAllSubtypesAsStringSet(type).contains(entityType)) {
+			if (GenericNode.class.equals(entity.getClass()) || SearchCommand.getAllSubtypesAsStringSet(type).contains(entityType)) {
 				return entity;
 			}
 		}

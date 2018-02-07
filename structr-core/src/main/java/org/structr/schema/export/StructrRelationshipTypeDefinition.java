@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,7 @@ import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonReferenceProperty;
 import org.structr.schema.json.JsonReferenceType;
@@ -62,6 +63,22 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 
 		super(root, name);
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+
+		if (other instanceof StructrPropertyDefinition) {
+
+			return other.hashCode() == hashCode();
+		}
+
+		return false;
 	}
 
 	@Override
@@ -413,7 +430,11 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	@Override
 	SchemaRelationshipNode createSchemaNode(final App app) throws FrameworkException {
 
-		final SchemaRelationshipNode _schemaNode = app.create(SchemaRelationshipNode.class, getName());
+		SchemaRelationshipNode _schemaNode = app.nodeQuery(SchemaRelationshipNode.class).andName(getName()).getFirst();
+		if (_schemaNode == null) {
+
+			_schemaNode = app.create(SchemaRelationshipNode.class, getName());
+		}
 
 		_schemaNode.setProperty(SchemaRelationshipNode.relationshipType, getRelationship());
 		_schemaNode.setProperty(SchemaRelationshipNode.sourceJsonName, sourcePropertyName);
@@ -445,6 +466,14 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 		if (aclHiddenProperties != null) {
 			_schemaNode.setProperty(SchemaRelationshipNode.propertyMask, aclHiddenProperties);
+		}
+
+		if (root != null) {
+
+			if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
+
+				_schemaNode.setProperty(SchemaRelationshipNode.isPartOfBuiltInSchema, true);
+			}
 		}
 
 		return _schemaNode;

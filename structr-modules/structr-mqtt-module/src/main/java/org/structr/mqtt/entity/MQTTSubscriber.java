@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,42 +18,60 @@
  */
 package org.structr.mqtt.entity;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.cxf.common.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
-import static org.structr.core.GraphObject.createdBy;
-import static org.structr.core.GraphObject.createdDate;
-import static org.structr.core.GraphObject.id;
-import static org.structr.core.GraphObject.lastModifiedDate;
-import static org.structr.core.GraphObject.type;
-import static org.structr.core.GraphObject.visibilityEndDate;
-import static org.structr.core.GraphObject.visibilityStartDate;
-import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
-import static org.structr.core.GraphObject.visibleToPublicUsers;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.deleted;
-import static org.structr.core.graph.NodeInterface.hidden;
-import static org.structr.core.graph.NodeInterface.name;
-import static org.structr.core.graph.NodeInterface.owner;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
-import org.structr.mqtt.entity.relation.MQTTClientHAS_SUBSCRIBERMQTTSubscriber;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
-public class MQTTSubscriber extends AbstractNode {
+public interface MQTTSubscriber extends NodeInterface {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("MQTTSubscriber");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MQTTSubscriber"));
+
+		type.addStringProperty("topic",  PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("source", PropertyView.Public, PropertyView.Ui);
+
+		type.addPropertyGetter("topic",  String.class);
+		type.addPropertyGetter("source", String.class);
+		type.addPropertyGetter("client", MQTTClient.class);
+
+		type.overrideMethod("onCreation", true, MQTTSubscriber.class.getName() + ".onCreation(this, arg0, arg1);");
+
+		type.addMethod("onMessage")
+			.setReturnType(RestMethodResult.class.getName())
+			.addParameter("topic",   String.class.getName())
+			.addParameter("message", String.class.getName())
+			.setSource("return " + MQTTSubscriber.class.getName() + ".onMessage(this, topic, message);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addViewProperty(PropertyView.Public, "client");
+		type.addViewProperty(PropertyView.Ui, "client");
+	}}
+
+	String getTopic();
+	String getSource();
+	MQTTClient getClient();
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(MQTTSubscriber.class.getName());
 
@@ -72,52 +90,57 @@ public class MQTTSubscriber extends AbstractNode {
 
 		SchemaService.registerBuiltinTypeOverride("MQTTSubscriber", MQTTSubscriber.class.getName());
 	}
+	*/
 
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	static void onCreation(final MQTTSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if(!StringUtils.isEmpty(getProperty(topic)) && (getProperty(client) != null) && getProperty(client).getProperty(MQTTClient.isConnected)) {
+		final MQTTClient client = thisSubscriber.getClient();
+
+		if(!StringUtils.isEmpty(thisSubscriber.getTopic()) && (client != null) && client.getIsConnected()) {
+
 			Map<String,Object> params = new HashMap<>();
-			params.put("topic", getProperty(topic));
-			getProperty(client).invokeMethod("subscribeTopic", params, false);
-		}
 
-		return super.onCreation(securityContext, errorBuffer);
+			params.put("topic", thisSubscriber.getTopic());
+
+			client.invokeMethod("subscribeTopic", params, false);
+		}
 	}
 
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	static void onModification(final MQTTSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if(!StringUtils.isEmpty(getProperty(topic)) && (getProperty(client) != null) && getProperty(client).getProperty(MQTTClient.isConnected)) {
+		final PropertyKey<String> topic = StructrApp.key(MQTTSubscriber.class, "topic");
+		final MQTTClient client         = thisSubscriber.getClient();
 
-			if(modificationQueue.isPropertyModified(this,topic)){
+		if(!StringUtils.isEmpty(thisSubscriber.getTopic()) && (client != null) && client.getIsConnected()) {
+
+			if(modificationQueue.isPropertyModified(thisSubscriber, topic)){
 
 				Map<String,Object> params = new HashMap<>();
-				params.put("topic", getProperty(topic));
-				getProperty(client).invokeMethod("subscribeTopic", params, false);
+
+				params.put("topic", thisSubscriber.getTopic());
+
+				client.invokeMethod("subscribeTopic", params, false);
 			}
 		}
-
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
-	@Export
-	public RestMethodResult onMessage(final String topic, final String message) throws FrameworkException {
+	static RestMethodResult onMessage(final MQTTSubscriber thisSubscriber, final String topic, final String message) throws FrameworkException {
 
-		if (!StringUtils.isEmpty(getProperty(source))) {
+		final String source = thisSubscriber.getSource();
 
-			String script = "${" + getProperty(source) + "}";
+		if (!StringUtils.isEmpty(source)) {
 
-			Map<String, Object> params = new HashMap<>();
+			final String script              = "${" + source + "}";
+			final Map<String, Object> params = new HashMap<>();
+
 			params.put("topic", topic);
 			params.put("message", message);
 
-			ActionContext ac = new ActionContext(securityContext, params);
-			Scripting.replaceVariables(ac, this, script);
+			final ActionContext ac = new ActionContext(thisSubscriber.getSecurityContext(), params);
+
+			Scripting.replaceVariables(ac, thisSubscriber, script);
 		}
 
 		return new RestMethodResult(200);
 	}
-
 }

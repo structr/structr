@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -283,7 +283,7 @@ function wsConnect() {
 			} else if (command === 'GET' || command === 'GET_RELATIONSHIP' || command === 'GET_PROPERTIES') {
 
 				_Logger.log(_LogType.WS[command], data);
-				
+
 				StructrModel.callCallback(data.callback, result[0]);
 
 			} else if (command.startsWith('GET') || command === 'GET_BY_TYPE' || command === 'GET_SCHEMA_INFO' || command === 'CREATE_RELATIONSHIP') {
@@ -446,7 +446,7 @@ function wsConnect() {
 							if (synced && synced.length) {
 
 								// Change icon
-								$.each(entity.syncedNodes, function (i, id) {
+								$.each(synced, function (i, id) {
 									var el = Structr.node(id);
 									if (el && el.length) {
 										var icon = entity.isTemplate ? _Icons.icon_shared_template : (entity.isContent ? _Icons.active_content_icon : _Icons.comp_icon);
@@ -454,7 +454,6 @@ function wsConnect() {
 										_Entities.removeExpandIcon(el);
 									}
 								});
-
 							}
 						}
 					}
@@ -468,15 +467,14 @@ function wsConnect() {
 						}
 					} else if (command === 'CREATE' && (entity.isFile || entity.isImage || entity.isVideo)) {
 						_Files.uploadFile(entity);
+					} else if (entity.pageId) {
+						_Pages.reloadIframe(entity.pageId);
 					}
 
 					StructrModel.callCallback(data.callback, entity);
 
 				});
 
-				if (!LSWrapper.getItem(autoRefreshDisabledKey + activeTab)) {
-					_Pages.reloadPreviews();
-				}
 			} else if (command === 'PROGRESS') {
 
 				if (dialogMsg.is(':visible')) {

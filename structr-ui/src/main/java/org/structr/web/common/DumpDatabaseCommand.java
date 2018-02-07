@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,9 +30,8 @@ import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.SyncCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.rest.resource.MaintenanceParameterResource;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 public class DumpDatabaseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -58,7 +57,7 @@ public class DumpDatabaseCommand extends NodeServiceCommand implements Maintenan
 
 			try (final Tx tx = app.tx()) {
 
-				final FileBase file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName);
+				final File file = FileHelper.createFile(securityContext, new byte[0], "application/zip", File.class, fileName);
 
 				// make file visible for auth. users
 				file.setProperties(securityContext, new PropertyMap(File.visibleToAuthenticatedUsers, true));

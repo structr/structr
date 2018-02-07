@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -107,7 +107,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 								key = "type";
 							}
 
-							PropertyConverter inputConverter = StructrApp.getConfiguration().getPropertyKeyForJSONName(cls, key).inputConverter(securityContext);
+							PropertyConverter inputConverter = StructrApp.key(cls, key).inputConverter(securityContext);
 
 
 							if (inputConverter != null) {

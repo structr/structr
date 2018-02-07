@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,18 +36,15 @@ import org.w3c.dom.DOMException;
 
 /**
  *
- *
- *
  */
 public class RemoveCommand extends AbstractCommand {
+
+	private static final Logger logger = LoggerFactory.getLogger(RemoveCommand.class.getName());
 
 	static {
 
 		StructrWebSocket.addCommand(RemoveCommand.class);
-
 	}
-
-	private static final Logger logger = LoggerFactory.getLogger(RemoveCommand.class.getName());
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -131,12 +128,14 @@ public class RemoveCommand extends AbstractCommand {
 
 		// Remove node from page
 		final PropertyMap changedProperties = new PropertyMap();
-		changedProperties.put(DOMNode.syncedNodes, Collections.EMPTY_LIST);
-		changedProperties.put(DOMNode.pageId, null);
+
+		changedProperties.put(StructrApp.key(DOMNode.class, "syncedNodes"), Collections.EMPTY_LIST);
+		changedProperties.put(StructrApp.key(DOMNode.class, "pageId"),      null);
+
 		parent.setProperties(securityContext, changedProperties);
 
 		// recurse
-		for (final DOMNode child : parent.getProperty(DOMNode.children)) {
+		for (final DOMNode child : parent.getChildren()) {
 
 			recursivelyRemoveNodesFromPage(child, securityContext);
 		}

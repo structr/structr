@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,12 +30,12 @@ import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 
@@ -55,7 +55,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Principal.name, user.getName());
 
 			securityContext = SecurityContext.getInstance(structrUser, AccessMode.Backend);
 
@@ -73,9 +73,9 @@ public class StructrFileSystemView implements FileSystemView {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(AbstractUser.name, user.getName());
+			org.structr.web.entity.User structrUser = (org.structr.web.entity.User) AuthHelper.getPrincipalForCredential(Principal.name, user.getName());
 
-			final Folder homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory);
+			final Folder homeDir = structrUser.getHomeDirectory();
 
 			tx.success();
 
@@ -97,7 +97,7 @@ public class StructrFileSystemView implements FileSystemView {
 
 			tx.success();
 
-			if (structrWorkingDir == null || structrWorkingDir instanceof FileBase) {
+			if (structrWorkingDir == null || structrWorkingDir instanceof File) {
 				return new StructrFtpFolder(securityContext, null);
 			}
 
@@ -155,7 +155,7 @@ public class StructrFileSystemView implements FileSystemView {
 			}
 
 			if ("..".equals(requestedPath) || "../".equals(requestedPath)) {
-				return new StructrFtpFolder(securityContext, cur.getStructrFile().getProperty(AbstractFile.parent));
+				return new StructrFtpFolder(securityContext, cur.getStructrFile().getParent());
 			}
 
 			// If relative path requested, prepend base path
@@ -186,7 +186,7 @@ public class StructrFileSystemView implements FileSystemView {
 					return new StructrFtpFolder(securityContext, (Folder) file);
 				} else {
 					tx.success();
-					return new StructrFtpFile(securityContext, (FileBase) file);
+					return new StructrFtpFile(securityContext, (File) file);
 				}
 			}
 

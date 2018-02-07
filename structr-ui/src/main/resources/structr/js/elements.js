@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -252,7 +252,7 @@ var _Elements = {
 		thead    : [ "tr" ],
 		tbody    : [ "tr" ],
 		tfoot    : [ "tr" ],
-		tr       : ["th", "td" ],
+		tr       : [ "th", "td" ],
 		ul       : [ "li" ],
 		ol       : [ "li" ],
 		dir      : [ "li" ],
@@ -360,9 +360,13 @@ var _Elements = {
 		dropBlocked = false;
 
 	},
+	clearUnattachedNodes: function() {
+		elementsSlideout.find(':not(.compTab)').remove();
+	},
 	reloadUnattachedNodes: function() {
 
-		elementsSlideout.find(':not(.compTab)').remove();
+		_Elements.clearUnattachedNodes();
+
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
@@ -1118,7 +1122,7 @@ var _Elements = {
 				{
 					name: 'Access Control and Visibility',
 					clickHandler: function() {
-						_Entities.showAccessControlDialog(entity.id);
+						_Entities.showAccessControlDialog(entity);
 						return false;
 					}
 				},

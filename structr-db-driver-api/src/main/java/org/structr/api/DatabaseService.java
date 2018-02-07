@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -66,6 +66,4 @@ public interface DatabaseService {
 
 	NativeResult execute(final String nativeQuery, final Map<String, Object> parameters);
 	NativeResult execute(final String nativeQuery);
-
-	void invalidateQueryCache();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -130,9 +130,9 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 								// experimental: create DOM element with literal tag
 								newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create(DOMElement.class,
-									new NodeAttribute(DOMElement.tag, "custom"),
-									new NodeAttribute(DOMElement.hideOnDetail, false),
-									new NodeAttribute(DOMElement.hideOnIndex, false)
+									new NodeAttribute(StructrApp.key(DOMElement.class, "tag"),          "custom"),
+									new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnDetail"), false),
+									new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnIndex"),  false)
 								);
 
 								if (newNode != null && document != null) {

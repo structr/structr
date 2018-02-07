@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,7 +43,7 @@ public interface CMISInfo {
 
 	public CMISFolderInfo getFolderInfo();
 	public CMISDocumentInfo getDocumentInfo();
-	public CMISItemInfo geItemInfo();
+	public CMISItemInfo getItemInfo();
 	public CMISRelationshipInfo getRelationshipInfo();
 	public CMISPolicyInfo getPolicyInfo();
 	public CMISSecondaryInfo getSecondaryInfo();

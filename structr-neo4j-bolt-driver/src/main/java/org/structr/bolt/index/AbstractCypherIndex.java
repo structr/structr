@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,7 +43,6 @@ import org.structr.api.search.SpatialQuery;
 import org.structr.api.search.TypeConverter;
 import org.structr.api.search.TypeQuery;
 import org.structr.api.search.UuidQuery;
-import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.*;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
@@ -105,13 +104,10 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		CONVERTERS.put(byte.class,    new ByteTypeConverter());
 	}
 
-	protected final FixedSizeCache<Integer, CachedQueryResult> queryCache;
 	protected final BoltDatabaseService db;
 
-	public AbstractCypherIndex(final BoltDatabaseService db, final int queryCacheSize) {
-
-		this.queryCache = new FixedSizeCache<>(queryCacheSize);
-		this.db         = db;
+	public AbstractCypherIndex(final BoltDatabaseService db) {
+		this.db = db;
 	}
 
 	public abstract QueryResult<T> getResult(final PageableQuery query);
@@ -160,14 +156,6 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		}
 
 		return getResult(query);
-	}
-
-	public void invalidateCache() {
-
-		if (!queryCache.isEmpty()) {
-
-			queryCache.clear();
-		}
 	}
 
 	// ----- interface QueryFactory -----

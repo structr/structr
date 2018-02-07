@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,18 +25,18 @@ var _DuplicateFinder = new (function () {
 		Structr.dialog('Find Duplicates', _closeDialog, _closeDialog);
 		_dialogIsOpen = true;
 
-		_Logger.log(_LogType.FIND_DUPLICATES, "opened duplicate finder dialog");
 		_showWaitElement();
 
 		Command.findDuplicates(function(data) {
-			_handleDuplicatesList(data);
 
-			var doneMessage = $('<div id="no-duplicates-found"><i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" /> No more duplicates to show </div>');
+			_doneElement = $('<div id="no-duplicates-found"><i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" /> No more duplicates to show </div>');
 			Structr.appendInfoTextToElement({
 				text: "If you chose to ignore some duplicates or renamed files to other already existing filenames, there may be some duplicates left. Reopen the dialog to check for this.",
-				element: doneMessage
+				element: _doneElement
 			});
-			dialogText.append(doneMessage);
+			dialogText.append(_doneElement);
+
+			_handleDuplicatesList(data);
 
 		});
 
@@ -62,9 +62,7 @@ var _DuplicateFinder = new (function () {
 				}
 
 				_checkTableForConflicts($tr.closest('table'));
-
 			}
-
 		}
 	};
 
@@ -75,11 +73,8 @@ var _DuplicateFinder = new (function () {
 			var $tr = $('tr.dup_' + id, dialogText);
 
 			if ($tr && $tr.length) {
-
 				_deleteRowCallback($tr);
-
 			}
-
 		}
 	};
 
@@ -87,6 +82,7 @@ var _DuplicateFinder = new (function () {
 	var _didInit      = false;
 	var _dialogIsOpen = false;
 	var _waitElement  = undefined;
+	var _doneElement  = undefined;
 
 
 	/* ~~~~~~~~~~ private methods ~~~~~~~~~~ */
@@ -177,8 +173,6 @@ var _DuplicateFinder = new (function () {
 
 		if (_dialogIsOpen) {
 
-			_Logger.log(_LogType.FIND_DUPLICATES, "processing list of duplicate files", data);
-
 			_getWaitElement().hide();
 
 			var lastFile = {};
@@ -188,42 +182,27 @@ var _DuplicateFinder = new (function () {
 
 			data.forEach(function (file) {
 
-				if (lastPath === undefined || lastPath !== file.path) {
+				Structr.fetchHtmlTemplate('find-duplicates/table', {path: file.path}, function (html) {
 
-					table = _createNewTable(file);
-					tbody = table.children('tbody');
-					dialogText.append(table);
-				}
+					if (lastPath === undefined || lastPath !== file.path) {
 
-				_appendFileToTbody(file, tbody);
+						table = $(html);
+						_setTableHasConflicts(table, true);
+						tbody = table.children('tbody');
+						dialogText.append(table);
+						_doneElement.hide();
+					}
 
-				lastPath = file.path;
-				lastFile = file;
+					_appendFileToTbody(file, tbody);
+
+					lastPath = file.path;
+					lastFile = file;
+				});
 			});
 
 			dialogText.append(table);
 
-		} else {
-
-			_Logger.log(_LogType.FIND_DUPLICATES, "IGNORING list of duplicate files - user already closed the dialog");
-
 		}
-
-	};
-
-	function _createNewTable(obj) {
-
-		var ignoreButton = '<button class="ignore-duplicates-table-icon button"><i class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /> Ignore this time</button>';
-		var noConflictsRemoveTableButton = '<button class="remove-duplicate-free-table-icon button"><i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" /> No more conflicts, remove table</button>';
-
-		var table = $('<table class="duplicates-table props"><thead>'
-				+ '<tr class="heading"><th colspan="7">' + obj.path + ' ' + ignoreButton + noConflictsRemoveTableButton + '</th></tr>'
-				+ '<tr><th>ID</th><th>Name</th><th>Type</th><th>Content-Type</th><th>Size</th><th>Checksum</th><th>Actions</th></tr>'
-				+ '</thead><tbody></tbody></table>');
-
-		_setTableHasConflicts(table, true);
-
-		return table;
 	};
 
 	function _appendFileToTbody(obj, tbody) {
@@ -272,25 +251,20 @@ var _DuplicateFinder = new (function () {
 	};
 
 	function _setTableHasConflicts($table, hasConflicts) {
-
 		if (hasConflicts) {
-
 			$table.find('.remove-duplicate-free-table-icon').hide();
 			$table.find('.ignore-duplicates-table-icon').show();
-
 		} else {
-
 			$table.find('.ignore-duplicates-table-icon').hide();
 			$table.find('.remove-duplicate-free-table-icon').show();
-
 		}
-
 	};
 
 	function _removeTable($table) {
-
 		$table.remove();
 
+		if ($('.duplicates-table').length === 0) {
+			_doneElement.show();
+		}
 	};
-
 });

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,8 +64,8 @@ public class GeoHelper {
 		String type             = Location.class.getSimpleName();
 
 		props.put(AbstractNode.type,  type);
-		props.put(Location.latitude,  latitude);
-		props.put(Location.longitude, longitude);
+		props.put(StructrApp.key(Location.class, "latitude"),  latitude);
+		props.put(StructrApp.key(Location.class, "longitude"), longitude);
 
 		return StructrApp.getInstance().create(Location.class, props);
 	}

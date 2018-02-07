@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1074,103 +1074,6 @@ var Command = {
 		};
 		_Logger.log(_LogType.WS[obj.command], 'link()', obj);
 		return sendObj(obj);
-	},
-	/**
-	 * Send a PUSH command to the server.
-	 *
-	 * The server will establish a socket connection to the post on the given
-	 * port, authenticate with given username and password, and push the node
-	 * with the given id to the server.
-	 *
-	 * The server gives no feedback on a LINK command.
-	 */
-	push: function(id, host, port, username, password, key, recursive) {
-		var obj = {
-			command: 'PUSH',
-			id: id,
-			data: {
-				host: host,
-				port: port,
-				username: username,
-				password: password,
-				key: key,
-				recursive: recursive
-			}
-		};
-		_Logger.log(_LogType.WS[obj.command], 'push()', obj);
-		return sendObj(obj);
-	},
-	/**
-	 * Send a PUSH_SCHEMA command to the server.
-	 *
-	 * The server will establish a socket connection to the post on the given
-	 * port, authenticate with given username and password, and push the node
-	 * with the given id to the server.
-	 *
-	 * The server gives no feedback on a LINK command.
-	 */
-	pushSchema: function(host, port, username, password, key, callback) {
-		var obj = {
-			command: 'PUSH_SCHEMA',
-			data: {
-				host: host,
-				port: port,
-				username: username,
-				password: password,
-				key: key
-			}
-		};
-		_Logger.log(_LogType.WS[obj.command], 'push_schema()', obj);
-		return sendObj(obj, callback);
-	},
-	/**
-	 * Send a PULL command to the server.
-	 *
-	 * The server will establish a socket connection to the post on the given
-	 * port, authenticate with given username and password, and pull the node
-	 * with the given id from the server.
-	 *
-	 * The server gives no feedback on a LINK command.
-	 */
-	pull: function(id, host, port, username, password, key, recursive, callback) {
-		var obj = {
-			command: 'PULL',
-			id: id,
-			data: {
-				host: host,
-				port: port,
-				username: username,
-				password: password,
-				key: key,
-				recursive: recursive
-			}
-		};
-		_Logger.log(_LogType.WS[obj.command], 'pull()', obj);
-		return sendObj(obj, callback);
-	},
-	/**
-	 * Send a LIST_SYNCABLES command to the server.
-	 *
-	 * The server will establish a socket connection to the post on the given
-	 * port, authenticate with given username and password, and pull the node
-	 * with the given id from the server.
-	 *
-	 * The server gives no feedback on a LINK command.
-	 */
-	listSyncables: function(host, port, username, password, key, type, callback) {
-		var obj = {
-			command: 'LIST_SYNCABLES',
-			data: {
-				host: host,
-				port: port,
-				username: username,
-				password: password,
-				key: key,
-				type: type
-			}
-		};
-		_Logger.log(_LogType.WS[obj.command], 'list_syncables()', obj);
-		return sendObj(obj, callback);
 	},
 	/**
 	 * Send a LIST_ACTIVE_ELEMENTS command to the server.

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,7 @@ import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -59,41 +60,46 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
-	public static final Property<AbstractSchemaNode> schemaNode                   = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<List<SchemaView>>   schemaViews                  = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<List<SchemaView>>   schemaViews           = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
-	public static final Property<String>             declaringClass    = new StringProperty("declaringClass");
-	public static final Property<String>             defaultValue      = new StringProperty("defaultValue");
-	public static final Property<String>             propertyType      = new StringProperty("propertyType");
-	public static final Property<String>             contentType       = new StringProperty("contentType");
-	public static final Property<String>             dbName            = new StringProperty("dbName");
-	public static final Property<String>             format            = new StringProperty("format");
-	public static final Property<Boolean>            notNull           = new BooleanProperty("notNull");
-	public static final Property<Boolean>            compound          = new BooleanProperty("compound");
-	public static final Property<Boolean>            unique            = new BooleanProperty("unique");
-	public static final Property<Boolean>            indexed           = new BooleanProperty("indexed");
-	public static final Property<Boolean>            isDynamic         = new BooleanProperty("isDynamic");
-	public static final Property<Boolean>            isBuiltinProperty = new BooleanProperty("isBuiltinProperty");
-	public static final Property<Boolean>            isDefaultInUi     = new BooleanProperty("isDefaultInUi");
-	public static final Property<Boolean>            isDefaultInPublic = new BooleanProperty("isDefaultInPublic");
-	public static final Property<String>             contentHash       = new StringProperty("contentHash");
-	public static final Property<String>             readFunction      = new StringProperty("readFunction");
-	public static final Property<String>             writeFunction     = new StringProperty("writeFunction");
+	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
+	public static final Property<String>             defaultValue          = new StringProperty("defaultValue");
+	public static final Property<String>             propertyType          = new StringProperty("propertyType");
+	public static final Property<String>             contentType           = new StringProperty("contentType");
+	public static final Property<String>             dbName                = new StringProperty("dbName");
+	public static final Property<String>             fqcn                  = new StringProperty("fqcn");
+	public static final Property<String>             format                = new StringProperty("format");
+	public static final Property<Boolean>            notNull               = new BooleanProperty("notNull");
+	public static final Property<Boolean>            compound              = new BooleanProperty("compound");
+	public static final Property<Boolean>            unique                = new BooleanProperty("unique");
+	public static final Property<Boolean>            indexed               = new BooleanProperty("indexed");
+	public static final Property<Boolean>            readOnly              = new BooleanProperty("readOnly");
+	public static final Property<Boolean>            isDynamic             = new BooleanProperty("isDynamic");
+	public static final Property<Boolean>            isBuiltinProperty     = new BooleanProperty("isBuiltinProperty");
+	public static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
+	public static final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
+	public static final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
+	public static final Property<String>             contentHash           = new StringProperty("contentHash");
+	public static final Property<String>             readFunction          = new StringProperty("readFunction");
+	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
+	public static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
+	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -185,6 +191,30 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
+	public boolean isReadOnly() {
+
+		final Boolean isReadOnly = getProperty(readOnly);
+		if (isReadOnly != null && isReadOnly) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isPartOfBuiltInSchema() {
+
+		final Boolean _isPartOfBuiltInSchema = getProperty(SchemaProperty.isPartOfBuiltInSchema);
+		if (_isPartOfBuiltInSchema != null && _isPartOfBuiltInSchema) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public String getRawSource() {
 		return "";
 	}
@@ -205,11 +235,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
 
 		// automatically add new property to the ui view..
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
-		if (parent != null) {
+		if (parent != null && getProperty(isBuiltinProperty)) {
 
 			for (final SchemaView view : parent.getProperty(AbstractSchemaNode.schemaViews)) {
 
@@ -225,19 +257,17 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				}
 			}
 		}
-
-		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		// prevent modification of properties using a content hash value
 		if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
 			throw new FrameworkException(403, "Modification of built-in properties not permitted.");
 		}
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	public String getContentHash() {
@@ -252,12 +282,15 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(notNull,           _contentHash);
 		_contentHash = addContentHash(unique,            _contentHash);
 		_contentHash = addContentHash(indexed,           _contentHash);
+		_contentHash = addContentHash(readOnly,          _contentHash);
 		_contentHash = addContentHash(isDynamic,         _contentHash);
 		_contentHash = addContentHash(isBuiltinProperty, _contentHash);
 		_contentHash = addContentHash(isDefaultInUi,     _contentHash);
 		_contentHash = addContentHash(isDefaultInPublic, _contentHash);
 		_contentHash = addContentHash(readFunction,      _contentHash);
 		_contentHash = addContentHash(writeFunction,     _contentHash);
+		_contentHash = addContentHash(transformers,      _contentHash);
+		_contentHash = addContentHash(validators,        _contentHash);
 
 		return Integer.toHexString(_contentHash);
 	}
@@ -377,6 +410,24 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return _writeFunction;
+	}
+
+	@Override
+	public String[] getTransformators() {
+		return getProperty(SchemaProperty.transformers);
+	}
+
+	@Override
+	public String[] getValidators() {
+		return getProperty(SchemaProperty.validators);
+	}
+
+	public String getFqcn() {
+		return getProperty(fqcn);
+	}
+
+	public void setFqcn(final String value) throws FrameworkException {
+		setProperty(fqcn, value);
 	}
 
 	// ----- private methods -----

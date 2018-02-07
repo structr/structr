@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,10 +25,10 @@ import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -60,7 +60,7 @@ public class UploadCommand extends AbstractCommand {
 
 			final String name      = (String) webSocketData.getNodeData().get("name");
 			final String rawData   = (String) webSocketData.getNodeData().get("fileData");
-			final FileBase newFile = FileHelper.createFileBase64(securityContext, rawData, null);
+			final File newFile = FileHelper.createFileBase64(securityContext, rawData, null);
 
 			newFile.setProperties(securityContext, new PropertyMap(AbstractNode.name, name));
 

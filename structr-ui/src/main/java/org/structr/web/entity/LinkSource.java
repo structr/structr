@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,27 +18,54 @@
  */
 package org.structr.web.entity;
 
-import java.util.List;
+import java.net.URI;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.Property;
+import org.structr.core.entity.Relation;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.html.relation.ResourceLink;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
- *
- *
  */
-public class LinkSource extends DOMElement {
+public interface LinkSource extends DOMElement {
 
-	public static final Property<Linkable> linkable = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
-	public static final Property<String> linkableId = new EntityIdProperty("linkableId", linkable);
+	static class Impl { static {
 
+		final JsonSchema schema       = SchemaService.getDynamicSchema();
+		final JsonObjectType type     = schema.addType("LinkSource");
+		final JsonObjectType linkable = (JsonObjectType)schema.getType("Linkable");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LinkSource"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.overrideMethod("getLinkable", false, "return getProperty(linkableProperty);");
+
+		type.addMethod("setLinkable")
+			.setSource("setProperty(linkableProperty, (Linkable)linkable);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("linkable", "org.structr.web.entity.Linkable");
+
+		final JsonReferenceType rel = type.relate(linkable, "LINK", Relation.Cardinality.ManyToOne, "linkingElements", "linkable");
+
+		type.addIdReferenceProperty("linkableId", rel.getTargetProperty());
+
+		// view configuration
+		type.addViewProperty(PropertyView.Ui, "children");
+		type.addViewProperty(PropertyView.Ui, "linkable");
+		type.addViewProperty(PropertyView.Ui, "linkableId");
+	}}
+
+	Linkable getLinkable();
+	void setLinkable(final Linkable linkable) throws FrameworkException;
+
+	//public static final Property<Linkable> linkable = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
+	//public static final Property<String> linkableId = new EntityIdProperty("linkableId", linkable);
+
+	/*
 	// ----- interface Syncable -----
 	@Override
 	public List<GraphObject> getSyncData() throws FrameworkException {
@@ -53,4 +80,5 @@ public class LinkSource extends DOMElement {
 
 		return data;
 	}
+	*/
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,7 +48,7 @@ public class GetProperty extends AbstractCommand {
 
 		if (obj != null) {
 
-			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), key);
+			PropertyKey propertyKey = StructrApp.key(obj.getClass(), key);
 			PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext());
 
 			Object value = obj.getProperty(propertyKey);

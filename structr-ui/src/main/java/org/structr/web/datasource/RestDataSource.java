@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -65,9 +65,11 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	private static final Logger logger = LoggerFactory.getLogger(RestDataSource.class.getName());
 
 	@Override
-	public Iterable<GraphObject> getData(final RenderContext renderContext, AbstractNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final RenderContext renderContext, DOMNode referenceNode) throws FrameworkException {
 
-		final String restQuery = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, DOMNode.restQuery);
+		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
+		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
+
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
 		}
@@ -207,6 +209,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 				type = AbstractNode.class;
 
 			}
+
 			sortKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sortKeyName, false);
 		}
 

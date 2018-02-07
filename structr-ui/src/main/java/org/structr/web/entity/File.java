@@ -1,0 +1,848 @@
+/**
+ * Copyright (C) 2010-2018 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.web.entity;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import javax.activation.DataSource;
+import javax.xml.stream.XMLStreamException;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.structr.api.config.Settings;
+import org.structr.cmis.CMISInfo;
+import org.structr.cmis.info.CMISDocumentInfo;
+import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.Permission;
+import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedException;
+import org.structr.common.fulltext.FulltextIndexer;
+import org.structr.common.fulltext.Indexable;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Favoritable;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.function.Functions;
+import org.structr.core.graph.ModificationEvent;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.scheduler.JobQueueManager;
+import org.structr.core.script.Scripting;
+import org.structr.files.cmis.config.StructrFileActions;
+import org.structr.rest.common.XMLStructureAnalyzer;
+import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
+import org.structr.schema.action.JavaScriptSource;
+import org.structr.schema.json.JsonMethod;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
+import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.ClosingFileOutputStream;
+import org.structr.web.common.FileHelper;
+import org.structr.web.common.RenderContext;
+import org.structr.web.importer.CSVFileImportJob;
+import org.structr.web.importer.XMLFileImportJob;
+import org.structr.web.property.FileDataProperty;
+
+/**
+ *
+ *
+ */
+public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable, DataSource {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("File");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/File"));
+		type.setImplements(URI.create("#/definitions/Indexable"));
+		type.setImplements(URI.create("#/definitions/Linkable"));
+		type.setImplements(URI.create("#/definitions/JavaScriptSource"));
+		type.setImplements(URI.create("#/definitions/Favoritable"));
+		type.setExtends(URI.create("#/definitions/AbstractFile"));
+
+		type.addStringProperty("url", PropertyView.Public, PropertyView.Ui);
+
+		type.addBooleanProperty("isFile",            PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isTemplate",        PropertyView.Public, PropertyView.Ui);
+		type.addLongProperty("size",                 PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("fileModificationDate", PropertyView.Public);
+
+		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
+		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("checksum",           PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("md5",              PropertyView.Ui);
+		type.addLongProperty("crc32").setIndexed(true);
+		type.addStringProperty("sha1");
+		type.addStringProperty("sha512");
+		type.addIntegerProperty("position").setIndexed(true);
+
+		type.addPropertyGetter("minificationTargets", List.class);
+		type.addPropertyGetter("cacheForSeconds", Integer.class);
+		type.addPropertyGetter("checksum", Long.class);
+		type.addPropertyGetter("md5", String.class);
+
+		type.addPropertyGetter("version", Integer.class);
+		type.addPropertyGetter("contentType", String.class);
+		type.addPropertyGetter("extractedContent", String.class);
+		type.addPropertyGetter("basicAuthRealm", String.class);
+		type.addPropertyGetter("size", Long.class);
+
+		type.addCustomProperty("base64Data", FileDataProperty.class.getName());
+
+		type.overrideMethod("onCreation",                  true,  File.class.getName() + ".onCreation(this, arg0, arg1);");
+		type.overrideMethod("onModification",              true,  File.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		type.overrideMethod("onNodeDeletion",              true,  File.class.getName() + ".onNodeDeletion(this);");
+		type.overrideMethod("afterCreation",               true,  File.class.getName() + ".afterCreation(this, arg0);");
+
+		type.overrideMethod("isTemplate",                  false, "return getProperty(isTemplateProperty);");
+		type.overrideMethod("setVersion",                  false, "setProperty(versionProperty, arg0);").addException(FrameworkException.class.getName());
+
+		type.overrideMethod("increaseVersion",             false, File.class.getName() + ".increaseVersion(this);");
+		type.overrideMethod("notifyUploadCompletion",      false, File.class.getName() + ".notifyUploadCompletion(this);");
+		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
+
+		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
+		type.overrideMethod("getSearchContext",            false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1);");
+		type.overrideMethod("getJavascriptLibraryCode",    false, "return " + File.class.getName() + ".getJavascriptLibraryCode(this);");
+		type.overrideMethod("getEnableBasicAuth",          false, "return getProperty(enableBasicAuthProperty);");
+
+		// Favoritable
+		type.overrideMethod("getContext",                  false, "return getPath();");
+		type.overrideMethod("getFavoriteContentType",      false, "return getContentType();");
+		type.overrideMethod("setFavoriteContent",          false, File.class.getName() + ".setFavoriteContent(this, arg0);");
+		type.overrideMethod("getFavoriteContent",          false, "return " + File.class.getName() + ".getFavoriteContent(this);");
+		type.overrideMethod("getCurrentWorkingDir",        false, "return " + File.class.getName() + ".getCurrentWorkingDir(this);");
+
+		// CMIS support
+		type.overrideMethod("getCMISInfo",                 false, "return this;");
+		type.overrideMethod("getBaseTypeId",               false, "return " + BaseTypeId.class.getName() + ".CMIS_DOCUMENT;");
+		type.overrideMethod("getFolderInfo",               false, "return null;");
+		type.overrideMethod("getDocumentInfo",             false, "return this;");
+		type.overrideMethod("getItemInfo",                 false, "return null;");
+		type.overrideMethod("getRelationshipInfo",         false, "return null;");
+		type.overrideMethod("getPolicyInfo",               false, "return null;");
+		type.overrideMethod("getSecondaryInfo",            false, "return null;");
+		type.overrideMethod("getChangeToken",              false, "return null;");
+		type.overrideMethod("getParentId",                 false, "return getProperty(parentIdProperty);");
+		type.overrideMethod("getAllowableActions",         false, "return new " + StructrFileActions.class.getName() + "(isImmutable());");
+		type.overrideMethod("isImmutable",                 false, "return " + File.class.getName() + ".isImmutable(this);");
+
+		// overridden methods
+		final JsonMethod getOutputStream1 = type.addMethod("getOutputStream");
+		getOutputStream1.setSource("return " + File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
+		getOutputStream1.addParameter("notifyIndexerAfterClosing", "boolean");
+		getOutputStream1.addParameter("append", "boolean");
+		getOutputStream1.setReturnType(FileOutputStream.class.getName());
+
+		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
+		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
+		getOutputStream2.setReturnType(FileOutputStream.class.getName());
+
+		type.addMethod("getFileOnDisk")
+			.setReturnType(java.io.File.class.getName())
+			.setSource("return " + File.class.getName() + ".getFileOnDisk(this);");
+
+		type.addMethod("getFileOnDisk")
+			.setReturnType(java.io.File.class.getName())
+			.addParameter("doCreate", "boolean")
+			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);");
+
+		// relationships
+		final JsonObjectType minifiedFile = (JsonObjectType)schema.getType("AbstractMinifiedFile");
+		final JsonReferenceType rel       = minifiedFile.relate(type, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
+
+		rel.addIntegerProperty("position", PropertyView.Public);
+
+		type.addMethod("doCSVImport")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource(File.class.getName() + ".doCSVImport(this, parameters);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("doXMLImport")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource(File.class.getName() + ".doXMLImport(this, parameters);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("getFirstLines")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters);")
+			.setDoExport(true);
+
+		type.addMethod("getCSVHeaders")
+			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+			.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("getXMLStructure")
+			.setReturnType("java.lang.String")
+			.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "includeInFrontendExport");
+		type.addViewProperty(PropertyView.Public, "owner");
+
+		type.addViewProperty(PropertyView.Ui, "hasParent");
+
+		/* TODO:
+			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);
+		*/
+
+	}}
+
+	List<AbstractMinifiedFile> getMinificationTargets();
+
+	String getXMLStructure() throws FrameworkException;
+	void doCSVImport(final Map<String, Object> parameters) throws FrameworkException;
+	void doXMLImport(final Map<String, Object> parameters) throws FrameworkException;
+	Map<String, Object> getCSVHeaders(final Map<String, Object> parameters) throws FrameworkException;
+	Map<String, Object> getFirstLines(final Map<String, Object> parameters);
+
+	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
+
+	java.io.File getFileOnDisk(final boolean doCreate);
+	java.io.File getFileOnDisk();
+
+	boolean isTemplate();
+
+	void notifyUploadCompletion();
+	void increaseVersion() throws FrameworkException;
+	void triggerMinificationIfNeeded(final ModificationQueue modificationQueue) throws FrameworkException;
+
+	void setVersion(final int version) throws FrameworkException;
+	Integer getVersion();
+
+	Integer getCacheForSeconds();
+
+	Long getChecksum();
+	String getMd5();
+
+	Folder getCurrentWorkingDir();
+
+	static void onCreation(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent()) {
+
+			final Folder workingOrHomeDir = thisFile.getCurrentWorkingDir();
+			if (workingOrHomeDir != null && thisFile.getParent() == null) {
+
+				thisFile.setParent(workingOrHomeDir);
+			}
+		}
+	}
+
+	static void onModification(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		synchronized (thisFile) {
+
+			// save current security context
+			final SecurityContext previousSecurityContext = securityContext;
+
+			// replace with SU context
+			thisFile.setSecurityContext(SecurityContext.getSuperUserInstance());
+
+			// update metadata and parent as superuser
+			FileHelper.updateMetadata(thisFile, false);
+
+			// restore previous security context
+			thisFile.setSecurityContext(previousSecurityContext);
+		}
+
+		thisFile.triggerMinificationIfNeeded(modificationQueue);
+	}
+
+	static void onNodeDeletion(final File thisFile) {
+
+		// only delete mounted files
+		if (!thisFile.isExternal()) {
+
+			java.io.File toDelete = thisFile.getFileOnDisk(false);
+
+			try {
+
+				if (toDelete.exists() && toDelete.isFile()) {
+
+					toDelete.delete();
+				}
+
+			} catch (Throwable t) {
+				logger.debug("Exception while trying to delete file {}: {}", toDelete.getPath(), t.getMessage());
+			}
+		}
+	}
+
+	static void afterCreation(final File thisFile, final SecurityContext securityContext) {
+
+		try {
+
+			FileHelper.updateMetadata(thisFile);
+			thisFile.setVersion(0);
+
+		} catch (FrameworkException ex) {
+
+			logger.error("Could not update metadata of {}: {}", thisFile.getPath(), ex.getMessage());
+		}
+
+	}
+
+	static GraphObject getSearchContext(final File thisFile, final String searchTerm, final int contextLength) {
+
+		final String text = thisFile.getExtractedContent();
+		if (text != null) {
+
+			final FulltextIndexer indexer = StructrApp.getInstance(thisFile.getSecurityContext()).getFulltextIndexer();
+			return indexer.getContextObject(searchTerm, text, contextLength);
+		}
+
+		return null;
+	}
+
+	static void notifyUploadCompletion(final File thisFile) {
+
+		try {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				synchronized (tx) {
+
+					FileHelper.updateMetadata(thisFile, true);
+
+					tx.success();
+				}
+			}
+
+			final FulltextIndexer indexer = StructrApp.getInstance(thisFile.getSecurityContext()).getFulltextIndexer();
+			indexer.addToFulltextIndex(thisFile);
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Unable to index {}: {}", thisFile, fex.getMessage());
+		}
+	}
+
+	static String getFormattedSize(final File thisFile) {
+		return FileUtils.byteCountToDisplaySize(thisFile.getSize());
+	}
+
+	static void increaseVersion(final File thisFile) throws FrameworkException {
+
+		final Integer _version = thisFile.getVersion();
+
+		thisFile.unlockSystemPropertiesOnce();
+		if (_version == null) {
+
+			thisFile.setVersion(1);
+
+		} else {
+
+			thisFile.setVersion(_version + 1);
+		}
+	}
+
+	static void triggerMinificationIfNeeded(final File thisFile, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		final List<AbstractMinifiedFile> targets = thisFile.getMinificationTargets();
+		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
+
+		if (!targets.isEmpty()) {
+
+			// only run minification if the file version changed
+			boolean versionChanged = false;
+			for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
+
+				if (getUuid().equals(modState.getUuid())) {
+
+					versionChanged = versionChanged ||
+							modState.getRemovedProperties().containsKey(versionKey) ||
+							modState.getModifiedProperties().containsKey(versionKey) ||
+							modState.getNewProperties().containsKey(versionKey);
+				}
+			}
+
+			if (versionChanged) {
+
+				for (AbstractMinifiedFile minifiedFile : targets) {
+
+					try {
+						minifiedFile.minify();
+					} catch (IOException ex) {
+						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
+					}
+				}
+			}
+		}
+	}
+
+	static InputStream getInputStream(final File thisFile) {
+
+		final java.io.File fileOnDisk = thisFile.getFileOnDisk();
+
+		try {
+
+			final FileInputStream fis             = new FileInputStream(fileOnDisk);
+			final SecurityContext securityContext = thisFile.getSecurityContext();
+
+			if (thisFile.isTemplate()) {
+
+				boolean editModeActive = false;
+				if (securityContext.getRequest() != null) {
+
+					final String editParameter = securityContext.getRequest().getParameter("edit");
+					if (editParameter != null) {
+
+						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.editMode(editParameter));
+					}
+				}
+
+				if (!editModeActive) {
+
+					final String content = IOUtils.toString(fis, "UTF-8");
+
+					// close input stream here
+					fis.close();
+
+					try {
+
+						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content);
+						return IOUtils.toInputStream(result, "UTF-8");
+
+					} catch (Throwable t) {
+
+						logger.warn("Scripting error in {}:\n{}\n{}", thisFile.getUuid(), content, t.getMessage());
+					}
+				}
+			}
+
+			return fis;
+
+		} catch (IOException ex) {
+			logger.warn("Unable to open input stream for {}: {}", fileOnDisk.getPath(), ex.getMessage());
+		}
+
+		return null;
+	}
+
+	static FileOutputStream getOutputStream(final File thisFile) {
+		return thisFile.getOutputStream(true, false);
+	}
+
+	static FileOutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
+
+		if (thisFile.isTemplate()) {
+
+			logger.error("File is in template mode, no write access allowed: {}", thisFile.getPath());
+			return null;
+		}
+
+		try {
+
+			// Return file output stream and save checksum and size after closing
+			return new ClosingFileOutputStream(thisFile, append, notifyIndexerAfterClosing);
+
+		} catch (IOException e) {
+			logger.error("Unable to open file output stream for {}: {}", thisFile.getPath(), e.getMessage());
+		}
+
+		return null;
+
+	}
+
+	static java.io.File getFileOnDisk(final File thisFile) {
+		return thisFile.getFileOnDisk(true);
+	}
+
+	static java.io.File getFileOnDisk(final File thisFile, final boolean create) {
+
+		final Folder parentFolder = thisFile.getParent();
+		if (parentFolder != null) {
+
+			return parentFolder.getFileOnDisk(thisFile, "", create);
+
+		} else {
+
+			return AbstractFile.defaultGetFileOnDisk(thisFile, create);
+		}
+	}
+
+	static Map<String, Object> getFirstLines(final File thisFile, final Map<String, Object> parameters) {
+
+		final Map<String, Object> result = new LinkedHashMap<>();
+		final int num                    = File.getNumberOrDefault(parameters, "num", 3);
+		final LineAndSeparator ls        = File.getFirstLines(thisFile, num);
+		final String separator           = ls.getSeparator();
+
+		switch (separator) {
+
+			case "\n":
+				result.put("separator", "LF");
+				break;
+
+			case "\r":
+				result.put("separator", "CR");
+				break;
+
+			case "\r\n":
+				result.put("separator", "CR+LF");
+				break;
+		}
+
+		result.put("lines", ls.getLine());
+
+		return result;
+	}
+
+	static Map<String, Object> getCSVHeaders(final File thisFile, final Map<String, Object> parameters) throws FrameworkException {
+
+		if ("text/csv".equals(thisFile.getContentType())) {
+
+			final Map<String, Object> map       = new LinkedHashMap<>();
+			final Function<Object, Object> func = Functions.get("get_csv_headers");
+
+			if (func != null) {
+
+				try {
+
+					final Object[] sources = new Object[4];
+					String delimiter       = ";";
+					String quoteChar       = "\"";
+					String recordSeparator = "\n";
+
+					if (parameters != null) {
+
+						if (parameters.containsKey("delimiter"))       { delimiter       = parameters.get("delimiter").toString(); }
+						if (parameters.containsKey("quoteChar"))       { quoteChar       = parameters.get("quoteChar").toString(); }
+						if (parameters.containsKey("recordSeparator")) { recordSeparator = parameters.get("recordSeparator").toString(); }
+					}
+
+					// allow web-friendly specification of line endings
+					switch (recordSeparator) {
+
+						case "CR+LF":
+							recordSeparator = "\r\n";
+							break;
+
+						case "CR":
+							recordSeparator = "\r";
+							break;
+
+						case "LF":
+							recordSeparator = "\n";
+							break;
+
+						case "TAB":
+							recordSeparator = "\t";
+							break;
+					}
+
+					sources[0] = File.getFirstLines(thisFile, 1).getLine();
+					sources[1] = delimiter;
+					sources[2] = quoteChar;
+					sources[3] = recordSeparator;
+
+					map.put("headers", func.apply(new ActionContext(thisFile.getSecurityContext()), null, sources));
+
+				} catch (UnlicensedException ex) {
+
+					logger.warn("CSV module is not available.");
+				}
+			}
+
+			return map;
+
+		} else {
+
+			throw new FrameworkException(400, "File format is not CSV");
+		}
+	}
+
+	static void doCSVImport(final File thisFile, final Map<String, Object> parameters) throws FrameworkException {
+
+		CSVFileImportJob job = new CSVFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), parameters);
+		JobQueueManager.getInstance().addJob(job);
+
+	}
+
+	static String getXMLStructure(final File thisFile) throws FrameworkException {
+
+		final String contentType = thisFile.getContentType();
+
+		if ("text/xml".equals(contentType) || "application/xml".equals(contentType)) {
+
+			try (final Reader input = new InputStreamReader(thisFile.getInputStream())) {
+
+				final XMLStructureAnalyzer analyzer = new XMLStructureAnalyzer(input);
+				final Gson gson                     = new GsonBuilder().setPrettyPrinting().create();
+
+				return gson.toJson(analyzer.getStructure(100));
+
+			} catch (XMLStreamException | IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	static void doXMLImport(final File thisFile, final Map<String, Object> config) throws FrameworkException {
+
+		XMLFileImportJob job = new XMLFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), config);
+		JobQueueManager.getInstance().addJob(job);
+
+	}
+
+	/**
+	 * Returns the Folder entity for the current working directory,
+	 * or the user's home directory as a fallback.
+	 * @return
+	 */
+	static Folder getCurrentWorkingDir(final File thisFile) {
+
+		final Principal _owner  = thisFile.getProperty(owner);
+		Folder workingOrHomeDir = null;
+
+		if (_owner != null && _owner instanceof User) {
+
+			final User user = (User)_owner;
+
+			workingOrHomeDir = user.getWorkingDirectory();
+			if (workingOrHomeDir == null) {
+
+				workingOrHomeDir = user.getHomeDirectory();
+			}
+		}
+
+		return workingOrHomeDir;
+	}
+
+	static int getNumberOrDefault(final Map<String, Object> data, final String key, final int defaultValue) {
+
+		final Object value = data.get(key);
+
+		if (value != null) {
+
+			// try number
+			if (value instanceof Number) {
+				return ((Number)value).intValue();
+			}
+
+			// try string
+			if (value instanceof String) {
+				try { return Integer.valueOf((String)value); } catch (NumberFormatException nex) {}
+			}
+		}
+
+		return defaultValue;
+	}
+
+	static LineAndSeparator getFirstLines(final File thisFile, final int num) {
+
+		final StringBuilder lines = new StringBuilder();
+		int separator[]           = new int[10];
+		int separatorLength       = 0;
+
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
+
+			int[] buf = new int[10010];
+
+			int ch          = reader.read();
+			int i           = 0;
+			int l           = 0;
+
+			// break on file end or if max char or line count is reached
+			while (ch != -1 && i < 10000 && l < num) {
+
+				switch (ch) {
+
+					// CR
+					case 13:
+
+						// take only first line ending separator into account
+						if (separator.length < 1) {
+
+							// collect first separator char
+							separator[separatorLength++] = ch;
+						}
+
+						// check next char only in case of CR
+						ch = reader.read();
+
+						// next char is LF ?
+						if (ch == 10) {
+
+							// CR + LF as line ending, collect second separator char
+							separator[separatorLength++] = ch;
+
+						} else {
+
+							// CR only - do nothing
+						}
+
+						// append LF as line ending for display purposes
+						buf[i++] = '\n';
+
+						// add line to output
+						lines.append(new String(buf, 0, i));
+
+						// reset buffer
+						buf = new int[10010];
+						i=0;
+						l++;
+
+						break;
+
+					// LF
+					case 10:
+
+						// take only first line ending separator into account
+						if (separator.length < 1) {
+
+							// collect first separator char
+							separator[separatorLength++] = ch;
+						}
+
+						// must be LF only because two LF have to be ignored as empty line
+						buf[i++] = '\n';
+
+						// add line to output
+						lines.append(new String(buf, 0, i));
+
+						// reset buffer
+						buf = new int[10010];
+						i=0;
+						l++;
+
+						break;
+
+					default:
+
+						// no CR, no LF: Just add char
+						buf[i++] = ch;
+						break;
+				}
+
+				ch = reader.read();
+			}
+
+			lines.append(new String(buf, 0, i));
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
+	}
+
+	// ----- interface JavaScriptSource -----
+	static String getJavascriptLibraryCode(final File thisFile) {
+
+		try (final InputStream is = thisFile.getInputStream()) {
+
+			return IOUtils.toString(new InputStreamReader(is));
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+
+		return null;
+	}
+
+	// ----- CMIS support -----
+	static boolean isImmutable(final File thisFile) {
+
+		final Principal _owner = thisFile.getOwnerNode();
+		if (_owner != null) {
+
+			return !_owner.isGranted(Permission.write, thisFile.getSecurityContext());
+		}
+
+		return true;
+	}
+
+	// ----- interface Favoritable -----
+	static String getFavoriteContent(final File thisFile) {
+
+		try (final InputStream is = thisFile.getInputStream()) {
+
+			return IOUtils.toString(is, "utf-8");
+
+		} catch (IOException ioex) {
+			logger.warn("Unable to get favorite content from {}: {}", thisFile, ioex.getMessage());
+		}
+
+		return null;
+	}
+
+	static void setFavoriteContent(final File thisFile, final String content) throws FrameworkException {
+
+		try (final OutputStream os = thisFile.getOutputStream(true, false)) {
+
+			IOUtils.write(content, os, Charset.defaultCharset());
+			os.flush();
+
+		} catch (IOException ioex) {
+			logger.warn("Unable to set favorite content from {}: {}", thisFile, ioex.getMessage());
+		}
+	}
+
+	class LineAndSeparator {
+
+		private String line      = null;
+		private String separator = null;
+
+		public LineAndSeparator(final String line, final String separator) {
+			this.line      = line;
+			this.separator = separator;
+		}
+
+		public String getLine() {
+			return line;
+		}
+
+		public String getSeparator() {
+			return separator;
+		}
+	}
+}

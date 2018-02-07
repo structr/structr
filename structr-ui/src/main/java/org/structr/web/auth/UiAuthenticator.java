@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,10 +48,7 @@ import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class UiAuthenticator implements Authenticator {
@@ -200,7 +197,7 @@ public class UiAuthenticator implements Authenticator {
 		final boolean validUser             = (user != null);
 
 		// super user is always authenticated
-		if (validUser && (user instanceof SuperUser || user.getProperty(Principal.isAdmin))) {
+		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
 			return;
 		}
 
@@ -310,11 +307,14 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
-		final Principal user = AuthHelper.getPrincipalForPassword(Principal.eMail, emailOrUsername, password);
+		final PropertyKey<String> confKey  = StructrApp.key(User.class, "confirmationKey");
+		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
+
 		if  (user != null) {
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
-			if (user.getProperty(User.confirmationKey) != null && !allowLoginBeforeConfirmation) {
+			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
 				logger.warn("Login as {} not allowed before confirmation.", user);
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
@@ -339,7 +339,7 @@ public class UiAuthenticator implements Authenticator {
 			final HttpSession session = request.getSession(false);
 			if (session != null) {
 
-				session.invalidate();
+				SessionHelper.invalidateSession(session);
 			}
 
 		} catch (IllegalStateException | FrameworkException ex) {
@@ -494,7 +494,6 @@ public class UiAuthenticator implements Authenticator {
 			if (session != null) {
 
 				user = AuthHelper.getPrincipalForSessionId(session.getId());
-
 			}
 		}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,10 +92,10 @@ public class XMPPContext {
 
 					for (final XMPPClient client : app.nodeQuery(XMPPClient.class).getAsList()) {
 
-						client.setProperty(XMPPClient.isConnected, false);
+						client.setIsConnected(false);
 
 						// enable clients on startup
-						if (client.getProperty(XMPPClient.isEnabled)) {
+						if (client.getIsEnabled()) {
 							XMPPContext.connect(client);
 						}
 					}

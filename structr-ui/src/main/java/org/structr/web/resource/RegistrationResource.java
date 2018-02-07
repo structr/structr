@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,12 +55,8 @@ import org.structr.rest.resource.Resource;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * A resource to register new users
- *
- *
+ * A resource to register new users.
  */
 public class RegistrationResource extends Resource {
 
@@ -107,26 +103,24 @@ public class RegistrationResource extends Resource {
 
 		boolean existingUser = false;
 
-		if (propertySet.containsKey(User.eMail.jsonName())) {
+		if (propertySet.containsKey("eMail")) {
 
-			final Principal user;
-
-			final String emailString  = (String) propertySet.get(User.eMail.jsonName());
+			final PropertyKey<String> confKeyKey = StructrApp.key(User.class, "confirmationKey");
+			final PropertyKey<String> eMailKey   = StructrApp.key(User.class, "eMail");
+			final String emailString             = (String) propertySet.get("eMail");
 
 			if (StringUtils.isEmpty(emailString)) {
 				return new RestMethodResult(HttpServletResponse.SC_BAD_REQUEST);
 			}
 
-			final String localeString = (String) propertySet.get(MailTemplate.locale.jsonName());
+			final String localeString = (String) propertySet.get("locale");
 			final String confKey      = UUID.randomUUID().toString();
 
-			final Result result = StructrApp.getInstance().nodeQuery(User.class).and(User.eMail, emailString).getResult();
-			if (!result.isEmpty()) {
-
-				user = (Principal) result.get(0);
+			Principal user = StructrApp.getInstance().nodeQuery(User.class).and(eMailKey, emailString).getFirst();
+			if (user != null) {
 
 				// For existing users, update confirmation key
-				user.setProperties(securityContext, new PropertyMap(User.confirmationKey, confKey));
+				user.setProperty(confKeyKey, confKey);
 
 				existingUser = true;
 
@@ -134,7 +128,7 @@ public class RegistrationResource extends Resource {
 			} else {
 
 				final Authenticator auth = securityContext.getAuthenticator();
-				user = createUser(securityContext, User.eMail, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
+				user = createUser(securityContext, eMailKey, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
 			}
 
 			if (user != null) {
@@ -191,17 +185,18 @@ public class RegistrationResource extends Resource {
 
 	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) {
 
-		Map<String, String> replacementMap = new HashMap();
+		final PropertyKey<String> eMailKey       = StructrApp.key(User.class, "eMail");
+		final Map<String, String> replacementMap = new HashMap();
 
 		// Populate the replacement map with all POSTed values
 		// WARNING! This is unchecked user input!!
 		populateReplacementMap(replacementMap, propertySetFromUserPOST);
 
-		final String userEmail = user.getProperty(User.eMail);
+		final String userEmail = user.getProperty(eMailKey);
 		final String appHost   = Settings.ApplicationHost.getValue();
 		final Integer httpPort = Settings.HttpPort.getValue();
 
-		replacementMap.put(toPlaceholder(User.eMail.jsonName()), userEmail);
+		replacementMap.put(toPlaceholder("eMail"), userEmail);
 		replacementMap.put(toPlaceholder("link"),
 			getTemplateText(TemplateKey.BASE_URL, "http://" + appHost + ":" + httpPort, localeString)
 			      + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
@@ -241,13 +236,13 @@ public class RegistrationResource extends Resource {
 			final Query<MailTemplate> query = StructrApp.getInstance().nodeQuery(MailTemplate.class).andName(key.name());
 
 			if (localeString != null) {
-				query.and(MailTemplate.locale, localeString);
+				query.and("locale", localeString);
 			}
 
 			MailTemplate template = query.getFirst();
 			if (template != null) {
 
-				final String text = template.getProperty(MailTemplate.text);
+				final String text = template.getProperty("text");
 				return text != null ? text : defaultValue;
 
 			} else {
@@ -389,6 +384,7 @@ public class RegistrationResource extends Resource {
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) {
 
+		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
 		Principal user = null;
 
 		try {
@@ -405,7 +401,7 @@ public class RegistrationResource extends Resource {
 
 				final PropertyMap changedProperties = new PropertyMap();
 				changedProperties.put(AbstractNode.type, User.class.getSimpleName());
-				changedProperties.put(User.confirmationKey, confKey);
+				changedProperties.put(confirmationKeyKey, confKey);
 				user.setProperties(securityContext, changedProperties);
 
 			} else if (autoCreate) {
@@ -414,13 +410,13 @@ public class RegistrationResource extends Resource {
 
 				// Clear properties set by us from the user-defined props
 				propertySet.remove(credentialKey.jsonName());
-				propertySet.remove(User.confirmationKey.jsonName());
+				propertySet.remove("confirmationKey");
 
 				PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, Principal.class, propertySet);
 
 				// Remove any property which is not included in configuration
 				// eMail is mandatory and necessary
-				final String customAttributesString = User.eMail.jsonName() + "," + Settings.RegistrationCustomAttributes.getValue();
+				final String customAttributesString = "eMail" + "," + Settings.RegistrationCustomAttributes.getValue();
 				final List<String> customAttributes = Arrays.asList(customAttributesString.split("[ ,]+"));
 
 				final Set<PropertyKey> propsToRemove = new HashSet<>();
@@ -435,13 +431,7 @@ public class RegistrationResource extends Resource {
 				}
 
 				props.put(credentialKey, credentialValue);
-				props.put(User.confirmationKey, confKey);
-
-//				// Remove security-relevant properties
-//				props.remove(Principal.isAdmin);
-//				props.remove(Principal.ownedNodes);
-//				props.remove(Principal.salt);
-//				props.remove(Principal.sessionIds);
+				props.put(confirmationKeyKey, confKey);
 
 				user = (Principal) app.create(userClass, props);
 

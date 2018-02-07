@@ -4,10 +4,10 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>2.3-SNAPSHOT</version>
+		<version>3.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-neo4j-bolt-driver</artifactId>
-	<version>2.3-SNAPSHOT</version>
+	<version>3.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -103,7 +103,7 @@
 						<exclude>src/**/*.properties</exclude>
 					</excludes>
 					<properties>
-						<year>2017</year>
+						<year>2018</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
@@ -216,7 +216,7 @@
 			<name>GNU General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2017 Structr GmbH
+				Copyright (C) 2010-2018 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

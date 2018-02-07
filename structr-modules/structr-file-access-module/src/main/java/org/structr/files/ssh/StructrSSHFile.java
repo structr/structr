@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,7 +39,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -147,7 +147,7 @@ public class StructrSSHFile implements Path {
 					}
 				}
 
-				for (final FileBase file : getFiles()) {
+				for (final File file : getFiles()) {
 
 					final String fileName = file.getName();
 					if (localPart.equals(fileName)) {
@@ -180,27 +180,27 @@ public class StructrSSHFile implements Path {
 		return this;
 	}
 
-	protected List<Folder> getFolders() throws FrameworkException {
+	protected Iterable<Folder> getFolders() throws FrameworkException {
 
-		if (actualFile != null && parent != null) {
+		if (actualFile != null && parent != null && actualFile instanceof Folder) {
 
-			return actualFile.getProperty(Folder.folders);
+			return ((Folder)actualFile).getFolders();
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(Folder.class).and(AbstractFile.parent, null).getAsList();
+			return StructrApp.getInstance(getSecurityContext()).nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
 		}
 	}
 
-	protected List<FileBase> getFiles() throws FrameworkException {
+	protected Iterable<File> getFiles() throws FrameworkException {
 
-		if (actualFile != null && parent != null) {
+		if (actualFile != null && parent != null && actualFile instanceof Folder) {
 
-			return actualFile.getProperty(Folder.files);
+			return ((Folder)actualFile).getFiles();
 
 		} else {
 
-			return StructrApp.getInstance(getSecurityContext()).nodeQuery(FileBase.class).and(AbstractFile.parent, null).getAsList();
+			return StructrApp.getInstance(getSecurityContext()).nodeQuery(File.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList();
 		}
 	}
 
@@ -335,7 +335,7 @@ public class StructrSSHFile implements Path {
 		pathElements.add(this);
 
 		while (_parent != null) {
-			
+
 			pathElements.add(_parent);
 			_parent = _parent.getParent();
 		}

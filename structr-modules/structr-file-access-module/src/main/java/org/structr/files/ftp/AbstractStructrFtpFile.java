@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,13 +29,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.User;
 
 /**
  *
@@ -74,7 +74,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			String path = structrFile.getFolderPath();
+			String path = structrFile.getPath();
 
 			tx.success();
 
@@ -101,7 +101,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			} else {
 
 				if (structrFile != null) {
-					name = structrFile.getProperty(FileBase.name);
+					name = structrFile.getProperty(File.name);
 				}
 			}
 
@@ -127,7 +127,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final boolean hidden = structrFile.getProperty(FileBase.hidden);
+			final boolean hidden = structrFile.getProperty(File.hidden);
 
 			tx.success();
 
@@ -170,7 +170,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			String name = "";
 
 			if (owner != null) {
-				name = owner.getProperty(AbstractUser.name);
+				name = owner.getProperty(User.name);
 			}
 
 			tx.success();
@@ -288,12 +288,12 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 					if (newParent != null && newParent instanceof Folder) {
 
 						Folder newParentFolder = (Folder) newParent;
-						structrFile.setProperty(AbstractFile.parent, newParentFolder);
+						structrFile.setParent(newParentFolder);
 
 					} else {
 
 						// Move to /
-						structrFile.setProperty(AbstractFile.parent, null);
+						structrFile.setParent(null);
 
 					}
 
@@ -324,7 +324,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			Principal owner = structrFile.getProperty(FileBase.owner);
+			Principal owner = structrFile.getProperty(File.owner);
 
 			tx.success();
 

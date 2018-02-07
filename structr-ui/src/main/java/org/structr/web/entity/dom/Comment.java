@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,35 +18,34 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
+import java.net.URI;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.RenderContext;
 
 /**
  *
- *
  */
-public class Comment extends Content implements org.w3c.dom.Comment, NonIndexed {
+public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	static class Impl { static {
 
-		if (super.isValid(errorBuffer)) {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Comment");
 
-			setProperties(securityContext, new PropertyMap(Comment.contentType, "text/html"));
-			return true;
-		}
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Comment"));
+		type.setExtends(URI.create("#/definitions/Content"));
 
-		return false;
-	}
+		type.overrideMethod("onCreation", true,  "setProperty(contentTypeProperty, \"text/html\");");
+		type.overrideMethod("render",     false, Comment.class.getName() + ".render(this, arg0, arg1);");
+	}}
 
-	@Override
-	public void render(RenderContext renderContext, int depth) throws FrameworkException {
+	static void render(final Comment comment, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		final String _content = getProperty(content);
+		final String _content = comment.getContent();
 
 		// Avoid rendering existing @structr comments since those comments are
 		// created depending on the visiblity settings of individual nodes. If

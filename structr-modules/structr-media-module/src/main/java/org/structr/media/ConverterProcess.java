@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -126,7 +126,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 					FileHelper.updateMetadata(newFile);
 
 					// create link between the two videos
-					newFile.setProperty(VideoFile.originalVideo, inputFile);
+					newFile.setProperty(StructrApp.key(VideoFile.class, "originalVideo"), inputFile);
 				}
 
 				tx.success();

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,7 @@ import static org.structr.rest.common.StructrRestTest.sleep;
 
 /**
  * Use this test to execute tests with activated Cypher indexes.
- * 
+ *
  * Updates index configuration upon startup and waits for 10 s afterwards
  */
 
@@ -39,9 +39,9 @@ public class IndexingTest extends StructrRestTest {
 
 	@BeforeClass
 	public static void start() {
-		
+
 		Services.enableUpdateIndexConfiguration();
-		
+
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
 
@@ -82,8 +82,7 @@ public class IndexingTest extends StructrRestTest {
 		securityContext = SecurityContext.getSuperUserInstance();
 		app             = StructrApp.getInstance(securityContext);
 
-		sleep(10000L);		
-		
-	}	
-	
+		sleep(10000L);
+	}
+
 }

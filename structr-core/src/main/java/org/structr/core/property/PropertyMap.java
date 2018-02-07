@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -342,29 +342,32 @@ public class PropertyMap {
 
 				if (key != null) {
 
-					PropertyKey propertyKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
-					PropertyConverter converter = propertyKey.inputConverter(securityContext);
+					final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
+					if (propertyKey != null) {
 
-					if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
+						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
-						try {
+						if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
 
-							// test
-							converter.setContext(source);
+							try {
 
-							Object propertyValue = converter.convert(value);
-							resultMap.put(propertyKey, propertyValue);
+								// test
+								converter.setContext(source);
 
-						} catch (ClassCastException cce) {
+								Object propertyValue = converter.convert(value);
+								resultMap.put(propertyKey, propertyValue);
 
-							logger.warn("", cce);
+							} catch (ClassCastException cce) {
 
-							throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
+								logger.warn("", cce);
+
+								throw new FrameworkException(422, "Invalid JSON input for key " + propertyKey.jsonName() + ", expected a JSON " + propertyKey.typeName() + ".");
+							}
+
+						} else {
+
+							resultMap.put(propertyKey, value);
 						}
-
-					} else {
-
-						resultMap.put(propertyKey, value);
 					}
 				}
 			}
@@ -448,7 +451,7 @@ public class PropertyMap {
 				key = CMIS_PROPERTY_MAPPING.get(key);
 			}
 
-			final PropertyKey propertyKey = config.getPropertyKeyForJSONName(type, key, false);
+			final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, key);
 			if (propertyKey != null) {
 
 				final PropertyConverter converter = propertyKey.inputConverter(securityContext);

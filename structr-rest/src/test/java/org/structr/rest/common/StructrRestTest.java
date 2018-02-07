@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +37,7 @@ import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.AfterClass;
+import static org.junit.Assert.fail;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -51,26 +53,23 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.entity.TestOne;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
- * Base class for all structr tests
- *
- * All tests are executed in superuser context
- *
- *
+ * Base class for all structr tests.
+ * All tests are executed in superuser context.
  */
 public class StructrRestTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrRestTest.class.getName());
-
-	//~--- fields ---------------------------------------------------------
 
 	protected static SecurityContext securityContext = null;
 	protected static App app                         = null;
@@ -87,6 +86,9 @@ public class StructrRestTest {
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI = "http://" + host + ":" + httpPort;
 		RestAssured.port = httpPort;
+
+		// make Favoritable initialize first?
+		Favoritable.class.getName();
 	}
 
 	@Rule
@@ -291,8 +293,6 @@ public class StructrRestTest {
 		} catch (InterruptedException ex) {}
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	/**
 	 * Get classes in given package and subpackages, accessible from the context class loader
 	 *
@@ -384,6 +384,8 @@ public class StructrRestTest {
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 
+		//Settings.LogSchemaOutput.setValue(true);
+
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
@@ -394,7 +396,10 @@ public class StructrRestTest {
 
 		securityContext = SecurityContext.getSuperUserInstance();
 		app             = StructrApp.getInstance(securityContext);
-		
+
+		// sleep again to wait for schema initialization
+		try { Thread.sleep(2000); } catch (Throwable t) {}
+
 	}
 
 
@@ -431,5 +436,27 @@ public class StructrRestTest {
 		}
 
 		return map;
+	}
+
+	protected Class createTestUserType() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("TestUser");
+
+			type.setExtends(URI.create("#/definitions/Principal"));
+			type.overrideMethod("onCreate", true, "setProperty(name, \"test\" + System.currentTimeMillis());");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		return StructrApp.getConfiguration().getNodeEntityClass("TestUser");
 	}
 }

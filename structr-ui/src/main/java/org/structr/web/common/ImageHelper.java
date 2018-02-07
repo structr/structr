@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,7 @@ import java.awt.image.ColorModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import javax.imageio.ImageIO;
 import javax.imageio.stream.ImageInputStream;
 import net.coobird.thumbnailator.Thumbnails;
@@ -50,11 +51,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.util.Base64;
-import static org.structr.web.common.FileHelper.setFileData;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
 
@@ -81,7 +82,7 @@ public abstract class ImageHelper extends FileHelper {
 		final PropertyMap props = new PropertyMap();
 
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
-		props.put(Image.isThumbnail, markAsThumbnail);
+		props.put(StructrApp.key(Image.class, "isThumbnail"), markAsThumbnail);
 		props.put(AbstractNode.name, name);
 
 		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
@@ -110,7 +111,7 @@ public abstract class ImageHelper extends FileHelper {
 		final PropertyMap props = new PropertyMap();
 
 		props.put(AbstractNode.type, imageType == null ? Image.class.getSimpleName() : imageType.getSimpleName());
-		props.put(Image.isThumbnail, markAsThumbnail);
+		props.put(StructrApp.key(Image.class, "isThumbnail"), markAsThumbnail);
 		props.put(AbstractNode.name, name);
 
 		final Image newImage = StructrApp.getInstance(securityContext).create(imageType, props);
@@ -141,17 +142,25 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectThumbnails(final Image originalImage) {
 
-		final App app = StructrApp.getInstance();
+		final Class<Relation> thumbnailRel  = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final PropertyKey<Image> tnSmallKey = StructrApp.key(Image.class, "tnSmall");
+		final PropertyKey<Image> tnMidKey   = StructrApp.key(Image.class, "tnMid");
+		final PropertyKey<String> pathKey   = StructrApp.key(Image.class, "path");
+		final App app                       = StructrApp.getInstance();
 
 		final Integer origWidth  = originalImage.getWidth();
 		final Integer origHeight = originalImage.getHeight();
 
 		if (origWidth == null || origHeight == null) {
-			logger.info("Could not determine width and heigth for {}", originalImage.getName());
+
+			if (!Arrays.asList("image/svg+xml", "image/x-icon", "image/x-photoshop").contains(originalImage.getContentType())) {
+				logger.info("Could not determine width and heigth for {}", originalImage.getName());
+			}
+
 			return;
 		}
 
-		for (ThumbnailProperty tnProp : new ThumbnailProperty[]{ (ThumbnailProperty) Image.tnSmall, (ThumbnailProperty) Image.tnMid }) {
+		for (ThumbnailProperty tnProp : new ThumbnailProperty[]{ (ThumbnailProperty) tnSmallKey, (ThumbnailProperty) tnMidKey }) {
 
 			int maxWidth  = tnProp.getWidth();
 			int maxHeight = tnProp.getHeight();
@@ -165,10 +174,10 @@ public abstract class ImageHelper extends FileHelper {
 
 			try {
 
-				final Image thumbnail = (Image) app.nodeQuery(Image.class).and(Image.path, PathHelper.getFolderPath(originalImage.getProperty(Image.path)) + PathHelper.PATH_SEP + tnName).getFirst();
+				final Image thumbnail = (Image) app.nodeQuery(Image.class).and(pathKey, PathHelper.getFolderPath(originalImage.getProperty(pathKey)) + PathHelper.PATH_SEP + tnName).getFirst();
 
 				if (thumbnail != null) {
-					app.create(originalImage, thumbnail, org.structr.web.entity.relation.Thumbnails.class);
+					app.create(originalImage, thumbnail, thumbnailRel);
 				}
 
 			} catch (FrameworkException ex) {
@@ -180,20 +189,23 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static void findAndReconnectOriginalImage(final Image thumbnail) {
 
-		final String originalImageName = thumbnail.getOriginalImageName();
+		final Class<Relation> thumbnailRel = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final PropertyKey<String> pathKey  = StructrApp.key(Image.class, "path");
+		final String originalImageName     = thumbnail.getOriginalImageName();
+
 		try {
 
 			final App app = StructrApp.getInstance();
-			final Image originalImage = (Image) app.nodeQuery(Image.class).and(Image.path, PathHelper.getFolderPath(thumbnail.getProperty(Image.path)) + PathHelper.PATH_SEP + originalImageName).getFirst();
+			final Image originalImage = (Image) app.nodeQuery(Image.class).and(pathKey, PathHelper.getFolderPath(thumbnail.getProperty(pathKey)) + PathHelper.PATH_SEP + originalImageName).getFirst();
 
 			if (originalImage != null) {
 
 				final PropertyMap relProperties = new PropertyMap();
-				relProperties.put(Image.width,                  thumbnail.getWidth());
-				relProperties.put(Image.height,                 thumbnail.getHeight());
-				relProperties.put(Image.checksum,               originalImage.getChecksum());
+				relProperties.put(StructrApp.key(Image.class, "width"),                  thumbnail.getWidth());
+				relProperties.put(StructrApp.key(Image.class, "height"),                 thumbnail.getHeight());
+				relProperties.put(StructrApp.key(Image.class, "checksum"),               originalImage.getChecksum());
 
-				app.create(originalImage, thumbnail, org.structr.web.entity.relation.Thumbnails.class, relProperties);
+				app.create(originalImage, thumbnail, thumbnailRel, relProperties);
 			}
 
 		} catch (FrameworkException ex) {
@@ -260,13 +272,7 @@ public abstract class ImageHelper extends FileHelper {
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final Thumbnail tn               = new Thumbnail();
 
-		try (final InputStream in = originalImage.getInputStream()) {
-
-			if (in == null || in.available() <= 0) {
-
-				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getId(), in != null ? in.available() : -1 });
-				return null;
-			}
+		try {
 
 			final long start = System.nanoTime();
 			BufferedImage source = getRotatedImage(originalImage);
@@ -278,8 +284,8 @@ public abstract class ImageHelper extends FileHelper {
 
 				// Update image dimensions
 				final PropertyMap properties = new PropertyMap();
-				properties.put(Image.width, sourceWidth);
-				properties.put(Image.height, sourceHeight);
+				properties.put(StructrApp.key(Image.class, "width"), sourceWidth);
+				properties.put(StructrApp.key(Image.class, "height"), sourceHeight);
 				originalImage.setProperties(originalImage.getSecurityContext(), properties);
 
 				// float aspectRatio = sourceWidth/sourceHeight;
@@ -383,11 +389,9 @@ public abstract class ImageHelper extends FileHelper {
 
 				// Update image dimensions
 				final PropertyMap properties = new PropertyMap();
-				properties.put(Image.width, sourceWidth);
-				properties.put(Image.height, sourceHeight);
+				properties.put(StructrApp.key(Image.class, "width"), sourceWidth);
+				properties.put(StructrApp.key(Image.class, "height"), sourceHeight);
 				originalImage.setProperties(originalImage.getSecurityContext(), properties);
-
-				BufferedImage result    = null;
 
 				final int offsetX = reqOffsetX != null ? reqOffsetX : 0;
 				final int offsetY = reqOffsetY != null ? reqOffsetY : 0;
@@ -408,9 +412,7 @@ public abstract class ImageHelper extends FileHelper {
 			} else {
 
 				logger.debug("Cropped image could not be created");
-
 				return null;
-
 			}
 
 			final long end  = System.nanoTime();
@@ -430,12 +432,12 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	public static BufferedImage getRotatedImage(final FileBase originalImage) {
+	public static BufferedImage getRotatedImage(final File originalImage) {
 
 		try {
 
+			// no need for try-with-resources for the below InputStream because ImageIO.read() closes its input stream
 			final ImageInputStream in = ImageIO.createImageInputStream(originalImage.getInputStream());
-
 			final int           orientation = getOrientation(originalImage);
 			final BufferedImage source      = ImageIO.read(in);
 
@@ -568,7 +570,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param image the image
 	 * @throws FrameworkException
 	 */
-	public static void updateMetadata(final FileBase image) throws FrameworkException {
+	public static void updateMetadata(final File image) throws FrameworkException {
 
 		updateMetadata(image, image.getInputStream());
 	}
@@ -580,11 +582,11 @@ public abstract class ImageHelper extends FileHelper {
 	 * @param fis file input stream
 	 * @throws FrameworkException
 	 */
-	public static void updateMetadata(final FileBase image, final InputStream fis) throws FrameworkException {
+	public static void updateMetadata(final File image, final InputStream fis) throws FrameworkException {
 
-		try {
-			final BufferedImage source = ImageIO.read(fis);
+		try (final InputStream is = fis) {
 
+			final BufferedImage source = ImageIO.read(is);
 			if (source != null) {
 
 				final int sourceWidth  = source.getWidth();
@@ -592,9 +594,9 @@ public abstract class ImageHelper extends FileHelper {
 
 				final PropertyMap map = new PropertyMap();
 
-				map.put(Image.width, sourceWidth);
-				map.put(Image.height, sourceHeight);
-				map.put(Image.orientation, ImageHelper.getOrientation(image));
+				map.put(StructrApp.key(Image.class, "width"),       sourceWidth);
+				map.put(StructrApp.key(Image.class, "height"),      sourceHeight);
+				map.put(StructrApp.key(Image.class, "orientation"), ImageHelper.getOrientation(image));
 
 				image.setProperties(image.getSecurityContext(), map);
 
@@ -627,8 +629,7 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static String getBase64String(final File file) {
 
-		try {
-			final InputStream dataStream = file.getInputStream();
+		try (final InputStream dataStream = file.getInputStream()) {
 
 			if (dataStream != null) {
 				return Base64.encodeToString(IOUtils.toByteArray(file.getInputStream()), false);
@@ -722,13 +723,11 @@ public abstract class ImageHelper extends FileHelper {
 		return false;
 	}
 
-	private static Metadata getMetadata(final FileBase originalImage) {
+	private static Metadata getMetadata(final File originalImage) {
 
 		Metadata metadata = new Metadata();
 
-		try {
-
-			final InputStream in = originalImage.getInputStream();
+		try (final InputStream in = originalImage.getInputStream()) {
 
 			if (in != null && in.available() > 0) {
 
@@ -742,7 +741,7 @@ public abstract class ImageHelper extends FileHelper {
 		return metadata;
 	}
 
-	public static int getOrientation(final FileBase originalImage) {
+	public static int getOrientation(final File originalImage) {
 
 		try {
 
@@ -751,7 +750,7 @@ public abstract class ImageHelper extends FileHelper {
 			if (exifIFD0Directory != null && exifIFD0Directory.hasTagName(ExifIFD0Directory.TAG_ORIENTATION)) {
 
 				final Integer orientation = exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-				originalImage.setProperty(Image.orientation, orientation);
+				originalImage.setProperty(StructrApp.key(Image.class, "orientation"), orientation);
 
 				return orientation;
 			}
@@ -763,7 +762,7 @@ public abstract class ImageHelper extends FileHelper {
 		return 1;
 	}
 
-	public static JSONObject getExifData(final FileBase originalImage) {
+	public static JSONObject getExifData(final File originalImage) {
 
 		final JSONObject exifDataJson = new JSONObject();
 
@@ -784,8 +783,8 @@ public abstract class ImageHelper extends FileHelper {
 					exifIFD0DataJson.put(tag.getTagName(), exifIFD0Directory.getDescription(tag.getTagType()));
 				});
 
-				originalImage.setProperty(Image.exifIFD0Data, exifIFD0DataJson.toString());
-				exifDataJson.putOnce(Image.exifIFD0Data.jsonName(), exifIFD0DataJson);
+				originalImage.setProperty(StructrApp.key(Image.class, "exifIFD0Data"), exifIFD0DataJson.toString());
+				exifDataJson.putOnce("exifIFD0Data", exifIFD0DataJson);
 			}
 
 			if (exifSubIFDDirectory != null) {
@@ -796,8 +795,8 @@ public abstract class ImageHelper extends FileHelper {
 					exifSubIFDDataJson.put(tag.getTagName(), exifSubIFDDirectory.getDescription(tag.getTagType()));
 				});
 
-				originalImage.setProperty(Image.exifSubIFDData, exifSubIFDDataJson.toString());
-				exifDataJson.putOnce(Image.exifSubIFDData.jsonName(), exifSubIFDDataJson);
+				originalImage.setProperty(StructrApp.key(Image.class, "exifSubIFDData"), exifSubIFDDataJson.toString());
+				exifDataJson.putOnce("exifSubIFDData", exifSubIFDDataJson);
 			}
 
 			if (gpsDirectory != null) {
@@ -808,8 +807,8 @@ public abstract class ImageHelper extends FileHelper {
 					exifGpsDataJson.put(tag.getTagName(), gpsDirectory.getDescription(tag.getTagType()));
 				});
 
-				originalImage.setProperty(Image.gpsData, exifGpsDataJson.toString());
-				exifDataJson.putOnce(Image.gpsData.jsonName(), exifGpsDataJson);
+				originalImage.setProperty(StructrApp.key(Image.class, "gpsData"), exifGpsDataJson.toString());
+				exifDataJson.putOnce("gpsData", exifGpsDataJson);
 			}
 
 			return exifDataJson;
@@ -821,7 +820,7 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	public static String getExifDataString(final FileBase originalImage) {
+	public static String getExifDataString(final File originalImage) {
 		JSONObject data = getExifData(originalImage);
 		return data != null ? data.toString() : null;
 	}

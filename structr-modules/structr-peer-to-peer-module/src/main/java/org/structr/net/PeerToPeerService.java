@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -317,7 +317,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				// store data
 				for (final Entry<String, Object> entry : data.entrySet()) {
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, entry.getKey(), false);
+					final PropertyKey key = StructrApp.key(type, entry.getKey());
 					if (key != null) {
 						newNode.setProperty(app, key, entry.getValue());
 					}
@@ -499,7 +499,7 @@ public class PeerToPeerService implements RunnableService, ExternalChangeListene
 				if (node != null) {
 
 					// store data
-					final PropertyKey propertyKey = config.getPropertyKeyForJSONName(node.getClass(), key, false);
+					final PropertyKey propertyKey = StructrApp.key(node.getClass(), key);
 					if (propertyKey != null) {
 
 						node.setProperty(app, propertyKey, value);

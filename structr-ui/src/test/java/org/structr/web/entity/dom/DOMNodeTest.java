@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,17 +20,17 @@ package org.structr.web.entity.dom;
 
 import java.util.LinkedList;
 import java.util.List;
-import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.relationship.AbstractChildren;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.Tx;
 import org.structr.web.advanced.DOMTest;
-import org.structr.web.entity.dom.relationship.DOMChildren;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -48,6 +48,8 @@ public class DOMNodeTest extends DOMTest {
 	public void testAppendChild() {
 
 		try (final Tx tx = app.tx()) {
+
+			final Class domChildrenType = StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodeCONTAINSDOMNode");
 
 			Page document = (Page) getDocument();
 			assertNotNull(document);
@@ -67,18 +69,18 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(content1);
 
 			// check for correct relationship management
-			List<DOMChildren> divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
+			List<Relation> divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(1, divRels.size());
-			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
+			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(div.getPositionProperty()));
 
 			// second step
 			div.appendChild(content2);
 
 			// check for correct relationship management
-			divRels = toList(div.getOutgoingRelationships(DOMChildren.class));
+			divRels = toList(div.getOutgoingRelationships(domChildrenType));
 			assertEquals(2, divRels.size());
-			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(AbstractChildren.position));
-			assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(AbstractChildren.position));
+			assertEquals(Integer.valueOf(0), divRels.get(0).getProperty(div.getPositionProperty()));
+			assertEquals(Integer.valueOf(1), divRels.get(1).getProperty(div.getPositionProperty()));
 
 			// third step: test removal of old parent when appending an existing node
 			div.appendChild(content3);
@@ -842,5 +844,4 @@ public class DOMNodeTest extends DOMTest {
 
 		return list;
 	}
-
 }

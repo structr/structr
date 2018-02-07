@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,19 +20,14 @@ package org.structr.websocket.command;
 
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket command to create a LINK relationship between a LinkSource and a Linkable.
- *
- *
  */
 public class LinkCommand extends AbstractCommand {
 
@@ -53,22 +48,18 @@ public class LinkCommand extends AbstractCommand {
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
-				sourceNode.setProperties(sourceNode.getSecurityContext(), new PropertyMap(LinkSource.linkable, targetNode));
+				sourceNode.setLinkable(targetNode);
 
 			} catch (FrameworkException t) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
 			}
 
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("The LINK command needs id and targetId!").build(), true);
 		}
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

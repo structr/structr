@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -174,8 +174,8 @@ var _Files = {
 				+ '<button class="add_file_icon button"><i title="Add File" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '" /> Add File</button>'
 				+ '<button class="add_minified_css_file_icon button"><i title="Add Minified CSS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_css_icon) + '" />' + ' Add Minified CSS File</button>'
 				+ '<button class="add_minified_js_file_icon button"><i title="Add Minified JS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_js_icon) + '" />' + ' Add Minified JS File</button>'
-				+ '<button class="pull_file_icon button module-dependend" data-structr-module="cloud"><i title="Sync Files" class="' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /> Sync Files</button>'
 				+ '<button class="duplicate_finder button"><i title="Find duplicates" class="' + _Icons.getFullSpriteClass(_Icons.search_icon) + '" /> Find Duplicates</button>'
+				+ '<button class="mount_folder button"><i title="Mount Folder" class="' + _Icons.getFullSpriteClass(_Icons.folder_connect_icon) + '" /> Mount Folder</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {
@@ -190,11 +190,9 @@ var _Files = {
 			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
 		});
 
-		$('.pull_file_icon', main).on('click', function(e) {
-			Structr.pullDialog('File,Folder');
-		});
-
 		$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
+
+		$('.mount_folder', main).on('click', _Files.openMountDialog);
 
 		$('.add_folder_icon', main).on('click', function(e) {
 			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null });
@@ -224,7 +222,6 @@ var _Files = {
 
 					$('#root_anchor').click();
 				}
-
 			});
 		});
 
@@ -238,9 +235,7 @@ var _Files = {
 
 				_Files.setWorkingDirectory(data.node.id);
 				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
-
 			}
-
 		});
 
 		_TreeHelper.initTree(fileTree, _Files.treeInitFunction, 'structr-ui-filesystem');
@@ -455,7 +450,7 @@ var _Files = {
 		};
 
 		if (!id) {
-			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', 'id,name,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers', displayFunction);
+			Command.list('Folder', true, folderPageSize, folderPage, 'name', 'asc', 'id,name,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,isMounted', displayFunction);
 		} else {
 			Command.query('Folder', folderPageSize, folderPage, 'name', 'asc', {parent: id}, displayFunction, true);
 		}
@@ -490,6 +485,7 @@ var _Files = {
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		var handleChildren = function(children) {
+			console.warn(children);
 			if (children && children.length) {
 				children.forEach(_Files.appendFileOrFolder);
 			}
@@ -507,7 +503,6 @@ var _Files = {
 
 				folderContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
 					+ '<tbody id="files-table-body"></tbody></table>');
-
 			}
 
 			$.ajax({
@@ -524,13 +519,13 @@ var _Files = {
 			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
 
 			if (isRootFolder) {
-				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,type,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,owner', handleChildren);
+				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,type,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,owner,isMounted', handleChildren);
 			} else {
 				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
 			}
 
-			_Pager.initPager('filesystem-files', 'FileBase', 1, 25, 'name', 'asc');
-			page['FileBase'] = 1;
+			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
+			page['File'] = 1;
 
 			var filterOptions = {
 				parentId: (parentIsRoot ? '' : id),
@@ -541,9 +536,9 @@ var _Files = {
 				filterOptions.isThumbnail = false;
 			}
 
-			_Pager.initFilters('filesystem-files', 'FileBase', filterOptions);
+			_Pager.initFilters('filesystem-files', 'File', filterOptions);
 
-			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'FileBase', 'public', handleChildren);
+			var filesPager = _Pager.addPager('filesystem-files', folderContents, false, 'File', 'public', handleChildren);
 
 			filesPager.cleanupFunction = function () {
 				var toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -583,7 +578,6 @@ var _Files = {
 				}
 			});
 		}
-
 	},
 	insertBreadCrumbNavigation: function(parents, nodePath) {
 
@@ -608,26 +602,14 @@ var _Files = {
 				$('#' + $(this).data('folderId') + '_anchor').click();
 
 			});
-
 		}
-
 	},
 	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
 
 		folderContents.prepend('<div id="switches">'
-
-			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">'
-			+ (_Files.isViewModeActive('list') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '')
-			+ ' List</button>'
-
-			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">'
-			+ (_Files.isViewModeActive('tiles') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '')
-			+ ' Tiles</button>'
-
-			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">'
-			+ (_Files.isViewModeActive('img') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '')
-			+ ' Images</button>'
-
+			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + '" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' List</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + '" id="switch-tiles" data-view-mode="tiles">'	+ (_Files.isViewModeActive('tiles') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' Tiles</button>'
+			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + '" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? '<i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />' : '') + ' Images</button>'
 			+ '</div>');
 
 		var listSw  = $('#switch-list');
@@ -651,7 +633,6 @@ var _Files = {
 		listSw.on('click', layoutSwitchFunction);
 		tilesSw.on('click', layoutSwitchFunction);
 		imgSw.on('click', layoutSwitchFunction);
-
 	},
 	fileOrFolderCreationNotification: function (newFileOrFolder) {
 		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
@@ -683,7 +664,8 @@ var _Files = {
 			var row = $('#' + rowId);
 
 			if (d.isFolder) {
-				row.append('<td class="file-type"><i class="fa ' + icon + '"></i></td>');
+				var icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
+				row.append('<td class="file-type">' + icon_element + '</td>');
 				row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 200) + '</b> <span class="id">' + d.id + '</span></div></td>');
 			} else {
 				row.append('<td class="file-type"><a href="' + d.path + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
@@ -705,7 +687,10 @@ var _Files = {
 			var tile = $('#' + tileId);
 
 			if (d.isFolder) {
-				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type"><i class="fa ' + icon + '"></i></div>'
+
+				var icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
+
+				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type">' + icon_element + '</div>'
 						+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 80) + '</b><span class="id">' + d.id + '</span></div>');
 			} else {
 
@@ -725,7 +710,9 @@ var _Files = {
 			var tile = $('#' + tileId);
 
 			if (d.isFolder) {
-				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type"><i class="fa ' + icon + '"></i></div>'
+				var icon_element = (d.isMounted) ? '<span class="fa-stack"><i class="fa ' + icon + ' fa-stack-1x"></i><i class="fa fa-plug fa-stack-1x"></i></span>' : '<i class="fa ' + icon + '"></i>';
+
+				tile.append('<div id="id_' + d.id + '" data-structr_type="folder" class="node folder"><div class="file-type">' + icon_element + '</div>'
 						+ '<b title="' + d.name + '" class="name_">' + fitStringToWidth(d.name, 240) + '</b><span class="id">' + d.id + '</span></div>');
 			} else {
 
@@ -737,7 +724,6 @@ var _Files = {
 			}
 
 			_Files.registerParentLink(d, $('#id_' + d.id + '.folder .file-type i'));
-
 		}
 
 		var div = Structr.node(d.id);
@@ -754,13 +740,9 @@ var _Files = {
 		}
 
 		if (d.isFolder) {
-
 			_Files.handleFolder(div, d);
-
 		} else {
-
 			_Files.handleFile(div, d);
-
 		}
 
 		div.draggable({
@@ -823,7 +805,6 @@ var _Files = {
 
 			return false;
 		});
-
 	},
 	handleFolder: function(div, d) {
 
@@ -1016,7 +997,6 @@ var _Files = {
 		if (Structr.isModulePresent('xml') && (d.contentType === 'text/xml' || d.contentType === 'application/xml')) {
 			_Files.appendXMLImportDialogIcon(div, d);
 		}
-
 	},
 	appendEditImageIcon: function(parent, image) {
 
@@ -1051,13 +1031,9 @@ var _Files = {
 	viewImage: function(image, el) {
 		_Logger.log(_LogType.IMAGES, image);
 		dialogMeta.hide();
-		//el.append('Download: <a href="' + image.path + '">Path</a>&nbsp;|&nbsp;<a href="/' + image.id + '">UUID</a><br><br><div><img id="image-editor" src="/' + image.id + '"></div>');
 
 		el.append('<div class="image-editor-menubar ">'
-			//+ '<div><i class="fa fa-save"></i><br>Save</div>'
 			+ '<div><i class="fa fa-crop"></i><br>Crop</div>'
-			//+ '<div><i class="fa fa-expand"></i><br>Resize</div>'
-			//+ '<div><i class="fa fa-rotate-left"></i><br>Rotate</div>'
 			+ '</div><div><img id="image-editor" class="orientation-' + image.orientation + '" src="' + image.path + '"></div>');
 
 		var x,y,w,h;
@@ -1093,20 +1069,15 @@ var _Files = {
 		$('.fa-crop', el).on('click', function() {
 
 			$('#image-editor').cropper({
-			  //aspectRatio: 16 / 9,
 			  crop: function(e) {
 
 				x = e.x, y = e.y, w = e.width, h = e.height;
 
-				//dialogSaveButton.prop("disabled", true).addClass('disabled');
-				//saveAndClose.prop("disabled", true).addClass('disabled');
 				dialogSaveButton.prop("disabled", false).removeClass('disabled');
 				saveAndClose.prop("disabled", false).removeClass('disabled');
 			  }
 			});
-
 		});
-
 	},
 	appendEditFileIcon: function(parent, file) {
 
@@ -1171,13 +1142,9 @@ var _Files = {
 						if (i+1 === selectedCount) {
 							_Entities.activateTabs(file.id, '#files-tabs', '#content-tab-' + file.id, activeFileTabPrefix);
 						}
-
 					});
-
 				}
-
 			});
-
 		});
 	},
 	appendMinificationDialogIcon: function(parent, file) {
@@ -1188,7 +1155,6 @@ var _Files = {
 
 			_Minification.showMinificationDialog(file);
 		});
-
 	},
 	appendCSVImportDialogIcon: function(parent, file) {
 
@@ -1197,7 +1163,6 @@ var _Files = {
 			Importer.importCSVDialog(file, false);
 			return false;
 		});
-
 	},
 	appendXMLImportDialogIcon: function(parent, file) {
 
@@ -1206,7 +1171,6 @@ var _Files = {
 			Importer.importXMLDialog(file, false);
 			return false;
 		});
-
 	},
 	appendRemoveFavoriteIcon: function (parent, file) {
 
@@ -1218,7 +1182,6 @@ var _Files = {
 				parent.remove();
 			});
 		});
-
 	},
 	displaySearchResultsForURL: function(url) {
 
@@ -1230,7 +1193,6 @@ var _Files = {
 		var container = $('#search-results');
 		content.on('scroll', function() {
 			window.history.pushState('', '', '#filesystem');
-
 		});
 
 		$.ajax({
@@ -1256,7 +1218,6 @@ var _Files = {
 							$('tbody', container).append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');
 
 						});
-
 					}
 
 					data.result.forEach(function(d) {
@@ -1290,7 +1251,6 @@ var _Files = {
 											icon.removeClass('fa-compress');
 											icon.addClass('fa-expand');
 										}
-
 									});
 
 									$('.go-to-top', div).on('click', function() {
@@ -1305,18 +1265,15 @@ var _Files = {
 										});
 
 										div.append('<div class="part">' + contextString + '</div>');
-
 									});
 
 									div.append('<div style="clear: both;"></div>');
 								}
 							}
 						});
-
 					});
 				}
 			}
-
 		});
 	},
 	updateTextFile: function(file, text) {
@@ -1349,7 +1306,6 @@ var _Files = {
 
 		$.ajax({
 			url: url,
-			//async: false,
 			dataType: dataType,
 			contentType: contentType,
 			success: function(data) {
@@ -1499,7 +1455,6 @@ var _Files = {
 				console.log(xhr, statusText, error);
 			}
 		});
-
 	},
 	updateTemplatePreview: function(element, url, dataType, contentType) {
 		$.ajax({
@@ -1527,5 +1482,55 @@ var _Files = {
 	isMinificationTarget: function(file) {
 		var minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
 		return isIn(file.type, minifyTypes);
+	},
+	openMountDialog: function() {
+
+		_Schema.getTypeInfo('Folder', function(typeInfo) {
+
+			Structr.fetchHtmlTemplate('files/dialog.mount', {typeInfo: typeInfo}, function (html) {
+
+				Structr.dialog('Mount Folder', function(){}, function(){});
+
+				var elem = $(html);
+
+				$('[data-info-text]', elem).each(function(i, el) {
+					Structr.appendInfoTextToElement({
+						element: $(el),
+						text: $(el).data('info-text'),
+						css: { marginLeft: "5px" }
+					});
+				});
+
+				dialogText.append(elem);
+
+				var mountButton = $('<button id="mount-folder">Mount</button>').on('click', function() {
+
+					var mountConfig = {};
+					$('.mount-option[type="text"]').each(function(i, el) {
+						var val = $(el).val();
+						if (val !== "") {
+							mountConfig[$(el).data('attributeName')] = val;
+						}
+					});
+					$('.mount-option[type="checkbox"]').each(function(i, el) {
+						mountConfig[$(el).data('attributeName')] = $(el).prop('checked');
+					});
+
+					if (!mountConfig.name) {
+						Structr.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
+					} else if (!mountConfig.mountTarget) {
+						Structr.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
+					} else {
+						mountConfig.type = 'Folder';
+						mountConfig.parentId = currentWorkingDir ? currentWorkingDir.id : null;
+						Command.create(mountConfig);
+
+						dialogCancelButton.click();
+					}
+				});
+
+				dialogBtn.prepend(mountButton);
+			});
+		});
 	}
 };

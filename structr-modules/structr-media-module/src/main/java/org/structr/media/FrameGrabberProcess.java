@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -132,7 +132,7 @@ public class FrameGrabberProcess extends AbstractProcess<Image> {
 					FileHelper.updateMetadata(newFile);
 
 					// create link between the two videos
-					inputFile.setProperty(VideoFile.posterImage, newFile);
+					inputFile.setProperty(StructrApp.key(VideoFile.class, "posterImage"), newFile);
 				}
 
 				tx.success();

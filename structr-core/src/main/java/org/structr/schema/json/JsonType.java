@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,7 @@
 package org.structr.schema.json;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,39 +28,58 @@ import java.util.Set;
  */
 public interface JsonType extends Comparable<JsonType> {
 
-	public URI getId();
-	public JsonSchema getSchema();
+	URI getId();
+	JsonSchema getSchema();
 
-	public String getName();
-	public JsonType setName(final String name);
+	String getName();
+	JsonType setName(final String name);
 
-	public JsonType addMethod(final String name, final String source, final String comment);
-	public JsonType setExtends(final JsonType superType);
-	public JsonType setExtends(final URI externalReference);
-	public URI getExtends();
+	boolean isAbstract();
+	JsonType setIsAbstract();
 
-	public Set<JsonProperty> getProperties();
-	public Set<String> getRequiredProperties();
-	public Set<String> getViewNames();
-	public Set<String> getViewPropertyNames(final String viewName);
-	public Map<String, Map<String, String>> getMethods();
+	boolean isInterface();
+	JsonType setIsInterface();
 
-	public JsonType addViewProperty(final String viewName, final String propertyName);
+	JsonMethod addMethod(final String name, final String source, final String comment);
+	JsonMethod addMethod(final String name);
 
-	public JsonStringProperty addStringProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonDateProperty addDateProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonIntegerProperty addIntegerProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonLongProperty addLongProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonNumberProperty addNumberProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonBooleanProperty addBooleanProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonScriptProperty addScriptProperty(final String name, final String...views) throws URISyntaxException;
-	public JsonFunctionProperty addFunctionProperty(final String name, final String...views) throws URISyntaxException;
-	public JsonEnumProperty addEnumProperty(final String name, final String...views) throws URISyntaxException;
-	public JsonStringArrayProperty addStringArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonLongArrayProperty addLongArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views) throws URISyntaxException;
-	public JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views) throws URISyntaxException;
+	JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);
 
-	public JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
+	JsonMethod addPropertyGetter(final String propertyName, final Class type);
+	JsonMethod addPropertySetter(final String propertyName, final Class type);
+
+	JsonType setExtends(final JsonType superType);
+	JsonType setExtends(final URI externalReference);
+	URI getExtends();
+
+	JsonType setImplements(final URI externalReference);
+	Set<URI> getImplements();
+
+	Set<JsonProperty> getProperties();
+	Set<String> getRequiredProperties();
+	Set<String> getViewNames();
+	Set<String> getViewPropertyNames(final String viewName);
+	List<JsonMethod> getMethods();
+
+	JsonType addViewProperty(final String viewName, final String propertyName);
+
+	JsonStringProperty addStringProperty(final String name, final String... views);
+	JsonStringProperty addPasswordProperty(final String name, final String... views);
+	JsonDateProperty addDateProperty(final String name, final String... views);
+	JsonIntegerProperty addIntegerProperty(final String name, final String... views);
+	JsonLongProperty addLongProperty(final String name, final String... views);
+	JsonNumberProperty addNumberProperty(final String name, final String... views);
+	JsonBooleanProperty addBooleanProperty(final String name, final String... views);
+	JsonScriptProperty addScriptProperty(final String name, final String...views);
+	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
+	JsonEnumProperty addEnumProperty(final String name, final String...views);
+	JsonProperty addCustomProperty(final String name, final String fqcn, final String... views);
+	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
+	JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
+	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
+	JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);
+	JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
+
+	JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
+	JsonReferenceProperty addIdReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 }

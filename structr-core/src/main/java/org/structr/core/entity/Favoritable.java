@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,29 +18,43 @@
  */
 package org.structr.core.entity;
 
+import java.net.URI;
 import org.structr.api.Predicate;
+import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.FunctionProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 public interface Favoritable extends NodeInterface {
 
-	public static final Property<String>  favoriteContentType = new FavoriteContentTypeProperty("favoriteContentType");
-	public static final Property<String>  favoriteContent     = new FavoriteContentProperty("favoriteContent");
-	public static final Property<String>  favoriteContext     = new FavoriteContextProperty("favoriteContext");
-	public static final Property<String>  relIdProperty       = new FunctionProperty("relationshipId").readFunction("this._path.id");
-	public static final Property<Boolean> isFavoritable       = new ConstantBooleanProperty("isFavoritable", true);
+	static class Impl { static {
 
-	public static final View favView = new View(Favoritable.class, "fav",
-		id, name, type, favoriteContext, favoriteContent, favoriteContentType, relIdProperty
-	);
+		final JsonSchema schema        = SchemaService.getDynamicSchema();
+		final JsonObjectType type      = schema.addType("Favoritable");
+
+		type.setIsInterface();
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
+
+		type.addBooleanProperty("isFavoritable", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+
+		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), "fav");
+		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      "fav");
+		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav");
+
+		// add relationshipId to public and fav view
+		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id");
+
+		type.addViewProperty("fav", "id");
+		type.addViewProperty("fav", "name");
+		type.addViewProperty("fav", "type");
+	}}
 
 	String getContext();
 	String getFavoriteContent();

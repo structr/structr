@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,42 +18,25 @@
  */
 package org.structr.odf.entity;
 
-import java.io.File;
 import java.net.URI;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.pkg.OdfPackage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.createdBy;
-import static org.structr.core.GraphObject.createdDate;
-import static org.structr.core.GraphObject.id;
-import static org.structr.core.GraphObject.lastModifiedDate;
-import static org.structr.core.GraphObject.type;
-import static org.structr.core.GraphObject.visibilityEndDate;
-import static org.structr.core.GraphObject.visibilityStartDate;
-import static org.structr.core.GraphObject.visibleToAuthenticatedUsers;
-import static org.structr.core.GraphObject.visibleToPublicUsers;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import static org.structr.core.graph.NodeInterface.deleted;
-import static org.structr.core.graph.NodeInterface.hidden;
-import static org.structr.core.graph.NodeInterface.name;
-import static org.structr.core.graph.NodeInterface.owner;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.StringProperty;
-import org.structr.odf.relations.DocumentResult;
-import org.structr.odf.relations.DocumentTemplate;
-import org.structr.odf.relations.TransformationRules;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.transform.VirtualType;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -62,20 +45,71 @@ import org.w3c.dom.NodeList;
 /**
  * Base class for ODF exporter
  */
-public abstract class ODFExporter extends AbstractNode {
+public interface ODFExporter extends NodeInterface {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("ODFExporter");
+		final JsonObjectType file = (JsonObjectType)schema.getType("File");
+		final JsonObjectType virt = (JsonObjectType)schema.getType("VirtualType");
+
+		type.setIsAbstract();
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ODFExporter"));
+
+		type.addPropertyGetter("resultDocument",        File.class);
+		type.addPropertyGetter("documentTemplate",       File.class);
+		type.addPropertyGetter("transformationProvider", VirtualType.class);
+
+		type.addMethod("setResultDocument")
+			.addParameter("resultDocument", File.class.getName())
+			.setSource("setProperty(resultDocumentProperty, (org.structr.dynamic.File)resultDocument);")
+			.addException(FrameworkException.class.getName());
+
+
+		type.addMethod("createDocumentFromTemplate")
+			.setSource(ODFExporter.class.getName() + ".createDocumentFromTemplate(this);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("exportImage")
+			.addParameter("uuid", String.class.getName())
+			.setSource(ODFExporter.class.getName() + ".exportImage(this, uuid);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.relate(file, "EXPORTS_TO",               Relation.Cardinality.OneToOne, "odfExporter", "resultDocument");
+		type.relate(file, "USES_TEMPLATE",            Relation.Cardinality.OneToOne, "odfExporter", "documentTemplate");
+		type.relate(virt, "GETS_TRANSFORMATION_FROM", Relation.Cardinality.OneToOne, "odfExporter", "transformationProvider");
+
+		type.addViewProperty(PropertyView.Public, "transformationProvider");
+		type.addViewProperty(PropertyView.Public, "documentTemplate");
+		type.addViewProperty(PropertyView.Public, "resultDocument");
+
+		type.addViewProperty(PropertyView.Ui, "transformationProvider");
+		type.addViewProperty(PropertyView.Ui, "documentTemplate");
+		type.addViewProperty(PropertyView.Ui, "resultDocument");
+	}}
+
 	//General ODF specific constants and field specifiers
 	//Images
 
-	private final String ODF_IMAGE_PARENT_NAME                 = "draw:frame";
-	private final String ODF_IMAGE_ATTRIBUTE_PARENT_IMAGE_NAME = "draw:name";
-	private final String ODF_IMAGE_ATTRIBUTE_FILE_PATH         = "xlink:href";
-	private final String ODF_IMAGE_DIRECTORY                   = "Pictures/";
+	static final String ODF_IMAGE_PARENT_NAME                 = "draw:frame";
+	static final String ODF_IMAGE_ATTRIBUTE_PARENT_IMAGE_NAME = "draw:name";
+	static final String ODF_IMAGE_ATTRIBUTE_FILE_PATH         = "xlink:href";
+	static final String ODF_IMAGE_DIRECTORY                   = "Pictures/";
 
-	protected static final Logger logger = LoggerFactory.getLogger(ODTExporter.class.getName());
+	public File getDocumentTemplate();
+	public File getResultDocument();
+	public void setResultDocument(final File resultDocument) throws FrameworkException;
+	public VirtualType getTransformationProvider();
+
+	/*
+	static final Logger logger = LoggerFactory.getLogger(ODTExporter.class.getName());
 
 	public static final Property<VirtualType> transformationProvider = new EndNode("transformationProvider", TransformationRules.class);
-	public static final Property<FileBase> documentTemplate          = new EndNode("documentTemplate", DocumentTemplate.class);
-	public static final Property<FileBase> resultDocument            = new EndNode("resultDocument", DocumentResult.class);
+	public static final Property<File> documentTemplate              = new EndNode("documentTemplate", DocumentTemplate.class);
+	public static final Property<File> resultDocument                = new EndNode("resultDocument", DocumentResult.class);
 
 	public static final View defaultView = new View(ODTExporter.class, PropertyView.Public, id, type, transformationProvider, documentTemplate, resultDocument);
 
@@ -83,28 +117,32 @@ public abstract class ODFExporter extends AbstractNode {
 		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate,
 		transformationProvider, documentTemplate, resultDocument
 	);
+	*/
 
-	@Export
-	public void createDocumentFromTemplate() throws FrameworkException {
+	public static void createDocumentFromTemplate(final ODFExporter thisNode) throws FrameworkException {
 
+		final SecurityContext securityContext = thisNode.getSecurityContext();
+		final File template                   = thisNode.getDocumentTemplate();
+		File output                           = thisNode.getResultDocument();
 		OdfDocument templateOdt;
-		final FileBase template = getProperty(documentTemplate);
-		FileBase output = getProperty(resultDocument);
 
 		try {
+
+			if (template == null) {
+				throw new FrameworkException(422, "Template not set");
+			}
 
 			// If no result file is given, create one and set it as result document
 			if (output == null) {
 
-				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), FileBase.class, getName().concat("_").concat(template.getName()));
+				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), File.class, thisNode.getName().concat("_").concat(template.getName()));
 
-				output.setProperty(FileBase.parent, template.getProperty(FileBase.parent));
+				output.setParent(template.getParent());
 
 				output.unlockSystemPropertiesOnce();
 				output.setProperty(AbstractNode.type, File.class.getSimpleName());
 
-				setProperty(resultDocument, output);
-
+				thisNode.setResultDocument(output);
 			}
 
 			templateOdt = OdfDocument.loadDocument(template.getFileOnDisk().getAbsolutePath());
@@ -118,14 +156,13 @@ public abstract class ODFExporter extends AbstractNode {
 		}
 	}
 
-	@Export
-	public void exportImage(String uuid) {
+	public static void exportImage(final ODFExporter thisNode, final String uuid) {
 
-		FileBase output = getProperty(resultDocument);
+		final File output = thisNode.getResultDocument();
 
 		try {
 
-			final App app = StructrApp.getInstance();
+			final App app      = StructrApp.getInstance();
 			final Image result = app.nodeQuery(Image.class).and(GraphObject.id, uuid).getFirst();
 
 			String imageName = result.getProperty(new StringProperty("name"));
@@ -138,10 +175,12 @@ public abstract class ODFExporter extends AbstractNode {
 			NodeList nodes = doc.getContentRoot().getElementsByTagName(ODF_IMAGE_PARENT_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {
 
-				Node currentNode = nodes.item(i);
+				Node currentNode   = nodes.item(i);
 				NamedNodeMap attrs = currentNode.getAttributes();
-				Node fieldName = attrs.getNamedItem(ODF_IMAGE_ATTRIBUTE_PARENT_IMAGE_NAME);
+				Node fieldName    = attrs.getNamedItem(ODF_IMAGE_ATTRIBUTE_PARENT_IMAGE_NAME);
+
 				if (fieldName != null && fieldName.getTextContent().equals(imageName)) {
+
 					NamedNodeMap childAttrs = currentNode.getFirstChild().getAttributes();
 					Node filePath = childAttrs.getNamedItem(ODF_IMAGE_ATTRIBUTE_FILE_PATH);
 					templateImagePath = filePath.getTextContent();
@@ -167,5 +206,4 @@ public abstract class ODFExporter extends AbstractNode {
 
 		}
 	}
-
 }

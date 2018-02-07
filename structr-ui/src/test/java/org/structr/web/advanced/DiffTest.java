@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,8 @@ package org.structr.web.advanced;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -34,7 +34,6 @@ import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.diff.InvertibleModificationOperation;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Div;
 import org.structr.web.importer.Importer;
@@ -323,7 +322,7 @@ public class DiffTest extends StructrUiTest {
 			final StringBuilder buf = new StringBuilder(from);
 
 			// cut out <div> block
-			int cutStart = buf.indexOf("<h2") - (DOMNode.dataHashProperty.jsonName().length() + 46);
+			int cutStart = buf.indexOf("<h2") - ("data-structr-hash".length() + 46);
 			int cutEnd = buf.indexOf("</h2>") + 16;
 
 			clipboard.append(buf.substring(cutStart, cutEnd));

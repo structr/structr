@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -48,10 +49,9 @@ import org.structr.core.entity.GenericRelationship;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.Location;
-import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.OneThreeOneToOne;
 import org.structr.core.entity.OneTwoOneToOne;
-import org.structr.core.entity.Person;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
@@ -68,7 +68,6 @@ import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestTen;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
-import org.structr.core.entity.TestUser;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.NodeAttribute;
@@ -852,13 +851,11 @@ public class BasicTest extends StructrTest {
 			assertTrue(entityList.contains(AbstractNode.class));
 			assertTrue(entityList.contains(GenericNode.class));
 			assertTrue(entityList.contains(Location.class));
-			assertTrue(entityList.contains(Person.class));
 			assertTrue(entityList.contains(ResourceAccess.class));
 
 			// Don't test these, it would fail due to violated constraints
 			entityList.remove(TestTwo.class);
 			entityList.remove(TestNine.class);
-			entityList.remove(MailTemplate.class);
 			entityList.remove(SchemaNode.class);
 			entityList.remove(SchemaRelationshipNode.class);
 
@@ -903,16 +900,17 @@ public class BasicTest extends StructrTest {
 					// For Localization, fill mandatory fields
 					if (type.equals(Localization.class)) {
 
+						/*
 						props.put(Localization.name, "localizationKey");
 						props.put(Localization.locale, "de_DE");
-
+						*/
 					}
 
 					// For Location, set coordinates
 					if (type.equals(Location.class)) {
 
-						props.put(Location.latitude, 12.34);
-						props.put(Location.longitude, 56.78);
+						props.put(StructrApp.key(Location.class, "latitude"),  12.34);
+						props.put(StructrApp.key(Location.class, "longitude"), 56.78);
 
 					}
 
@@ -1243,9 +1241,11 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			final PropertyMap props = new PropertyMap();
-			final String type       = "Group";
-			final String name       = "TestGroup-1";
+			final Class groupType          = StructrApp.getConfiguration().getNodeEntityClass("Group");
+			final PropertyKey<Boolean> key = StructrApp.key(groupType, "isGroup");
+			final PropertyMap props        = new PropertyMap();
+			final String type              = "Group";
+			final String name              = "TestGroup-1";
 
 			NodeInterface node      = null;
 
@@ -1263,7 +1263,7 @@ public class BasicTest extends StructrTest {
 				// Check defaults
 				assertEquals(Group.class.getSimpleName(), node.getProperty(AbstractNode.type));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
-				assertTrue(node.getProperty(Group.isGroup));
+				assertTrue(node.getProperty(key));
 			}
 
 			final String name2 = "TestGroup-2";
@@ -1272,7 +1272,7 @@ public class BasicTest extends StructrTest {
 
 				// Modify values
 				node.setProperty(AbstractNode.name, name2);
-				node.setProperty(Group.isGroup, false);
+				node.setProperty(key, false);
 
 				fail("Should have failed with an exception: Group.isGroup is_read_only_property");
 
@@ -1563,7 +1563,7 @@ public class BasicTest extends StructrTest {
 			// create two OWNS relationships with different end node types
 			final TestOne testOne     = app.create(TestOne.class, "testone");
 			final TestThree testThree = app.create(TestThree.class, "testthree");
-			final TestUser testUser   = app.create(TestUser.class, "testuser");
+			final Principal testUser  = app.create(Principal.class, "testuser");
 
 			testOne.setProperty(TestOne.testThree, testThree);
 			testThree.setProperty(TestThree.owner, testUser);
@@ -1596,13 +1596,13 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testRelationshipsOnNodeCreation() {
 
-		TestUser user = null;
+		Principal user = null;
 		TestOne test  = null;
 
 		// create user
 		try (final Tx tx = app.tx()) {
 
-			user = app.create(TestUser.class, "tester");
+			user = app.create(Principal.class, "tester");
 
 			tx.success();
 
@@ -1630,19 +1630,22 @@ public class BasicTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<? extends RelationshipInterface> rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
+			final List<Class> classes1                        = rels1.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels1.size());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels1.get(0).getClass());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels1.get(1).getClass());
+			assertTrue("Invalid relationship type after object creation", classes1.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes1.contains(PrincipalOwnsNode.class));
 
 			final List<? extends RelationshipInterface> rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
+			final List<Class> classes2                        = rels2.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels2.size());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels2.get(0).getClass());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels2.get(1).getClass());
+			assertTrue("Invalid relationship type after object creation", classes2.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes2.contains(PrincipalOwnsNode.class));
 
 			final List<? extends RelationshipInterface> rels3 = Iterables.toList(test.getIncomingRelationships());
+			final List<Class> classes3                        = rels3.stream().map(r -> r.getClass()).collect(Collectors.toList());
 			assertEquals("Invalid number of relationships after object creation", 2, rels3.size());
-			assertEquals("Invalid relationship type after object creation", PrincipalOwnsNode.class, rels3.get(0).getClass());
-			assertEquals("Invalid relationship type after object creation", Security.class, rels3.get(1).getClass());
+			assertTrue("Invalid relationship type after object creation", classes3.contains(Security.class));
+			assertTrue("Invalid relationship type after object creation", classes3.contains(PrincipalOwnsNode.class));
 
 			final Security sec = app.relationshipQuery(Security.class).getFirst();
 			assertNotNull("Relationship caching on node creation is broken", sec);
@@ -1778,8 +1781,8 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			AbstractNode start       = createTestNode(type1);
-			AbstractNode end         = createTestNode(type2);
+			NodeInterface start      = createTestNode(type1);
+			NodeInterface end        = createTestNode(type2);
 			AbstractRelationship rel = createTestRelationship(start, end, NodeHasLocation.class);
 
 			rel.setProperty(AbstractRelationship.cascadeDelete, cascadeDeleteFlag);

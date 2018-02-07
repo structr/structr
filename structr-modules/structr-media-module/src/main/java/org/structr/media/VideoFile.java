@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,55 +18,119 @@
  */
 package org.structr.media;
 
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
-import static org.structr.core.GraphObject.type;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.JsonInput;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
-import static org.structr.core.graph.NodeInterface.owner;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.dynamic.File;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.Image;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonSchema.Cascade;
+import org.structr.web.entity.File;
 
 /**
  * A video whose binary data will be stored on disk.
- *
- *
- *
  */
-public class VideoFile extends File {
+public interface VideoFile extends File {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("VideoFile");
+		final JsonObjectType img  = schema.addType("Image");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VideoFile"));
+		type.setExtends(URI.create("#/definitions/File"));
+
+		type.addBooleanProperty("isVideo", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+
+		type.addStringProperty("videoCodecName", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("videoCodec",     PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("pixelFormat",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("audioCodecName", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("audioCodec",     PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("audioChannels", PropertyView.Public, PropertyView.Ui);
+		type.addNumberProperty("sampleRate",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addNumberProperty("duration",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("width",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("height",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
+
+		type.overrideMethod("onCreation",      true,  "updateVideoInfo();");
+		type.overrideMethod("onModification",  true,  "updateVideoInfo();");
+		type.overrideMethod("getDiskFilePath", false, "return " + VideoFile.class.getName() + ".getDiskFilePath(this, arg0);");
+
+		type.addMethod("updateVideoInfo")
+			.setSource(VideoFile.class.getName() + ".updateVideoInfo(this);")
+			.setDoExport(true);
+
+		type.addMethod("convert")
+			.addParameter("scriptName", String.class.getName())
+			.addParameter("newFileName", String.class.getName())
+			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this, newFileName).doConversion(scriptName);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("grab")
+			.addParameter("scriptName", String.class.getName())
+			.addParameter("imageFileName", String.class.getName())
+			.addParameter("timeIndex", "long")
+			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this, imageFileName).grabFrame(scriptName, imageFileName, timeIndex);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("getMetadata")
+			.setReturnType(RestMethodResult.class.getName())
+			.setSource("return " + VideoFile.class.getName() + ".getMetadata(this);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("setMetadata")
+			.addParameter("key", String.class.getName())
+			.addParameter("value", String.class.getName())
+			.setSource(AVConv.class.getName() + ".newInstance(securityContext, this).setMetadata(key, value);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.addMethod("setMetadata")
+			.addParameter("metadata", JsonInput.class.getName())
+			.setSource(VideoFile.class.getName() + ".setMetadata(this, metadata);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+
+		type.relate(type, "HAS_CONVERTED_VIDEO", Cardinality.OneToMany, "originalVideo",      "convertedVideos").setCascadingDelete(Cascade.sourceToTarget);
+		type.relate(img,  "HAS_POSTER_IMAGE",    Cardinality.OneToOne,  "posterImageOfVideo", "posterImage").setCascadingDelete(Cascade.sourceToTarget);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "parent");
+		type.addViewProperty(PropertyView.Public, "checksum");
+		type.addViewProperty(PropertyView.Public, "convertedVideos");
+		type.addViewProperty(PropertyView.Public, "posterImage");
+
+		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "originalVideo");
+		type.addViewProperty(PropertyView.Ui, "convertedVideos");
+		type.addViewProperty(PropertyView.Ui, "posterImage");
+	}}
+
+	String getDiskFilePath(final SecurityContext securityContext);
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(VideoFile.class.getName());
-
-	// register this type as an overridden builtin type
-	static {
-
-		SchemaService.registerBuiltinTypeOverride("VideoFile", VideoFile.class.getName());
-	}
 
 	public static final Property<List<VideoFile>> convertedVideos = new EndNodes<>("convertedVideos", VideoFileHasConvertedVideoFile.class);
 	public static final Property<VideoFile> originalVideo         = new StartNode<>("originalVideo", VideoFileHasConvertedVideoFile.class);
@@ -97,7 +161,6 @@ public class VideoFile extends File {
 		convertedVideos, posterImage
 	);
 
-
 	@Override
 	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -113,27 +176,25 @@ public class VideoFile extends File {
 
 		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
+	*/
 
-	public String getDiskFilePath(final SecurityContext securityContext) {
-		return getFileOnDisk().getAbsolutePath();
+	static String getDiskFilePath(final VideoFile thisVideo, final SecurityContext securityContext) {
+
+		final java.io.File fileOnDisk = thisVideo.getFileOnDisk();
+		if (fileOnDisk != null) {
+
+			return fileOnDisk.getAbsolutePath();
+		}
+
+		return null;
 	}
 
-	@Export
-	public void convert(final String scriptName, final String newFileName) throws FrameworkException {
-		AVConv.newInstance(securityContext, this, newFileName).doConversion(scriptName);
-	}
+	static RestMethodResult getMetadata(final VideoFile thisVideo) throws FrameworkException {
 
-	@Export
-	public void grab(final String scriptName, final String imageName, final long timeIndex) throws FrameworkException {
-		AVConv.newInstance(securityContext, this, imageName).grabFrame(scriptName, imageName, timeIndex);
-	}
-
-	@Export
-	public RestMethodResult getMetadata() throws FrameworkException {
-
-		final Map<String, String> metadata = AVConv.newInstance(securityContext, this).getMetadata();
-		final RestMethodResult result      = new RestMethodResult(200);
-		final GraphObjectMap map           = new GraphObjectMap();
+		final SecurityContext securityContext = thisVideo.getSecurityContext();
+		final Map<String, String> metadata    = AVConv.newInstance(securityContext, thisVideo).getMetadata();
+		final RestMethodResult result         = new RestMethodResult(200);
+		final GraphObjectMap map              = new GraphObjectMap();
 
 		for (final Entry<String, String> entry : metadata.entrySet()) {
 			map.setProperty(new StringProperty(entry.getKey()), entry.getValue());
@@ -144,13 +205,7 @@ public class VideoFile extends File {
 		return result;
 	}
 
-	@Export
-	public void setMetadata(final String key, final String value) throws FrameworkException {
-		AVConv.newInstance(securityContext, this).setMetadata(key, value);
-	}
-
-	@Export
-	public void setMetadata(final JsonInput metadata) throws FrameworkException {
+	static void setMetadata(final VideoFile thisVideo, final JsonInput metadata) throws FrameworkException {
 
 		final Map<String, String> map = new LinkedHashMap<>();
 
@@ -158,15 +213,16 @@ public class VideoFile extends File {
 			map.put(entry.getKey(), entry.getValue().toString());
 		}
 
-		AVConv.newInstance(securityContext, this).setMetadata(map);
+		AVConv.newInstance(thisVideo.getSecurityContext(), thisVideo).setMetadata(map);
 	}
 
-	@Export
-	public void updateVideoInfo() {
+	static void updateVideoInfo(final VideoFile thisVideo) {
+
+		final SecurityContext securityContext = thisVideo.getSecurityContext();
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Map<String, Object> info = AVConv.newInstance(securityContext, this).getVideoInfo();
+			final Map<String, Object> info = AVConv.newInstance(securityContext, thisVideo).getVideoInfo();
 			if (info != null && info.containsKey("streams")) {
 
 				final List<Map<String, Object>> streams = (List<Map<String, Object>>)info.get("streams");
@@ -177,19 +233,18 @@ public class VideoFile extends File {
 
 						if ("video".equals(codecType)) {
 
-							setIfNotNull(videoCodecName, stream.get("codec_long_name"));
-							setIfNotNull(videoCodec,     stream.get("codec_name"));
-							setIfNotNull(pixelFormat,    stream.get("pix_fmt"));
-							setIfNotNull(width,          toInt(stream.get("width")));
-							setIfNotNull(height,         toInt(stream.get("height")));
-							setIfNotNull(duration,       toDouble(stream.get("duration")));
-
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "videoCodecName"), stream.get("codec_long_name"));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "videoCodec"),     stream.get("codec_name"));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "pixelFormat"),    stream.get("pix_fmt"));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "width"),          VideoFile.toInt(stream.get("width")));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "height"),         VideoFile.toInt(stream.get("height")));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "duration"),       VideoFile.toDouble(stream.get("duration")));
 
 						} else if ("audio".equals(codecType)) {
 
-							setIfNotNull(audioCodecName, stream.get("codec_long_name"));
-							setIfNotNull(audioCodec,     stream.get("codec_name"));
-							setIfNotNull(sampleRate,     toInt(stream.get("sampleRate")));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "audioCodecName"), stream.get("codec_long_name"));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "audioCodec"),     stream.get("codec_name"));
+							VideoFile.setIfNotNull(thisVideo, StructrApp.key(VideoFile.class, "sampleRate"),     VideoFile.toInt(stream.get("sampleRate")));
 						}
 					}
 				}
@@ -202,14 +257,14 @@ public class VideoFile extends File {
 		}
 	}
 
-	private void setIfNotNull(final Property key, final Object value) throws FrameworkException {
+	static void setIfNotNull(final VideoFile thisVideo, final PropertyKey key, final Object value) throws FrameworkException {
 
 		if (value != null) {
-			setProperty(key, value);
+			thisVideo.setProperty(key, value);
 		}
 	}
 
-	private Integer toInt(final Object value) {
+	static Integer toInt(final Object value) {
 
 		if (value instanceof Number) {
 			return ((Number)value).intValue();
@@ -228,7 +283,7 @@ public class VideoFile extends File {
 		return null;
 	}
 
-	private Double toDouble(final Object value) {
+	static Double toDouble(final Object value) {
 
 		if (value instanceof Number) {
 			return ((Number)value).doubleValue();

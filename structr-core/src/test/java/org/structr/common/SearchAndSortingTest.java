@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,12 +40,11 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.SixOneManyToMany;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.entity.TestSix;
-import org.structr.core.entity.TestUser;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -392,6 +391,7 @@ public class SearchAndSortingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 1000;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
+			final int expectedNumber        = 1129;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
@@ -403,20 +403,13 @@ public class SearchAndSortingTest extends StructrTest {
 
 				long t1 = System.currentTimeMillis();
 				logger.info("Query with inexact type took {} ms", t1-t0);
-				assertEquals(1006, result.size());
+				assertEquals(expectedNumber, result.size());
 
 				result = app.nodeQuery(NodeInterface.class).getResult();
 
 				long t2 = System.currentTimeMillis();
 				logger.info("Query with exact type took {} ms", t2-t1);
-				assertEquals(1006, result.size());
-
-				// TODO: Implement app.nodeQuery() to return all nodes in the system as an alternative to the (slow) app.nodeQuery(NodeInterface.class)
-//				result = app.nodeQuery().getResult();
-//
-//				long t3 = System.currentTimeMillis();
-//				logger.info("Query without type took {} ms", t3-t2);
-//				assertEquals(1012, result.size());
+				assertEquals(expectedNumber, result.size());
 
 				tx.success();
 			}
@@ -1089,7 +1082,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			props.put(key, date);
 
-			AbstractNode node = createTestNode(type, props);
+			NodeInterface node = createTestNode(type, props);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1174,7 +1167,7 @@ public class SearchAndSortingTest extends StructrTest {
 			props.put(lon, 8.73923d);
 			props.put(AbstractNode.name, "TestSeven-0");
 
-			AbstractNode node = createTestNode(type, props);
+			NodeInterface node = createTestNode(type, props);
 
 			try (final Tx tx = app.tx()) {
 
@@ -1788,8 +1781,8 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create non-admin user
-			tester1 = app.create(TestUser.class, "tester1");
-			tester2 = app.create(TestUser.class, "tester2");
+			tester1 = app.create(Principal.class, "tester1");
+			tester2 = app.create(Principal.class, "tester2");
 
 			tx.success();
 

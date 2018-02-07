@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -306,7 +306,7 @@ public abstract class CMISObjectWrapper<T extends CMISObjectInfo> extends CMISEx
 
 						case CMIS_ITEM:
 							wrapper = new CMISItemWrapper(propertyFilter, includeAllowableActions);
-							wrapper.initializeFrom(cmisInfo.geItemInfo());
+							wrapper.initializeFrom(cmisInfo.getItemInfo());
 							break;
 
 						case CMIS_POLICY:

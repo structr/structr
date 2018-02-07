@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,28 +18,30 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Iframe extends DOMElement {
-	
-	public static final Property<String> _name            = new HtmlProperty("name");
-	public static final Property<String> _src             = new HtmlProperty("src");
-	public static final Property<String> _srcdoc          = new HtmlProperty("srcdoc");
-	public static final Property<String> _sandbox         = new HtmlProperty("sandbox");
-	public static final Property<String> _seamless        = new HtmlProperty("seamless");
-	public static final Property<String> _allowfullscreen = new HtmlProperty("allowfullscreen");
-	public static final Property<String> _width           = new HtmlProperty("width");
-	public static final Property<String> _height          = new HtmlProperty("height");
+public interface Iframe extends DOMElement {
 
-	public static final View htmlView = new View(Img.class, PropertyView.Html,
-	    _name, _src, _srcdoc, _sandbox, _seamless, _allowfullscreen, _width, _height
-	);
-	
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Iframe");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Iframe"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_name",            PropertyView.Html);
+		type.addStringProperty("_html_src",             PropertyView.Html);
+		type.addStringProperty("_html_srcdoc",          PropertyView.Html);
+		type.addStringProperty("_html_sandbox",         PropertyView.Html);
+		type.addStringProperty("_html_seamless",        PropertyView.Html);
+		type.addStringProperty("_html_allowfullscreen", PropertyView.Html);
+		type.addStringProperty("_html_width",           PropertyView.Html);
+		type.addStringProperty("_html_height",          PropertyView.Html);
+	}}
 }

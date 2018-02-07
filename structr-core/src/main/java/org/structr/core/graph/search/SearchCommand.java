@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,6 +92,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private boolean includeDeletedAndHidden      = true;
 	private boolean sortDescending               = false;
 	private boolean doNotSort                    = false;
+	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
 
@@ -178,9 +179,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 				sources.add((SourceSearchAttribute)attr);
 
-				// don't remove attribute from filter list
-				//it.remove();
-
 				hasGraphSources = true;
 			}
 
@@ -206,6 +204,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			final Index<S> index = getIndex();
 			if (index != null) {
+
+				// paging needs to be done AFTER instantiating all nodes
+				if (hasEmptySearchFields) {
+					factory.disablePaging();
+				}
 
 				// do query
 				final QueryResult hits = getIndex().query(rootGroup);
@@ -433,6 +436,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> andType(final Class type) {
 
+		this.type = type;
+
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.REQUIRED, true));
 		return this;
 	}
@@ -440,12 +445,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> orType(final Class type) {
 
+		this.type = type;
+
 		currentGroup.getSearchAttributes().add(new TypeSearchAttribute(type, Occurrence.OPTIONAL, true));
 		return this;
 	}
 
 	@Override
 	public org.structr.core.app.Query<T> andTypes(final Class type) {
+
+		this.type = type;
 
 		andType(type);
 
@@ -455,9 +464,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> orTypes(final Class type) {
 
+		this.type = type;
+
 		orType(type);
 
 		return this;
+	}
+
+	@Override
+	public Class getType() {
+		return this.type;
 	}
 
 	@Override

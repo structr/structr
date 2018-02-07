@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,7 @@ import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -63,25 +63,29 @@ public class SendHtmlMailFunction extends Function<Object, Object> {
 				textContent = sources[6].toString();
 			}
 
-			List<FileBase> fileNodes = null;
+			List<File> fileNodes = null;
 			List<DynamicMailAttachment> attachments   = new ArrayList<>();
 
 			try {
 
-				if (sources.length == 8 && sources[7] instanceof List && ((List) sources[7]).size() > 0 && ((List) sources[7]).get(0) instanceof FileBase) {
+				if (sources.length == 8 && sources[7] instanceof List && ((List) sources[7]).size() > 0 && ((List) sources[7]).get(0) instanceof File) {
 
-					fileNodes = (List<FileBase>) sources[7];
+					fileNodes = (List<File>) sources[7];
 
-					for (FileBase fileNode : fileNodes) {
+					for (File fileNode : fileNodes) {
 
 						final DynamicMailAttachment attachment = new DynamicMailAttachment();
-						attachment.setName(fileNode.getProperty(FileBase.name));
+						attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
+						attachment.setName(fileNode.getProperty(File.name));
 						attachment.setDisposition(EmailAttachment.ATTACHMENT);
 
-						if(fileNode.getProperty(FileBase.isTemplate) == true) {
+						if(fileNode.isTemplate()) {
+
 							attachment.setIsDynamic(true);
 							attachment.setDataSource(fileNode);
+
 						} else {
+
 							attachment.setIsDynamic(false);
 							attachment.setURL(fileNode.getFileOnDisk().toURI().toURL());
 						}

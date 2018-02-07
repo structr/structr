@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,33 +18,26 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Ol extends DOMElement {
 
-/**
- *
- */
-public class Ol extends DOMElement {
+	static class Impl { static {
 
-	public static final Property<String> _reversed = new HtmlProperty("reversed");
-	public static final Property<String> _start    = new HtmlProperty("start");
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Ol");
 
-//	public static final EndNodes<Li> lis = new EndNodes<Li>("lis", Li.class, RelType.CONTAINS, Direction.OUTGOING, false);
-	
-	public static final View htmlView = new View(Ol.class, PropertyView.Html,
-	    _reversed, _start
-	);
+		type.addStringProperty("_html_reversed", PropertyView.Html);
+		type.addStringProperty("_html_start",    PropertyView.Html);
 
-	@Override
-	public Property[] getHtmlAttributes() {
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Ol"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
-
-	}
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+	}}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,11 @@
  */
 package org.structr.core.property;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,14 +52,13 @@ import org.structr.core.graph.search.SearchAttribute;
 
 /**
  * Abstract base class for all property types.
- *
- *
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
 	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
 
+	protected List<String> transformators                  = new LinkedList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;
@@ -71,6 +73,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean notNull                              = false;
 	protected boolean dynamic                              = false;
 	protected boolean isCMISProperty                       = false;
+	protected boolean isPartOfBuiltInSchema                = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -234,6 +237,16 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return category;
 	}
 
+	@Override
+	public Property<T> partOfBuiltInSchema() {
+		this.isPartOfBuiltInSchema = true;
+		return this;
+	}
+
+	@Override
+	public boolean isPartOfBuiltInSchema() {
+		return this.isPartOfBuiltInSchema;
+	}
 
 	@Override
 	public boolean requiresSynchronization() {
@@ -349,6 +362,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> writeFunction(final String writeFunction) {
 		this.writeFunction = writeFunction;
+		return this;
+	}
+
+	@Override
+	public Property<T> transformators(final String... transformators) {
+		this.transformators.addAll(Arrays.asList(transformators));
 		return this;
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -150,7 +150,7 @@ public class SchemaMethodResource extends SortableResource {
 
 				for (final SchemaMethod method : schemaNode.getProperty(SchemaNode.schemaMethods)) {
 
-					if (methodName.equals(method.getName()) && !method.getProperty(SchemaMethod.isJava)) {
+					if (methodName.equals(method.getName()) && !method.isJava()) {
 
 						return method.getProperty(SchemaMethod.source);
 					}
@@ -192,7 +192,7 @@ public class SchemaMethodResource extends SortableResource {
 			if (unwrapped.getClass().isArray()) {
 
 				for (final Object element : (Object[])unwrapped) {
-				
+
 					// check if collection contains GraphObjects and
 					// return literal object if not
 					if (!unwrapTo(element, result)) {

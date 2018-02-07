@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,12 +44,6 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
-/**
- *
- *
- */
 public class LayoutsCommand extends AbstractCommand {
 
 	private static final Logger logger                          = LoggerFactory.getLogger(LayoutsCommand.class.getName());

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -88,7 +88,7 @@ public class ExtractFunction extends Function<Object, Object> {
 
 						if (obj instanceof GraphObject) {
 
-							final PropertyKey key = config.getPropertyKeyForJSONName(obj.getClass(), keyName);
+							final PropertyKey key = StructrApp.key(obj.getClass(), keyName);
 							final Object value = ((GraphObject)obj).getProperty(key);
 							if (value != null) {
 

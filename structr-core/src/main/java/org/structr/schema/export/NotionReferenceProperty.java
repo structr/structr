@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -85,51 +85,46 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 		}
 
 		final String type = (String)source.get(JsonSchema.KEY_TYPE);
-		if ("object".equals(type)) {
+		switch (type) {
 
-			reference = (String)source.get(JsonSchema.KEY_REFERENCE);
+			case "object":
+				reference = (String)source.get(JsonSchema.KEY_REFERENCE);
+				break;
 
-		} else if ("array".equals(type)) {
+			case "array":
+				final Object itemsValue = source.get(JsonSchema.KEY_ITEMS);
+				if (itemsValue != null && itemsValue instanceof Map) {
 
-			final Object itemsValue = source.get(JsonSchema.KEY_ITEMS);
-			if (itemsValue != null && itemsValue instanceof Map) {
-
-				final Map<String, Object> items = (Map)itemsValue;
-				reference = (String)items.get(JsonSchema.KEY_REFERENCE);
-			}
+					final Map<String, Object> items = (Map)itemsValue;
+					reference = (String)items.get(JsonSchema.KEY_REFERENCE);
+				}
+				break;
 		}
 	}
 
 	@Override
 	void deserialize(final SchemaProperty schemaProperty) {
-
 		super.deserialize(schemaProperty);
-
 	}
 
 	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();
-//			final int propertyCount       = properties.size();
+		final String type             = getType();
 
-//			if (propertyCount == 1) {
-//
-//			} else {
-//
-			if ("object".equals(getType())) {
+		switch (type) {
 
+			case "object":
 				map.put(JsonSchema.KEY_REFERENCE, reference);
+				break;
 
-			} else if ("array".equals(getType())) {
-
+			case "array":
 				final Map<String, Object> items = new TreeMap<>();
 				map.put(JsonSchema.KEY_ITEMS, items);
-
 				items.put(JsonSchema.KEY_REFERENCE, reference);
-			}
-//			}
-
+				break;
+		}
 
 		map.put(JsonSchema.KEY_PROPERTIES, this.properties);
 

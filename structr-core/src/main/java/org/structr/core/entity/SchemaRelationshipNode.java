@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,10 +20,12 @@ package org.structr.core.entity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +51,7 @@ import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertyNotion;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.core.property.EnumProperty;
@@ -62,7 +65,6 @@ import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionEntry;
-import org.structr.schema.action.Actions;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.schema.parser.Validator;
@@ -87,13 +89,14 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final Property<String>     targetMultiplicity     = new StringProperty("targetMultiplicity");
 	public static final Property<String>     sourceNotion           = new StringProperty("sourceNotion");
 	public static final Property<String>     targetNotion           = new StringProperty("targetNotion");
-	public static final Property<String>     sourceJsonName         = new StringProperty("sourceJsonName");
-	public static final Property<String>     targetJsonName         = new StringProperty("targetJsonName");
-	public static final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName");
-	public static final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName");
+	public static final Property<String>     sourceJsonName         = new StringProperty("sourceJsonName").indexed();
+	public static final Property<String>     targetJsonName         = new StringProperty("targetJsonName").indexed();
+	public static final Property<String>     previousSourceJsonName = new StringProperty("oldSourceJsonName").indexed();
+	public static final Property<String>     previousTargetJsonName = new StringProperty("oldTargetJsonName").indexed();
 	public static final Property<String>     extendsClass           = new StringProperty("extendsClass").indexed();
 	public static final Property<Long>       cascadingDeleteFlag    = new LongProperty("cascadingDeleteFlag");
 	public static final Property<Long>       autocreationFlag       = new LongProperty("autocreationFlag");
+	public static final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty("isPartOfBuiltInSchema");
 
 
 	public enum Propagation {
@@ -176,43 +179,33 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		if (super.onCreation(securityContext, errorBuffer)) {
+		super.onCreation(securityContext, errorBuffer);
 
-			// store old property names
-			setProperty(previousSourceJsonName, getProperty(sourceJsonName));
-			setProperty(previousTargetJsonName, getProperty(targetJsonName));
+		// store old property names
+		setProperty(previousSourceJsonName, getProperty(sourceJsonName));
+		setProperty(previousTargetJsonName, getProperty(targetJsonName));
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-			return true;
-		}
-
-		return false;
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-			checkClassName();
+		checkClassName();
 
-			checkAndRenameSourceAndTargetJsonNames();
+		checkAndRenameSourceAndTargetJsonNames();
 
-			// store old property names
-			setProperty(previousSourceJsonName, getProperty(sourceJsonName));
-			setProperty(previousTargetJsonName, getProperty(targetJsonName));
+		// store old property names
+		setProperty(previousSourceJsonName, getProperty(sourceJsonName));
+		setProperty(previousTargetJsonName, getProperty(targetJsonName));
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-			return true;
-		}
-
-		return false;
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 	}
 
 	@Override
@@ -231,19 +224,12 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 
-		if (super.onDeletion(securityContext, errorBuffer, properties)) {
+		super.onDeletion(securityContext, errorBuffer, properties);
 
-			// register transaction post processing that recreates the schema information
-			TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
-			return true;
-
-		}
-
-		return false;
-
+		// register transaction post processing that recreates the schema information
+		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
 	}
 
 	public SchemaNode getSourceNode() {
@@ -294,14 +280,15 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public String getPropertySource(final String propertyName, final boolean outgoing, final boolean newStatementOnly) {
 
-		final StringBuilder buf          = new StringBuilder();
-		final String _sourceMultiplicity = getProperty(sourceMultiplicity);
-		final String _targetMultiplicity = getProperty(targetMultiplicity);
-		final String _sourceNotion       = getProperty(sourceNotion);
-		final String _targetNotion       = getProperty(targetNotion);
-		final String _sourceType         = getSchemaNodeSourceType();
-		final String _targetType         = getSchemaNodeTargetType();
-		final String _className          = getClassName();
+		final StringBuilder buf           = new StringBuilder();
+		final Boolean partOfBuiltInSchema = getProperty(isPartOfBuiltInSchema);
+		final String _sourceMultiplicity  = getProperty(sourceMultiplicity);
+		final String _targetMultiplicity  = getProperty(targetMultiplicity);
+		final String _sourceNotion        = getProperty(sourceNotion);
+		final String _targetNotion        = getProperty(targetNotion);
+		final String _sourceType          = getSchemaNodeSourceType();
+		final String _targetType          = getSchemaNodeTargetType();
+		final String _className           = getClassName();
 
 		if (outgoing) {
 
@@ -314,7 +301,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new EndNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 
 			} else {
 
@@ -325,7 +322,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new EndNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_sourceType, _targetNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 			}
 
 		} else {
@@ -339,7 +346,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new StartNode<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 
 			} else {
 
@@ -350,7 +367,17 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 				}
 				buf.append("new StartNodes<>(\"").append(propertyName).append("\", ").append(_className).append(".class");
 				buf.append(getNotion(_targetType, _sourceNotion));
-				buf.append(newStatementOnly ? ")" : ").dynamic();\n");
+
+				if (newStatementOnly) {
+
+					buf.append(")");
+
+				} else {
+
+					buf.append(").dynamic()");
+					buf.append(partOfBuiltInSchema ? ".partOfBuiltInSchema()" : "");
+					buf.append(";\n");
+				}
 			}
 		}
 
@@ -465,16 +492,16 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return propertyName;
 	}
 
-	@Override
 	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final Map<Actions.Type, List<ActionEntry>> actions = new LinkedHashMap<>();
+		final Map<String, List<ActionEntry>> actions       = new LinkedHashMap<>();
 		final Map<String, Set<String>> viewProperties      = new LinkedHashMap<>();
 		final StringBuilder src                            = new StringBuilder();
 		final Class baseType                               = AbstractRelationship.class;
 		final String _className                            = getClassName();
 		final String _sourceNodeType                       = getSchemaNodeSourceType();
 		final String _targetNodeType                       = getSchemaNodeTargetType();
+		final List<String> propertyValidators              = new LinkedList<>();
 		final Set<String> compoundIndexKeys                = new LinkedHashSet<>();
 		final Set<String> propertyNames                    = new LinkedHashSet<>();
 		final Set<Validator> validators                    = new LinkedHashSet<>();
@@ -483,7 +510,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		src.append("package org.structr.dynamic;\n\n");
 
-		SchemaHelper.formatImportStatements(this, src, baseType);
+		SchemaHelper.formatImportStatements(this, src, baseType, Collections.emptyList());
 
 		src.append("public class ").append(_className).append(" extends ").append(getBaseType());
 
@@ -516,14 +543,14 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
 		}
 
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, errorBuffer));
+		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
-		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
+		SchemaHelper.extractViews(this, viewProperties, Collections.EMPTY_SET, errorBuffer);
 		SchemaHelper.extractMethods(this, actions);
 
 		// source and target id properties
-		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\");\n");
-		src.append("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\");\n");
+		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();\n");
+		src.append("\tpublic static final Property<java.lang.String> targetIdProperty = new TargetId(\"targetId\").partOfBuiltInSchema();\n");
 
 		// add sourceId and targetId to view properties
 		//SchemaHelper.addPropertyToView(PropertyView.Public, "sourceId", viewProperties);
@@ -570,8 +597,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("\t\treturn \"").append(getRelationshipType()).append("\";\n");
 		src.append("\t}\n\n");
 
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys);
-		SchemaHelper.formatSaveActions(this, src, actions);
+		SchemaHelper.formatValidators(src, validators, compoundIndexKeys, false, propertyValidators);
+		SchemaHelper.formatMethods(this, src, actions, Collections.emptySet());
 
 		formatRelationshipFlags(src);
 
@@ -580,54 +607,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		src.append("}\n");
 
 		return src.toString();
-	}
-
-	@Override
-	public Set<String> getViews() {
-		return dynamicViews;
-	}
-
-	@Override
-	public String getAuxiliarySource() throws FrameworkException {
-
-		final Set<String> existingPropertyNames = new LinkedHashSet<>();
-		final String sourceNodeType             = getSchemaNodeSourceType();
-		final String targetNodeType             = getSchemaNodeTargetType();
-		final StringBuilder src                 = new StringBuilder();
-		final String _className                 = getClassName();
-		final Class baseType                    = AbstractRelationship.class;
-
-		if (!"File".equals(sourceNodeType) && !"File".equals(targetNodeType)) {
-			return null;
-		}
-
-		src.append("package org.structr.dynamic;\n\n");
-
-		SchemaHelper.formatImportStatements(this, src, baseType);
-
-		src.append("public class _").append(_className).append("Helper {\n\n");
-
-		src.append("\n\tstatic {\n\n");
-		src.append("\t\tfinal PropertyKey outKey = ");
-		src.append(getPropertySource(getPropertyName(sourceNodeType, existingPropertyNames, true), true, true));
-		src.append(";\n");
-		src.append("\t\toutKey.setDeclaringClass(").append(sourceNodeType).append(".class);\n\n");
-		src.append("\t\tfinal PropertyKey inKey = ");
-		src.append(getPropertySource(getPropertyName(targetNodeType, existingPropertyNames, false), false, true));
-		src.append(";\n");
-		src.append("\t\tinKey.setDeclaringClass(").append(targetNodeType).append(".class);\n\n");
-		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
-		src.append(sourceNodeType).append(".class, outKey);\n");
-		src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(");
-		src.append(targetNodeType).append(".class, inKey);\n\n");
-		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(sourceNodeType).append(".class, PropertyView.Ui, outKey);\n");
-		src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(targetNodeType).append(".class, PropertyView.Ui, inKey);\n");
-		src.append("\t}\n");
-		src.append("}\n");
-
-		return src.toString();
-
-//		return null;
 	}
 
 	// ----- public methods -----
@@ -881,21 +860,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return cascade;
 	}
 
-	// ----- interface Syncable -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> syncables = super.getSyncData();
-
-		syncables.add(getSourceNode());
-		syncables.add(getTargetNode());
-
-		syncables.add(getIncomingRelationship(SchemaRelationshipSourceNode.class));
-		syncables.add(getOutgoingRelationship(SchemaRelationshipTargetNode.class));
-
-		return syncables;
-	}
-
 	// ----- private methods -----
 	private void formatRelationshipFlags(final StringBuilder src) {
 
@@ -1091,7 +1055,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		// examine properties of other node
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
 
-			if (Type.Notion.equals(property.getPropertyType())) {
+			if (Type.Notion.equals(property.getPropertyType()) || Type.IdNotion.equals(property.getPropertyType())) {
 
 				// try to rename
 				final String basePropertyName = property.getNotionBaseProperty();

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -71,11 +71,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * The module service main class.
- *
- *
  */
 public class JarConfigurationProvider implements ConfigurationProvider {
 
@@ -194,10 +191,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 								}
 
-							} catch (ClassNotFoundException ex) {
-
-								// ignore
-							}
+							} catch (ClassNotFoundException ex) {}
 						}
 					}
 				}
@@ -536,6 +530,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		final String simpleName = type.getSimpleName();
 		final String fqcn       = type.getName();
 
+		// do not register types that match org.structr.*Mixin (helpers)
+		if (fqcn.startsWith("org.structr.") && simpleName.endsWith("Mixin")) {
+			return;
+		}
+
 		if (AbstractNode.class.isAssignableFrom(type)) {
 
 			nodeEntityClassCache.put(simpleName, type);
@@ -548,6 +547,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			relationshipEntityClassCache.put(simpleName, type);
 			relationshipPackages.add(fqcn.substring(0, fqcn.lastIndexOf(".")));
 			globalPropertyViewMap.remove(fqcn);
+		}
+
+		// interface that extends NodeInterface, must be stored
+		if (type.isInterface() && GraphObject.class.isAssignableFrom(type)) {
+
+			reverseInterfaceMap.put(type.getSimpleName(), type);
 		}
 
 		for (final Class interfaceClass : type.getInterfaces()) {
@@ -573,8 +578,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			for (final Map.Entry<Field, PropertyKey> entry : allProperties.entrySet()) {
 
 				final PropertyKey propertyKey = entry.getValue();
-				final Field field = entry.getKey();
-				final Class declaringClass = field.getDeclaringClass();
+				final Field field             = entry.getKey();
+				final Class declaringClass    = field.getDeclaringClass();
 
 				if (declaringClass != null) {
 
@@ -649,7 +654,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (Class iface : type.getInterfaces()) {
 
-				reverseInterfaceMap.put(iface.getSimpleName(), iface);
+				if (GraphObject.class.isAssignableFrom(iface)) {
+
+					reverseInterfaceMap.put(iface.getSimpleName(), iface);
+				}
+
 				interfaces.add(iface);
 			}
 		}
@@ -1280,7 +1289,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private <T> Map<Field, T> getFieldValuesOfType(final Class<T> fieldType, final Class entityType) {
 
-		final Map<Field, T> fields = new LinkedHashMap<>();
+		final Map<Field, T> fields   = new LinkedHashMap<>();
 		final Set<Class<?>> allTypes = getAllTypes(entityType);
 
 		for (final Class<?> type : allTypes) {

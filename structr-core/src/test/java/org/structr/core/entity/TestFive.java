@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,21 +51,17 @@ public class TestFive extends AbstractNode {
 	);
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		int value = getIncreasedValue(modifiedInBeforeCreation);
 		setProperty(modifiedInBeforeCreation, value);
-
-		return true;
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		int value = getIncreasedValue(modifiedInBeforeModification);
 		setProperty(modifiedInBeforeModification, value);
-
-		return true;
 	}
 
 	@Override

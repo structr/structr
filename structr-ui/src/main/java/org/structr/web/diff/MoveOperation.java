@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,10 +57,12 @@ public class MoveOperation extends InvertibleModificationOperation {
 
 			return "Move Content(" + originalNode.getIdHashOrProperty() + ")";
 
-		} else {
+		} else if (originalNode instanceof DOMElement) {
 
-			return "Move " + originalNode.getProperty(DOMElement.tag) + "(" + originalNode.getIdHashOrProperty() + ")";
+			return "Move " + ((DOMElement)originalNode).getTag() + "(" + originalNode.getIdHashOrProperty() + ")";
 		}
+
+		return "Move " + originalNode.getUuid()+ "(" + originalNode.getIdHashOrProperty() + ")";
 	}
 
 	// ----- interface InvertibleModificationOperation -----

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,19 +18,18 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.error.ErrorBuffer;
+
 /**
  * An interface that locatable classes can implement to be notified
  * when properties of the Location entity change.
- *
- *
- *
  */
 public interface Locatable {
 
 	/**
-	 * Notify object of a location change
+	 * Notify object of a location change.
 	 *
-	 * @return true if object is still valid after location change
+	 * @param errorBuffer
 	 */
-	public boolean locationChanged();
+	public void locationChanged(final ErrorBuffer errorBuffer);
 }

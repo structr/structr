@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,17 +29,10 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Resource that handles logs a user out
- *
- *
+ * Resource that handles logs a user out.
  */
 public class LogoutResource extends Resource {
-
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -52,7 +45,6 @@ public class LogoutResource extends Resource {
 		}
 
 		return false;
-
 	}
 
 	@Override
@@ -61,7 +53,6 @@ public class LogoutResource extends Resource {
 		securityContext.getAuthenticator().doLogout(securityContext.getRequest());
 
 		return new RestMethodResult(200);
-
 	}
 
 	@Override
@@ -86,41 +77,26 @@ public class LogoutResource extends Resource {
 
 	@Override
 	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
 		return null;
-
 	}
-
-	// ----- private methods -----
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public Class getEntityClass() {
-
 		return null;
-
 	}
 
 	@Override
 	public String getUriPart() {
-
 		return "logout";
-
 	}
 
 	@Override
 	public String getResourceSignature() {
-
 		return "_logout";
-
 	}
 
 	@Override
 	public boolean isCollectionResource() {
-
 		return false;
-
 	}
-
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -74,10 +74,11 @@ public class LogEventFunction extends UiFunction {
 
 			// support javascript objects here
 			final Map map = (Map)sources[0];
-			final String action = DOMNode.objectToString(map.get("action"));
+
+			final String action  = DOMNode.objectToString(map.get("action"));
 			final String message = DOMNode.objectToString(map.get("message"));
 			final String subject = DOMNode.objectToString(map.get("subject"));
-			final String object = DOMNode.objectToString(map.get("object"));
+			final String object  = DOMNode.objectToString(map.get("object"));
 
 			return StructrApp.getInstance().create(LogEvent.class,
 				new NodeAttribute(LogEvent.actionProperty, action),

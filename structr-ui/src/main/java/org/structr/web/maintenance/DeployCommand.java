@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,20 +33,24 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -59,6 +62,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Localization;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.Security;
@@ -81,7 +85,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.AbstractMinifiedFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.LinkSource;
@@ -94,17 +98,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.relation.ResourceLink;
-import org.structr.web.entity.relation.FileChildren;
-import org.structr.web.entity.relation.FileSiblings;
-import org.structr.web.entity.relation.FolderChildren;
-import org.structr.web.entity.relation.Folders;
-import org.structr.web.entity.relation.Images;
-import org.structr.web.entity.relation.MinificationSource;
-import org.structr.web.entity.relation.Thumbnails;
-import org.structr.web.entity.relation.UserFavoriteFavoritable;
-import org.structr.web.entity.relation.UserFavoriteFile;
-import org.structr.web.entity.relation.UserWorkDir;
 import org.structr.web.maintenance.deploy.ComponentImportVisitor;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
@@ -116,11 +109,18 @@ import org.structr.web.maintenance.deploy.TemplateImportVisitor;
  */
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-	private static final Logger logger                   = LoggerFactory.getLogger(DeployCommand.class.getName());
-	private static final Pattern pattern                 = Pattern.compile("[a-f0-9]{32}");
+	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
+	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
-	private Integer stepCounter                          = 0;
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
+
+	private Integer stepCounter                            = 0;
+	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
+	private final static String DEPLOYMENT_EXPORT_STATUS   = "DEPLOYMENT_EXPORT_STATUS";
+	private final static String DEPLOYMENT_STATUS_BEGIN    = "BEGIN";
+	private final static String DEPLOYMENT_STATUS_END      = "END";
+	private final static String DEPLOYMENT_STATUS_PROGRESS = "PROGRESS";
+	private final static String DEPLOYMENT_WARNING         = "WARNING";
 
 	static {
 
@@ -177,6 +177,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return pattern.matcher(name).matches();
 	}
 
+	/**
+	 * Checks if the given string ends with a uuid
+	 */
+	public static boolean endsWithUuid(final String name) {
+		if (name.length() > 32) {
+
+			return pattern.matcher(name.substring(name.length() - 32)).matches();
+		} else {
+
+			return false;
+		}
+	}
+
 
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
@@ -215,9 +228,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final Map<String, Object> broadcastData = new HashMap();
-		broadcastData.put("type", "DEPLOYMENT_STATUS");
-		broadcastData.put("subtype", "BEGIN");
+		broadcastData.put("type", DEPLOYMENT_IMPORT_STATUS);
+		broadcastData.put("subtype", DEPLOYMENT_STATUS_BEGIN);
 		broadcastData.put("start", startTime);
+		broadcastData.put("source", source);
 		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 		// apply configuration
@@ -231,7 +245,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (confSource.length() > 0) {
 
 					info("Applying pre-deployment configuration from {}", preDeployConf);
-					publishDeploymentProgressMessage("Applying pre-deployment configuration");
+					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying pre-deployment configuration");
 
 					Scripting.evaluate(new ActionContext(ctx), null, confSource, "pre-deploy.conf");
 				} else {
@@ -244,7 +258,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (Throwable t) {
 				logger.warn("", t);
-				publishDeploymentWarnigMessage("Exception caught while importing pre-deploy.conf", t.toString());
+				publishDeploymentWarningMessage("Exception caught while importing pre-deploy.conf", t.toString());
 			}
 		}
 
@@ -254,7 +268,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		Settings.ChangelogEnabled.setValue(false);
 
 		// read grants.json
-		publishDeploymentProgressMessage("Importing resource access grants");
+		publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
 
 		final Path grantsConf = source.resolve("security/grants.json");
 		if (Files.exists(grantsConf)) {
@@ -272,7 +286,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final String text = "Found file 'schema-methods.json'. Newer versions store global schema methods in the schema snapshot file. Recreate the export with the current version to avoid compatibility issues. Support for importing this file will be dropped in future versions.";
 
 			info(title + ": " + text);
-			publishDeploymentWarnigMessage(title, text);
+			publishDeploymentWarningMessage(title, text);
 
 			importListData(SchemaMethod.class, readConfigList(schemaMethodsConf));
 		}
@@ -282,7 +296,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(mailTemplatesConf)) {
 
 			info("Reading {}", mailTemplatesConf);
-			publishDeploymentProgressMessage("Importing mail templates");
+			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing mail templates");
 
 			importListData(MailTemplate.class, readConfigList(mailTemplatesConf));
 		}
@@ -292,7 +306,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(widgetsConf)) {
 
 			info("Reading {}", widgetsConf);
-			publishDeploymentProgressMessage("Importing widgets");
+			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing widgets");
 
 			importListData(Widget.class, readConfigList(widgetsConf));
 		}
@@ -306,10 +320,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
-			additionalData.put(Localization.imported, false);
+			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
 
 			info("Reading {}", localizationsConf);
-			publishDeploymentProgressMessage("Importing localizations");
+			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
 			importListData(Localization.class, readConfigList(localizationsConf), additionalData);
 		}
@@ -353,7 +367,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing data from schema/ directory");
-				publishDeploymentProgressMessage("Importing schema");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema");
 
 				Files.walkFileTree(schema, new SchemaImportVisitor(schema));
 
@@ -369,7 +383,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing files (unchanged files will be skipped)");
-				publishDeploymentProgressMessage("Importing files");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
 
 				FileImportVisitor fiv = new FileImportVisitor(files, filesConf);
 				Files.walkFileTree(files, fiv);
@@ -386,14 +400,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			if (module.hasDeploymentData()) {
 
 				info("Importing deployment data for module {}", module.getName());
-				publishDeploymentProgressMessage("Importing deployment data for module " + module.getName());
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
 
 				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
 
 				module.importDeploymentData(moduleFolder, getGson());
-
 			}
-
 		}
 
 
@@ -410,7 +422,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try (final Tx tx = app.tx()) {
 
 				info("Removing pages, templates and components");
-				publishDeploymentProgressMessage("Removing pages, templates and components");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
 				app.cypher("MATCH (n:DOMNode) DETACH DELETE n", null);
 				FlushCachesCommand.flushAll();
@@ -429,7 +441,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing templates");
-				publishDeploymentProgressMessage("Importing templates");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
 
 				Files.walkFileTree(templates, new TemplateImportVisitor(templatesConf));
 
@@ -444,7 +456,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing shared components");
-				publishDeploymentProgressMessage("Importing shared components");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
 				Files.walkFileTree(components, new ComponentImportVisitor(componentsConf));
 
@@ -459,7 +471,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			try {
 
 				info("Importing pages");
-				publishDeploymentProgressMessage("Importing pages");
+				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
 				Files.walkFileTree(pages, new PageImportVisitor(pages, pagesConf));
 
@@ -473,10 +485,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			deferredPageLinks.forEach((String linkableUUID, String pagePath) -> {
 
 				try {
-					final DOMNode page = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
+					final DOMNode page        = StructrApp.getInstance().get(DOMNode.class, linkableUUID);
+					final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(StructrApp.key(Page.class, "path"), pagePath).or(Page.name, pagePath).getFirst();
 
-					final Linkable linkedPage = StructrApp.getInstance().nodeQuery(Linkable.class).and(Page.path, pagePath).or(Page.name, pagePath).getFirst();
-					page.setProperties(page.getSecurityContext(), new PropertyMap(LinkSource.linkable, linkedPage));
+					((LinkSource)page).setLinkable(linkedPage);
 
 				} catch (FrameworkException ex) {
 				}
@@ -499,7 +511,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				if (confSource.length() > 0) {
 
 					info("Applying post-deployment configuration from {}", postDeployConf);
-					publishDeploymentProgressMessage("Applying post-deployment configuration");
+					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Applying post-deployment configuration");
 
 					Scripting.evaluate(new ActionContext(ctx), null, confSource, "post-deploy.conf");
 
@@ -513,7 +525,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (Throwable t) {
 				logger.warn("", t);
-				publishDeploymentWarnigMessage("Exception caught while importing post-deploy.conf", t.toString());
+				publishDeploymentWarningMessage("Exception caught while importing post-deploy.conf", t.toString());
 			}
 		}
 
@@ -529,18 +541,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		info("Import from {} done. (Took {})", source.toString(), duration);
 
-		broadcastData.put("subtype", "END");
+		broadcastData.put("subtype", DEPLOYMENT_STATUS_END);
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
 		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 	}
 
-	private void publishDeploymentProgressMessage (final String message) {
+	private void publishDeploymentProgressMessage (final String type, final String message) {
 
 		final Map<String, Object> msgData = new HashMap();
-		msgData.put("type", "DEPLOYMENT_STATUS");
-		msgData.put("subtype", "PROGRESS");
+		msgData.put("type", type);
+		msgData.put("subtype", DEPLOYMENT_STATUS_PROGRESS);
 		msgData.put("message", message);
 		msgData.put("step", ++stepCounter);
 
@@ -548,10 +560,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	}
 
-	private void publishDeploymentWarnigMessage (final String title, final String text) {
+	private void publishDeploymentWarningMessage (final String title, final String text) {
 
 		final Map<String, Object> warningMsgData = new HashMap();
-		warningMsgData.put("type", "WARNING");
+		warningMsgData.put("type", DEPLOYMENT_WARNING);
 		warningMsgData.put("title", title);
 		warningMsgData.put("text", text);
 
@@ -572,6 +584,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try {
 
+			final long startTime = System.currentTimeMillis();
+			customHeaders.put("start", new Date(startTime).toString());
+
+			final Map<String, Object> broadcastData = new HashMap();
+			broadcastData.put("type", DEPLOYMENT_EXPORT_STATUS);
+			broadcastData.put("subtype", DEPLOYMENT_STATUS_BEGIN);
+			broadcastData.put("start", startTime);
+			broadcastData.put("target", target);
+			TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
+
 			Files.createDirectories(target);
 
 			final Path components     = Files.createDirectories(target.resolve("components"));
@@ -591,20 +613,39 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path localizations  = target.resolve("localizations.json");
 			final Path widgets		  = target.resolve("widgets.json");
 
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Pages");
 			exportPages(pages, pagesConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Components");
 			exportComponents(components, componentsConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
 			exportResourceAccessGrants(grants);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
 			exportSchema(schemaJson);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Mail Templates");
 			exportMailTemplates(mailTemplates);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Localizations");
 			exportLocalizations(localizations);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
 			exportWidgets(widgets);
 
 			for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 
 				if (module.hasDeploymentData()) {
 					logger.info("Exporting deployment data for module {}", module.getName());
+
+					publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting deployment data for module " + module.getName());
 
 					final Path moduleFolder = Files.createDirectories(modules.resolve(module.getName()));
 					module.exportDeploymentData(moduleFolder, getGson());
@@ -617,6 +658,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			logger.info("Export finished.");
 
+			final long endTime = System.currentTimeMillis();
+			DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			final String duration = decimalFormat.format(((endTime - startTime) / 1000.0)) + "s";
+
+			customHeaders.put("end", new Date(endTime).toString());
+			customHeaders.put("duration", duration);
+
+			info("Export to {} done. (Took {})", target.toString(), duration);
+
+			broadcastData.put("subtype", DEPLOYMENT_STATUS_END);
+			broadcastData.put("end", endTime);
+			broadcastData.put("duration", duration);
+			TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
+
 		} catch (IOException ex) {
 			logger.warn("", ex);
 		}
@@ -626,23 +681,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting files (unchanged files will be skipped)");
 
-		final Map<String, Object> config = new TreeMap<>();
-		final App app                    = StructrApp.getInstance();
+		final PropertyKey<Boolean> inclKey  = StructrApp.key(File.class, "includeInFrontendExport");
+		final PropertyKey<Boolean> jsKey    = StructrApp.key(File.class, "useAsJavascriptLibrary");
+		final PropertyKey<Folder> parentKey = StructrApp.key(File.class, "parent");
+		final Map<String, Object> config    = new TreeMap<>();
+		final App app                       = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
 			// fetch toplevel folders and recurse
-			for (final Folder folder : app.nodeQuery(Folder.class).and(Folder.parent, null).sort(Folder.name).and(AbstractFile.includeInFrontendExport, true).getAsList()) {
+			for (final Folder folder : app.nodeQuery(Folder.class).and(parentKey, null).sort(Folder.name).and(inclKey, true).getAsList()) {
 				exportFilesAndFolders(target, folder, config);
 			}
 
 			// fetch toplevel files that are marked for export or for use as a javascript library
-			for (final FileBase file : app.nodeQuery(FileBase.class)
-				.and(Folder.parent, null)
-				.sort(FileBase.name)
+			for (final File file : app.nodeQuery(File.class)
+				.and(parentKey, null)
+				.sort(File.name)
 				.and()
-					.or(AbstractFile.includeInFrontendExport, true)
-					.or(FileBase.useAsJavascriptLibrary, true)
+					.or(inclKey, true)
+					.or(jsKey, true)
 				.getAsList()) {
 
 				exportFile(target, file, config);
@@ -665,6 +723,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportFilesAndFolders(final Path target, final Folder folder, final Map<String, Object> config) throws IOException {
 
+		// ignore folders with mounted content
+		if (folder.isMounted()) {
+			return;
+		}
+
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
 
@@ -683,22 +746,22 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
-		final List<Folder> folders = folder.getProperty(Folder.folders);
+		final List<Folder> folders = Iterables.toList(folder.getFolders());
 		Collections.sort(folders, new GraphObjectComparator(AbstractNode.name, false));
 
 		for (final Folder child : folders) {
 			exportFilesAndFolders(path, child, config);
 		}
 
-		final List<FileBase> files = folder.getProperty(Folder.files);
+		final List<File> files = Iterables.toList(folder.getFiles());
 		Collections.sort(files, new GraphObjectComparator(AbstractNode.name, false));
 
-		for (final FileBase file : files) {
+		for (final File file : files) {
 			exportFile(path, file, config);
 		}
 	}
 
-	private void exportFile(final Path target, final FileBase file, final Map<String, Object> config) throws IOException {
+	private void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
 
 		if (!DeployCommand.okToExport(file)) {
 			return;
@@ -732,7 +795,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(file, properties);
 
 		if (!properties.isEmpty()) {
-			config.put(file.getFolderPath(), properties);
+			config.put(file.getPath(), properties);
 		}
 	}
 
@@ -813,9 +876,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final ShadowDocument shadowDocument = app.nodeQuery(ShadowDocument.class).getFirst();
 			if (shadowDocument != null) {
 
-				for (final DOMNode node : shadowDocument.getProperty(Page.elements)) {
+				for (final DOMNode node : shadowDocument.getElements()) {
 
-					final boolean hasParent = node.getProperty(DOMNode.parent) != null;
+					final boolean hasParent = node.getParent() != null;
 					final boolean inTrash   = node.inTrash();
 					boolean doExport        = true;
 
@@ -889,8 +952,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// export template nodes anywhere in the pages tree which are not related to shared components
 			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
 
+				final boolean isShared    = template.getProperty(StructrApp.key(DOMNode.class, "sharedComponent")) != null;
 				final boolean inTrash     = template.inTrash();
-				final boolean isShared    = template.getProperty(DOMNode.sharedComponent) != null;
 
 				if (inTrash || isShared) {
 					continue;
@@ -916,12 +979,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Map<String, Object> properties = new TreeMap<>();
 		boolean doExport                     = true;
 
-		final String content = template.getProperty(Template.content);
+		final String content = template.getProperty(StructrApp.key(Template.class, "content"));
 		if (content != null) {
 
-			// name or uuid
+			// name with uuid or just uuid
 			String name = template.getProperty(AbstractNode.name);
-			if (name == null) {
+
+			if (name != null) {
+
+				name += "-" + template.getUuid();
+
+			} else {
 
 				name = template.getUuid();
 			}
@@ -1004,8 +1072,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.warn("", ioex);
 			}
 
-		} catch (URISyntaxException x) {
-			logger.warn("", x);
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 
@@ -1014,92 +1082,112 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (node.isVisibleToPublicUsers())        { putIf(config, "visibleToPublicUsers", true); }
 		if (node.isVisibleToAuthenticatedUsers()) { putIf(config, "visibleToAuthenticatedUsers", true); }
 
-		putIf(config, "contentType",             node.getProperty(Content.contentType));
+		putIf(config, "contentType",             node.getProperty(StructrApp.key(Content.class, "contentType")));
 
 		if (node instanceof Template) {
 
 			// mark this template as being shared
-			putIf(config, "shared", Boolean.toString(node.isSharedComponent() && node.getProperty(DOMNode.parent) == null));
+			putIf(config, "shared", Boolean.toString(node.isSharedComponent() && node.getParent() == null));
 		}
 
 		if (node instanceof Page) {
-			putIf(config, "position",                node.getProperty(Page.position));
-			putIf(config, "category",                node.getProperty(Page.category));
-			putIf(config, "showOnErrorCodes",        node.getProperty(Page.showOnErrorCodes));
-			putIf(config, "showConditions",          node.getProperty(Page.showConditions));
-			putIf(config, "hideConditions",          node.getProperty(Page.hideConditions));
-			putIf(config, "dontCache",               node.getProperty(Page.dontCache));
-			putIf(config, "cacheForSeconds",         node.getProperty(Page.cacheForSeconds));
-			putIf(config, "pageCreatesRawData",      node.getProperty(Page.pageCreatesRawData));
-			putIf(config, "basicAuthRealm",          node.getProperty(Page.basicAuthRealm));
-			putIf(config, "enableBasicAuth",         node.getProperty(Page.enableBasicAuth));
+			putIf(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
+			putIf(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
+			putIf(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
+			putIf(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
+			putIf(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
+			putIf(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
+			putIf(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
+			putIf(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
+			putIf(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
+			putIf(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
 		}
 
 		// export all dynamic properties
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(node.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys
-			if (key.isDynamic()) {
+			if (!key.isPartOfBuiltInSchema()) {
 
 				putIf(config, key.jsonName(), node.getProperty(key));
 			}
 		}
 	}
 
-	private void exportFileConfiguration(final AbstractFile file, final Map<String, Object> config) {
+	private void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
 
-		if (file.isVisibleToPublicUsers())         { putIf(config, "visibleToPublicUsers", true); }
-		if (file.isVisibleToAuthenticatedUsers())  { putIf(config, "visibleToAuthenticatedUsers", true); }
-		if (file.getProperty(FileBase.isTemplate)) { putIf(config, "isTemplate", true); }
+		if (abstractFile.isVisibleToPublicUsers())         { putIf(config, "visibleToPublicUsers", true); }
+		if (abstractFile.isVisibleToAuthenticatedUsers())  { putIf(config, "visibleToAuthenticatedUsers", true); }
 
-		putIf(config, "type",                        file.getProperty(FileBase.type));
-		putIf(config, "contentType",                 file.getProperty(FileBase.contentType));
-		putIf(config, "cacheForSeconds",             file.getProperty(FileBase.cacheForSeconds));
-		putIf(config, "useAsJavascriptLibrary",      file.getProperty(FileBase.useAsJavascriptLibrary));
-		putIf(config, "includeInFrontendExport",     file.getProperty(FileBase.includeInFrontendExport));
-		putIf(config, "basicAuthRealm",              file.getProperty(FileBase.basicAuthRealm));
-		putIf(config, "enableBasicAuth",             file.getProperty(FileBase.enableBasicAuth));
+		if (abstractFile instanceof File) {
 
-		if (file instanceof Image) {
-			putIf(config, "isThumbnail",             file.getProperty(Image.isThumbnail));
-			putIf(config, "isImage",                 file.getProperty(Image.isImage));
-			putIf(config, "width",                   file.getProperty(Image.width));
-			putIf(config, "height",                  file.getProperty(Image.height));
+			final File file = (File)abstractFile;
+
+			if (file.isTemplate())                     { putIf(config, "isTemplate", true); }
 		}
 
-		if (file instanceof AbstractMinifiedFile) {
+		putIf(config, "type",                        abstractFile.getProperty(File.type));
+		putIf(config, "contentType",                 abstractFile.getProperty(StructrApp.key(File.class, "contentType")));
+		putIf(config, "cacheForSeconds",             abstractFile.getProperty(StructrApp.key(File.class, "cacheForSeconds")));
+		putIf(config, "useAsJavascriptLibrary",      abstractFile.getProperty(StructrApp.key(File.class, "useAsJavascriptLibrary")));
+		putIf(config, "includeInFrontendExport",     abstractFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport")));
+		putIf(config, "basicAuthRealm",              abstractFile.getProperty(StructrApp.key(File.class, "basicAuthRealm")));
+		putIf(config, "enableBasicAuth",             abstractFile.getProperty(StructrApp.key(File.class, "enableBasicAuth")));
 
-			if (file instanceof MinifiedCssFile) {
-				putIf(config, "lineBreak",               file.getProperty(MinifiedCssFile.lineBreak));
+		if (abstractFile instanceof Image) {
+
+			final Image image = (Image)abstractFile;
+
+			putIf(config, "isThumbnail",             image.isThumbnail());
+			putIf(config, "isImage",                 image.isImage());
+			putIf(config, "width",                   image.getWidth());
+			putIf(config, "height",                  image.getHeight());
+		}
+
+		if (abstractFile instanceof AbstractMinifiedFile) {
+
+			if (abstractFile instanceof MinifiedCssFile) {
+
+				final MinifiedCssFile mcf = (MinifiedCssFile)abstractFile;
+
+				putIf(config, "lineBreak", mcf.getLineBreak());
 			}
 
-			if (file instanceof MinifiedJavaScriptFile) {
-				putIf(config, "optimizationLevel",       file.getProperty(MinifiedJavaScriptFile.optimizationLevel));
-				putIf(config, "minificationSources",     file.getProperty(MinifiedJavaScriptFile.minificationSources));
+			if (abstractFile instanceof MinifiedJavaScriptFile) {
+
+				final MinifiedJavaScriptFile mjf = (MinifiedJavaScriptFile)abstractFile;
+
+				putIf(config, "optimizationLevel",    mjf.getOptimizationLevel());
 			}
 
-			Map<Integer, String> minifcationSources = new TreeMap<>();
-			for(MinificationSource minificationSourceRel : file.getOutgoingRelationships(MinificationSource.class)) {
-				minifcationSources.put(minificationSourceRel.getProperty(MinificationSource.position), minificationSourceRel.getTargetNode().getFolderPath());
+			final Class<Relation> relType                 = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+			final PropertyKey<Integer> positionKey        = StructrApp.key(relType, "position");
+			final Map<Integer, String> minifcationSources = new TreeMap<>();
+
+			for(Relation minificationSourceRel : AbstractMinifiedFile.getSortedRelationships((AbstractMinifiedFile)abstractFile)) {
+
+				final File file = (File)minificationSourceRel.getTargetNode();
+
+				minifcationSources.put(minificationSourceRel.getProperty(positionKey), file.getPath());
 			}
 			putIf(config, "minificationSources",     minifcationSources);
 
 		}
 
 		// export all dynamic properties
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(file.getClass(), PropertyView.All)) {
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
 			// only export dynamic (=> additional) keys
-			if (key.isDynamic()) {
+			if (!key.isPartOfBuiltInSchema()) {
 
-				putIf(config, key.jsonName(), file.getProperty(key));
+				putIf(config, key.jsonName(), abstractFile.getProperty(key));
 			}
 		}
 
-		exportOwnershipAndSecurity(file, config);
+		exportOwnershipAndSecurity(abstractFile, config);
 	}
 
-	private void exportOwnershipAndSecurity(final AbstractNode node, final Map<String, Object> config) {
+	private void exportOwnershipAndSecurity(final NodeInterface node, final Map<String, Object> config) {
 
 		// export unique name of owner node to pages.json
 		final Principal owner = node.getOwnerNode();
@@ -1139,6 +1227,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting mail templates");
 
+		final PropertyKey<String> textKey             = StructrApp.key(MailTemplate.class, "text");
+		final PropertyKey<String> localeKey           = StructrApp.key(MailTemplate.class, "locale");
 		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
@@ -1150,8 +1240,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				mailTemplates.add(entry);
 
 				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
-				entry.put("text",   mailTemplate.getProperty(MailTemplate.text));
-				entry.put("locale", mailTemplate.getProperty(MailTemplate.locale));
+				entry.put("text",   mailTemplate.getProperty(textKey));
+				entry.put("locale", mailTemplate.getProperty(localeKey));
 				entry.put("visibleToAuthenticatedUsers", mailTemplate.getProperty(MailTemplate.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers", mailTemplate.getProperty(MailTemplate.visibleToPublicUsers));
 			}
@@ -1182,15 +1272,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry = new TreeMap<>();
 				widgets.add(entry);
 
-				entry.put("name",   widget.getProperty(Widget.name));
-				entry.put("source",   widget.getProperty(Widget.source));
-				entry.put("description",   widget.getProperty(Widget.description));
-				entry.put("isWidget",   widget.getProperty(Widget.isWidget));
-				entry.put("treePath",   widget.getProperty(Widget.treePath));
-				entry.put("pictures",   widget.getProperty(Widget.pictures));
-				entry.put("configuration", widget.getProperty(Widget.configuration));
+				entry.put("name",                        widget.getProperty(Widget.name));
 				entry.put("visibleToAuthenticatedUsers", widget.getProperty(Widget.visibleToAuthenticatedUsers));
-				entry.put("visibleToPublicUsers", widget.getProperty(Widget.visibleToPublicUsers));
+				entry.put("visibleToPublicUsers",        widget.getProperty(Widget.visibleToPublicUsers));
+				entry.put("source",                      widget.getProperty(StructrApp.key(Widget.class, "source")));
+				entry.put("description",                 widget.getProperty(StructrApp.key(Widget.class, "description")));
+				entry.put("isWidget",                    widget.getProperty(StructrApp.key(Widget.class, "isWidget")));
+				entry.put("treePath",                    widget.getProperty(StructrApp.key(Widget.class, "treePath")));
+				entry.put("pictures",                    widget.getProperty(StructrApp.key(Widget.class, "pictures")));
+				entry.put("configuration",               widget.getProperty(StructrApp.key(Widget.class, "configuration")));
 			}
 
 			tx.success();
@@ -1209,6 +1299,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting localizations");
 
+		final PropertyKey<String> localizedNameKey    = StructrApp.key(Localization.class, "localizedName");
+		final PropertyKey<String> domainKey           = StructrApp.key(Localization.class, "domain");
+		final PropertyKey<String> localeKey           = StructrApp.key(Localization.class, "locale");
+		final PropertyKey<String> importedKey         = StructrApp.key(Localization.class, "imported");
 		final List<Map<String, Object>> localizations = new LinkedList<>();
 		final App app                                 = StructrApp.getInstance();
 
@@ -1220,10 +1314,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				localizations.add(entry);
 
 				entry.put("name",                        localization.getProperty(Localization.name));
-				entry.put("localizedName",               localization.getProperty(Localization.localizedName));
-				entry.put("domain",                      localization.getProperty(Localization.domain));
-				entry.put("locale",                      localization.getProperty(Localization.locale));
-				entry.put("imported",                    localization.getProperty(Localization.imported));
+				entry.put("localizedName",               localization.getProperty(localizedNameKey));
+				entry.put("domain",                      localization.getProperty(domainKey));
+				entry.put("locale",                      localization.getProperty(localeKey));
+				entry.put("imported",                    localization.getProperty(importedKey));
 				entry.put("visibleToAuthenticatedUsers", localization.getProperty(MailTemplate.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers",        localization.getProperty(MailTemplate.visibleToPublicUsers));
 			}
@@ -1288,64 +1382,33 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private static final Set<String> relationshipTypesOkToExport = new HashSet<>(Arrays.asList(
+		"CONTAINS",
+		"CONTAINS_NEXT_SIBLING",
+		"LINK",
+		"MINIFICATION",
+		"FAVORITE",
+		"WORKING_DIR",
+		"HOME_DIR",
+		"THUMBNAIL"
+	));
+
 	// ----- public static methods -----
 	public static boolean okToExport(final AbstractFile file) {
 
 		for (final AbstractRelationship rel : file.getRelationships()) {
+
+			final String name = rel.getRelType().name();
+
+			if (relationshipTypesOkToExport.contains(name)) {
+				continue;
+			}
 
 			if (rel instanceof Security) {
 				continue;
 			}
 
 			if (rel instanceof PrincipalOwnsNode) {
-				continue;
-			}
-
-			if (rel instanceof FolderChildren) {
-				continue;
-			}
-
-			if (rel instanceof FileChildren) {
-				continue;
-			}
-
-			if (rel instanceof FileSiblings) {
-				continue;
-			}
-
-			if (rel instanceof MinificationSource) {
-				continue;
-			}
-
-			if (rel instanceof UserFavoriteFile) {
-				continue;
-			}
-
-			if (rel instanceof UserWorkDir) {
-				continue;
-			}
-
-			if (rel instanceof Folders) {
-				continue;
-			}
-
-			if (rel instanceof org.structr.web.entity.relation.Files) {
-				continue;
-			}
-
-			if (rel instanceof Images) {
-				continue;
-			}
-
-			if (rel instanceof Thumbnails) {
-				continue;
-			}
-
-			if (rel instanceof ResourceLink) {
-				continue;
-			}
-
-			if (rel instanceof UserFavoriteFavoritable) {
 				continue;
 			}
 

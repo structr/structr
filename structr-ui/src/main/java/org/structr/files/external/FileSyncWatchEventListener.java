@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,9 +27,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -49,14 +51,14 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		}
 
 		final FolderAndFile obj = handle(root, root.relativize(path), path, true);
-		if (obj != null && obj.file != null && obj.file instanceof FileBase) {
+		if (obj != null && obj.file != null && obj.file instanceof File) {
 
-			final FileBase fileNode       = (FileBase)obj.file;
+			final File fileNode       = (File)obj.file;
 			final java.io.File fileOnDisk = path.toFile();
 			final long size               = fileOnDisk.length();
 			final long lastModified       = fileOnDisk.lastModified();
 			final Long fileNodeSize       = fileNode.getSize();
-			final Long fileNodeDate       = fileNode.getProperty(FileBase.fileModificationDate);
+			final Long fileNodeDate       = fileNode.getProperty(StructrApp.key(File.class, "fileModificationDate"));
 
 			// update metadata only when size or modification time has changed
 			if (fileNodeSize == null || fileNodeDate == null || size != fileNodeSize || lastModified != fileNodeDate) {
@@ -110,10 +112,12 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	private FolderAndFile handle(final Path root, final Path relativePath, final Path path, final boolean create) throws FrameworkException {
 
 		// identify mounted folder object
-		final Folder folder = StructrApp.getInstance().nodeQuery(Folder.class).and(Folder.mountTarget, root.toString()).getFirst();
+		final PropertyKey<String> mountTargetKey = StructrApp.key(Folder.class, "mountTarget");
+		final Folder folder                      = StructrApp.getInstance().nodeQuery(Folder.class).and(mountTargetKey, root.toString()).getFirst();
+
 		if (folder != null) {
 
-			final String mountFolderPath = folder.getProperty(Folder.path);
+			final String mountFolderPath = folder.getProperty(StructrApp.key(Folder.class, "path"));
 			if (mountFolderPath != null) {
 
 				final Path relativePathParent = relativePath.getParent();
@@ -141,18 +145,20 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 	private AbstractFile getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate) throws FrameworkException {
 
+		final PropertyKey<Boolean> isExternalKey = StructrApp.key(AbstractFile.class, "isExternal");
+		final PropertyKey<Folder> parentKey      = StructrApp.key(AbstractFile.class, "parent");
 		final String fileName                    = relativePath.getFileName().toString();
 		final boolean isFile                     = !Files.isDirectory(fullPath);
-		final Class<? extends AbstractFile> type = isFile ? org.structr.dynamic.File.class : Folder.class;
+		final Class<? extends AbstractFile> type = isFile ? org.structr.web.entity.File.class : Folder.class;
 		final App app                            = StructrApp.getInstance();
 
-		AbstractFile file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(AbstractFile.parent, parentFolder).getFirst();
+		AbstractFile file = app.nodeQuery(type).and(AbstractFile.name, fileName).and(parentKey, parentFolder).getFirst();
 		if (file == null && doCreate) {
 
 			file = app.create(type,
 				new NodeAttribute<>(AbstractFile.name,       fileName),
-				new NodeAttribute<>(AbstractFile.parent,     parentFolder),
-				new NodeAttribute<>(AbstractFile.isExternal, true)
+				new NodeAttribute<>(parentKey,     parentFolder),
+				new NodeAttribute<>(isExternalKey, true)
 			);
 		}
 
@@ -171,24 +177,24 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 
 		void handle() throws FrameworkException {
 
-			if (file instanceof FileBase) {
+			final PropertyKey<Boolean> doFulltextIndexing = StructrApp.key(Folder.class, "mountDoFulltextIndexing");
+			final PropertyKey<Long> lastSeenMounted       = StructrApp.key(AbstractFile.class, "lastSeenMounted");
 
-				final FileBase fileBase = (FileBase)file;
+			if (file instanceof File) {
 
-				if (rootFolder != null && rootFolder.getProperty(Folder.mountDoFulltextIndexing)) {
+				final File fileBase = (File)file;
+
+				if (rootFolder != null && rootFolder.getProperty(doFulltextIndexing)) {
 					StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(fileBase);
 				}
 
-				if (file != null) {
-					FileHelper.updateMetadata(fileBase);
-				}
-			}
+				FileHelper.updateMetadata(fileBase, new PropertyMap(lastSeenMounted, System.currentTimeMillis()), true);
 
-			if (file instanceof AbstractFile) {
+			} else if (file instanceof AbstractFile) {
 
 				final AbstractFile abstractFile = (AbstractFile)file;
 
-				abstractFile.setProperty(AbstractFile.lastSeenMounted, System.currentTimeMillis());
+				abstractFile.setProperty(lastSeenMounted, System.currentTimeMillis());
 			}
 		}
 	}

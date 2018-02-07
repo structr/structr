@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,26 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Option extends DOMElement {
-	
-	public static final Property<String> _value	= new HtmlProperty("value");
-	public static final Property<String> _disabled	= new HtmlProperty("disabled");
-	public static final Property<String> _selected	= new HtmlProperty("selected");
-	public static final Property<String> _label	= new HtmlProperty("label");
-	
-	public static final View htmlView = new View(Option.class, PropertyView.Html,
-	    
-		_value, _disabled, _selected, _label
-	 );
-	
+public interface Option extends DOMElement {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Option");
+
+		type.addStringProperty("_html_value",	 PropertyView.Html);
+		type.addStringProperty("_html_disabled", PropertyView.Html);
+		type.addStringProperty("_html_selected", PropertyView.Html);
+		type.addStringProperty("_html_label",    PropertyView.Html);
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Option"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+	}}
 }

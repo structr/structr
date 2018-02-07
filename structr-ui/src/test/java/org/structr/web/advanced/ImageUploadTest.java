@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
@@ -43,8 +44,8 @@ public class ImageUploadTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(Image.class,
-				new NodeAttribute<>(Image.name, "test01.png"),
-				new NodeAttribute<>(Image.imageData, Base64ImageData)
+				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
+				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), Base64ImageData)
 			);
 
 			tx.success();
@@ -61,10 +62,10 @@ public class ImageUploadTest extends StructrUiTest {
 
 			final Image image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Image.size));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Image.width));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Image.height));
-			assertEquals("Content type of the image does not match", "image/png",          image.getProperty(Image.contentType));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getSize());
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getWidth());
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getHeight());
+			assertEquals("Content type of the image does not match", "image/png",          image.getContentType());
 
 			tx.success();
 
@@ -80,8 +81,8 @@ public class ImageUploadTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(Image.class,
-				new NodeAttribute<>(Image.name, "test01.png"),
-				new NodeAttribute<>(Image.imageData, "data:image/jpeg;base64," + Base64ImageData)
+				new NodeAttribute<>(StructrApp.key(Image.class, "name"),      "test01.png"),
+				new NodeAttribute<>(StructrApp.key(Image.class, "imageData"), "data:image/jpeg;base64," + Base64ImageData)
 			);
 
 			tx.success();
@@ -98,10 +99,10 @@ public class ImageUploadTest extends StructrUiTest {
 
 			final Image image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getProperty(Image.size));
-			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getProperty(Image.width));
-			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getProperty(Image.height));
-			assertEquals("Content type of the image does not match", "image/jpeg",         image.getProperty(Image.contentType));
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getSize());
+			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getWidth());
+			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getHeight());
+			assertEquals("Content type of the image does not match", "image/jpeg",         image.getContentType());
 
 			tx.success();
 
@@ -109,5 +110,4 @@ public class ImageUploadTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 	}
-
 }

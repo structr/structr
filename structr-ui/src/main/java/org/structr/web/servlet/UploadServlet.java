@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.web.servlet;
 
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -57,15 +58,15 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Image;
 
 
 //~--- classes ----------------------------------------------------------------
 /**
  * Simple upload servlet.
- *
- *
  */
 public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
@@ -77,8 +78,9 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 	private static final long MEGABYTE                              = 1024 * 1024;
 
 	// non-static fields
-	private ServletFileUpload uploader = null;
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	private ServletFileUpload uploader            = null;
+	private java.io.File filesDir                 = null;
 
 	public UploadServlet() {
 	}
@@ -243,7 +245,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							if (isImage) {
 
-								cls = org.structr.dynamic.Image.class;
+								cls = Image.class;
 
 							} else if (isVideo) {
 
@@ -255,7 +257,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							} else {
 
-								cls = org.structr.dynamic.File.class;
+								cls = File.class;
 							}
 						}
 
@@ -264,7 +266,7 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 						}
 
 						final String name = item.getName().replaceAll("\\\\", "/");
-						FileBase newFile  = null;
+						File newFile  = null;
 						String uuid       = null;
 						boolean retry     = true;
 
@@ -286,22 +288,25 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 							}
 
-							try (final Tx tx = StructrApp.getInstance().tx()) {
+							try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-								newFile = FileHelper.createFile(securityContext, item.openStream(), contentType, cls, name, uploadFolder);
-								newFile.validateAndRenameFileOnce(securityContext, null);
+								try (final InputStream is = item.openStream()) {
 
-								final PropertyMap changedProperties = new PropertyMap();
+									newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+									AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
 
-								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+									final PropertyMap changedProperties = new PropertyMap();
 
-								// Update type as it could have changed
-								changedProperties.put(AbstractNode.type, type);
+									changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
-								newFile.unlockSystemPropertiesOnce();
-								newFile.setProperties(securityContext, changedProperties);
+									// Update type as it could have changed
+									changedProperties.put(AbstractNode.type, type);
 
-								uuid = newFile.getUuid();
+									newFile.unlockSystemPropertiesOnce();
+									newFile.setProperties(securityContext, changedProperties);
+
+									uuid = newFile.getUuid();
+								}
 
 								tx.success();
 
@@ -425,16 +430,19 @@ public class UploadServlet extends HttpServlet implements HttpServiceServlet {
 
 					}
 
-					if (node instanceof org.structr.web.entity.AbstractFile) {
+					if (node instanceof org.structr.web.entity.File) {
 
-						final FileBase file = (FileBase) node;
+						final File file = (File) node;
 						if (file.isGranted(Permission.write, securityContext)) {
 
-							FileHelper.writeToFile(file, fileItem.openStream());
-							file.increaseVersion();
+							try (final InputStream is = fileItem.openStream()) {
 
-							// upload trigger
-							file.notifyUploadCompletion();
+								FileHelper.writeToFile(file, is);
+								file.increaseVersion();
+
+								// upload trigger
+								file.notifyUploadCompletion();
+							}
 
 						} else {
 

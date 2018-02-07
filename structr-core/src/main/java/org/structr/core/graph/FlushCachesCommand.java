@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +27,6 @@ import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-
-//~--- classes ----------------------------------------------------------------
 
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -53,7 +50,6 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		App app = StructrApp.getInstance();
 
 		app.invalidateCache();
-		app.getDatabaseService().invalidateQueryCache();
 	}
 
 	@Override

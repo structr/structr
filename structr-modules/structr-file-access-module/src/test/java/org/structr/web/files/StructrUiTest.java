@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -126,7 +126,7 @@ public abstract class StructrUiTest {
 
 		basePath = "/tmp/structr-test-" + timestamp + "-" + System.nanoTime();
 
-		Settings.Services.setValue("NodeService FtpService SSHService");
+		Settings.Services.setValue("NodeService SchemaService FtpService SSHService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup

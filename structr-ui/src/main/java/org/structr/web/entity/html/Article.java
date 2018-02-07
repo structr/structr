@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,20 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Article extends DOMElement {
 
-/**
- *
- */
-public class Article extends DOMElement {
+	static class Impl { static {
 
-//	public static final EndNodes<H1>  h1s  = new EndNodes<H1>("h1s", H1.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<H2>  h2s  = new EndNodes<H2>("h2s", H2.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<H3>  h3s  = new EndNodes<H3>("h3s", H3.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<H4>  h4s  = new EndNodes<H4>("h4s", H4.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<H5>  h5s  = new EndNodes<H5>("h5s", H5.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<H6>  h6s  = new EndNodes<H6>("h6s", H6.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<P>   ps   = new EndNodes<P>("ps", P.class, RelType.CONTAINS, Direction.OUTGOING, false);
-//	public static final EndNodes<Div> divs = new EndNodes<Div>("divs", Div.class, RelType.CONTAINS, Direction.OUTGOING, false);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Article");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Article"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+	}}
 }

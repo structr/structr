@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,16 +19,11 @@
 package org.structr.core.entity;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -40,11 +35,8 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.SchemaRelationship;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
@@ -55,15 +47,10 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.module.StructrModule;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.action.ActionEntry;
-import org.structr.schema.action.Actions;
-import org.structr.schema.parser.Validator;
 
 /**
  *
@@ -71,56 +58,57 @@ import org.structr.schema.parser.Validator;
  */
 public class SchemaNode extends AbstractSchemaNode {
 
-	private static final Logger logger = LoggerFactory.getLogger(SchemaNode.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(SchemaNode.class.getName());
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"Relation"
 	}));
 
-	public static final Property<List<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
-	public static final Property<List<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
-	public static final Property<String>                       extendsClass     = new StringProperty("extendsClass").indexed();
-	public static final Property<String>                       defaultSortKey   = new StringProperty("defaultSortKey");
-	public static final Property<String>                       defaultSortOrder = new StringProperty("defaultSortOrder");
-	public static final Property<Boolean>                      isBuiltinType    = new BooleanProperty("isBuiltinType").readOnly().indexed();
-	public static final Property<Integer>                      hierarchyLevel   = new IntProperty("hierarchyLevel").indexed();
-	public static final Property<Integer>                      relCount         = new IntProperty("relCount").indexed();
-	public static final Property<Boolean>                      shared           = new BooleanProperty("shared").indexed();
+	public static final Property<List<SchemaRelationshipNode>> relatedTo            = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
+	public static final Property<List<SchemaRelationshipNode>> relatedFrom          = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
+	public static final Property<String>                       extendsClass         = new StringProperty("extendsClass").indexed();
+	public static final Property<String>                       implementsInterfaces = new StringProperty("implementsInterfaces");
+	public static final Property<String>                       defaultSortKey       = new StringProperty("defaultSortKey");
+	public static final Property<String>                       defaultSortOrder     = new StringProperty("defaultSortOrder");
+	public static final Property<Boolean>                      isBuiltinType        = new BooleanProperty("isBuiltinType").readOnly().indexed();
+	public static final Property<Integer>                      hierarchyLevel       = new IntProperty("hierarchyLevel").indexed();
+	public static final Property<Integer>                      relCount             = new IntProperty("relCount").indexed();
+	public static final Property<Boolean>                      shared               = new BooleanProperty("shared").indexed();
+	public static final Property<Boolean>                      isInterface          = new BooleanProperty("isInterface").indexed();
+	public static final Property<Boolean>                      isAbstract           = new BooleanProperty("isAbstract").indexed();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
-		extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		name, extendsClass, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",
-		extendsClass, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount
+		extendsClass, implementsInterfaces, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
 	);
 
-	private final Set<String> dynamicViews = new LinkedHashSet<>();
-
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+
+		super.onCreation(securityContext, errorBuffer);
 
 		throwExceptionIfTypeAlreadyExists();
-
-		return super.onCreation(securityContext, errorBuffer);
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 
 		if (modificationQueue.isPropertyModified(this, name)) {
 			throwExceptionIfTypeAlreadyExists();
 		}
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	@Override
@@ -149,178 +137,12 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
-		final App app                                          = StructrApp.getInstance(securityContext);
-		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
-		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
-		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
-		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
-		final Set<String> propertyNames                        = new LinkedHashSet<>();
-		final Set<Validator> validators                        = new LinkedHashSet<>();
-		final Set<String> enums                                = new LinkedHashSet<>();
-		final StringBuilder src                                = new StringBuilder();
-		final Class baseType                                   = AbstractNode.class;
-		final String _className                                = getProperty(name);
-		final String _extendsClass                             = getProperty(extendsClass);
-		final String superClass                                = _extendsClass != null ? _extendsClass : baseType.getSimpleName();
-
-		src.append("package org.structr.dynamic;\n\n");
-
-		SchemaHelper.formatImportStatements(this, src, baseType);
-
-		src.append("public class ");
-		src.append(_className);
-		src.append(" extends ");
-		src.append(superClass);
-
-		SchemaHelper.formatInterfacesFromModules(src, this);
-
-		src.append(" {\n\n");
-
-		// migrate schema relationships
-		for (final SchemaRelationship outRel : getOutgoingRelationships(SchemaRelationship.class)) {
-
-			final PropertyMap relNodeProperties = new PropertyMap();
-
-			relNodeProperties.put(SchemaRelationshipNode.sourceNode, outRel.getSourceNode());
-			relNodeProperties.put(SchemaRelationshipNode.targetNode, outRel.getTargetNode());
-			relNodeProperties.put(SchemaRelationshipNode.name, outRel.getProperty(SchemaRelationship.name));
-			relNodeProperties.put(SchemaRelationshipNode.sourceNotion, outRel.getProperty(SchemaRelationship.sourceNotion));
-			relNodeProperties.put(SchemaRelationshipNode.targetNotion, outRel.getProperty(SchemaRelationship.targetNotion));
-			relNodeProperties.put(SchemaRelationshipNode.extendsClass, outRel.getProperty(SchemaRelationship.extendsClass));
-			relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, outRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
-			relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, outRel.getProperty(SchemaRelationship.autocreationFlag));
-			relNodeProperties.put(SchemaRelationshipNode.relationshipType, outRel.getProperty(SchemaRelationship.relationshipType));
-			relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, outRel.getProperty(SchemaRelationship.sourceMultiplicity));
-			relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, outRel.getProperty(SchemaRelationship.targetMultiplicity));
-			relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, outRel.getProperty(SchemaRelationship.sourceJsonName));
-			relNodeProperties.put(SchemaRelationshipNode.targetJsonName, outRel.getProperty(SchemaRelationship.targetJsonName));
-
-			app.create(SchemaRelationshipNode.class, relNodeProperties);
-			app.delete(outRel);
-		}
-
-		for (final SchemaRelationship inRel : getIncomingRelationships(SchemaRelationship.class)) {
-
-			final PropertyMap relNodeProperties = new PropertyMap();
-
-			relNodeProperties.put(SchemaRelationshipNode.sourceNode, inRel.getSourceNode());
-			relNodeProperties.put(SchemaRelationshipNode.targetNode, inRel.getTargetNode());
-			relNodeProperties.put(SchemaRelationshipNode.name, inRel.getProperty(SchemaRelationship.name));
-			relNodeProperties.put(SchemaRelationshipNode.sourceNotion, inRel.getProperty(SchemaRelationship.sourceNotion));
-			relNodeProperties.put(SchemaRelationshipNode.targetNotion, inRel.getProperty(SchemaRelationship.targetNotion));
-			relNodeProperties.put(SchemaRelationshipNode.extendsClass, inRel.getProperty(SchemaRelationship.extendsClass));
-			relNodeProperties.put(SchemaRelationshipNode.cascadingDeleteFlag, inRel.getProperty(SchemaRelationship.cascadingDeleteFlag));
-			relNodeProperties.put(SchemaRelationshipNode.autocreationFlag, inRel.getProperty(SchemaRelationship.autocreationFlag));
-			relNodeProperties.put(SchemaRelationshipNode.relationshipType, inRel.getProperty(SchemaRelationship.relationshipType));
-			relNodeProperties.put(SchemaRelationshipNode.sourceMultiplicity, inRel.getProperty(SchemaRelationship.sourceMultiplicity));
-			relNodeProperties.put(SchemaRelationshipNode.targetMultiplicity, inRel.getProperty(SchemaRelationship.targetMultiplicity));
-			relNodeProperties.put(SchemaRelationshipNode.sourceJsonName, inRel.getProperty(SchemaRelationship.sourceJsonName));
-			relNodeProperties.put(SchemaRelationshipNode.targetJsonName, inRel.getProperty(SchemaRelationship.targetJsonName));
-
-			app.create(SchemaRelationshipNode.class, relNodeProperties);
-			app.delete(inRel);
-		}
-
-		// output related node definitions, collect property views
-		for (final SchemaRelationshipNode outRel : getProperty(SchemaNode.relatedTo)) {
-
-			final String propertyName = outRel.getPropertyName(_className, existingPropertyNames, true);
-
-			//outRel.setProperty(SchemaRelationship.targetJsonName, propertyName);
-
-			src.append(outRel.getPropertySource(propertyName, true));
-			//existingPropertyNames.clear();
-			addPropertyNameToViews(propertyName, viewProperties);
-
-		}
-
-		// output related node definitions, collect property views
-		for (final SchemaRelationshipNode inRel : getProperty(SchemaNode.relatedFrom)) {
-
-			final String propertyName = inRel.getPropertyName(_className, existingPropertyNames, false);
-
-			//inRel.setProperty(SchemaRelationship.sourceJsonName, propertyName);
-
-			src.append(inRel.getPropertySource(propertyName, false));
-			//existingPropertyNames.clear();
-			addPropertyNameToViews(propertyName, viewProperties);
-
-		}
-
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, errorBuffer));
-
-		SchemaHelper.extractViews(this, viewProperties, errorBuffer);
-		SchemaHelper.extractMethods(this, saveActions);
-
-		// output possible enum definitions
-		for (final String enumDefition : enums) {
-			src.append(enumDefition);
-		}
-
-		for (Entry<String, Set<String>> entry : viewProperties.entrySet()) {
-
-			final String viewName  = entry.getKey();
-			final Set<String> view = entry.getValue();
-
-			if (!view.isEmpty()) {
-				dynamicViews.add(viewName);
-				SchemaHelper.formatView(src, _className, viewName, viewName, view);
-			}
-		}
-
-		if (getProperty(defaultSortKey) != null) {
-
-			String order = getProperty(defaultSortOrder);
-			if (order == null || "desc".equals(order)) {
-				order = "GraphObjectComparator.DESCENDING";
-			} else {
-				order = "GraphObjectComparator.ASCENDING";
-			}
-
-			src.append("\n\t@Override\n");
-			src.append("\tpublic PropertyKey getDefaultSortKey() {\n");
-			src.append("\t\treturn ").append(getProperty(defaultSortKey)).append("Property;\n");
-			src.append("\t}\n");
-
-			src.append("\n\t@Override\n");
-			src.append("\tpublic String getDefaultSortOrder() {\n");
-			src.append("\t\treturn ").append(order).append(";\n");
-			src.append("\t}\n");
-		}
-
-		SchemaHelper.formatValidators(src, validators, compoundIndexKeys);
-		SchemaHelper.formatSaveActions(this, src, saveActions);
-
-		// insert source code from module
-		for (final StructrModule module : modules) {
-
-			src.append("\n\n// ----- dynamic code inserted by ");
-			src.append(module.getName());
-			src.append(" -----\n");
-
-			module.insertSourceCode(this, src);
-		}
-
-		src.append("}\n");
-
-		return src.toString();
-	}
-
-	@Override
-	public Set<String> getViews() {
-		return dynamicViews;
-	}
-
-	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 
 		boolean valid = super.isValid(errorBuffer);
 
 		valid &= ValidationHelper.isValidUniqueProperty(this, name, errorBuffer);
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[A-Z][a-zA-Z0-9_]+", errorBuffer);
+		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[A-Z][a-zA-Z0-9_]*", errorBuffer);
 
 		return valid;
 	}
@@ -451,6 +273,85 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
+	public void handleMigration() throws FrameworkException {
+
+		// we need to consider the following cases:
+		//  - class extends other dynamic class => no change
+		//  - class extends FileBase => make it extend AbstractNode and implement File
+		//  - class extends built-in type => make it extend AbstractNode and implement dynamic interface
+
+		final String tmp = getProperty(extendsClass);
+		if (tmp != null) {
+
+
+			final String interfaces = getProperty(implementsInterfaces);
+			String _extendsClass = StringUtils.substringBefore(tmp, "<"); // remove optional generic parts from class name
+
+			// migrate FileBase
+			if (_extendsClass.equals("org.structr.web.entity.FileBase")) {
+
+				removeProperty(extendsClass);
+				setProperty(implementsInterfaces, addToList(interfaces, "org.structr.web.entity.File"));
+				return;
+			}
+
+			// migrate Person
+			if (_extendsClass.equals("org.structr.core.entity.Person")) {
+
+				setProperty(extendsClass, "org.structr.dynamic.Person");
+				return;
+			}
+
+			// migrate XMPPClient
+			if (_extendsClass.equals("org.structr.xmpp.XMPPClient")) {
+
+				setProperty(implementsInterfaces, addToList(interfaces, "org.structr.xmpp.XMPPClient"));
+				removeProperty(extendsClass);
+				return;
+			}
+
+			// we need to migrate the feed package
+			if (_extendsClass.startsWith("org.structr.web.entity.feed.")) {
+
+				_extendsClass = _extendsClass.replace("org.structr.web.entity.feed.", "org.structr.feed.entity.");
+				setProperty(extendsClass, _extendsClass);
+			}
+
+			// move most of the extendsClass to implementsInterfaces
+			if (
+				_extendsClass.startsWith("org.structr.knowledge.")
+				||
+				(
+					!_extendsClass.endsWith("Impl") &&
+					_extendsClass.contains(".entity.") &&
+					_extendsClass.startsWith("org.structr.") &&
+					!_extendsClass.startsWith("org.structr.dynamic.") &&
+					!AbstractNode.class.getName().equals(_extendsClass)
+				)
+			) {
+
+				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
+				removeProperty(extendsClass);
+			}
+		}
+	}
+
+	// ----- private methods -----
+	private String addToList(final String source, final String value) {
+
+		final List<String> list = new LinkedList<>();
+
+		if (source != null) {
+
+			list.addAll(Arrays.asList(source.split(",")));
+		}
+
+		list.add(value);
+
+		return StringUtils.join(list, ",");
+	}
+
+
 	private String getRelatedType(final SchemaNode schemaNode, final String propertyNameToCheck) {
 
 		final Set<String> existingPropertyNames = new LinkedHashSet<>();
@@ -474,100 +375,6 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
-	@Override
-	public String getAuxiliarySource() throws FrameworkException {
-
-		// only File and Image need to return auxiliary code
-		if (!("File".equals(getClassName()) || ("Image".equals(getClassName())))) {
-			return null;
-		}
-
-		final Map<Actions.Type, List<ActionEntry>> saveActions = new EnumMap<>(Actions.Type.class);
-		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
-		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
-		final Set<String> propertyNames                        = new LinkedHashSet<>();
-		final Set<Validator> validators                        = new LinkedHashSet<>();
-		final Set<String> enums                                = new LinkedHashSet<>();
-		final String _className                                = getProperty(name);
-		final ErrorBuffer dummyErrorBuffer                     = new ErrorBuffer();
-
-		final String propertyDefinitions = SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, dummyErrorBuffer);
-
-		SchemaHelper.extractViews(this, viewProperties, dummyErrorBuffer);
-		SchemaHelper.extractMethods(this, saveActions);
-
-		if (!propertyNames.isEmpty() || !viewProperties.isEmpty() || validators.isEmpty() || !saveActions.isEmpty()) {
-
-			final StringBuilder src = new StringBuilder();
-
-			src.append("package org.structr.dynamic;\n\n");
-
-			SchemaHelper.formatImportStatements(this, src, AbstractNode.class);
-
-			src.append("public class _").append(_className).append("Helper {\n");
-
-			// output possible enum definitions
-			for (final String enumDefition : enums) {
-				src.append(enumDefition);
-			}
-
-			// formatting is important :)
-			if (!enums.isEmpty()) {
-				src.append("\n");
-			}
-
-			if (!propertyNames.isEmpty()) {
-
-				src.append("\n");
-
-				src.append(propertyDefinitions);
-
-				src.append("\n\tstatic {\n\n");
-
-				for (final String name : propertyNames) {
-
-					final String propertyName = name + "Property";
-
-					src.append("\t\t").append(propertyName).append(".setDeclaringClass(").append(_className).append(".class);\n\n");
-					src.append("\t\tStructrApp.getConfiguration().registerDynamicProperty(").append(_className).append(".class, ").append(propertyName).append(");\n");
-					src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, PropertyView.Ui, ").append(propertyName).append(");\n\n");
-				}
-
-				// Code for custom Views on "File" type
-				for (final String viewName : viewProperties.keySet()) {
-
-					for (String propertyName : viewProperties.get(viewName)) {
-
-						if (propertyName.endsWith("Property")) {
-							propertyName = propertyName.substring(0, propertyName.length() - 8);
-						}
-
-						src.append("\t\tStructrApp.getConfiguration().registerPropertySet(").append(_className).append(".class, \"").append(viewName).append("\", \"").append(propertyName).append("\");\n\n");
-					}
-				}
-
-				src.append("\t}\n\n");
-			}
-
-			SchemaHelper.formatDynamicValidators(src, validators, compoundIndexKeys);
-			SchemaHelper.formatDynamicSaveActions(src, saveActions);
-
-			src.append("}\n");
-
-			return src.toString();
-		}
-
-		return null;
-	}
-
-
-
-	// ----- private methods -----
-	private void addPropertyNameToViews(final String propertyName, final Map<String, Set<String>> viewProperties) {
-		//SchemaHelper.addPropertyToView(PropertyView.Public, propertyName, viewProperties);
-		SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
-	}
-
 	/**
 	* If the system is fully initialized (and no schema replacement is currently active), we disallow overriding (known) existing types so we can prevent unwanted behavior.
 	* If a user were to create a type 'Html', he could cripple Structrs Page rendering completely.
@@ -587,6 +394,7 @@ public class SchemaNode extends AbstractSchemaNode {
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
 			}
 
+			/*
 			// add type names to list of forbidden entity names
 			if (StructrApp.getConfiguration().getNodeEntities().containsKey(typeName)) {
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
@@ -596,32 +404,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			if (StructrApp.getConfiguration().getInterfaces().containsKey(typeName)) {
 				throw new FrameworkException(422, "Type '" + typeName + "' already exists. To prevent unwanted/unexpected behavior this is forbidden.");
 			}
+			*/
 		}
-	}
-
-	// ----- interface GraphObject -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> data = super.getSyncData();
-
-		// special SchemaNode behaviour when syncing:
-		// the schema needs to be transferred as a whole
-		// because the individual nodes and relationships
-		// depend on each other, so each schema node adds
-		// all other schema nodes to its list.
-		data.addAll(StructrApp.getInstance(securityContext).nodeQuery(SchemaNode.class).getAsList());
-
-		// outgoing relationships
-		for (final SchemaRelationshipNode rel : getProperty(SchemaNode.relatedTo)) {
-			data.add(rel);
-		}
-
-		// incoming relationships
-		for (final SchemaRelationshipNode rel : getProperty(SchemaNode.relatedFrom)) {
-			data.add(rel);
-		}
-
-		return data;
 	}
 }

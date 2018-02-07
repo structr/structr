@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,13 +50,14 @@ import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
-import static org.structr.core.graph.NodeInterface.owner;
-import org.structr.dynamic.File;
-import org.structr.web.entity.FileBase;
+import org.structr.core.graph.Tx;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -97,11 +98,27 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 			for (final String indexableId : task.getWorkObjects()) {
 
-				if (!doIndexing(indexableId)) {
-					return ReturnValue.Retry;
+				for (int i=0; i<3; i++) {
+
+					try (final Tx tx = StructrApp.getInstance().tx()) {
+
+						final Indexable indexable = StructrApp.getInstance().nodeQuery(Indexable.class).and(GraphObject.id, indexableId).getFirst();
+						if (indexable != null) {
+
+							doIndexing(indexable);
+
+							// only try indexing once..
+							return ReturnValue.Success;
+						}
+
+						tx.success();
+
+					} catch (FrameworkException fex) {}
+
+					// wait for the transaction in a different thread to finish
+					try { Thread.sleep(1000); } catch (InterruptedException ex) {}
 				}
 			}
-
 
 			return ReturnValue.Success;
 		}
@@ -115,7 +132,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 	}
 
 	// ----- private methods -----
-	private boolean doIndexing(final String indexableId) {
+	private boolean doIndexing(final Indexable indexable) {
 
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;
@@ -126,11 +143,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 			// load file by UUID to make sure that the transaction that created
 			// the file is commited, do not use the actual file object because
 			// each thread needs a separate AbstractNode object
-			final FileBase file = StructrApp.getInstance().get(File.class, indexableId);
-			if (file != null) {
+			if (indexable != null && !(indexable instanceof File && ((File)indexable).isTemplate())) {
 
 				// first, check for things we cannot scan
-				final String contentType = file.getContentType();
+				final String contentType = indexable.getContentType();
 				if (contentType != null) {
 
 					if (MimeTypeIndexingBlacklist.contains(contentType)) {
@@ -139,14 +155,14 @@ public class FulltextIndexingAgent extends Agent<String> {
 				}
 
 				// skip files that are larger than the indexing file size limit
-				if (getFileSize(file) > Settings.IndexingMaxFileSize.getValue() * 1024 * 1024) {
+				if (getFileSize(indexable) > Settings.IndexingMaxFileSize.getValue() * 1024 * 1024) {
 
 					return true;
 				}
 
-				file.getSecurityContext().disableModificationOfAccessTime();
-				inputStream = file.getInputStream();
-				fileName    = file.getName();
+				indexable.getSecurityContext().disableModificationOfAccessTime();
+				inputStream = indexable.getInputStream();
+				fileName    = indexable.getName();
 
 				if (inputStream != null) {
 
@@ -167,13 +183,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 						if (parsingSuccessful) {
 
 							// save raw extracted text
-							file.setProperty(Indexable.extractedContent, trimToLength(tokenizer.getRawText(), maxStringLength));
+							indexable.setProperty(StructrApp.key(File.class, "extractedContent"), trimToLength(tokenizer.getRawText(), maxStringLength));
 
 							// tokenize name
 							tokenizer.write(getName());
 
 							// tokenize owner name
-							final Principal _owner = file.getProperty(owner);
+							final Principal _owner = indexable.getOwnerNode();
 							if (_owner != null) {
 
 								final String ownerName = _owner.getName();
@@ -182,13 +198,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 									tokenizer.write(ownerName);
 								}
 
-								final String eMail = _owner.getProperty(Person.eMail);
+								final String eMail = _owner.getEMail();
 								if (eMail != null) {
 
 									tokenizer.write(eMail);
 								}
 
-								final String twitterName = _owner.getProperty(Person.twitterName);
+								final String twitterName = _owner.getProperty(StructrApp.key(Person.class, "twitterName"));
 								if (twitterName != null) {
 
 									tokenizer.write(twitterName);
@@ -215,7 +231,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 							try {
 
 								// store indexed words
-								file.setProperty(Indexable.indexedWords, topWords);
+								indexable.setProperty(StructrApp.key(File.class, "indexedWords"), topWords);
 
 							} catch (Throwable t) {
 
@@ -309,18 +325,23 @@ public class FulltextIndexingAgent extends Agent<String> {
 		return source;
 	}
 
-	private long getFileSize(final FileBase file) {
+	private long getFileSize(final Indexable indexable) {
 
-		final Long fileSize = file.getSize();
-		if (fileSize != null) {
+		if (indexable instanceof File) {
 
-			return fileSize;
-		}
+			final File file     = (File)indexable;
+			final Long fileSize = file.getSize();
 
-		final java.io.File fileOnDisk = file.getFileOnDisk(false);
-		if (fileOnDisk != null) {
+			if (fileSize != null) {
 
-			return fileOnDisk.length();
+				return fileSize;
+			}
+
+			final java.io.File fileOnDisk = file.getFileOnDisk(false);
+			if (fileOnDisk != null) {
+
+				return fileOnDisk.length();
+			}
 		}
 
 		return -1L;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -96,7 +96,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 			try {
 
-				PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(obj.getClass(), keyString);
+				PropertyKey key = StructrApp.key(obj.getClass(), keyString);
 				if (key != null) {
 
 					List collection = (List) obj.getProperty(key);

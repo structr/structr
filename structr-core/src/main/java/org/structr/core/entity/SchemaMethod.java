@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,35 @@
  */
 package org.structr.core.entity;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
 
 /**
@@ -35,26 +55,163 @@ import org.structr.schema.action.ActionEntry;
  */
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
-	public static final Property<AbstractSchemaNode> schemaNode      = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<String>             virtualFileName = new StringProperty("virtualFileName");
-	public static final Property<String>             source          = new StringProperty("source");
-	public static final Property<String>             comment         = new StringProperty("comment");
-	public static final Property<Boolean>            isJava          = new BooleanProperty("isJava");
+	public static final Property<List<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
+	public static final Property<AbstractSchemaNode> schemaNode          = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<String>             signature           = new StringProperty("signature").indexed();
+	public static final Property<String>             virtualFileName     = new StringProperty("virtualFileName").indexed();
+	public static final Property<String>             returnType          = new StringProperty("returnType").indexed();
+	public static final Property<String>             source              = new StringProperty("source").indexed();
+	public static final Property<String>             comment             = new StringProperty("comment").indexed();
+	public static final Property<String[]>           exceptions          = new ArrayProperty("exceptions", String.class).indexed();
+	public static final Property<Boolean>            callSuper           = new BooleanProperty("callSuper").indexed();
+	public static final Property<Boolean>            overridesExisting   = new BooleanProperty("overridesExisting").indexed();
+	public static final Property<Boolean>            doExport            = new BooleanProperty("doExport").indexed();
+	public static final Property<String>             codeType            = new StringProperty("codeType").indexed();
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, comment, isFavoritable
+		name, schemaNode, source, comment
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment, isFavoritable
+		name, schemaNode, source, comment
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
 		id, type, schemaNode, name, source, comment
 	);
 
-	public ActionEntry getActionEntry() {
-		return new ActionEntry("___" + getProperty(AbstractNode.name), getProperty(SchemaMethod.source), getProperty(SchemaMethod.isJava));
+	public ActionEntry getActionEntry(final AbstractSchemaNode schemaEntity) throws FrameworkException {
+
+		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
+		final List<SchemaMethodParameter> params = getProperty(parameters);
+
+		// Parameters must be sorted by index
+		Collections.sort(params, new GraphObjectComparator(SchemaMethodParameter.index, false));
+
+		for (final SchemaMethodParameter parameter : params) {
+
+			entry.addParameter(parameter.getParameterType(), parameter.getName());
+		}
+
+		entry.setReturnType(getProperty(returnType));
+		entry.setCallSuper(getProperty(callSuper));
+
+		final String[] _exceptions = getProperty(exceptions);
+		if (_exceptions != null) {
+
+			for (final String exception : _exceptions) {
+				entry.addException(exception);
+			}
+		}
+
+		// check for overridden methods and determine method signature etc. from superclass(es)
+		if (getProperty(overridesExisting)) {
+			determineSignature(schemaEntity, entry, getProperty(name));
+		}
+
+		// check for overridden methods and determine method signature etc. from superclass(es)
+		if (getProperty(doExport)) {
+			entry.setDoExport(true);
+		}
+
+		return entry;
+	}
+
+	public boolean isJava() {
+		return "java".equals(getProperty(codeType));
+	}
+
+	// ----- private methods -----
+	private void addType(final Queue<String> typeQueue, final AbstractSchemaNode schemaNode) {
+
+		final String _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
+		if (_extendsClass != null) {
+
+			typeQueue.add(StringUtils.substringBefore(_extendsClass, "<"));
+		}
+
+		final String _interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
+		if (_interfaces != null) {
+
+			for (final String iface : _interfaces.split("[, ]+")) {
+
+				typeQueue.add(iface);
+			}
+		}
+	}
+
+	private void determineSignature(final AbstractSchemaNode schemaEntity, final ActionEntry entry, final String methodName) throws FrameworkException {
+
+		final App app                  = StructrApp.getInstance();
+		final Set<String> visitedTypes = new LinkedHashSet<>();
+		final Queue<String> typeQueue  = new LinkedList<>();
+		final String structrPackage    = "org.structr.dynamic.";
+
+		// initial type
+		addType(typeQueue, schemaEntity);
+
+		while (!typeQueue.isEmpty()) {
+
+			final String typeName = typeQueue.poll();
+			String shortTypeName  = typeName;
+
+			if (typeName != null && !visitedTypes.contains(typeName)) {
+
+				visitedTypes.add(typeName);
+
+				if (typeName.startsWith(structrPackage)) {
+					shortTypeName = typeName.substring(structrPackage.length());
+				}
+
+				// try to find schema node for the given type
+				final SchemaNode typeNode = app.nodeQuery(SchemaNode.class).andName(shortTypeName).getFirst();
+				if (typeNode != null && !typeNode.equals(schemaEntity)) {
+
+					// try to identify overridden schema method from database
+					final SchemaMethod superMethod = app.nodeQuery(SchemaMethod.class)
+						.and(SchemaMethod.schemaNode, typeNode)
+						.and(SchemaMethod.name, methodName)
+						.getFirst();
+
+					if (superMethod != null) {
+
+						final ActionEntry superEntry = superMethod.getActionEntry(typeNode);
+
+						entry.copy(superEntry);
+
+						// done
+						return;
+					}
+
+					// next type in queue
+					addType(typeQueue, typeNode);
+
+				} else {
+
+					// no schema node for the given type found, try internal types
+					final Class internalType = SchemaHelper.classForName(typeName);
+					if (internalType != null) {
+
+						if (getSignature(internalType, methodName, entry)) {
+
+							return;
+						}
+
+						final Class superclass = internalType.getSuperclass();
+						if (superclass != null) {
+
+							// examine superclass as well
+							typeQueue.add(superclass.getName());
+
+							// collect interfaces
+							for (final Class iface : internalType.getInterfaces()) {
+								typeQueue.add(iface.getName());
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	// ----- interface Favoritable -----
@@ -87,5 +244,89 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	@Override
 	public void setFavoriteContent(String content) throws FrameworkException {
 		setProperty(SchemaMethod.source, content);
+	}
+
+	private boolean getSignature(final Class type, final String methodName, final ActionEntry entry) {
+
+		// superclass is AbstractNode
+		for (final Method method : type.getMethods()) {
+
+			if (methodName.equals(method.getName()) && (method.getModifiers() & Modifier.STATIC) == 0) {
+
+				final Type[] parameterTypes = method.getGenericParameterTypes();
+				final Type returnType       = method.getGenericReturnType();
+				final List<Type> types      = new LinkedList<>();
+
+				// compile list of types to check for generic type parameter
+				types.addAll(Arrays.asList(parameterTypes));
+				types.add(returnType);
+
+				final String genericTypeParameter = getGenericMethodParameter(types, method);
+
+				// check for generic return type, and if the method defines its own generic type
+				if (returnType instanceof TypeVariable && ((TypeVariable)returnType).getGenericDeclaration().equals(method)) {
+
+					// method defines its own generic type
+					entry.setReturnType(genericTypeParameter + returnType.getTypeName());
+
+				} else {
+
+					// non-generic return type
+					final Class returnClass = method.getReturnType();
+					if (returnClass.isArray()) {
+
+						entry.setReturnType(genericTypeParameter + returnClass.getComponentType().getName() + "[]");
+
+					} else {
+
+						entry.setReturnType(genericTypeParameter + method.getReturnType().getName());
+					}
+				}
+
+				for (final Parameter parameter : method.getParameters()) {
+
+					String typeName = parameter.getParameterizedType().getTypeName();
+					String name     = parameter.getType().getSimpleName();
+
+					if (typeName.contains("$")) {
+						typeName = typeName.replace("$", ".");
+					}
+
+					entry.addParameter(typeName, parameter.getName());
+				}
+
+				for (final Class exception : method.getExceptionTypes()) {
+					entry.addException(exception.getName());
+				}
+
+				entry.setOverrides(getProperty(overridesExisting));
+				entry.setCallSuper(getProperty(callSuper));
+
+				// success
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private String getGenericMethodParameter(final List<Type> types, final Method method) {
+
+		final List<String> typeParameterNames = new LinkedList<>();
+
+		for (final Type type : types) {
+
+			if (type instanceof TypeVariable && ((TypeVariable)type).getGenericDeclaration().equals(method)) {
+
+				// method defines its own generic type
+				typeParameterNames.add(type.getTypeName());
+			}
+		}
+
+		if (typeParameterNames.isEmpty()) {
+			return "";
+		}
+
+		return "<" + StringUtils.join(typeParameterNames, ", ") + "> ";
 	}
 }

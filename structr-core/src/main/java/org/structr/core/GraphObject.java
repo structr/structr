@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -62,27 +62,22 @@ public interface GraphObject {
 
 	static final Logger logger = LoggerFactory.getLogger(GraphObject.class);
 
-	static final String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
-	static final String QUERY_CATEGORY = "Query and Data Binding";
+	static final String SYSTEM_CATEGORY     = "System";
 	static final String VISIBILITY_CATEGORY = "Visibility";
-	static final String PAGE_CATEGORY = "Page Structure";
 
+	public static final Property<String>  base                        = new StringProperty("base").partOfBuiltInSchema();
+	public static final Property<String>  type                        = new TypeProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  id                          = new UuidProperty().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
-	public static final Property<String>  base                        = new StringProperty("base");
-	public static final Property<String>  type                        = new TypeProperty();
-	public static final Property<String>  id                          = new UuidProperty();
+	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
-	public static final Property<Date>    createdDate                 = new ISO8601DateProperty("createdDate").systemInternal().indexed().unvalidated().writeOnce();
-	public static final Property<String>  createdBy                   = new StringProperty("createdBy").readOnly().writeOnce().unvalidated();
+	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
-	public static final Property<Date>    lastModifiedDate            = new ISO8601DateProperty("lastModifiedDate").systemInternal().passivelyIndexed().unvalidated();
-	public static final Property<String>  lastModifiedBy              = new StringProperty("lastModifiedBy").systemInternal().unvalidated();
-
-	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY);
-	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY);
-	public static final Property<Date>    visibilityStartDate         = new ISO8601DateProperty("visibilityStartDate").category(VISIBILITY_CATEGORY);
-	public static final Property<Date>    visibilityEndDate           = new ISO8601DateProperty("visibilityEndDate").category(VISIBILITY_CATEGORY);
-	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly();
+	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
 	/**
@@ -91,6 +86,16 @@ public interface GraphObject {
 	 * @return the database ID
 	 */
 	public long getId();
+
+	/**
+	 * Returns the database ID of this graph object as a string.
+	 *
+	 * @return the database ID as a string
+	 */
+
+	default String getIdString() {
+		return Long.toString(getId());
+	}
 
 	/**
 	 * Returns the UUID of this graph object.
@@ -277,6 +282,24 @@ public interface GraphObject {
 		}
 	}
 
+	/**
+	 * Returns the (converted, validated, transformed, etc.) property for the given
+	 * property key.
+	 *
+	 * @param <T>
+	 * @param propertyName the property key to retrieve the value for
+	 * @return the converted, validated, transformed property value
+	 */
+	default public <T> T getProperty(final String propertyName) {
+
+		final PropertyKey<T> key = StructrApp.getConfiguration().getPropertyKeyForJSONName(getClass(), propertyName, false);
+		if (key != null) {
+
+			return getProperty(key);
+		}
+
+		throw new IllegalArgumentException("Invalid property key " + propertyName + " for type " + getClass().getSimpleName());
+	}
 
 	/**
 	 * Returns the (converted, validated, transformed, etc.) property for the given
@@ -353,10 +376,9 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the creation takes place
 	 * @param errorBuffer the error buffer to put error tokens into
-	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	public void onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is modified. This method can cause the underlying
@@ -366,10 +388,9 @@ public interface GraphObject {
 	 * @param securityContext the context in which the modification takes place
 	 * @param errorBuffer the error buffer to put error tokens into
 	 * @param modificationQueue the modification queue that triggered this call to onModification
-	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;
+	public void onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException;
 
 	/**
 	 * Called when an entity of this type is deleted. This method can cause the underlying
@@ -379,10 +400,9 @@ public interface GraphObject {
 	 * @param securityContext the context in which the deletion takes place
 	 * @param errorBuffer the error buffer to put error tokens into
 	 * @param properties
-	 * @return true if the transaction can go on, false if an error occurred
 	 * @throws FrameworkException
 	 */
-	public boolean onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException;
+	public void onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully created. Please note that this method

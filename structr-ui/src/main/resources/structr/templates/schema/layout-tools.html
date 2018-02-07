@@ -1,0 +1,13 @@
+<h3>General Functions</h3>
+<p>Reset the currently stored positions so the automatic layouting algorithm can take effect.</p>
+<p><button class="btn" id="reset-schema-positions"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}" /> Reset Node Positions</button></p>
+
+<h3>Save Layout Configuration</h3>
+<p>Save the current layout configuration to backend (available to every backend user). This includes positions, visibility, zoom level, connector style and visibility of relationship labels.</p>
+<p><input id="save-layout-filename" placeholder="Enter name for layout"><button id="save-layout-file"><i class="${_Icons.getFullSpriteClass(_Icons.floppy_icon)}" /> Save Layout</button></p>
+
+<h3>Available Layout Configurations</h3>
+<select id="saved-layout-selector"></select>
+<button id="restore-layout"><i class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}" /> Restore</button>
+<button id="download-layout"><i class="${_Icons.getFullSpriteClass(_Icons.pull_file_icon)}" /> Download</button>
+<button id="delete-layout"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}" /> Delete</button>

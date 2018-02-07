@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,142 +18,134 @@
  */
 package org.structr.web.entity;
 
-import java.util.List;
+import java.net.URI;
 import org.structr.api.config.Settings;
-import org.structr.common.KeyAndClass;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
-import org.structr.core.entity.Favoritable;
-import org.structr.core.entity.Group;
-import static org.structr.core.entity.Principal.eMail;
-import org.structr.core.entity.relationship.Groups;
-import org.structr.core.graph.ModificationQueue;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.web.entity.relation.UserFavoriteFavoritable;
-import org.structr.web.entity.relation.UserHomeDir;
-import org.structr.web.entity.relation.UserImage;
-import org.structr.web.entity.relation.UserWorkDir;
-import org.structr.web.property.ImageDataProperty;
-import org.structr.web.property.UiNotion;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
-public class User extends AbstractUser {
+public interface User extends Principal {
 
-	public static final Property<String>            confirmationKey           = new StringProperty("confirmationKey").indexed();
-	public static final Property<Boolean>           backendUser               = new BooleanProperty("backendUser").indexed();
-	public static final Property<Boolean>           frontendUser              = new BooleanProperty("frontendUser").indexed();
-	public static final Property<Image>             img                       = new StartNode<>("img", UserImage.class);
-	public static final ImageDataProperty           imageData                 = new ImageDataProperty("imageData", new KeyAndClass(img, Image.class));
-	public static final Property<Folder>            homeDirectory             = new EndNode<>("homeDirectory", UserHomeDir.class);
-	public static final Property<Folder>            workingDirectory          = new EndNode<>("workingDirectory", UserWorkDir.class);
-	public static final Property<List<Group>>       groups                    = new StartNodes<>("groups", Groups.class, new UiNotion());
-	public static final Property<Boolean>           isUser                    = new ConstantBooleanProperty("isUser", true);
-	public static final Property<String>            twitterName               = new StringProperty("twitterName").cmis().indexed();
-	public static final Property<String>            localStorage              = new StringProperty("localStorage");
-	public static final Property<List<Favoritable>> favorites                 = new EndNodes<>("favorites", UserFavoriteFavoritable.class);
-	public static final Property<Boolean>           skipSecurityRelationships = new BooleanProperty("skipSecurityRelationships").defaultValue(Boolean.FALSE).indexed().readOnly().hint("Skips creation of OWNS and SECURITY relationships for this user which increases write performance. (admin-only flag)");
+	static class Impl { static {
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(User.class, PropertyView.Ui,
-		type, name, eMail, isAdmin, password, publicKey, blocked, sessionIds, confirmationKey, backendUser, frontendUser,
-			groups, img, homeDirectory, workingDirectory, isUser, locale, favorites,
-			proxyUrl, proxyUsername, proxyPassword, skipSecurityRelationships
-	);
+		final JsonSchema schema     = SchemaService.getDynamicSchema();
+		final JsonObjectType user   = schema.addType("User");
+		final JsonObjectType image  = schema.addType("Image");
+		final JsonObjectType folder = schema.addType("Folder");
 
-	public static final org.structr.common.View publicView = new org.structr.common.View(User.class, PropertyView.Public,
-		type, name, isUser
-	);
+		user.setExtends(schema.getType("Principal"));
+		user.setImplements(URI.create("https://structr.org/v1.1/definitions/User"));
 
-	static {
+		user.addStringProperty("confirmationKey", PropertyView.Ui).setIndexed(true);
+		user.addStringProperty("twitterName").setIndexed(true);
+		user.addStringProperty("localStorage");
 
-		// register this type as an overridden builtin type
-		SchemaService.registerBuiltinTypeOverride("User", User.class.getName());
-	}
+		user.addBooleanProperty("skipSecurityRelationships", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
+		user.addBooleanProperty("backendUser",               PropertyView.Ui).setIndexed(true);
+		user.addBooleanProperty("frontendUser",              PropertyView.Ui).setIndexed(true);
+		user.addBooleanProperty("isUser",                    PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+		user.addPropertySetter("localStorage", String.class);
+		user.addPropertyGetter("localStorage", String.class);
 
-		if ( getProperty(skipSecurityRelationships).equals(Boolean.TRUE) && !isAdmin()) {
+		user.addPropertyGetter("workingDirectory", Folder.class);
+		user.addPropertyGetter("homeDirectory", Folder.class);
 
-			errorBuffer.add(new SemanticErrorToken(getClass().getSimpleName(), skipSecurityRelationships, "can_only_be_set_for_admin_accounts"));
-			return false;
+		user.overrideMethod("shouldSkipSecurityRelationships", false, "return getProperty(skipSecurityRelationshipsProperty);");
+
+		user.overrideMethod("onCreation",     true, User.class.getName() + ".onCreateAndModify(this, arg0);");
+		user.overrideMethod("onModification", true, User.class.getName() + ".onCreateAndModify(this, arg0);");
+		user.overrideMethod("onDeletion",     true, User.class.getName() + ".checkAndRemoveHomeDirectory(this, arg0);");
+
+		user.addMethod("isFrontendUser").setReturnType("boolean").setSource("return getProperty(frontendUserProperty);");
+		user.addMethod("isBackendUser").setReturnType("boolean").setSource("return getProperty(backendUserProperty);");
+
+		user.addMethod("setHomeDirectory")
+			.setSource("setProperty(homeDirectoryProperty, (org.structr.dynamic.Folder)homeDirectory);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("homeDirectory", "org.structr.web.entity.Folder");
+
+		user.addMethod("setWorkingDirectory")
+			.setSource("setProperty(workingDirectoryProperty, (org.structr.dynamic.Folder)workingDirectory);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("workingDirectory", "org.structr.web.entity.Folder");
+
+		user.relate(image,  "PICTURE_OF",  Cardinality.OneToOne,  "pictureOfUser",     "img");
+		user.relate(folder, "HOME_DIR",    Cardinality.ManyToOne, "homeFolderOfUser",  "homeDirectory");
+		user.relate(folder, "WORKING_DIR", Cardinality.ManyToOne, "workFolderOfUsers", "workingDirectory");
+
+		// view configuration
+		user.addViewProperty(PropertyView.Public, "name");
+
+		user.addViewProperty(PropertyView.Ui, "confirmationKey");
+		user.addViewProperty(PropertyView.Ui, "eMail");
+		user.addViewProperty(PropertyView.Ui, "favorites");
+		user.addViewProperty(PropertyView.Ui, "groups");
+		user.addViewProperty(PropertyView.Ui, "homeDirectory");
+		user.addViewProperty(PropertyView.Ui, "img");
+		user.addViewProperty(PropertyView.Ui, "isAdmin");
+		user.addViewProperty(PropertyView.Ui, "locale");
+		user.addViewProperty(PropertyView.Ui, "password");
+		user.addViewProperty(PropertyView.Ui, "proxyPassword");
+		user.addViewProperty(PropertyView.Ui, "proxyUrl");
+		user.addViewProperty(PropertyView.Ui, "proxyUsername");
+		user.addViewProperty(PropertyView.Ui, "publicKey");
+		user.addViewProperty(PropertyView.Ui, "sessionIds");
+		user.addViewProperty(PropertyView.Ui, "workingDirectory");
+
+	}}
+
+	String getLocalStorage();
+	void setLocalStorage(final String localStorage) throws FrameworkException;
+
+	boolean isBackendUser();
+	boolean isFrontendUser();
+
+	void setHomeDirectory(final Folder homeDir) throws FrameworkException;
+	Folder getHomeDirectory();
+
+	void setWorkingDirectory(final Folder workDir) throws FrameworkException;
+	Folder getWorkingDirectory();
+
+	// ----- public static methods -----
+	public static void onCreateAndModify(final User user, final SecurityContext securityContext) throws FrameworkException {
+
+		final PropertyKey skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
+
+		if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
+
+			throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
 		}
-
-		return super.isValid(errorBuffer);
-	}
-
-
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.onCreation(securityContext, errorBuffer)) {
-
-			checkAndCreateHomeDirectory(securityContext);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			checkAndCreateHomeDirectory(securityContext);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-
-		if (super.onDeletion(securityContext, errorBuffer, properties)) {
-
-			checkAndRemoveHomeDirectory(securityContext);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	// ----- private methods -----
-	private void checkAndCreateHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
+			final PropertyKey<Folder> homeFolderKey = StructrApp.key(AbstractFile.class, "homeFolderOfUser");
+			final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
+
 			// use superuser context here
-			final SecurityContext storedContext = this.securityContext;
+			final SecurityContext storedContext = user.getSecurityContext();
 
 			try {
 
-				this.securityContext = SecurityContext.getSuperUserInstance();
-				Folder homeDir = getProperty(User.homeDirectory);
+				user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
+				Folder homeDir = user.getHomeDirectory();
 				if (homeDir == null) {
 
 					// create home directory
 					final App app     = StructrApp.getInstance();
-					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(Folder.parent, null).getFirst();
+					Folder homeFolder = app.nodeQuery(Folder.class).and(Folder.name, "home").and(parentKey, null).getFirst();
 
 					if (homeFolder == null) {
 
@@ -165,11 +157,11 @@ public class User extends AbstractUser {
 					}
 
 					app.create(Folder.class,
-						new NodeAttribute(Folder.name, getUuid()),
-						new NodeAttribute(Folder.owner, this),
-						new NodeAttribute(AbstractFile.parent, homeFolder),
+						new NodeAttribute(Folder.name, user.getUuid()),
+						new NodeAttribute(Folder.owner, user),
 						new NodeAttribute(Folder.visibleToAuthenticatedUsers, true),
-						new NodeAttribute(Folder.homeFolderOfUser, this)
+						new NodeAttribute(parentKey, homeFolder),
+						new NodeAttribute(homeFolderKey, user)
 					);
 				}
 
@@ -179,23 +171,23 @@ public class User extends AbstractUser {
 			} finally {
 
 				// restore previous context
-				this.securityContext = storedContext;
+				user.setSecurityContext(storedContext);
 			}
 		}
 	}
 
-	private void checkAndRemoveHomeDirectory(final SecurityContext securityContext) throws FrameworkException {
+	public static void checkAndRemoveHomeDirectory(final User user, final SecurityContext securityContext) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
 			// use superuser context here
-			final SecurityContext storedContext = this.securityContext;
+			final SecurityContext storedContext = user.getSecurityContext();
 
 			try {
 
-				this.securityContext = SecurityContext.getSuperUserInstance();
+				user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-				final Folder homeDir = getProperty(User.homeDirectory);
+				final Folder homeDir = user.getHomeDirectory();
 				if (homeDir != null) {
 
 					StructrApp.getInstance().delete(homeDir);
@@ -203,18 +195,14 @@ public class User extends AbstractUser {
 
 			} catch (Throwable t) {
 
+				t.printStackTrace();
 
 			} finally {
 
 				// restore previous context
-				this.securityContext = storedContext;
+				user.setSecurityContext(storedContext);
 			}
 
 		}
-	}
-
-	@Override
-	public boolean shouldSkipSecurityRelationships() {
-		return getProperty(User.skipSecurityRelationships);
 	}
 }

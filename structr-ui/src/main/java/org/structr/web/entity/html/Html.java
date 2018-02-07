@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,24 +18,38 @@
  */
 package org.structr.web.entity.html;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.HtmlProperty;
-import org.structr.web.common.RenderContext;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-//~--- classes ----------------------------------------------------------------
+public interface Html extends DOMElement {
 
-/**
- *
- */
-public class Html extends DOMElement {
+	static class Impl { static {
 
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Html");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Html"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_manifest",   PropertyView.Html, PropertyView.Ui);
+		type.addStringProperty("customOpeningTag", PropertyView.Ui);
+
+		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
+		type.overrideMethod("openingTag", false,
+			"final String custTag = getProperty(customOpeningTagProperty);\n" +
+			"if (custTag != null) {\n" +
+			"	arg0.append(custTag);\n" +
+			"} else {\n" +
+			"	super.openingTag(arg0, arg1, arg2, arg3, arg4);\n" +
+			"}"
+		);
+	}}
+
+	/*
 	public static final Property<String> _manifest = new HtmlProperty("manifest");
 
 	/** If set, the custom opening tag is rendered instead of just <html> to allow things like IE conditional comments:
@@ -45,7 +59,6 @@ public class Html extends DOMElement {
 	 * <!--[if IE 8]>         <html class="no-js ie8"> <![endif]-->
 	 * <!--[if gt IE 8]><!--> <html class="no-js ie9"> <!--<![endif]-->
 	 *
-	*/
 	public static final Property<String> _customOpeningTag = new StringProperty("customOpeningTag");
 
 	//public static final Property<Head> head = new EndNode<>("head", HtmlHead.class);
@@ -84,4 +97,5 @@ public class Html extends DOMElement {
 		return (Property[]) ArrayUtils.addAll(super.getHtmlAttributes(), htmlView.properties());
 
 	}
+	*/
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.core.app;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -60,6 +61,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
@@ -92,7 +94,7 @@ public class StructrApp implements App {
 	// ----- public methods -----
 	@Override
 	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException {
-		return create(type, new NodeAttribute(getConfiguration().getPropertyKeyForJSONName(type, "name"), name));
+		return create(type, new NodeAttribute(key(type, "name"), name));
 	}
 
 	@Override
@@ -116,9 +118,9 @@ public class StructrApp implements App {
 				// overwrite type information when creating a node (adhere to type specified by resource!)
 				properties.put(AbstractNode.type, type.getSimpleName());
 
-			} else if (actualType.isInterface()) {
+			} else if (actualType.isInterface() || Modifier.isAbstract(actualType.getModifiers())) {
 
-				throw new FrameworkException(422, "Invalid interface type " + type.getSimpleName() + ", please supply a non-interface class name in the type property");
+				throw new FrameworkException(422, "Invalid abstract type " + type.getSimpleName() + ", please supply a non-abstract class name in the type property");
 
 			} else {
 
@@ -492,16 +494,53 @@ public class StructrApp implements App {
 		}
 	}
 
+	public static <T> PropertyKey<T> key(final Class type, final String name) {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		PropertyKey<T> key                 = config.getPropertyKeyForJSONName(type, name, false);
+
+		if (key == null) {
+
+			// not found, next try: dynamic type
+			final Class dynamicType = config.getNodeEntityClass(type.getSimpleName());
+			if (dynamicType != null) {
+
+				key = config.getPropertyKeyForJSONName(dynamicType, name, false);
+
+			} else {
+
+				// next try: interface
+				final Class iface = config.getInterfaces().get(type.getSimpleName());
+				if (iface != null) {
+
+					key = config.getPropertyKeyForJSONName(iface, name, false);
+				}
+			}
+		}
+
+		if (key != null) {
+
+			return key;
+		}
+
+		logger.warn("Unknown property key {}.{}!", type.getSimpleName(), name);
+
+		Thread.dumpStack();
+
+		return null;
+	}
+
 	// ----- private static methods -----
 	private static void initializeSchemaIds() {
 
-		if (schemaIdMap.isEmpty()) {
+		final Map<String, Class> interfaces = StructrApp.getConfiguration().getInterfaces();
 
-			for (final Class type : StructrApp.getConfiguration().getNodeEntities().values()) {
-				registerType(type);
-			}
+		// add Structr interfaces here
+		for (final Class type : interfaces.values()) {
 
-			for (final Class type : StructrApp.getConfiguration().getRelationshipEntities().values()) {
+			// only register node types
+			if (type.isInterface() && NodeInterface.class.isAssignableFrom(type) && !type.getName().startsWith("org.structr.dynamic.")) {
+
 				registerType(type);
 			}
 		}

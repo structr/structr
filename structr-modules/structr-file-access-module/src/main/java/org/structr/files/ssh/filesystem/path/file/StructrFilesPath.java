@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,11 +42,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -77,17 +78,18 @@ public class StructrFilesPath extends StructrPath {
 
 				if (!closed) {
 
-					final App app                 = StructrApp.getInstance(fs.getSecurityContext());
-					final List<StructrPath> files = new LinkedList<>();
+					final App app                           = StructrApp.getInstance(fs.getSecurityContext());
+					final PropertyKey<Boolean> hasParentKey = StructrApp.key(AbstractFile.class, "hasParent");
+					final List<StructrPath> files           = new LinkedList<>();
 
 					try (final Tx tx = app.tx()) {
 
-						for (final Folder folder : app.nodeQuery(Folder.class).and(AbstractFile.hasParent, false).getAsList()) {
+						for (final Folder folder : app.nodeQuery(Folder.class).and(hasParentKey, false).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesPath.this, folder.getName()));
 						}
 
-						for (final FileBase file : app.nodeQuery(FileBase.class).and(AbstractFile.hasParent, false).getAsList()) {
+						for (final File file : app.nodeQuery(File.class).and(hasParentKey, false).getAsList()) {
 
 							files.add(new StructrFilePath(fs, StructrFilesPath.this, file.getName()));
 						}

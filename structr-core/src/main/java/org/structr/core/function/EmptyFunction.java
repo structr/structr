@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.Undefined;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -46,7 +47,7 @@ public class EmptyFunction extends Function<Object, Object> {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		if (sources.length == 0 || sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
+		if (sources.length == 0 || sources[0] == null || sources[0] == Undefined.instance || StringUtils.isEmpty(sources[0].toString())) {
 
 			return true;
 

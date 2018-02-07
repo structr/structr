@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,16 +24,22 @@ import java.util.LinkedList;
 import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.common.StructrRestTest;
+import org.structr.rest.entity.TestFive;
 import org.structr.rest.entity.TestOne;
-import org.structr.rest.entity.TestUser;
+import org.structr.rest.entity.TestThree;
 
 /**
  *
@@ -82,6 +88,7 @@ public class AdvancedPagingTest extends StructrRestTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.statusCode(200)
 					.body("result",			hasSize(2))
@@ -260,22 +267,24 @@ public class AdvancedPagingTest extends StructrRestTest {
 	@Test
 	public void test01PagingWithDeletedNodes() {
 
-
-		List<TestOne> testOnes = new LinkedList<>();
+		final Class testUserType              = createTestUserType();
+		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
+		final PropertyKey<Boolean> isAdminKey = StructrApp.key(testUserType, "isAdmin");
+		List<TestOne> testOnes                = null;
 
 		// Create two User and ten TestOne nodes
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			createEntityAsSuperUser("/resource_access", "{'signature': 'TestOne', 'flags': 4095}");
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			List<Principal> users = createTestNodes(testUserType, 2);
 
-			users.get(0).setProperty(TestUser.name, "user1");
-			users.get(0).setProperty(TestUser.password, "user1");
+			users.get(0).setProperty(Principal.name, "user1");
+			users.get(0).setProperty(passwordKey, "user1");
 
-			users.get(1).setProperty(TestUser.name, "user2");
-			users.get(1).setProperty(TestUser.password, "user2");
-			users.get(1).setProperty(TestUser.isAdmin, true);
+			users.get(1).setProperty(Principal.name, "user2");
+			users.get(1).setProperty(passwordKey, "user2");
+			users.get(1).setProperty(isAdminKey, true);
 
 			testOnes = createTestNodes(TestOne.class, 3);
 
@@ -366,22 +375,24 @@ public class AdvancedPagingTest extends StructrRestTest {
 	@Test
 	public void test02PagingWithSoftDeletedNodes() {
 
-
-		List<TestOne> testOnes = null;
+		final Class testUserType              = createTestUserType();
+		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
+		final PropertyKey<Boolean> isAdminKey = StructrApp.key(testUserType, "isAdmin");
+		List<TestOne> testOnes                = null;
 
 		// Create two User and ten TestOne nodes
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			createEntityAsSuperUser("/resource_access", "{'signature': 'TestOne', 'flags': 4095}");
 
-			List<TestUser> users = createTestNodes(TestUser.class, 2);
+			List<Principal> users = createTestNodes(testUserType, 2);
 
-			users.get(0).setProperty(TestUser.name, "user1");
-			users.get(0).setProperty(TestUser.password, "user1");
+			users.get(0).setProperty(Principal.name, "user1");
+			users.get(0).setProperty(passwordKey, "user1");
 
-			users.get(1).setProperty(TestUser.name, "user2");
-			users.get(1).setProperty(TestUser.password, "user2");
-			users.get(1).setProperty(TestUser.isAdmin, true);
+			users.get(1).setProperty(Principal.name, "user2");
+			users.get(1).setProperty(passwordKey, "user2");
+			users.get(1).setProperty(isAdminKey, true);
 
 			testOnes = createTestNodes(TestOne.class, 3);
 
@@ -439,4 +450,96 @@ public class AdvancedPagingTest extends StructrRestTest {
 			.when()
 				.get("/test_ones?deleted=false&sort=name&pageSize=1&page=1");
 	}
+
+	/**
+	 * This tests the scenario that the pagesize is taken into account **before** the filter has been taken into account
+	 * which results in less (or no) results being returned.
+	 */
+	@Test
+	public void testPagingWithPageSizeAndFilterOnRemoteObject() {
+
+		/* Test Setup */
+		final String connectedNodeName    = "Test3-First-Connected";
+		final String notConnectedNodeName = "Test3-Second";
+		TestThree t3_connected            = null;
+		TestThree t3_not_connected        = null;
+		TestFive  t5                      = null;
+
+		try (final Tx tx = app.tx(true, false, false)) {
+
+			t3_connected     = app.create(TestThree.class, connectedNodeName);
+			t3_not_connected = app.create(TestThree.class, notConnectedNodeName);
+
+			final PropertyMap t5Map = new PropertyMap(TestFive.oneToOneTestThree, t3_connected);
+			t5 = app.create(TestFive.class, t5Map);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+		}
+
+		Assert.assertNotNull(t3_connected);
+		Assert.assertNotNull(t3_not_connected);
+		Assert.assertNotNull(t5);
+
+		/* Test 1: Test that we created two TestThrees */
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",        hasSize(2))
+				.body("result_count",  equalTo(2))
+			.when()
+				.get("/test_threes");
+
+		/* Test 2: Test that we created one TestFive */
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",       hasSize(1))
+				.body("result_count", equalTo(1))
+			.when()
+				.get("/test_fives");
+
+		/* Test 3: Test that we can correctly search for objects **without** a connection to another node */
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",         hasSize(1))
+				.body("result[0].name", equalTo(notConnectedNodeName))
+				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
+			.when()
+				.get("/test_threes?oneToOneTestFive=null");
+
+
+		try {
+
+			Settings.CypherDebugLogging.setValue(true);
+
+			/* Test 4: Test that we can correctly search for objects **without** a connection to another node WHILE also reducing pagesize to 1	*/
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+					.statusCode(200)
+					.body("result",         hasSize(1))
+					.body("result[0].name", equalTo(notConnectedNodeName))
+					.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
+				.when()
+					.get("/test_threes?oneToOneTestFive=null&pageSize=1");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
+		}
+
+	}
+
 }

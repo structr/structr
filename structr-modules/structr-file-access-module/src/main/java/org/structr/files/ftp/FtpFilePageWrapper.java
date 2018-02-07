@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,12 +34,11 @@ import static org.structr.core.GraphObject.lastModifiedDate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractUser;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.RenderContext;
 import org.structr.web.diff.InvertibleModificationOperation;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 
@@ -62,7 +61,7 @@ public class FtpFilePageWrapper implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			final String path = page.getFolderPath();
+			final String path = page.getPath();
 			tx.success();
 
 			return path;
@@ -107,7 +106,7 @@ public class FtpFilePageWrapper implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
 
-			Principal owner = page.getProperty(FileBase.owner);
+			Principal owner = page.getProperty(File.owner);
 			tx.success();
 
 			return owner;
@@ -128,7 +127,7 @@ public class FtpFilePageWrapper implements FtpFile {
 			Principal owner = getOwner();
 			if (owner != null) {
 
-				name = owner.getProperty(AbstractUser.name);
+				name = owner.getProperty(Principal.name);
 			}
 			tx.success();
 
@@ -262,7 +261,7 @@ public class FtpFilePageWrapper implements FtpFile {
 	public Object getPhysicalFile() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
-	
+
 	@Override
 	public boolean delete() {
 		final App app = StructrApp.getInstance();

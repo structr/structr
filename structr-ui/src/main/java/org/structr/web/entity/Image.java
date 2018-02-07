@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,12 @@
 package org.structr.web.entity;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -31,104 +32,191 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.dynamic.File;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonMethod;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
-import org.structr.web.entity.relation.Thumbnails;
 import org.structr.web.property.ImageDataProperty;
 import org.structr.web.property.ThumbnailProperty;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * An image whose binary data will be stored on disk.
- *
- *
- *
  */
-public class Image extends org.structr.dynamic.File {
+public interface Image extends File {
 
-	private static final String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
+	static class Impl { static {
 
-	// register this type as an overridden builtin type
-	static {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Image");
 
-		SchemaService.registerBuiltinTypeOverride("Image", Image.class.getName());
-	}
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Image"));
+		type.setExtends(URI.create("#/definitions/File"));
 
-	private static final Logger logger                            = LoggerFactory.getLogger(Image.class.getName());
+		type.addIntegerProperty("width",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("height",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("orientation",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("exifIFD0Data",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("exifSubIFDData",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("gpsData",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("isImage",         PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isThumbnail",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("isCreatingThumb").setIndexed(true);
 
-	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
-	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
+		type.addCustomProperty("imageData", ImageDataProperty.class.getName());
+		type.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat("100, 100, false");
+		type.addCustomProperty("tnMid",     ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat("300, 300, false");
 
-	public static final Property<Integer> orientation             = new IntProperty("orientation").cmis().indexed();
-	public static final Property<String>  exifIFD0Data            = new StringProperty("exifIFD0Data").cmis().indexed();
-	public static final Property<String>  exifSubIFDData          = new StringProperty("exifSubIFDData").cmis().indexed();
-	public static final Property<String>  gpsData                 = new StringProperty("gpsData").cmis().indexed();
+		type.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
+		type.addPropertySetter("isCreatingThumb", Boolean.TYPE);
+		type.addPropertyGetter("originalImage",   Image.class);
+		type.addPropertyGetter("thumbnails",      List.class);
 
-	public static final Property<Image> tnSmall                   = new ThumbnailProperty("tnSmall").format("100, 100, false");
-	public static final Property<Image> tnMid                     = new ThumbnailProperty("tnMid").format("300, 300, false");
+		type.addPropertyGetter("width",       Integer.class);
+		type.addPropertySetter("width",       Integer.class);
+		type.addPropertyGetter("height",      Integer.class);
+		type.addPropertySetter("height",      Integer.class);
 
-	public static final Property<Boolean> isThumbnail             = new BooleanProperty("isThumbnail").indexed().unvalidated().systemInternal();
-	public static final ImageDataProperty imageData               = new ImageDataProperty("imageData");
+		// TODO: sysinternal and unvalidated properties are not possible right now
+		type.overrideMethod("isImage",              false, "return getProperty(isImageProperty);");
+		type.overrideMethod("isThumbnail",          false, "return getProperty(isThumbnailProperty);");
+		type.overrideMethod("getOriginalImageName", false, "return " + Image.class.getName() + ".getOriginalImageName(this);");
+		type.overrideMethod("setProperty",          true,  "return " + Image.class.getName() + ".setProperty(this, arg0, arg1);");
+		type.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		type.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
+		type.overrideMethod("isGranted",            false, "if (this.isThumbnail()) { final org.structr.web.entity.Image originalImage = getOriginalImage(); if (originalImage != null) { return originalImage.isGranted(arg0, arg1); } } return super.isGranted(arg0, arg1);");
 
-	public static final Property<Boolean> isImage                 = new ConstantBooleanProperty("isImage", true);
+		final JsonMethod getScaledImage1 = type.addMethod("getScaledImage");
+		getScaledImage1.setReturnType(Image.class.getName());
+		getScaledImage1.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1);");
+		getScaledImage1.addParameter("arg0", "String");
+		getScaledImage1.addParameter("arg1", "String");
 
-	public static final Property<Boolean> isCreatingThumb         = new BooleanProperty("isCreatingThumb").systemInternal();
+		final JsonMethod getScaledImage2 = type.addMethod("getScaledImage");
+		getScaledImage2.setReturnType(Image.class.getName());
+		getScaledImage2.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1, arg2);");
+		getScaledImage2.addParameter("arg0", "String");
+		getScaledImage2.addParameter("arg1", "String");
+		getScaledImage2.addParameter("arg2", "boolean");
 
-	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
-	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
+		final JsonMethod getScaledImage3 = type.addMethod("getScaledImage");
+		getScaledImage3.setReturnType(Image.class.getName());
+		getScaledImage3.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1);");
+		getScaledImage3.addParameter("arg0", "int");
+		getScaledImage3.addParameter("arg1", "int");
 
-	@Override
-	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+		final JsonMethod getScaledImage4 = type.addMethod("getScaledImage");
+		getScaledImage4.setReturnType(Image.class.getName());
+		getScaledImage4.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1, arg2);");
+		getScaledImage4.addParameter("arg0", "int");
+		getScaledImage4.addParameter("arg1", "int");
+		getScaledImage4.addParameter("arg2", "boolean");
 
-		// Copy visibility properties and owner to all thumbnails
-		if (visibleToPublicUsers.equals(key) ||
-			visibleToAuthenticatedUsers.equals(key) ||
-			visibilityStartDate.equals(key) ||
-			visibilityEndDate.equals(key) ||
-			owner.equals(key)) {
+		type.relate(type, "THUMBNAIL", Cardinality.OneToMany, "originalImage", "thumbnails").setCascadingDelete(Cascade.sourceToTarget);
 
-			for (Image tn : getThumbnails()) {
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "parent");
+	}}
 
-				if (!tn.getUuid().equals(getUuid())) {
-					tn.setProperty(key, value);
-				} else {
-//					logger.info("Ignoring recursive setProperty for thumbnail where image is its own thumbnail");
-				}
+	void setIsCreatingThumb(final boolean isCreatingThumb) throws FrameworkException;
 
+	boolean isImage();
+	boolean isThumbnail();
+	boolean getIsCreatingThumb();
+
+	Integer getWidth();
+	Integer getHeight();
+
+	Image getOriginalImage();
+	String getOriginalImageName();
+
+	Image getScaledImage(final String maxWidthString, final String maxHeightString);
+	Image getScaledImage(final String maxWidthString, final String maxHeightString, final boolean cropToFit);
+
+	Image getScaledImage(final int maxWidth, final int maxHeight);
+	Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit);
+
+	List<Image> getThumbnails();
+
+	//public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
+
+
+	/* TODO
+		public static final Property<Image> tnSmall                   = new ThumbnailProperty("tnSmall").format("100, 100, false");
+		public static final Property<Image> tnMid                     = new ThumbnailProperty("tnMid").format("300, 300, false");
+	*/
+
+	//public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
+	//public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
+	//public static final Property<Integer> orientation             = new IntProperty("orientation").cmis().indexed();
+	//public static final Property<String>  exifIFD0Data            = new StringProperty("exifIFD0Data").cmis().indexed();
+	//public static final Property<String>  exifSubIFDData          = new StringProperty("exifSubIFDData").cmis().indexed();
+	//public static final Property<String>  gpsData                 = new StringProperty("gpsData").cmis().indexed();
+
+	// public static final ImageDataProperty imageData               = new ImageDataProperty("imageData");
+
+	//public static final Property<Boolean> isThumbnail             = new BooleanProperty("isThumbnail").indexed().unvalidated().systemInternal();
+	//public static final Property<Boolean> isImage                 = new ConstantBooleanProperty("isImage", true);
+	//public static final Property<Boolean> isCreatingThumb         = new BooleanProperty("isCreatingThumb").systemInternal();
+
+	/*
+	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui,
+		type, name, contentType, size, relativeFilePath, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage
+	);
+
+	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public,
+		type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage
+	);
+	*/
+
+	public static boolean isGranted(final Image thisImage, final Permission permission, final SecurityContext context) {
+
+		if (thisImage.isThumbnail()) {
+
+			final Image originalImage = thisImage.getOriginalImage();
+			if (originalImage != null) {
+
+				return originalImage.isGranted(permission, context);
 			}
-
 		}
 
-		return super.setProperty(key, value);
+		return thisImage.isGranted(permission, context);
 	}
 
-	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+	public static Object setProperty(final Image thisImage, final PropertyKey key, final Object value) throws FrameworkException {
 
-		if ( !isThumbnail() ) {
+		// Copy visibility properties and owner to all thumbnails
+		if (visibleToPublicUsers.equals(key) || visibleToAuthenticatedUsers.equals(key) || owner.equals(key)) {
+
+			for (Image tn : thisImage.getThumbnails()) {
+
+				if (!tn.getUuid().equals(thisImage.getUuid())) {
+
+					tn.setProperty(key, value);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public static void setProperties(final Image thisImage, final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+
+		if ( !thisImage.isThumbnail() ) {
 
 			final PropertyMap propertiesCopiedToAllThumbnails = new PropertyMap();
 
 			for (final PropertyKey key : properties.keySet()) {
 
-					if (visibleToPublicUsers.equals(key) ||
-						visibleToAuthenticatedUsers.equals(key) ||
-						visibilityStartDate.equals(key) ||
-						visibilityEndDate.equals(key) ||
-						owner.equals(key)) {
+					if (visibleToPublicUsers.equals(key) || visibleToAuthenticatedUsers.equals(key) || owner.equals(key)) {
 
 						propertiesCopiedToAllThumbnails.put(key, properties.get(key));
 					}
@@ -136,66 +224,55 @@ public class Image extends org.structr.dynamic.File {
 
 			if ( !propertiesCopiedToAllThumbnails.isEmpty() ) {
 
-				final List<Image> thumbnails = getThumbnails();
+				final List<Image> thumbnails = thisImage.getThumbnails();
 
 				for (Image tn : thumbnails) {
 
-					if (!tn.getUuid().equals(getUuid())) {
+					if (!tn.getUuid().equals(thisImage.getUuid())) {
+
 						tn.setProperties(tn.getSecurityContext(), propertiesCopiedToAllThumbnails);
-					} else {
-//						logger.info("Ignoring recursive setProperty for thumbnail where image is its own thumbnail");
 					}
-
 				}
-
 			}
-
 		}
-
-		super.setProperties(securityContext, properties);
 	}
 
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public static void onModification(final Image thisImage, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
+		if ( !thisImage.isThumbnail() ) {
 
-			if ( !isThumbnail() ) {
+			if (modificationQueue.isPropertyModified(thisImage, name)) {
 
-				if (modificationQueue.isPropertyModified(this, name)) {
+				final String newImageName = getName();
 
-					final String newImageName = getName();
+				for (Image tn : thisImage.getThumbnails()) {
 
-					for (Image tn : getThumbnails()) {
+					final String expectedThumbnailName = ImageHelper.getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
+					final String currentThumbnailName  = tn.getName();
 
-						final String expectedThumbnailName = ImageHelper.getThumbnailName(newImageName, tn.getWidth(), tn.getHeight());
-						final String currentThumbnailName  = tn.getName();
+					if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
 
-						if ( !expectedThumbnailName.equals(currentThumbnailName) ) {
-
-							logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
-							tn.setProperty(AbstractNode.name, expectedThumbnailName);
-
-						}
+						logger.debug("Auto-renaming Thumbnail({}) from '{}' to '{}'", tn.getUuid(), currentThumbnailName, expectedThumbnailName);
+						tn.setProperty(AbstractNode.name, expectedThumbnailName);
 
 					}
-
 				}
-
 			}
-
-			return true;
 		}
-
-		return false;
 	}
+
+	/*
 
 	public Integer getWidth() {
+
 		return getProperty(Image.width);
+
 	}
 
 	public Integer getHeight() {
+
 		return getProperty(Image.height);
+
 	}
 
 	public List<Image> getThumbnails() {
@@ -212,15 +289,6 @@ public class Image extends org.structr.dynamic.File {
 	}
 
 	/**
-	 * Get thumbnail relationships
-	 *
-	 * @return thumbnails
-	 */
-	public Iterable<Thumbnails> getThumbnailRelationships() {
-		return getOutgoingRelationships(Thumbnails.class);
-	}
-
-	/**
 	 * Get (down-)scaled image of this image
 	 *
 	 * If no scaled image of the requested size exists or the image is newer than the scaled image, create a new one
@@ -229,17 +297,17 @@ public class Image extends org.structr.dynamic.File {
 	 * @param maxHeightString
 	 *
 	 * @return scaled image
-	 */
-	public Image getScaledImage(final String maxWidthString, final String maxHeightString) {
-		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), false);
+	*/
+	public static Image getScaledImage(final Image thisImage, final String maxWidthString, final String maxHeightString) {
+		return getScaledImage(thisImage, Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), false);
 	}
 
-	public Image getScaledImage(final String maxWidthString, final String maxHeightString, final boolean cropToFit) {
-		return getScaledImage(Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), cropToFit);
+	public static Image getScaledImage(final Image thisImage, final String maxWidthString, final String maxHeightString, final boolean cropToFit) {
+		return getScaledImage(thisImage, Integer.parseInt(maxWidthString), Integer.parseInt(maxHeightString), cropToFit);
 	}
 
-	public Image getScaledImage(final int maxWidth, final int maxHeight) {
-		return getScaledImage(maxWidth, maxHeight, false);
+	public static Image getScaledImage(final Image thisImage, final int maxWidth, final int maxHeight) {
+		return getScaledImage(thisImage, maxWidth, maxHeight, false);
 	}
 
 	/**
@@ -254,17 +322,19 @@ public class Image extends org.structr.dynamic.File {
 	 * @param cropToFit if true, scale down until the shorter edge fits inside the rectangle, and then crop
 	 *
 	 * @return scaled image
-	 */
-	public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
+	 * */
+	public static Image getScaledImage(final Image thisImage, final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
-		final Iterable<Thumbnails> thumbnailRelationships = getThumbnailRelationships();
-		final List<Image> oldThumbnails                   = new LinkedList<>();
-		Image thumbnail                                   = null;
-		final Image originalImage                         = this;
-		final Integer origWidth                           = originalImage.getWidth();
-		final Integer origHeight                          = originalImage.getHeight();
-		final Long currentChecksum                        = originalImage.getProperty(Image.checksum);
-		Long newChecksum                                  = 0L;
+		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
+		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
+		final SecurityContext securityContext           = thisImage.getSecurityContext();
+		final List<Image> oldThumbnails                 = new LinkedList<>();
+		Image thumbnail                                 = null;
+		final Image originalImage                       = thisImage;
+		final Integer origWidth                         = originalImage.getWidth();
+		final Integer origHeight                        = originalImage.getHeight();
+		final Long currentChecksum                      = originalImage.getChecksum();
+		Long newChecksum                                = 0L;
 
 		if (currentChecksum == null || currentChecksum == 0) {
 
@@ -274,11 +344,12 @@ public class Image extends org.structr.dynamic.File {
 
 				if (newChecksum == null || newChecksum == 0) {
 
-					logger.debug("Unable to create scaled image, file {} is not ready.", originalImage.getName());
+					logger.warn("Unable to calculate checksum of {}", originalImage.getName());
 					return null;
 				}
-			} catch (IOException ioex) {
-				logger.warn("Unable to calculate checksum of {}: {}", originalImage.getFileOnDisk(), ioex.getMessage());
+
+			} catch (IOException ex) {
+				logger.warn("Unable to calculate checksum of {}: {}", originalImage.getName(), ex.getMessage());
 			}
 
 		} else {
@@ -290,28 +361,28 @@ public class Image extends org.structr.dynamic.File {
 		ImageHelper.getExifData(originalImage);
 
 		// Return self if SVG image
-		final String _contentType = getProperty(Image.contentType);
+		final String _contentType = thisImage.getContentType();
 		if (_contentType != null && (_contentType.startsWith("image/svg") || (_contentType.startsWith("image/") && _contentType.endsWith("icon")))) {
 
-			return this;
+			return thisImage;
 		}
 
 		if (origWidth != null && origHeight != null && thumbnailRelationships != null) {
 
-			for (final Thumbnails r : thumbnailRelationships) {
+			for (final Relation r : thumbnailRelationships) {
 
-				final Integer w = r.getProperty(Image.width);
-				final Integer h = r.getProperty(Image.height);
+				final Integer w = r.getProperty(StructrApp.key(Image.class, "width"));
+				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
 
 				if (w != null && h != null) {
 
 					// orginal image is equal or smaller than requested size
 					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || ((origWidth <= w) && (origHeight <= h))) {
 
-						thumbnail = r.getTargetNode();
+						thumbnail = (Image)r.getTargetNode();
 
 						// Use thumbnail only if checksum of original image matches with stored checksum
-						final Long storedChecksum = r.getProperty(Image.checksum);
+						final Long storedChecksum = r.getProperty(StructrApp.key(Image.class, "checksum"));
 
 						if (storedChecksum != null && storedChecksum.equals(newChecksum)) {
 
@@ -329,7 +400,7 @@ public class Image extends org.structr.dynamic.File {
 
 		}
 
-		if (originalImage.getProperty(Image.isCreatingThumb).equals(Boolean.TRUE)) {
+		if (originalImage.getIsCreatingThumb()) {
 
 			logger.debug("Another thumbnail is being created - waiting....");
 
@@ -341,12 +412,12 @@ public class Image extends org.structr.dynamic.File {
 				logger.debug("Creating thumbnail for {} (w={} h={} crop={})", new Object[] { getName(), maxWidth, maxHeight, cropToFit });
 
 				originalImage.unlockSystemPropertiesOnce();
-				originalImage.setProperty(Image.isCreatingThumb, Boolean.TRUE);
+				originalImage.setIsCreatingThumb(true);
 
-				final App app = StructrApp.getInstance(securityContext);
+				final App app = StructrApp.getInstance();
 
 				originalImage.unlockSystemPropertiesOnce();
-				originalImage.setProperty(File.checksum, newChecksum);
+				originalImage.setProperty(StructrApp.key(File.class, "checksum"), newChecksum);
 
 				final Thumbnail thumbnailData = ImageHelper.createThumbnail(originalImage, maxWidth, maxHeight, cropToFit);
 				if (thumbnailData != null) {
@@ -373,22 +444,22 @@ public class Image extends org.structr.dynamic.File {
 
 						// Create a thumbnail relationship
 						final PropertyMap relProperties = new PropertyMap();
-						relProperties.put(Image.width,                  tnWidth);
-						relProperties.put(Image.height,                 tnHeight);
-						relProperties.put(Image.checksum,               newChecksum);
+						relProperties.put(StructrApp.key(Image.class, "width"),                  tnWidth);
+						relProperties.put(StructrApp.key(Image.class, "height"),                 tnHeight);
+						relProperties.put(StructrApp.key(Image.class, "checksum"),               newChecksum);
 
-						app.create(originalImage, thumbnail, Thumbnails.class, relProperties);
+						app.create(originalImage, thumbnail, thumbnailRel, relProperties);
 
 						final PropertyMap properties = new PropertyMap();
-						properties.put(Image.width,                              tnWidth);
-						properties.put(Image.height,                             tnHeight);
-						properties.put(AbstractNode.hidden,                      originalImage.getProperty(AbstractNode.hidden));
-						properties.put(AbstractNode.visibleToAuthenticatedUsers, originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
-						properties.put(AbstractNode.visibleToPublicUsers,        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
-						properties.put(File.size,                                Long.valueOf(data.length));
-						properties.put(AbstractNode.owner,                       originalImage.getProperty(AbstractNode.owner));
-						properties.put(File.parent,                              getThumbnailParentFolder(originalImage.getProperty(Folder.parent)));
-						properties.put(File.hasParent,                           originalImage.getProperty(File.hasParent));
+						properties.put(StructrApp.key(Image.class, "width"),                              tnWidth);
+						properties.put(StructrApp.key(Image.class, "height"),                             tnHeight);
+						properties.put(StructrApp.key(AbstractNode.class, "hidden"),                      originalImage.getProperty(AbstractNode.hidden));
+						properties.put(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), originalImage.getProperty(AbstractNode.visibleToAuthenticatedUsers));
+						properties.put(StructrApp.key(AbstractNode.class, "visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
+						properties.put(StructrApp.key(File.class, "size"),                                Long.valueOf(data.length));
+						properties.put(StructrApp.key(AbstractNode.class, "owner"),                       originalImage.getProperty(AbstractNode.owner));
+						properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getParent());
+						properties.put(StructrApp.key(File.class, "hasParent"),                           originalImage.getProperty(StructrApp.key(Image.class, "hasParent")));
 
 						thumbnail.unlockSystemPropertiesOnce();
 						thumbnail.setProperties(securityContext, properties);
@@ -407,7 +478,7 @@ public class Image extends org.structr.dynamic.File {
 				}
 
 				originalImage.unlockSystemPropertiesOnce();
-				originalImage.removeProperty(Image.isCreatingThumb);
+				originalImage.setIsCreatingThumb(false);
 
 			} catch (FrameworkException fex) {
 
@@ -426,34 +497,20 @@ public class Image extends org.structr.dynamic.File {
 	 * This is determined by having at least one incoming THUMBNAIL relationship
 	 *
 	 * @return true if is thumbnail
-	 */
 	public boolean isThumbnail() {
 
 		return getProperty(Image.isThumbnail) || getIncomingRelationship(Thumbnails.class) != null;
 	}
+	* */
 
 	/**
 	 * @return the name of the original image
 	 */
-	public String getOriginalImageName() {
+	public static String getOriginalImageName(final Image thisImage) {
 
-		final Integer tnWidth =  getWidth();
-		final Integer tnHeight = getHeight();
+		final Integer tnWidth =  thisImage.getWidth();
+		final Integer tnHeight = thisImage.getHeight();
 
-		return StringUtils.stripEnd(getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
-	}
-
-	// ----- private methods -----
-	private Folder getThumbnailParentFolder(final Folder originalParentFolder) throws FrameworkException {
-
-		final StringBuilder pathBuffer = new StringBuilder(STRUCTR_THUMBNAIL_FOLDER);
-
-		if (originalParentFolder != null) {
-
-			pathBuffer.append(originalParentFolder.getPath());
-
-		}
-
-		return FileHelper.createFolderPath(securityContext, pathBuffer.toString());
+		return StringUtils.stripEnd(thisImage.getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
 	}
 }

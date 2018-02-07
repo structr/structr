@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.Folder;
 
@@ -41,7 +41,7 @@ public class StructrFtpUser implements User {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrFtpUser.class.getName());
 
-	private final org.structr.web.entity.User structrUser;
+	private final Principal structrUser;
 	private SecurityContext securityContext;
 
 	public StructrFtpUser(final SecurityContext securityContext, final org.structr.web.entity.User structrUser) {
@@ -127,7 +127,7 @@ public class StructrFtpUser implements User {
 	@Override
 	public boolean getEnabled() {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			final boolean blocked = structrUser.getProperty(org.structr.web.entity.User.blocked);
+			final boolean blocked = structrUser.isBlocked();
 			tx.success();
 			return !blocked;
 		} catch (Exception fex) { }
@@ -137,16 +137,21 @@ public class StructrFtpUser implements User {
 
 	@Override
 	public String getHomeDirectory() {
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			final String homeDir = structrUser.getProperty(org.structr.web.entity.User.homeDirectory).getProperty(Folder.name);
+
+			final String homeDir = ((org.structr.web.entity.User)structrUser).getHomeDirectory().getProperty(Folder.name);
+
 			tx.success();
+
 			return homeDir;
+
 		} catch (Exception fex) { }
 
 		return null;
 	}
 
-	public AbstractUser getStructrUser() {
+	public Principal getStructrUser() {
 		return structrUser;
 	}
 

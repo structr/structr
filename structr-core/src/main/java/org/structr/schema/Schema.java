@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,10 +19,7 @@
 package org.structr.schema;
 
 import java.util.List;
-import java.util.Set;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaView;
@@ -33,13 +30,9 @@ import org.structr.core.entity.SchemaView;
  */
 public interface Schema {
 
-	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException;
-	public String getAuxiliarySource() throws FrameworkException;
-
 	public String getMultiplicity(final String propertyNameToCheck);
 	public String getRelatedType(final String propertyNameToCheck);
 	public PropertyContainer getPropertyContainer();
-	public Set<String> getViews();
 	public String getClassName();
 	public String getSuperclassName();
 

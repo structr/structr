@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,7 +54,7 @@ public class MergePropertiesFunction extends Function<Object, Object> {
 			for (int i = 2; i < paramCount; i++) {
 
 				final String keyName = sources[i].toString();
-				final PropertyKey key = config.getPropertyKeyForJSONName(target.getClass(), keyName);
+				final PropertyKey key = StructrApp.key(target.getClass(), keyName);
 
 				mergeKeys.add(key);
 			}

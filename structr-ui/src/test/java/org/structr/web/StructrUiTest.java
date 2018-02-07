@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,13 +57,8 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Base class for all structr UI tests
- *
- * All tests are executed in superuser context
- *
- *
+ * Base class for all structr UI tests.
  */
 public abstract class StructrUiTest {
 
@@ -143,6 +138,8 @@ public abstract class StructrUiTest {
 		Settings.HttpPort.setValue(httpPort);
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
+
+		//Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
 
@@ -260,7 +257,6 @@ public abstract class StructrUiTest {
 		final PropertyMap props = new PropertyMap();
 
 		props.put(AbstractNode.type, type.getSimpleName());
-		props.put(AbstractNode.name, type.getSimpleName());
 
 		for (final NodeAttribute attr : attrs) {
 			props.put(attr.getKey(), attr.getValue());

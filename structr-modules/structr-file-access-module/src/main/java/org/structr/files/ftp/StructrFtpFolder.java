@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,8 +33,7 @@ import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 
@@ -47,7 +46,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 	private static final Logger logger = LoggerFactory.getLogger(StructrFtpFolder.class.getName());
 
 	public StructrFtpFolder(final SecurityContext securityContext, final Folder folder) {
-		super(securityContext, folder);		
+		super(securityContext, folder);
 	}
 
 	@Override
@@ -73,18 +72,18 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public long getLastModified() {
-		
+
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-		
+
 			final Date date = structrFile.getProperty(Folder.lastModifiedDate);
-			
+
 			tx.success();
-			
+
 			return date.getTime();
-		
+
 		} catch (Exception ex) {
 		}
-		
+
 		return 0L;
 	}
 
@@ -112,7 +111,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					for (Folder f : folders.getResults()) {
 
-						if (f.getProperty(AbstractFile.hasParent)) {
+						if (f.getHasParent()) {
 							continue;
 						}
 
@@ -123,12 +122,12 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 					}
 
-					Result<FileBase> files = app.nodeQuery(FileBase.class).getResult();
+					Result<File> files = app.nodeQuery(File.class).getResult();
 					logger.debug("{} files found", files.size());
 
-					for (FileBase f : files.getResults()) {
+					for (File f : files.getResults()) {
 
-						if (f.getProperty(AbstractFile.hasParent)) {
+						if (f.getHasParent()) {
 							continue;
 						}
 
@@ -160,7 +159,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 			}
 
-			List<Folder> folders = ((Folder) structrFile).getProperty(Folder.folders);
+			Iterable<Folder> folders = ((Folder) structrFile).getFolders();
 
 			for (Folder f : folders) {
 
@@ -170,9 +169,9 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 				ftpFiles.add(ftpFile);
 			}
 
-			List<FileBase> files = ((Folder) structrFile).getProperty(Folder.files);
+			Iterable<File> files = ((Folder) structrFile).getFiles();
 
-			for (FileBase f : files) {
+			for (File f : files) {
 
 				FtpFile ftpFile = new StructrFtpFile(securityContext, f);
 				logger.debug("File found: {}", ftpFile.getAbsolutePath());
@@ -212,7 +211,7 @@ public class StructrFtpFolder extends AbstractStructrFtpFile implements FtpFile 
 
 	@Override
 	public Object getPhysicalFile() {
-		throw new UnsupportedOperationException("Not supported yet."); 
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 }

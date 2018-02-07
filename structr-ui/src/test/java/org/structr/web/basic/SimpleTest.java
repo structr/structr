@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -43,7 +45,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.SchemaNode;
@@ -52,21 +56,20 @@ import org.structr.core.graph.DummyNodeServiceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.schema.importer.GraphGistImporter;
-import org.structr.web.entity.FileBase;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.relationship.DOMChildren;
-import org.structr.web.entity.relation.PageLink;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+import org.structr.web.entity.File;
 
 
 public class SimpleTest extends StructrUiTest {
@@ -202,16 +205,18 @@ public class SimpleTest extends StructrUiTest {
 	@Test
 	public void test001EMailAddressConstraint() {
 
+		final PropertyKey<String> eMail = StructrApp.key(User.class, "eMail");
+
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
 				new NodeAttribute(User.name, "TestUser1"),
-				new NodeAttribute(User.eMail, "user@structr.test")
+				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create(User.class,
 				new NodeAttribute(User.name, "TestUser2"),
-				new NodeAttribute(User.eMail, "user@structr.test")
+				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			tx.success();
@@ -228,12 +233,12 @@ public class SimpleTest extends StructrUiTest {
 
 			app.create(User.class,
 				new NodeAttribute(User.name, "TestUser1"),
-				new NodeAttribute(User.eMail, "user@structr.test")
+				new NodeAttribute(eMail, "user@structr.test")
 			);
 
 			app.create(User.class,
 				new NodeAttribute(User.name, "TestUser2"),
-				new NodeAttribute(User.eMail, "User@Structr.test")
+				new NodeAttribute(eMail, "User@Structr.test")
 			);
 
 			tx.success();
@@ -289,31 +294,36 @@ public class SimpleTest extends StructrUiTest {
 				throw new FrameworkException(422, dex.getMessage());
 			}
 
-			final PropertyMap siteOneProperties = new PropertyMap();
+			final PropertyMap siteOneProperties    = new PropertyMap();
+			final PropertyKey<Site> siteKey        = StructrApp.key(Page.class, "site");
+			final PropertyKey<Integer> positionKey = StructrApp.key(Page.class, "position");
+			final PropertyKey<Integer> portKey     = StructrApp.key(Site.class, "port");
+			final PropertyKey<String> hostnameKey  = StructrApp.key(Site.class, "hostname");
+
 			siteOneProperties.put(Site.name, "site-one");
 			siteOneProperties.put(Site.visibleToPublicUsers, true);
-			siteOneProperties.put(Site.hostname, "localhost");
-			siteOneProperties.put(Site.port, 8875);
+			siteOneProperties.put(hostnameKey, "localhost");
+			siteOneProperties.put(portKey, 8875);
 
 			final PropertyMap siteTwoProperties = new PropertyMap();
 			siteTwoProperties.put(Site.name, "site-two");
 			siteTwoProperties.put(Site.visibleToPublicUsers, true);
-			siteTwoProperties.put(Site.hostname, "127.0.0.1");
-			siteTwoProperties.put(Site.port, 8875);
+			siteTwoProperties.put(hostnameKey, "127.0.0.1");
+			siteTwoProperties.put(portKey, 8875);
 
 			final Site siteOne = app.create(Site.class, siteOneProperties);
 			final Site siteTwo = app.create(Site.class, siteTwoProperties);
 
 			final PropertyMap pageOneProperties = new PropertyMap();
-			pageOneProperties.put(Page.site, siteOne);
+			pageOneProperties.put(siteKey, siteOne);
 			pageOneProperties.put(Page.visibleToPublicUsers, true);
-			pageOneProperties.put(Page.position, 10);
+			pageOneProperties.put(positionKey, 10);
 			pageOne.setProperties(pageOne.getSecurityContext(), pageOneProperties);
 
 			final PropertyMap pageTwoProperties = new PropertyMap();
-			pageTwoProperties.put(Page.site, siteTwo);
+			pageTwoProperties.put(siteKey, siteTwo);
 			pageTwoProperties.put(Page.visibleToPublicUsers, true);
-			pageTwoProperties.put(Page.position, 10);
+			pageTwoProperties.put(positionKey, 10);
 			pageTwo.setProperties(pageTwo.getSecurityContext(), pageTwoProperties);
 
 			tx.success();
@@ -379,7 +389,7 @@ public class SimpleTest extends StructrUiTest {
 
 				for (AbstractRelationship r : page.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
-					assertTrue(r instanceof PageLink);
+					assertEquals("PAGE", r.getRelType().name());
 
 				}
 
@@ -387,7 +397,7 @@ public class SimpleTest extends StructrUiTest {
 
 				for (AbstractRelationship r : head.getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
-					assertTrue(r instanceof DOMChildren);
+					assertEquals("CONTAINS", r.getRelType().name());
 
 				}
 
@@ -396,7 +406,7 @@ public class SimpleTest extends StructrUiTest {
 
 				for (AbstractRelationship r : ((DOMNode) titleText).getIncomingRelationships()) {
 					System.out.println("============ Relationship: " + r.toString());
-					assertTrue(r instanceof DOMChildren);
+					assertEquals("CONTAINS", r.getRelType().name());
 
 				}
 
@@ -624,8 +634,8 @@ public class SimpleTest extends StructrUiTest {
 				makePublic(page, html, head, body, title, h1, div, titleText, heading, bodyContent);
 
 				final PropertyMap pageProperties = new PropertyMap();
-				pageProperties.put(Page.showOnErrorCodes, "404");
-				pageProperties.put(Page.position, 0);
+				pageProperties.put(StructrApp.key(Page.class, "showOnErrorCodes"), "404");
+				pageProperties.put(StructrApp.key(Page.class, "position"), 0);
 				page.setProperties(page.getSecurityContext(), pageProperties);
 
 				tx.success();
@@ -683,7 +693,7 @@ public class SimpleTest extends StructrUiTest {
 
 
 			// Warm-up caches and JVM
-			for (long i = 1; i <= 50000; i++) {
+			for (long i = 1; i <= 5000; i++) {
 				if (i % 1000 == 0) {
 					logger.info("Making connection #{}", i);
 				}
@@ -847,7 +857,7 @@ public class SimpleTest extends StructrUiTest {
 		try {
 
 			// create some test nodes
-			FileBase test1 = null;
+			File test1 = null;
 
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
@@ -865,7 +875,7 @@ public class SimpleTest extends StructrUiTest {
 			// check initial sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<FileBase> files = app.nodeQuery(FileBase.class).sort(File.path).getAsList();
+				final List<File> files = app.nodeQuery(File.class).sort(StructrApp.key(File.class, "path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "aaaaa", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(1).getName());
@@ -889,7 +899,7 @@ public class SimpleTest extends StructrUiTest {
 			// check final sort order
 			try (final Tx tx = app.tx()) {
 
-				final List<FileBase> files = app.nodeQuery(FileBase.class).sort(File.path).getAsList();
+				final List<File> files = app.nodeQuery(File.class).sort(StructrApp.key(File.class, "path")).getAsList();
 
 				assertEquals("Invalid indexing sort result", "bbbbb", files.get(0).getName());
 				assertEquals("Invalid indexing sort result", "ccccc", files.get(1).getName());
@@ -921,6 +931,8 @@ public class SimpleTest extends StructrUiTest {
 			"----\n";
 
 		final List<String> sourceLines = importer.extractSources(new ByteArrayInputStream(source.getBytes(Charset.forName("utf-8"))));
+
+		Settings.LogSchemaOutput.setValue(true);
 
 		// import (uses Neo4j transaction)
 		importer.importCypher(sourceLines);
@@ -963,9 +975,9 @@ public class SimpleTest extends StructrUiTest {
 			Page.createSimplePage(securityContext, "test");
 
 			app.create(User.class,
-				new NodeAttribute<>(User.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"), true)
 			);
 
 			tx.success();
@@ -978,6 +990,7 @@ public class SimpleTest extends StructrUiTest {
 			.given()
 			.header("X-User",     "admin")
 			.header("X-Password", "admin")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.response()
 			.contentType("text/html")
@@ -996,7 +1009,93 @@ public class SimpleTest extends StructrUiTest {
 			.statusCode(200)
 			.when()
 			.get("http://127.0.0.1:8875/test");
+	}
 
+	@Test
+	public void testIncreasePageVersion() {
+
+		Page page = null;
+
+		try (final Tx tx = app.tx()) {
+
+			page = Page.createSimplePage(securityContext, "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unepxected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Page version is not increased on modification", 0, page.getVersion());
+
+			final Element div = page.createElement("div");
+
+			// add new element
+			page.getElementsByTagName("div").item(0).appendChild(div);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unepxected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Page version is not increased on modification", 3, page.getVersion());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unepxected exception.");
+		}
+	}
+
+	@Test
+	public void testIncreaseFileVersion() {
+
+		File file = null;
+
+		try (final Tx tx = app.tx()) {
+
+			file = FileHelper.createFile(securityContext, "test".getBytes("utf-8"), "text/plain", File.class, "test.txt");
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) { }
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Page version is not increased on modification", Integer.valueOf(0), file.getVersion());
+
+			try (final OutputStream os = file.getOutputStream(true, true)) {
+
+				os.write("test".getBytes("utf-8"));
+				os.flush();
+
+			} catch (IOException ioex) {
+			}
+
+			assertEquals("Page version is not increased on modification", Integer.valueOf(1), file.getVersion());
+
+			tx.success();
+
+		} catch (FrameworkException fex) { }
+	}
+
+	@Test
+	public void testNameCheckInDOMNode() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page.createSimplePage(securityContext, "te/st");
+
+			tx.success();
+
+			fail("DOMNode names may not contain the slash character.");
+
+		} catch (FrameworkException fex) { }
 	}
 
 	// ----- private methods -----

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -530,6 +530,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		for (NodeInterface nodeObject : nodes) {
 
+			// skip schema
+			if (nodeObject instanceof AbstractSchemaNode) {
+				continue;
+			}
+
 			final Node node = nodeObject.getNode();
 
 			// ignore non-structr nodes
@@ -791,6 +796,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				totalNodeCount += nodeCount;
 				totalRelCount  += relCount;
 
+				/*
 				for (Node node : nodes) {
 
 					if (!deletedNodes.contains(node.getId())) {
@@ -819,6 +825,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						entity.addToIndex();
 					}
 				}
+				*/
 
 				logger.info("Imported {} nodes and {} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
 

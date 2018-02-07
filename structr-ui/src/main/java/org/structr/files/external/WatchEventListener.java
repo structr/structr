@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,8 +30,11 @@ public interface WatchEventListener {
 	 * Called when an existing file was discovered during
 	 * initialization.
 	 *
+	 * @param root
 	 * @param context the parent folder
 	 * @param path the newly discovered file
+	 * @return 
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	boolean onDiscover(final Path root, final Path context, final Path path) throws FrameworkException;
 
@@ -39,8 +42,11 @@ public interface WatchEventListener {
 	 * Called when a new file is created in one of the
 	 * directories watched by the watch service.
 	 *
+	 * @param root
 	 * @param context the parent folder
 	 * @param path the newly created file
+	 * @return 
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	boolean onCreate(final Path root, final Path context, final Path path) throws FrameworkException;
 
@@ -48,8 +54,11 @@ public interface WatchEventListener {
 	 * Called when an existing file is modified in one of
 	 * the directories watched by the watch service.
 	 *
+	 * @param root
 	 * @param context the parent folder
 	 * @param path the modified file
+	 * @return 
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	boolean onModify(final Path root, final Path context, final Path path) throws FrameworkException;
 
@@ -57,8 +66,11 @@ public interface WatchEventListener {
 	 * Called when a file is deleted in one of the
 	 * directories watched by the watch service.
 	 *
+	 * @param root
 	 * @param context the parent folder
 	 * @param path the deleted file
+	 * @return 
+	 * @throws org.structr.common.error.FrameworkException
 	 */
 	boolean onDelete(final Path root, final Path context, final Path path) throws FrameworkException;
 }

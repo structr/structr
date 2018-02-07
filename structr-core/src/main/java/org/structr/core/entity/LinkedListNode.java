@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,188 +18,24 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.graph.Node;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.relationship.AbstractListSiblings;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
 
 /**
- * Abstract base class for a multi-dimensional linked list data structure.
+ * Abstract base class for a linked list data structure.
  *
- *
- * @param <R>
  * @param <T>
  */
-public abstract class LinkedListNode<R extends AbstractListSiblings<T, T>, T extends LinkedListNode> extends ValidatedNode {
+public interface LinkedListNode<T extends NodeInterface> extends NodeInterface {
 
-	// this is not used for the node itself but for the relationship(s) this node maintains
-	public static final PropertyKey<String>      keyProperty     = new StringProperty("key");
+	public <R extends Relation<T, T, OneStartpoint<T>, OneEndpoint<T>>> Class<R> getSiblingLinkType();
 
-	public abstract Class<R> getSiblingLinkType();
-
-	/**
-	 * Returns the predecessor of the given element in the list structure
-	 * defined by this LinkedListManager.
-	 *
-	 * @param currentElement
-	 * @return previous element
-	 */
-	public  T listGetPrevious(final T currentElement) {
-
-		R prevRel = currentElement.getIncomingRelationship(getSiblingLinkType());
-		if (prevRel != null) {
-
-			return prevRel.getSourceNode();
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the successor of the given element in the list structure
-	 * defined by this LinkedListManager.
-	 *
-	 * @param currentElement
-	 * @return next element
-	 */
-	public T listGetNext(final T currentElement) {
-
-		R nextRel = currentElement.getOutgoingRelationship(getSiblingLinkType());
-		if (nextRel != null) {
-
-			return nextRel.getTargetNode();
-		}
-
-		return null;
-	}
-
-	/**
-	 * Inserts newElement before currentElement in the list defined by this
-	 * LinkedListManager.
-	 *
-	 * @param currentElement the reference element
-	 * @param newElement the new element
-	 * @throws org.structr.common.error.FrameworkException
-	 */
-	public void listInsertBefore(final T currentElement, final T newElement) throws FrameworkException {
-
-		if (currentElement.getId() == newElement.getId()) {
-			throw new IllegalStateException("Cannot link a node to itself!");
-		}
-
-		final T previousElement = listGetPrevious(currentElement);
-		if (previousElement == null) {
-
-			linkNodes(getSiblingLinkType(), newElement, currentElement);
-
-		} else {
-			// delete old relationship
-			unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
-
-			// dont create self link
-			if (previousElement.getId() != newElement.getId()) {
-				linkNodes(getSiblingLinkType(), previousElement, newElement);
-			}
-
-			// dont create self link
-			if (newElement.getId() != currentElement.getId()) {
-				linkNodes(getSiblingLinkType(), newElement, currentElement);
-			}
-		}
-	}
-
-	/**
-	 * Inserts newElement after currentElement in the list defined by this
-	 * LinkedListManager.
-	 *
-	 * @param currentElement the reference element
-	 * @param newElement the new element
-	 */
-	public void listInsertAfter(final T currentElement, final T newElement) throws FrameworkException {
-
-		if (currentElement.getId() == newElement.getId()) {
-			throw new IllegalStateException("Cannot link a node to itself!");
-		}
-
-		final T next = listGetNext(currentElement);
-		if (next == null) {
-
-			linkNodes(getSiblingLinkType(), currentElement, newElement);
-
-		} else {
-
-			// unlink predecessor and successor
-			unlinkNodes(getSiblingLinkType(), currentElement, next);
-
-			// link predecessor to new element
-			linkNodes(getSiblingLinkType(), currentElement, newElement);
-
-			// dont create self link
-			if (newElement.getId() != next.getId()) {
-
-				// link new element to successor
-				linkNodes(getSiblingLinkType(), newElement, next);
-			}
-		}
-	}
-
-	/**
-	 * Removes the current element from the list defined by this
-	 * LinkedListManager.
-	 *
-	 * @param currentElement the element to be removed
-	 */
-	public void listRemove(final T currentElement) throws FrameworkException {
-
-		final T previousElement = listGetPrevious(currentElement);
-		final T nextElement     = listGetNext(currentElement);
-
-		if (currentElement != null) {
-
-			if (previousElement != null) {
-				unlinkNodes(getSiblingLinkType(), previousElement, currentElement);
-			}
-
-			if (nextElement != null) {
-				unlinkNodes(getSiblingLinkType(), currentElement, nextElement);
-			}
-		}
-
-		if (previousElement != null && nextElement != null) {
-
-			Node previousNode = previousElement.getNode();
-			Node nextNode     = nextElement.getNode();
-
-			if (previousNode != null && nextNode != null) {
-
-				linkNodes(getSiblingLinkType(), previousElement, nextElement);
-			}
-
-		}
-	}
-
-	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
-		linkNodes(linkType, startNode, endNode, null);
-	}
-
-	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode, final PropertyMap properties) throws FrameworkException {
-		StructrApp.getInstance(securityContext).create(startNode, endNode, linkType, properties);
-	}
-
-	private void unlinkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
-
-		for (RelationshipInterface rel : startNode.getRelationships(linkType)) {
-
-			if (rel != null && rel.getTargetNode().equals(endNode)) {
-				app.delete(rel);
-			}
-		}
-	}
+	public  T listGetPrevious(final T currentElement);
+	public T listGetNext(final T currentElement);
+	public void listInsertBefore(final T currentElement, final T newElement) throws FrameworkException;
+	public void listInsertAfter(final T currentElement, final T newElement) throws FrameworkException;
+	public void listRemove(final T currentElement) throws FrameworkException;
+	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode) throws FrameworkException;
+	public <R extends Relation<T, T, ?, ?>> void linkNodes(final Class<R> linkType, final T startNode, final T endNode, final PropertyMap properties) throws FrameworkException;
 }

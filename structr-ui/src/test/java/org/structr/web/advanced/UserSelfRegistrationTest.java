@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.web.advanced;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
@@ -30,6 +31,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
@@ -81,8 +83,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(User.id);
-			confKey = user.getProperty(User.confirmationKey);
+			id      = user.getProperty(StructrApp.key(User.class, "id"));
+			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
 
 			assertNotNull("Confirmation key was not set", confKey);
 
@@ -112,8 +114,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(User.id);
-			confKey = user.getProperty(User.confirmationKey);
+			id      = user.getProperty(StructrApp.key(User.class, "id"));
+			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
 
 			assertNull("Confirmation key was set after confirmation", confKey);
 
@@ -163,8 +165,8 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			assertNotNull("User was not created", user);
 
 			// store ID for later user
-			id      = user.getProperty(User.id);
-			confKey = user.getProperty(User.confirmationKey);
+			id      = user.getProperty(StructrApp.key(User.class, "id"));
+			confKey = user.getProperty(StructrApp.key(User.class, "confirmationKey"));
 
 			assertNotNull("Confirmation key was not set", confKey);
 
@@ -209,9 +211,9 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 			assertNotNull("User was not created", user);
 
-			assertNull("Confirmation key was set after confirmation", user.getProperty(User.confirmationKey));
+			assertNull("Confirmation key was set after confirmation", user.getProperty(StructrApp.key(User.class, "confirmationKey")));
 
-			final String[] sessionIds  = user.getProperty(User.sessionIds);
+			final String[] sessionIds  = user.getProperty(StructrApp.key(User.class, "sessionIds"));
 
 			Assert.assertEquals("Invalid number of sessions after user confirmation", 1, sessionIds.length);
 			Assert.assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(sessionFilter.getSessionId(), "."), sessionIds[0]);
@@ -241,9 +243,9 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final User user = app.create(User.class,
-				new NodeAttribute<>(User.name, "tester"),
-				new NodeAttribute<>(User.eMail, eMail),
-				new NodeAttribute<>(User.password, "correct")
+				new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester"),
+				new NodeAttribute<>(StructrApp.key(User.class, "eMail"), eMail),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"), "correct")
 			);
 
 			// store ID for later user
@@ -270,6 +272,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.body("{ eMail: '" + eMail + "', password: 'correct' }")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.body("result.type",   equalTo("User"))

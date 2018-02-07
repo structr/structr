@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,91 +19,120 @@
 package org.structr.web.entity;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
-import org.structr.web.entity.relation.MinificationSource;
+import org.structr.core.property.PropertyKey;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
+import org.structr.schema.json.JsonSchema;
 
 /**
- * Base class for minifiable files in structr
- *
+ * Base class for minifiable files in Structr.
  */
-public abstract class AbstractMinifiedFile extends File {
+public interface AbstractMinifiedFile extends File {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractMinifiedFile.class.getName());
+	static class Impl { static {
 
-	public static final Property<List<FileBase>> minificationSources = new EndNodes<>("minificationSources", MinificationSource.class);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("AbstractMinifiedFile");
 
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractMinifiedFile"));
+		type.setExtends(URI.create("#/definitions/File"));
+		type.setIsAbstract();
+
+		type.overrideMethod("getMaxPosition", false, "return " + AbstractMinifiedFile.class.getName() + ".getMaxPosition(this);");
+		type.overrideMethod("onModification", true,  AbstractMinifiedFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+
+		// relationships
+		final JsonObjectType file   = (JsonObjectType)schema.getType("AbstractMinifiedFile");
+		final JsonReferenceType rel = type.relate(file, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
+
+		// add method
+		rel.overrideMethod("onRelationshipCreation", true, "try { setProperty(positionProperty, getSourceNode().getMaxPosition()); } catch (FrameworkException fex) { /* ignore? */ }");
+
+		rel.addIntegerProperty("position", PropertyView.Public);
+		rel.addPropertyGetter("position", Integer.TYPE);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "minificationSources");
+		type.addViewProperty(PropertyView.Ui,     "minificationSources");
+	}}
+
+	int getMaxPosition();
+	void minify() throws FrameworkException, IOException;
+	boolean shouldModificationTriggerMinifcation(final ModificationEvent modState);
+
+	public static int getMaxPosition (final AbstractMinifiedFile thisFile) {
+
+		final Class<Relation> type     = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key = StructrApp.key(type, "position");
+		int max                        = -1;
+
+		for (final Relation neighbor : AbstractMinifiedFile.getSortedRelationships(thisFile)) {
+			max = Math.max(max, neighbor.getProperty(key));
+		}
+
+		return max;
+	}
+
+	static void onModification(final AbstractMinifiedFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		boolean shouldMinify = false;
-		final String myUUID = getUuid();
+		final String myUUID = thisFile.getUuid();
 
 		for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
 
 			// only take changes on this exact file into account
 			if (myUUID.equals(modState.getUuid())) {
 
-				shouldMinify = shouldMinify || shouldModificationTriggerMinifcation(modState);
-
+				shouldMinify = shouldMinify || thisFile.shouldModificationTriggerMinifcation(modState);
 			}
-
 		}
 
 		if (shouldMinify) {
 
 			try {
-				this.minify();
+
+				thisFile.minify();
+
 			} catch (IOException ex) {
 				logger.warn("Could not automatically minify file", ex);
 			}
-
 		}
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
-	@Export
-	public abstract void minify() throws FrameworkException, IOException;
+	public static String getConcatenatedSource(final AbstractMinifiedFile thisFile) throws FrameworkException, IOException {
 
-	public abstract boolean shouldModificationTriggerMinifcation(ModificationEvent modState);
-
-	public int getMaxPosition () {
-		int max = -1;
-		for (final MinificationSource neighbor : getOutgoingRelationships(MinificationSource.class)) {
-			max = Math.max(max, neighbor.getProperty(MinificationSource.position));
-		}
-		return max;
-	}
-
-	public String getConcatenatedSource () throws FrameworkException, IOException {
-
+		final Class<Relation> type             = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key         = StructrApp.key(type, "position");
 		final StringBuilder concatenatedSource = new StringBuilder();
 		int cnt = 0;
 
-		for (MinificationSource rel : getSortedRelationships()) {
+		for (Relation rel : AbstractMinifiedFile.getSortedRelationships(thisFile)) {
 
-			final FileBase src = rel.getTargetNode();
+			final File src = (File)rel.getTargetNode();
 
-			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk()));
+			concatenatedSource.append(FileUtils.readFileToString(src.getFileOnDisk(), Charset.forName("utf-8")));
 
 			// compact the relationships (if necessary)
-			if (rel.getProperty(MinificationSource.position) != cnt) {
-				rel.setProperties(securityContext, new PropertyMap(MinificationSource.position, cnt));
+			if (rel.getProperty(key) != cnt) {
+
+				rel.setProperty(key, cnt);
 			}
 
 			cnt++;
@@ -112,11 +141,15 @@ public abstract class AbstractMinifiedFile extends File {
 		return concatenatedSource.toString();
 	}
 
-	public List<MinificationSource> getSortedRelationships() {
-		final List<MinificationSource> rels = new ArrayList();
-		getOutgoingRelationships(MinificationSource.class).forEach(rels::add);
+	public static List<Relation> getSortedRelationships(final AbstractMinifiedFile thisFile) {
 
-		Collections.sort(rels, (MinificationSource arg0, MinificationSource arg1) -> (arg0.getProperty(MinificationSource.position).compareTo(arg1.getProperty(MinificationSource.position))));
+		final Class<Relation> type     = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
+		final PropertyKey<Integer> key = StructrApp.key(type, "position");
+		final List<Relation> rels      = new ArrayList<>();
+
+		rels.addAll(Iterables.toList(thisFile.getOutgoingRelationships(type)));
+
+		Collections.sort(rels, (arg0, arg1) -> (arg0.getProperty(key).compareTo(arg1.getProperty(key))));
 
 		return rels;
 	}
@@ -128,7 +161,6 @@ public abstract class AbstractMinifiedFile extends File {
 	 * @param from The position from where the minification source is moved
 	 * @param to The position where to move the minification source
 	 * @throws FrameworkException
-	 */
 	@Export
 	public void moveMinificationSource(final int from, final int to) throws FrameworkException {
 
@@ -161,4 +193,5 @@ public abstract class AbstractMinifiedFile extends File {
 
 	}
 
+	*/
 }

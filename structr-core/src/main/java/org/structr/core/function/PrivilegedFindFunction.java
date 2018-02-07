@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -87,7 +87,7 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 				}
 
 				// special case: second parameter is a UUID
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, "id");
+				final PropertyKey key = StructrApp.key(type, "id");
 
 				query.and(key, sources[1].toString());
 
@@ -113,7 +113,7 @@ public class PrivilegedFindFunction extends Function<Object, Object> {
 
 				for (int c = 1; c < parameter_count; c += 2) {
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+					final PropertyKey key = StructrApp.key(type, sources[c].toString());
 
 					if (key != null) {
 

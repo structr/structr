@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -37,8 +38,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractUser;
-import org.structr.core.entity.Group;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaMethod;
@@ -46,6 +45,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -200,18 +200,18 @@ public class SchemaTest extends StructrTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
-			final JsonType contact  = sourceSchema.addType("Contact").setExtends(StructrApp.getSchemaId(AbstractUser.class));
+			final JsonType contact  = sourceSchema.addType("Contact").setExtends(sourceSchema.getType("Principal"));
 			final JsonType customer = sourceSchema.addType("Customer").setExtends(contact);
 
 			final String schema = sourceSchema.toString();
 
 			final Map<String, Object> map = new GsonBuilder().create().fromJson(schema, Map.class);
 
-			mapPathValue(map, "definitions.Contact.type",      "object");
-			mapPathValue(map, "definitions.Contact.$extends",  "https://structr.org/v1.1/definitions/AbstractUser");
+			mapPathValue(map, "definitions.Contact.type",        "object");
+			mapPathValue(map, "definitions.Contact.$extends.0",  "#/definitions/Principal");
 
-			mapPathValue(map, "definitions.Customer.type",      "object");
-			mapPathValue(map, "definitions.Customer.$extends",  "#/definitions/Contact");
+			mapPathValue(map, "definitions.Customer.type",       "object");
+			mapPathValue(map, "definitions.Customer.$extends.0", "#/definitions/Contact");
 
 
 			// advanced: test schema roundtrip
@@ -407,7 +407,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(schema.toString());
 
 
-		} catch (FrameworkException | URISyntaxException t) {
+		} catch (FrameworkException t) {
 			logger.warn("", t);
 		}
 
@@ -427,7 +427,7 @@ public class SchemaTest extends StructrTest {
 
 			checkSchemaString(schema.toString());
 
-		} catch (FrameworkException | URISyntaxException t) {
+		} catch (FrameworkException t) {
 			logger.warn("", t);
 		}
 
@@ -482,7 +482,8 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testJavaSchemaMethod() {
 
-		Group group = null;
+		final Class groupType = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		NodeInterface group   = null;
 
 		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
 
@@ -494,7 +495,7 @@ public class SchemaTest extends StructrTest {
 
 			final StringBuilder source = new StringBuilder();
 
-			source.append("\t\tfinal Set<String> test = new LinkedHashSet<>();\n");
+			source.append("final Set<String> test = new LinkedHashSet<>();\n");
 			source.append("\t\ttest.add(\"one\");\n");
 			source.append("\t\ttest.add(\"two\");\n");
 			source.append("\t\ttest.add(\"three\");\n");
@@ -502,12 +503,12 @@ public class SchemaTest extends StructrTest {
 
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
-				new NodeAttribute<>(SchemaMethod.name, "testJavaMethod"),
-				new NodeAttribute<>(SchemaMethod.source, source.toString()),
-				new NodeAttribute<>(SchemaMethod.isJava, true)
+				new NodeAttribute<>(SchemaMethod.name,       "testJavaMethod"),
+				new NodeAttribute<>(SchemaMethod.source,     source.toString()),
+				new NodeAttribute<>(SchemaMethod.codeType,   "java")
 			);
 
-			group = app.create(Group.class, "test");
+			group = app.create(groupType, "test");
 
 			tx.success();
 
@@ -552,9 +553,9 @@ public class SchemaTest extends StructrTest {
 
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.schemaNode, group),
-				new NodeAttribute<>(SchemaMethod.name, "testJavaMethod"),
-				new NodeAttribute<>(SchemaMethod.source, source),
-				new NodeAttribute<>(SchemaMethod.isJava, true)
+				new NodeAttribute<>(SchemaMethod.name,       "testJavaMethod"),
+				new NodeAttribute<>(SchemaMethod.source,     source),
+				new NodeAttribute<>(SchemaMethod.codeType,   "java")
 			);
 
 			tx.success();
@@ -563,6 +564,89 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testViewInheritedFromInterface() {
+
+		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			// make test type inherit from Favoritable (should add views)
+			type.setImplements(URI.create("#/definitions/Favoritable"));
+
+			// ----- interface Favoritable -----
+			type.overrideMethod("setFavoriteContent",         false, "");
+			type.overrideMethod("getFavoriteContent",         false, "return \"getFavoriteContent();\";");
+			type.overrideMethod("getFavoriteContentType",     false, "return \"getContentType();\";");
+			type.overrideMethod("getContext",                 false, "return \"getContext();\";");
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final Class testType        = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final Set<String> views     = StructrApp.getConfiguration().getPropertyViewsForType(testType);
+
+		assertTrue("Property view is not inherited correctly", views.contains("fav"));
+	}
+
+	@Test
+	public void testBuiltinTypeFlag() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			// verify that all schema nodes have isBuiltinType set to true
+			// except "Test"
+			for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
+
+				final String name  = schemaNode.getName();
+				final boolean flag = schemaNode.getProperty(SchemaNode.isBuiltinType);
+
+				if (name.equals("Test")) {
+
+					assertFalse("Non-builtin type Test has isBuiltinType flag set", flag);
+
+				} else {
+
+					assertTrue("Builtin type " + name + " is missing isBuiltinType flag", flag);
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+
 	}
 
 	// ----- private methods -----

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -76,7 +76,7 @@ public class QueryCommand extends AbstractCommand {
 		final String sortKey           = webSocketData.getSortKey();
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
-		final PropertyKey sortProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+		final PropertyKey sortProperty = StructrApp.key(type, sortKey);
 
 
 		final Query query = StructrApp.getInstance(securityContext)

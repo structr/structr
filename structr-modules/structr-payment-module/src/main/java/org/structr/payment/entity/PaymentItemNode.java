@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,63 +18,49 @@
  */
 package org.structr.payment.entity;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.payment.api.PaymentItem;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
  */
-public class PaymentItemNode extends AbstractNode implements PaymentItem {
+public interface PaymentItemNode extends NodeInterface, PaymentItem {
 
-	static {
 
-		SchemaService.registerBuiltinTypeOverride("PaymentItemNode", PaymentItemNode.class.getName());
-	}
+	static class Impl { static {
 
-	public static final Property<PaymentNode> payment           = new StartNode<>("payment", PaymentItems.class);
-	public static final Property<Integer>     amount            = new IntProperty("amount").indexed();
-	public static final Property<Integer>     quantity          = new IntProperty("quantity").indexed();
-	public static final Property<String>      description       = new StringProperty("description");
-	public static final Property<String>      number            = new StringProperty("number");
-	public static final Property<String>      url               = new StringProperty("url");
+		final JsonSchema schema      = SchemaService.getDynamicSchema();
+		final JsonObjectType type    = schema.addType("PaymentItemNode");
 
-	public static final View defaultView = new View(PaymentItemNode.class, PropertyView.Public,
-		name, amount, quantity, description, number, url
-	);
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PaymentItemNode"));
 
-	public static final View uiView = new View(PaymentItemNode.class, PropertyView.Ui,
-		name, amount, quantity, description, number, url
-	);
+		type.addIntegerProperty("amount",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addIntegerProperty("quantity",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("description", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("number",      PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("url",         PropertyView.Public, PropertyView.Ui);
 
-	@Override
-	public int getAmount() {
-		return getProperty(amount);
-	}
+		type.addPropertyGetter("amount",      Integer.TYPE);
+		type.addPropertyGetter("quantity",    Integer.TYPE);
+		type.addPropertyGetter("description", String.class);
+		type.addPropertyGetter("number",      String.class);
+		type.addPropertyGetter("url",         String.class);
 
-	@Override
-	public int getQuantity() {
-		return getProperty(quantity);
-	}
+		type.addPropertySetter("amount",      Integer.TYPE);
+		type.addPropertySetter("quantity",    Integer.TYPE);
+		type.addPropertySetter("description", String.class);
+		type.addPropertySetter("number",      String.class);
+		type.addPropertySetter("url",         String.class);
 
-	@Override
-	public String getDescription() {
-		return getProperty(description);
-	}
+		type.addMethod("getItemNumber").setSource("return getProperty(numberProperty);").setReturnType(String.class.getName());
+		type.addMethod("getItemUrl").setSource("return getProperty(urlProperty);").setReturnType(String.class.getName());
 
-	@Override
-	public String getItemNumber() {
-		return getProperty(number);
-	}
-
-	@Override
-	public String getItemUrl() {
-		return getProperty(url);
-	}
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+	}}
 }

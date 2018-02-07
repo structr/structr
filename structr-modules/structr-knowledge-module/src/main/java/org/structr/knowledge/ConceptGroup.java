@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,16 +16,24 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.knowledge;
 
-import org.structr.core.entity.AbstractNode;
+import java.net.URI;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  * Base class of a concept group as defined in ISO 25964
  */
+public interface ConceptGroup extends NodeInterface {
 
+	static class Impl { static {
 
-public class ConceptGroup extends AbstractNode {
-	
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("ConceptGroup");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroup"));
+	}}
 }

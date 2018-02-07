@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,14 +44,9 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.action.ActionContext;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * The SuperUser entity. Please note that this class is not persitent but will
  * be instantiated when needed.
- *
- *
- *
  */
 public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
@@ -71,18 +66,15 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public void unlockReadOnlyPropertiesOnce() {}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		return true;
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		return true;
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 	}
 
 	@Override
@@ -113,9 +105,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public long getId() {
-
 		return -1L;
-
 	}
 
 	public String getRealName() {
@@ -388,16 +378,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Date getVisibilityStartDate() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public Date getVisibilityEndDate() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
 	public Date getCreatedDate() {
 		throw new UnsupportedOperationException("Not supported.");
 	}
@@ -468,28 +448,8 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public Set<String> getAllowedPermissions() {
-		return null;
-	}
-
-	@Override
-	public Set<String> getDeniedPermissions() {
-		return null;
-	}
-
-	@Override
 	public boolean isValidPassword(final String password) {
 		return false;
-	}
-
-	@Override
-	public String getEncryptedPassword() {
-		return null;
-	}
-
-	@Override
-	public String getSalt() {
-		return null;
 	}
 
 	@Override
@@ -514,5 +474,85 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public Class getEntityType() {
 		return SuperUser.class;
+	}
+
+	@Override
+	public String getLocale() {
+		return null;
+	}
+
+	@Override
+	public String getSessionData() {
+		return null;
+	}
+
+	@Override
+	public void setSessionData(String sessionData) throws FrameworkException {
+	}
+
+	@Override
+	public boolean isBlocked() {
+		return false;
+	}
+
+	@Override
+	public void setIsAdmin(boolean isAdmin) throws FrameworkException {
+	}
+
+	@Override
+	public void setEMail(String eMail) throws FrameworkException {
+	}
+
+	@Override
+	public void setSalt(String salt) throws FrameworkException {
+	}
+
+	@Override
+	public List<Security> getSecurityRelationships() {
+		return null;
+	}
+
+	@Override
+	public List<Favoritable> getFavorites() {
+		return null;
+	}
+
+	@Override
+	public void setFavorites(List<Favoritable> favorites) throws FrameworkException {
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(Class<? extends Relation<A, B, S, T>> type) {
+		return false;
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(Class<R> type) {
+		return false;
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(Class<R> type) {
+		return false;
+	}
+
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(Class<R> type) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> getTemporaryStorage() {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public String getEMail() {
+		return null;
+	}
+
+	@Override
+	public List<Group> getGroups() {
+		return Collections.emptyList();
 	}
 }

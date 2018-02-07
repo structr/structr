@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,17 +21,11 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-/**
- *
- *
- */
 public class DeleteRelationshipCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteRelationshipCommand.class.getName());
@@ -39,33 +33,20 @@ public class DeleteRelationshipCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(DeleteRelationshipCommand.class);
-
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-
-		final AbstractRelationship obj = getRelationship(webSocketData.getId());
+		final AbstractRelationship obj        = getRelationship(webSocketData.getId());
 
 		if (obj != null) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			app.delete(obj);
-
-		} else {
-			// Don't throw a 404. If relationship doesn't exist, it doesn't need to be removed,
-			// and everything is fine!.
-			//logger.warn("Relationship with id {} not found.", webSocketData.getId());
-			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
-
+			StructrApp.getInstance(securityContext).delete(obj);
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "DELETE_RELATIONSHIP";

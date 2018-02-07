@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -81,6 +81,10 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	@Override
 	public void clearCaches() {
+	}
+
+	@Override
+	public void onClose() {
 	}
 
 	@Override

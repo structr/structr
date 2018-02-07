@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -46,8 +46,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.api.config.Settings;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Principal;
@@ -55,6 +55,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 /**
@@ -136,14 +137,13 @@ public class StructrTest {
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
+		//Settings.LogSchemaOutput.setValue(true);
+
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
 		do {
-			try {
-				Thread.sleep(100);
-			} catch (Throwable t) {
-			}
+			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());
 
@@ -212,7 +212,7 @@ public class StructrTest {
 
 	}
 
-	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number, final long delay) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -240,23 +240,23 @@ public class StructrTest {
 
 		} catch (Throwable t) {
 
-			logger.warn("", t);
+			logger.warn("Unable to create test nodes of type {}: {}", type, t.getMessage());
 		}
 
 		return null;
 	}
 
-	protected <T extends AbstractNode> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
+	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 
 		return createTestNodes(type, number, 0);
 
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type) throws FrameworkException {
 		return (T) createTestNode(type, new PropertyMap());
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final String name) throws FrameworkException {
 
 		final PropertyMap map = new PropertyMap();
 
@@ -265,7 +265,7 @@ public class StructrTest {
 		return (T) createTestNode(type, map);
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final PropertyMap props) throws FrameworkException {
 
 		props.put(AbstractNode.type, type.getSimpleName());
 
@@ -280,7 +280,7 @@ public class StructrTest {
 
 	}
 
-	protected <T extends AbstractNode> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
+	protected <T extends NodeInterface> T createTestNode(final Class<T> type, final NodeAttribute... attributes) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -315,7 +315,7 @@ public class StructrTest {
 
 	}
 
-	protected <T extends Relation> T createTestRelationship(final AbstractNode startNode, final AbstractNode endNode, final Class<T> relType) throws FrameworkException {
+	protected <T extends Relation> T createTestRelationship(final NodeInterface startNode, final NodeInterface endNode, final Class<T> relType) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -420,5 +420,24 @@ public class StructrTest {
 
 		return classList;
 
+	}
+
+	protected Class getType(final String typeName) {
+		return StructrApp.getConfiguration().getNodeEntityClass(typeName);
+	}
+
+	protected PropertyKey<String> getKey(final String typeName, final String keyName) {
+		return getKey(typeName, keyName, String.class);
+	}
+
+	protected <T> PropertyKey<T> getKey(final String typeName, final String keyName, final Class<T> desiredType) {
+
+		final Class type = getType(typeName);
+		if (type != null) {
+
+			return StructrApp.key(type, keyName);
+		}
+
+		return null;
 	}
 }

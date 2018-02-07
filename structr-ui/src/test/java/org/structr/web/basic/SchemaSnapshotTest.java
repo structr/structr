@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.web.basic;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import org.apache.tika.io.IOUtils;
@@ -86,6 +87,16 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 			source = sourceSchema.toString();
 
+			try (final FileWriter writer = new FileWriter("/home/chrisi/export1.txt")) {
+
+				writer.append(source);
+				writer.flush();
+
+			} catch (IOException ioex) {
+
+				ioex.printStackTrace();
+			}
+
 			StructrSchema.replaceDatabaseSchema(app, sourceSchema);
 
 
@@ -108,6 +119,16 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			file = new File(basePath + "/snapshots").listFiles()[0];
 
 			export = IOUtils.toString(new FileInputStream(file)).trim();
+
+			try (final FileWriter writer = new FileWriter("/home/chrisi/export3.txt")) {
+
+				writer.append(export);
+				writer.flush();
+
+			} catch (IOException ioex) {
+
+				ioex.printStackTrace();
+			}
 
 			assertEquals("Invalid schema export result, ", source, export);
 
@@ -142,6 +163,16 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 		} catch (Throwable t) {
 			fail("Unexpected exception");
+		}
+
+		try (final FileWriter writer = new FileWriter("/home/chrisi/export2.txt")) {
+
+			writer.append(imp);
+			writer.flush();
+
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
 		}
 
 		// step 7: compare import result to initial source

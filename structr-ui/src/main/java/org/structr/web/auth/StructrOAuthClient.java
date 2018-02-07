@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,8 +36,9 @@ import org.apache.oltu.oauth2.common.utils.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.core.entity.Person;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.User;
 
 /**
  * Central class for OAuth client implementations.
@@ -148,11 +149,11 @@ public class StructrOAuthClient {
 
 			if (authServer.equals(name)) {
 
-				String authLocation  = Settings.getOrCreateStringSetting("oauth", authServer, "authorization_location").getValue();
-				String tokenLocation = Settings.getOrCreateStringSetting("oauth", authServer, "token_location").getValue();
-				String clientId      = Settings.getOrCreateStringSetting("oauth", authServer, "client_id").getValue();
-				String clientSecret  = Settings.getOrCreateStringSetting("oauth", authServer, "client_secret").getValue();
-				String redirectUri   = Settings.getOrCreateStringSetting("oauth", authServer, "redirect_uri").getValue();
+				String authLocation  = Settings.getOrCreateStringSetting("oauth" + authServer + "authorization_location", "").getValue();
+				String tokenLocation = Settings.getOrCreateStringSetting("oauth" + authServer + "token_location", "").getValue();
+				String clientId      = Settings.getOrCreateStringSetting("oauth" + authServer + "client_id", "").getValue();
+				String clientSecret  = Settings.getOrCreateStringSetting("oauth" + authServer + "client_secret", "").getValue();
+				String redirectUri   = Settings.getOrCreateStringSetting("oauth" + authServer + "redirect_uri", "").getValue();
 
 				// Minumum required fields
 				if (clientId != null && clientSecret != null && redirectUri != null) {
@@ -275,9 +276,7 @@ public class StructrOAuthClient {
 	}
 
 	public PropertyKey getCredentialKey() {
-
-		return Person.eMail;
-
+		return StructrApp.key(User.class, "eMail");
 	}
 
 	public String getCredential(final HttpServletRequest request) {

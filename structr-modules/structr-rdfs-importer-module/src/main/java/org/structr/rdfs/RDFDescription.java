@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rdfs;
 
 import java.util.Collections;
@@ -71,7 +70,7 @@ public class RDFDescription extends RDFItem<RDFDescription> {
 
 					try {
 
-						PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, false);
+						PropertyKey key = StructrApp.key(type, keyName);
 						if (key == null) {
 
 							// property key not found, try inverse
@@ -84,7 +83,7 @@ public class RDFDescription extends RDFItem<RDFDescription> {
 									final Class inverseType = config.getNodeEntityClass(inverse.getStructrName(true));
 									if (inverseType != null) {
 
-										key = config.getPropertyKeyForJSONName(inverseType, keyName, false);
+										key = StructrApp.key(inverseType, keyName);
 									}
 								}
 							}

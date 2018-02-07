@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.transform;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -27,32 +28,72 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
  */
-public class VirtualType extends AbstractNode implements ResultTransformer {
+public interface VirtualType extends NodeInterface, ResultTransformer {
+
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("VirtualType");
+		final JsonObjectType prop = schema.addType("VirtualProperty");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/VirtualType"));
+
+		type.addStringProperty("filterExpression", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("sourceType",       PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("position",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
+
+		type.addPropertyGetter("filterExpression", String.class);
+		type.addPropertyGetter("sourceType",       String.class);
+		type.addPropertyGetter("position",         Integer.class);
+
+		type.overrideMethod("isPrimitiveArray",     false, "return false;");
+		type.overrideMethod("getVirtualProperties", false, "return getProperty(propertiesProperty);");
+		type.overrideMethod("transformOutput",      false, "return " + VirtualType.class.getName() + ".transformOutput(this, arg0, arg1, arg2);");
+		type.overrideMethod("transformInput",       false, VirtualType.class.getName() + ".transformInput(this, arg0, arg1, arg2);");
+
+		type.relate(prop, "virtualProperty", Relation.Cardinality.OneToMany, "virtualType", "properties").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "properties");
+
+		type.addViewProperty(PropertyView.Ui, "properties");
+
+		/*
+	public Result transformOutput(final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
+	public void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
+		*/
+
+	}}
+
+	Integer getPosition();
+	String getFilterExpression();
+	List<VirtualProperty> getVirtualProperties();
+
+	/*
 
 	private static final Logger logger = LoggerFactory.getLogger(VirtualType.class.getName());
 
@@ -74,25 +115,24 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 	public String getSourceType() {
 		return getProperty(sourceType);
 	}
+	*/
 
-	@Override
-	public Result transformOutput(final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
+	public static Result transformOutput(final VirtualType thisType, final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
 
-		final List<VirtualProperty> props         = sort(getProperty(properties));
-		final Mapper mapper                       = new Mapper(securityContext, props, entityType);
-		final Filter filter                       = new Filter(securityContext, getProperty(filterExpression));
+		final List<VirtualProperty> props         = VirtualType.sort(thisType.getVirtualProperties());
+		final Mapper mapper                       = new Mapper(securityContext, props, thisType.getClass());
+		final Filter filter                       = new Filter(securityContext, thisType.getFilterExpression());
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result.getResults()));
 		final List<GraphObject> transformedResult = Iterables.toList(iterable);
 
 		return new Result(transformedResult,transformedResult.size(), result.isCollection(), result.isPrimitiveArray());
 	}
 
-	@Override
-	public void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
+	public static void transformInput(final VirtualType thisType, final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
-		final List<VirtualProperty> props = sort(getProperty(properties));
-		final Set<String> targetNames     = extractTargetNames(props);
+		final List<VirtualProperty> props = VirtualType.sort(thisType.getVirtualProperties());
+		final Set<String> targetNames     = VirtualType.extractTargetNames(props);
 
 		// remove all properties for which no VirtualProperty exists
 		final Iterator<String> it = propertySet.keySet().iterator();
@@ -113,32 +153,34 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 		}
 	}
 
+	/*
 	@Override
 	public boolean isPrimitiveArray() {
 		return false;
 	}
+	*/
 
 	// ----- private methods -----
-	private List<VirtualProperty> sort(final List<VirtualProperty> source) {
+	static List<VirtualProperty> sort(final List<VirtualProperty> source) {
 
-		Collections.sort(source, new GraphObjectComparator(VirtualProperty.position, false));
+		Collections.sort(source, new GraphObjectComparator(StructrApp.key(VirtualProperty.class, "position"), false));
 
 		return source;
 	}
 
-	private Set<String> extractTargetNames(final List<VirtualProperty> source) {
+	static Set<String> extractTargetNames(final List<VirtualProperty> source) {
 
 		final Set<String> result = new LinkedHashSet<>();
 
 		for (final VirtualProperty prop : source) {
-			result.add(prop.getProperty(VirtualProperty.targetName));
+			result.add(prop.getTargetName());
 		}
 
 		return result;
 	}
 
 	// ----- nested classes -----
-	private static class Filter implements Predicate<GraphObject> {
+	static class Filter implements Predicate<GraphObject> {
 
 		private ActionContext ctx = null;
 		private String expression = null;
@@ -167,7 +209,7 @@ public class VirtualType extends AbstractNode implements ResultTransformer {
 		}
 	}
 
-	private static class Mapper implements Function<GraphObject, GraphObject> {
+	static class Mapper implements Function<GraphObject, GraphObject> {
 
 		private final List<Transformation> transformations = new LinkedList<>();
 		private ActionContext actionContext                = null;

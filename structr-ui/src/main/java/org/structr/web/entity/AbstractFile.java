@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,110 +20,140 @@ package org.structr.web.entity;
 
 
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
-import org.structr.api.search.SortType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UniqueToken;
-import org.structr.core.Export;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.property.AbstractReadOnlyProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.CollectionIdProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
+import org.structr.core.property.PropertyKey;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.relation.FileChildren;
-import org.structr.web.entity.relation.FileSiblings;
-import org.structr.web.entity.relation.FolderChildren;
+import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
 
 /**
  * Base class for filesystem objects in structr.
- *
- *
  */
-public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, AbstractFile> {
+public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractFile.class.getName());
+	static class Impl { static {
 
-	public static final Property<Folder> parent                    = new StartNode<>("parent", FolderChildren.class);
-	public static final Property<List<AbstractFile>> children      = new EndNodes<>("children", FileChildren.class);
-	public static final Property<AbstractFile> previousSibling     = new StartNode<>("previousSibling", FileSiblings.class);
-	public static final Property<AbstractFile> nextSibling         = new EndNode<>("nextSibling", FileSiblings.class);
-	public static final Property<List<String>> childrenIds         = new CollectionIdProperty("childrenIds", children);
-	public static final Property<String> nextSiblingId             = new EntityIdProperty("nextSiblingId", nextSibling);
-	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
-	public static final Property<String> parentId                  = new EntityIdProperty("parentId", parent);
-	public static final Property<Boolean> hasParent                = new BooleanProperty("hasParent").indexed();
+		final JsonSchema schema     = SchemaService.getDynamicSchema();
+		final JsonObjectType folder = (JsonObjectType)schema.addType("Folder");
+		final JsonObjectType type   = schema.addType("AbstractFile");
 
-	public static final Property<Long> lastSeenMounted             = new LongProperty("lastSeenMounted");
-	public static final Property<Boolean> isExternal               = new BooleanProperty("isExternal").writeOnce();
-	public static final Property<Boolean> isMounted                = new MethodCallProperty<>("isMounted", AbstractFile.class, "isMounted");
+		type.setIsAbstract();
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
+		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.AbstractFile"));
 
-	public static final Property<Boolean>  includeInFrontendExport = new BooleanProperty("includeInFrontendExport").cmis().indexed();
+		type.addStringProperty("name", PropertyView.Public).setIndexed(true).setRequired(true).setFormat("[^\\\\/\\\\x00]+");
 
-	public static final View defaultView = new View(AbstractFile.class, PropertyView.Public,
-		path, isExternal, isMounted, lastSeenMounted
-	);
+		type.addCustomProperty("isMounted", MethodProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat(AbstractFile.class.getName() + ", isMounted");
+		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
+		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
 
-	public static final View uiView = new View(AbstractFile.class, PropertyView.Ui,
-		path, isExternal, isMounted, lastSeenMounted
-	);
+		type.addBooleanProperty("hasParent").setIndexed(true);
 
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		type.addCustomProperty("path", PathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
-		boolean valid = true;
+		type.addPropertyGetter("hasParent", Boolean.TYPE);
+		type.addPropertyGetter("parent", Folder.class);
+		type.addPropertyGetter("path", String.class);
 
-		if (Settings.UniquePaths.getValue()) {
-			valid = validateAndRenameFileOnce(securityContext, errorBuffer);
+		type.addPropertySetter("hasParent", Boolean.TYPE);
+
+		type.overrideMethod("getPositionProperty",         false, "return FolderCONTAINSAbstractFile.positionProperty;");
+
+		type.overrideMethod("onCreation",                  true,  AbstractFile.class.getName() + ".onCreation(this, arg0, arg1);");
+		type.overrideMethod("onModification",              true,  AbstractFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		type.overrideMethod("getSiblingLinkType",          false, "return AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile.class;");
+		type.overrideMethod("getChildLinkType",            false, "return FolderCONTAINSAbstractFile.class;");
+		type.overrideMethod("isExternal",                  false, "return getProperty(isExternalProperty);");
+		type.overrideMethod("isBinaryDataAccessible",      false, "return !isExternal() || isMounted();").setDoExport(true);
+		type.overrideMethod("isMounted",                   false, "return " + AbstractFile.class.getName() + ".isMounted(this);");
+		type.overrideMethod("getFolderPath",               false, "return " + AbstractFile.class.getName() + ".getFolderPath(this);");
+		type.overrideMethod("includeInFrontendExport",     false, "return " + AbstractFile.class.getName() + ".includeInFrontendExport(this);");
+
+		type.addMethod("setParent")
+			.setSource("setProperty(parentProperty, (Folder)parent);")
+			.addException(FrameworkException.class.getName())
+			.addParameter("parent", "org.structr.web.entity.Folder");
+
+		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Relation.Cardinality.OneToMany, "parent", "children");
+		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
+
+		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
+		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());
+
+		// sort position of children in page
+		parentRel.addIntegerProperty("position");
+
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "visibleToAuthenticatedUsers");
+		type.addViewProperty(PropertyView.Public, "visibleToPublicUsers");
+
+		type.addViewProperty(PropertyView.Ui, "parent");
+	}}
+
+	void setParent(final Folder parent) throws FrameworkException;
+	void setHasParent(final boolean hasParent) throws FrameworkException;
+	Folder getParent();
+
+	String getPath();
+	String getFolderPath();
+
+	boolean isMounted();
+	boolean isExternal();
+	boolean getHasParent();
+	boolean isBinaryDataAccessible();
+	boolean includeInFrontendExport();
+
+	static void onCreation(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		thisFile.setHasParent(thisFile.getParent() != null);
+
+		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
+			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
 		}
-
-		return valid && super.onCreation(securityContext, errorBuffer);
 	}
 
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	static void onModification(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		boolean valid = true;
+		thisFile.setHasParent(thisFile.getParent() != null);
 
-		if (Settings.UniquePaths.getValue()) {
-			valid = validateAndRenameFileOnce(securityContext, errorBuffer);
+		if (org.structr.api.config.Settings.UniquePaths.getValue()) {
+			AbstractFile.validateAndRenameFileOnce(thisFile, securityContext, errorBuffer);
 		}
-
-		return valid && super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
-	public boolean validatePath(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	static boolean validatePath(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		final String filePath = getProperty(path);
+		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
+		final String filePath             = thisFile.getProperty(pathKey);
+
 		if (filePath != null) {
 
-			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(path, filePath).getAsList();
+			final List<AbstractFile> files = StructrApp.getInstance().nodeQuery(AbstractFile.class).and(pathKey, filePath).getAsList();
 			for (final AbstractFile file : files) {
 
-				if (!file.getUuid().equals(getUuid())) {
+				if (!file.getUuid().equals(thisFile.getUuid())) {
 
 					if (errorBuffer != null) {
 
-						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), path, file.getUuid());
+						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), pathKey, file.getUuid());
 						token.setValue(filePath);
 
 						errorBuffer.add(token);
@@ -137,18 +167,19 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		return true;
 	}
 
-	public boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	static boolean validateAndRenameFileOnce(final AbstractFile thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		boolean valid = validatePath(securityContext, null);
+		final PropertyKey<String> pathKey = StructrApp.key(AbstractFile.class, "path");
+		boolean valid                     = AbstractFile.validatePath(thisFile, securityContext, null);
 
 		if (!valid) {
 
-			final String originalPath = getProperty(AbstractFile.path);
-			final String newName = getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
+			final String originalPath = thisFile.getProperty(pathKey);
+			final String newName      = thisFile.getProperty(AbstractFile.name).concat("_").concat(FileHelper.getDateString());
 
-			setProperty(AbstractFile.name, newName);
+			thisFile.setProperty(AbstractNode.name, newName);
 
-			valid = validatePath(securityContext, errorBuffer);
+			valid = AbstractFile.validatePath(thisFile, securityContext, errorBuffer);
 
 			if (valid) {
 				logger.warn("File {} already exists, renaming to {}", new Object[] { originalPath, newName });
@@ -162,53 +193,32 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 
 	}
 
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
+	static String getFolderPath(final AbstractFile thisFile) {
 
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= nonEmpty(AbstractFile.name, errorBuffer);
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, "[^\\/\\x00]+", errorBuffer);
-
-		return valid;
-	}
-
-	@Override
-	public Class<FileChildren> getChildLinkType() {
-		return FileChildren.class;
-	}
-
-	@Override
-	public Class<FileSiblings> getSiblingLinkType() {
-		return FileSiblings.class;
-	}
-
-	public String getFolderPath() {
-
-		LinkedTreeNode parentFolder = getProperty(AbstractFile.parent);
-		String folderPath           = getProperty(AbstractFile.name);
+		Folder parentFolder = thisFile.getParent();
+		String folderPath   = thisFile.getProperty(AbstractFile.name);
 
 		if (folderPath == null) {
-			folderPath = getProperty(GraphObject.id);
+			folderPath = thisFile.getUuid();
 		}
 
 		while (parentFolder != null) {
 
 			folderPath   = parentFolder.getName().concat("/").concat(folderPath);
-			parentFolder = parentFolder.getProperty(AbstractFile.parent);
+			parentFolder = parentFolder.getParent();
 		}
 
 		return "/".concat(folderPath);
 	}
 
-	public boolean includeInFrontendExport() {
+	static boolean includeInFrontendExport(final AbstractFile thisFile) {
 
-		if (getProperty(FileBase.includeInFrontendExport)) {
+		if (thisFile.getProperty(StructrApp.key(File.class, "includeInFrontendExport"))) {
 
 			return true;
 		}
 
-		final Folder _parent = getProperty(FileBase.parent);
+		final Folder _parent = thisFile.getParent();
 		if (_parent != null) {
 
 			// recurse
@@ -218,13 +228,13 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		return false;
 	}
 
-	public boolean isMounted() {
+	static boolean isMounted(final AbstractFile thisFile) {
 
-		if (getProperty(Folder.mountTarget) != null) {
+		if (thisFile.getProperty(StructrApp.key(Folder.class, "mountTarget")) != null) {
 			return true;
 		}
 
-		final Folder parent = getProperty(AbstractFile.parent);
+		final Folder parent = thisFile.getParent();
 		if (parent != null) {
 
 			return parent.isMounted();
@@ -233,28 +243,19 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		return false;
 	}
 
-	public boolean isExternal() {
-		return getProperty(isExternal);
-	}
-
-	@Export
-	public boolean isBinaryDataAccessible() {
-		return !isExternal() || isMounted();
-	}
-
 	// ----- protected methods -----
-	protected static java.io.File defaultGetFileOnDisk(final FileBase fileBase, final boolean create) {
+	static java.io.File defaultGetFileOnDisk(final File fileBase, final boolean create) {
 
 		final String uuid       = fileBase.getUuid();
 		final String filePath   = Settings.FilesPath.getValue();
-		final String uuidPath   = FileBase.getDirectoryPath(uuid);
+		final String uuidPath   = AbstractFile.getDirectoryPath(uuid);
 		final java.io.File file = new java.io.File(filePath + "/" + uuidPath + "/" + uuid);
 
 		// create parent directory tree
 		file.getParentFile().mkdirs();
 
 		// create file only if requested
-		if (create && !file.exists() && !fileBase.isExternal()) {
+		if (!file.exists() && create && !fileBase.isExternal()) {
 
 			try {
 
@@ -269,61 +270,12 @@ public class AbstractFile extends LinkedTreeNode<FileChildren, FileSiblings, Abs
 		return file;
 	}
 
-	// ----- nested classes -----
-	private static class MethodCallProperty<T> extends AbstractReadOnlyProperty<T> {
+	static String getDirectoryPath(final String uuid) {
 
-		private Method method = null;
+		return (uuid != null)
+			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			: null;
 
-		public MethodCallProperty(final String name, final Class type, final String methodName) {
-
-			super(name);
-
-			try {
-
-				this.method = type.getDeclaredMethod(methodName);
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-
-		@Override
-		public Class valueType() {
-			return Boolean.class;
-		}
-
-		@Override
-		public Class relatedType() {
-			return null;
-		}
-
-		@Override
-		public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
-			return getProperty(securityContext, obj, applyConverter, null);
-		}
-
-		@Override
-		public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
-
-			try {
-
-				return (T)method.invoke(obj);
-
-			} catch (Throwable t) {
-				logger.warn("Unable to call method {}: {}", method.getName(), t.getMessage());
-			}
-
-			return null;
-		}
-
-		@Override
-		public boolean isCollection() {
-			return false;
-		}
-
-		@Override
-		public SortType getSortType() {
-			return SortType.Default;
-		}
 	}
+	// ----- nested classes -----
 }

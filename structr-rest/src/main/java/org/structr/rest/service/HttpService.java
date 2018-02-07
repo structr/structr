@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -356,6 +356,8 @@ public class HttpService implements RunnableService {
 
 			final RequestLogImpl requestLog = new RequestLogImpl();
 			requestLog.setName("REQUESTLOG");
+			requestLog.start();
+
 			requestLogHandler.setRequestLog(requestLog);
 
 			final HandlerCollection handlers = new HandlerCollection();

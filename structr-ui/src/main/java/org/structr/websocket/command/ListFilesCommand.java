@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,11 +27,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.relation.FileChildren;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -44,16 +44,15 @@ import org.structr.websocket.message.WebSocketMessage;
 public class ListFilesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ListFilesCommand.class.getName());
-	
+
 	static {
 
 		StructrWebSocket.addCommand(ListFilesCommand.class);
-
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
-		
+
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		final String rawType                   = (String) webSocketData.getNodeData().get("type");
@@ -62,30 +61,29 @@ public class ListFilesCommand extends AbstractCommand {
 		final String sortKey                   = webSocketData.getSortKey();
 		final int pageSize                     = webSocketData.getPageSize();
 		final int page                         = webSocketData.getPage();
-		final PropertyKey sortProperty         = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKey);
+		final PropertyKey sortProperty         = StructrApp.key(type, sortKey);
 		final Query query                      = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
-		
+
 		// for image lists, suppress thumbnails
 		if (type.equals(Image.class)) {
-			
-			query.and(Image.isThumbnail, false);
+
+			query.and(StructrApp.key(Image.class, "isThumbnail"), false);
 		}
-		
 
 		try {
 
 			// do search
-			List<AbstractNode> filteredResults     = new LinkedList();
+			List<NodeInterface> filteredResults    = new LinkedList();
 			List<? extends GraphObject> resultList = query.getAsList();
 
 			// add only root folders to the list
 			for (GraphObject obj : resultList) {
 
-				if (obj instanceof AbstractNode) {
+				if (obj instanceof AbstractFile) {
 
-					AbstractNode node = (AbstractNode) obj;
+					AbstractFile node = (AbstractFile) obj;
 
-					if (!node.hasIncomingRelationships(FileChildren.class)) {
+					if (node.getParent() == null) {
 
 						filteredResults.add(node);
 					}
@@ -96,14 +94,14 @@ public class ListFilesCommand extends AbstractCommand {
 
 			// save raw result count
 			int resultCountBeforePaging = filteredResults.size();
-			
+
 			// set full result list
 			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
-			
+
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);

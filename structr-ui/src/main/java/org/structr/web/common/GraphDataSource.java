@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,7 @@
 package org.structr.web.common;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.web.entity.dom.DOMNode;
 
 /**
  * Defines an interface for graph database content retrieval.
@@ -29,5 +29,5 @@ import org.structr.core.entity.AbstractNode;
 
 public interface GraphDataSource<T> {
 
-	public T getData(final RenderContext renderContext, final AbstractNode referenceNode) throws FrameworkException;
+	public T getData(final RenderContext renderContext, final DOMNode referenceNode) throws FrameworkException;
 }

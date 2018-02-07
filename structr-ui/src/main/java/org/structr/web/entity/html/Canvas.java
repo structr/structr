@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,33 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Canvas extends DOMElement {
+public interface Canvas extends DOMElement {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Canvas");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Canvas"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_width",  PropertyView.Html);
+		type.addStringProperty("_html_height", PropertyView.Html);
+	}}
+
+	/*
 	public static final Property<String> _width       = new HtmlProperty("width");
 	public static final Property<String> _height      = new HtmlProperty("height");
 
 	public static final View htmlView = new View(Img.class, PropertyView.Html,
 	    _width, _height
 	);
+	*/
 }

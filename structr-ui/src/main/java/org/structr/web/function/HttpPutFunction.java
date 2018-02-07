@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,7 +60,7 @@ public class HttpPutFunction extends Function<Object, Object> {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders());
+			final Map<String, String> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders(), charset);
 
 			final int statusCode = Integer.parseInt(responseData.get("status"));
 			responseData.remove("status");

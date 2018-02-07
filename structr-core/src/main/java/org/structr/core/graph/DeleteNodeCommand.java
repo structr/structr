@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,15 +27,11 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Deletes a node.
- *
- *
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
@@ -43,15 +39,28 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
-	//~--- methods --------------------------------------------------------
 	public void execute(NodeInterface node) {
 
 		doDeleteNode(node);
-		deletedNodes.clear();
 
+		for (final NodeInterface deleteMe : deletedNodes) {
+
+			// remove node from index
+			deleteMe.removeFromIndex();
+
+			// mark node as deleted in transaction
+			TransactionCommand.nodeDeleted(securityContext.getCachedUser(), deleteMe);
+
+			// delete node in database
+			deleteMe.getNode().delete();
+		}
 	}
 
-	private AbstractNode doDeleteNode(final NodeInterface node) {
+	private void doDeleteNode(final NodeInterface node) {
+
+		if (TransactionCommand.isDeleted(node.getNode())) {
+			return;
+		}
 
 		try {
 			if (!deletedNodes.contains(node) && node.getUuid() == null) {
@@ -59,12 +68,12 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				logger.warn("Will not delete node which has no UUID, dumping stack.");
 				Thread.dumpStack();
 
-				return null;
+				return;
 			}
 
 		} catch (java.lang.IllegalStateException ise) {
 			logger.warn("Trying to delete a node which is already deleted", ise.getMessage());
-			return null;
+			return;
 		} catch (org.structr.api.NotFoundException nfex) {
 			// exception can be ignored, node is already deleted
 		}
@@ -108,8 +117,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				// deleted rels can be null
 				if (rel != null) {
 
-					int cascadeDelete = rel.cascadeDelete();
-					NodeInterface startNode = rel.getSourceNode();
+					final int cascadeDelete       = rel.cascadeDelete();
+					final NodeInterface startNode = rel.getSourceNode();
 
 					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
 
@@ -137,15 +146,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				}
 			}
 
-			// remove node from index
-			node.removeFromIndex();
-
-			// mark node as deleted in transaction
-			TransactionCommand.nodeDeleted(securityContext.getCachedUser(), node);
-
-			// delete node in database
-			node.getNode().delete();
-
 			// now check again the deletion cascade for violated constraints
 			// Check all end nodes of outgoing relationships which are connected if they are
 			// still valid after node deletion
@@ -167,6 +167,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		}
 
-		return null;
+		return;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,7 +27,7 @@ import org.structr.rest.common.StructrRestTest;
  *
  *
  */
-public class GroupPropertyTest extends StructrRestTest{
+public class GroupPropertyTest extends StructrRestTest {
 
 	@Test
 	public void test01GroupProperty(){

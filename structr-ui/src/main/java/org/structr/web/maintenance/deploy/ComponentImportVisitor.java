@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -141,11 +141,11 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
-		for (DOMNode child : node.treeGetChildren()) {
+		for (DOMNode child : node.getChildren()) {
 			deleteRecursively(app, child);
 		}
 
-		for (DOMNode sync : node.getProperty(DOMNode.syncedNodes)) {
+		for (DOMNode sync : node.getSyncedNodes()) {
 
 			deleteRecursively(app, sync);
 		}
@@ -167,7 +167,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 			}
 		}
 
-		return new PropertyMap();
+		return null;
 	}
 
 	private <T> T get(final PropertyMap src, final PropertyKey<T> key, final T defaultValue) {
@@ -192,57 +192,70 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final PropertyMap properties = getPropertiesForComponent(name);
+			final PropertyMap properties    = getPropertiesForComponent(name);
 
-			if (existingComponent != null) {
+			if (properties == null) {
 
-				if (existingComponent instanceof Template) {
+				logger.info("Ignoring {} (not in components.json)", fileName);
 
-					properties.put(Template.content, existingComponent.getProperty(Template.content));
-					existingComponent.setProperty(Template.ownerDocument, null);
+			} else {
 
-				} else {
+				if (existingComponent != null) {
 
-					deleteComponent(app, name);
-				}
-			}
+					final PropertyKey<String> contentKey = StructrApp.key(Template.class, "content");
 
-			final String src        = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
-			boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
-			boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-			final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
+					properties.put(contentKey, existingComponent.getProperty(contentKey));
 
-			// enable literal import of href attributes
-			importer.setIsDeployment(true);
+					existingComponent.setOwnerDocument(null);
 
-			final boolean parseOk = importer.parse(false);
-			if (parseOk) {
+					if (existingComponent instanceof Template) {
 
-				logger.info("Importing component {} from {}..", new Object[] { name, fileName } );
-
-				// set comment handler that can parse and apply special Structr comments in HTML source files
-				importer.setCommentHandler(new DeploymentCommentHandler());
-
-				// parse page
-				final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
-				final DOMNode rootElement           = importer.createComponentChildNodes(shadowDocument);
-
-				if (rootElement != null) {
-
-					if (byId) {
-
-						// set UUID
-						rootElement.unlockSystemPropertiesOnce();
-						rootElement.setProperty(GraphObject.id, name);
+						properties.put(contentKey, existingComponent.getProperty(contentKey));
+						existingComponent.setOwnerDocument(null);
 
 					} else {
 
-						// set name
-						rootElement.setProperty(AbstractNode.name, name);
+						deleteComponent(app, name);
 					}
+				}
 
-					// store properties from components.json if present
-					rootElement.setProperties(securityContext, properties);
+				final String src        = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
+				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
+				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
+				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
+
+				// enable literal import of href attributes
+				importer.setIsDeployment(true);
+
+				final boolean parseOk = importer.parse(false);
+				if (parseOk) {
+
+					logger.info("Importing component {} from {}..", new Object[] { name, fileName } );
+
+					// set comment handler that can parse and apply special Structr comments in HTML source files
+					importer.setCommentHandler(new DeploymentCommentHandler());
+
+					// parse page
+					final ShadowDocument shadowDocument = CreateComponentCommand.getOrCreateHiddenDocument();
+					final DOMNode rootElement           = importer.createComponentChildNodes(shadowDocument);
+
+					if (rootElement != null) {
+
+						if (byId) {
+
+							// set UUID
+							rootElement.unlockSystemPropertiesOnce();
+							rootElement.setProperty(GraphObject.id, name);
+
+						} else {
+
+							// set name
+							rootElement.setProperty(AbstractNode.name, name);
+						}
+
+						// store properties from components.json if present
+						rootElement.setProperties(securityContext, properties);
+					}
 				}
 			}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,19 +53,16 @@ public class StructrGlobalSchemaMethods {
 
 			tx.success();
 		}
-
 	}
 
 	List<Map<String, Object>> serialize() {
 
 		return globalMethods;
-
 	}
 
 	void deserialize(final List<Map<String, Object>> source) {
 
 		globalMethods = source;
-
 	}
 
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
@@ -107,5 +104,4 @@ public class StructrGlobalSchemaMethods {
 	public void clear() {
 		globalMethods.clear();
 	}
-
 }

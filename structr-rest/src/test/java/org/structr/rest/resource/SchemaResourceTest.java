@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,8 +49,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].type", equalTo("String"))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].declaringClass", equalTo("TestType0"))
@@ -79,8 +79,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].type", equalTo("String"))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
@@ -110,8 +110,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].type", equalTo("String"))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].notNull", equalTo(true))
@@ -140,8 +140,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].unique", equalTo(true))
 
@@ -169,8 +169,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].unique", equalTo(true))
 				.body("result[-1].notNull", equalTo(true))
@@ -199,8 +199,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].format", equalTo("bar"))
 
 			.when()
@@ -227,8 +227,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].unique", equalTo(true))
 				.body("result[-1].format", equalTo("bar"))
@@ -257,8 +257,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 
@@ -286,8 +286,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].unique", equalTo(true))
@@ -316,8 +316,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -347,8 +347,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -377,8 +377,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -409,8 +409,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].type", equalTo("Date"))
 				.body("result[-1].notNull", equalTo(true))
@@ -440,8 +440,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
 				.body("result[-1].contentType", equalTo("text/html"))
@@ -473,8 +473,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
 				.body("result[-1].contentType", equalTo("text/html"))
@@ -506,8 +506,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
 				.body("result[-1].contentType", equalTo("text/html"))
@@ -540,8 +540,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -572,8 +572,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -604,8 +604,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Date"))
@@ -635,8 +635,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Date"))
@@ -667,8 +667,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Boolean"))
@@ -698,8 +698,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Double"))
@@ -729,8 +729,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].type", equalTo("Enum"))
@@ -761,8 +761,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Enum"))
@@ -793,8 +793,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Enum"))
@@ -826,8 +826,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Boolean"))
@@ -858,8 +858,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(14))
-				.body("result_count", equalTo(14))
+				.body("result",	      hasSize(12))
+				.body("result_count", equalTo(12))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Double"))

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,7 @@ package org.structr.core.function;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -51,7 +51,7 @@ public class ConfigFunction extends Function<Object, Object> {
 
 			if (Settings.SuperUserPassword.getKey().equals(configKey)) {
 
-				return AbstractUser.HIDDEN;
+				return Principal.HIDDEN;
 
 			}
 

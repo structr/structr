@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 import java.util.List;
+import java.util.Map;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -49,47 +50,56 @@ import org.structr.core.property.StringProperty;
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
 	// properties
-	public static final Property<String>          name               = new StringProperty("name").indexed();
-	public static final Property<Boolean>         deleted            = new BooleanProperty("deleted").indexed();
-	public static final Property<Boolean>         hidden             = new BooleanProperty("hidden").indexed();
+	public static final Property<String>          name               = new StringProperty("name").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>         deleted            = new BooleanProperty("deleted").indexed().partOfBuiltInSchema();
+	public static final Property<Boolean>         hidden             = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
-	public static final Property<Principal>       owner              = new StartNode<>("owner", PrincipalOwnsNode.class);
-	public static final Property<String>          ownerId            = new EntityIdProperty("ownerId", owner);
+	public static final Property<Principal>       owner              = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
+	public static final Property<String>          ownerId            = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
 
-	public static final Property<List<Principal>> grantees           = new StartNodes<>("grantees", Security.class);
+	public static final Property<List<Principal>> grantees           = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
 
 	public static final View graphView = new View(NodeInterface.class, View.INTERNAL_GRAPH_VIEW,
 		id, name, type
 	);
 
-	public void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
+	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final boolean isCreation);
 
-	public void onNodeCreation();
-	public void onNodeInstantiation(final boolean isCreation);
-	public void onNodeDeletion();
+	void onNodeCreation();
+	void onNodeInstantiation(final boolean isCreation);
+	void onNodeDeletion();
 
-	public Node getNode();
+	Node getNode();
 
-	public String getName();
+	String getName();
 
-	public boolean isDeleted();
+	boolean isDeleted();
 
-	public boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 
-	public <R extends AbstractRelationship> Iterable<R> getRelationships();
-	public <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
+	<R extends AbstractRelationship> Iterable<R> getRelationships();
+	<R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
 
-	public <R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
-	public <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
+	<R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
+	<R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
 
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type);
 
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type);
-	public <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type);
 
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type);
-	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type);
 
-	public void setRawPathSegment(final Relationship pathSegment);
-	public Relationship getRawPathSegment();
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type);
+	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
+
+	void setRawPathSegment(final Relationship pathSegment);
+	Relationship getRawPathSegment();
+
+	List<Security> getSecurityRelationships();
+
+	public Map<String, Object> getTemporaryStorage();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,18 +18,18 @@
  */
 package org.structr.web.basic;
 
-import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import java.io.IOException;
 import org.hamcrest.Matchers;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
+import org.structr.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -47,12 +47,12 @@ public class BasicAuthTest extends StructrUiTest {
 			final Page page1 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test1"));
 			final Page page2 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test2"));
 
-			page1.setProperty(Page.visibleToAuthenticatedUsers, true);
-			page1.setProperty(Page.enableBasicAuth, true);
+			page1.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			page1.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
-			page2.setProperty(Page.visibleToAuthenticatedUsers, true);
-			page2.setProperty(Page.basicAuthRealm, "realm");
-			page2.setProperty(Page.enableBasicAuth, true);
+			page2.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			page2.setProperty(StructrApp.key(Page.class, "basicAuthRealm"), "realm");
+			page2.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
 			createUser();
 
@@ -101,15 +101,15 @@ public class BasicAuthTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final FileBase file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt");
-			final FileBase file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt");
+			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt");
+			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt");
 
-			file1.setProperty(Page.visibleToAuthenticatedUsers, true);
-			file1.setProperty(Page.enableBasicAuth, true);
+			file1.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			file1.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
-			file2.setProperty(Page.visibleToAuthenticatedUsers, true);
-			file2.setProperty(Page.basicAuthRealm, "realm");
-			file2.setProperty(Page.enableBasicAuth, true);
+			file2.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			file2.setProperty(StructrApp.key(Page.class, "basicAuthRealm"), "realm");
+			file2.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
 			createUser();
 
@@ -155,17 +155,17 @@ public class BasicAuthTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page error = makeVisible(Page.createSimplePage(securityContext, "error"));
-			error.setProperty(Page.showOnErrorCodes, "401");
+			error.setProperty(StructrApp.key(Page.class, "showOnErrorCodes"), "401");
 
 			final Page page1 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test1"));
 			final Page page2 = makeVisibleToAuth(Page.createSimplePage(securityContext, "test2"));
 
-			page1.setProperty(Page.visibleToAuthenticatedUsers, true);
-			page1.setProperty(Page.enableBasicAuth, true);
+			page1.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			page1.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
-			page2.setProperty(Page.visibleToAuthenticatedUsers, true);
-			page2.setProperty(Page.basicAuthRealm, "realm");
-			page2.setProperty(Page.enableBasicAuth, true);
+			page2.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			page2.setProperty(StructrApp.key(Page.class, "basicAuthRealm"), "realm");
+			page2.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
 			createUser();
 
@@ -232,17 +232,17 @@ public class BasicAuthTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page error = makeVisible(Page.createSimplePage(securityContext, "error"));
-			error.setProperty(Page.showOnErrorCodes, "401");
+			error.setProperty(StructrApp.key(Page.class, "showOnErrorCodes"), "401");
 
-			final FileBase file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt");
-			final FileBase file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt");
+			final File file1 = FileHelper.createFile(securityContext, "test1".getBytes(), "text/plain", File.class, "test1.txt");
+			final File file2 = FileHelper.createFile(securityContext, "test2".getBytes(), "text/plain", File.class, "test2.txt");
 
-			file1.setProperty(Page.visibleToAuthenticatedUsers, true);
-			file1.setProperty(Page.enableBasicAuth, true);
+			file1.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			file1.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
-			file2.setProperty(Page.visibleToAuthenticatedUsers, true);
-			file2.setProperty(Page.basicAuthRealm, "realm");
-			file2.setProperty(Page.enableBasicAuth, true);
+			file2.setProperty(StructrApp.key(Page.class, "visibleToAuthenticatedUsers"), true);
+			file2.setProperty(StructrApp.key(Page.class, "basicAuthRealm"), "realm");
+			file2.setProperty(StructrApp.key(Page.class, "enableBasicAuth"), true);
 
 			createUser();
 
@@ -300,8 +300,8 @@ public class BasicAuthTest extends StructrUiTest {
 	private void createUser() throws FrameworkException {
 
 		createTestNode(User.class,
-			new NodeAttribute<>(User.name, "tester"),
-			new NodeAttribute<>(User.password, "test")
+			new NodeAttribute<>(StructrApp.key(User.class, "name"), "tester"),
+			new NodeAttribute<>(StructrApp.key(User.class, "password"), "test")
 		);
 	}
 
@@ -309,16 +309,16 @@ public class BasicAuthTest extends StructrUiTest {
 
 		try {
 
-			src.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
-			src.setProperty(DOMNode.visibleToPublicUsers, true);
+			src.setProperty(StructrApp.key(DOMNode.class, "visibleToAuthenticatedUsers"), true);
+			src.setProperty(StructrApp.key(DOMNode.class, "visibleToPublicUsers"), true);
 
 		} catch (FrameworkException fex) {}
 
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
-				n.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
-				n.setProperty(DOMNode.visibleToPublicUsers, true);
+				n.setProperty(StructrApp.key(DOMNode.class, "visibleToAuthenticatedUsers"), true);
+				n.setProperty(StructrApp.key(DOMNode.class, "visibleToPublicUsers"), true);
 
 			} catch (FrameworkException fex) {}
 		} );
@@ -330,14 +330,14 @@ public class BasicAuthTest extends StructrUiTest {
 
 		try {
 
-			src.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
+			src.setProperty(StructrApp.key(DOMNode.class, "visibleToAuthenticatedUsers"), true);
 
 		} catch (FrameworkException fex) {}
 
 		src.getAllChildNodes().stream().forEach((n) -> {
 
 			try {
-				n.setProperty(DOMNode.visibleToAuthenticatedUsers, true);
+				n.setProperty(StructrApp.key(DOMNode.class, "visibleToAuthenticatedUsers"), true);
 
 			} catch (FrameworkException fex) {}
 		} );

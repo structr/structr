@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,26 +27,22 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.User;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Resource that handles user logins
- *
- *
+ * Resource that handles user logins.
  */
 public class LoginResource extends Resource {
 
 	private static final Logger logger       = LoggerFactory.getLogger(LoginResource.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
@@ -59,23 +55,26 @@ public class LoginResource extends Resource {
 		}
 
 		return false;
-
 	}
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final PropertyMap properties       = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
+		final PropertyKey<String> nameKey  = StructrApp.key(User.class, "name");
+		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+		final PropertyKey<String> pwdKey   = StructrApp.key(User.class, "password");
 
-		String name          = properties.get(User.name);
-		String email         = properties.get(User.eMail);
-		String password      = properties.get(User.password);
+		final String name                  = properties.get(nameKey);
+		final String email                 = properties.get(eMailKey);
+		final String password              = properties.get(pwdKey);
 
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
 
 		if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 
-			Principal user = (Principal) securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+			Principal user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 
 			if (user != null) {
 
@@ -95,7 +94,6 @@ public class LoginResource extends Resource {
 		logger.info("Invalid credentials (name, email, password): {}, {}, {}", new Object[]{ name, email, password });
 
 		return new RestMethodResult(401);
-
 	}
 
 	@Override

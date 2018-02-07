@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,56 +24,65 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationEvent;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.common.FileHelper;
 
-public class MinifiedCssFile extends AbstractMinifiedFile {
+public interface MinifiedCssFile extends AbstractMinifiedFile {
 
-	private static final Logger logger = LoggerFactory.getLogger(MinifiedCssFile.class.getName());
+	static class Impl { static {
 
-	public static final Property<Integer> lineBreak = new IntProperty("lineBreak").defaultValue(-1);
+		final JsonSchema schema = SchemaService.getDynamicSchema();
+		final JsonType type     = schema.addType("MinifiedCssFile");
 
-	public static final View defaultView = new View(MinifiedJavaScriptFile.class, PropertyView.Public, minificationSources, lineBreak);
-	public static final View uiView      = new View(MinifiedJavaScriptFile.class, PropertyView.Ui, minificationSources, lineBreak);
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MinifiedCssFile"));
+		type.setExtends(URI.create("#/definitions/AbstractMinifiedFile"));
 
-	@Override
-	public boolean shouldModificationTriggerMinifcation(ModificationEvent modState) {
+		type.addIntegerProperty("lineBreak", PropertyView.Public, PropertyView.Ui).setDefaultValue("-1");
 
-		return modState.getModifiedProperties().containsKey(MinifiedCssFile.lineBreak);
+		type.addPropertyGetter("lineBreak", Integer.class);
 
+		type.overrideMethod("shouldModificationTriggerMinifcation", false, "return " + MinifiedCssFile.class.getName() + ".shouldModificationTriggerMinifcation(this, arg0);");
+		type.overrideMethod("minify",                               false, MinifiedCssFile.class.getName() + ".minify(this);");
+	}}
+
+	Integer getLineBreak();
+
+
+	static boolean shouldModificationTriggerMinifcation(final MinifiedCssFile thisFile, final ModificationEvent modState) {
+		return modState.getModifiedProperties().containsKey(StructrApp.key(MinifiedCssFile.class, "lineBreak"));
 	}
 
-	@Override
-	public void minify() throws FrameworkException, IOException {
+	static void minify(final MinifiedCssFile thisFile) throws FrameworkException, IOException {
 
-		logger.info("Running minify: {}", this.getUuid());
+		logger.info("Running minify: {}", thisFile.getUuid());
 
-		FileHelper.setFileData(this, getConcatenatedSource().getBytes(), null);
+		FileHelper.setFileData(thisFile, AbstractMinifiedFile.getConcatenatedSource(thisFile).getBytes(), null);
 
-		try (FileReader in = new FileReader(this.getFileOnDisk())) {
+		try (FileReader in = new FileReader(thisFile.getFileOnDisk())) {
+
 			final java.io.File temp = java.io.File.createTempFile("structr-minify", ".tmp");
 
 			try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(temp))) {
+
 				final CssCompressor compressor = new CssCompressor(in);
-				compressor.compress(out, getProperty(lineBreak));
+				compressor.compress(out, thisFile.getLineBreak());
 			}
 
-			FileHelper.setFileData(this, FileUtils.readFileToString(temp).getBytes(), null);
+			FileHelper.setFileData(thisFile, FileUtils.readFileToString(temp, Charset.forName("utf-8")).getBytes(), null);
 		}
 	}
-
-
 
 
 	/*
@@ -93,7 +102,7 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 	 * The copyrights embodied in the content of this file are licensed
 	 * by Yahoo! Inc. under the BSD (revised) open source license.
 	 */
-	private class CssCompressor {
+	class CssCompressor {
 
 		private StringBuffer srcsb = new StringBuffer();
 
@@ -541,5 +550,4 @@ public class MinifiedCssFile extends AbstractMinifiedFile {
 			out.write(css);
 		}
 	}
-
 }

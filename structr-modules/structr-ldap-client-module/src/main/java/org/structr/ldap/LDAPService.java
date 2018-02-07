@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.ldap;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.EntryCursor;
@@ -45,6 +44,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 
 /**
  * The LDAP synchronization service. This is a system service that requires
@@ -64,7 +64,7 @@ public class LDAPService extends Thread implements RunnableService {
 	public static final String CONFIG_KEY_LDAP_FILTER     = "ldap.filter";
 	public static final String CONFIG_KEY_LDAP_SCOPE      = "ldap.scope";
 
-	private long updateInterval = TimeUnit.HOURS.toMillis(2);	// completely arbitrary update interval, set your own in structr.conf!
+	private long updateInterval = 1800;		// completely arbitrary update interval, set your own in structr.conf!
 	private String host         = "localhost";
 	private String binddn       = null;
 	private String secret       = null;
@@ -183,7 +183,7 @@ public class LDAPService extends Thread implements RunnableService {
 
 					for (final LDAPUser user : app.nodeQuery(LDAPUser.class).getAsList()) {
 
-						final String dn = user.getProperty(LDAPUser.distinguishedName);
+						final String dn = user.getDistinguishedName();
 						if (dn != null) {
 
 							final Entry userEntry = connection.lookup(dn);
@@ -220,20 +220,21 @@ public class LDAPService extends Thread implements RunnableService {
 	// ----- private methods -----
 	private String synchronizeUserEntry(final LdapConnection connection, final Entry entry) {
 
-		final App app         = StructrApp.getInstance();
-		final Dn dn           = entry.getDn();
-		final String dnString = dn.toString();
+		final PropertyKey<String> dnKey = StructrApp.key(LDAPUser.class, "distinguishedName");
+		final App app                   = StructrApp.getInstance();
+		final Dn dn                     = entry.getDn();
+		final String dnString           = dn.toString();
 
 		try (final Tx tx = app.tx()) {
 
-			LDAPUser user = app.nodeQuery(LDAPUser.class).and(LDAPUser.distinguishedName, dnString).getFirst();
+			LDAPUser user = app.nodeQuery(LDAPUser.class).and(dnKey, dnString).getFirst();
 			if (user == null) {
 
-				user = app.create(LDAPUser.class, new NodeAttribute(LDAPUser.distinguishedName, dnString));
+				user = app.create(LDAPUser.class, new NodeAttribute(dnKey, dnString));
 				user.initializeFrom(entry);
 
 				final String uuid = user.getUuid();
-				if (user.getProperty(LDAPUser.entryUuid) == null) {
+				if (user.getEntryUuid() == null) {
 
 					try {
 						// try to set "our" UUID in the remote database
@@ -278,11 +279,11 @@ public class LDAPService extends Thread implements RunnableService {
 				doUpdate();
 
 			} catch (Throwable t) {
-				logger.warn("Unable to update LDAP information", t);
+				logger.warn("Unable to update LDAP information: {}", t.getMessage());
 			}
 
 			// sleep until next update
-			try { Thread.sleep(updateInterval); } catch (InterruptedException itex) { }
+			try { Thread.sleep(updateInterval * 1000); } catch (InterruptedException itex) { }
 		}
 	}
 
@@ -290,7 +291,7 @@ public class LDAPService extends Thread implements RunnableService {
 	@Override
 	public void startService() throws Exception {
 
-		logger.info("Starting LDAPService, update interval {} s", TimeUnit.MILLISECONDS.toSeconds(updateInterval));
+		logger.info("Starting LDAPService, update interval {} s", updateInterval);
 		this.start();
 	}
 
@@ -316,10 +317,10 @@ public class LDAPService extends Thread implements RunnableService {
 	@Override
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		this.updateInterval = Settings.getOrCreateIntegerSetting(CONFIG_KEY_UPDATE_INTERVAL, Long.toString(TimeUnit.HOURS.toMillis(2))).getValue();
+		this.updateInterval = Settings.getOrCreateIntegerSetting(CONFIG_KEY_UPDATE_INTERVAL).getValue(1800);
 
-		this.binddn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue();
-		this.secret         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SECRET).getValue();
+		this.binddn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue("");
+		this.secret         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SECRET).getValue("");
 
 		this.host           = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST, "localhost").getValue();
 		this.baseDn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN, "ou=system").getValue();
@@ -327,7 +328,7 @@ public class LDAPService extends Thread implements RunnableService {
 		this.scope          = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE, "SUBTREE").getValue();
 
 		this.port           = Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(339);
-		this.useSsl         = Settings.getBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(true);
+		this.useSsl         = Settings.getOrCreateBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(true);
 
 		return true;
 	}

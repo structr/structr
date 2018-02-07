@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rdfs;
 
 import java.net.URI;
@@ -74,7 +73,7 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 
 		if (nodeType != null) {
 
-			originIdKey = config.getPropertyKeyForJSONName(nodeType, "originId", false);
+			originIdKey = StructrApp.key(nodeType, "originId");
 			if (originIdKey != null) {
 
 				instance = app.create(nodeType, new NodeAttribute(originIdKey, getId().toString()));
@@ -99,7 +98,7 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 		final NodeList extensions          = getElements(getElement(), "krdf:KExtendedByRelation");
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class baseType               = config.getNodeEntityClass("BaseNode");
-		final PropertyKey extensionsKey    = config.getPropertyKeyForJSONName(baseType, "extendedBy", false);
+		final PropertyKey extensionsKey    = StructrApp.key(baseType, "extendedBy");
 
 		if (extensions != null && extensionsKey != null) {
 
@@ -163,8 +162,8 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Class baseNodeType           = config.getNodeEntityClass("BaseNode");
 			final Class localizedNameType      = config.getNodeEntityClass("LocalizedName");
-			final PropertyKey namesKey         = config.getPropertyKeyForJSONName(baseNodeType, "names");
-			final PropertyKey langKey          = config.getPropertyKeyForJSONName(localizedNameType, "locale");
+			final PropertyKey namesKey         = StructrApp.key(baseNodeType, "names");
+			final PropertyKey langKey          = StructrApp.key(localizedNameType, "locale");
 
 			if (localizedNameType != null && namesKey != null) {
 
@@ -258,8 +257,8 @@ public class OWLInstance extends RDFItem<OWLInstance> {
 											final OWLClass targetType       = targetTypes.get(0);
 											final String sourcePropertyName = sourceType.getStructrName(false);
 											final String targetPropertyName = targetType.getStructrName(false);
-											final PropertyKey sourceKey     = config.getPropertyKeyForJSONName(hyperRelationshipType, sourcePropertyName, false);
-											final PropertyKey targetKey     = config.getPropertyKeyForJSONName(hyperRelationshipType, targetPropertyName, false);
+											final PropertyKey sourceKey     = StructrApp.key(hyperRelationshipType, sourcePropertyName);
+											final PropertyKey targetKey     = StructrApp.key(hyperRelationshipType, targetPropertyName);
 
 											if (sourceKey != null && targetKey != null) {
 

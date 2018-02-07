@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,6 @@ var autoRefreshDisabledKey = 'structrAutoRefreshDisabled_' + port;
 var detailsObjectId = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
-var pushConfigKey = 'structrPushConfigKey_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
@@ -69,6 +68,12 @@ $(function() {
 	$('#logout_').on('click', function(e) {
 		e.stopPropagation();
 		Structr.doLogout();
+	});
+
+	$(window).on('hashchange', function(e) {
+		var anchor = getAnchorFromUrl(window.location.href);
+		if (anchor === 'logout' || loginBox.is(':visible')) return
+		Structr.activateModule(e, anchor);
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function () {
@@ -210,6 +215,13 @@ var Structr = {
 	expanded: {},
 	msgCount: 0,
 	currentlyActiveSortable: undefined,
+	templateCache: new AsyncObjectCache(function(templateName) {
+
+		Promise.resolve($.ajax('templates/' + templateName + '.html')).then(function(templateHtml) {
+			Structr.templateCache.addObject(templateHtml, templateName);
+		});
+
+	}),
 
 	reconnect: function() {
 		_Logger.log(_LogType.INIT, 'deactivated ping');
@@ -266,7 +278,7 @@ var Structr = {
 		_Console.initConsole();
 		_Favorites.initFavorites();
 	},
-	updateUsername:function(name) {
+	updateUsername: function(name) {
 		if (name !== user) {
 			user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
@@ -326,7 +338,7 @@ var Structr = {
 			$('#errorText').html(text);
 		}
 
-		Structr.activateMenuEntry('logout');
+		//Structr.activateMenuEntry('logout');
 	},
 	doLogin: function(username, password) {
 		Structr.renewSessionId(function () {
@@ -693,7 +705,13 @@ var Structr = {
 				errorText = url + ': ';
 			}
 
-			errorText += response.code + ' ' + response.message;
+			errorText += response.code + '<br>';
+
+			Object.keys(response).forEach(function(key) {
+				if (key !== 'code') {
+					errorText += '<b>' + key.capitalize() + '</b>: ' + response[key] + '<br>';
+				}
+			});
 		}
 
 		var message = new MessageBuilder().error(errorText);
@@ -983,6 +1001,11 @@ var Structr = {
 				wasOpen = true;
 				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active');
+
+				var openSlideoutCallback = slideout.data('closeCallback');
+				if (typeof openSlideoutCallback === "function") {
+					openSlideoutCallback();
+				}
 			}
 		});
 		if (wasOpen) {
@@ -1055,125 +1078,6 @@ var Structr = {
 		});
 		LSWrapper.removeItem(activeTabKey);
 	},
-	pushDialog: function(id, recursive) {
-
-		var obj = StructrModel.obj(id);
-
-		Structr.dialog('Push node to remote server', function() {}, function() {});
-
-		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
-
-		dialog.append('Do you want to transfer <b>' + (obj.name || obj.id) + '</b> to the remote server?');
-
-		dialog.append('<table class="props push">'
-				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="20" value="' + (pushConf.host || '') + '"></td></tr>'
-				+ '<tr><td>Port</td><td><input id="push-port" type="text" length="20" value="' + (pushConf.port || '') + '"></td></tr>'
-				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="20" value="' + (pushConf.username || '') + '"></td></tr>'
-				+ '<tr><td>Password</td><td><input id="push-password" type="password" length="20" value="' + (pushConf.password || '') + '"></td></tr>'
-				+ '</table>'
-				+ '<button id="start-push">Start</button>');
-
-		$('#start-push', dialog).on('click', function() {
-			var host = $('#push-host', dialog).val();
-			var port = parseInt($('#push-port', dialog).val());
-			var username = $('#push-username', dialog).val();
-			var password = $('#push-password', dialog).val();
-			var key = 'key_' + obj.id;
-
-			pushConf = {host: host, port: port, username: username, password: password};
-			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
-
-			Command.push(obj.id, host, port, username, password, key, recursive, function() {
-				dialog.empty();
-				dialogCancelButton.click();
-			});
-		});
-
-		return false;
-	},
-	pullDialog: function(type, optionalContainer) {
-
-		var container;
-
-		if (optionalContainer) {
-			 container = optionalContainer;
-			 container.append('<h3>Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server</h3>');
-		} else {
-			container = dialog;
-			Structr.dialog('Sync ' + type.replace(/,/, '(s) or ') + '(s) from remote server', function() {}, function() {});
-		}
-
-		var pushConf = JSON.parse(LSWrapper.getItem(pushConfigKey)) || {};
-
-		container.append('<table class="props push">'
-				+ '<tr><td>Host</td><td><input id="push-host" type="text" length="32" value="' + (pushConf.host || '') + '"></td>'
-				+ '<td>Port</td><td><input id="push-port" type="text" length="32" value="' + (pushConf.port || '') + '"></td></tr>'
-				+ '<tr><td>Username</td><td><input id="push-username" type="text" length="32" value="' + (pushConf.username || '') + '"></td>'
-				+ '<td>Password</td><td><input id="push-password" type="password" length="32" value="' + (pushConf.password || '') + '"></td></tr>'
-				+ '</table>'
-				+ '<button id="show-syncables">Show available entities</button>'
-				+ '<table id="syncables" class="props push"><tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>'
-				+ '</table>'
-				);
-
-		$('#show-syncables', container).on('click', function() {
-
-			var syncables = $("#syncables");
-			var host = $('#push-host', container).val();
-			var port = parseInt($('#push-port', container).val());
-			var username = $('#push-username', container).val();
-			var password = $('#push-password', container).val();
-			var key = 'syncables';
-
-			pushConf = {host: host, port: port, username: username, password: password};
-			LSWrapper.setItem(pushConfigKey, JSON.stringify(pushConf));
-
-			fastRemoveAllChildren(syncables[0]);
-			syncables.append('<tr><th>Name</th><th>Size</th><th>Last Modified</th><th>Type</th><th>Recursive</th><th>Actions</th></tr>');
-
-			Command.listSyncables(host, port, username, password, key, type, function(result) {
-
-				result.forEach(function(syncable) {
-
-					syncables.append(
-							'<tr>'
-							+ '<td>' + syncable.name + '</td>'
-							+ '<td>' + (syncable.size ? syncable.size : "-") + '</td>'
-							+ '<td>' + (syncable.lastModifiedDate ? syncable.lastModifiedDate : "-") + '</td>'
-							+ '<td>' + syncable.type + '</td>'
-							+ '<td><input type="checkbox" id="recursive-' + syncable.id + '"></td>'
-							+ '<td><button id="pull-' + syncable.id + '"></td>'
-							+ '</tr>'
-							);
-
-					var syncButton = $('#pull-' + syncable.id, container);
-
-					if (syncable.isSynchronized) {
-						syncButton.empty();
-						syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Update');
-					} else {
-						syncButton.empty();
-						syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.pull_file_icon) + '" /> Import');
-					}
-
-					syncButton.on('click', function() {
-
-						syncButton.empty();
-						syncButton.append('Importing..');
-
-						var recursive = $('#recursive-' + syncable.id, syncables).prop('checked');
-						Command.pull(syncable.id, host, port, username, password, 'key-' + syncable.id, recursive, function() {
-							syncButton.empty();
-							syncButton.append('<i class="' + _Icons.getFullSpriteClass(_Icons.refresh_icon) + '" /> Update');
-						});
-					});
-				});
-
-			});
-		});
-
-		return false;
-	},
 	ensureIsAdmin: function(el, callback) {
 		Structr.ping(function() {
 			if (!isAdmin) {
@@ -1196,7 +1100,7 @@ var Structr = {
 				$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
 				var ui = envInfo.components['structr-ui'];
-				if (ui !== null) {
+				if (ui) {
 
 					var version = ui.version;
 					var build = ui.build;
@@ -1311,22 +1215,6 @@ var Structr = {
 			case 'Community':
 				return ['Community'].indexOf(requiredEdition) !== -1;
 		};
-	},
-	guardExecution:function (callbackToGuard) {
-		var didRun = false;
-
-		var guardedFunction = function () {
-			if (didRun) {
-				return;
-			}
-			didRun = true;
-
-			if (typeof callbackToGuard === "function") {
-				callbackToGuard();
-			}
-		};
-
-		return guardedFunction;
 	},
 	updateMainHelpLink: function (newUrl) {
 		$('#main-help a').attr('href', newUrl);
@@ -1622,27 +1510,51 @@ var Structr = {
 				}
 				break;
 
-			case "DEPLOYMENT_STATUS":
+			case "DEPLOYMENT_IMPORT_STATUS":
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Any changes made during a deployment might get lost or conflict with the deployment!<br>"
-							+ "It is advisable to wait until the import process is finished. Another message will pop up when the deployment finished successfully.<br><br>"
-							+ "Deployment started : " + new Date(data.start) + "<br>";
+					var text = "Deployment Import started: " + new Date(data.start) + "<br>"
+							+ "Importing from: " + data.source + "<br><br>"
+							+ "Please wait until the import process is finished. any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br>";
 
-					new MessageBuilder().title("Deployment in progress").info(text).uniqueClass('deployment-import').requiresConfirmation().uniqueClass('deployment-import').updatesText().show();
+					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Deployment in progress").info("Step " + data.step + ": " + data.message).requiresConfirmation().uniqueClass('deployment-import').appendsText().show();
+					new MessageBuilder().title("Deployment Import Progress").uniqueClass('deployment-import').info("Step " + data.step + ": " + data.message).requiresConfirmation().appendsText().show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Deployment finished: " + new Date(data.end)
+					var text = "<br>Deployment Import finished: " + new Date(data.end)
 							+ "<br>Total duration: " + data.duration
 							+ "<br><br>Reload the page to see the new data.";
 
-					new MessageBuilder().title("Deployment finished").info(text).uniqueClass('deployment-import').specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").appendsText().updatesButtons().show();
+					new MessageBuilder().title("Deployment Import finished").uniqueClass('deployment-import').info(text).specialInteractionButton("Reload Page", function () { location.reload(); }, "Ignore").appendsText().updatesButtons().show();
+
+				}
+				break;
+
+			case "DEPLOYMENT_EXPORT_STATUS":
+
+				if (data.subtype === 'BEGIN') {
+
+					var text = "Deployment Export started: " + new Date(data.start) + "<br>"
+							+ "Exporting to: " + data.target + "<br><br>"
+							+ "System performance may be affected during Export.<br>";
+
+					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info(text).requiresConfirmation().updatesText().show();
+
+				} else if (data.subtype === 'PROGRESS') {
+
+					new MessageBuilder().title("Deployment Export Progress").uniqueClass('deployment-export').info("Step " + data.step + ": " + data.message).requiresConfirmation().appendsText().show();
+
+				} else if (data.subtype === 'END') {
+
+					var text = "<br>Deployment Export finished: " + new Date(data.end)
+							+ "<br>Total duration: " + data.duration;
+
+					new MessageBuilder().title("Deployment Export finished").uniqueClass('deployment-export').info(text).appendsText().requiresConfirmation().show();
 
 				}
 				break;
@@ -1663,6 +1575,14 @@ var Structr = {
 			}
 
 		}
+	},
+	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
+
+		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
+			var convertTemplateToLiteral = new Function("config", "return `" + templateHtml + "`;");
+			var parameterizedTemplate = convertTemplateToLiteral(templateConfig);
+			callback(parameterizedTemplate, cacheHit);
+		});
 	}
 };
 

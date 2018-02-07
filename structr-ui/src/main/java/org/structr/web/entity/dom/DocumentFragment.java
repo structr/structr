@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,14 @@
  */
 package org.structr.web.entity.dom;
 
+import java.net.URI;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.NonIndexed;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -32,68 +34,49 @@ import org.w3c.dom.NodeList;
  *
  */
 
-public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFragment, NonIndexed {
+public interface DocumentFragment extends DOMNode, org.w3c.dom.DocumentFragment, NonIndexed {
 
-	@Override
-	public String getContextName() {
-		return "DocumentFragment";
-	}
+	static class Impl { static {
 
-	// ----- interface org.w3c.dom.Node -----
-	@Override
-	public String getLocalName() {
-		return null;
-	}
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("DocumentFragment");
 
-	@Override
-	public String getNodeName() {
-		return "#document-fragment";
-	}
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DocumentFragment"));
+		type.setExtends(URI.create("#/definitions/DOMNode"));
 
-	@Override
-	public String getNodeValue() throws DOMException {
-		return null;
-	}
+		// ----- interface org.w3c.dom.Node -----
+		type.overrideMethod("getNodeName",   false, "return \"#document-fragment\";");
+		type.overrideMethod("getLocalName",  false, "return null;");
+		type.overrideMethod("getNodeValue",  false, "return null;");
+		type.overrideMethod("hasAttributes", false, "return false;");
+		type.overrideMethod("getAttributes", false, "return null;");
+		type.overrideMethod("getNodeType",   false, "return DOCUMENT_FRAGMENT_NODE;");
+		type.overrideMethod("setNodeValue",  false, "");
 
-	@Override
-	public void setNodeValue(String string) throws DOMException {
-	}
+		// ----- interface DOMNode -----
+		type.overrideMethod("getContextName", false, "return \"DocumentFragment\";");
+		type.overrideMethod("isSynced",       false, "return false;");
+		type.overrideMethod("contentEquals",  false, "return false;");
+		type.overrideMethod("updateFromNode", false, "");
+		type.overrideMethod("render",         false, DocumentFragment.class.getName() + ".render(this, arg0, arg1);");
+		type.overrideMethod("renderContent",  false, "");
+		type.overrideMethod("updateFromNode", false, "");
+		type.overrideMethod("doAdopt",        false, "return null;");
+		type.overrideMethod("doImport",       false, "return arg0.createDocumentFragment();");
 
-	@Override
-	public short getNodeType() {
-		return DOCUMENT_FRAGMENT_NODE;
-	}
+		// ----- interface org.w3c.dom.Node -----
+		type.overrideMethod("getLocalName",          false, "return null;");
+		type.overrideMethod("getNodeType",           false, "return DOCUMENT_FRAGMENT_NODE;");
+		type.overrideMethod("getNodeName",           false, "return \"#document-fragment\";");
+		type.overrideMethod("getNodeValue",          false, "return null;");
+		type.overrideMethod("setNodeValue",          false, "");
+		type.overrideMethod("getAttributes",         false, "return null;");
+		type.overrideMethod("hasAttributes",         false, "return false;");
+	}}
 
-	@Override
-	public NamedNodeMap getAttributes() {
-		return null;
-	}
+	public static void render(final DocumentFragment thisNode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-	@Override
-	public boolean hasAttributes() {
-		return false;
-	}
-
-	@Override
-	public boolean contentEquals(final DOMNode otherNode) {
-		return false;
-	}
-
-	@Override
-	public void updateFromNode(final DOMNode newNode) throws FrameworkException {
-		// do nothing
-	}
-
-	@Override
-	public boolean isSynced() {
-		return false;
-	}
-
-	// ----- interface Renderable -----
-	@Override
-	public void render(RenderContext renderContext, int depth) throws FrameworkException {
-
-		NodeList _children = getChildNodes();
+		NodeList _children = thisNode.getChildNodes();
 		int len            = _children.getLength();
 
 		for (int i=0; i<len; i++) {
@@ -106,24 +89,5 @@ public class DocumentFragment extends DOMNode implements org.w3c.dom.DocumentFra
 			}
 		}
 
-	}
-
-	@Override
-	public void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException {
-	}
-
-	@Override
-	public Node doAdopt(Page newPage) throws DOMException {
-
-		// do nothing, only children of DocumentFragments are
-		// adopted
-		return null;
-	}
-
-	@Override
-	public Node doImport(Page newPage) throws DOMException {
-		// simply return an empty DocumentFragment, as the importing
-		// will be done by the Page method if deep importing is enabled.
-		return newPage.createDocumentFragment();
 	}
 }

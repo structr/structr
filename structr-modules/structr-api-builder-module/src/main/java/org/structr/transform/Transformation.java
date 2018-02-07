@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -46,7 +46,7 @@ public class Transformation {
 		this.inputFunction  = inputFunction;
 		this.outputFunction = outputFunction;
 
-		this.sourceProperty = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sourceName);
+		this.sourceProperty = StructrApp.key(type, sourceName);
 		this.targetProperty = new GenericProperty(targetName);
 	}
 

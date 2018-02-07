@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -225,7 +225,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 				securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
 				// check single (main) pubkey
-				final String pubKeyData = principal.getProperty(Principal.publicKey);
+				final String pubKeyData = principal.getProperty(StructrApp.key(Principal.class, "publicKey"));
 				if (pubKeyData != null) {
 
 					final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(PublicKeyEntryResolver.FAILING);
@@ -235,7 +235,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 				}
 
 				// check array of pubkeys for this user
-				final String[] pubKeysData = principal.getProperty(Principal.publicKeys);
+				final String[] pubKeysData = principal.getProperty(StructrApp.key(Principal.class, "publicKeys"));
 				if (pubKeysData != null) {
 
 					for (final String k : pubKeysData) {

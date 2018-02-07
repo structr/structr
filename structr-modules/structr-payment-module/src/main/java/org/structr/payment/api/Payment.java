@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.payment.api;
 
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -27,7 +26,7 @@ import org.structr.common.error.FrameworkException;
 public interface Payment {
 
 	// ----- read-only methods -----
-	List<PaymentItem> getItems();
+	Iterable<PaymentItem> getItems();
 	String getCurrencyCode();
 	int getTotal();
 

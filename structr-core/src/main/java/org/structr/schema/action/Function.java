@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -429,7 +429,7 @@ public abstract class Function<S, T> extends Hint {
 		return null;
 	}
 
-	protected File getServerlogFile () throws IOException {
+	protected File getServerlogFile() throws IOException {
 
 		final String basePath = Settings.getBasePath();
 
@@ -439,16 +439,21 @@ public abstract class Function<S, T> extends Hint {
 
 			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
 
-			final File logFile = new File(logPath.concat(isDebug ? "debug.log" : "server.log"));
-			if (!logFile.exists()) {
-
-				logger.warn("Server log does not exist");
-
-			} else {
+			File logFile = new File(logPath.concat(isDebug ? "debug.log" : "server.log"));
+			if (logFile.exists()) {
 
 				return logFile;
 
+			} else if (!isDebug) {
+
+				// special handling for .deb installation
+				logFile = new File("/var/log/structr.log");
+				if (logFile.exists()) {
+					return logFile;
+				}
 			}
+
+			logger.warn("Could not locate logfile");
 
 		} else {
 
@@ -456,7 +461,6 @@ public abstract class Function<S, T> extends Hint {
 		}
 
 		return null;
-
 	}
 
 	protected static String serialize(final Gson gson, final Map<String, Object> map) {

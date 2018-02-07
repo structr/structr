@@ -4,12 +4,12 @@
 	<name>Structr Net</name>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-net</artifactId>
-	<version>2.3-SNAPSHOT</version>
+	<version>3.0-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>2.3-SNAPSHOT</version>
+		<version>3.0-SNAPSHOT</version>
 	</parent>
 		
 	<packaging>jar</packaging>
@@ -35,7 +35,7 @@
 						<exclude>src/**/*.properties</exclude>
 					</excludes>
 					<properties>
-						<year>2017</year>
+						<year>2018</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,8 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
-import org.structr.ldap.api.LDAPNode;
-import org.structr.ldap.entity.LDAPNodeImpl;
+import org.structr.core.app.StructrApp;
+import org.structr.ldap.entity.LDAPNode;
 
 /**
  *
@@ -129,7 +129,7 @@ class StructrPartition implements Partition {
 		final Entry entry             = deleteContext.getEntry();
 
 		getWrapper(principal).delete(dn);
-		
+
 		return entry;
 	}
 
@@ -218,7 +218,6 @@ class StructrPartition implements Partition {
 
 	@Override
 	public void setCacheService(CacheService cs) {
-		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -235,7 +234,7 @@ class StructrPartition implements Partition {
 	public Subordinates getSubordinates(Entry entry) throws LdapException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
-	
+
 	// ----- private methods -----
 	private StructrLDAPWrapper getWrapper(final LdapPrincipal principal) {
 
@@ -256,14 +255,12 @@ class StructrPartition implements Partition {
 			final String rootTypeName = Settings.getOrCreateStringSetting(keyBuilder.toString()).getValue();
 			if (rootTypeName == null) {
 
-				logger.info("No LDAP root node type specified for partition {}, using default (LDAPNodeImpl). This default can be changed by setting a value for {} in structr.conf",
-					new Object[] {
-						id,
-						keyBuilder.toString()
-					}
+				logger.info("No LDAP root node type specified for partition {}, using default (LDAPNode). This default can be changed by setting a value for {} in structr.conf",
+					id,
+					keyBuilder.toString()
 				);
 
-				rootType = LDAPNodeImpl.class;
+				rootType = StructrApp.getConfiguration().getNodeEntityClass("LDAPNode");
 
 			} else {
 
@@ -272,11 +269,11 @@ class StructrPartition implements Partition {
 					this.rootType = (Class<? extends LDAPNode>)Class.forName(rootTypeName);
 
 				} catch (ClassNotFoundException ex) {
-					logger.warn("Unable to instantiate LDAP root node class {}, falling back to default. {}", new Object[] { rootTypeName, ex.getMessage() });
+					logger.warn("Unable to instantiate LDAP root node class {}, falling back to default. {}", rootTypeName, ex.getMessage());
 				}
 
 				if (rootType == null) {
-					rootType = LDAPNodeImpl.class;
+					rootType = StructrApp.getConfiguration().getNodeEntityClass("LDAPNode");
 				}
 			}
 		}

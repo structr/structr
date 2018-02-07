@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -82,13 +82,17 @@ public class SchemaJsonResource extends Resource {
 
 	@Override
 	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+
 		final GraphObjectMap schema = new GraphObjectMap();
 		int resultCount = 0;
 
 		try {
+
 			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
 			schema.setProperty(new StringProperty("schema"), jsonSchema.toString());
+
 			resultCount = 1;
+
 		} catch (URISyntaxException ex) {
 			logger.error("Error while creating JsonSchema: " + ex.getMessage());
 		}
@@ -101,11 +105,16 @@ public class SchemaJsonResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+
 		if(propertySet != null && propertySet.containsKey("schema")) {
+
 			final App app = StructrApp.getInstance(securityContext);
 			String schemaJson = (String)propertySet.get("schema");
+
 			try {
+
 				StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(schemaJson));
+
 			} catch (URISyntaxException | InvalidSchemaException ex) {
 				logger.error("Error while importing JsonSchema: " + ex.getMessage());
 			}

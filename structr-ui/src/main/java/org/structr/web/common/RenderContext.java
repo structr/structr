@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,16 +29,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.relation.ResourceLink;
 
 /**
  * Holds information about the context in which a resource is rendered, like
@@ -384,15 +382,12 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (data instanceof AbstractNode) {
+						if (data instanceof LinkSource) {
 
-							final ResourceLink rel = ((AbstractNode)data).getOutgoingRelationship(ResourceLink.class);
-							if (rel != null) {
-
-								return rel.getTargetNode();
-							}
-
+							final LinkSource linkSource = (LinkSource)data;
+							return linkSource.getLinkable();
 						}
+						break;
 				}
 
 			} else {
@@ -445,13 +440,10 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (entity instanceof NodeInterface) {
+						if (entity instanceof LinkSource) {
 
-							final ResourceLink rel = ((NodeInterface)entity).getOutgoingRelationship(ResourceLink.class);
-							if (rel != null) {
-
-								return rel.getTargetNode();
-							}
+							final LinkSource linkSource = (LinkSource)entity;
+							return linkSource.getLinkable();
 						}
 						break;
 

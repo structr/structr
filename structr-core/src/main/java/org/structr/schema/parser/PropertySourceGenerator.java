@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -137,19 +137,23 @@ public abstract class PropertySourceGenerator {
 		if (app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).and(AbstractNode.name, propertyName).getFirst() == null) {
 
 			app.create(SchemaProperty.class,
-				new NodeAttribute<>(AbstractNode.name,             propertyName),
-				new NodeAttribute<>(SchemaProperty.schemaNode,     schemaNode),
-				new NodeAttribute<>(SchemaProperty.propertyType,   getKey().name()),
-				new NodeAttribute<>(SchemaProperty.contentType,    source.getContentType()),
-				new NodeAttribute<>(SchemaProperty.dbName,         source.getDbName()),
-				new NodeAttribute<>(SchemaProperty.defaultValue,   source.getDefaultValue()),
-				new NodeAttribute<>(SchemaProperty.format,         source.getFormat()),
-				new NodeAttribute<>(SchemaProperty.compound, source.isCompound()),
-				new NodeAttribute<>(SchemaProperty.unique,         source.isUnique()),
-				new NodeAttribute<>(SchemaProperty.indexed,        source.isIndexed()),
-				new NodeAttribute<>(SchemaProperty.notNull,        source.isNotNull()),
-				new NodeAttribute<>(SchemaProperty.readFunction,   source.getReadFunction()),
-				new NodeAttribute<>(SchemaProperty.writeFunction,  source.getWriteFunction())
+				new NodeAttribute<>(AbstractNode.name,                    propertyName),
+				new NodeAttribute<>(SchemaProperty.schemaNode,            schemaNode),
+				new NodeAttribute<>(SchemaProperty.propertyType,          getKey().name()),
+				new NodeAttribute<>(SchemaProperty.contentType,           source.getContentType()),
+				new NodeAttribute<>(SchemaProperty.dbName,                source.getDbName()),
+				new NodeAttribute<>(SchemaProperty.defaultValue,          source.getDefaultValue()),
+				new NodeAttribute<>(SchemaProperty.format,                source.getFormat()),
+				new NodeAttribute<>(SchemaProperty.fqcn,                  source.getFqcn()),
+				new NodeAttribute<>(SchemaProperty.compound,              source.isCompound()),
+				new NodeAttribute<>(SchemaProperty.unique,                source.isUnique()),
+				new NodeAttribute<>(SchemaProperty.indexed,               source.isIndexed()),
+				new NodeAttribute<>(SchemaProperty.notNull,               source.isNotNull()),
+				new NodeAttribute<>(SchemaProperty.isPartOfBuiltInSchema, source.isPartOfBuiltInSchema()),
+				new NodeAttribute<>(SchemaProperty.readFunction,          source.getReadFunction()),
+				new NodeAttribute<>(SchemaProperty.writeFunction,         source.getWriteFunction()),
+				new NodeAttribute<>(SchemaProperty.transformers,          source.getTransformators()),
+				new NodeAttribute<>(SchemaProperty.validators,            source.getValidators())
 			);
 
 			schemaNode.removeProperty(new StringProperty(underscorePropertyName));
@@ -166,7 +170,9 @@ public abstract class PropertySourceGenerator {
 			buf.append(", \"").append(source.getDbName()).append("\"");
 		}
 
-		buf.append(getPropertyParameters());
+		if (getPropertyParameters() != null) {
+			buf.append(getPropertyParameters());
+		}
 
 		buf.append(")");
 
@@ -212,6 +218,23 @@ public abstract class PropertySourceGenerator {
 
 				buf.append(".indexed()");
 			}
+		}
+
+		if (source.isReadOnly()) {
+
+			buf.append(".readOnly()");
+		}
+
+		final String[] transformators = source.getTransformators();
+		if (transformators != null && transformators.length > 0) {
+
+			buf.append(".transformators(\"");
+			buf.append(StringUtils.join(transformators, "\", \""));
+			buf.append("\")");
+		}
+
+		if (source.isPartOfBuiltInSchema()) {
+			buf.append(".partOfBuiltInSchema()");
 		}
 
 		buf.append(".dynamic()");

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,6 +54,12 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	protected abstract String getQueryPrefix();
 	public abstract void clearCaches();
+	public abstract void onClose();
+
+	@Override
+	public String toString() {
+		return (this instanceof NodeWrapper ? "N" : "R") + getId();
+	}
 
 	@Override
 	public long getId() {

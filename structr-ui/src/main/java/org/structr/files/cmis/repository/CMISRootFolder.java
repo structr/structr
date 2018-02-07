@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,10 @@ import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
 import org.structr.api.config.Settings;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.wrapper.CMISFolderWrapper;
+import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
 import org.structr.files.cmis.config.StructrRootFolderActions;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.Folder;
 
 /**
@@ -61,10 +63,12 @@ public class CMISRootFolder extends CMISFolderWrapper {
 
 		// dynamic properties
 		dynamicPropertyMap = new PropertyMap();
-		dynamicPropertyMap.put(Folder.includeInFrontendExport, false);
-		dynamicPropertyMap.put(Folder.position, null);
-	}
 
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+
+		dynamicPropertyMap.put(StructrApp.key(Folder.class, "includeInFrontendExport"), false);
+		dynamicPropertyMap.put(StructrApp.key(Folder.class, "position"),                null);
+	}
 
 	@Override
 	public AllowableActions getAllowableActions() {

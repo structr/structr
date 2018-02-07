@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,18 +26,16 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaRelationshipNode.Direction;
 import org.structr.core.entity.SchemaRelationshipNode.Propagation;
-import org.structr.core.entity.TestUser;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Test access control with different permission levels.
@@ -53,14 +51,14 @@ public class PermissionResolutionTest extends StructrTest {
 
 		SchemaRelationshipNode rel = null;
 		PropertyKey key            = null;
-		TestUser user1             = null;
+		Principal user1            = null;
 		Class type1                = null;
 		Class type2                = null;
 
 		try (final Tx tx = app.tx()) {
 
 			// create a test user
-			user1 = app.create(TestUser.class, "user1");
+			user1 = app.create(Principal.class, "user1");
 
 			// create schema setup with permission propagation
 			final SchemaNode t1 = app.create(SchemaNode.class, "Type1");
@@ -91,7 +89,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 			type1 = StructrApp.getConfiguration().getNodeEntityClass("Type1");
 			type2 = StructrApp.getConfiguration().getNodeEntityClass("Type2");
-			key   = StructrApp.getConfiguration().getPropertyKeyForJSONName(type1, "target");
+			key   = StructrApp.key(type1, "target");
 
 			Assert.assertNotNull("Node type Type1 should exist.", type1);
 			Assert.assertNotNull("Node type Type2 should exist.", type2);

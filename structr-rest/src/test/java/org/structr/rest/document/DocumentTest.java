@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1408,7 +1408,6 @@ public class DocumentTest extends StructrRestTest {
 
 			.when()
 			.get("/Task/ui");
-
 	}
 
 	private String createSchemaNode(final String name, Pair... properties) {

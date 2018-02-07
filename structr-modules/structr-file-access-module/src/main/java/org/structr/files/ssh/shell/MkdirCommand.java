@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -132,7 +132,7 @@ public class MkdirCommand extends CdCommand {
 
 	private void checkAndCreateFolder(final App app, final StructrShellCommand parent, final Folder parentFolder, final String name) throws FrameworkException, IOException {
 
-		final Folder checkFolder = app.nodeQuery(Folder.class).and(AbstractFile.parent, parentFolder).and(Folder.name, name).getFirst();
+		final Folder checkFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "parent"), parentFolder).and(Folder.name, name).getFirst();
 		if (checkFolder != null) {
 
 			term.println("Folder " + target + " already exists");
@@ -144,9 +144,9 @@ public class MkdirCommand extends CdCommand {
 				if (parent.isAllowed(parentFolder, Permission.write, true)) {
 
 					app.create(Folder.class,
-						new NodeAttribute(AbstractFile.parent, parentFolder),
-						new NodeAttribute(Folder.owner, user),
-						new NodeAttribute(Folder.name, name)
+						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parentFolder),
+						new NodeAttribute(StructrApp.key(Folder.class, "owner"), user),
+						new NodeAttribute(StructrApp.key(Folder.class, "name"), name)
 					);
 
 					return;

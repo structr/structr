@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.AbstractUser;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.property.PropertyKey;
@@ -114,7 +114,7 @@ public class AuthHelper {
 
 			try {
 
-				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractUser.name, value).disableSorting().getFirst();
+				principal = StructrApp.getInstance().nodeQuery(Principal.class).and().or(key, value).or(AbstractNode.name, value).disableSorting().getFirst();
 
 				if (principal == null) {
 
@@ -124,7 +124,7 @@ public class AuthHelper {
 
 				} else {
 
-					if (principal.getProperty(Principal.blocked)) {
+					if (principal.isBlocked()) {
 
 						logger.info("Principal {} is blocked", principal);
 
@@ -174,8 +174,7 @@ public class AuthHelper {
 	 * @return principal
 	 */
 	public static Principal getPrincipalForSessionId(final String sessionId) {
-
-		return getPrincipalForCredential(Principal.sessionIds, new String[]{ sessionId });
+		return getPrincipalForCredential(StructrApp.key(Principal.class, "sessionIds"), new String[]{ sessionId });
 
 	}
 

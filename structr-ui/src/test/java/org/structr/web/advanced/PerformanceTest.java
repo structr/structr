@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -296,9 +296,9 @@ public class PerformanceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			user = app.create(User.class,
-				new NodeAttribute<>(AbstractNode.name, "admin"),
-				new NodeAttribute<>(User.password, "admin"),
-				new NodeAttribute<>(User.isAdmin, true)
+				new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "password"),     "admin"),
+				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),      true)
 			);
 
 			tx.success();

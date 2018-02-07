@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,7 @@ public interface MQTTInfo {
 	public String getProtocol();
 	public String getUrl();
 	public int getPort();
-	public int getQoS();
+	public int getQos();
 	public String getUuid();
 
 	public String[] getTopics();

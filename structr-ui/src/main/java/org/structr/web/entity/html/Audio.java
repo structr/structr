@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,42 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
 /**
  *
  */
-public class Audio extends DOMElement {
+public interface Audio extends DOMElement {
 
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Audio");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Audio"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_src",         PropertyView.Html);
+		type.addStringProperty("_html_crossorigin", PropertyView.Html);
+		type.addStringProperty("_html_preload",     PropertyView.Html);
+		type.addStringProperty("_html_autoplay",    PropertyView.Html);
+		type.addStringProperty("_html_mediagroup",  PropertyView.Html);
+		type.addStringProperty("_html_loop",        PropertyView.Html);
+		type.addStringProperty("_html_muted",       PropertyView.Html);
+		type.addStringProperty("_html_controls",    PropertyView.Html);
+	}}
+
+	/*
 	public static final Property<String> _src		= new HtmlProperty("src");
 	public static final Property<String> _crossorigin	= new HtmlProperty("crossorigin");
 	public static final Property<String> _preload		= new HtmlProperty("preload");
 	public static final Property<String> _autoplay		= new HtmlProperty("autoplay");
-	public static final Property<String> _mediagroup		= new HtmlProperty("mediagroup");
+	public static final Property<String> _mediagroup	= new HtmlProperty("mediagroup");
 	public static final Property<String> _loop		= new HtmlProperty("loop");
 	public static final Property<String> _muted		= new HtmlProperty("muted");
 	public static final Property<String> _controls		= new HtmlProperty("controls");
@@ -40,5 +61,5 @@ public class Audio extends DOMElement {
 	public static final org.structr.common.View htmlView	= new org.structr.common.View(Audio.class, PropertyView.Html,
 		_src, _crossorigin, _preload, _autoplay, _mediagroup, _loop, _muted, _controls
 	);
-
+	*/
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,10 +38,19 @@ import org.structr.schema.json.JsonSchema;
 public class StructrEnumProperty extends StructrStringProperty implements JsonEnumProperty {
 
 	protected Set<String> enums = new TreeSet<>();
+	protected String fqcn       = null;
 
 	public StructrEnumProperty(final StructrTypeDefinition parent, final String name) {
 
 		super(parent, name);
+	}
+
+	@Override
+	public JsonEnumProperty setEnumType(final Class type) {
+
+		this.fqcn = type.getName().replace("$", ".");
+
+		return this;
 	}
 
 	@Override
@@ -64,7 +73,15 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 		final Map<String, Object> map = super.serialize();
 
-		map.put(JsonSchema.KEY_ENUM, enums);
+		if (fqcn != null) {
+
+			map.put(JsonSchema.KEY_FQCN, fqcn);
+
+		} else {
+
+			map.put(JsonSchema.KEY_ENUM, enums);
+		}
+
 		map.remove(JsonSchema.KEY_FORMAT);
 
 		return map;
@@ -76,6 +93,8 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		super.deserialize(source);
 
 		final Object enumValues = source.get(JsonSchema.KEY_ENUM);
+		final Object typeValue  = source.get(JsonSchema.KEY_FQCN);
+
 		if (enumValues != null) {
 
 			if (enumValues instanceof List) {
@@ -86,6 +105,10 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 				throw new IllegalStateException("Invalid enum values for property " + name + ", expected array.");
 			}
+
+		} else if (typeValue != null && typeValue instanceof String) {
+
+			this.fqcn = typeValue.toString();
 
 		} else {
 
@@ -107,6 +130,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 
 		property.setProperty(SchemaProperty.propertyType, Type.Enum.name());
+		property.setProperty(SchemaProperty.fqcn, this.fqcn);
 		property.setProperty(SchemaProperty.format, StringUtils.join(getEnums(), ", "));
 
 		return property;

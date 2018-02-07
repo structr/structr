@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,24 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Label extends DOMElement {
+public interface Label extends DOMElement {
 
-	public static final Property<String>            _for   = new HtmlProperty("for");
-	public static final Property<String>            _form  = new HtmlProperty("form");
-	
-	public static final View htmlView = new View(Label.class, PropertyView.Html,
-		_for, _form
-	);
+	static class Impl { static {
+
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Label");
+
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Label"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
+
+		type.addStringProperty("_html_for",  PropertyView.Html);
+		type.addStringProperty("_html_form", PropertyView.Html);
+	}}
 }

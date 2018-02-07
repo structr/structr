@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,9 +25,8 @@ import java.nio.channels.FileChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
-import org.structr.web.entity.FileBase;
+import org.structr.core.app.StructrApp;
+import org.structr.web.entity.File;
 
 /**
  *
@@ -37,13 +36,13 @@ public class FileUploadHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
-	private FileBase file                  = null;
+	private File file                  = null;
 	private FileChannel privateFileChannel = null;
 	private Long size                      = 0L;
 
-	public FileUploadHandler(final FileBase file) {
+	public FileUploadHandler(final File file) {
 
-		this.size = file.getProperty(File.size);
+		this.size = file.getSize();
 		this.file = file;
 
 		if (this.size == null) {
@@ -94,7 +93,7 @@ public class FileUploadHandler {
 		try {
 
 			file.unlockSystemPropertiesOnce();
-			file.setProperties(file.getSecurityContext(), new PropertyMap(File.size, size));
+			file.setProperty(StructrApp.key(File.class, "size"), size);
 
 		} catch (FrameworkException ex) {
 

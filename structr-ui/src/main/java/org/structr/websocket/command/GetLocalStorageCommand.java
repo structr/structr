@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,7 +44,7 @@ public class GetLocalStorageCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {
-			webSocketData.setNodeData("localStorageString", securityContext.getUser(false).getProperty(User.localStorage));
+			webSocketData.setNodeData("localStorageString", ((User)securityContext.getUser(false)).getLocalStorage());
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

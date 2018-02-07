@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>2.3-SNAPSHOT</version>
+		<version>3.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-odf-module</artifactId>
 	<packaging>jar</packaging>
@@ -61,6 +61,16 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.19.1</version>
+				<configuration>
+					<argLine>-Xmx1g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+					<reuseForks>false</reuseForks>
+					<forkCount>1</forkCount>
+				</configuration>
+			</plugin>
+			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.0.2</version>
 				<configuration>
@@ -105,9 +115,10 @@
 						<exclude>**/README</exclude>
 						<exclude>src/**/.directory</exclude>
 						<exclude>src/**/*.sh</exclude>
+						<exclude>src/test/resources/**/*.properties</exclude>
 					</excludes>
 					<properties>
-						<year>2017</year>
+						<year>2018</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>
@@ -182,7 +193,7 @@
 			<name>GNU Affero General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2017 Structr GmbH
+				Copyright (C) 2010-2018 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -339,7 +339,7 @@ public class Scripting {
 		return buf.toString();
 	}
 
-	private static Script compileOrGetCached(final Context context, final String source, final String sourceName, final int lineNo) {
+	public static Script compileOrGetCached(final Context context, final String source, final String sourceName, final int lineNo) {
 
 		synchronized (compiledScripts) {
 

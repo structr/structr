@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,19 +32,14 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Creates a relationship between two NodeInterface instances. The execute
  * method of this command takes the following parameters.
- *
  *
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateRelationshipCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);

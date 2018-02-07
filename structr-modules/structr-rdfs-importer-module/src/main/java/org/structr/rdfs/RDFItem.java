@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.rdfs;
 
 import java.net.URI;
@@ -271,7 +270,7 @@ public abstract class RDFItem<T extends RDFItem> implements Comparable<RDFItem> 
 
 		if (convertedValue != null) {
 
-			final PropertyKey key = config.getPropertyKeyForJSONName(nodeType, propertyName, false);
+			final PropertyKey key = StructrApp.key(nodeType, propertyName);
 			if (key != null) {
 
 				final PropertyConverter inputConverter = key.inputConverter(SecurityContext.getSuperUserInstance());

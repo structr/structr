@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -106,6 +106,8 @@ public class LDAPServerService implements SingletonService {
 			server.start();
 
 		} catch (Throwable t) {
+
+			t.printStackTrace();
 
 			logger.warn("Unable to start LDAP server: {}", t.getMessage());
 

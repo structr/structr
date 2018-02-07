@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,58 +18,60 @@
  */
 package org.structr.web.entity;
 
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.entity.Relation.Cardinality;
+import static org.structr.core.entity.SchemaMethod.source;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.relation.ImageWidget;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
-import org.structr.web.property.UiNotion;
 
 /**
  *
  *
  */
-public class Widget extends AbstractNode {
+public interface Widget extends NodeInterface {
 
-	private static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
+	static class Impl { static {
 
-	public static final Property<String>      source        = new StringProperty("source").cmis();
-	public static final Property<String>      description   = new StringProperty("description").cmis();
-	public static final Property<String>      configuration = new StringProperty("configuration").cmis();
-	public static final Property<String>      treePath      = new StringProperty("treePath").cmis().indexed();
-	public static final Property<List<Image>> pictures      = new EndNodes<>("pictures", ImageWidget.class, new UiNotion());
-	public static final Property<Boolean>     isWidget      = new ConstantBooleanProperty("isWidget", true);
+		final JsonSchema schema    = SchemaService.getDynamicSchema();
+		final JsonObjectType type  = schema.addType("Widget");
+		final JsonObjectType image = schema.addType("Image");
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(Widget.class, PropertyView.Ui,
-		type, name, source, description, configuration, pictures, treePath, isWidget
-	);
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
 
-	public static final org.structr.common.View publicView = new org.structr.common.View(Widget.class, PropertyView.Public,
-		type, name, source, description, configuration, pictures, treePath, isWidget
-	);
+		type.addStringProperty("source",        PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("description",   PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("configuration", PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("treePath",      PropertyView.Ui, PropertyView.Public);
+		type.addBooleanProperty("isWidget",     PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
-	// register this type as an overridden builtin type
-	static {
-		SchemaService.registerBuiltinTypeOverride("Widget", Widget.class.getName());
-	}
+		type.relate(image, "PICTURE_OF", Cardinality.OneToMany, "widget", "pictures");
 
-	public static void expandWidget(SecurityContext securityContext, Page page, DOMNode parent, String baseUrl, Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
+		// view configuration
+		type.addViewProperty(PropertyView.Public, "name");
+		type.addViewProperty(PropertyView.Public, "pictures");
+
+		type.addViewProperty(PropertyView.Ui, "pictures");
+	}}
+
+	static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
+
+	public static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
 		String _source          = (String)parameters.get("source");
 		ErrorBuffer errorBuffer = new ErrorBuffer();
@@ -81,7 +83,7 @@ public class Widget extends AbstractNode {
 		} else {
 
 			// check source for mandatory parameters
-			Matcher matcher  = threadLocalTemplateMatcher.get();
+			Matcher matcher = threadLocalTemplateMatcher.get();
 
 			// initialize with source
 			matcher.reset(_source);

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1923,7 +1923,7 @@ public class PropertyTest extends StructrTest {
 			final GraphObject test  = app.nodeQuery(testType).getFirst();
 
 			// create Test with link to Group
-			test.setProperty(config.getPropertyKeyForJSONName(testType, "group"), group);
+			test.setProperty(StructrApp.key(testType, "group"), group);
 
 			tx.success();
 
@@ -1938,7 +1938,7 @@ public class PropertyTest extends StructrTest {
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final Class testType  = config.getNodeEntityClass("Test");
-			final PropertyKey key = config.getPropertyKeyForJSONName(testType, "testFunction");
+			final PropertyKey key = StructrApp.key(testType, "testFunction");
 
 			// fetch test node
 			final GraphObject testNode = app.nodeQuery(testType).getFirst();

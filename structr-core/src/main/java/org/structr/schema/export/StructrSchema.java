@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -157,6 +159,14 @@ public class StructrSchema {
 
 			for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
 				app.delete(schemaNode);
+			}
+
+			for (final SchemaMethod schemaMethod : app.nodeQuery(SchemaMethod.class).getAsList()) {
+				app.delete(schemaMethod);
+			}
+
+			for (final SchemaMethodParameter schemaMethodParameter : app.nodeQuery(SchemaMethodParameter.class).getAsList()) {
+				app.delete(schemaMethodParameter);
 			}
 
 			for (final SchemaProperty schemaProperty : app.nodeQuery(SchemaProperty.class).getAsList()) {

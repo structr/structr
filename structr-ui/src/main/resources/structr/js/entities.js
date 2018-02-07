@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -534,9 +534,8 @@ var _Entities = {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
 	},
 	listProperties: function (entity, view, tabView, typeInfo) {
-
 		$.ajax({
-			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=10', // TODO: Implement paging or scroll-into-view here
+			url: rootUrl + entity.id + (view ? '/' + view : '') + '?pageSize=100', // TODO: Implement paging or scroll-into-view here
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8',
 			success: function(data) {
@@ -545,7 +544,7 @@ var _Entities = {
 
 				var tempNodeCache = new AsyncObjectCache(function(id) {
 					Command.getProperties(id, 'id,name,type,tag,isContent,content', function (node) {
-						tempNodeCache.addObject(node);
+						tempNodeCache.addObject(node, node.id);
 					});
 				});
 
@@ -560,7 +559,7 @@ var _Entities = {
 
 					if (typeInfo) {
 						keys.forEach(function(key) {
-							if (typeInfo[key] && typeInfo[key].category) {
+							if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== "System") {
 
 								var category = typeInfo[key].category;
 								if (!groupedKeys[category]) {
@@ -707,7 +706,7 @@ var _Entities = {
 
 									var nodeId = res[key].id || res[key];
 
-									tempNodeCache.registerCallbackForId(nodeId, function(node) {
+									tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
 
 										_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 											$('.remove', nodeEl).on('click', function(e) {
@@ -732,7 +731,7 @@ var _Entities = {
 
 										var nodeId = obj.id || obj;
 
-										tempNodeCache.registerCallbackForId(nodeId, function(node) {
+										tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
 
 											_Entities.appendRelatedNode(cell, node, function(nodeEl) {
 												$('.remove', nodeEl).on('click', function(e) {

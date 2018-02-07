@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,6 +37,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -64,10 +65,11 @@ public class NodeExtender {
 	private Set<String> fqcns            = null;
 	private String initiatedBySessionId  = null;
 
-	public NodeExtender() {
+	public NodeExtender(final String initiatedBySessionId) {
 
-		jfiles      = new ArrayList<>();
-		fqcns       = new LinkedHashSet<>();
+		this.initiatedBySessionId = initiatedBySessionId;
+		this.jfiles               = new ArrayList<>();
+		this.fqcns                = new LinkedHashSet<>();
 	}
 
 	public static ClassLoader getClassLoader() {
@@ -94,7 +96,12 @@ public class NodeExtender {
 			if (Settings.LogSchemaOutput.getValue()) {
 
 				System.out.println("########################################################################################################################################################");
-				System.out.println(content);
+
+				int count = 0;
+
+				for (final String line : content.split("[\\n\\r]{1}")) {
+					System.out.println(StringUtils.rightPad(++count + ": ", 6) + line);
+				}
 			}
 		}
 	}
@@ -191,7 +198,7 @@ public class NodeExtender {
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
 				// log also to log file
-				logger.warn("Unable to compile dynamic entity {}: {}", new Object[] { name, diagnostic.getMessage(Locale.ENGLISH) });
+				logger.warn("Unable to compile dynamic entity {}:{}: {}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH));
 			}
 		}
 	}

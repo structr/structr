@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,9 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.User;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -54,8 +52,8 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 
 			try {
 
-				final Principal me = securityContext.getUser(false);
-				me.setProperties(securityContext, new PropertyMap(User.localStorage, localStorageString));
+				final User me = (User)securityContext.getUser(false);
+				me.setLocalStorage(localStorageString);
 
 				TransactionCommand.registerNodeCallback(me, callback);
 

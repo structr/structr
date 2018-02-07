@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,8 +29,8 @@ import org.structr.bolt.mapper.RelationshipRelationshipMapper;
  */
 public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
-	public CypherRelationshipIndex(final BoltDatabaseService db, final int queryCacheSize) {
-		super(db, queryCacheSize);
+	public CypherRelationshipIndex(final BoltDatabaseService db) {
+		super(db);
 	}
 
 	@Override

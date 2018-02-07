@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -131,7 +131,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 	private void deleteRecursively(final App app, final DOMNode node) throws FrameworkException {
 
-		for (DOMNode child : node.treeGetChildren()) {
+		for (DOMNode child : node.getChildren()) {
 			deleteRecursively(app, child);
 		}
 
@@ -152,64 +152,93 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 			}
 		}
 
-		return new PropertyMap();
+		return null;
 	}
 
 	private void createTemplate(final Path file, final String fileName) throws IOException, FrameworkException {
 
 		final String templateName = StringUtils.substringBeforeLast(fileName, ".html");
+
+		// either the template was exported with name + uuid or just the uuid
+		final boolean byNameAndId = DeployCommand.endsWithUuid(templateName);
 		final boolean byId        = DeployCommand.isUuid(templateName);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			// don't set template name if template name is a UUID in the deployment
-			final String name              = byId ? null : templateName;
-			final PropertyMap properties   = getPropertiesForTemplate(templateName);
+			final PropertyMap properties  = getPropertiesForTemplate(templateName);
 
-			logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
+			if (properties == null) {
 
-			final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
-
-			final Template template;
-
-			if (byId) {
-
-				final DOMNode existingTemplate = app.get(DOMNode.class, templateName);
-				if (existingTemplate != null) {
-
-					deleteTemplate(app, existingTemplate);
-				}
-
-				template = app.create(Template.class, new NodeAttribute(AbstractNode.id, templateName));
-
+				logger.info("Ignoring {} (not in templates.json)", fileName);
 			} else {
 
-				final DOMNode existingTemplate = getExistingTemplate(name);
-				if (existingTemplate != null) {
+				final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
 
-					deleteTemplate(app, existingTemplate);
+				final Template template;
+
+				if (byId) {
+
+					logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
+
+					final DOMNode existingTemplate = app.get(DOMNode.class, templateName);
+					if (existingTemplate != null) {
+
+						deleteTemplate(app, existingTemplate);
+					}
+
+					template = app.create(Template.class, new NodeAttribute(AbstractNode.id, templateName));
+
+				} else if (byNameAndId) {
+
+					// the last characters in the name string are the uuid
+					final String uuid = templateName.substring(templateName.length() - 32);
+					final String name = templateName.substring(0, templateName.length() - 33);
+
+					logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
+
+					final DOMNode existingTemplate = app.get(DOMNode.class, uuid);
+					if (existingTemplate != null) {
+
+						deleteTemplate(app, existingTemplate);
+					}
+
+					template = app.create(Template.class, new NodeAttribute(AbstractNode.id, uuid));
+					properties.put(Template.name, name);
+
+				} else {
+
+					final String name = byId ? null : templateName;
+
+					logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
+
+					final DOMNode existingTemplate = getExistingTemplate(name);
+					if (existingTemplate != null) {
+
+						deleteTemplate(app, existingTemplate);
+					}
+
+					template = app.create(Template.class);
+					properties.put(Template.name, name);
 				}
 
-				template = app.create(Template.class);
-				properties.put(Template.name, name);
-			}
+				properties.put(StructrApp.key(Template.class, "content"), src);
 
-			properties.put(Template.content, src);
+				// insert "shared" templates into ShadowDocument
+				final Object value = properties.get(internalSharedTemplateKey);
+				if (value != null) {
 
-			// insert "shared" templates into ShadowDocument
-			final Object value = properties.get(internalSharedTemplateKey);
-			if (value != null) {
+					if ("true".equals(value)) {
 
-				if ("true".equals(value)) {
+						template.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
+					}
 
-					template.setProperty(DOMNode.ownerDocument, CreateComponentCommand.getOrCreateHiddenDocument());
+					properties.remove(internalSharedTemplateKey);
 				}
 
-				properties.remove(internalSharedTemplateKey);
-			}
+				// store properties from templates.json if present
+				template.setProperties(securityContext, properties);
 
-			// store properties from templates.json if present
-			template.setProperties(securityContext, properties);
+			}
 
 			tx.success();
 

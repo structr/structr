@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,23 +41,20 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.dynamic.File;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+import org.structr.web.entity.File;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command for un-archiving archive files.
- *
- *
  */
 public class UnarchiveCommand extends AbstractCommand {
 
@@ -66,10 +63,8 @@ public class UnarchiveCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(UnarchiveCommand.class);
-
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -92,11 +87,11 @@ public class UnarchiveCommand extends AbstractCommand {
 			final String id = (String) webSocketData.getId();
 			final String parentFolderId = (String) webSocketData.getNodeData().get("parentFolderId");
 
-			final FileBase file;
+			final File file;
 
 			try (final Tx tx = app.tx()) {
 
-				file = app.get(FileBase.class, id);
+				file = app.get(File.class, id);
 
 				if (file == null) {
 					getWebSocket().send(MessageBuilder.status().code(400).message("File not found: ".concat(id)).build(), true);
@@ -141,7 +136,7 @@ public class UnarchiveCommand extends AbstractCommand {
 		return false;
 	}
 
-	private void unarchive(final SecurityContext securityContext, final FileBase file, final String parentFolderId) throws ArchiveException, IOException, FrameworkException {
+	private void unarchive(final SecurityContext securityContext, final File file, final String parentFolderId) throws ArchiveException, IOException, FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		final InputStream is;
@@ -179,145 +174,128 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		final BufferedInputStream bufferedIs = new BufferedInputStream(is);
 
+
 		switch (ArchiveStreamFactory.detect(bufferedIs)) {
 
 			// 7z doesn't support streaming
-			case ArchiveStreamFactory.SEVEN_Z:
-
-				SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
-
-				SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
-
+			case ArchiveStreamFactory.SEVEN_Z: {
 				int overallCount = 0;
 
-				while (sevenZEntry != null) {
+				logger.info("7-Zip archive format detected");
 
-					try (final Tx tx = app.tx(true, true, false)) {
+				try (final Tx outertx = app.tx()) {
+					SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
 
-						int count = 0;
+					SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
 
-						while (sevenZEntry != null && count++ < 50) {
+					while (sevenZEntry != null) {
 
-							final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
-							logger.info("Entry path: {}", entryPath);
+						try (final Tx tx = app.tx(true, true, false)) {
 
-							if (sevenZEntry.isDirectory()) {
+							int count = 0;
 
-								handleDirectory(securityContext, existingParentFolder, entryPath);
+							while (sevenZEntry != null && count++ < 50) {
 
-							} else {
+								final String entryPath = "/" + PathHelper.clean(sevenZEntry.getName());
+								logger.info("Entry path: {}", entryPath);
 
-								byte[] buf = new byte[(int) sevenZEntry.getSize()];
-								sevenZFile.read(buf, 0, buf.length);
+								if (sevenZEntry.isDirectory()) {
 
-								final ByteArrayInputStream in = new ByteArrayInputStream(buf);
+									handleDirectory(securityContext, existingParentFolder, entryPath);
 
-								handleFile(securityContext, in, existingParentFolder, entryPath);
+								} else {
+
+									byte[] buf = new byte[(int) sevenZEntry.getSize()];
+									sevenZFile.read(buf, 0, buf.length);
+
+									try (final ByteArrayInputStream in = new ByteArrayInputStream(buf)) {
+										handleFile(securityContext, in, existingParentFolder, entryPath);
+									}
+								}
+
+								sevenZEntry = sevenZFile.getNextEntry();
+
+								overallCount++;
 							}
 
-							sevenZEntry = sevenZFile.getNextEntry();
-
-							overallCount++;
+							logger.info("Committing transaction after {} entries.", overallCount);
+							tx.success();
 						}
-
-						logger.info("Committing transaction after {} entries.", overallCount);
-
-						tx.success();
 
 					}
 
+					logger.info("Unarchived {} files.", overallCount);
+					outertx.success();
 				}
 
-				logger.info("Unarchived {} files.", overallCount);
-
 				break;
+			}
 
 			// ZIP needs special treatment to support "unsupported feature data descriptor"
-			case ArchiveStreamFactory.ZIP:
+			case ArchiveStreamFactory.ZIP: {
+
+				logger.info("Zip archive format detected");
 
 				try (final ZipArchiveInputStream in = new ZipArchiveInputStream(bufferedIs, null, false, true)) {
 
-					ArchiveEntry entry = in.getNextEntry();
-					overallCount = 0;
-
-					while (entry != null) {
-
-						try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
-
-							int count = 0;
-
-							while (entry != null && count++ < 50) {
-
-								final String entryPath = "/" + PathHelper.clean(entry.getName());
-								logger.info("Entry path: {}", entryPath);
-
-								if (entry.isDirectory()) {
-
-									handleDirectory(securityContext, existingParentFolder, entryPath);
-
-								} else {
-
-									handleFile(securityContext, in, existingParentFolder, entryPath);
-								}
-
-								entry = in.getNextEntry();
-
-								overallCount++;
-							}
-
-							logger.info("Committing transaction after {} entries.", overallCount);
-
-							tx.success();
-						}
-					}
+					handleArchiveInputStream(in, app, securityContext, existingParentFolder);
 				}
 
-				logger.info("Unarchived {} entries.", overallCount);
-
 				break;
-			default:
+			}
+
+			default: {
+
+				logger.info("Default archive format detected");
 
 				try (final ArchiveInputStream in = new ArchiveStreamFactory().createArchiveInputStream(bufferedIs)) {
 
-					ArchiveEntry entry = in.getNextEntry();
-					overallCount = 0;
-
-					while (entry != null) {
-
-						try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
-
-							int count = 0;
-
-							while (entry != null && count++ < 50) {
-
-								final String entryPath = "/" + PathHelper.clean(entry.getName());
-								logger.info("Entry path: {}", entryPath);
-
-								if (entry.isDirectory()) {
-
-									handleDirectory(securityContext, existingParentFolder, entryPath);
-
-								} else {
-
-									handleFile(securityContext, in, existingParentFolder, entryPath);
-								}
-
-								entry = in.getNextEntry();
-
-								overallCount++;
-							}
-
-							logger.info("Committing transaction after {} entries.", overallCount);
-
-							tx.success();
-						}
-					}
+					handleArchiveInputStream(in, app, securityContext, existingParentFolder);
 				}
-
-				logger.info("Unarchived {} entries.", overallCount);
+			}
 		}
 
 		getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
+	}
+
+	private void handleArchiveInputStream(final ArchiveInputStream in, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {
+
+		int overallCount = 0;
+
+		ArchiveEntry entry = in.getNextEntry();
+
+		while (entry != null) {
+
+			try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+
+				int count = 0;
+
+				while (entry != null && count++ < 50) {
+
+					final String entryPath = "/" + PathHelper.clean(entry.getName());
+					logger.info("Entry path: {}", entryPath);
+
+					if (entry.isDirectory()) {
+
+						handleDirectory(securityContext, existingParentFolder, entryPath);
+
+					} else {
+
+						handleFile(securityContext, in, existingParentFolder, entryPath);
+					}
+
+					entry = in.getNextEntry();
+
+					overallCount++;
+				}
+
+				logger.info("Committing transaction after {} entries.", overallCount);
+
+				tx.success();
+			}
+		}
+
+		logger.info("Unarchived {} entries.", overallCount);
 	}
 
 	private void handleDirectory(final SecurityContext securityContext, final Folder existingParentFolder, final String entryPath) throws FrameworkException {
@@ -329,11 +307,11 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	private void handleFile(final SecurityContext securityContext, final InputStream in, final Folder existingParentFolder, final String entryPath) throws FrameworkException, IOException {
 
-		final String filePath = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
-
-		final String name = PathHelper.getName(entryPath);
-
-		AbstractFile newFile = ImageHelper.isImageType(name)
+		final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
+		final PropertyKey<Boolean> hasParentKey = StructrApp.key(AbstractFile.class, "hasParent");
+		final String filePath                   = (existingParentFolder != null ? existingParentFolder.getPath() : "") + PathHelper.PATH_SEP + PathHelper.clean(entryPath);
+		final String name                       = PathHelper.getName(entryPath);
+		final AbstractFile newFile              = ImageHelper.isImageType(name)
 					? ImageHelper.createImage(securityContext, in, null, Image.class, name, false)
 					: FileHelper.createFile(securityContext, in, null, File.class, name);
 
@@ -342,9 +320,11 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		if (parentFolder != null) {
 
-			final PropertyMap properties = new PropertyMap(AbstractFile.parent, parentFolder);
+			final PropertyMap properties = new PropertyMap();
 
-			properties.put(AbstractFile.hasParent, true);
+			properties.put(parentKey,    parentFolder);
+			properties.put(hasParentKey, true);
+
 			newFile.setProperties(securityContext, properties);
 		}
 	}

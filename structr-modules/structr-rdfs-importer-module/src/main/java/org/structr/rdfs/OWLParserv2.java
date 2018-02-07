@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.rdfs;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -64,7 +63,7 @@ import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -192,7 +191,7 @@ public class OWLParserv2 {
 
 		try (final App app = StructrApp.getInstance()) {
 
-			final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(fileName));
+			final Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new java.io.File(fileName));
 
 			System.out.println("Parsing XML document..");
 			logger.println("Parsing XML document..");
@@ -323,9 +322,9 @@ public class OWLParserv2 {
 							for (final Name localizedName : owlClass.getNames()) {
 
 								app.create(Localization.class,
-									new NodeAttribute(Localization.name, name),
-									new NodeAttribute(Localization.localizedName, localizedName.name),
-									new NodeAttribute(Localization.locale, localizedName.lang)
+									new NodeAttribute(StructrApp.key(Localization.class, "name"), name),
+									new NodeAttribute(StructrApp.key(Localization.class, "localizedName"), localizedName.name),
+									new NodeAttribute(StructrApp.key(Localization.class, "locale"), localizedName.lang)
 								);
 							}
 						}
@@ -538,7 +537,7 @@ public class OWLParserv2 {
 				}
 			}
 
-			final File blobs = new File(blobsDirectory);
+			final java.io.File blobs = new java.io.File(blobsDirectory);
 			if (blobs.exists()) {
 
 				final ConfigurationProvider config            = StructrApp.getConfiguration();
@@ -593,7 +592,7 @@ public class OWLParserv2 {
 
 											System.out.println("                ##########: found SchemaNode " + schemaNode.getUuid() + " (" + schemaNode.getName() + ")");
 
-											final SchemaNode fileSchemaNode = app.nodeQuery(SchemaNode.class).andName(org.structr.dynamic.File.class.getSimpleName()).getFirst();
+											final SchemaNode fileSchemaNode = app.nodeQuery(SchemaNode.class).andName(File.class.getSimpleName()).getFirst();
 											if (fileSchemaNode != null) {
 
 												final String capitalJsonName = StringUtils.capitalize(key.jsonName());
@@ -688,13 +687,13 @@ public class OWLParserv2 {
 											final String targetJsonName  = "has" + capitalJsonName;
 											final NodeInterface node     = nodes.get(0);
 
-											final PropertyKey fileRelationshipKey = config.getPropertyKeyForJSONName(type, targetJsonName, false);
+											final PropertyKey fileRelationshipKey = StructrApp.key(type, targetJsonName);
 											if (fileRelationshipKey != null) {
 
 												try (final InputStream is = new FileInputStream(file.toFile())) {
 
 													// import file..
-													final Class fileType = ImageHelper.isImageType(name) ? Image.class : org.structr.dynamic.File.class;
+													final Class fileType = ImageHelper.isImageType(name) ? Image.class : File.class;
 
 													if (isMultiple) {
 
@@ -712,8 +711,8 @@ public class OWLParserv2 {
 
 														logger.println("        Importing " + name + " => " + actualName);
 
-														final FileBase importedFile = FileHelper.createFile(superUserSecurityContext, is, null, fileType, actualName);
-														final List<FileBase> fileList = (List<FileBase>)node.getProperty(fileRelationshipKey);
+														final File importedFile   = FileHelper.createFile(superUserSecurityContext, is, null, fileType, actualName);
+														final List<File> fileList = (List<File>)node.getProperty(fileRelationshipKey);
 														fileList.add(importedFile);
 
 														node.setProperty(fileRelationshipKey, fileList);
@@ -729,7 +728,7 @@ public class OWLParserv2 {
 
 														logger.println("        Importing " + name + " => " + actualName);
 
-														final FileBase importedFile = FileHelper.createFile(superUserSecurityContext, is, null, fileType, actualName);
+														final File importedFile = FileHelper.createFile(superUserSecurityContext, is, null, fileType, actualName);
 														node.setProperty(fileRelationshipKey, importedFile);
 													}
 
@@ -759,7 +758,7 @@ public class OWLParserv2 {
 									try (final InputStream is = new FileInputStream(file.toFile())) {
 
 										// import file..
-										final Class fileType = ImageHelper.isImageType(name) ? Image.class : org.structr.dynamic.File.class;
+										final Class fileType = ImageHelper.isImageType(name) ? Image.class : File.class;
 										FileHelper.createFile(superUserSecurityContext, is, null, fileType, name);
 
 									} catch (Throwable t) {
@@ -993,7 +992,7 @@ public class OWLParserv2 {
 			final Class<NodeInterface> type = config.getNodeEntityClass(className);
 			if (type != null) {
 
-				final PropertyKey key = config.getPropertyKeyForJSONName(type, propertyName, false);
+				final PropertyKey key = StructrApp.key(type, propertyName);
 				if (key != null) {
 
 					mapping.add(new Tuple(type, key));

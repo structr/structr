@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,8 +52,9 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Image;
 
 /**
  *
@@ -163,7 +164,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			try (final Tx tx = app.tx()) {
 
-				targetFolder = app.nodeQuery(Folder.class).and(Folder.path, targetPath).getFirst();
+				targetFolder = app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), targetPath).getFirst();
 				if (targetFolder == null) {
 
 					throw new FrameworkException(422, "Target path " + targetPath + " does not exist.");
@@ -255,7 +256,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				final Folder newFolder = app.create(Folder.class,
 						new NodeAttribute(Folder.name, name),
-						new NodeAttribute(FileBase.parent, FileHelper.createFolderPath(securityContext, parentPath))
+						new NodeAttribute(StructrApp.key(File.class, "parent"), FileHelper.createFolderPath(securityContext, parentPath))
 				);
 
 				folderCount++;
@@ -264,7 +265,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 			} else if (attrs.isRegularFile()) {
 
-				final FileBase existingFile = app.nodeQuery(FileBase.class).and(AbstractFile.path, parentPath + name).getFirst();
+				final File existingFile = app.nodeQuery(File.class).and(StructrApp.key(AbstractFile.class, "path"), parentPath + name).getFirst();
 				if (existingFile != null) {
 
 					switch (existing) {
@@ -295,7 +296,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				if (isImage) {
 
-					cls = org.structr.dynamic.Image.class;
+					cls = Image.class;
 
 				} else if (isVideo) {
 
@@ -307,12 +308,12 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				} else {
 
-					cls = org.structr.dynamic.File.class;
+					cls = File.class;
 				}
 
-				final FileBase newFile = (FileBase) app.create(cls,
-						new NodeAttribute(FileBase.name, name),
-						new NodeAttribute(FileBase.parent, FileHelper.createFolderPath(securityContext, parentPath)),
+				final File newFile = (File) app.create(cls,
+						new NodeAttribute(File.name, name),
+						new NodeAttribute(StructrApp.key(File.class, "parent"), FileHelper.createFolderPath(securityContext, parentPath)),
 						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 

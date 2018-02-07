@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,14 @@
  */
 package org.structr.schema.action;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -26,33 +33,74 @@ import org.apache.commons.lang3.StringEscapeUtils;
  */
 public class ActionEntry implements Comparable<ActionEntry> {
 
-	private Actions.Type type  = null;
-	private String call        = null;
-	private String name        = null;
-	private int position       = 0;
+	private final Map<String, String> parameters = new LinkedHashMap<>();
+	private final List<String> exceptions        = new LinkedList<>();
+	private Actions.Type type                    = null;
+	private boolean doExport                     = false;
+	private boolean overrides                    = false;
+	private boolean callSuper                    = false;
+	private String returnType                    = null;
+	private String call                          = null;
+	private String name                          = null;
+	private int position                         = 0;
 
-	public ActionEntry(final String sourceName, final String value, final boolean isJava) {
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		if (returnType != null) {
+			buf.append(returnType);
+			buf.append(" ");
+		}
+
+		buf.append(name);
+		buf.append("(");
+		buf.append(StringUtils.join(parameters.entrySet().stream().map(k -> k.getKey() + " " + k.getValue()).collect(Collectors.toList()), ", "));
+		buf.append(")");
+
+		if (!exceptions.isEmpty()) {
+
+			buf.append(" throws ");
+			buf.append(StringUtils.join(exceptions, ", "));
+		}
+
+		return buf.toString();
+	}
+
+	public ActionEntry(final String sourceName, final String value, final String codeType) {
 
 		int positionOffset = 0;
 
 		if (sourceName.startsWith("___onSave")) {
 
+			this.name = "onModification";
 			this.type = Actions.Type.Save;
 			positionOffset = 9;
 
 		} else if (sourceName.startsWith("___onCreate")) {
 
+			this.name = "onCreation";
 			this.type = Actions.Type.Create;
 			positionOffset = 11;
 
 		} else if (sourceName.startsWith("___onDelete")) {
 
+			this.name = "afterDeletion";
 			this.type = Actions.Type.Delete;
 			positionOffset = 11;
 
 		} else {
 
-			this.type = isJava ? Actions.Type.Java : Actions.Type.Custom;
+			if (codeType != null && "java".equals(codeType)) {
+
+				this.type = Actions.Type.Java;
+
+			} else {
+
+				this.type = Actions.Type.Custom;
+			}
+
 			positionOffset = 3;
 		}
 
@@ -73,7 +121,55 @@ public class ActionEntry implements Comparable<ActionEntry> {
 				break;
 		}
 
-		this.call = value.trim();
+		this.call = value;
+	}
+
+	public void setReturnType(final String returnType) {
+		this.returnType = returnType;
+	}
+
+	public String getReturnType() {
+		return this.returnType;
+	}
+
+	public void addException(final String exception) {
+		this.exceptions.add(exception);
+	}
+
+	public List<String>  getExceptions() {
+		return exceptions;
+	}
+
+	public void addParameter(final String type, final String name) {
+		this.parameters.put(name, type);
+	}
+
+	public Map<String, String> getParameters() {
+		return this.parameters;
+	}
+
+	public void setCallSuper(final boolean callSuper) {
+		this.callSuper = callSuper;
+	}
+
+	public boolean callSuper() {
+		return callSuper;
+	}
+
+	public void setOverrides(final boolean overrides) {
+		this.overrides = overrides;
+	}
+
+	public boolean overrides() {
+		return overrides;
+	}
+
+	public void setDoExport(final boolean doExport) {
+		this.doExport = doExport;
+	}
+
+	public boolean doExport() {
+		return doExport;
 	}
 
 	public String getSource(final String objVariable) {
@@ -92,7 +188,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 			buf.append(Actions.class.getSimpleName());
 			buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
-			buf.append(StringEscapeUtils.escapeJava(call));
+			buf.append(StringEscapeUtils.escapeJava(call.trim()));
 			buf.append("}\"");
 
 			if (includeParameters) {
@@ -135,5 +231,22 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public String getName() {
 		return name;
+	}
+
+	public void copy(final ActionEntry template) {
+
+		this.name       = template.name;
+		this.type       = template.type;
+		this.returnType = template.returnType;
+
+		// copy parameters
+		for (final Entry<String, String> entry : template.getParameters().entrySet()) {
+			this.parameters.put(entry.getKey(), entry.getValue());
+		}
+
+		// copy exceptions
+		for (final String exception : template.getExceptions()) {
+			this.exceptions.add(exception);
+		}
 	}
 }

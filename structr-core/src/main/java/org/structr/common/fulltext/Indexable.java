@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,33 +19,36 @@
 package org.structr.common.fulltext;
 
 import java.io.InputStream;
+import java.net.URI;
 import org.structr.common.PropertyView;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  */
 public interface Indexable extends NodeInterface {
 
-	public static final Property<String> contentType      = new StringProperty("contentType").indexedWhenEmpty();
-	public static final Property<String> extractedContent = new StringProperty("extractedContent");
-	public static final Property<String[]> indexedWords   = new ArrayProperty("indexedWords", String.class).indexed();
+	static class Impl { static {
 
-	public static final org.structr.common.View publicView = new org.structr.common.View(Indexable.class, PropertyView.Public,
-		contentType
-	);
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Indexable");
 
-	public static final org.structr.common.View uiView = new org.structr.common.View(Indexable.class, PropertyView.Ui,
-		contentType, extractedContent, indexedWords
-	);
+		type.setIsInterface();
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Indexable"));
 
-	public InputStream getInputStream();
+		type.addStringProperty("contentType",       PropertyView.Ui, PropertyView.Public);
+		type.addStringProperty("extractedContent",  PropertyView.Ui).setIndexed(true);
+		type.addStringArrayProperty("indexedWords", PropertyView.Ui).setIndexed(true);
+	}}
+
+	String getContentType();
+	String getExtractedContent();
+	InputStream getInputStream();
 
 	@Export
-	public GraphObject getSearchContext(final String searchTerm, final int contextLength);
-
+	GraphObject getSearchContext(final String searchTerm, final int contextLength);
 }

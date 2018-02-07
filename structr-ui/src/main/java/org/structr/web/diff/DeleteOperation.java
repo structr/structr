@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,10 +49,12 @@ public class DeleteOperation extends InvertibleModificationOperation {
 
 			return "Delete Content(" + existingNode.getIdHash() + ")";
 
-		} else {
+		} else if (existingNode instanceof DOMElement) {
 
-			return "Delete " + existingNode.getProperty(DOMElement.tag) + "(" + existingNode.getIdHash();
+			return "Delete " + ((DOMElement)existingNode).getTag() + "(" + existingNode.getIdHash();
 		}
+
+		return "Delete " + existingNode.getUuid() + "(" + existingNode.getIdHash();
 	}
 
 	// ----- interface InvertibleModificationOperation -----

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -42,7 +43,6 @@ import org.structr.rest.common.IndexingTest;
 import org.structr.rest.common.TestEnum;
 import org.structr.rest.entity.TestThree;
 import org.structr.rest.entity.TestTwo;
-import org.structr.rest.entity.TestUser;
 
 /**
  *
@@ -757,7 +757,7 @@ public class AdvancedSearchTest extends IndexingTest {
 
 			// fetch dynamic type info
 			final Class dynamicType   = StructrApp.getConfiguration().getNodeEntityClass("TestType");
-			final PropertyKey testKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(dynamicType, "test");
+			final PropertyKey testKey = StructrApp.key(dynamicType, "test");
 
 			// modify schema node but keep reference to "old" type
 			try (final Tx tx = app.tx()) {
@@ -807,9 +807,11 @@ public class AdvancedSearchTest extends IndexingTest {
 	@Test
 	public void testSearchWithOwnerAndEnum() {
 
+		final Class testUserType = createTestUserType();
+
 		try {
 
-			final List<TestUser> users       = createTestNodes(TestUser.class, 3);
+			final List<Principal> users      = createTestNodes(testUserType, 3);
 			final List<TestThree> testThrees = new LinkedList<>();
 			final Random random              = new Random();
 			String uuid                      = null;
@@ -817,7 +819,7 @@ public class AdvancedSearchTest extends IndexingTest {
 
 			try (final Tx tx = app.tx()) {
 
-				for (final TestUser user : users) {
+				for (final Principal user : users) {
 
 					// create 20 entities for every user
 					for (int i=0; i<20; i++) {
@@ -838,7 +840,7 @@ public class AdvancedSearchTest extends IndexingTest {
 			// test with core API
 			try (final Tx tx = app.tx()) {
 
-				for (final TestUser user : users) {
+				for (final Principal user : users) {
 
 					for (final TestThree test : app.nodeQuery(TestThree.class).and(AbstractNode.owner, user).and(TestThree.enumProperty, TestEnum.Status1).getAsList()) {
 						assertEquals("Invalid enum query result", TestEnum.Status1, test.getProperty(TestThree.enumProperty));
@@ -873,6 +875,8 @@ public class AdvancedSearchTest extends IndexingTest {
 
 	@Test
 	public void testSearchWithOwnerAndEnumOnDynamicNodes() {
+
+		createTestUserType();
 
 		try {
 

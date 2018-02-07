@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,11 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.WeakHashMap;
 import org.apache.chemistry.opencmis.commons.data.Ace;
 import org.apache.chemistry.opencmis.commons.data.AllowableActions;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -52,6 +54,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
+import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.common.CMISExtensionsData;
 import org.structr.cmis.common.StructrItemActions;
@@ -97,12 +100,8 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Abstract base class for all node entities in structr.
- *
- *
- *
+ * Abstract base class for all node entities in Structr.
  */
 public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
 
@@ -114,18 +113,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers, visibilityStartDate, visibilityEndDate
+		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers
 	);
 
-	public boolean internalSystemPropertiesUnlocked = false;
-	private Relationship rawPathSegment             = null;
-	private boolean readOnlyPropertiesUnlocked      = false;
-	private boolean isCreation                      = false;
-	protected String cachedUuid                     = null;
-	protected SecurityContext securityContext       = null;
-	protected Principal cachedOwnerNode             = null;
-	protected Class entityType                      = null;
-	protected Node dbNode                           = null;
+	private final Map<AbstractNode, Map<String, Object>> tmpStorageContainer = new WeakHashMap<>(2);
+	public boolean internalSystemPropertiesUnlocked                          = false;
+	private Relationship rawPathSegment                                      = null;
+	private boolean readOnlyPropertiesUnlocked                               = false;
+	private boolean isCreation                                               = false;
+	protected String cachedUuid                                              = null;
+	protected SecurityContext securityContext                                = null;
+	protected Principal cachedOwnerNode                                      = null;
+	protected Class entityType                                               = null;
+	protected Node dbNode                                                    = null;
 
 	public AbstractNode() {
 	}
@@ -356,7 +356,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		String name = getProperty(AbstractNode.name);
 		if (name == null) {
 
-			name = getNodeId().toString();
+			name = getIdString();
 		}
 
 		return name;
@@ -385,15 +385,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		return cachedUuid;
-	}
-
-	public final Long getNodeId() {
-		return getId();
-
-	}
-
-	public final String getIdString() {
-		return Long.toString(getId());
 	}
 
 	/**
@@ -679,11 +670,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
 	}
 
-	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
+	@Override
+	public <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawTarget(SecurityContext.getSuperUserInstance(), dbNode, null);
+		final Relationship relationship      = template.getTarget().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -783,7 +775,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	// ----- interface AccessControllable -----
 	@Override
-	public final boolean isGranted(final Permission permission, final SecurityContext context) {
+	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
 		// super user can do everything
 		if (context != null && context.isSuperUser()) {
@@ -855,6 +847,39 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			final Security security = getSecurityRelationship(accessingUser);
 			if (security != null && security.isAllowed(permission)) {
 				return true;
+			}
+
+			// new experimental custom permission resultion based on query
+			PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
+			final String customPermissionQuery = accessingUser.getProperty(permissionPropertyKey);
+
+			if (StringUtils.isNotEmpty(customPermissionQuery)) {
+
+				final Map<String, Object> params = new HashMap<>();
+
+				params.put("principalUuid", accessingUser.getUuid());
+				params.put("principalId", accessingUser.getUuid());
+				params.put("principalType", accessingUser.getType());
+
+				params.put("targetNodeUuid", this.getUuid());
+				params.put("targetNodeId", this.getId());
+				params.put("targetNodeType", this.getType());
+
+				boolean result = false;
+				try {
+
+					result = ((NodeWrapper) getNode()).evaluateCustomQuery(customPermissionQuery, params);
+
+				} catch (final Exception ex) {
+					logger.error("Error in custom permission resolution", ex);
+				}
+
+				logger.info("CPQ (" + permission.name() + ") '" + customPermissionQuery + "': "+ result);
+
+				if (result) {
+					return true;
+				}
+
 			}
 
 			// Check permissions from domain relationships
@@ -1221,20 +1246,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		return true;
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 	}
 
 	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		clearPermissionResolutionCache();
-		return true;
 	}
 
 	@Override
-	public boolean onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
+	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
 		clearPermissionResolutionCache();
-		return true;
 	}
 
 	@Override
@@ -1314,16 +1336,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		return getHidden();
 
-	}
-
-	@Override
-	public final Date getVisibilityStartDate() {
-		return getProperty(visibilityStartDate);
-	}
-
-	@Override
-	public final Date getVisibilityEndDate() {
-		return getProperty(visibilityEndDate);
 	}
 
 	@Override
@@ -1419,24 +1431,25 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		for (final PropertyKey key : properties.keySet()) {
 
-			if (!key.equals(GraphObject.id)) {
+			final Object value    = properties.get(key);
+			final Object oldValue = getProperty(key);
 
-				if (dbNode != null && dbNode.hasProperty(key.dbName())) {
+			// no old value exists  OR  old value exists and is NOT equal => set property
+			if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
+
+				if (!key.equals(GraphObject.id)) {
 
 					// check for system properties
 					if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
 						throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
-
 					}
 
 					// check for read-only properties
 					if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
 						throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
-
 					}
-
 				}
 			}
 		}
@@ -1455,22 +1468,17 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		try {
-			if (dbNode != null && dbNode.hasProperty(key.dbName())) {
 
-				// check for system properties
-				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
+			// check for system properties
+			if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
+			}
 
-				}
+			// check for read-only properties
+			if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-				// check for read-only properties
-				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
-
-					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
-
-				}
-
+				throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
 			}
 
 			return key.setProperty(securityContext, this, value);
@@ -1587,14 +1595,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			default:
 
 				// evaluate object value or return default
-				Object value = getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key), actionContext.getPredicate());
+				final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, key, false);
+				if (propertyKey != null) {
 
-				if (value != null) {
-					return value;
+					final Object value = getProperty(propertyKey, actionContext.getPredicate());
+					if (value != null) {
+
+						return value;
+					}
 				}
 
-				value = invokeMethod(key, Collections.EMPTY_MAP, false);
+				final Object value = invokeMethod(key, Collections.EMPTY_MAP, false);
 				if (value != null) {
+
 					return value;
 				}
 
@@ -1746,7 +1759,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			try {
 
-				secRel = StructrApp.getInstance().create(principal, (NodeInterface)this, Security.class);
+				// ensureCardinality is not neccessary here
+				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+				securityContext.disableEnsureCardinality();
+
+				secRel = StructrApp.getInstance(securityContext).create(principal, (NodeInterface)this, Security.class);
 
 			} catch (FrameworkException ex) {
 
@@ -1804,6 +1821,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
+	@Override
 	public List<Security> getSecurityRelationships() {
 
 		final List<Security> grants = Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));
@@ -1885,7 +1903,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public CMISItemInfo geItemInfo() {
+	public CMISItemInfo getItemInfo() {
 		return this;
 	}
 
@@ -1988,6 +2006,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		return entries;
+	}
+
+	@Override
+	public synchronized Map<String, Object> getTemporaryStorage() {
+
+		Map<String, Object> tmp = tmpStorageContainer.get(this);
+		if (tmp == null) {
+
+			tmp = new LinkedHashMap<>();
+			tmpStorageContainer.put(this, tmp);
+		}
+
+		return tmp;
 	}
 
 	// ----- nested classes -----

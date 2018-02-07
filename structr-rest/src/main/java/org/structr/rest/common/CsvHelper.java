@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,18 +47,18 @@ public class CsvHelper {
 	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range, final Map<String, String> propertyMapping) throws FrameworkException, IOException {
 
 		final CSVReader reader;
-		
+
 		if (quoteCharacter == null) {
-			
+
 			reader = new CSVReader(input, fieldSeparator);
 
 		} else {
-		
+
 			reader = new CSVReader(input, fieldSeparator, quoteCharacter, true);
 		}
-		
+
 		final String[] propertyNames = reader.readNext();
-		
+
 		return new Iterable<JsonInput>() {
 
 			@Override

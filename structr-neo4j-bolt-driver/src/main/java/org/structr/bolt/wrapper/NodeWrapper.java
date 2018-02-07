@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	private final Map<String, Map<String, List<Relationship>>> relationshipCache = new HashMap<>();
 	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
+	private boolean dontUseCache                                                 = false;
 
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
@@ -70,6 +71,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
+	public void onClose() {
+		dontUseCache = false;
+		relationshipCache.clear();
+	}
+
+	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
 		return createRelationshipTo(endNode, relationshipType, Collections.EMPTY_MAP);
 	}
@@ -78,6 +85,8 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
 		assertNotStale();
+
+		dontUseCache = true;
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
@@ -156,14 +165,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		AssociationList list = (AssociationList)getList(Direction.OUTGOING, type);
-		if (list != null) {
+		if (list != null && !dontUseCache) {
 
 			return list.containsAssociation(this, type, targetNode);
 
 		} else {
 
 			list = (AssociationList)getList(Direction.INCOMING, type);
-			if (list != null) {
+			if (list != null && !dontUseCache) {
 
 				return list.containsAssociation(targetNode, type, this);
 
@@ -178,6 +187,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 				try {
 
 					// try to fetch existing relationship by node ID(s)
+					// FIXME: this call can be very slow when lots of relationships exist
 					tx.getLong("MATCH (n)-[r:" + type.name() + "]->(m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)", params);
 
 					// success
@@ -197,12 +207,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+		final SessionTransaction tx                 = db.getCurrentTransaction();
 		List<Relationship> list                     = getList(null, null);
 
-		if (list == null) {
+		if (list == null || dontUseCache) {
 
-			final SessionTransaction tx                 = db.getCurrentTransaction();
-			final Map<String, Object> map               = new HashMap<>();
+			final Map<String, Object> map = new HashMap<>();
 
 			map.put("id", id);
 
@@ -221,11 +231,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+		final SessionTransaction tx                 = db.getCurrentTransaction();
 		List<Relationship> list                     = getList(direction, null);
 
-		if (list == null) {
+		if (list == null || dontUseCache) {
 
-			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
 
 			map.put("id", id);
@@ -257,11 +267,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
+		final SessionTransaction tx                 = db.getCurrentTransaction();
 		List<Relationship> list                     = getList(direction, relationshipType);
 
-		if (list == null) {
+		if (list == null || dontUseCache) {
 
-			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
 
 			map.put("id", id);
@@ -285,6 +295,26 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		}
 
 		return list;
+	}
+
+	/**
+	 * Evaluate a custom query and return result as a boolean value
+	 *
+	 * @param customQuery
+	 * @param parameters
+	 * @return
+	 */
+	public boolean evaluateCustomQuery(final String customQuery, final Map<String, Object> parameters) {
+
+		final SessionTransaction tx = db.getCurrentTransaction();
+		boolean result              = false;
+
+		try {
+			result = tx.getBoolean(customQuery, parameters);
+
+		} catch (Exception ignore) {}
+
+		return result;
 	}
 
 	@Override
@@ -358,6 +388,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	private void setList(final Direction direction, final RelationshipType relType, final List<Relationship> list) {
+
+		if (dontUseCache) {
+			return;
+		}
 
 		final String key                            = relType != null ? relType.name() : "*";
 		final Map<String, List<Relationship>> cache = getCache(direction);

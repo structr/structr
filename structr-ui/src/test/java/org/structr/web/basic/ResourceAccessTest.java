@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.web.basic;
 
-import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -33,15 +32,13 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Test resource access security implemented in {@link UiAuthenticator}
- *
- *
+ * Test resource access security implemented in {@link UiAuthenticator}.
  */
 public class ResourceAccessTest extends StructrUiTest {
 
@@ -251,8 +248,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			// Prepare for next test
 			final PropertyMap testUserProperties = new PropertyMap();
-			testUserProperties.put(AbstractNode.name, name);
-			testUserProperties.put(User.password, password);
+			testUserProperties.put(StructrApp.key(User.class, "name"), name);
+			testUserProperties.put(StructrApp.key(User.class, "password"), password);
 			testUser.setProperties(testUser.getSecurityContext(), testUserProperties);
 
 			// now we give the user ownership and expect a 200
@@ -356,8 +353,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(404).when().delete("/folder/" + testFolder.getUuid());
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(AbstractNode.name, name);
-			changedProperties.put(User.password, password);
+			changedProperties.put(StructrApp.key(User.class, "name"), name);
+			changedProperties.put(StructrApp.key(User.class, "password"), password);
 			testUser.setProperties(testUser.getSecurityContext(), changedProperties);
 
 			// make user own folder
@@ -395,7 +392,7 @@ public class ResourceAccessTest extends StructrUiTest {
 	 *
 	 * @return the new resource access node
 	 * @throws FrameworkException
-	 */
+	 * */
 	public static ResourceAccess createResourceAccess(String signature, long flags) throws FrameworkException {
 
 		final PropertyMap properties = new PropertyMap();

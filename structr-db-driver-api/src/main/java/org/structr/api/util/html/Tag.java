@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -135,7 +135,7 @@ public abstract class Tag {
 
 		} else if (this.text != null) {
 
-			this.text = this.text.concat(",");
+			this.inline("span").css("comma").text(",");
 		}
 	}
 

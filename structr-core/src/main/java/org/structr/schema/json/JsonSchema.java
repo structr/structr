@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.schema.json;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 
@@ -45,6 +44,7 @@ public interface JsonSchema {
 	public static final String KEY_SIZE_OF                 = "$size";
 	public static final String KEY_REFERENCE               = "$ref";
 	public static final String KEY_EXTENDS                 = "$extends";
+	public static final String KEY_IMPLEMENTS              = "$implements";
 	public static final String KEY_LINK                    = "$link";
 	public static final String KEY_LINK_SOURCE             = "$source";
 	public static final String KEY_LINK_TARGET             = "$target";
@@ -54,9 +54,15 @@ public interface JsonSchema {
 	public static final String KEY_TITLE                   = "title";
 	public static final String KEY_DESCRIPTION             = "description";
 	public static final String KEY_ENUM                    = "enum";
+	public static final String KEY_FQCN                    = "fqcn";
 	public static final String KEY_FORMAT                  = "format";
+	public static final String KEY_READ_ONLY               = "readOnly";
+	public static final String KEY_VALIDATORS              = "validators";
+	public static final String KEY_TRANSFORMATORS          = "transformators";
 	public static final String KEY_DATE_PATTERN            = "datePattern";
 	public static final String KEY_ITEMS                   = "items";
+	public static final String KEY_IS_ABSTRACT             = "isAbstract";
+	public static final String KEY_IS_INTERFACE            = "isInterface";
 	public static final String KEY_DEFINITIONS             = "definitions";
 	public static final String KEY_PROPERTIES              = "properties";
 	public static final String KEY_VIEWS                   = "views";
@@ -65,6 +71,16 @@ public interface JsonSchema {
 	public static final String KEY_MIN_ITEMS               = "minItems";
 	public static final String KEY_MAX_ITEMS               = "maxItems";
 	public static final String KEY_SOURCE                  = "source";
+	public static final String KEY_CODE_TYPE               = "codeType";
+	public static final String KEY_OVERRIDES_EXISTING      = "overridesExisting";
+	public static final String KEY_RETURN_TYPE             = "returnType";
+	public static final String KEY_EXCEPTIONS              = "exceptions";
+	public static final String KEY_CALL_SUPER              = "callSuper";
+	public static final String KEY_DO_EXPORT               = "doExport";
+	public static final String KEY_PARAMETERS              = "parameters";
+	public static final String KEY_PARAMETER_TYPE          = "parameterType";
+	public static final String KEY_PARAMETER_INDEX         = "parameterIndex";
+	public static final String KEY_COMMENT                 = "comment";
 	public static final String KEY_CONTENT_TYPE            = "contentType";
 	public static final String KEY_RELATIONSHIP            = "rel";
 	public static final String KEY_DIRECTION               = "direction";
@@ -106,9 +122,9 @@ public interface JsonSchema {
 	public String getDescription();
 	public void setDescription(final String description);
 
-	public JsonObjectType addType(final String name) throws URISyntaxException;
+	public JsonObjectType addType(final String name);
 	public JsonType getType(final String name);
-	public void removeType(final String name) throws URISyntaxException;
+	public void removeType(final String name);
 
 	public void createDatabaseSchema(final App app, final ImportMode importMode) throws FrameworkException;
 

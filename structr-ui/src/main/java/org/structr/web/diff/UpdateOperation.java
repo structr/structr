@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,10 +50,12 @@ public class UpdateOperation extends InvertibleModificationOperation {
 
 			return "Update Content(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 
-		} else {
+		} else if (existingNode instanceof DOMElement) {
 
-			return "Update " + newNode.getProperty(DOMElement.tag) + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
+			return "Update " + ((DOMElement)newNode).getTag() + "(" + existingNode.getIdHashOrProperty() + ") with " + newNode.getIdHashOrProperty();
 		}
+
+		return "Update " + existingNode.getUuid() + "(" + existingNode.getIdHash();
 	}
 
 	// ----- interface InvertibleModificationOperation -----

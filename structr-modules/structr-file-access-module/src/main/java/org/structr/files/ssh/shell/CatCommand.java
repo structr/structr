@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,14 +24,15 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.dynamic.File;
 import org.structr.files.ssh.StructrShellCommand;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -52,11 +53,11 @@ public class CatCommand extends NonInteractiveShellCommand {
 			final Folder currentFolder = parent.getCurrentFolder();
 			if (currentFolder != null) {
 
-				listFolder(parent, currentFolder.getProperty(AbstractFile.children));
+				listFolder(parent, currentFolder.getChildren());
 
 			} else {
 
-				listFolder(parent, app.nodeQuery(AbstractFile.class).and(AbstractFile.parent, null).getAsList());
+				listFolder(parent, app.nodeQuery(AbstractFile.class).and(StructrApp.key(AbstractFile.class, "parent"), null).getAsList());
 			}
 
 			tx.success();
@@ -119,7 +120,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 						// skip empty path parts
 						if (StringUtils.isNotBlank(parts[i])) {
 
-							baseFolder = app.nodeQuery(Folder.class).and(AbstractFile.parent, baseFolder).and(Folder.name, parts[i]).getFirst();
+							baseFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "parent"), baseFolder).and(Folder.name, parts[i]).getFirst();
 							if (baseFolder == null) {
 
 								return;
@@ -133,11 +134,11 @@ public class CatCommand extends NonInteractiveShellCommand {
 
 				if (baseFolder != null) {
 
-					allFiles.addAll(baseFolder.getProperty(AbstractFile.children));
+					allFiles.addAll(Iterables.toList(baseFolder.getChildren()));
 
 				} else {
 
-					allFiles.addAll(app.nodeQuery(AbstractFile.class).and(File.parent, null).getAsList());
+					allFiles.addAll(app.nodeQuery(AbstractFile.class).and(StructrApp.key(File.class, "parent"), null).getAsList());
 				}
 
 				for (final AbstractFile file : allFiles) {
@@ -169,7 +170,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 								// only display autocomplete suggestions after second tab
 								if (tabCount > 1) {
 
-									displayAutocompleteSuggestions(parent, folder.getProperty(Folder.children), line);
+									displayAutocompleteSuggestions(parent, folder.getChildren(), line);
 
 								} else {
 
@@ -211,11 +212,15 @@ public class CatCommand extends NonInteractiveShellCommand {
 	}
 
 	// ----- private methods -----
-	private void listFolder(final StructrShellCommand parent, final List<AbstractFile> folder) throws FrameworkException, IOException {
+	private void listFolder(final StructrShellCommand parent, final Iterable<AbstractFile> folder) throws FrameworkException, IOException {
+
+		boolean hasContents = false;
 
 		for (final AbstractFile child : folder) {
 
 			if (parent.isAllowed(child, Permission.read, false)) {
+
+				hasContents = true;
 
 				if (child instanceof Folder) {
 
@@ -232,7 +237,7 @@ public class CatCommand extends NonInteractiveShellCommand {
 			}
 		}
 
-		if (!folder.isEmpty()) {
+		if (hasContents) {
 			term.println();
 		}
 	}
@@ -255,34 +260,31 @@ public class CatCommand extends NonInteractiveShellCommand {
 		}
 	}
 
-	private void displayAutocompleteSuggestions(final StructrShellCommand parent, final List<AbstractFile> files, final String line) throws IOException {
+	private void displayAutocompleteSuggestions(final StructrShellCommand parent, final Iterable<AbstractFile> files, final String line) throws IOException {
 
-		if (!files.isEmpty()) {
+		final StringBuilder buf = new StringBuilder();
 
-			final StringBuilder buf = new StringBuilder();
+		for (final AbstractFile file : files) {
 
-			for (final AbstractFile file : files) {
+			if (parent.isAllowed(file, Permission.read, false)) {
 
-				if (parent.isAllowed(file, Permission.read, false)) {
+				buf.append(file.getName());
 
-					buf.append(file.getName());
+				if (file instanceof Folder) {
 
-					if (file instanceof Folder) {
-
-						buf.append("/  ");
-					}
+					buf.append("/  ");
 				}
 			}
+		}
 
-			if (buf.length() > 0) {
+		if (buf.length() > 0) {
 
-				term.println();
-				term.print(buf.toString());
-				term.println();
+			term.println();
+			term.print(buf.toString());
+			term.println();
 
-				parent.displayPrompt();
-				term.print(line);
-			}
+			parent.displayPrompt();
+			term.print(line);
 		}
 	}
 }

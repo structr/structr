@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@
 
 package org.structr.schema;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -36,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
-import org.structr.api.service.InitializationCallback;
 import org.structr.api.service.Service;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessPathCache;
@@ -54,6 +55,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.compiler.NodeExtender;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -61,10 +64,11 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class SchemaService implements Service {
 
-	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
-	private static final AtomicBoolean updating                   = new AtomicBoolean(false);
-	private static final Map<String, String> builtinTypeMap       = new LinkedHashMap<>();
+	public static final URI DynamicSchemaRootURI  = URI.create("https://structr.org/v2.0/#");
+	private static final Logger logger            = LoggerFactory.getLogger(SchemaService.class.getName());
+	private static final JsonSchema dynamicSchema = StructrSchema.newInstance(DynamicSchemaRootURI);
+	private static final AtomicBoolean compiling  = new AtomicBoolean(false);
+	private static final AtomicBoolean updating   = new AtomicBoolean(false);
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -72,20 +76,11 @@ public class SchemaService implements Service {
 
 	@Override
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-
-		services.registerInitializationCallback(new InitializationCallback() {
-
-			@Override
-			public void initializationDone() {
-				reloadSchema(new ErrorBuffer(), null);
-			}
-		});
-
 		return true;
 	}
 
-	public static void registerBuiltinTypeOverride(final String type, final String fqcn) {
-		builtinTypeMap.put(type, fqcn);
+	public static JsonSchema getDynamicSchema() {
+		return dynamicSchema;
 	}
 
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
@@ -99,41 +94,34 @@ public class SchemaService implements Service {
 			try {
 
 				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(StructrApp.getConfiguration().getTypeAndPropertyMapping());
+				final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
 				final Set<String> dynamicViews                             = new LinkedHashSet<>();
-				final NodeExtender nodeExtender                            = new NodeExtender();
-				nodeExtender.setInitiatedBySessionId(initiatedBySessionId);
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
+					// collect auto-generated schema nodes
 					SchemaService.ensureBuiltinTypesExist();
 
-					// collect node classes
-					final List<SchemaNode> schemaNodes = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
-					for (final SchemaNode schemaNode : schemaNodes) {
+					// add schema nodes from database
+					for (final SchemaNode schemaInfo : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
 
-						nodeExtender.addClass(schemaNode.getClassName(), schemaNode.getSource(errorBuffer));
+						schemaInfo.handleMigration();
 
-						final String auxSource = schemaNode.getAuxiliarySource();
-						if (auxSource != null) {
+						final String sourceCode = SchemaHelper.getSource(schemaInfo, errorBuffer);
+						if (sourceCode != null) {
 
-							nodeExtender.addClass("_" + schemaNode.getClassName() + "Helper", auxSource);
+							// only load dynamic node if there were no errors while generating
+							// the source code (missing modules etc.)
+							nodeExtender.addClass(schemaInfo.getClassName(), sourceCode);
+							dynamicViews.addAll(schemaInfo.getDynamicViews());
 						}
-
-						dynamicViews.addAll(schemaNode.getViews());
 					}
 
 					// collect relationship classes
 					for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
-
-						final String auxSource = schemaRelationship.getAuxiliarySource();
-						if (auxSource != null) {
-
-							nodeExtender.addClass("_" + schemaRelationship.getClassName() + "Helper", auxSource);
-						}
-
-						dynamicViews.addAll(schemaRelationship.getViews());
+						dynamicViews.addAll(schemaRelationship.getDynamicViews());
 					}
 
 					// this is a very critical section :)
@@ -154,7 +142,7 @@ public class SchemaService implements Service {
 								config.registerEntityType(newType);
 								newType.newInstance();
 
-							} catch (Throwable t) {}
+							} catch (Throwable ignore) {}
 						}
 
 						// calculate difference between previous and new classes
@@ -198,6 +186,8 @@ public class SchemaService implements Service {
 
 				} catch (Throwable t) {
 
+					t.printStackTrace();
+
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					success = false;
 				}
@@ -215,6 +205,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public void initialized() {
+		reloadSchema(new ErrorBuffer(), null);
 	}
 
 	@Override
@@ -235,24 +226,13 @@ public class SchemaService implements Service {
 
 		final App app = StructrApp.getInstance();
 
-		for (final Entry<String, String> entry : builtinTypeMap.entrySet()) {
+		try {
 
-			final String type = entry.getKey();
-			final String fqcn = entry.getValue();
+			StructrSchema.extendDatabaseSchema(app, dynamicSchema);
 
-			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
-			if (schemaNode == null) {
+		} catch (URISyntaxException ex) {
 
-				schemaNode = app.create(SchemaNode.class, type);
-			}
-
-			// creation can fail
-			if (schemaNode != null) {
-
-				schemaNode.setProperty(SchemaNode.extendsClass, fqcn);
-				schemaNode.unlockSystemPropertiesOnce();
-				schemaNode.setProperty(SchemaNode.isBuiltinType, true);
-			}
+			ex.printStackTrace();
 		}
 	}
 

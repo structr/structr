@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,32 +18,29 @@
  */
 package org.structr.web.entity.html;
 
+import java.net.URI;
 import org.structr.common.PropertyView;
-import org.structr.core.property.Property;
-import org.structr.web.common.HtmlProperty;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.entity.dom.DOMElement;
 
-/**
- *
- */
-public class Track extends DOMElement {
+public interface Track extends DOMElement {
 
-	public static final Property<String> _kind		= new HtmlProperty("kind");
-	public static final Property<String> _src		= new HtmlProperty("src");
-	public static final Property<String> _srclang		= new HtmlProperty("srclang");
-	public static final Property<String> _label		= new HtmlProperty("label");
-	public static final Property<String> _default		= new HtmlProperty("default");
-	
-	public static final org.structr.common.View htmlView	= new org.structr.common.View(Track.class, PropertyView.Html,
-		_kind, _src, _srclang, _label, _default
-	);
-	
-	//~--- get methods ----------------------------------------------------
+	static class Impl { static {
 
-	@Override
-	public boolean isVoidElement() {
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("Track");
 
-		return true;
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Track"));
+		type.setExtends(URI.create("#/definitions/DOMElement"));
 
-	}
+		type.addStringProperty("_html_kind",    PropertyView.Html);
+		type.addStringProperty("_html_src",     PropertyView.Html);
+		type.addStringProperty("_html_srclang", PropertyView.Html);
+		type.addStringProperty("_html_label",   PropertyView.Html);
+		type.addStringProperty("_html_default", PropertyView.Html);
+
+		type.overrideMethod("isVoidElement",   false, "return true;");
+	}}
 }
