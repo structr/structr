@@ -44,6 +44,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	private final Map<String, Map<String, List<Relationship>>> relationshipCache = new HashMap<>();
 	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
+	private boolean dontUseCache                                                 = false;
 
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
@@ -70,6 +71,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	@Override
+	public void onClose() {
+		dontUseCache = false;
+		relationshipCache.clear();
+	}
+
+	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
 		return createRelationshipTo(endNode, relationshipType, Collections.EMPTY_MAP);
 	}
@@ -78,6 +85,8 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
 		assertNotStale();
+
+		dontUseCache = true;
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
@@ -156,14 +165,14 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		assertNotStale();
 
 		AssociationList list = (AssociationList)getList(Direction.OUTGOING, type);
-		if (list != null) {
+		if (list != null && !dontUseCache) {
 
 			return list.containsAssociation(this, type, targetNode);
 
 		} else {
 
 			list = (AssociationList)getList(Direction.INCOMING, type);
-			if (list != null) {
+			if (list != null && !dontUseCache) {
 
 				return list.containsAssociation(targetNode, type, this);
 
@@ -200,7 +209,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 		List<Relationship> list                     = getList(null, null);
 
-		if (list == null) {
+		if (list == null || dontUseCache) {
 
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
@@ -224,7 +233,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 		List<Relationship> list                     = getList(direction, null);
 
-		if (list == null) {
+		if (list == null || dontUseCache) {
 
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
@@ -260,7 +269,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 		List<Relationship> list                     = getList(direction, relationshipType);
 
-		if (list == null) {
+		if (list == null || dontUseCache) {
 
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final Map<String, Object> map = new HashMap<>();
@@ -376,6 +385,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	}
 
 	private void setList(final Direction direction, final RelationshipType relType, final List<Relationship> list) {
+
+		if (dontUseCache) {
+			return;
+		}
 
 		final String key                            = relType != null ? relType.name() : "*";
 		final Map<String, List<Relationship>> cache = getCache(direction);

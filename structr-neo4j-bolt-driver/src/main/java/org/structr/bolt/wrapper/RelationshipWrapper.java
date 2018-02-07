@@ -84,6 +84,10 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	@Override
+	public void onClose() {
+	}
+
+	@Override
 	public Node getStartNode() {
 
 		try {

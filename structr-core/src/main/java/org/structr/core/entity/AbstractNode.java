@@ -785,7 +785,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	// ----- interface AccessControllable -----
 	@Override
-	public final boolean isGranted(final Permission permission, final SecurityContext context) {
+	public boolean isGranted(final Permission permission, final SecurityContext context) {
 
 		// super user can do everything
 		if (context != null && context.isSuperUser()) {
@@ -858,7 +858,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			if (security != null && security.isAllowed(permission)) {
 				return true;
 			}
-			
+
 			// new experimental custom permission resultion based on query
 			PropertyKey<String> permissionPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(Principal.class, "customPermissionQuery" + StringUtils.capitalise(permission.name()));
 			final String customPermissionQuery = accessingUser.getProperty(permissionPropertyKey);
@@ -866,30 +866,30 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			if (StringUtils.isNotEmpty(customPermissionQuery)) {
 
 				final Map<String, Object> params = new HashMap<>();
-				
+
 				params.put("principalUuid", accessingUser.getUuid());
 				params.put("principalId", accessingUser.getUuid());
 				params.put("principalType", accessingUser.getType());
-				
+
 				params.put("targetNodeUuid", this.getUuid());
 				params.put("targetNodeId", this.getId());
 				params.put("targetNodeType", this.getType());
-				
+
 				boolean result = false;
 				try {
-					
+
 					result = ((NodeWrapper) getNode()).evaluateCustomQuery(customPermissionQuery, params);
-					
+
 				} catch (final Exception ex) {
 					logger.error("Error in custom permission resolution", ex);
 				}
-				
+
 				logger.info("CPQ (" + permission.name() + ") '" + customPermissionQuery + "': "+ result);
-				
+
 				if (result) {
 					return true;
 				}
-				
+
 			}
 
 			// Check permissions from domain relationships
