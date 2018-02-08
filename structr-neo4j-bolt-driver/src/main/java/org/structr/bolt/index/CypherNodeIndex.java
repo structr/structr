@@ -37,7 +37,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel) {
 
 		if (typeLabel != null) {
-			return "MATCH (n:" + typeLabel + ")";
+			return "MATCH (n:NodeInterface:" + typeLabel + ")";
 		}
 
 		return "MATCH (n:NodeInterface)";
