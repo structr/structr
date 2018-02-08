@@ -18,7 +18,6 @@
  */
 package org.structr.web.basic;
 
-import com.sun.scenario.Settings;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -32,6 +31,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -43,7 +43,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.dynamic.File;
-import org.structr.dynamic.Image;
 import org.structr.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -51,6 +50,7 @@ import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 import org.structr.web.entity.TestImage;
 import org.structr.web.entity.User;
 
@@ -687,8 +687,8 @@ public class UiTest extends StructrUiTest {
 			image.grant(Permission.delete, tester);
 			image.grant(Permission.read,   tester);
 
-			image.getProperty(Image.tnSmall));
-			image.getProperty(Image.tnMid));
+			image.getProperty(Image.tnSmall);
+			image.getProperty(Image.tnMid);
 
 			assertEquals("Image should have two thumbnails", 2, image.getThumbnails().size());
 
@@ -728,11 +728,5 @@ public class UiTest extends StructrUiTest {
 
 			fex.printStackTrace();
 		}
-	}
-
-	// ----- private methods -----
-	private Class createTestImageType() {
-
-
 	}
 }

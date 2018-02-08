@@ -50,12 +50,15 @@ import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
+import static org.structr.core.graph.NodeInterface.owner;
+import org.structr.core.graph.Tx;
 import org.structr.dynamic.File;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.FileBase;
 
 /**
@@ -139,14 +142,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 		try {
 
-			// load file by UUID to make sure that the transaction that created
-			// the file is commited, do not use the actual file object because
-			// each thread needs a separate AbstractNode object
-			final FileBase file = StructrApp.getInstance().get(File.class, indexableId);
-			if (file != null && !file.getProperty(AbstractFile.isTemplate)) {
+			if (!indexable.getProperty(FileBase.isTemplate)) {
 
 				// first, check for things we cannot scan
-				final String contentType = indexable.getContentType();
+				final String contentType = indexable.getProperty(Indexable.contentType);
 				if (contentType != null) {
 
 					if (MimeTypeIndexingBlacklist.contains(contentType)) {
@@ -183,13 +182,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 						if (parsingSuccessful) {
 
 							// save raw extracted text
-							file.setProperty(Indexable.extractedContent, trimToLength(tokenizer.getRawText(), maxStringLength));
+							indexable.setProperty(Indexable.extractedContent, trimToLength(tokenizer.getRawText(), maxStringLength));
 
 							// tokenize name
 							tokenizer.write(getName());
 
 							// tokenize owner name
-							final Principal _owner = file.getProperty(owner);
+							final Principal _owner = indexable.getProperty(owner);
 							if (_owner != null) {
 
 								final String ownerName = _owner.getName();
@@ -231,7 +230,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 							try {
 
 								// store indexed words
-								file.setProperty(Indexable.indexedWords, topWords);
+								indexable.setProperty(Indexable.indexedWords, topWords);
 
 							} catch (Throwable t) {
 
