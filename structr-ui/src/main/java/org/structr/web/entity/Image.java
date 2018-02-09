@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -39,6 +40,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.dynamic.File;
 import org.structr.schema.SchemaService;
@@ -69,6 +71,8 @@ public class Image extends org.structr.dynamic.File {
 
 	private static final Logger logger                            = LoggerFactory.getLogger(Image.class.getName());
 
+	public static final Property<Image> originalImage             = new StartNode("originalImage", Thumbnails.class);
+
 	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
 	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
 
@@ -89,6 +93,21 @@ public class Image extends org.structr.dynamic.File {
 
 	public static final org.structr.common.View uiView            = new org.structr.common.View(Image.class, PropertyView.Ui, type, name, contentType, size, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
 	public static final org.structr.common.View publicView        = new org.structr.common.View(Image.class, PropertyView.Public, type, name, width, height, orientation, exifIFD0Data, exifSubIFDData, gpsData, tnSmall, tnMid, isThumbnail, owner, parent, path, isImage);
+
+	@Override
+	public boolean isGranted(final Permission permission, final SecurityContext ctx) {
+
+		if (this.isThumbnail()) {
+
+			final Image original = getProperty(Image.originalImage);
+			if (original != null) {
+
+				return original.isGranted(permission, ctx);
+			}
+		}
+		
+		return super.isGranted(permission, ctx);
+	}
 
 	@Override
 	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
