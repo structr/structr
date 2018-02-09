@@ -1005,6 +1005,30 @@ public class Importer {
 						continue;
 
 					}
+					
+				} else if ("style".equals(tag)) {
+					
+					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+					final String contentType          = newNode.getProperty(typeKey);
+
+					if (contentType.equals("text/css")) {
+						
+						// parse content of style elements and add referenced files to list of resources to be downloaded
+						for (final Node styleContentNode : node.childNodes()) {
+
+							final String source = styleContentNode.toString();
+
+							try {
+								// Import referenced resources
+								processCss(source, originalUrl);
+
+							} catch (IOException ex) {
+								logger.warn("Couldn't process CSS source", ex);
+							}
+						}
+					}					
+					
+					
 				}
 
 				if (instructions != null) {
@@ -1044,7 +1068,7 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes except for newly created templates
-				if(!isNewTemplateOrComponent){
+				if (!isNewTemplateOrComponent){
 
 					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
 
@@ -1294,6 +1318,18 @@ public class Importer {
 			String url = matcher.group(2);
 
 			logger.info("Trying to download from URL found in CSS: {}", url);
+			downloadFile(url, base);
+
+		}
+
+		pattern = Pattern.compile("(@import\\s*([\"']|url\\('|url\\(\"))([^\"']*)");
+		matcher = pattern.matcher(css);
+
+		while (matcher.find()) {
+
+			String url = matcher.group(3);
+
+			logger.info("Trying to download file referenced by @import found in CSS: {}", url);
 			downloadFile(url, base);
 
 		}
