@@ -70,7 +70,8 @@ public class ParallelLoginTest extends SeleniumTest {
 
 				final String menuEntry = "Pages";
 
-				System.setProperty("webdriver.chrome.driver", "src/test/selenium/chromedriver");
+				System.setProperty("webdriver.chrome.driver", getBrowserDriverLocation(SupportedBrowsers.CHROME));
+
 				final ChromeOptions chromeOptions = new ChromeOptions();
 				chromeOptions.setHeadless(true);
 				WebDriver driver = new ChromeDriver(chromeOptions);
