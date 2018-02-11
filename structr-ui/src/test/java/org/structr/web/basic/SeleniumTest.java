@@ -19,6 +19,7 @@
 package org.structr.web.basic;
 
 import java.util.Date;
+import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
@@ -84,8 +85,10 @@ public class SeleniumTest extends FrontendTest {
 
 	@After
 	public void stopDriver() {
-
-		driver.quit();
+		
+		if (driver != null) {
+			driver.quit();
+		}
 	}
 
 	protected void logBrowserLog() {
@@ -122,8 +125,21 @@ public class SeleniumTest extends FrontendTest {
 		usernameField.sendKeys("admin");
 		passwordField.sendKeys("admin");
 		loginButton.click();
+<<<<<<< Updated upstream
 
 		wait.until(ExpectedConditions.titleIs("Structr " + menuEntry));
+=======
+		
+		try {
+		
+			wait.until(ExpectedConditions.titleIs("Structr " + menuEntry));
+			
+		} catch (RuntimeException ex) {
+			Thread.dumpStack();
+			throw ex;
+		}
+
+>>>>>>> Stashed changes
 		assertEquals("Structr " + menuEntry, driver.getTitle());
 	}
 
