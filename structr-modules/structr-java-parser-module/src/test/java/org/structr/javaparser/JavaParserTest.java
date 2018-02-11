@@ -18,16 +18,9 @@
  */
 package org.structr.javaparser;
 
-import com.github.javaparser.resolution.declarations.ResolvedTypeDeclaration;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 import com.google.gson.GsonBuilder;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import org.asciidoctor.internal.IOUtils;
 import static org.junit.Assert.assertEquals;
 import org.slf4j.Logger;
@@ -59,35 +52,6 @@ public class JavaParserTest extends JavaParserModuleTest {
 		} catch (final IOException ex) {
 				logger.debug("Error in Java parser test", ex);
 		}
-	}
-	
-	@Test
-	public void test02ParseAndResolve() {
-		
-		//final SecurityContext securityContext = rootFolder.getSecurityContext();
-		//app = StructrApp.getInstance(securityContext);
-
-		final StructrJavaTypeSolver structrTypeSolver = new StructrJavaTypeSolver();
-		//structrTypeSolver.parseRoot(rootFolder);
-		
-		final CombinedTypeSolver typeSolver = new CombinedTypeSolver();
-		typeSolver.add(new ReflectionTypeSolver());
-		
-		try {
-			Files.newDirectoryStream(Paths.get("/home/axel/dev/panda/trunk/plugins/"), path -> path.toString().endsWith(".jar")).forEach((file) -> {
-				try {
-					typeSolver.add(new JarTypeSolver(new FileInputStream(file.toFile())));
-				} catch (IOException ex) {}
-			});
-			
-		} catch (IOException ex) {}
-		
-		typeSolver.add(structrTypeSolver);
-		
-		ResolvedTypeDeclaration method = typeSolver.solveType("returnSollwegRequest.getComputedRouteRequest().isExportRoutingCodeExists())");
-		
-		logger.info("Resolved type: ", method);
-		
 	}
 
 }

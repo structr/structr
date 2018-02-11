@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,13 @@
  */
 package org.structr.javaparser.entity.relation;
 
-import org.structr.core.entity.relationship.AbstractChildren;
+import org.structr.core.entity.OneToMany;
 
 /**
  *
  *
  */
-public class PackageChildren extends AbstractChildren<org.structr.javaparser.entity.Package, org.structr.javaparser.entity.Package> {
+public class PackageChildren extends OneToMany<org.structr.javaparser.entity.Package, org.structr.javaparser.entity.Package> {
 
 	@Override
 	public Class<org.structr.javaparser.entity.Package> getSourceType() {
@@ -34,5 +34,10 @@ public class PackageChildren extends AbstractChildren<org.structr.javaparser.ent
 	@Override
 	public Class<org.structr.javaparser.entity.Package> getTargetType() {
 		return org.structr.javaparser.entity.Package.class;
+	}
+
+	@Override
+	public String name() {
+		return "CONTAINS";
 	}
 }

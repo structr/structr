@@ -1694,7 +1694,7 @@ public class PropertyTest extends StructrTest {
 			final PropertyMap properties  = new PropertyMap();
 			final PropertyKey<String> key = TestFour.stringProperty;
 
-			properties.put(key, "{\n return sollwegRuleManager;\n}");
+			properties.put(key, "{\n return fooBar;\n}");
 
 			final TestFour testEntity     = createTestNode(TestFour.class, properties);
 
@@ -1703,10 +1703,10 @@ public class PropertyTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// check value from database
-				assertEquals("{\n return sollwegRuleManager;\n}", testEntity.getProperty(key));
+				assertEquals("{\n return fooBar;\n}", testEntity.getProperty(key));
 
-				// inexact searc
-				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "sollweg", false).getResult();
+				// inexact search
+				Result<TestFour> result = app.nodeQuery(TestFour.class).and(key, "foo", false).getResult();
 
 				assertEquals(1, result.size());
 				assertEquals(testEntity, result.get(0));

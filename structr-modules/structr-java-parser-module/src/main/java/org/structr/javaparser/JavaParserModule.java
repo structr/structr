@@ -87,7 +87,7 @@ import org.structr.javaparser.entity.Module;
 import org.structr.javaparser.entity.Package;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -296,7 +296,7 @@ public class JavaParserModule implements StructrModule {
 		parseJavaFilesAndSolveTypes(folder);
 
 		// Handle subfolders of this folder
-		for (final Folder subfolder : folder.getProperty(Folder.folders)) {
+		for (final Folder subfolder : folder.getFolders()) {
 			parseFolder(subfolder, depth+1, folder);
 		}
 	}
@@ -312,7 +312,7 @@ public class JavaParserModule implements StructrModule {
 		analyzeMethodsInJavaFiles(folder);
 
 		// Handle subfolders of this folder
-		folder.getProperty(Folder.folders).forEach((final Folder subfolder) -> {
+		folder.getFolders().forEach((final Folder subfolder) -> {
 			analyzeFolder(subfolder, depth+1, folder);
 		});
 	}
@@ -321,13 +321,13 @@ public class JavaParserModule implements StructrModule {
 	
 		try {
 		
-			final FileBase pomFile = app.nodeQuery(FileBase.class).andName("pom.xml").and(FileBase.parent, folder).getFirst();
+			final File pomFile = app.nodeQuery(File.class).andName("pom.xml").and(StructrApp.key(File.class, "parent"), folder).getFirst();
 			if (pomFile != null) {
 				
 				handlePomFile(pomFile, folder, parentFolder);
 			}
 
-			final FileBase packageFile = app.nodeQuery(FileBase.class).andName("package-info.java").and(Folder.parent, folder).getFirst();
+			final File packageFile = app.nodeQuery(File.class).andName("package-info.java").and(StructrApp.key(Folder.class, "parent"), folder).getFirst();
 			if (packageFile != null) {
 
 				handlePackageFolder(folder, parentFolder);
@@ -344,7 +344,7 @@ public class JavaParserModule implements StructrModule {
 			return;
 		}
 		
-		for (final FileBase file : folder.getProperty(Folder.files)) {
+		for (final File file : folder.getFiles()) {
 		
 			if (file.getContentType().equals("text/x-java")) {
 
@@ -536,7 +536,7 @@ public class JavaParserModule implements StructrModule {
 			return;
 		}
 		
-		for (final FileBase file : folder.getProperty(Folder.files)) {
+		for (final File file : folder.getFiles()) {
 		
 			if (file.getContentType().equals("text/x-java")) {
 
@@ -553,7 +553,7 @@ public class JavaParserModule implements StructrModule {
 		}
 	}
 
-	private void handlePomFile(final FileBase file, final Folder folder, final Folder parentFolder) {
+	private void handlePomFile(final File file, final Folder folder, final Folder parentFolder) {
 		
 		final XPath xpath = XPathFactory.newInstance().newXPath();
 		QName returnType  = XPathConstants.STRING;
@@ -589,7 +589,7 @@ public class JavaParserModule implements StructrModule {
 				}
 
 				// Continue while loop
-				possibleModuleParentFolder = possibleModuleParentFolder.getProperty(Folder.parent);
+				possibleModuleParentFolder = possibleModuleParentFolder.getParent();
 			}
 
 		} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException | FrameworkException ex) {
@@ -642,7 +642,7 @@ public class JavaParserModule implements StructrModule {
 
 			try {
 				// Find corresponding folder
-				final Folder packageFolder = app.nodeQuery(Folder.class).and(Folder.path, StringUtils.replaceAll(clsPackage.getName(), ".", "/")).getFirst();
+				final Folder packageFolder = app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), StringUtils.replaceAll(clsPackage.getName(), ".", "/")).getFirst();
 
 				if (packageFolder != null) {
 
@@ -703,7 +703,7 @@ public class JavaParserModule implements StructrModule {
 				}
 
 				// Continue while loop
-				possibleModuleParentFolder = possibleModuleParentFolder.getProperty(Folder.parent);
+				possibleModuleParentFolder = possibleModuleParentFolder.getParent();
 
 			}
 

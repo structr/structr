@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,7 @@
  */
 package org.structr.javaparser;
 
-import org.structr.javaparser.*;
 import com.github.javaparser.ParseProblemException;
-import com.google.gson.GsonBuilder;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;

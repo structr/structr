@@ -1,7 +1,5 @@
-package org.structr.javaparser;
-
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +16,8 @@ package org.structr.javaparser;
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.structr.javaparser;
 
-
-import org.structr.javaparser.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -53,7 +50,7 @@ public class AnalyzeSourceTreeFunction extends Function<Object, Object> {
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final App app                         = StructrApp.getInstance(securityContext);
 
-			new JavaParserModule().analyzeSourceTree(app.nodeQuery(Folder.class).and(Folder.path, (String) sources[0]).getFirst());
+			new JavaParserModule().analyzeSourceTree(app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), (String) sources[0]).getFirst());
 
 		} catch (final IllegalArgumentException e) {
 

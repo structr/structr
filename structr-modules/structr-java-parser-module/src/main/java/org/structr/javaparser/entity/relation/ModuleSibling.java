@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,14 @@
  */
 package org.structr.javaparser.entity.relation;
 
-import org.structr.core.entity.relationship.AbstractListSiblings;
+import org.structr.core.entity.OneToOne;
 import org.structr.javaparser.entity.Module;
 
 /**
  *
  *
  */
-public class ModuleSiblings extends AbstractListSiblings<Module, Module> {
+public class ModuleSibling extends OneToOne<Module, Module> {
 
 	@Override
 	public Class<Module> getSourceType() {
@@ -35,5 +35,10 @@ public class ModuleSiblings extends AbstractListSiblings<Module, Module> {
 	@Override
 	public Class<Module> getTargetType() {
 		return Module.class;
+	}
+
+	@Override
+	public String name() {
+		return "CONTAINS_NEXT_SIBLING";
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.structr.javaparser;
 
 import com.github.javaparser.JavaParser;
@@ -36,7 +35,7 @@ import java.util.concurrent.ExecutionException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 /**
@@ -117,7 +116,7 @@ public class StructrJavaTypeSolver implements TypeSolver {
 
 	private void parse(final Folder folder) {
 		
-		for (final FileBase file: folder.getProperty(Folder.files)) {
+		for (final File file: folder.getFiles()) {
 			
 			final String fileName = file.getName();
 			
@@ -138,7 +137,7 @@ public class StructrJavaTypeSolver implements TypeSolver {
 			}
 		}
 		
-		folder.getProperty(Folder.folders).forEach((subfolder) -> {
+		folder.getFolders().forEach((subfolder) -> {
 			parse(subfolder);
 		});
 	}

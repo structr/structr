@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,23 +21,50 @@ package org.structr.javaparser.entity;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.LinkedTreeNodeImpl;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.javaparser.entity.relation.ModuleChildren;
 import org.structr.javaparser.entity.relation.ModuleFolder;
 import org.structr.javaparser.entity.relation.ModulePackages;
-import org.structr.javaparser.entity.relation.ModuleSiblings;
+import org.structr.javaparser.entity.relation.ModuleSibling;
 import org.structr.web.entity.Folder;
 import org.structr.web.property.PathProperty;
 
 /**
  *
  */
-public class Module extends LinkedTreeNode<ModuleChildren, ModuleSiblings, Module> {
+public class Module extends LinkedTreeNodeImpl<Module> {
 	
+	/*static class Impl { static {
+
+		final JsonSchema schema          = SchemaService.getDynamicSchema();
+		final JsonObjectType type        = schema.addType("Module");
+		final JsonObjectType folder      = (JsonObjectType) schema.addType("Folder");
+		final JsonObjectType javaPackage = (JsonObjectType) schema.addType("Package");
+	
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Module"));
+		
+		type.addStringProperty("path", PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true);
+
+		final JsonReferenceType contains = type.relate(type, "CONTAINS", Cardinality.OneToMany, "parent",   "children");
+
+		final JsonReferenceType moduleFolder   = type.relate(folder, "MODULE_FOLDER",  Cardinality.OneToOne,  "folder", "package");
+
+		type.addViewProperty(PropertyView.Ui, contains.getSourcePropertyName());
+		type.addViewProperty(PropertyView.Ui, contains.getTargetPropertyName());
+		type.addViewProperty(PropertyView.Ui, moduleFolder.getSourcePropertyName());
+		type.addViewProperty(PropertyView.Ui, "packages");
+		
+		type.overrideMethod("getSiblingLinkType",          false, "return ModuleCONTAINS_NEXT_SIBLINGModule.class;");
+		type.overrideMethod("getChildLinkType",            false, "return ModuleCONTAINSModule.class;");
+	}}*/	
+	
+	public static final Property<Integer> position                 = new IntProperty("position").indexed().readOnly();
 	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
 	public static final Property<Module> parent                    = new StartNode<>("parent", ModuleChildren.class);
 	public static final Property<List<Module>> children            = new EndNodes<>("children", ModuleChildren.class);
@@ -54,7 +81,12 @@ public class Module extends LinkedTreeNode<ModuleChildren, ModuleSiblings, Modul
 	}
 
 	@Override
-	public java.lang.Class<ModuleSiblings> getSiblingLinkType() {
-		return ModuleSiblings.class;
+	public java.lang.Class<ModuleSibling> getSiblingLinkType() {
+		return ModuleSibling.class;
+	}
+
+	@Override
+	public PropertyKey<Integer> getPositionProperty() {
+		return position;
 	}
 }

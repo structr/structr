@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,25 +21,57 @@ package org.structr.javaparser.entity;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.entity.LinkedTreeNode;
+import org.structr.core.entity.LinkedTreeNodeImpl;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
+import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.javaparser.entity.relation.ModulePackages;
 import org.structr.javaparser.entity.relation.PackageChildren;
 import org.structr.javaparser.entity.relation.PackageClasses;
 import org.structr.javaparser.entity.relation.PackageFolder;
-import org.structr.javaparser.entity.relation.PackageSiblings;
+import org.structr.javaparser.entity.relation.PackageSibling;
 import org.structr.web.entity.Folder;
 import org.structr.web.property.PathProperty;
 
 /**
  *
  */
-public class Package extends LinkedTreeNode<PackageChildren, PackageSiblings, org.structr.javaparser.entity.Package> {
+public class Package extends LinkedTreeNodeImpl<org.structr.javaparser.entity.Package> {
 	
+	/*static class Impl { static {
+
+		final JsonSchema schema        = SchemaService.getDynamicSchema();
+		final JsonObjectType type      = schema.addType("Package");
+		final JsonObjectType module    = (JsonObjectType) schema.addType("Module");
+		final JsonObjectType folder    = (JsonObjectType) schema.addType("Folder");
+		final JsonObjectType javaClass = (JsonObjectType) schema.addType("JavaClass");
+	
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Package"));
+		
+		type.addStringProperty("path", PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true);
+
+		final JsonReferenceType contains = type.relate(type, "CONTAINS", Cardinality.OneToMany, "parent",   "children");
+
+		final JsonReferenceType modulePackages = type.relate(module,    "MODULE_PACKAGE", Cardinality.OneToMany, "module", "packages");
+		final JsonReferenceType packageFolder  = type.relate(folder,    "PACKAGE_FOLDER", Cardinality.OneToOne, "folder", "package");
+		final JsonReferenceType packageClass   = type.relate(javaClass, "PACKAGE_CLASS",  Cardinality.OneToMany, "classes", "package");
+		
+		type.addViewProperty(PropertyView.Ui, contains.getSourcePropertyName());
+		type.addViewProperty(PropertyView.Ui, contains.getTargetPropertyName());
+		type.addViewProperty(PropertyView.Ui, modulePackages.getSourcePropertyName());
+		type.addViewProperty(PropertyView.Ui, packageFolder.getSourcePropertyName());
+		type.addViewProperty(PropertyView.Ui, packageClass.getSourcePropertyName());
+
+		type.overrideMethod("getSiblingLinkType",          false, "return PackageCONTAINS_NEXT_SIBLINGPackage.class;");
+		type.overrideMethod("getChildLinkType",            false, "return PackageCONTAINSPackage.class;");
+	}}*/
+
+	public static final Property<Integer>                                     position = new IntProperty("position").indexed().readOnly();
 	public static final Property<String>                                      path     = new PathProperty("path").indexed().readOnly();
+	
 	public static final Property<org.structr.javaparser.entity.Package>       parent   = new StartNode<>("parent", PackageChildren.class);
 	public static final Property<List<org.structr.javaparser.entity.Package>> children = new EndNodes<>("children", PackageChildren.class);
 	
@@ -49,14 +81,19 @@ public class Package extends LinkedTreeNode<PackageChildren, PackageSiblings, or
 	
 	public static final View defaultView = new View(org.structr.javaparser.entity.Package.class, PropertyView.Public, name, path, parent);
 	public static final View uiView      = new View(org.structr.javaparser.entity.Package.class, PropertyView.Ui,     name, path, parent, children, classes);
-
+	
 	@Override
 	public java.lang.Class<PackageChildren> getChildLinkType() {
 		return PackageChildren.class;
 	}
 
 	@Override
-	public java.lang.Class<PackageSiblings> getSiblingLinkType() {
-		return PackageSiblings.class;
+	public java.lang.Class<PackageSibling> getSiblingLinkType() {
+		return PackageSibling.class;
+	}
+
+	@Override
+	public PropertyKey<Integer> getPositionProperty() {
+		return position;
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2017 Structr GmbH
+ * Copyright (C) 2010-2018 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,7 +50,7 @@ public class IndexSourceTreeFunction extends Function<Object, Object> {
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final App app                         = StructrApp.getInstance(securityContext);
 
-			new JavaParserModule().indexSourceTree(app.nodeQuery(Folder.class).and(Folder.path, (String) sources[0]).getFirst());
+			new JavaParserModule().indexSourceTree(app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), (String) sources[0]).getFirst());
 
 		} catch (final IllegalArgumentException e) {
 
