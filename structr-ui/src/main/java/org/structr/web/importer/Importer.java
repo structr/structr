@@ -1005,14 +1005,14 @@ public class Importer {
 						continue;
 
 					}
-					
+
 				} else if ("style".equals(tag)) {
-					
-					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+
+					final PropertyKey<String> typeKey = Input._type;
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType.equals("text/css")) {
-						
+
 						// parse content of style elements and add referenced files to list of resources to be downloaded
 						for (final Node styleContentNode : node.childNodes()) {
 
@@ -1026,9 +1026,9 @@ public class Importer {
 								logger.warn("Couldn't process CSS source", ex);
 							}
 						}
-					}					
-					
-					
+					}
+
+
 				}
 
 				if (instructions != null) {

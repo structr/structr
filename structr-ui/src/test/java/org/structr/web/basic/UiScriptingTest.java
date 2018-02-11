@@ -20,7 +20,6 @@ package org.structr.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.web.StructrUiTest;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -68,6 +67,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.web.StructrUiTest;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.TestOne;
@@ -89,7 +92,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 public class UiScriptingTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiScriptingTest.class.getName());
- 
+
 	@Test
 	public void testSingleRequestParameters() {
 
@@ -98,9 +101,9 @@ public class UiScriptingTest extends StructrUiTest {
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 			template.setProperty(Template.content, "${request.param}");
-			
+
 			page.appendChild(template);
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -128,7 +131,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.get("http://localhost:8875/test?param=a");
 
 			tx.success();
-		
+
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
@@ -143,9 +146,9 @@ public class UiScriptingTest extends StructrUiTest {
 			Page page         = (Page) app.create(Page.class, new NodeAttribute(Page.name, "test"), new NodeAttribute(Page.visibleToPublicUsers, true));
 			Template template = (Template) app.create(Template.class, new NodeAttribute(Page.visibleToPublicUsers, true));
 			template.setProperty(Template.content, "${each(request.param, print(data))}");
-			
+
 			page.appendChild(template);
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -173,13 +176,13 @@ public class UiScriptingTest extends StructrUiTest {
 				.get("http://localhost:8875/test?param=a&param=b&param=c");
 
 			tx.success();
-		
+
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
 		}
 	}
-	
+
 	@Test
 	public void testScripting() {
 
@@ -522,11 +525,11 @@ public class UiScriptingTest extends StructrUiTest {
 			final Page page       = Page.createSimplePage(securityContext, "test");
 			final Div div         = (Div) page.getElementsByTagName("div").item(0);
 			final Content content = (Content) div.getFirstChild();
-			
+
 			// Create second div without children
 			Div div2 = (Div) div.cloneNode(false);
 			div.getUuid();
-			
+
 			// setup scripting repeater to repeat over (non-existing) children of second div
 			content.setProperty(Content.restQuery, "/Div/" + div2.getUuid()+ "/children");
 			content.setProperty(Content.dataKey, "test");
@@ -570,6 +573,57 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.body.div",   Matchers.equalTo(""))
 			.when()
 			.get("/html/test/" + uuid);
+	}
+
+	@Test
+	public void testHttpGetFunction() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.addType("Test").addMethod("doTest", "${GET('http://localhost:8875/structr/rest/Test')}", "");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			// create admin user
+			createTestNode(User.class,
+				new NodeAttribute<>(User.name, "admin"),
+				new NodeAttribute<>(User.password, "admin"),
+				new NodeAttribute<>(User.isAdmin, true)
+			);
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.error("", ex);
+		}
+
+		RestAssured.basePath = "/structr/rest";
+
+		final String uuid = createEntityAsSuperUser("/Test", "{name: test}");
+
+		grant("Test", UiAuthenticator.NON_AUTH_USER_GET, true);
+
+		// test successful basic auth
+		RestAssured
+			.given()
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(200)
+				//.body("html.head.title", Matchers.equalTo("Test"))
+				//.body("html.body.h1",    Matchers.equalTo("Test"))
+				//.body("html.body.div",   Matchers.equalTo(uuid))
+			.when()
+			.post("/Test/" + uuid + "/doTest");
+
 	}
 
 	// ----- private methods -----
