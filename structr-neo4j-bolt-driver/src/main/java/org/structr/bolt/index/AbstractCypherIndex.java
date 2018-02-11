@@ -39,12 +39,13 @@ import org.structr.api.search.GroupQuery;
 import org.structr.api.search.NotEmptyQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.RangeQuery;
+import org.structr.api.search.RelationshipQuery;
 import org.structr.api.search.SpatialQuery;
 import org.structr.api.search.TypeConverter;
 import org.structr.api.search.TypeQuery;
 import org.structr.api.search.UuidQuery;
 import org.structr.api.util.Iterables;
-import org.structr.bolt.*;
+import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
 import org.structr.bolt.index.converter.ByteTypeConverter;
 import org.structr.bolt.index.converter.DateTypeConverter;
@@ -61,6 +62,7 @@ import org.structr.bolt.index.factory.KeywordQueryFactory;
 import org.structr.bolt.index.factory.NotEmptyQueryFactory;
 import org.structr.bolt.index.factory.QueryFactory;
 import org.structr.bolt.index.factory.RangeQueryFactory;
+import org.structr.bolt.index.factory.RelationshipQueryFactory;
 import org.structr.bolt.index.factory.SpatialQueryFactory;
 import org.structr.bolt.index.factory.TypeQueryFactory;
 import org.structr.bolt.index.factory.UuidQueryFactory;
@@ -82,16 +84,17 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 
 	static {
 
-		FACTORIES.put(NotEmptyQuery.class, new NotEmptyQueryFactory());
-		FACTORIES.put(FulltextQuery.class, new KeywordQueryFactory());
-		FACTORIES.put(SpatialQuery.class,  new SpatialQueryFactory());
-		FACTORIES.put(GroupQuery.class,    new GroupQueryFactory());
-		FACTORIES.put(RangeQuery.class,    new RangeQueryFactory());
-		FACTORIES.put(ExactQuery.class,    new KeywordQueryFactory());
-		FACTORIES.put(ArrayQuery.class,    new ArrayQueryFactory());
-		FACTORIES.put(EmptyQuery.class,    new EmptyQueryFactory());
-		FACTORIES.put(TypeQuery.class,     new TypeQueryFactory());
-		FACTORIES.put(UuidQuery.class,     new UuidQueryFactory());
+		FACTORIES.put(NotEmptyQuery.class,     new NotEmptyQueryFactory());
+		FACTORIES.put(FulltextQuery.class,     new KeywordQueryFactory());
+		FACTORIES.put(SpatialQuery.class,      new SpatialQueryFactory());
+		FACTORIES.put(GroupQuery.class,        new GroupQueryFactory());
+		FACTORIES.put(RangeQuery.class,        new RangeQueryFactory());
+		FACTORIES.put(ExactQuery.class,        new KeywordQueryFactory());
+		FACTORIES.put(ArrayQuery.class,        new ArrayQueryFactory());
+		FACTORIES.put(EmptyQuery.class,        new EmptyQueryFactory());
+		FACTORIES.put(TypeQuery.class,         new TypeQueryFactory());
+		FACTORIES.put(UuidQuery.class,         new UuidQueryFactory());
+		FACTORIES.put(RelationshipQuery.class, new RelationshipQueryFactory());
 
 		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
 		CONVERTERS.put(String.class,  new StringTypeConverter());

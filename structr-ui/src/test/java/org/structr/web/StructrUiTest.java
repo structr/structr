@@ -139,6 +139,9 @@ public abstract class StructrUiTest {
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet");
 
+		Settings.NodeCacheSize.setValue(10000);
+		Settings.RelationshipCacheSize.setValue(10000);
+		
 		//Settings.LogSchemaOutput.setValue(true);
 
 		final Services services = Services.getInstance();
