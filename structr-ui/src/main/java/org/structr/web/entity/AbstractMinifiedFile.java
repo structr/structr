@@ -34,13 +34,14 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
+import org.structr.dynamic.File;
 import org.structr.web.entity.relation.MinificationSource;
 
 /**
  * Base class for minifiable files in structr
  *
  */
-public abstract class AbstractMinifiedFile extends FileBase {
+public abstract class AbstractMinifiedFile extends File {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractMinifiedFile.class.getName());
 
