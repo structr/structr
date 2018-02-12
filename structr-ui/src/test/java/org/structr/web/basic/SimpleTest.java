@@ -1005,7 +1005,7 @@ public class SimpleTest extends StructrUiTest {
 			.header("X-XSS-Protection", "1;mode=block")
 			.header("Vary", "Accept-Encoding, User-Agent")
 			.header("Content-Length", "133")
-			.header("Server", "Jetty(9.4.7.v20170914)")
+			.header("Server", "Jetty(9.4.8.v20171121)")
 			.statusCode(200)
 			.when()
 			.get("http://127.0.0.1:8875/test");
