@@ -66,6 +66,7 @@ public class NodeWrapperTest {
 			tx.success();
 
 		} catch (Throwable t) {
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

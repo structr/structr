@@ -162,29 +162,15 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 
 		final String type = GraphObject.type.dbName();
 
-		// first try: duck-typing
-		final String sourceType = relationship.getStartNode().hasProperty(type) ? relationship.getStartNode().getProperty(type).toString() : "";
-		final String targetType = relationship.getEndNode().hasProperty(type) ? relationship.getEndNode().getProperty(type).toString() : "";
-		final String relType    = relationship.getType().name();
-		final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
-
-		if (entityType != null) {
-			logger.debug("Class for assembled combined {}", entityType.getName());
-			return entityType;
-		}
-
 		// first try: type property
 		if (relationship.hasProperty(type)) {
 
 			Object obj =  relationship.getProperty(type);
-
-			logger.debug("Type property: {}", obj);
-
 			if (obj != null) {
 
 				Class relationClass = StructrApp.getConfiguration().getRelationshipEntityClass(obj.toString());
 				if (relationClass != null) {
-					StructrApp.getConfiguration().setRelationClassForCombinedType(sourceType, relType, targetType, relationClass);
+
 					return relationClass;
 				}
 			}
@@ -195,19 +181,32 @@ public class DefaultFactoryDefinition implements FactoryDefinition {
 		if (relationship.hasProperty(combinedTypeName)) {
 
 			Object obj =  relationship.getProperty(combinedTypeName);
-
-			logger.debug("Combined type property: {}", obj);
-
 			if (obj != null) {
 
 				Class classForCombinedType = getClassForCombinedType(obj.toString());
 				if (classForCombinedType != null) {
+					
 					return classForCombinedType;
 				}
 			}
 		}
 
-		// logger.warn("No instantiable class for relationship found for {} {} {}, returning generic relationship class.", new Object[] { sourceType, relType, targetType });
+		final Node startNode = relationship.getStartNode();
+		final Node endNode   = relationship.getEndNode();
+
+		if (startNode != null && endNode != null) {
+
+			// first try: duck-typing
+			final String sourceType = startNode.hasProperty(type) ? startNode.getProperty(type).toString() : "";
+			final String targetType = endNode.hasProperty(type)   ? endNode.getProperty(type).toString()   : "";
+			final String relType    = relationship.getType().name();
+			final Class entityType  = getClassForCombinedType(sourceType, relType, targetType);
+
+			if (entityType != null) {
+				logger.debug("Class for assembled combined {}", entityType.getName());
+				return entityType;
+			}
+		}
 
 		return getGenericRelationshipType();
 	}

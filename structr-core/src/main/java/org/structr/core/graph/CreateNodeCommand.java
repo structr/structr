@@ -214,11 +214,18 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		final Map<String, Object> securityProperties = new HashMap<>();
 		final StringBuilder buf                      = new StringBuilder();
 		final String newUuid                         = (String)properties.get("id");
+		final String tenantId                        = graphDb.getTenantIdentifier();
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
 			buf.append("MATCH (u:Principal) WHERE id(u) = {userId}");
 			buf.append(" CREATE (u)-[o:OWNS {ownsProperties}]->(n");
+
+			if (tenantId != null) {
+
+				buf.append(":");
+				buf.append(tenantId);
+			}
 
 			for (final String label : labels) {
 
@@ -250,6 +257,12 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		} else {
 
 			buf.append("CREATE (n");
+
+			if (tenantId != null) {
+
+				buf.append(":");
+				buf.append(tenantId);
+			}
 
 			for (final String label : labels) {
 
