@@ -86,6 +86,13 @@ public class TypeProperty extends StringProperty {
 		final Set<Label> toAdd        = new LinkedHashSet<>();
 		final Node dbNode             = node.getNode();
 
+		// include optional tenant identifier when modifying labels
+		final String tenantIdentifier = graphDb.getTenantIdentifier();
+		if (tenantIdentifier != null) {
+
+			toAdd.add(graphDb.forName(Label.class, tenantIdentifier));
+		}
+
 		// collect labels that are already present on a node
 		for (final Label label : dbNode.getLabels()) {
 			toRemove.add(label);

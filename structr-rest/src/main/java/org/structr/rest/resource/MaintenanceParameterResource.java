@@ -43,14 +43,11 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
 
 /**
- *
- *
  */
 public class MaintenanceParameterResource extends Resource {
 
@@ -58,7 +55,6 @@ public class MaintenanceParameterResource extends Resource {
 
 	static {
 
-		maintenanceCommandMap.put("importGist", GraphGistImporter.class);
 		maintenanceCommandMap.put("importRdf", RDFImporter.class);
 		maintenanceCommandMap.put("importSchemaJson", SchemaJsonImporter.class);
 		maintenanceCommandMap.put("rebuildIndex", BulkRebuildIndexCommand.class);

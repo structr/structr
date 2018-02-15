@@ -30,25 +30,14 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
-/**
- *
- *
- */
 public class ImportCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImportCommand.class.getName());
 
-	//~--- static initializers --------------------------------------------
-
 	static {
 
 		StructrWebSocket.addCommand(ImportCommand.class);
-
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -61,17 +50,17 @@ public class ImportCommand extends AbstractCommand {
 		final boolean publicVisible           = (Boolean) properties.get("publicVisible");
 		final boolean authVisible             = (Boolean) properties.get("authVisible");
 		final boolean processDeploymentInfo   = (Boolean) properties.get("processDeploymentInfo");
-		
+
 		try {
 
 			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible);
-			
+
 			if (processDeploymentInfo) {
-		
+
 				pageImporter.setIsDeployment(true);
 				pageImporter.setCommentHandler(new DeploymentCommentHandler());
 			}
-			
+
 			final boolean parseOk       = pageImporter.parse();
 
 			if (parseOk) {
@@ -89,9 +78,6 @@ public class ImportCommand extends AbstractCommand {
 					resultData.put("id", pageId);
 					getWebSocket().send(MessageBuilder.status().code(200).message("Successfully created page " + name).data(resultData).build(), true);
 
-					// try to import graph gist source code from HTML comment
-					pageImporter.importDataComments();
-					
 				} else {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message("Error while creating page " + name).data(resultData).build(), true);
@@ -107,13 +93,8 @@ public class ImportCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
-
 		return "IMPORT";
-
 	}
-
 }

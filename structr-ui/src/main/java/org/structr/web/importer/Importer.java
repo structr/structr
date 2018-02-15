@@ -18,7 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -26,7 +25,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,7 +72,6 @@ import org.structr.dynamic.File;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.Actions;
-import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -98,12 +95,8 @@ import org.structr.web.entity.html.Input;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
- *
- *
- *
  */
 public class Importer {
 
@@ -336,17 +329,6 @@ public class Importer {
 	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
 		createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
-	}
-
-	public void importDataComments() throws FrameworkException {
-
-		// try to import graph gist from comments
-		final GraphGistImporter importer = app.command(GraphGistImporter.class);
-		final byte[] data                = commentSource.toString().getBytes();
-		final ByteArrayInputStream bis   = new ByteArrayInputStream(data);
-		final List<String> sources       = importer.extractSources(bis);
-
-		importer.importCypher(sources);
 	}
 
 	public void setIsDeployment(final boolean isDeployment) {
@@ -953,22 +935,6 @@ public class Importer {
 							// Import schema JSON
 							SchemaJsonImporter.importSchemaJson(source);
 						}
-
-					} else if (contentType.equals("application/x-cypher")) {
-
-						for (final Node scriptContentNode : node.childNodes()) {
-
-							final String source = scriptContentNode.toString();
-
-							// import Cypher queries from script source
-							final GraphGistImporter importer = app.command(GraphGistImporter.class);
-							final List<String> sources       = new ArrayList<>();
-							sources.add(source);
-
-							importer.importCypher(sources);
-						}
-
-						continue;
 
 					} else if (contentType.equals("application/x-structr-script")) {
 
