@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.StructrTest;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -858,7 +859,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -868,6 +869,8 @@ public class ValidationTest extends StructrTest {
 			final PropertyKey key = StructrApp.key(testType, "testUnique");
 			if (key != null) {
 
+				Settings.CypherDebugLogging.setValue(true);
+
 				try (final Tx tx = app.tx()) {
 
 					// key must be unique, but can empty
@@ -876,9 +879,11 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.warn("", fex);
+					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
+
+				Settings.CypherDebugLogging.setValue(true);
 
 				for (int i=0; i<5; i++) {
 

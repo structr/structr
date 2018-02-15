@@ -86,13 +86,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
-	private String tenantId                                           = "Test";
+	private String tenantId                                           = null;
 
 	@Override
 	public boolean initialize() {
 
 		this.databasePath = Settings.DatabasePath.getValue();
-		//this.tenantId     = Settings.TenantIdentifier.getValue();
+		this.tenantId     = Settings.TenantIdentifier.getValue();
 
 		final BoltConnector bolt = new BoltConnector("0");
 		databaseUrl              = Settings.ConnectionUrl.getValue();

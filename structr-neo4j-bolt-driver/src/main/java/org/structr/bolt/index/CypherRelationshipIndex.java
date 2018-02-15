@@ -51,7 +51,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			buf.append(sourceTypeLabel);
 		}
 
-		buf.append(")-[");
+		buf.append(")-[n");
 
 		if (typeLabel != null) {
 			buf.append(":");
