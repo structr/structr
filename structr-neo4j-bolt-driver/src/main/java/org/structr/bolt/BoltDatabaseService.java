@@ -42,6 +42,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.neo4j.kernel.configuration.BoltConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -85,20 +86,21 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private String databaseUrl                                        = null;
 	private String databasePath                                       = null;
 	private Driver driver                                             = null;
+	private String tenantId                                           = "Test";
 
 	@Override
 	public boolean initialize() {
 
 		this.databasePath = Settings.DatabasePath.getValue();
+		//this.tenantId     = Settings.TenantIdentifier.getValue();
 
-		final GraphDatabaseSettings.BoltConnector bolt = GraphDatabaseSettings.boltConnector("0");
-		databaseUrl                                    = Settings.ConnectionUrl.getValue();
-		final String username                          = Settings.ConnectionUser.getValue();
-		final String password                          = Settings.ConnectionPassword.getValue();
-		final String driverMode                        = Settings.DatabaseDriverMode.getValue();
-		final String confPath                          = databasePath + "/neo4j.conf";
-		final File confFile                            = new File(confPath);
-		boolean tryAgain                               = true;
+		final BoltConnector bolt = new BoltConnector("0");
+		databaseUrl              = Settings.ConnectionUrl.getValue();
+		final String username    = Settings.ConnectionUser.getValue();
+		final String password    = Settings.ConnectionPassword.getValue();
+		final String driverMode  = Settings.DatabaseDriverMode.getValue();
+		final String confPath    = databasePath + "/neo4j.conf";
+		final File confFile      = new File(confPath);
 
 		// see https://github.com/neo4j/neo4j-java-driver/issues/364 for an explanation
 		final String databaseServerUrl;
@@ -219,6 +221,12 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final StringBuilder buf       = new StringBuilder("CREATE (n");
 		final Map<String, Object> map = new HashMap<>();
 
+		if (tenantId != null) {
+
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
 		for (final String label : labels) {
 
 			buf.append(":");
@@ -241,12 +249,29 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public Relationship getRelationshipById(final long id) {
 
+		final StringBuilder buf       = new StringBuilder();
 		final SessionTransaction tx   = getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 
 		map.put("id", id);
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship("MATCH ()-[r]->() WHERE ID(r) = {id} RETURN r", map);
+		buf.append("MATCH (");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(")-[r]->(");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(") WHERE ID(r) = {id} RETURN r");
+
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
 		return RelationshipWrapper.newInstance(this, rel);
 
@@ -254,7 +279,19 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public QueryResult<Node> getAllNodes() {
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery("MATCH (n) RETURN n")));
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("MATCH (n");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(") RETURN n");
+
+		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -264,7 +301,20 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			return getAllNodes();
 		}
 
-		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery("MATCH (n:" + type + ") RETURN n")));
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("MATCH (n");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(":");
+		buf.append(type);
+		buf.append(") RETURN n");
+
+		return QueryUtils.map(new NodeNodeMapper(this), new NodeResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -274,7 +324,18 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			return getAllNodes();
 		}
 
-		final SimpleCypherQuery query = new SimpleCypherQuery("MATCH (n) WHERE n.type = {type} RETURN n");
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("MATCH (n");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(") WHERE n.type = {type} RETURN n");
+
+		final SimpleCypherQuery query = new SimpleCypherQuery(buf.toString());
 
 		query.getParameters().put("type", type);
 
@@ -284,7 +345,26 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public QueryResult<Relationship> getAllRelationships() {
-		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery("MATCH ()-[r]->() RETURN r")));
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("MATCH (");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(")-[r]->(");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(") RETURN r");
+
+		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -294,7 +374,27 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 			return getAllRelationships();
 		}
 
-		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery("MATCH ()-[r:" + type + "]->() RETURN r")));
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("MATCH (");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(")-[r:");
+		buf.append(type);
+		buf.append("]->(");
+
+		if (tenantId != null) {
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		buf.append(") RETURN r");
+
+		return QueryUtils.map(new RelationshipRelationshipMapper(this), new RelationshipResultStream(this, new SimpleCypherQuery(buf.toString())));
 	}
 
 	@Override
@@ -306,7 +406,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	public Index<Node> nodeIndex() {
 
 		if (nodeIndex == null) {
-			nodeIndex = new CypherNodeIndex(this);
+			nodeIndex = new CypherNodeIndex(this, tenantId);
 		}
 
 		return nodeIndex;
@@ -386,6 +486,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public Object getProperty(final String name) {
 		return getProperties().getProperty(name);
+	}
+
+	@Override
+	public String getTenantIdentifier() {
+		return tenantId;
 	}
 
 	public Label getOrCreateLabel(final String name) {

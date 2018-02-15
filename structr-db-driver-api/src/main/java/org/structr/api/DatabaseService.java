@@ -58,6 +58,7 @@ public interface DatabaseService {
 
 	GraphProperties getGlobalProperties();
 
+	String getTenantIdentifier();
 
 	// ----- index -----
 	Index<Node> nodeIndex();

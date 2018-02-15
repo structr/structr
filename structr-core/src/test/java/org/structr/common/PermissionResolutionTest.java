@@ -37,12 +37,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Test access control with different permission levels.
- *
- *
  */
 public class PermissionResolutionTest extends StructrTest {
 

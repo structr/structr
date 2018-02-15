@@ -30,11 +30,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Deletes a node.
- *
- *
  */
 public class DeleteNodeCommand extends NodeServiceCommand {
 
@@ -42,7 +39,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
-	//~--- methods --------------------------------------------------------
 	public void execute(NodeInterface node) {
 
 		doDeleteNode(node);
@@ -167,8 +163,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			logger.debug("Exception while deleting node: {}", node);
+			t.printStackTrace();
 
+			logger.warn("Exception while deleting node {}: {}", node, t.getMessage());
 		}
 
 		return;
