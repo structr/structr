@@ -466,12 +466,12 @@ function StructrApp(baseUrl, locale) {
 
 		});
 		var clazz = btn.attr('data-structr-edit-class');
-		$('<button class="' + clazz + '" data-structr-action="save' + (type ? ':' + type : '') + (suffix ? ':' + suffix : '') + '" data-structr-id="' + id
+		var saveButton = $('<button class="' + clazz + '" data-structr-action="save' + (type ? ':' + type : '') + (suffix ? ':' + suffix : '') + '" data-structr-id="' + id
 			+ '" data-structr-attributes="' + attrs.join(',')
 			+ '" data-structr-reload="' + reload
 			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
-			+ '">' + s.labels[s.lang].save + '</button>').insertBefore(btn);
-		var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
+			+ '">' + s.labels[s.lang].save + '</button>');
+		saveButton.insertBefore(btn);
 		saveButton.prop('class', btn.prop('class')).after(' ');
 		saveButton.addClass(clazz);
 		btn.addClass(clazz);
