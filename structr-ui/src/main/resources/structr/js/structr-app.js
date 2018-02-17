@@ -522,7 +522,7 @@ function StructrApp(baseUrl, locale) {
 			s.hideNonEdit(container);
 
 			//remove chosen containers
-			$('.chosen-container').remove();
+			$('.chosen-container', container).remove();
 		}
 	},
 
