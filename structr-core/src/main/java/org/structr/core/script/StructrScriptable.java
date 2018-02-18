@@ -49,6 +49,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.Functions;
 import org.structr.core.function.GrantFunction;
+import org.structr.core.parser.CacheExpression;
+import org.structr.core.parser.ConstantExpression;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -226,6 +228,33 @@ public class StructrScriptable extends ScriptableObject {
 		if ("batch".equals(name)) {
 
 			return new IdFunctionObject(new BatchFunctionCall(actionContext, this), null, 0, 0);
+		}
+
+		if ("cache".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					final CacheExpression cacheExpr = new CacheExpression();
+
+					Object retVal = null;
+
+					try {
+						for (int i = 0; i < parameters.length; i++) {
+							cacheExpr.add(new ConstantExpression(parameters[i]));
+						}
+
+						retVal = cacheExpr.evaluate(actionContext, entity);
+
+					} catch (FrameworkException ex) {
+						exception = ex;
+					}
+
+					return retVal;
+				}
+			}, null, 0, 0);
 		}
 
 		// execute builtin function?
