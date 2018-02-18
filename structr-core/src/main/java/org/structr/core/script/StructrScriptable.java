@@ -275,6 +275,10 @@ public class StructrScriptable extends ScriptableObject {
 		return exception;
 	}
 
+	public void clearException() {
+		exception = null;
+	}
+
 	// ----- private methods -----
 	private Object wrap(final Context context, final Scriptable scope, final String key, final Object value) {
 
