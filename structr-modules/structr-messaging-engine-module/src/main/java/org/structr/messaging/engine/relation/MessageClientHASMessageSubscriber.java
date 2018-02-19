@@ -16,17 +16,33 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.mqtt.function;
+package org.structr.messaging.engine.relation;
 
-import org.structr.core.function.Functions;
+import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.Relation;
+import org.structr.messaging.engine.entities.MessageClient;
+import org.structr.messaging.engine.entities.MessageSubscriber;
 
-public abstract class MQTTFunctions {
+public class MessageClientHASMessageSubscriber extends OneToMany<MessageClient, MessageSubscriber>{
 
-	static {
-		//Licensed for Enterprise
-		Functions.put(true, 0x08, "mqtt_publish", new MQTTPublishFunction());
-		Functions.put(true, 0x08, "mqtt_subscribe", new MQTTSubscribeTopicFunction());
-		Functions.put(true, 0x08, "mqtt_unsubscribe", new MQTTUnsubscribeTopicFunction());
-	}
+    @Override
+    public Class<MessageClient> getSourceType() {
+        return MessageClient.class;
+    }
+
+    @Override
+    public Class<MessageSubscriber> getTargetType() {
+        return MessageSubscriber.class;
+    }
+
+    @Override
+    public String name() {
+        return "HAS_SUBSCRIBER";
+    }
+
+    @Override
+    public int getCascadingDeleteFlag() {
+        return Relation.NONE;
+    }
 
 }

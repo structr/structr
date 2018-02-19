@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<name>Structr MQTT Module</name>
+	<name>Structr Messaging Engine Module</name>
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
 		<version>3.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>structr-mqtt-module</artifactId>
+	<artifactId>structr-messaging-engine-module</artifactId>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -18,16 +18,8 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-ui</artifactId>
+			<artifactId>structr-rest</artifactId>
 			<version>${project.version}</version>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-        	<groupId>org.eclipse.paho</groupId>
-        	<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-        	<version>1.0.2</version>
-        	<optional>true</optional>
-		 <type>jar</type>
 		</dependency>
 	</dependencies>
 
@@ -51,7 +43,7 @@
 						<manifestSection>
 							<Name>Structr</Name>
 							<manifestEntries>
-								<Structr-Module-Name>mqtt</Structr-Module-Name>
+								<Structr-Module-Name>messaging-engine</Structr-Module-Name>
 							</manifestEntries>
 						</manifestSection>
 					</archive>
@@ -203,4 +195,5 @@
 			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
+
 </project>
