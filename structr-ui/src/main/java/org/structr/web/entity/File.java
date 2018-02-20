@@ -226,6 +226,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addViewProperty(PropertyView.Public, "owner");
 
 		type.addViewProperty(PropertyView.Ui, "hasParent");
+		type.addViewProperty(PropertyView.Ui, "path");
 
 		/* TODO:
 			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);

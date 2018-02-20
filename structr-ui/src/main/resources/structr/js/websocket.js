@@ -441,7 +441,7 @@ function wsConnect() {
 								_Entities.ensureExpanded(el);
 							}
 
-							var synced = entity.syncedNodes;
+							var synced = entity.syncedNodesIds;
 
 							if (synced && synced.length) {
 

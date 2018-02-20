@@ -232,8 +232,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty(PropertyView.Public, "isDOMNode");
 		type.addViewProperty(PropertyView.Public, "pageId");
 		type.addViewProperty(PropertyView.Public, "parent");
-		type.addViewProperty(PropertyView.Public, "sharedComponent");
-		type.addViewProperty(PropertyView.Public, "syncedNodes");
+		type.addViewProperty(PropertyView.Public, "sharedComponentId");
+		type.addViewProperty(PropertyView.Public, "syncedNodesIds");
 		type.addViewProperty(PropertyView.Public, "name");
 		type.addViewProperty(PropertyView.Public, "children");
 		type.addViewProperty(PropertyView.Public, "dataKey");
@@ -248,8 +248,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty(PropertyView.Ui, "isDOMNode");
 		type.addViewProperty(PropertyView.Ui, "pageId");
 		type.addViewProperty(PropertyView.Ui, "parent");
-		type.addViewProperty(PropertyView.Ui, "sharedComponent");
-		type.addViewProperty(PropertyView.Ui, "syncedNodes");
+		type.addViewProperty(PropertyView.Ui, "sharedComponentId");
+		type.addViewProperty(PropertyView.Ui, "syncedNodesIds");
 		type.addViewProperty(PropertyView.Ui, "data-structr-id");
 		type.addViewProperty(PropertyView.Ui, "renderDetails");
 		type.addViewProperty(PropertyView.Ui, "children");

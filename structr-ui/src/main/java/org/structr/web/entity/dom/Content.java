@@ -115,8 +115,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.addViewProperty(PropertyView.Public, "isDOMNode");
 		type.addViewProperty(PropertyView.Public, "pageId");
 		type.addViewProperty(PropertyView.Public, "parent");
-		type.addViewProperty(PropertyView.Public, "sharedComponent");
-		type.addViewProperty(PropertyView.Public, "syncedNodes");
+		type.addViewProperty(PropertyView.Public, "sharedComponentId");
+		type.addViewProperty(PropertyView.Public, "syncedNodesIds");
 		type.addViewProperty(PropertyView.Public, "hideConditions");
 		type.addViewProperty(PropertyView.Public, "showConditions");
 		type.addViewProperty(PropertyView.Public, "hideForLocales");
@@ -136,8 +136,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.addViewProperty(PropertyView.Ui, "isDOMNode");
 		type.addViewProperty(PropertyView.Ui, "pageId");
 		type.addViewProperty(PropertyView.Ui, "parent");
-		type.addViewProperty(PropertyView.Ui, "sharedComponent");
-		type.addViewProperty(PropertyView.Ui, "syncedNodes");
+		type.addViewProperty(PropertyView.Ui, "sharedComponentId");
+		type.addViewProperty(PropertyView.Ui, "syncedNodesIds");
 		type.addViewProperty(PropertyView.Ui, "showForLocales");
 		type.addViewProperty(PropertyView.Ui, "hideForLocales");
 		type.addViewProperty(PropertyView.Ui, "showConditions");
