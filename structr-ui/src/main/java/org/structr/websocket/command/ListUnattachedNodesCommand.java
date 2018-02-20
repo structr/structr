@@ -102,9 +102,18 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	protected static List<NodeInterface> getUnattachedNodes(final App app, final SecurityContext securityContext, final WebSocketMessage webSocketData) throws FrameworkException {
 
 		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey = webSocketData.getSortKey();
-		final PropertyKey sortProperty = StructrApp.key(DOMNode.class, sortKey);
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
+		final String sortKey   = webSocketData.getSortKey();
+		
+		Query query;
+		if (sortKey != null) {
+			
+			final PropertyKey sortProperty = StructrApp.key(DOMNode.class, sortKey);
+			query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
+			
+		} else {
+			
+			query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden();
+		}
 
 		query.orTypes(DOMElement.class);
 		query.orType(Content.class);

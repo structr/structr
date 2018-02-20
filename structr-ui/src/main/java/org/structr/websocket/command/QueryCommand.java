@@ -72,19 +72,21 @@ public class QueryCommand extends AbstractCommand {
 			return;
 		}
 
-		final String sortOrder         = webSocketData.getSortOrder();
 		final String sortKey           = webSocketData.getSortKey();
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
-		final PropertyKey sortProperty = StructrApp.key(type, sortKey);
-
 
 		final Query query = StructrApp.getInstance(securityContext)
 			.nodeQuery(type)
-			.sort(sortProperty)
-			.order("desc".equals(sortOrder))
 			.page(page)
 			.pageSize(pageSize);
+
+		if (sortKey != null) {
+			final PropertyKey sortProperty = StructrApp.key(type, sortKey);
+			final String sortOrder         = webSocketData.getSortOrder();
+
+			query.sort(sortProperty).order("desc".equals(sortOrder));
+		}
 
 		if (properties != null) {
 

@@ -295,6 +295,13 @@ public class SchemaNode extends AbstractSchemaNode {
 				return;
 			}
 
+			// migrate Image
+			if (_extendsClass.equals("org.structr.web.entity.Image")) {
+
+				setProperty(extendsClass, "org.structr.dynamic.Image");
+				return;
+			}
+
 			// migrate Person
 			if (_extendsClass.equals("org.structr.core.entity.Person")) {
 

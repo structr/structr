@@ -606,8 +606,8 @@ var _Elements = {
 					linkFolderPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" hidden>');
 					linkFolderPager.activateFilterElements();
 
-					_Pager.initPager('files-to-link', 'FileBase', 1, 25);
-					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'FileBase', 'public', function(files) {
+					_Pager.initPager('files-to-link', 'File', 1, 25);
+					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'public', function(files) {
 
 						files.forEach(function(file) {
 

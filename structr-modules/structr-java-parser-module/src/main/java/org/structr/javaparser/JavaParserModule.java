@@ -235,11 +235,11 @@ public class JavaParserModule implements StructrModule {
 	}	
 
 	public JsonResult parse(final String javaCode) {
-		return analyze(JavaParser.parse(javaCode));
+		return toJson(JavaParser.parse(javaCode));
 	}
 	
 	public JsonResult parse(final InputStream javaCode) {
-		return analyze(JavaParser.parse(javaCode));
+		return toJson(JavaParser.parse(javaCode));
 	}
 
 	/**
@@ -657,7 +657,7 @@ public class JavaParserModule implements StructrModule {
 	
 	private void handlePackageFolder(final Folder folder, final Folder parentFolder) {
 		
-// Folder contains a package-info.java so it must be a package
+		// Folder contains a package-info.java so it must be a package
 		String[] parts = folder.getPath().split("src/main/java/");
 
 		// We look for the part after "src/main/java"
@@ -714,7 +714,7 @@ public class JavaParserModule implements StructrModule {
 	}
 	
 
-	private JsonResult analyze(final CompilationUnit cu) {
+	private JsonResult toJson(final CompilationUnit cu) {
 		
 		final JsonResult              jsonResult = new JsonResult();
 		final NodeList<TypeDeclaration<?>> types = cu.getTypes();
@@ -736,7 +736,7 @@ public class JavaParserModule implements StructrModule {
 
 		final List<BodyDeclaration<?>> members = type.getMembers();
 		final List<JsonResult>     membersList = new ArrayList<>();
-
+		
 		members.forEach((t) -> {
 
 			final JsonResult member = new JsonResult();
@@ -771,14 +771,6 @@ public class JavaParserModule implements StructrModule {
 					member.addModifiers(md);
 					
 					member.addBody(md);
-					
-					// Resolve 
-					final SymbolReference<? extends ResolvedValueDeclaration> ref = facade.solve(md.getName());
-					
-					if (ref.isSolved()) {
-						logger.info("Method name:" + ref.getCorrespondingDeclaration().getName());
-						//logger.info("Type:" + ref.getCorrespondingDeclaration().getType());
-					}
 				}
 
 				final NodeList<Parameter> parameters = callable.getParameters();
