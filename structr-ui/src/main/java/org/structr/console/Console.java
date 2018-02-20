@@ -61,16 +61,12 @@ public class Console {
 	};
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
-	private ConsoleMode mode                                                     = ConsoleMode.JavaScript;
+	private ConsoleMode mode                                                     = null;
 	private StructrScriptable scriptable                                         = null;
 	private ActionContext actionContext                                          = null;
 	private ScriptableObject scope                                               = null;
 	private String username                                                      = null;
 	private String password                                                      = null;
-
-	public Console(final SecurityContext securityContext, final Map<String, Object> parameters) {
-		this(securityContext, ConsoleMode.JavaScript, parameters);
-	}
 
 	public Console(final SecurityContext securityContext, final ConsoleMode consoleMode, final Map<String, Object> parameters) {
 
