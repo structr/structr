@@ -38,7 +38,6 @@
 		<module>structr-java-parser-module</module>
 		<module>structr-translation-module</module>
 		<module>structr-messaging-engine-module</module>
-		<module>structr-mqtt-module</module>
 	</modules>
 
 	<profiles>

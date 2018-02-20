@@ -16,10 +16,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.mqtt.function;
+package org.structr.messaging.engine.implementation.mqtt.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.mqtt.entity.MQTTClient;
+import org.structr.messaging.engine.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 

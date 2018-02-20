@@ -21,6 +21,18 @@
 			<artifactId>structr-rest</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+
+		<!-- Module implementation specific dependencies -->
+
+		<!-- MQTT -->
+		<dependency>
+			<groupId>org.eclipse.paho</groupId>
+			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+			<version>1.0.2</version>
+			<optional>true</optional>
+			<type>jar</type>
+		</dependency>
+
 	</dependencies>
 
 	<build>
