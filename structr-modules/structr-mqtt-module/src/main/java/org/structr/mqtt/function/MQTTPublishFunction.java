@@ -18,19 +18,22 @@
  */
 package org.structr.mqtt.function;
 
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
+public class MQTTPublishFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE    = "Usage: ${mqtt_unsubscribe(client, topic)}. Example ${mqtt_unsubscribe(client, 'myTopic')}";
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_unsubscribe(client, topic)}}. Example ${{Structr.mqtt_unsubscribe(client, topic)}}";
+	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(MQTTPublishFunction.class.getName());
+
+	public static final String ERROR_MESSAGE_MQTTPUBLISH    = "Usage: ${mqtt_publish(client, topic, message)}. Example ${mqtt_publish(client, 'myTopic', 'myMessage')}";
+	public static final String ERROR_MESSAGE_MQTTPUBLISH_JS = "Usage: ${{Structr.mqtt_publish(client, topic, message)}}. Example ${{Structr.mqtt_publish(client, topic, message)}}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
-		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
+		if (sources != null && sources.length == 3 && sources[0] != null && sources[1] != null && sources[2] != null) {
 
 			MQTTClient client = null;
 			if(sources[0] instanceof MQTTClient){
@@ -43,11 +46,8 @@ public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
 				return "";
 			}
 
-			client.unsubscribeTopic(sources[1].toString());
-<<<<<<< HEAD
+			client.sendMessage(sources[1].toString(), sources[2].toString());
 
-=======
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -58,16 +58,17 @@ public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS : ERROR_MESSAGE_MQTTUNSUBSCRIBE);
+		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTPUBLISH_JS : ERROR_MESSAGE_MQTTPUBLISH);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Unsubscribes given topic on given mqtt client.";
+		return "Publishes message on given mqtt client with given topic.";
 	}
 
 	@Override
 	public String getName() {
-		return "mqtt_unsubscribe";
+		return "mqtt_publish";
 	}
+
 }

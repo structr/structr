@@ -16,31 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.mqtt;
+package org.structr.mqtt.function;
 
-<<<<<<< HEAD
-=======
-import org.structr.common.error.FrameworkException;
+import org.structr.core.function.Functions;
 
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
-public interface MQTTInfo {
+public abstract class MQTTFunctions {
 
-	public String getProtocol();
-	public String getUrl();
-	public int getPort();
-<<<<<<< HEAD
-	public int getQos();
-=======
-	public int getQoS();
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
-	public String getUuid();
+	static {
+		//Licensed for Enterprise
+		Functions.put(true, 0x08, "mqtt_publish", new MQTTPublishFunction());
+		Functions.put(true, 0x08, "mqtt_subscribe", new MQTTSubscribeTopicFunction());
+		Functions.put(true, 0x08, "mqtt_unsubscribe", new MQTTUnsubscribeTopicFunction());
+	}
 
-	public String[] getTopics();
-
-<<<<<<< HEAD
-	public void messageCallback(String topic, String message);
-=======
-	public void messageCallback(String topic, String message) throws FrameworkException;
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
-	public void connectionStatusCallback(boolean connected);
 }

@@ -30,6 +30,10 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+<<<<<<< HEAD
+=======
+import org.structr.core.property.PropertyMap;
+>>>>>>> e50de8c... Fixes transaction context in MessageClient.
 import org.structr.mqtt.entity.MQTTClient;
 
 public abstract class MQTTContext {
@@ -119,10 +123,17 @@ public abstract class MQTTContext {
 
 				for (final MQTTClient client : app.nodeQuery(MQTTClient.class).getAsList()) {
 
+<<<<<<< HEAD
 					client.setIsConnected(false);
 
 					// enable clients on startup
 					if (client.getIsEnabled()) {
+=======
+					client.setProperties(client.getSecurityContext(), new PropertyMap(MQTTClient.isConnected, false));
+
+					// enable clients on startup
+					if (client.getProperty(MQTTClient.isEnabled)) {
+>>>>>>> e50de8c... Fixes transaction context in MessageClient.
 
 						MQTTContext.connect(client);
 						MQTTContext.subscribeAllTopics(client);

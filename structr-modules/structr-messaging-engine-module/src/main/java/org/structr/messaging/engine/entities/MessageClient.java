@@ -24,7 +24,10 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
@@ -56,20 +59,26 @@ public class MessageClient extends AbstractNode {
     @Export
     public RestMethodResult sendMessage(final String topic, final String message) throws FrameworkException {
 
-        List<MessageSubscriber> subscribers = getProperty(MessageClient.subscribers);
-        if(subscribers != null) {
-          subscribers.forEach(sub -> {
-              if(sub.getProperty(MessageSubscriber.topic).equals(topic)) {
-                  Map<String, Object> params = new HashMap<>();
-                  params.put("topic", topic);
-                  params.put("message", message);
-                  try {
-                      sub.invokeMethod("onMessage", params, false);
-                  } catch (FrameworkException e) {
-                      logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());
-                  }
-              }
-          });
+        final App app = StructrApp.getInstance();
+        try (final Tx tx = app.tx()) {
+
+            List<MessageSubscriber> subscribers = getProperty(MessageClient.subscribers);
+            if (subscribers != null) {
+                subscribers.forEach(sub -> {
+                    if (sub.getProperty(MessageSubscriber.topic).equals(topic)) {
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("topic", topic);
+                        params.put("message", message);
+                        try {
+                            sub.invokeMethod("onMessage", params, false);
+                        } catch (FrameworkException e) {
+                            logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());
+                        }
+                    }
+                });
+            }
+
+            tx.success();
         }
 
         return new RestMethodResult(200);
