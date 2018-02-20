@@ -250,10 +250,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final JsonReferenceType synced   = type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
 		final JsonReferenceType owner    = type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
 
-		type.addIdReferenceProperty("parentId",      parent.getSourceProperty());
-		type.addIdReferenceProperty("childrenIds",   parent.getTargetProperty());
-		type.addIdReferenceProperty("pageId",        owner.getTargetProperty());
-		type.addIdReferenceProperty("nextSiblingId", siblings.getTargetProperty());
+		type.addIdReferenceProperty("parentId",          parent.getSourceProperty());
+		type.addIdReferenceProperty("childrenIds",       parent.getTargetProperty());
+		type.addIdReferenceProperty("sharedComponentId", synced.getSourceProperty());
+		type.addIdReferenceProperty("syncedNodesIds",    synced.getTargetProperty());
+		type.addIdReferenceProperty("pageId",            owner.getTargetProperty());
+		type.addIdReferenceProperty("nextSiblingId",     siblings.getTargetProperty());
 
 		// sort position of children in page
 		parent.addIntegerProperty("position");
@@ -288,7 +290,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	));
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "children", "childrenIds", "linkable", "linkableId", "path"
+		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path"
 	}));
 
 	public static final String[] rawProps = new String[] {
@@ -1131,8 +1133,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			if (linkable != null) {
 
 				final String linkableInstruction = (linkable instanceof Page) ? "pagelink" : "link";
-				final String path                = linkable.getPath();
-
+				
+				String path                = linkable.getPath();
+				
+				if (linkable instanceof Page && path == null) {
+					path = linkable.getName();
+				}
+				
 				if (path != null) {
 
 					instructions.add("@structr:" + linkableInstruction + "(" + path + ")");
