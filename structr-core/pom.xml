@@ -5,13 +5,13 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>2.3.7</version>
+		<version>2.3.8</version>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-core</artifactId>
 	<packaging>jar</packaging>
-	<version>2.3.7</version>
+	<version>2.3.8</version>
 	<name>Structr Core</name>
 	<description>Structr is an open source framework based on the popular Neo4j graph database.</description>
 	<developers>
