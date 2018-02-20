@@ -19,6 +19,8 @@
 package org.structr.messaging.engine.entities;
 
 import org.apache.cxf.common.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -29,6 +31,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
@@ -37,19 +40,22 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MessageSubscriber extends AbstractNode {
-    public static final Property<MessageClient> client                = new StartNode<>("client", MessageClientHASMessageSubscriber.class);
+    public static final Property<List<MessageClient>> clients         = new StartNodes<>("clients", MessageClientHASMessageSubscriber.class);
     public static final Property<String> topic                        = new StringProperty("topic");
     public static final Property<String> callback                     = new StringProperty("callback");
 
+    private static final Logger logger = LoggerFactory.getLogger(MessageSubscriber.class.getName());
+
     public static final View publicView = new View(MessageSubscriber.class, PropertyView.Public,
-            client, topic, callback
+            clients, topic, callback
     );
 
     public static final View uiView = new View(MessageSubscriber.class, PropertyView.Ui,
-            client, topic, callback
+            clients, topic, callback
     );
 
     static {
@@ -60,10 +66,19 @@ public class MessageSubscriber extends AbstractNode {
     @Override
     public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-        if(!StringUtils.isEmpty(getProperty(topic)) && (getProperty(client) != null)) {
+        if(!StringUtils.isEmpty(getProperty(MessageSubscriber.topic)) && (getProperty(MessageSubscriber.clients) != null)) {
             Map<String,Object> params = new HashMap<>();
-            params.put("topic", getProperty(topic));
-            getProperty(client).invokeMethod("subscribeTopic", params, false);
+            params.put("topic", getProperty(MessageSubscriber.topic));
+
+            List<MessageClient> clients = getProperty(MessageSubscriber.clients);
+            clients.forEach(client -> {
+                try {
+                    client.invokeMethod("subscribeTopic", params, false);
+                } catch (FrameworkException e) {
+                    logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
+                }
+            });
+
         }
 
         return super.onCreation(securityContext, errorBuffer);
@@ -72,16 +87,21 @@ public class MessageSubscriber extends AbstractNode {
     @Override
     public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-        if(!StringUtils.isEmpty(getProperty(topic)) && (getProperty(client) != null)) {
-
-            if(modificationQueue.isPropertyModified(this,topic)){
-
+        if(modificationQueue.isPropertyModified(this, MessageSubscriber.topic)) {
+            if(!StringUtils.isEmpty(getProperty(MessageSubscriber.topic)) && (getProperty(MessageSubscriber.clients) != null)) {
                 Map<String,Object> params = new HashMap<>();
-                params.put("topic", getProperty(topic));
-                getProperty(client).invokeMethod("subscribeTopic", params, false);
+                params.put("topic", getProperty(MessageSubscriber.topic));
+
+                List<MessageClient> clients = getProperty(MessageSubscriber.clients);
+                clients.forEach(client -> {
+                    try {
+                        client.invokeMethod("subscribeTopic", params, false);
+                    } catch (FrameworkException e) {
+                        logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
+                    }
+                });
             }
         }
-
 
         return super.onModification(securityContext, errorBuffer, modificationQueue);
     }

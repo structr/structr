@@ -18,12 +18,12 @@
  */
 package org.structr.messaging.engine.relation;
 
-import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 
-public class MessageClientHASMessageSubscriber extends OneToMany<MessageClient, MessageSubscriber>{
+public class MessageClientHASMessageSubscriber extends ManyToMany<MessageClient, MessageSubscriber> {
 
     @Override
     public Class<MessageClient> getSourceType() {
