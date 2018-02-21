@@ -1101,6 +1101,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		if (node instanceof Page) {
+			putIf(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
 			putIf(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
 			putIf(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
 			putIf(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));

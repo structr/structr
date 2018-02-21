@@ -26,10 +26,12 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.List;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.VersionHelper;
 import org.structr.console.Console;
+import org.structr.console.Console.ConsoleMode;
 import org.structr.console.tabcompletion.TabCompletionResult;
 import org.structr.util.Writable;
 import org.structr.websocket.StructrWebSocket;
@@ -57,9 +59,16 @@ public class ConsoleCommand extends AbstractCommand {
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
 
-		final String line        = (String) webSocketData.getNodeData().get("line");
+		final String  line       = (String) webSocketData.getNodeData().get("line");
+		final String  mode       = (String) webSocketData.getNodeData().get("mode");
 		final Boolean completion = (Boolean) webSocketData.getNodeData().get("completion");
-        	final Console console    = getWebSocket().getConsole();
+		
+		final Console console;
+		if (StringUtils.isNotBlank(mode)) {
+			console    = getWebSocket().getConsole(ConsoleMode.valueOf(mode));
+		} else {
+			console    = getWebSocket().getConsole(ConsoleMode.JavaScript);
+		}
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		OutputStreamWritable writeable = new OutputStreamWritable(out);

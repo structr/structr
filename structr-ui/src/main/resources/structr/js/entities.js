@@ -1463,7 +1463,7 @@ var _Entities = {
 			$(this).toggleClass('selected');
 		});
 	},
-	setMouseOver: function(el, allowClick, syncedNodes) {
+	setMouseOver: function(el, allowClick, syncedNodesIds) {
 		var node = $(el).closest('.node');
 		if (!node || !node.children) {
 			return;
@@ -1500,8 +1500,8 @@ var _Entities = {
 					$('#id_' + nodeId).addClass('nodeHover');
 				}
 
-				if (syncedNodes && syncedNodes.length) {
-					syncedNodes.forEach(function(s) {
+				if (syncedNodesIds && syncedNodesIds.length) {
+					syncedNodesIds.forEach(function(s) {
 						$('#id_' + s).addClass('nodeHover');
 						$('#componentId_' + s).addClass('nodeHover');
 					});
@@ -1523,8 +1523,8 @@ var _Entities = {
 				if (isComponent) {
 					$('#id_' + nodeId).removeClass('nodeHover');
 				}
-				if (syncedNodes && syncedNodes.length) {
-					syncedNodes.forEach(function(s) {
+				if (syncedNodesIds && syncedNodesIds.length) {
+					syncedNodesIds.forEach(function(s) {
 						$('#id_' + s).removeClass('nodeHover');
 						$('#componentId_' + s).removeClass('nodeHover');
 					});
