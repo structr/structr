@@ -27,8 +27,12 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
@@ -61,26 +65,28 @@ public class MessageSubscriber extends AbstractNode {
     static {
 
         SchemaService.registerBuiltinTypeOverride("MessageSubscriber", MessageSubscriber.class.getName());
+
     }
+
+    protected void subscribeOnAllClients() {
+		if(!StringUtils.isEmpty(getProperty(MessageSubscriber.topic)) && (getProperty(MessageSubscriber.clients) != null)) {
+			Map<String,Object> params = new HashMap<>();
+			params.put("topic", getProperty(MessageSubscriber.topic));
+
+			List<MessageClient> clients = getProperty(MessageSubscriber.clients);
+			clients.forEach(client -> {
+				try {
+					client.invokeMethod("subscribeTopic", params, false);
+				} catch (FrameworkException e) {
+					logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
+				}
+			});
+		}
+	}
 
     @Override
     public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-        if(!StringUtils.isEmpty(getProperty(MessageSubscriber.topic)) && (getProperty(MessageSubscriber.clients) != null)) {
-            Map<String,Object> params = new HashMap<>();
-            params.put("topic", getProperty(MessageSubscriber.topic));
-
-            List<MessageClient> clients = getProperty(MessageSubscriber.clients);
-            clients.forEach(client -> {
-                try {
-                    client.invokeMethod("subscribeTopic", params, false);
-                } catch (FrameworkException e) {
-                    logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
-                }
-            });
-
-        }
-
+		subscribeOnAllClients();
         return super.onCreation(securityContext, errorBuffer);
     }
 
@@ -88,19 +94,7 @@ public class MessageSubscriber extends AbstractNode {
     public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
         if(modificationQueue.isPropertyModified(this, MessageSubscriber.topic)) {
-            if(!StringUtils.isEmpty(getProperty(MessageSubscriber.topic)) && (getProperty(MessageSubscriber.clients) != null)) {
-                Map<String,Object> params = new HashMap<>();
-                params.put("topic", getProperty(MessageSubscriber.topic));
-
-                List<MessageClient> clients = getProperty(MessageSubscriber.clients);
-                clients.forEach(client -> {
-                    try {
-                        client.invokeMethod("subscribeTopic", params, false);
-                    } catch (FrameworkException e) {
-                        logger.error("Could not invoke subscribeTopic on MessageClient: " + e.getMessage());
-                    }
-                });
-            }
+			subscribeOnAllClients();
         }
 
         return super.onModification(securityContext, errorBuffer, modificationQueue);

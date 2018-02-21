@@ -16,17 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.messaging.engine.implementation.mqtt.function;
+package org.structr.messaging.implementation.mqtt.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.messaging.engine.implementation.mqtt.entity.MQTTClient;
+import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
+public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE    = "Usage: ${mqtt_unsubscribe(client, topic)}. Example ${mqtt_unsubscribe(client, 'myTopic')}";
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_unsubscribe(client, topic)}}. Example ${{Structr.mqtt_unsubscribe(client, topic)}}";
+	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE    = "Usage: ${mqtt_subscribe(client, topic)}. Example ${mqtt_subscribe(client, 'myTopic')}";
+	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_subscribe(client, topic)}}. Example ${{Structr.mqtt_subscribe(client, topic)}}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -43,11 +43,7 @@ public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
 				return "";
 			}
 
-			client.unsubscribeTopic(sources[1].toString());
-<<<<<<< HEAD
-
-=======
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
+			client.subscribeTopic(sources[1].toString());
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -58,16 +54,16 @@ public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS : ERROR_MESSAGE_MQTTUNSUBSCRIBE);
+		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTSUBSCRIBE_JS : ERROR_MESSAGE_MQTTSUBSCRIBE);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Unsubscribes given topic on given mqtt client.";
+		return "Subscribes given topic on given mqtt client.";
 	}
 
 	@Override
 	public String getName() {
-		return "mqtt_unsubscribe";
+		return "mqtt_subscribe";
 	}
 }

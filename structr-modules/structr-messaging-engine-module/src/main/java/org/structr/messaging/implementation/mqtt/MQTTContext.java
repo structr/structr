@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.messaging.engine.implementation.mqtt;
+package org.structr.messaging.implementation.mqtt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,12 +33,16 @@ import org.structr.core.graph.Tx;
 <<<<<<< HEAD
 =======
 import org.structr.core.property.PropertyMap;
+<<<<<<< HEAD:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/MQTTContext.java
 <<<<<<< HEAD:structr-modules/structr-mqtt-module/src/main/java/org/structr/mqtt/MQTTContext.java
 >>>>>>> e50de8c... Fixes transaction context in MessageClient.
 import org.structr.mqtt.entity.MQTTClient;
 =======
 import org.structr.messaging.engine.implementation.mqtt.entity.MQTTClient;
 >>>>>>> a6e9d11... Streamlines MQTT module into the messaging module.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/MQTTContext.java
+=======
+import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
+>>>>>>> 0a011a7... Adds working proof of concept for KafkaClient implementation.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/implementation/mqtt/MQTTContext.java
 
 public abstract class MQTTContext {
 

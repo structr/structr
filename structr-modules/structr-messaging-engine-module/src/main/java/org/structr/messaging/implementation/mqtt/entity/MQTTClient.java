@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.messaging.engine.implementation.mqtt.entity;
+package org.structr.messaging.implementation.mqtt.entity;
 
 <<<<<<< HEAD:structr-modules/structr-mqtt-module/src/main/java/org/structr/mqtt/entity/MQTTClient.java
 <<<<<<< HEAD
@@ -57,6 +57,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+<<<<<<< HEAD:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/entity/MQTTClient.java
 <<<<<<< HEAD:structr-modules/structr-mqtt-module/src/main/java/org/structr/mqtt/entity/MQTTClient.java
 >>>>>>> e50de8c... Fixes transaction context in MessageClient.
 import org.structr.mqtt.MQTTClientConnection;
@@ -67,6 +68,11 @@ import org.structr.messaging.engine.implementation.mqtt.MQTTContext;
 import org.structr.messaging.engine.implementation.mqtt.MQTTClientConnection;
 import org.structr.messaging.engine.implementation.mqtt.MQTTInfo;
 >>>>>>> a6e9d11... Streamlines MQTT module into the messaging module.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/entity/MQTTClient.java
+=======
+import org.structr.messaging.implementation.mqtt.MQTTContext;
+import org.structr.messaging.implementation.mqtt.MQTTClientConnection;
+import org.structr.messaging.implementation.mqtt.MQTTInfo;
+>>>>>>> 0a011a7... Adds working proof of concept for KafkaClient implementation.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/implementation/mqtt/entity/MQTTClient.java
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 <<<<<<< HEAD
@@ -454,15 +460,17 @@ public class MQTTClient extends MessageClient implements MQTTInfo{
 		if (getProperty(isEnabled)) {
 
 			final MQTTClientConnection connection = MQTTContext.getClientForId(getUuid());
+<<<<<<< HEAD:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/entity/MQTTClient.java
 >>>>>>> e50de8c... Fixes transaction context in MessageClient.
 			if (connection.isConnected()) {
+=======
+			if (connection != null && connection.isConnected()) {
+>>>>>>> 0a011a7... Adds working proof of concept for KafkaClient implementation.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/implementation/mqtt/entity/MQTTClient.java
 
 				connection.subscribeTopic(topic);
 
-			} else {
-
-				throw new FrameworkException(422, "Not connected.");
 			}
+
 		}
 
 		return new RestMethodResult(200);
@@ -481,15 +489,17 @@ public class MQTTClient extends MessageClient implements MQTTInfo{
 		if (getProperty(isEnabled)) {
 
 			final MQTTClientConnection connection = MQTTContext.getClientForId(getUuid());
+<<<<<<< HEAD:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/entity/MQTTClient.java
 >>>>>>> e50de8c... Fixes transaction context in MessageClient.
 			if (connection.isConnected()) {
+=======
+			if (connection != null && connection.isConnected()) {
+>>>>>>> 0a011a7... Adds working proof of concept for KafkaClient implementation.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/implementation/mqtt/entity/MQTTClient.java
 
 				connection.unsubscribeTopic(topic);
 
-			} else {
-
-				throw new FrameworkException(422, "Not connected.");
 			}
+
 		}
 
 		return new RestMethodResult(200);
