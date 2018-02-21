@@ -144,6 +144,8 @@ public abstract class PropertySourceGenerator {
 				new NodeAttribute<>(SchemaProperty.dbName,                source.getDbName()),
 				new NodeAttribute<>(SchemaProperty.defaultValue,          source.getDefaultValue()),
 				new NodeAttribute<>(SchemaProperty.format,                source.getFormat()),
+				new NodeAttribute<>(SchemaProperty.hint,                  source.getHint()),
+				new NodeAttribute<>(SchemaProperty.category,              source.getCategory()),
 				new NodeAttribute<>(SchemaProperty.fqcn,                  source.getFqcn()),
 				new NodeAttribute<>(SchemaProperty.compound,              source.isCompound()),
 				new NodeAttribute<>(SchemaProperty.unique,                source.isUnique()),
@@ -238,6 +240,14 @@ public abstract class PropertySourceGenerator {
 		}
 
 		buf.append(".dynamic()");
+
+		if (StringUtils.isNotBlank(source.getHint())) {
+			buf.append(".hint(\"").append(StringEscapeUtils.escapeJava(source.getHint())).append("\")");
+		}
+		
+		if (StringUtils.isNotBlank(source.getCategory())) {
+			buf.append(".category(\"").append(StringEscapeUtils.escapeJava(source.getCategory())).append("\")");
+		}
 
 		buf.append(";\n");
 	}

@@ -56,6 +56,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected String format            = null;
 	protected String name              = null;
 	protected String defaultValue      = null;
+	protected String hint              = null;
+	protected String category          = null;
 	protected boolean required         = false;
 	protected boolean compound         = false;
 	protected boolean unique           = false;
@@ -122,6 +124,16 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public String getHint() {
+		return hint;
+	}
+
+	@Override
+	public String getCategory() {
+		return category;
+	}
+
+	@Override
 	public String getDefaultValue() {
 		return defaultValue;
 	}
@@ -159,6 +171,20 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	@Override
 	public Set<String> getTransformators() {
 		return transformers;
+	}
+
+	@Override
+	public JsonProperty setHint(final String hint) {
+
+		this.hint = hint;
+		return this;
+	}
+
+	@Override
+	public JsonProperty setCategory(final String category) {
+
+		this.category = category;
+		return this;
 	}
 
 	@Override
@@ -259,6 +285,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(SchemaProperty.notNull, isRequired());
 			getOrCreateProperties.put(SchemaProperty.readOnly, isReadOnly());
 			getOrCreateProperties.put(SchemaProperty.format, getFormat());
+			getOrCreateProperties.put(SchemaProperty.hint, getHint());
+			getOrCreateProperties.put(SchemaProperty.category, getCategory());
 			getOrCreateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
 			getOrCreateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
 			getOrCreateProperties.put(SchemaProperty.defaultValue, defaultValue);
@@ -310,6 +338,18 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			this.format = _format.toString();
 		}
 
+		final Object _hint = source.get(JsonSchema.KEY_HINT);
+		if (_hint != null) {
+
+			this.hint = _hint.toString();
+		}
+
+		final Object _category = source.get(JsonSchema.KEY_CATEGORY);
+		if (_category != null) {
+
+			this.category = _category.toString();
+		}
+
 		final Object _defaultValue = source.get(JsonSchema.KEY_DEFAULT);
 		if (_defaultValue != null) {
 
@@ -337,6 +377,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setUnique(property.isUnique());
 		setIndexed(property.isIndexed());
 		setReadOnly(property.isReadOnly());
+		setHint(property.getHint());
+		setCategory(property.getCategory());
 
 		final String[] _validators = property.getProperty(SchemaProperty.validators);
 		if (_validators != null) {
@@ -379,6 +421,14 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (format != null) {
 			map.put(JsonSchema.KEY_FORMAT, format);
+		}
+
+		if (hint != null) {
+			map.put(JsonSchema.KEY_HINT, hint);
+		}
+
+		if (category != null) {
+			map.put(JsonSchema.KEY_CATEGORY, category);
 		}
 
 		if (defaultValue != null) {

@@ -33,6 +33,8 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private String source                 = null;
 	private String dbName                 = null;
 	private String format                 = null;
+	private String hint                   = null;
+	private String category               = null;
 	private String defaultValue           = null;
 	private String contentType            = null;
 	private String fqcn                   = null;
@@ -135,6 +137,16 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	@Override
 	public String getDbName() {
 		return dbName;
+	}
+
+	@Override
+	public String getHint() {
+		return hint;
+	}
+
+	@Override
+	public String getCategory() {
+		return category;
 	}
 
 	@Override

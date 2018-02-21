@@ -69,13 +69,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 
-		/*
-			public static final Property<String> tag              = new StringProperty("tag").indexed().category(PAGE_CATEGORY);
-		 	public static final Property<String> path             = new StringProperty("path").indexed();
-			public static final Property<String> partialUpdateKey = new StringProperty("partialUpdateKey").indexed();
-		*/
-
-		type.addStringProperty("tag",              PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("tag",              PropertyView.Public, PropertyView.Ui).setIndexed(true).setCategory(PAGE_CATEGORY);
 		type.addStringProperty("path",             PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("partialUpdateKey", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
@@ -135,21 +129,21 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_data", PropertyView.Html);
 
 		// data-structr-* attibutes
-		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui);
-		type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui);
-		type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui);
-		type.addStringProperty("data-structr-action",               PropertyView.Ui);
-		type.addStringProperty("data-structr-attributes",           PropertyView.Ui);
-		type.addStringProperty("data-structr-attr",                 PropertyView.Ui);
-		type.addStringProperty("data-structr-name",                 PropertyView.Ui);
-		type.addStringProperty("data-structr-hide",                 PropertyView.Ui);
-		type.addStringProperty("data-structr-raw-value",            PropertyView.Ui);
-		type.addStringProperty("data-structr-placeholder",          PropertyView.Ui);
-		type.addStringProperty("data-structr-type",                 PropertyView.Ui);
-		type.addStringProperty("data-structr-custom-options-query", PropertyView.Ui);
-		type.addStringProperty("data-structr-options-key",          PropertyView.Ui);
-		type.addStringProperty("data-structr-edit-class",           PropertyView.Ui);
-		type.addStringProperty("data-structr-return",               PropertyView.Ui);
+		type.addBooleanProperty("data-structr-reload",              PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, the page will refresh after a successfull action.");
+		type.addBooleanProperty("data-structr-confirm",             PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If active, a user has to confirm the action.");
+		type.addBooleanProperty("data-structr-append-id",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("On create, append ID of first created object to the return URI.");
+		type.addStringProperty("data-structr-action",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The action of the dynamic form (e.g create:&lt;Type&gt; | delete:&lt;Type&gt; | edit | login | logout)");
+		type.addStringProperty("data-structr-attributes",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The names of the properties that should be included in the request. (for create, edit/save, login or registration actions)");
+		type.addStringProperty("data-structr-attr",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("If this is set, the input field is rendered in auto-edit mode");
+		type.addStringProperty("data-structr-name",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The name of the property (for create/save actions with custom form)");
+		type.addStringProperty("data-structr-hide",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Which mode (if any) the element should be hidden from the user (eg. edit | non-edit | edit,non-edit)");
+		type.addStringProperty("data-structr-raw-value",            PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("The unformatted value of the element. Provide this if the value of the element is printed with a format applied (useful for Date or Number fields)");
+		type.addStringProperty("data-structr-placeholder",          PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("used to display option labels (default: name)");
+		type.addStringProperty("data-structr-type",                 PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Type hint for the attribute (e.g. Date, Boolean; default: String)");
+		type.addStringProperty("data-structr-custom-options-query", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom REST query for value options (for collection properties)");
+		type.addStringProperty("data-structr-options-key",          PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Key used to display option labels for collection properties (default: name)");
+		type.addStringProperty("data-structr-edit-class",           PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Custom CSS class in edit mode");
+		type.addStringProperty("data-structr-return",               PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Return URI after successful action");
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
