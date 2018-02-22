@@ -33,6 +33,7 @@ import org.mozilla.javascript.IdFunctionObject;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaMethod;
 import org.mozilla.javascript.NativeObject;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -41,6 +42,7 @@ import org.mozilla.javascript.Wrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.Export;
@@ -254,6 +256,52 @@ public class StructrScriptable extends ScriptableObject {
 
 					return retVal;
 				}
+			}, null, 0, 0);
+		}
+
+		if ("doPrivileged".equals(name) || "do_privileged".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					// backup security context
+					final SecurityContext securityContext = StructrScriptable.this.actionContext.getSecurityContext();
+
+					try {
+
+						// replace security context with super user context
+						actionContext.setSecurityContext(SecurityContext.getSuperUserInstance());
+
+						if (parameters != null && parameters.length == 1) {
+
+							final Object param = parameters[0];
+							if (param instanceof Script) {
+
+								final Script script = (Script)param;
+								return script.exec(context, scope);
+
+							} else {
+
+								// ...
+							}
+
+						} else {
+
+							//...
+						}
+
+						return null;
+
+					} finally {
+
+						// restore saved security context
+						StructrScriptable.this.actionContext.setSecurityContext(securityContext);
+					}
+
+				}
+
 			}, null, 0, 0);
 		}
 
