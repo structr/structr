@@ -3095,6 +3095,18 @@ td#cascading-options, td#propagation-options {
 	border: 1px solid #a5a5a5;
 }
 
+#code-tree i.jstree-icon.gray {
+	color: #666;
+}
+
+#code-tree i.jstree-icon.red {
+	color: #880000;
+}
+
+#code-tree i.jstree-icon.blue {
+	color: #000088;
+}
+
 #folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container {
 	display: table-cell;
 	vertical-align: top;

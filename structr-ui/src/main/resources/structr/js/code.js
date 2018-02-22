@@ -38,34 +38,6 @@ var _Code = {
 
 		_Logger.log(_LogType.CODE, '_Code.init');
 
-		main = $('#main');
-
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-
-		searchField = $('.search', main);
-
-		if (searchField && searchField.length > 0) {
-
-			searchField.focus();
-
-			searchField.keyup(function(e) {
-
-				var searchString = $(this).val();
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					$('.clearSearchIcon').show().on('click', function() {
-						_Code.clearSearch();
-					});
-
-					_Code.fulltextSearch(searchString);
-
-				} else if (e.keyCode === 27 || searchString === '') {
-					_Code.clearSearch();
-				}
-
-			});
-		}
-
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 
@@ -119,6 +91,9 @@ var _Code = {
 			});
 		}
 
+		var contentBox = $('.CodeMirror');
+		contentBox.height('100%');
+
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(codeResizerLeftKey) || 300;
@@ -131,7 +106,7 @@ var _Code = {
 
 		_Code.init();
 
-		main.append('<div id="code-main"><div class="column-resizer"></div><div class="fit-to-height" id="code-tree-container"><div id="code-tree"></div></div><div class="fit-to-height" id="code-contents-container"><div id="code-contents"></div></div>');
+		main.append('<div id="code-main"><div class="column-resizer"></div><div class="fit-to-height" id="code-tree-container"><div id="code-tree"></div></div><div class="fit-to-height" id="code-contents-container"><div id="code-button-container"></div><div id="code-contents"></div></div>');
 		codeMain = $('#code-main');
 
 		codeTree = $('#code-tree');
@@ -140,11 +115,11 @@ var _Code = {
 		_Code.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', codeMain), codeResizerLeftKey, 204, _Code.moveResizer);
 
+		/*
 		$('#code-contents-container').prepend(
 				'<button class="add_file_icon button"><i title="Add Method" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '" /> Add Method</button>'
 				);
 
-		/*
 		$('.add_file_icon', main).on('click', function(e) {
 			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
 		});
@@ -170,33 +145,34 @@ var _Code = {
 		$.jstree.defaults.dnd.inside_pos        = 'last';
 		$.jstree.defaults.dnd.large_drop_target = true;
 
-		codeTree.on('ready.jstree', function() {
-
-			var lastOpenMethod = LSWrapper.getItem(codeLastOpenMethodKey);
-
-			if (lastOpenMethod === 'favorites') {
-
-				$('#favorites_anchor').click();
-
-			} else if (currentWorkingDir) {
-
-				_Code.deepOpen(currentWorkingDir.parent);
-
-			} else {
-
-				$('#root_anchor').click();
-			}
-		});
-
 		codeTree.on('select_node.jstree', function(evt, data) {
 
-			if (data.node.id === 'favorites') {
+			if (data.node && data.node.data && data.node.data.type) {
 
-				_Code.displayMethodContents('favorites');
+				if (data.node.data.type === 'SchemaMethod') {
+
+					_Code.displayMethodContents(data.node.id);
+
+				} else {
+
+					if (data.node.state.opened) {
+						codeTree.jstree('close_node', data.node.id);
+						data.node.state.openend = false;
+					} else {
+						codeTree.jstree('open_node', data.node.id);
+						data.node.state.openend = true;
+					}
+				}
 
 			} else {
 
-				_Code.displayMethodContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+				if (data.node.state.opened) {
+					codeTree.jstree('close_node', data.node.id);
+					data.node.state.openend = false;
+				} else {
+					codeTree.jstree('open_node', data.node.id);
+					data.node.state.openend = true;
+				}
 			}
 		});
 
@@ -230,15 +206,9 @@ var _Code = {
 
 				var defaultFilesystemEntries = [
 					{
-						id: 'favorites',
-						text: 'Favorite Methods',
-						children: false,
-						icon: _Icons.star_icon
-					},
-					{
 						id: 'globals',
 						text: 'Global Methods',
-						children: false,
+						children: true,
 						icon: _Icons.star_icon
 					},
 					{
@@ -271,27 +241,6 @@ var _Code = {
 		fastRemoveAllChildren($('.searchBox', main));
 		fastRemoveAllChildren($('#code-main', main));
 	},
-	fulltextSearch: function(searchString) {
-		var content = $('#folder-contents');
-		content.children().hide();
-
-		var url;
-		if (searchString.contains(' ')) {
-			url = rootUrl + 'files/ui?loose=1';
-			searchString.split(' ').forEach(function(str, i) {
-				url = url + '&indexedWords=' + str;
-			});
-		} else {
-			url = rootUrl + 'files/ui?loose=1&indexedWords=' + searchString;
-		}
-
-		_Code.displaySearchResultsForURL(url);
-	},
-	clearSearch: function() {
-		$('.search', main).val('');
-		$('#search-results').remove();
-		$('#folder-contents').children().show();
-	},
 	load: function(id, callback) {
 
 		var displayFunction = function (result) {
@@ -299,130 +248,62 @@ var _Code = {
 			var list = [];
 
 			result.forEach(function(d) {
-
-				var icon = 'fa-folder';
-
-				console.log(d.codeType);
-
+				var icon = 'fa-file-code-o gray';
 				switch (d.type) {
-
 					case "SchemaMethod":
-
 						switch (d.codeType) {
-
 							case 'java':
-
-								icon = 'fa-coffee';
+								icon = 'fa-dot-circle-o red';
 								break;
-
 							default:
-
-								icon = 'fa-code';
+								icon = 'fa-circle-o blue';
 								break;
 						}
 				}
-
 
 				list.push({
 					id: d.id,
 					text:  d.name ? d.name : '[unnamed]',
 					children: d.schemaMethods ? d.schemaMethods.length > 0 : false,
-					icon: 'fa ' + icon
+					icon: 'fa ' + icon,
+					data: {
+						type: d.type
+					}
 				});
 			});
 
 			callback(list);
-
 		};
 
 		if (!id) {
+
 			Command.list('SchemaNode', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,schemaMethods', displayFunction);
+
 		} else {
-			Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: id}, displayFunction, true);
+
+			switch (id) {
+
+				case 'globals':
+					Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true);
+					break;
+				default:
+					Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: id}, displayFunction, true);
+					break;
+			}
 		}
 
 	},
-	displayMethodContents: function(id, parentId, nodePath, parents) {
+	displayMethodContents: function(id) {
+
+		if (id === '#' || id === 'root' || id === 'favorites' || id === 'globals') {
+			return;
+		}
 
 		fastRemoveAllChildren(codeContents[0]);
 
 		LSWrapper.setItem(codeLastOpenMethodKey, id);
 
-		displayingFavorites = (id === 'favorites');
-		var isRootFolder = (id === 'root');
-		var parentIsRoot = (parentId === '#');
-
-		var handleChildren = function(children) {
-			if (children && children.length) {
-				children.forEach(_Code.appendFileOrFolder);
-			}
-
-			_Code.resize();
-		};
-
-		if (displayingFavorites === true) {
-
-			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
-
-			codeContents.append('<h2><i class="' + _Icons.getFullSpriteClass(_Icons.star_icon) + '" /> Favorite Files</h2>');
-			codeContents.append('<table id="code-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead><tbody id="code-table-body"></tbody></table>');
-
-			$.ajax({
-				url: rootUrl + 'me/favorites',
-				statusCode: {
-					200: function(data) {
-						handleChildren(data.result);
-					}
-				}
-			});
-
-		} else {
-
-			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
-
-			if (isRootFolder) {
-				Command.list('Folder', true, 1000, 1, 'name', 'asc', 'id,name,type,isFolder,folders,files,icon,path,visibleToPublicUsers,visibleToAuthenticatedUsers,owner,isMounted', handleChildren);
-			} else {
-				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, 'public');
-			}
-
-			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
-			page['File'] = 1;
-
-			var filterOptions = {
-				parentId: (parentIsRoot ? '' : id),
-				hasParent: (!parentIsRoot)
-			};
-
-			_Pager.initFilters('filesystem-files', 'File', filterOptions);
-
-			var filesPager = _Pager.addPager('filesystem-files', codeContents, false, 'File', 'public', handleChildren);
-
-			filesPager.cleanupFunction = function () {
-				var toRemove = $('.node.file', filesPager.el).closest('tr');
-				toRemove.each(function(i, elem) {
-					fastRemoveAllChildren(elem);
-					elem.remove();
-				});
-			};
-
-			filesPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-			filesPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + (parentIsRoot ? '' : id) + '" hidden>');
-			filesPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + (parentIsRoot ? '' : 'checked') + ' hidden>');
-			filesPager.activateFilterElements();
-
-			codeContents.append('<table id="code-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>'
-				+ '<tbody id="code-table-body">'
-				+ (!isRootFolder ? '<tr id="parent-file-link"><td class="file-type"><i class="fa fa-folder"></i></td><td><a href="#">..</a></td><td></td><td></td><td></td></tr>' : '')
-				+ '</tbody></table>');
-
-			$('#parent-file-link').on('click', function(e) {
-
-				if (!parentIsRoot) {
-					$('#' + parentId + '_anchor').click();
-				}
-			});
-		}
+		_Code.editMethodContent(undefined, id, codeContents);
 	},
 	fileOrFolderCreationNotification: function (newFileOrFolder) {
 		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
@@ -456,41 +337,20 @@ var _Code = {
 			return false;
 		});
 	},
-	updateTextFile: function(file, text) {
-		var chunks = Math.ceil(text.length / chunkSize);
-		for (var c = 0; c < chunks; c++) {
-			var start = c * chunkSize;
-			var end = (c + 1) * chunkSize;
-			var chunk = utf8_to_b64(text.substring(start, end));
-			Command.chunk(file.id, c, chunkSize, chunk, chunks);
-		}
+	updateCode: function(method, source) {
+		Command.setProperty(method.id, 'source', source);
 	},
-	editContent: function(button, file, element) {
-		var url = viewRootUrl + file.id + '?edit=1';
-		_Logger.log(_LogType.CODE, 'editContent', button, file, element, url);
+	editMethodContent: function(button, id, element) {
+
+		var url  = rootUrl + id;
 		var text = '';
-
-		var contentType = file.contentType;
-		var dataType = 'text';
-
-		if (!contentType) {
-			if (file.name.endsWith('.css')) {
-				contentType = 'text/css';
-			} else if (file.name.endsWith('.js')) {
-				contentType = 'text/javascript';
-			} else {
-				contentType = 'text/plain';
-			}
-		}
-		_Logger.log(_LogType.CODE, viewRootUrl, url);
 
 		$.ajax({
 			url: url,
-			dataType: dataType,
-			contentType: contentType,
-			success: function(data) {
-				_Logger.log(_LogType.CODE, file.id, methodContents);
-				text = methodContents[file.id] || data;
+			success: function(result) {
+				var method = result.result;
+				_Logger.log(_LogType.CODE, method.id, methodContents);
+				text = methodContents[method.id] || method.source;
 				if (Structr.isButtonDisabled(button)) {
 					return;
 				}
@@ -499,7 +359,7 @@ var _Code = {
 				var lineWrapping = LSWrapper.getItem(lineWrappingKey);
 				editor = CodeMirror(contentBox.get(0), {
 					value: text,
-					mode: contentType,
+					mode: method.codeType === 'java' ? 'java' : 'javascript',
 					lineNumbers: true,
 					lineWrapping: lineWrapping,
 					indentUnit: 4,
@@ -507,129 +367,100 @@ var _Code = {
 					indentWithTabs: true
 				});
 
-				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + file.id));
+				var scrollInfo = JSON.parse(LSWrapper.getItem(scrollInfoKey + '_' + method.id));
 				if (scrollInfo) {
 					editor.scrollTo(scrollInfo.left, scrollInfo.top);
 				}
 
 				editor.on('scroll', function() {
 					var scrollInfo = editor.getScrollInfo();
-					LSWrapper.setItem(scrollInfoKey + '_' + file.id, JSON.stringify(scrollInfo));
+					LSWrapper.setItem(scrollInfoKey + '_' + method.id, JSON.stringify(scrollInfo));
 				});
 
-				editor.id = file.id;
+				editor.id = method.id;
 
-				dialogBtn.children('#saveFile').remove();
-				dialogBtn.children('#saveAndClose').remove();
+				var buttonArea = $('#code-button-container');
+				buttonArea.empty();
+				buttonArea.append('<button id="resetMethod" disabled="disabled" class="disabled"><i title="Add Method" class="' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /> Cancel</button>');
+				buttonArea.append('<button id="saveMethod" disabled="disabled" class="disabled"><i title="Add Method" class="' + _Icons.getFullSpriteClass(_Icons.floppy_icon) + '" /> Save</button>');
 
-				var h = '<span class="editor-info"><label for="lineWrapping">Line Wrapping:</label> <input id="lineWrapping" type="checkbox"' + (lineWrapping ? ' checked="checked" ' : '') + '>&nbsp;&nbsp;'
-				+ '<label for="isTemplate">Replace template expressions:</label> <input id="isTemplate" type="checkbox"' + (file.isTemplate ? ' checked="checked" ' : '') + '></span>';
-				dialogMeta.html(h);
-
-				Structr.appendInfoTextToElement({
-					text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick this checkbox.",
-					element: dialogMeta
-				});
-
-				$('#lineWrapping').on('change', function() {
-					var inp = $(this);
-					if (inp.is(':checked')) {
-						LSWrapper.setItem(lineWrappingKey, "1");
-						editor.setOption('lineWrapping', true);
-					} else {
-						LSWrapper.removeItem(lineWrappingKey);
-						editor.setOption('lineWrapping', false);
-					}
-					editor.refresh();
-				});
-
-				$('#isTemplate').on('change', function() {
-					var inp = $(this);
-					var active = inp.is(':checked');
-					_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
-						if (active) {
-							_Code.updateTemplatePreview(element, url, dataType, contentType);
-						} else {
-							var previewArea = $('#template-preview');
-							previewArea.hide();
-							$('textarea', previewArea).val('');
-							var contentBox = $('.editor', element);
-							contentBox.width('inherit');
-						}
-					});
-				});
-
-				dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
-				dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
-
-				dialogSaveButton = $('#saveFile', dialogBtn);
-				saveAndClose = $('#saveAndClose', dialogBtn);
+				var codeResetButton = $('#resetMethod', buttonArea);
+				var codeSaveButton  = $('#saveMethod', buttonArea);
 
 				editor.on('change', function(cm, change) {
 
 					if (text === editor.getValue()) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
+						codeSaveButton.prop("disabled", true).addClass('disabled');
+						codeResetButton.prop("disabled", true).addClass('disabled');
 					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
+						codeSaveButton.prop("disabled", false).removeClass('disabled');
+						codeResetButton.prop("disabled", false).removeClass('disabled');
 					}
 
 				});
 
-				$('button#saveFile', dialogBtn).on('click', function(e) {
+				codeResetButton.on('click', function(e) {
 
-					var isTemplate = $('#isTemplate').is(':checked');
-
-					if (isTemplate) {
-						$('#isTemplate').prop('checked', false);
-						_Entities.setProperty(file.id, 'isTemplate', false, false, function() {
-
-							e.preventDefault();
-							e.stopPropagation();
-							var newText = editor.getValue();
-							if (text === newText) {
-								return;
-							}
-							_Code.updateTextFile(file, newText);
-							text = newText;
-							dialogSaveButton.prop("disabled", true).addClass('disabled');
-							saveAndClose.prop("disabled", true).addClass('disabled');
-
-							$('#isTemplate').click();
-
-						});
-
-					} else {
-						e.preventDefault();
-						e.stopPropagation();
-						var newText = editor.getValue();
-						if (text === newText) {
-							return;
-						}
-						_Code.updateTextFile(file, newText);
-						text = newText;
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
-					}
-
-				});
-
-				saveAndClose.on('click', function(e) {
+					e.preventDefault();
 					e.stopPropagation();
-					dialogSaveButton.click();
-					setTimeout(function() {
-						dialogSaveButton.remove();
-						saveAndClose.remove();
-						dialogCancelButton.click();
-					}, 500);
+					_Code.displayMethodContents(method.id);
+					codeSaveButton.prop("disabled", true).addClass('disabled');
+					codeResetButton.prop("disabled", true).addClass('disabled');
+
+				});
+
+				codeSaveButton.on('click', function(e) {
+
+					e.preventDefault();
+					e.stopPropagation();
+					var newText = editor.getValue();
+					if (text === newText) {
+						return;
+					}
+					_Code.updateCode(method, newText);
+					text = newText;
+					codeSaveButton.prop("disabled", true).addClass('disabled');
+					codeResetButton.prop("disabled", true).addClass('disabled');
+
 				});
 
 				_Code.resize();
 
-				if (file.isTemplate) {
+				if (method.isTemplate) {
 					_Code.updateTemplatePreview(element, url, dataType, contentType);
 				}
+
+				editor.refresh();
+
+				$(window).on('keydown', function(e) {
+					// This hack prevents FF from closing WS connections on ESC
+					if (e.keyCode === 27) {
+						e.preventDefault();
+					}
+					var k = e.which;
+					if (k === 16) {
+						shiftKey = true;
+					}
+					if (k === 18) {
+						altKey = true;
+					}
+					if (k === 17) {
+						ctrlKey = true;
+					}
+					if (k === 69) {
+						eKey = true;
+					}
+					if (navigator.platform === 'MacIntel' && k === 91) {
+						cmdKey = true;
+					}
+					if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
+						e.preventDefault();
+						if (codeSaveButton && !codeSaveButton.prop('disabled')) {
+							codeSaveButton.click();
+						}
+					}
+				});
+
 			},
 			error: function(xhr, statusText, error) {
 				console.log(xhr, statusText, error);

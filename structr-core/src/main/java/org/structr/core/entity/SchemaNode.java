@@ -35,6 +35,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
@@ -341,6 +342,11 @@ public class SchemaNode extends AbstractSchemaNode {
 				removeProperty(extendsClass);
 			}
 		}
+	}
+
+	@Export
+	public String getGeneratedSourceCode() throws FrameworkException {
+		return SchemaHelper.getSource(this, new ErrorBuffer());
 	}
 
 	// ----- private methods -----
