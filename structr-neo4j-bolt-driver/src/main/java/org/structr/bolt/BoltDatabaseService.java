@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Config;
 import org.neo4j.driver.v1.Driver;
@@ -490,7 +491,13 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public String getTenantIdentifier() {
-		return tenantId;
+
+		// prevent blank tenant identifier from being used
+		if (StringUtils.isNotBlank(tenantId)) {
+			return tenantId;
+		}
+
+		return null;
 	}
 
 	public Label getOrCreateLabel(final String name) {
