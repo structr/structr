@@ -95,6 +95,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		this.databasePath = Settings.DatabasePath.getValue();
 		this.tenantId     = Settings.TenantIdentifier.getValue();
 
+		if (StringUtils.isBlank(this.tenantId)) {
+			this.tenantId = null;
+		}
+
 		final BoltConnector bolt = new BoltConnector("0");
 		databaseUrl              = Settings.ConnectionUrl.getValue();
 		final String username    = Settings.ConnectionUser.getValue();
@@ -491,13 +495,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public String getTenantIdentifier() {
-
-		// prevent blank tenant identifier from being used
-		if (StringUtils.isNotBlank(tenantId)) {
-			return tenantId;
-		}
-
-		return null;
+		return tenantId;
 	}
 
 	public Label getOrCreateLabel(final String name) {
