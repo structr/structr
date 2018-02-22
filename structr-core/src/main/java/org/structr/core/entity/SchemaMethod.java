@@ -73,7 +73,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment
+		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",

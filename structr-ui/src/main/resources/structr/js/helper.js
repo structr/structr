@@ -459,6 +459,7 @@ function fastRemoveAllChildren(el) {
  * static list of all logtypes
  */
 var _LogType = {
+	CODE:            "CODE",
 	CONTENTS:        "CONTENTS",
 	CRAWLER:         "CRAWLER",
 	CRUD:            "CRUD",
@@ -729,7 +730,7 @@ var _Console = new (function() {
 				keydown: function(e) {
 
 					if (e.which === 9) {
-						
+
 						var term = _terminal;
 
 						if (shiftKey) {
