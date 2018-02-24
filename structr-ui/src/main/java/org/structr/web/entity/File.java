@@ -96,6 +96,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.setImplements(URI.create("#/definitions/JavaScriptSource"));
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
+		type.setCategory("core");
 
 		type.addStringProperty("url", PropertyView.Public, PropertyView.Ui);
 

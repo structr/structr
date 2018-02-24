@@ -46,6 +46,7 @@ public interface User extends Principal {
 
 		user.setExtends(schema.getType("Principal"));
 		user.setImplements(URI.create("https://structr.org/v1.1/definitions/User"));
+		user.setCategory("core");
 
 		user.addStringProperty("confirmationKey", PropertyView.Ui).setIndexed(true);
 		user.addStringProperty("twitterName").setIndexed(true);

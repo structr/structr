@@ -40,6 +40,7 @@ public interface Script extends LinkSource {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Script"));
 		type.setExtends(URI.create("#/definitions/LinkSource"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_src",     PropertyView.Html);
 		type.addStringProperty("_html_async",   PropertyView.Html);

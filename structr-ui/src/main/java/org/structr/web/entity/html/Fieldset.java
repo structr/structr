@@ -33,5 +33,6 @@ public interface Fieldset extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Fieldset"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

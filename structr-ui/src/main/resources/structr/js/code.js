@@ -213,8 +213,22 @@ var _Code = {
 					},
 					{
 						id: 'root',
-						text: 'All Types',
-						children: true,
+						text: 'Types',
+						children: [
+							{ id: 'custom', text: 'Custom', children: true, icon: _Icons.folder_icon },
+							{
+								id: 'builtin',
+								text: 'Built-In',
+								children: [
+									{ id: 'core', text: 'Core', children: true, icon: _Icons.folder_icon },
+									{ id: 'ui',  text: 'Ui',  children: [
+										{ id: 'web', text: 'Pages', children: true, icon: _Icons.folder_icon },
+										{ id: 'html', text: 'Html', children: true, icon: _Icons.folder_icon }
+									], icon: _Icons.folder_icon }
+								],
+								icon: _Icons.folder_icon
+							},
+						],
 						icon: _Icons.structr_logo_small,
 						path: '/',
 						state: {
@@ -248,6 +262,12 @@ var _Code = {
 			var list = [];
 
 			result.forEach(function(d) {
+
+				// filter schema types
+				if (d && d.isPartOfBuiltInSchema && d.isPartOfBuiltInSchema === true) {
+					return;
+				}
+
 				var icon = 'fa-file-code-o gray';
 				switch (d.type) {
 					case "SchemaMethod":
@@ -261,10 +281,20 @@ var _Code = {
 						}
 				}
 
+				var hasVisibleChildren = false;
+
+				if (d.schemaMethods) {
+					d.schemaMethods.forEach(function(m) {
+						if (!m.isPartOfBuiltInSchema) {
+							hasVisibleChildren = true;
+						}
+					});
+				}
+
 				list.push({
 					id: d.id,
 					text:  d.name ? d.name : '[unnamed]',
-					children: d.schemaMethods ? d.schemaMethods.length > 0 : false,
+					children: hasVisibleChildren,
 					icon: 'fa ' + icon,
 					data: {
 						type: d.type
@@ -283,11 +313,23 @@ var _Code = {
 
 			switch (id) {
 
+				case 'custom':
+					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: false}, displayFunction, true);
+					break;
+				case 'core':
+					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'core' }, displayFunction, false);
+					break;
+				case 'web':
+					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'ui' }, displayFunction, false);
+					break;
+				case 'html':
+					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'html' }, displayFunction, false);
+					break;
 				case 'globals':
-					Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true);
+					Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true, 'ui');
 					break;
 				default:
-					Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: id}, displayFunction, true);
+					Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: id}, displayFunction, true, 'ui');
 					break;
 			}
 		}

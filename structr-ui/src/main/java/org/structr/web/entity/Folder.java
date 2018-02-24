@@ -51,6 +51,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Folder"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
+		type.setCategory("core");
 
 		type.addBooleanProperty("isFolder", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addStringProperty("mountTarget", PropertyView.Public).setIndexed(true);

@@ -35,6 +35,7 @@ public interface Img extends LinkSource {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Img"));
 		type.setExtends(URI.create("#/definitions/LinkSource"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_alt",         PropertyView.Html);
 		type.addStringProperty("_html_src",         PropertyView.Html);

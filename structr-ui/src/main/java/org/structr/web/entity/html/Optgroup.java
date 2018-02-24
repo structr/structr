@@ -34,6 +34,7 @@ public interface Optgroup extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Optgroup"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_disabled", PropertyView.Html);
 		type.addStringProperty("_html_label",    PropertyView.Html);

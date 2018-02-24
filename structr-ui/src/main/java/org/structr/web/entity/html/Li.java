@@ -34,6 +34,7 @@ public interface Li extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Li"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_value", PropertyView.Html);
 

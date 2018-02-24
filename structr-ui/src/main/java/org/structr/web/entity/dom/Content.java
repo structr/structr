@@ -63,6 +63,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Content"));
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
+		type.setCategory("ui");
 
 		type.addBooleanProperty("isContent",  PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		type.addStringProperty("contentType", PropertyView.Public, PropertyView.Ui).setIndexed(true);

@@ -38,6 +38,7 @@ public interface Linkable extends NodeInterface {
 
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Linkable"));
+		type.setCategory("core");
 
 		type.addBooleanProperty("enableBasicAuth", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
 		type.addStringProperty("basicAuthRealm",   PropertyView.Ui);

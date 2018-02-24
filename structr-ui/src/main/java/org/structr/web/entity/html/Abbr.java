@@ -33,6 +33,7 @@ public interface Abbr extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Abbr"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");
 	}}

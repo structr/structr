@@ -68,7 +68,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<List<SchemaRelationshipNode>> relatedTo            = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
 	public static final Property<List<SchemaRelationshipNode>> relatedFrom          = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
 	public static final Property<String>                       extendsClass         = new StringProperty("extendsClass").indexed();
-	public static final Property<String>                       implementsInterfaces = new StringProperty("implementsInterfaces");
+	public static final Property<String>                       implementsInterfaces = new StringProperty("implementsInterfaces").indexed();
 	public static final Property<String>                       defaultSortKey       = new StringProperty("defaultSortKey");
 	public static final Property<String>                       defaultSortOrder     = new StringProperty("defaultSortOrder");
 	public static final Property<Boolean>                      isBuiltinType        = new BooleanProperty("isBuiltinType").readOnly().indexed();
@@ -77,13 +77,14 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Boolean>                      shared               = new BooleanProperty("shared").indexed();
 	public static final Property<Boolean>                      isInterface          = new BooleanProperty("isInterface").indexed();
 	public static final Property<Boolean>                      isAbstract           = new BooleanProperty("isAbstract").indexed();
+	public static final Property<String>                       category             = new StringProperty("category").indexed();
 
 	public static final View defaultView = new View(SchemaNode.class, PropertyView.Public,
 		extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
 	);
 
 	public static final View uiView = new View(SchemaNode.class, PropertyView.Ui,
-		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",

@@ -36,6 +36,7 @@ public interface Location extends NodeInterface {
 		final JsonObjectType type = schema.addType("Location");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Location"));
+		type.setCategory("core");
 
 		type.addNumberProperty("latitude",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addNumberProperty("longitude",     PropertyView.Public, PropertyView.Ui).setIndexed(true);

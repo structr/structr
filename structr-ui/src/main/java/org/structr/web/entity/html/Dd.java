@@ -33,5 +33,6 @@ public interface Dd extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Dd"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

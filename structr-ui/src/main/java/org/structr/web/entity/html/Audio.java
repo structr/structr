@@ -37,6 +37,7 @@ public interface Audio extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Audio"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_src",         PropertyView.Html);
 		type.addStringProperty("_html_crossorigin", PropertyView.Html);

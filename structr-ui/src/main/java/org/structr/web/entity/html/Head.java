@@ -33,5 +33,6 @@ public interface Head extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Head"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

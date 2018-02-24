@@ -35,6 +35,7 @@ public interface Link extends LinkSource {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Link"));
 		type.setExtends(URI.create("#/definitions/LinkSource"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_href",     PropertyView.Html);
 		type.addStringProperty("_html_rel",      PropertyView.Html);

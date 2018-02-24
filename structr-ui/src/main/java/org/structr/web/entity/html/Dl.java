@@ -33,5 +33,6 @@ public interface Dl extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Dl"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }
