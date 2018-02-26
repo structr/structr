@@ -1473,7 +1473,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 						} else {
 
-							propertyKey = StructrApp.key(currentDataNode.getClass(), subKey);
+							propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(currentDataNode.getClass(), subKey, false);
 							renderContext.setRelatedProperty(propertyKey);
 
 							if (propertyKey != null) {
