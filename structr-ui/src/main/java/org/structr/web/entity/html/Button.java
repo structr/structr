@@ -34,6 +34,7 @@ public interface Button extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Button"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_autofocus",      PropertyView.Html);
 		type.addStringProperty("_html_disabled",       PropertyView.Html);

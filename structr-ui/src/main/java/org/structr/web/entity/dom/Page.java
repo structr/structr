@@ -75,6 +75,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
 		type.setImplements(URI.create("#/definitions/Linkable"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
+		type.setCategory("ui");
 
 		type.addBooleanProperty("isPage", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 

@@ -352,7 +352,7 @@ var _Elements = {
 		var sourceId = Structr.getId(sourceEl);
 		if (!sourceId) return false;
 		var obj = StructrModel.obj(sourceId);
-		if (obj && obj.syncedNodes && obj.syncedNodes.length || sourceEl.parent().attr('id') === 'componentsArea') {
+		if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
 			_Logger.log(_LogType.ELEMENTS, 'component dropped on components area, aborting');
 			return false;
 		}
@@ -483,7 +483,7 @@ var _Elements = {
 		$('.delete_icon', div).on('click', function(e) {
 			e.stopPropagation();
 			_Entities.deleteNode(this, entity, true, function() {
-				var synced = entity.syncedNodes;
+				var synced = entity.syncedNodesIds;
 				if (synced && synced.length) {
 					synced.forEach(function(id) {
 						var el = Structr.node(id);
@@ -498,9 +498,9 @@ var _Elements = {
 			});
 		});
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes&&entity.syncedNodes.length)?entity.syncedNodes:[entity.sharedComponent]));
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds&&entity.syncedNodesIds.length)?entity.syncedNodesIds:[entity.sharedComponentId]));
 
-		if (!hasChildren && !entity.sharedComponent) {
+		if (!hasChildren && !entity.sharedComponentId) {
 			_Entities.appendEditSourceIcon(div, entity);
 		}
 
@@ -509,23 +509,27 @@ var _Elements = {
 		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
 
 			div.append('<i title="Edit Link" class="link_icon button ' + _Icons.getFullSpriteClass(_Icons.link_icon) + '" />');
-			if (entity.linkable) {
-				div.append('<span class="linkable">' + entity.linkable + '</span>');
+			if (entity.linkableId) {
+
+				if (entity.linkable.isFile) {
+					
+					div.append('<span class="linkable">' + entity.linkable.name + '</span>');
+					
+					$('.linkable', div).on('click', function(e) {
+						e.stopPropagation();
+
+						var file = {'name': entity.linkable.name, 'id': entity.linkableId};
+
+						Structr.dialog('Edit ' + file.name, function() {
+							_Logger.log(_LogType.ELEMENTS, 'content saved');
+						}, function() {
+							_Logger.log(_LogType.ELEMENTS, 'cancelled');
+						});
+						_Files.editContent(this, file, $('#dialogBox .dialogText'));
+
+					});
+				}
 			}
-
-			$('.linkable', div).on('click', function(e) {
-				e.stopPropagation();
-
-				var file = {'name': entity.linkable, 'id': entity.linkableId};
-
-				Structr.dialog('Edit ' + file.name, function() {
-					_Logger.log(_LogType.ELEMENTS, 'content saved');
-				}, function() {
-					_Logger.log(_LogType.ELEMENTS, 'cancelled');
-				});
-				_Files.editContent(this, file, $('#dialogBox .dialogText'));
-
-			});
 
 			$('.link_icon', div).on('click', function(e) {
 				e.stopPropagation();
@@ -606,8 +610,8 @@ var _Elements = {
 					linkFolderPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" hidden>');
 					linkFolderPager.activateFilterElements();
 
-					_Pager.initPager('files-to-link', 'FileBase', 1, 25);
-					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'FileBase', 'public', function(files) {
+					_Pager.initPager('files-to-link', 'File', 1, 25);
+					var linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'public', function(files) {
 
 						files.forEach(function(file) {
 
@@ -655,7 +659,7 @@ var _Elements = {
 		return div;
 	},
 	getElementIcon:function(element) {
-		var isComponent = element.sharedComponent || (element.syncedNodes && element.syncedNodes.length);
+		var isComponent = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
 		var isActiveNode = element.isActiveNode();
 
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
@@ -1358,7 +1362,7 @@ var _Elements = {
 			return false;
 		});
 
-		_Entities.setMouseOver(div, undefined, ((entity.syncedNodes && entity.syncedNodes.length) ? entity.syncedNodes : [entity.sharedComponent]));
+		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
 		_Entities.appendEditPropertiesIcon(div, entity);
 
@@ -1367,7 +1371,7 @@ var _Elements = {
 	getContentIcon:function(content) {
 		var isComment = (content.type === 'Comment');
 		var isTemplate = (content.type === 'Template');
-		var isComponent = content.sharedComponent || (content.syncedNodes && content.syncedNodes.length);
+		var isComponent = content.sharedComponentId || (content.syncedNodesIds && content.syncedNodesIds.length);
 		var isActiveNode = content.isActiveNode();
 
 		return isComment ? _Icons.comment_icon : ((isTemplate && isComponent) ? _Icons.comp_templ_icon : (isTemplate ? (isActiveNode ? _Icons.active_template_icon : _Icons.template_icon) : (isComponent ? _Icons.active_content_icon : (isActiveNode ? _Icons.active_content_icon : _Icons.content_icon))));

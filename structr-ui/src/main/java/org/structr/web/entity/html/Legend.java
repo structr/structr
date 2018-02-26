@@ -33,5 +33,6 @@ public interface Legend extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Legend"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

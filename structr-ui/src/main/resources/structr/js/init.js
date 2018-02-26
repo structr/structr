@@ -34,6 +34,7 @@ var detailsObjectId = 'structrDetailsObjectId_' + port;
 var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
+var consoleModeKey = 'structrConsoleModeKey_' + port;
 
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
@@ -105,17 +106,21 @@ $(function() {
 
 	$(window).keyup(function(e) {
 		var k = e.which;
-		if (k === 16)
+		if (k === 16) {
 			shiftKey = false;
-		if (k === 18)
+		}
+		if (k === 18) {
 			altKey = false;
-		if (k === 17)
+		}
+		if (k === 17) {
 			ctrlKey = false;
-		if (k === 69)
+		}
+		if (k === 69) {
 			eKey = false;
-		if (navigator.platform === 'MacIntel' && k === 91)
+		}
+		if (navigator.platform === 'MacIntel' && k === 91) {
 			cmdKey = false;
-
+		}
 		if (e.keyCode === 27) {
 			if (ignoreKeyUp) {
 				ignoreKeyUp = false;
@@ -167,8 +172,9 @@ $(function() {
 		if (k === 69) {
 			eKey = true;
 		}
-		if (navigator.platform === 'MacIntel' && k === 91)
+		if (navigator.platform === 'MacIntel' && k === 91) {
 			cmdKey = true;
+		}
 		if ((e.ctrlKey && (e.which === 83)) || (navigator.platform === 'MacIntel' && cmdKey && (e.which === 83))) {
 			e.preventDefault();
 			if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
@@ -264,19 +270,20 @@ var Structr = {
 		showLoadingSpinner();
 
 		Structr.clearMain();
-		Structr.loadInitialModule();
-		Structr.startPing();
-		if (!dialogText.text().length) {
-			LSWrapper.removeItem(dialogDataKey);
-		} else {
-			var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
-			if (dialogData) {
-				Structr.restoreDialog(dialogData);
+		Structr.loadInitialModule(false, function() {
+			Structr.startPing();
+			if (!dialogText.text().length) {
+				LSWrapper.removeItem(dialogDataKey);
+			} else {
+				var dialogData = JSON.parse(LSWrapper.getItem(dialogDataKey));
+				if (dialogData) {
+					Structr.restoreDialog(dialogData);
+				}
 			}
-		}
-		hideLoadingSpinner();
-		_Console.initConsole();
-		_Favorites.initFavorites();
+			hideLoadingSpinner();
+			_Console.initConsole();
+			_Favorites.initFavorites();
+		});
 	},
 	updateUsername: function(name) {
 		if (name !== user) {
@@ -370,7 +377,7 @@ var Structr = {
 			}
 		});
 	},
-	loadInitialModule: function(isLogin) {
+	loadInitialModule: function(isLogin, callback) {
 
 		Structr.restoreLocalStorage(function() {
 
@@ -397,8 +404,9 @@ var Structr = {
 				}
 			}
 			Structr.updateVersionInfo();
+			
+			callback();
 		});
-
 	},
 	clearMain: function() {
 		var newDroppables = new Array();

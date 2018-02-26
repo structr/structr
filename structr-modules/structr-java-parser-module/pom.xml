@@ -29,12 +29,12 @@
 		<dependency>
 			<groupId>com.github.javaparser</groupId>
 			<artifactId>javaparser-core</artifactId>
-			<version>3.5.3</version>
+			<version>3.5.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.javaparser</groupId>
 			<artifactId>java-symbol-solver-core</artifactId>
-			<version>0.6.1</version>
+			<version>0.6.2</version>
 		</dependency>		
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>

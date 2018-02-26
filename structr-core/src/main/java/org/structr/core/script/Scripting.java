@@ -41,6 +41,7 @@ import org.mozilla.javascript.Undefined;
 import org.renjin.script.RenjinScriptEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.GraphObject;
@@ -175,6 +176,13 @@ public class Scripting {
 		}
 
 		actionContext.setJavaScriptContext(isJavascript);
+
+		// disable notifications for scripted actions
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		if (securityContext != null) {
+
+			securityContext.setDoTransactionNotifications(false);
+		}
 
 		if (isScriptEngine) {
 

@@ -35,6 +35,7 @@ public interface Localization extends NodeInterface {
 		final JsonType type = SchemaService.getDynamicSchema().addType("Localization");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Localization"));
+		type.setCategory("core");
 
 		type.addStringProperty("localizedName", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("description",   PropertyView.Public, PropertyView.Ui);

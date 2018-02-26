@@ -33,5 +33,6 @@ public interface Table extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Table"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

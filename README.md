@@ -24,7 +24,7 @@ The one-stop documentation and support site can be found at [https://support.str
 
 ## Installation and Setup
 
-Prerequisites are the Java JDK 1.8 (JRE is not sufficient). See [https://support.structr.com/article/246](https://support.structr.com/article/246) for instrucxtions on how to install and start Structr.
+Prerequisites are the Java JDK 1.8 (JRE is not sufficient). See [https://support.structr.com/article/246](https://support.structr.com/article/246) for instructions on how to install and start Structr.
 
 Login with the default credentials admin/admin at: [http://localhost:8082/structr/](http://localhost:8082/structr/)
 

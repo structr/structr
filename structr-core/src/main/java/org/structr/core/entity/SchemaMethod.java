@@ -55,29 +55,31 @@ import org.structr.schema.action.ActionEntry;
  */
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
-	public static final Property<List<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
-	public static final Property<AbstractSchemaNode> schemaNode          = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<String>             signature           = new StringProperty("signature").indexed();
-	public static final Property<String>             virtualFileName     = new StringProperty("virtualFileName").indexed();
-	public static final Property<String>             returnType          = new StringProperty("returnType").indexed();
-	public static final Property<String>             source              = new StringProperty("source").indexed();
-	public static final Property<String>             comment             = new StringProperty("comment").indexed();
-	public static final Property<String[]>           exceptions          = new ArrayProperty("exceptions", String.class).indexed();
-	public static final Property<Boolean>            callSuper           = new BooleanProperty("callSuper").indexed();
-	public static final Property<Boolean>            overridesExisting   = new BooleanProperty("overridesExisting").indexed();
-	public static final Property<Boolean>            doExport            = new BooleanProperty("doExport").indexed();
-	public static final Property<String>             codeType            = new StringProperty("codeType").indexed();
+	public static final Property<List<SchemaMethodParameter>> parameters   = new EndNodes<>("parameters", SchemaMethodParameters.class);
+	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<String>             signature             = new StringProperty("signature").indexed();
+	public static final Property<String>             virtualFileName       = new StringProperty("virtualFileName").indexed();
+	public static final Property<String>             returnType            = new StringProperty("returnType").indexed();
+	public static final Property<String>             source                = new StringProperty("source").indexed();
+	public static final Property<String>             comment               = new StringProperty("comment").indexed();
+	public static final Property<String[]>           exceptions            = new ArrayProperty("exceptions", String.class).indexed();
+	public static final Property<Boolean>            callSuper             = new BooleanProperty("callSuper").indexed();
+	public static final Property<Boolean>            overridesExisting     = new BooleanProperty("overridesExisting").indexed();
+	public static final Property<Boolean>            doExport              = new BooleanProperty("doExport").indexed();
+	public static final Property<String>             codeType              = new StringProperty("codeType").indexed();
+	public static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, comment
+		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
+
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, comment
+		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, comment
+		id, type, schemaNode, name, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
 	);
 
 	public ActionEntry getActionEntry(final AbstractSchemaNode schemaEntity) throws FrameworkException {

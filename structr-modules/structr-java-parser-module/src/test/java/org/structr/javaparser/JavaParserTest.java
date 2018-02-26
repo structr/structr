@@ -45,7 +45,7 @@ public class JavaParserTest extends JavaParserModuleTest {
 			final String resultJson = new GsonBuilder().setPrettyPrinting().create()
 					.toJson(new JavaParserModule().parse(javaCode).get());
 			
-			//System.out.println("Result JSON: " + resultJson);
+			System.out.println("Result JSON: " + resultJson);
 			
 			assertEquals(targetJson, resultJson);
 			
@@ -53,7 +53,5 @@ public class JavaParserTest extends JavaParserModuleTest {
 				logger.debug("Error in Java parser test", ex);
 		}
 	}
-	
-
 
 }

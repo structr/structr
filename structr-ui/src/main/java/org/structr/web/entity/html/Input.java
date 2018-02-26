@@ -34,6 +34,7 @@ public interface Input extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Input"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_accept",         PropertyView.Html);
 		type.addStringProperty("_html_alt",            PropertyView.Html);

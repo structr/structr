@@ -33,5 +33,6 @@ public interface H1 extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/H1"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

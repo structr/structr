@@ -163,8 +163,9 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} catch (Throwable t) {
 
-			logger.debug("Exception while deleting node: {}", node);
+			t.printStackTrace();
 
+			logger.warn("Exception while deleting node {}: {}", node, t.getMessage());
 		}
 
 		return;

@@ -56,6 +56,13 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	@Override
 	protected String getQueryPrefix() {
+
+		final String tenantIdentifier = db.getTenantIdentifier();
+		if (tenantIdentifier != null) {
+
+			return "MATCH (n:" + tenantIdentifier + ")";
+		}
+
 		return "MATCH (n)";
 	}
 
@@ -91,16 +98,36 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final NodeWrapper otherNode   = (NodeWrapper)endNode;
+		final String tenantIdentifier = db.getTenantIdentifier();
+		final StringBuilder buf       = new StringBuilder();
 
 		map.put("id1", id);
 		map.put("id2", endNode.getId());
 		map.put("relProperties", properties);
 
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(
-			"MATCH (n), (m) WHERE ID(n) = {id1} AND ID(m) = {id2} "
-				+ "MERGE (n)-[r:" + relationshipType.name() + "]->(m) "
-				+ "SET r += {relProperties} RETURN r",
-			map);
+		buf.append("MATCH (n");
+
+		if (tenantIdentifier != null) {
+
+			buf.append(":");
+			buf.append(tenantIdentifier);
+		}
+
+		buf.append("), (m");
+
+		if (tenantIdentifier != null) {
+
+			buf.append(":");
+			buf.append(tenantIdentifier);
+		}
+
+		buf.append(") WHERE ID(n) = {id1} AND ID(m) = {id2} ");
+		buf.append("MERGE (n)-[r:");
+		buf.append(relationshipType.name());
+		buf.append("]->(m)");
+		buf.append(" SET r += {relProperties} RETURN r");
+
+		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
 		tx.modified(this);
 		tx.modified(otherNode);
@@ -119,10 +146,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
+		final String tenantIdentifier = db.getTenantIdentifier();
 
 		map.put("id", id);
 
-		tx.set("MATCH (n) WHERE ID(n) = {id} SET n :" + label.name(), map);
+		tx.set("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} SET n :" + label.name(), map);
+
 		tx.modified(this);
 	}
 
@@ -133,10 +162,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
+		final String tenantIdentifier = db.getTenantIdentifier();
 
 		map.put("id", id);
 
-		tx.set("MATCH (n) WHERE ID(n) = {id} REMOVE n:" + label.name(), map);
+		tx.set("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} REMOVE n:" + label.name(), map);
 		tx.modified(this);
 	}
 
@@ -148,11 +178,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
 		final List<Label> result      = new LinkedList<>();
+		final String tenantIdentifier = db.getTenantIdentifier();
 
 		map.put("id", id);
 
 		// execute query
-		for (final String label : tx.getStrings("MATCH (n) WHERE ID(n) = {id} RETURN LABELS(n)", map)) {
+		for (final String label : tx.getStrings("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} RETURN LABELS(n)", map)) {
 			result.add(db.forName(Label.class, label));
 		}
 
@@ -180,6 +211,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				final SessionTransaction tx      = db.getCurrentTransaction();
 				final Map<String, Object> params = new LinkedHashMap<>();
+				final String tenantIdentifier    = db.getTenantIdentifier();
 
 				params.put("id1", getId());
 				params.put("id2", targetNode.getId());
@@ -188,7 +220,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 					// try to fetch existing relationship by node ID(s)
 					// FIXME: this call can be very slow when lots of relationships exist
-					tx.getLong("MATCH (n)-[r:" + type.name() + "]->(m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)", params);
+					tx.getLong("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + type.name() + "]->(m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)", params);
 
 					// success
 					return true;
@@ -213,10 +245,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		if (list == null || dontUseCache) {
 
 			final Map<String, Object> map = new HashMap<>();
+			final String tenantIdentifier = db.getTenantIdentifier();
 
 			map.put("id", id);
 
-			list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]-() WHERE ID(n) = {id} RETURN r", map)));
+			list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
 
 			// store in cache
 			setList(null, null, list);
@@ -237,6 +270,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		if (list == null || dontUseCache) {
 
 			final Map<String, Object> map = new HashMap<>();
+			final String tenantIdentifier = db.getTenantIdentifier();
 
 			map.put("id", id);
 
@@ -246,11 +280,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					return getRelationships();
 
 				case OUTGOING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r]->() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
 					break;
 
 				case INCOMING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r]-() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
 					break;
 			}
 
@@ -273,21 +307,22 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		if (list == null || dontUseCache) {
 
 			final Map<String, Object> map = new HashMap<>();
+			final String tenantIdentifier = db.getTenantIdentifier();
 
 			map.put("id", id);
 
 			switch (direction) {
 
 				case BOTH:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
 					break;
 
 				case OUTGOING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
 					break;
 
 				case INCOMING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n)<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
 					break;
 			}
 
@@ -353,10 +388,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
+				final String tenantIdentifier = db.getTenantIdentifier();
 
 				map.put("id", id);
 
-				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n) WHERE ID(n) = {id} RETURN n", map));
+				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} RETURN n", map));
 				nodeCache.put(id, wrapper);
 			}
 

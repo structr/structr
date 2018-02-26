@@ -33,6 +33,7 @@ public interface Wbr extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Wbr"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");
 		type.overrideMethod("isVoidElement",   false, "return true;");

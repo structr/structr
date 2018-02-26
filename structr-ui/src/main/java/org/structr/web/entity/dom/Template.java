@@ -41,6 +41,7 @@ public interface Template extends Content {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Template"));
 		type.setExtends(URI.create("#/definitions/Content"));
+		type.setCategory("ui");
 
 		type.addStringProperty("contentType", PropertyView.Public).setIndexed(true);
 		type.addStringProperty("content",     PropertyView.Public).setIndexed(true);
@@ -50,7 +51,7 @@ public interface Template extends Content {
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "children");
 		type.addViewProperty(PropertyView.Public, "childrenIds");
-		
+
 		type.addViewProperty(PropertyView.Ui, "children");
 		type.addViewProperty(PropertyView.Ui, "childrenIds");
 

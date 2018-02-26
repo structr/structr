@@ -50,6 +50,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		final JsonObjectType favoritable = (JsonObjectType)schema.getType("Favoritable");
 
 		principal.setImplements(URI.create("https://structr.org/v1.1/definitions/Principal"));
+		principal.setCategory("core");
 
 		principal.addBooleanProperty("isAdmin").setReadOnly(true);
 		principal.addBooleanProperty("blocked", PropertyView.Ui);

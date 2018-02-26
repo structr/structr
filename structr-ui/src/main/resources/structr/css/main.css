@@ -292,6 +292,7 @@ img.disabled {
 #contents,
 #folders,
 #files,
+#code,
 #trees,
 #groups,
 #images,
@@ -673,14 +674,14 @@ ul#previewTabs {
 	height: 25px;
 }
 
-.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .favs-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
+.data-tabs, .data-tabs ul, #tabs, #tabs ul, .files-tabs ul, .code-tabs ul, .favs-tabs ul, .dialogHeaderWrapper ul, .dialogText .schema-details ul {
 	background: none;
 	border: none;
 	padding: 0;
 	margin: 0;
 }
 
-#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li {
+#previewTabs > li, #tabs > ul > li, .compTab, .data-tabs > ul > li, .files-tabs > ul > li, .code-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li {
 	vertical-align: middle;
 	line-height: 1.5em;
 	border-radius: 3px;
@@ -708,7 +709,7 @@ ul#previewTabs {
 	padding: 3px 6px 0 6px ! important;
 }
 
-#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li {
+#previewTabs > li, #tabs > ul > li, .data-tabs > ul > li, .files-tabs > ul > li, .code-tabs > ul > li, .favs-tabs > ul > li, .dialogHeaderWrapper > ul > li {
 	position: relative;
 	z-index: 1;
 }
@@ -721,11 +722,11 @@ ul#previewTabs {
 	margin-top: 0px;
 }
 
-.data-tabs > ul, .files-tabs > ul, .favs-tabs > ul {
+.data-tabs > ul, .files-tabs > ul, .code-tabs > ul, .favs-tabs > ul {
 	overflow: hidden;
 }
 
-.data-tabs > div, .files-tabs > div, .favs-tabs > div {
+.data-tabs > div, .files-tabs > div, .code-tabs > div, .favs-tabs > div {
 	padding: 0;
 	display: none;
 	/*border-top: 1px solid #a5a5a5;*/
@@ -735,7 +736,7 @@ ul#previewTabs {
 	margin: 6px 0 0 0;
 }
 
-.data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li, .dialogHeaderWrapper > ul > li {
+.data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li, .code-tabs > ul > li, .dialogHeaderWrapper > ul > li {
 	font-size: 1em;
 }
 
@@ -771,7 +772,7 @@ ul#previewTabs {
 	background-image: none;
 }
 
-#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active, .favs-tabs li.active, .dialogHeaderWrapper li.active {
+#previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active, .code-tabs li.active, .favs-tabs li.active, .dialogHeaderWrapper li.active {
 	color: #333 ! important;
 	background-color: #81ce25;
 	background-image: none;
@@ -1388,7 +1389,7 @@ button img, button i {
 	border: 1px solid #666;
 }
 
-#files-main h1, #images h1 {
+#files-main h1, #images h1, #code-main h1 {
 	color: #333;
 	font-size: 16px;
 	font-weight: bold;
@@ -1398,6 +1399,7 @@ button img, button i {
 
 }
 
+#code-main .selected, #code-main .selected:hover,
 #files-main .selected, #files-main .selected:hover {
 	color: #333 ! important;
 	border: 1px solid #a5a5a5 ! important;
@@ -3059,24 +3061,24 @@ td#cascading-options, td#propagation-options {
 	font-weight: bold;
 }
 
-#files-main, #contents-main, #crawler-main {
+#files-main, #code-main, #contents-main, #crawler-main {
 	display: table-row;
 }
 
-#files-main b.name_, #contents-main b.name, #crawler-main b.name {
+#files-main b.name_, #code-main b.name_, #contents-main b.name, #crawler-main b.name {
 	font-weight: normal;
 }
 
-#files-main input.new-name, #contents-main input.new-name, #crawler-main input.new-name {
+#files-main input.new-name, #code-main input.new-name, #contents-main input.new-name, #crawler-main input.new-name {
 	font-weight: normal;
 }
 
-#file-tree .nodeHover, #content-tree .nodeHover, #crawler-tree .nodeHover {
+#file-tree .nodeHover, #code-tree .nodeHover, #content-tree .nodeHover, #crawler-tree .nodeHover {
 	border: none;
 	background-color: #eff8e3 ! important;
 }
 
-#file-tree-container, #content-tree-container, #crawler-tree-container {
+#file-tree-container, #code-tree-container, #content-tree-container, #crawler-tree-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px;
@@ -3084,7 +3086,7 @@ td#cascading-options, td#propagation-options {
 	padding-top: 12px;
 }
 
-#file-tree, #contents-tree, #crawler-tree {
+#file-tree, #code-tree, #contents-tree, #crawler-tree {
 	padding-top: 8px;
 	overflow: auto;
 	vertical-align: top;
@@ -3093,17 +3095,29 @@ td#cascading-options, td#propagation-options {
 	border: 1px solid #a5a5a5;
 }
 
-#folder-contents-container, #contents-contents-container, #crawler-list-container {
+#code-tree i.jstree-icon.gray {
+	color: #666;
+}
+
+#code-tree i.jstree-icon.red {
+	color: #880000;
+}
+
+#code-tree i.jstree-icon.blue {
+	color: #000088;
+}
+
+#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px 12px 12px 8px;
 }
 
-#folder-contents-container select, #contents-contents-container select, #crawler-list-container select {
+#folder-contents-container select, #code-contents-container select, #contents-contents-container select, #crawler-list-container select {
 	padding: 3px;
 }
 
-#folder-contents, #contents-contents, #crawler-list {
+#folder-contents, #code-contents, #contents-contents, #crawler-list {
 	vertical-align: top;
 	background-color: #fff;
 	border-radius: 3px;
@@ -3115,17 +3129,18 @@ td#cascading-options, td#propagation-options {
 	position: absolute;
 }
 
-#folder-contents h1, #contents-contents h1, #crawler-list h1 {
+#folder-contents h1, #code-contents h1, #contents-contents h1, #crawler-list h1 {
 	margin: 0px;
 }
 
-#folder-contents table, #contents-contents table, #crawler-list table {
+#folder-contents table, #code-contents table, #contents-contents table, #crawler-list table {
 	margin: 0px;
 	font-size: 9pt;
 	font-family: sans-serif;
 	width: 100%;
 }
 
+#code-contents table,
 #folder-contents table {
 	table-layout: fixed;
 }
@@ -3146,7 +3161,7 @@ td#cascading-options, td#propagation-options {
 	width: 120px;
 }
 
-#folder-contents td.file-type, #contents-contents td.file-type, #crawler-list td.file-type {
+#folder-contents td.file-type, #code-contents td.code-type, #contents-contents td.file-type, #crawler-list td.file-type {
 	width: 24px;
 }
 

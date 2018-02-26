@@ -36,6 +36,7 @@ public interface MailTemplate extends NodeInterface {
 		final JsonType type = SchemaService.getDynamicSchema().addType("MailTemplate");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MailTemplate"));
+		type.setCategory("core");
 
 		type.addStringProperty("text",   PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("locale", PropertyView.Public, PropertyView.Ui);

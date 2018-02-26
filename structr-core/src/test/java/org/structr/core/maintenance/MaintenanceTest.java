@@ -174,6 +174,13 @@ public class MaintenanceTest extends StructrTest {
 		try {
 			// create test nodes
 			final List<TestEleven> testNodes = createTestNodes(TestEleven.class, 10);
+			final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
+			int labelCount                   = 7;
+
+			// one additional label
+			if (tenantIdentifier != null) {
+				labelCount += 1;
+			}
 
 			try (final Tx tx = app.tx()) {
 
@@ -181,7 +188,7 @@ public class MaintenanceTest extends StructrTest {
 
 					Iterable<Label> labels = node.getNode().getLabels();
 
-					assertEquals(7, Iterables.count(labels));
+					assertEquals(labelCount, Iterables.count(labels));
 
 					for (final Label label : labels) {
 						System.out.print(label.name() + " ");
@@ -190,7 +197,7 @@ public class MaintenanceTest extends StructrTest {
 
 					final Set<String> names = Iterables.toSet(labels).stream().map(Label::name).collect(Collectors.toSet());
 
-					assertEquals("Number of labels must be 7", 7, names.size());
+					assertEquals("Number of labels must be 7", labelCount, names.size());
 					assertTrue("Set of labels must contain AbstractNode",       names.contains("AbstractNode"));
 					assertTrue("Set of labels must contain NodeInterface",      names.contains("NodeInterface"));
 					assertTrue("Set of labels must contain AccessControllable", names.contains("AccessControllable"));
@@ -198,6 +205,10 @@ public class MaintenanceTest extends StructrTest {
 					assertTrue("Set of labels must contain CMISItemInfo",       names.contains("CMISItemInfo"));
 					assertTrue("Set of labels must contain TestOne",            names.contains("TestOne"));
 					assertTrue("Set of labels must contain TestEleven",         names.contains("TestEleven"));
+
+					if (tenantIdentifier != null) {
+						assertTrue("Set of labels must contain custom tenant identifier if set", names.contains(tenantIdentifier));
+					}
 				}
 
 				tx.success();
@@ -231,7 +242,7 @@ public class MaintenanceTest extends StructrTest {
 					Iterable<Label> labels = node.getNode().getLabels();
 					final Set<Label> set   = new HashSet<>(Iterables.toList(labels));
 
-					assertEquals(7, set.size());
+					assertEquals(labelCount, set.size());
 
 					assertTrue("First label has to be AbstractNode",       set.contains(db.forName(Label.class, "AbstractNode")));
 					assertTrue("Second label has to be NodeInterface",     set.contains(db.forName(Label.class, "NodeInterface")));
@@ -240,6 +251,10 @@ public class MaintenanceTest extends StructrTest {
 					assertTrue("Firth label has to be CMISItemInfo",       set.contains(db.forName(Label.class, "CMISItemInfo")));
 					assertTrue("Sixth label has to be TestEleven",         set.contains(db.forName(Label.class, "TestEleven")));
 					assertTrue("Seventh label has to be TestOne",          set.contains(db.forName(Label.class, "TestOne")));
+
+					if (tenantIdentifier != null) {
+						assertTrue("Set of labels must contain custom tenant identifier if set", set.contains(db.forName(Label.class, tenantIdentifier)));
+					}
 
 				}
 
@@ -271,6 +286,10 @@ public class MaintenanceTest extends StructrTest {
 			expectedLabels.add(graphDb.forName(Label.class, "NodeInterface"));
 			expectedLabels.add(graphDb.forName(Label.class, "CMISInfo"));
 			expectedLabels.add(graphDb.forName(Label.class, "CMISItemInfo"));
+
+			if (graphDb.getTenantIdentifier() != null) {
+				expectedLabels.add(graphDb.forName(Label.class, graphDb.getTenantIdentifier()));
+			}
 
 			// intentionally create raw Neo4j transaction and create nodes in there
 			try (Transaction tx = graphDb.beginTx()) {
@@ -317,7 +336,7 @@ public class MaintenanceTest extends StructrTest {
 
 					final Set<Label> labels = Iterables.toSet(group.getNode().getLabels());
 
-					assertEquals("Invalid number of labels", 7, labels.size());
+					assertEquals("Invalid number of labels", expectedLabels.size(), labels.size());
 					assertTrue("Invalid labels found", labels.containsAll(expectedLabels));
 				}
 

@@ -72,6 +72,7 @@
       "modifiers": [
         "public"
       ],
+      "body": "{\n    anInt \u003d newValue;\n}",
       "parameters": [
         {
           "name": "newValue",
@@ -87,6 +88,7 @@
       "modifiers": [
         "public"
       ],
+      "body": "{\n    aLong \u003d newValue;\n}",
       "parameters": [
         {
           "name": "newValue",
@@ -102,6 +104,7 @@
       "modifiers": [
         "public"
       ],
+      "body": "{\n    aBoolean \u003d newValue;\n}",
       "parameters": [
         {
           "name": "newValue",
@@ -117,6 +120,7 @@
       "modifiers": [
         "public"
       ],
+      "body": "{\n    aString \u003d newValue;\n}",
       "parameters": [
         {
           "name": "newValue",

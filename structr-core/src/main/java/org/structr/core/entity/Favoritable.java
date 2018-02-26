@@ -41,6 +41,7 @@ public interface Favoritable extends NodeInterface {
 
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Favoritable"));
+		type.setCategory("core");
 
 		type.addBooleanProperty("isFavoritable", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 

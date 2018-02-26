@@ -34,6 +34,7 @@ public interface Meta extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Meta"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_name",       PropertyView.Html);
 		type.addStringProperty("_html_http-equiv", PropertyView.Html);

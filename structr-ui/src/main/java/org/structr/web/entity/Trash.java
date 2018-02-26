@@ -35,5 +35,6 @@ public interface Trash extends Folder {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Trash"));
 		type.setExtends(URI.create("#/definitions/Folder"));
+		type.setCategory("core");
 	}}
 }

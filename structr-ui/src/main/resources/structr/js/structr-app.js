@@ -392,7 +392,7 @@ function StructrApp(baseUrl, locale) {
 					sel.append('<option value="' + o + '" ' + (o === f.val ? 'selected="selected"' : '') + '>' + o + '</option>');
 				});
 				sel.addClass(f['class']);
-				sel.chosen({allow_single_deselect: true});
+				activateSelectElement(sel, {allow_single_deselect: true});
 
 			} else {
 				if (f.type.endsWith('[]')) {
@@ -466,12 +466,12 @@ function StructrApp(baseUrl, locale) {
 
 		});
 		var clazz = btn.attr('data-structr-edit-class');
-		$('<button class="' + clazz + '" data-structr-action="save' + (type ? ':' + type : '') + (suffix ? ':' + suffix : '') + '" data-structr-id="' + id
+		var saveButton = $('<button class="' + clazz + '" data-structr-action="save' + (type ? ':' + type : '') + (suffix ? ':' + suffix : '') + '" data-structr-id="' + id
 			+ '" data-structr-attributes="' + attrs.join(',')
 			+ '" data-structr-reload="' + reload
 			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
-			+ '">' + s.labels[s.lang].save + '</button>').insertBefore(btn);
-		var saveButton = $('button[data-structr-action="save"][data-structr-id="' + id + '"]', container);
+			+ '">' + s.labels[s.lang].save + '</button>');
+		saveButton.insertBefore(btn);
 		saveButton.prop('class', btn.prop('class')).after(' ');
 		saveButton.addClass(clazz);
 		btn.addClass(clazz);
@@ -521,8 +521,7 @@ function StructrApp(baseUrl, locale) {
 			//hide non edit elements and show edit elements
 			s.hideNonEdit(container);
 
-			//remove chosen containers
-			$('.chosen-container').remove();
+			removeSelectContainer(container);
 		}
 	},
 
@@ -1236,6 +1235,26 @@ function enumSelect(f) {
 	return '<select data-structr-type="' + f.type + '"' + (f['class'] ? ' data-structr-edit-class="' + f['class'] + '"' : '') + ' data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
 }
 
+function activateSelectElement (el, config) {
+	if ($().chosen) {
+		el.chosen(config);
+	} else if ($().select2) {
+		el.select2(config);
+	} else {
+		// neither chosen nor select2 is available
+	}
+}
+
+function removeSelectContainer (container) {
+	if ($().chosen) {
+		$('.chosen-container', container).remove();
+	} else if ($().select2) {
+		$('.select2-container', container).remove();
+	} else {
+		// neither chosen nor select2 is available
+	}
+}
+
 function singleSelect(f) {
 	var inp = '<select data-structr-type="' + f.type + '" data-structr-name="' + f.key + '" data-structr-id="' + f.id + '"></select>';
 	var optionsKey = f.optionsKey || 'name';
@@ -1249,7 +1268,7 @@ function singleSelect(f) {
 					$.each(data.result, function(i, o) {
 						sel.append('<option value="' + o.id + '" ' + (o.id === f.val ? 'selected' : '') + '>' + o[optionsKey] + '</option>');
 					});
-					sel.chosen({allow_single_deselect: true});
+					activateSelectElement(sel, {allow_single_deselect: true});
 				}
 			}
 		}
@@ -1271,7 +1290,7 @@ function multiSelect(f) {
 					$.each(data.result, function(i, o) {
 						sel.append('<option value="' + o.id + '" ' + (valIds.indexOf(o.id) > -1 ? 'selected' : '') + '>' + o[optionsKey] + '</option>');
 					});
-					sel.chosen();
+					activateSelectElement(sel, {});
 				}
 			}
 		}

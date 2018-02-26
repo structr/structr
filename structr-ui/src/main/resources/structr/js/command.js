@@ -89,11 +89,12 @@ var Command = {
 	 * The server will return the result returned from the underlying
 	 * console infrastructure to the sending client (no broadcast).
 	 */
-	console: function(line, callback, completion) {
+	console: function(line, mode, callback, completion) {
 		var obj = {
 			command: 'CONSOLE',
 			data: {
 				line: line,
+				mode: mode,
 				completion: (completion === true ? true : false)
 			}
 		};

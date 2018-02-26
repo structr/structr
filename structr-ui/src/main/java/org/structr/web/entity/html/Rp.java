@@ -33,6 +33,7 @@ public interface Rp extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Rp"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.overrideMethod("avoidWhitespace", false, "return true;");
 	}}

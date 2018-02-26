@@ -33,5 +33,6 @@ public interface Thead extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Thead"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

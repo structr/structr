@@ -421,10 +421,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
+				final String tenantIdentifier = app.getDatabaseService().getTenantIdentifier();
+
 				info("Removing pages, templates and components");
 				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-				app.cypher("MATCH (n:DOMNode) DETACH DELETE n", null);
+				if (tenantIdentifier != null) {
+
+					app.cypher("MATCH (n:" + tenantIdentifier + ":DOMNode) DETACH DELETE n", null);
+
+				} else {
+
+					app.cypher("MATCH (n:DOMNode) DETACH DELETE n", null);
+				}
+
 				FlushCachesCommand.flushAll();
 
 				tx.success();
@@ -1091,6 +1101,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		if (node instanceof Page) {
+			putIf(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
 			putIf(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
 			putIf(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
 			putIf(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));

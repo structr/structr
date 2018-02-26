@@ -78,9 +78,6 @@ public class ImportCommand extends AbstractCommand {
 					resultData.put("id", pageId);
 					getWebSocket().send(MessageBuilder.status().code(200).message("Successfully created page " + name).data(resultData).build(), true);
 
-					// try to import graph gist source code from HTML comment
-					pageImporter.importDataComments();
-
 				} else {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message("Error while creating page " + name).data(resultData).build(), true);
@@ -96,13 +93,8 @@ public class ImportCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
-
 		return "IMPORT";
-
 	}
-
 }

@@ -39,8 +39,6 @@ import org.structr.core.property.PropertyKey;
 
 /**
  * Test access control with different permission levels.
- *
- *
  */
 public class PermissionResolutionTest extends StructrTest {
 

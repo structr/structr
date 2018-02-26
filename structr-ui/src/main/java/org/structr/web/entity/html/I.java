@@ -33,7 +33,8 @@ public interface I extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/I"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
-		
+		type.setCategory("html");
+
 		type.overrideMethod("avoidWhitespace", true, "return true;");
 	}}
 }

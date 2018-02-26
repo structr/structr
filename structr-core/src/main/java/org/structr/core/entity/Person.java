@@ -35,6 +35,7 @@ public interface Person extends NodeInterface {
 		final JsonObjectType type = schema.addType("Person");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Person"));
+		type.setCategory("core");
 
 		type.addStringProperty("salutation",          PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("firstName",           PropertyView.Public, PropertyView.Ui);

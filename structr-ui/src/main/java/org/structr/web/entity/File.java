@@ -96,6 +96,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.setImplements(URI.create("#/definitions/JavaScriptSource"));
 		type.setImplements(URI.create("#/definitions/Favoritable"));
 		type.setExtends(URI.create("#/definitions/AbstractFile"));
+		type.setCategory("core");
 
 		type.addStringProperty("url", PropertyView.Public, PropertyView.Ui);
 
@@ -226,6 +227,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addViewProperty(PropertyView.Public, "owner");
 
 		type.addViewProperty(PropertyView.Ui, "hasParent");
+		type.addViewProperty(PropertyView.Ui, "path");
 
 		/* TODO:
 			public static final Property<List<User>> favoriteOfUsers                     = new StartNodes<>("favoriteOfUsers", UserFavoriteFile.class);

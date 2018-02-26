@@ -33,6 +33,7 @@ import org.mozilla.javascript.IdFunctionObject;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.NativeJavaMethod;
 import org.mozilla.javascript.NativeObject;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
@@ -41,6 +42,7 @@ import org.mozilla.javascript.Wrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.Export;
@@ -49,6 +51,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.Functions;
 import org.structr.core.function.GrantFunction;
+import org.structr.core.parser.CacheExpression;
+import org.structr.core.parser.ConstantExpression;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -228,6 +232,79 @@ public class StructrScriptable extends ScriptableObject {
 			return new IdFunctionObject(new BatchFunctionCall(actionContext, this), null, 0, 0);
 		}
 
+		if ("cache".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					final CacheExpression cacheExpr = new CacheExpression();
+
+					Object retVal = null;
+
+					try {
+						for (int i = 0; i < parameters.length; i++) {
+							cacheExpr.add(new ConstantExpression(parameters[i]));
+						}
+
+						retVal = cacheExpr.evaluate(actionContext, entity);
+
+					} catch (FrameworkException ex) {
+						exception = ex;
+					}
+
+					return retVal;
+				}
+			}, null, 0, 0);
+		}
+
+		if ("doPrivileged".equals(name) || "do_privileged".equals(name)) {
+
+			return new IdFunctionObject(new IdFunctionCall() {
+
+				@Override
+				public Object execIdCall(final IdFunctionObject info, final Context context, final Scriptable scope, final Scriptable thisObject, final Object[] parameters) {
+
+					// backup security context
+					final SecurityContext securityContext = StructrScriptable.this.actionContext.getSecurityContext();
+
+					try {
+
+						// replace security context with super user context
+						actionContext.setSecurityContext(SecurityContext.getSuperUserInstance());
+
+						if (parameters != null && parameters.length == 1) {
+
+							final Object param = parameters[0];
+							if (param instanceof Script) {
+
+								final Script script = (Script)param;
+								return script.exec(context, scope);
+
+							} else {
+
+								// ...
+							}
+
+						} else {
+
+							//...
+						}
+
+						return null;
+
+					} finally {
+
+						// restore saved security context
+						StructrScriptable.this.actionContext.setSecurityContext(securityContext);
+					}
+
+				}
+
+			}, null, 0, 0);
+		}
+
 		// execute builtin function?
 		final Function<Object, Object> function = Functions.get(CaseHelper.toUnderscore(name, false));
 		if (function != null) {
@@ -244,6 +321,10 @@ public class StructrScriptable extends ScriptableObject {
 
 	public FrameworkException getException() {
 		return exception;
+	}
+
+	public void clearException() {
+		exception = null;
 	}
 
 	// ----- private methods -----

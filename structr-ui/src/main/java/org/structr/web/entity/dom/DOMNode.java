@@ -99,29 +99,29 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMNode"));
 		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.dom.DOMNode"));
 
-		type.addStringProperty("dataKey").setIndexed(true);
-		type.addStringProperty("cypherQuery");
-		type.addStringProperty("xpathQuery");
-		type.addStringProperty("restQuery");
-		type.addStringProperty("functionQuery");
+		type.addStringProperty("dataKey").setIndexed(true).setCategory(QUERY_CATEGORY);
+		type.addStringProperty("cypherQuery").setCategory(QUERY_CATEGORY);
+		type.addStringProperty("xpathQuery").setCategory(QUERY_CATEGORY);
+		type.addStringProperty("restQuery").setCategory(QUERY_CATEGORY);
+		type.addStringProperty("functionQuery").setCategory(QUERY_CATEGORY);
 
-		type.addStringProperty("showForLocales");
-		type.addStringProperty("hideForLocales");
-		type.addStringProperty("showConditions");
-		type.addStringProperty("hideConditions");
+		type.addStringProperty("showForLocales").setIndexed(true).setCategory(VISIBILITY_CATEGORY);
+		type.addStringProperty("hideForLocales").setIndexed(true).setCategory(VISIBILITY_CATEGORY);
+		type.addStringProperty("showConditions").setIndexed(true).setCategory(VISIBILITY_CATEGORY).setHint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		type.addStringProperty("hideConditions").setIndexed(true).setCategory(VISIBILITY_CATEGORY).setHint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 
-		type.addStringProperty("sharedComponentConfiguration").setFormat("multi-line");
+		type.addStringProperty("sharedComponentConfiguration").setFormat("multi-line").setCategory(PAGE_CATEGORY).setHint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
 
-		type.addStringProperty("data-structr-id");
-		type.addStringProperty("data-structr-hash");
+		type.addStringProperty("data-structr-id").setHint("Set to ${current.id} most of the time").setCategory(PAGE_CATEGORY);
+		type.addStringProperty("data-structr-hash").setCategory(PAGE_CATEGORY);
 
-		type.addBooleanProperty("renderDetails");
-		type.addBooleanProperty("hideOnIndex");
-		type.addBooleanProperty("hideOnDetail");
+		type.addBooleanProperty("renderDetails").setCategory(QUERY_CATEGORY);
+		type.addBooleanProperty("hideOnIndex").setCategory(QUERY_CATEGORY);
+		type.addBooleanProperty("hideOnDetail").setCategory(QUERY_CATEGORY);
 		type.addBooleanProperty("dontCache").setDefaultValue("false");
-		type.addBooleanProperty("isDOMNode").setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		type.addBooleanProperty("isDOMNode").setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName()).setCategory(PAGE_CATEGORY);
 
-		type.addIntegerProperty("domSortPosition");
+		type.addIntegerProperty("domSortPosition").setCategory(PAGE_CATEGORY);
 
 		type.addPropertyGetter("restQuery", String.class);
 		type.addPropertyGetter("cypherQuery", String.class);
@@ -250,13 +250,23 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final JsonReferenceType synced   = type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
 		final JsonReferenceType owner    = type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
 
-		type.addIdReferenceProperty("parentId",      parent.getSourceProperty());
-		type.addIdReferenceProperty("childrenIds",   parent.getTargetProperty());
-		type.addIdReferenceProperty("pageId",        owner.getTargetProperty());
-		type.addIdReferenceProperty("nextSiblingId", siblings.getTargetProperty());
+		type.addIdReferenceProperty("parentId",          parent.getSourceProperty()).setCategory(PAGE_CATEGORY);
+		type.addIdReferenceProperty("childrenIds",       parent.getTargetProperty()).setCategory(PAGE_CATEGORY);
+		type.addIdReferenceProperty("pageId",            owner.getTargetProperty()).setCategory(PAGE_CATEGORY);
+		type.addIdReferenceProperty("nextSiblingId",     siblings.getTargetProperty()).setCategory(PAGE_CATEGORY);
+		type.addIdReferenceProperty("sharedComponentId", synced.getSourceProperty());
+		type.addIdReferenceProperty("syncedNodesIds",    synced.getTargetProperty());
 
 		// sort position of children in page
 		parent.addIntegerProperty("position");
+
+		// category and hints
+		siblings.getSourceProperty().setCategory(PAGE_CATEGORY);
+		siblings.getTargetProperty().setCategory(PAGE_CATEGORY);
+		parent.getSourceProperty().setCategory(PAGE_CATEGORY);
+		parent.getTargetProperty().setCategory(PAGE_CATEGORY);
+		synced.getSourceProperty().setCategory(PAGE_CATEGORY);
+		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
 	}}
 
 	static final String PAGE_CATEGORY              = "Page Structure";
@@ -288,7 +298,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	));
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "children", "childrenIds", "linkable", "linkableId", "path"
+		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path"
 	}));
 
 	public static final String[] rawProps = new String[] {
@@ -1131,8 +1141,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			if (linkable != null) {
 
 				final String linkableInstruction = (linkable instanceof Page) ? "pagelink" : "link";
-				final String path                = linkable.getPath();
-
+				
+				String path                = linkable.getPath();
+				
+				if (linkable instanceof Page && path == null) {
+					path = linkable.getName();
+				}
+				
 				if (path != null) {
 
 					instructions.add("@structr:" + linkableInstruction + "(" + path + ")");

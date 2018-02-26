@@ -20,8 +20,6 @@ package org.structr.api.service;
 
 /**
  * The base class for services in structr.
- *
- *
  */
 public interface Service extends Feature {
 
@@ -44,7 +42,7 @@ public interface Service extends Feature {
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 *
-	 * @returns whether the service was initialized successfully
+	 * @return a boolean indicating whether the service was initialized successfully
 	 */
 	boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
 
@@ -75,7 +73,7 @@ public interface Service extends Feature {
 	 * Return true if Service is vital for the start of Structr. The failure
 	 * of vital services will stop Structr from starting and display an
 	 * appropriate error message.
-	 * @return a boolean
+	 * @return a boolean indicating whether the service is vital for startup
 	 */
 	boolean isVital();
 }

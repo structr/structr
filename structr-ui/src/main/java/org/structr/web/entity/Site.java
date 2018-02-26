@@ -33,6 +33,7 @@ public interface Site extends NodeInterface {
 		final JsonObjectType type = schema.addType("Site");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Site"));
+		type.setCategory("core");
 
 		type.addStringProperty("hostname", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addIntegerProperty("port",    PropertyView.Public, PropertyView.Ui).setIndexed(true);

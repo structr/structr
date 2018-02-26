@@ -34,6 +34,7 @@ public interface Td extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Td"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_colspan", PropertyView.Html);
 		type.addStringProperty("_html_rowspan", PropertyView.Html);

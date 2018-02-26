@@ -33,5 +33,6 @@ public interface H6 extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/H6"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }

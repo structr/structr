@@ -34,6 +34,7 @@ public interface Video extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Video"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_src",         PropertyView.Html);
 		type.addStringProperty("_html_crossorigin", PropertyView.Html);

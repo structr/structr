@@ -174,7 +174,8 @@ public class NodeService implements SingletonService {
 
 	private void importSeedFile(final String basePath) {
 
-		final File seedFile = new File(Settings.trim(basePath) + "/" + INITIAL_SEED_FILE);
+		final File seedFile           = new File(Settings.trim(basePath) + "/" + INITIAL_SEED_FILE);
+		final String tenantIdentifier = graphDb.getTenantIdentifier();
 
 		if (seedFile.exists()) {
 
@@ -185,8 +186,8 @@ public class NodeService implements SingletonService {
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				// do two very quick count queries to determine the number of Structr nodes in the database
-				final int abstractNodeCount  = getCount("MATCH (n:AbstractNode) RETURN count(n) AS count", "count");
-				final int nodeInterfaceCount = getCount("MATCH (n:NodeInterface) RETURN count(n) AS count", "count");
+				final int abstractNodeCount  = getCount("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ":AbstractNode) RETURN count(n) AS count", "count");
+				final int nodeInterfaceCount = getCount("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ":NodeInterface) RETURN count(n) AS count", "count");
 
 				hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
 

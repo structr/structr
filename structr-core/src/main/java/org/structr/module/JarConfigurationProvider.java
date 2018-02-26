@@ -654,10 +654,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (Class iface : type.getInterfaces()) {
 
+				/*
 				if (GraphObject.class.isAssignableFrom(iface)) {
 
 					reverseInterfaceMap.put(iface.getSimpleName(), iface);
 				}
+				*/
 
 				interfaces.add(iface);
 			}

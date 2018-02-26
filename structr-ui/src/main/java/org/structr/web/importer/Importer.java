@@ -18,7 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -26,7 +25,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,7 +71,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.Actions;
-import org.structr.schema.importer.GraphGistImporter;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
@@ -332,17 +329,6 @@ public class Importer {
 	public void createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
 		createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
-	}
-
-	public void importDataComments() throws FrameworkException {
-
-		// try to import graph gist from comments
-		final GraphGistImporter importer = app.command(GraphGistImporter.class);
-		final byte[] data                = commentSource.toString().getBytes();
-		final ByteArrayInputStream bis   = new ByteArrayInputStream(data);
-		final List<String> sources       = importer.extractSources(bis);
-
-		importer.importCypher(sources);
 	}
 
 	public void setIsDeployment(final boolean isDeployment) {
@@ -961,22 +947,6 @@ public class Importer {
 							SchemaJsonImporter.importSchemaJson(source);
 						}
 
-					} else if (contentType.equals("application/x-cypher")) {
-
-						for (final Node scriptContentNode : node.childNodes()) {
-
-							final String source = scriptContentNode.toString();
-
-							// import Cypher queries from script source
-							final GraphGistImporter importer = app.command(GraphGistImporter.class);
-							final List<String> sources       = new ArrayList<>();
-							sources.add(source);
-
-							importer.importCypher(sources);
-						}
-
-						continue;
-
 					} else if (contentType.equals("application/x-structr-script")) {
 
 						for (final Node scriptContentNode : node.childNodes()) {
@@ -1012,6 +982,30 @@ public class Importer {
 						continue;
 
 					}
+					
+				} else if ("style".equals(tag)) {
+					
+					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
+					final String contentType          = newNode.getProperty(typeKey);
+
+					if (contentType.equals("text/css")) {
+						
+						// parse content of style elements and add referenced files to list of resources to be downloaded
+						for (final Node styleContentNode : node.childNodes()) {
+
+							final String source = styleContentNode.toString();
+
+							try {
+								// Import referenced resources
+								processCss(source, originalUrl);
+
+							} catch (IOException ex) {
+								logger.warn("Couldn't process CSS source", ex);
+							}
+						}
+					}					
+					
+					
 				}
 
 				if (instructions != null) {
@@ -1051,7 +1045,7 @@ public class Importer {
 				// Link new node to its parent node
 				// linkNodes(parent, newNode, page, localIndex);
 				// Step down and process child nodes except for newly created templates
-				if(!isNewTemplateOrComponent){
+				if (!isNewTemplateOrComponent){
 
 					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
 
@@ -1312,6 +1306,18 @@ public class Importer {
 			String url = matcher.group(2);
 
 			logger.info("Trying to download from URL found in CSS: {}", url);
+			downloadFile(url, base);
+
+		}
+
+		pattern = Pattern.compile("(@import\\s*([\"']|url\\('|url\\(\"))([^\"']*)");
+		matcher = pattern.matcher(css);
+
+		while (matcher.find()) {
+
+			String url = matcher.group(3);
+
+			logger.info("Trying to download file referenced by @import found in CSS: {}", url);
 			downloadFile(url, base);
 
 		}

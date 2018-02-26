@@ -272,7 +272,7 @@ public class SchemaHelper {
 
 		// third try: interface
 		if (type == null) {
-			type = configuration.getInterfaces().get(normalizedEntityName);
+			type = configuration.getInterfaces().get("org.structr.dynamic." + normalizedEntityName);
 		}
 
 		// store type but only if it exists!
@@ -626,6 +626,8 @@ public class SchemaHelper {
 
 			final String propertyName = outRel.getPropertyName(_className, existingPropertyNames, true);
 
+			propertyNames.add(propertyName);
+
 			src.append(outRel.getPropertySource(propertyName, true));
 
 			// built-in schema views are controlled manually, but all user-generated
@@ -641,6 +643,8 @@ public class SchemaHelper {
 		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
 
 			final String propertyName = inRel.getPropertyName(_className, existingPropertyNames, false);
+
+			propertyNames.add(propertyName);
 
 			src.append(inRel.getPropertySource(propertyName, false));
 
@@ -740,6 +744,23 @@ public class SchemaHelper {
 
 			for (final SchemaProperty schemaProperty : schemaProperties) {
 
+				String propertyName = schemaProperty.getPropertyName();
+				String oldName      = propertyName;
+				int count           = 1;
+
+				if (propertyNames.contains(propertyName)) {
+
+					while (propertyNames.contains(propertyName)) {
+						propertyName = propertyName + count++;
+					}
+
+					logger.warn("Property name {} already present in type {}, renaming to {}", oldName, entity.getClassName(), propertyName);
+
+					schemaProperty.setProperty(SchemaProperty.name, propertyName);
+				}
+
+				propertyNames.add(propertyName);
+
 				if (!schemaProperty.getProperty(SchemaProperty.isBuiltinProperty)) {
 
 					// migrate property source
@@ -764,10 +785,8 @@ public class SchemaHelper {
 					final PropertySourceGenerator parser = SchemaHelper.getSourceGenerator(errorBuffer, entity.getClassName(), schemaProperty);
 					if (parser != null) {
 
-						final String propertyName = schemaProperty.getPropertyName();
-
 						// add property name to set for later use
-						propertyNames.add(propertyName);
+						propertyNames.add(schemaProperty.getPropertyName());
 
 						// append created source from parser
 						parser.getPropertySource(src, entity);

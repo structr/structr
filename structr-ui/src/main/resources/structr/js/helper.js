@@ -459,6 +459,7 @@ function fastRemoveAllChildren(el) {
  * static list of all logtypes
  */
 var _LogType = {
+	CODE:            "CODE",
 	CONTENTS:        "CONTENTS",
 	CRAWLER:         "CRAWLER",
 	CRUD:            "CRUD",
@@ -698,20 +699,23 @@ var _Console = new (function() {
 			return;
 		}
 
+		var storedMode = LSWrapper.getItem(consoleModeKey);
+
 		// Get initial mode and prompt from backend
-		Command.console('Console.getMode()', function(data) {
+		// If backend sends no mode, use value from local storage
+		Command.console('Console.getMode()', storedMode, function(data) {
 
 			var message = data.message;
-			var mode = data.data.mode;
+			var mode = storedMode || data.data.mode;
 			var prompt = data.data.prompt;
 			var versionInfo = data.data.versionInfo;
-//			console.log(message, mode, prompt, versionInfo);
+			//console.log(message, mode, prompt, versionInfo);
 
 			var consoleEl = $('#structr-console');
 			_terminal = consoleEl.terminal(function(command, term) {
 				if (command !== '') {
 					try {
-						_runCommand(command, term);
+						_runCommand(command, mode, term);
 					} catch (e) {
 						term.error(new String(e));
 					}
@@ -724,48 +728,52 @@ var _Console = new (function() {
 				height: 470,
 				prompt: prompt + '> ',
 				keydown: function(e) {
-					if (e.which === 17) {
-						return true;
+
+					if (e.which === 9) {
+
+						var term = _terminal;
+
+						if (shiftKey) {
+
+							switch (term.consoleMode) {
+
+								case 'REST':
+									mode = 'JavaScript';
+									break;
+
+								case 'JavaScript':
+									mode = 'StructrScript';
+									break;
+
+								case 'StructrScript':
+									mode = 'Cypher';
+									break;
+
+								case 'Cypher':
+									mode = 'AdminShell';
+									break;
+
+								case 'AdminShell':
+									mode = 'REST';
+									break;
+							}
+
+							var line = 'Console.setMode("' + mode + '")';
+							term.consoleMode = mode;
+							console.log('consoleMode set to', mode);
+							LSWrapper.setItem(consoleModeKey, mode);
+
+							_runCommand(line, mode, term);
+
+							return false;
+						}
 					}
 				},
-				completion: function(term, lineToBeCompleted, callback) {
-
-					if (shiftKey) {
-
-						switch (term.consoleMode) {
-
-							case 'REST':
-								mode = 'JavaScript';
-								break;
-
-							case 'JavaScript':
-								mode = 'StructrScript';
-								break;
-
-							case 'StructrScript':
-								mode = 'Cypher';
-								break;
-
-							case 'Cypher':
-								mode = 'AdminShell';
-								break;
-
-							case 'AdminShell':
-								mode = 'REST';
-								break;
-						}
-
-						var line = 'Console.setMode("' + mode + '")';
-						term.consoleMode = mode;
-
-						_runCommand(line, term);
-
-					} else {
-						Command.console(lineToBeCompleted, function(data) {
-							var commands = JSON.parse(data.data.commands);
-							callback(commands);
-						}, true);
-					}
+				completion: function(lineToBeCompleted, callback) {
+					Command.console(lineToBeCompleted, mode, function(data) {
+						var commands = JSON.parse(data.data.commands);
+						callback(commands);
+					}, true);
 				}
 			});
 			_terminal.consoleMode = mode;
@@ -809,13 +817,13 @@ var _Console = new (function() {
 		$('#structr-console').slideUp('fast');
 	};
 
-	var _runCommand = function(command, term) {
+	var _runCommand = function(command, mode, term) {
 
 		if (!term) {
 			term = _terminal;
 		}
 
-		Command.console(command, function(data) {
+		Command.console(command, mode, function(data) {
 			var prompt = data.data.prompt;
 			if (prompt) {
 				term.set_prompt(prompt + '> ');

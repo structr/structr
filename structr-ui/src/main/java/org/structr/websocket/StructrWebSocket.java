@@ -35,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
+import org.structr.console.Console.ConsoleMode;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -539,7 +540,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	}
 
-	public Console getConsole() {
+	public Console getConsole(final ConsoleMode mode) {
 
 		if (this.securityContext != null) {
 
@@ -549,7 +550,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} else {
 
-				this.console = new Console(securityContext, null);
+				this.console = new Console(securityContext, mode, null);
 				return this.console;
 
 			}

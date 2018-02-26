@@ -45,7 +45,20 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 			final App app = StructrApp.getInstance(securityContext);
 			try (final Tx tx = app.tx()) {
 
-				for (final GraphObject obj : app.cypher("MATCH (n) WHERE n.id STARTS WITH {part} RETURN n", toMap("part", token))) {
+				final String tenantIdentifier = app.getDatabaseService().getTenantIdentifier();
+				final StringBuilder buf       = new StringBuilder();
+
+				buf.append("MATCH (n");
+
+				if (tenantIdentifier != null) {
+
+					buf.append(":");
+					buf.append(tenantIdentifier);
+				}
+
+				buf.append(") WHERE n.id STARTS WITH {part} RETURN n");
+
+				for (final GraphObject obj : app.cypher(buf.toString(), toMap("part", token))) {
 
 					results.add(getCompletion(obj.getUuid(), token, suffix));
 				}

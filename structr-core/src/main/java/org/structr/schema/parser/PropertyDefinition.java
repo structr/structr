@@ -32,6 +32,8 @@ public interface PropertyDefinition {
 	String getSource();
 	String getDbName();
 	String getFormat();
+	String getHint();
+	String getCategory();
 	String getFqcn();
 	boolean isNotNull();
 	boolean isCompound();

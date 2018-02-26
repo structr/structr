@@ -24,8 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.mozilla.javascript.Context;
@@ -63,16 +61,12 @@ public class Console {
 	};
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
-	private ConsoleMode mode                                                     = ConsoleMode.JavaScript;
+	private ConsoleMode mode                                                     = null;
 	private StructrScriptable scriptable                                         = null;
 	private ActionContext actionContext                                          = null;
 	private ScriptableObject scope                                               = null;
 	private String username                                                      = null;
 	private String password                                                      = null;
-
-	public Console(final SecurityContext securityContext, final Map<String, Object> parameters) {
-		this(securityContext, ConsoleMode.JavaScript, parameters);
-	}
 
 	public Console(final SecurityContext securityContext, final ConsoleMode consoleMode, final Map<String, Object> parameters) {
 
@@ -292,7 +286,9 @@ public class Console {
 			Object extractedValue = scriptingContext.evaluateString(scope, line, "interactive script, line ", 1, null);
 
 			if (scriptable.hasException()) {
-				throw scriptable.getException();
+				final FrameworkException ex = scriptable.getException();
+				scriptable.clearException();
+				throw ex;
 			}
 
 			// prioritize written output over result returned from method
@@ -388,17 +384,17 @@ public class Console {
 	private List<String> splitAndClean(final String src) {
 
 		final List<String> list = new ArrayList<>();
-		
+
 		String[] parts;
-		
+
 		try {
 			parts = CommandLineUtils.translateCommandline(src);
-			
+
 		} catch (Exception ex) {
-			
+
 			parts = src.split("[ ]+");
 		}
-		
+
 		for (final String part : parts) {
 
 			final String trimmed = part.trim();

@@ -38,6 +38,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Comment"));
 		type.setExtends(URI.create("#/definitions/Content"));
+		type.setCategory("ui");
 
 		type.overrideMethod("onCreation", true,  "setProperty(contentTypeProperty, \"text/html\");");
 		type.overrideMethod("render",     false, Comment.class.getName() + ".render(this, arg0, arg1);");

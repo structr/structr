@@ -54,6 +54,13 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 	@Override
 	protected String getQueryPrefix() {
+
+		final String tenantIdentifier = db.getTenantIdentifier();
+		if (tenantIdentifier != null) {
+
+			return "MATCH (:" + tenantIdentifier + ")-[n]->(:" + tenantIdentifier + ")";
+		}
+
 		return "MATCH ()-[n]-()";
 	}
 
@@ -92,7 +99,9 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 		try {
 			return db.getNodeById(sourceNodeId);
-		} catch (NotFoundException nfex) {}
+		} catch (NotFoundException nfex) {
+			nfex.printStackTrace();
+		}
 
 		return null;
 	}
@@ -102,7 +111,9 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 		try {
 			return db.getNodeById(targetNodeId);
-		} catch (NotFoundException nfex) {}
+		} catch (NotFoundException nfex) {
+			nfex.printStackTrace();
+		}
 
 		return null;
 	}
@@ -170,10 +181,28 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
+				final StringBuilder buf       = new StringBuilder();
+				final String tenantIdentifier = db.getTenantIdentifier();
 
 				map.put("id", id);
 
-				wrapper = new RelationshipWrapper(db, tx.getRelationship("MATCH ()-[n]-() WHERE ID(n) = {id} RETURN n", map));
+				buf.append("MATCH (");
+
+				if (tenantIdentifier != null) {
+					buf.append(":");
+					buf.append(tenantIdentifier);
+				}
+
+				buf.append(")-[n]-(");
+
+				if (tenantIdentifier != null) {
+					buf.append(":");
+					buf.append(tenantIdentifier);
+				}
+
+				buf.append(") WHERE ID(n) = {id} RETURN n");
+
+				wrapper = new RelationshipWrapper(db, tx.getRelationship(buf.toString(), map));
 				relationshipCache.put(id, wrapper);
 			}
 

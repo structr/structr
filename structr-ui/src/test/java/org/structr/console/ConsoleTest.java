@@ -43,7 +43,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		try {
 
-			final Console console = new Console(securityContext, Collections.emptyMap());
+			final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 
 			assertEquals("Invalid console execution result", "Mode set to 'StructrScript'.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.StructrScript.name() + "')"));
 			assertEquals("Invalid console execution result", "Mode set to 'Cypher'.\r\n",        console.runForTest("Console.setMode('" + ConsoleMode.Cypher.name() + "')"));
@@ -61,7 +61,7 @@ public class ConsoleTest extends StructrUiTest {
 	@Test
 	public void testUserCommand() {
 
-		final Console console = new Console(securityContext, Collections.emptyMap());
+		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 		Principal admin       = null;
 
 		try {
@@ -144,9 +144,9 @@ public class ConsoleTest extends StructrUiTest {
 	@Test
 	public void testRebuildCommand() {
 
-		final Console console = new Console(securityContext, Collections.emptyMap());
-		final int nodeCount   = 1533;
-		final int relCount    = 1862;
+		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
+		final int nodeCount   = 1535;
+		final int relCount    = 1864;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +

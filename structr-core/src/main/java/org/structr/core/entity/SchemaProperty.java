@@ -70,6 +70,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             dbName                = new StringProperty("dbName");
 	public static final Property<String>             fqcn                  = new StringProperty("fqcn");
 	public static final Property<String>             format                = new StringProperty("format");
+	public static final Property<String>             hint                  = new StringProperty("hint");
+	public static final Property<String>             category              = new StringProperty("category");
 	public static final Property<Boolean>            notNull               = new BooleanProperty("notNull");
 	public static final Property<Boolean>            compound              = new BooleanProperty("compound");
 	public static final Property<Boolean>            unique                = new BooleanProperty("unique");
@@ -87,19 +89,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -305,6 +307,16 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return _format;
+	}
+
+	@Override
+	public String getHint() {
+		return getProperty(SchemaProperty.hint);
+	}
+
+	@Override
+	public String getCategory() {
+		return getProperty(SchemaProperty.category);
 	}
 
 	public boolean isRequired() {

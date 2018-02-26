@@ -34,6 +34,7 @@ public interface Track extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Track"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_kind",    PropertyView.Html);
 		type.addStringProperty("_html_src",     PropertyView.Html);

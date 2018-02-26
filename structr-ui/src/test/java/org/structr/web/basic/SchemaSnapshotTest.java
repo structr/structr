@@ -152,6 +152,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			app.command(SnapshotCommand.class).execute("restore", file.getName());
 
 		} catch (FrameworkException ex) {
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 

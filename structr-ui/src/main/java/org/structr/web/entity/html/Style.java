@@ -34,6 +34,7 @@ public interface Style extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Style"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.addStringProperty("_html_media",  PropertyView.Html);
 		type.addStringProperty("_html_type",   PropertyView.Html);

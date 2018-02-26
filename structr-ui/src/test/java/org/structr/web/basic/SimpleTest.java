@@ -21,16 +21,12 @@ package org.structr.web.basic;
 import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
 import org.jsoup.Jsoup;
@@ -45,20 +41,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.DummyNodeServiceCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.importer.GraphGistImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
@@ -918,56 +910,6 @@ public class SimpleTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testImportAndSchemaAnalyzer() {
-
-		final GraphGistImporter importer = app.command(GraphGistImporter.class);
-		final String source =
-			"== Test setup\n" +
-			"\n" +
-			"[source, cypher]\n" +
-			"----\n" +
-			"CREATE (c:Company { name: 'Company 1', comp_id: '12345', string_name: 'company1', year: 2013, month: 6, day: 7, status: 'test'})\n" +
-			"CREATE (p:Company { name: 'Company 2'})\n" +
-			"----\n";
-
-		final List<String> sourceLines = importer.extractSources(new ByteArrayInputStream(source.getBytes(Charset.forName("utf-8"))));
-
-		Settings.LogSchemaOutput.setValue(true);
-
-		// import (uses Neo4j transaction)
-		importer.importCypher(sourceLines);
-		importer.analyzeSchema();
-
-		try (final Tx tx = app.tx()) {
-
-			final SchemaNode schemaNode           = app.nodeQuery(SchemaNode.class).andName("Company").getFirst();
-			final List<SchemaProperty> properties = schemaNode.getProperty(SchemaNode.schemaProperties);
-			final Map<String, SchemaProperty> map = new HashMap<>();
-
-			for (final SchemaProperty prop : properties) {
-				map.put(prop.getProperty(SchemaProperty.name), prop);
-			}
-
-			assertNotNull("A schema node with name 'Company' should have been created: ", schemaNode);
-
-			assertEquals("Company schema node should have a 'name' property with value 'String': ",        "String", map.get("name").getPropertyType().name());
-			assertEquals("Company schema node should have a 'comp_id' property with value 'String': ",     "String", map.get("comp_id").getPropertyType().name());
-			assertEquals("Company schema node should have a 'string_name' property with value 'String': ", "String", map.get("string_name").getPropertyType().name());
-			assertEquals("Company schema node should have a 'year' property with value 'Long': ",          "Long",   map.get("year").getPropertyType().name());
-			assertEquals("Company schema node should have a 'month' property with value 'Long': ",         "Long",   map.get("month").getPropertyType().name());
-			assertEquals("Company schema node should have a 'day' property with value 'Long': ",           "Long",   map.get("day").getPropertyType().name());
-			assertEquals("Company schema node should have a 'status' property with value 'String': ",      "String", map.get("status").getPropertyType().name());
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-	}
-
-	@Test
 	public void testHttpResponseHeaders() {
 
 		try (final Tx tx = app.tx()) {
@@ -1005,7 +947,7 @@ public class SimpleTest extends StructrUiTest {
 			.header("X-XSS-Protection", "1;mode=block")
 			.header("Vary", "Accept-Encoding, User-Agent")
 			.header("Content-Length", "133")
-			.header("Server", "Jetty(9.4.7.v20170914)")
+			.header("Server", "Jetty(9.4.8.v20171121)")
 			.statusCode(200)
 			.when()
 			.get("http://127.0.0.1:8875/test");

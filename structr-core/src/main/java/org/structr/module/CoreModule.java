@@ -23,6 +23,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.AbbrFunction;
 import org.structr.core.function.AddFunction;
+import org.structr.core.function.AddToGroupFunction;
 import org.structr.core.function.AncestorTypesFunction;
 import org.structr.core.function.AndFunction;
 import org.structr.core.function.AppendFunction;
@@ -86,6 +87,7 @@ import org.structr.core.function.IntSumFunction;
 import org.structr.core.function.IsAllowedFunction;
 import org.structr.core.function.IsCollectionFunction;
 import org.structr.core.function.IsEntityFunction;
+import org.structr.core.function.IsInGroupFunction;
 import org.structr.core.function.JdbcFunction;
 import org.structr.core.function.JoinFunction;
 import org.structr.core.function.KeysFunction;
@@ -119,6 +121,7 @@ import org.structr.core.function.QuotFunction;
 import org.structr.core.function.RInterpreterFunction;
 import org.structr.core.function.RandomFunction;
 import org.structr.core.function.ReadFunction;
+import org.structr.core.function.RemoveFromGroupFunction;
 import org.structr.core.function.ReplaceFunction;
 import org.structr.core.function.ResetCounterFunction;
 import org.structr.core.function.RetrieveFunction;
@@ -173,6 +176,9 @@ public class CoreModule implements StructrModule {
 		Functions.put(licensed, LicenseManager.Basic, "grant", new GrantFunction());
 		Functions.put(licensed, LicenseManager.Basic, "revoke", new RevokeFunction());
 		Functions.put(licensed, LicenseManager.Basic, "is_allowed", new IsAllowedFunction());
+		Functions.put(licensed, LicenseManager.Basic, "add_to_group", new AddToGroupFunction());
+		Functions.put(licensed, LicenseManager.Basic, "remove_from_group", new RemoveFromGroupFunction());
+		Functions.put(licensed, LicenseManager.Basic, "is_in_group", new IsInGroupFunction());
 
 		Functions.put(licensed, LicenseManager.Basic, "localize", new LocalizeFunction());
 

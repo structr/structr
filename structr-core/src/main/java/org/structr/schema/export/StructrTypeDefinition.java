@@ -68,9 +68,6 @@ import org.structr.schema.json.JsonStringProperty;
 import org.structr.schema.json.JsonType;
 
 /**
- *
- *
- *
  * @param <T>
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
@@ -85,6 +82,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected boolean isAbstract                                  = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
+	protected String category                                     = null;
 	protected String name                                         = null;
 	protected T schemaNode                                        = null;
 
@@ -134,6 +132,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public JsonType setCategory(final String category) {
+
+		this.category = category;
+		return this;
+	}
+
+	@Override
+	public String getCategory() {
+		return category;
 	}
 
 	@Override
@@ -692,6 +702,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
+		if (StringUtils.isNotBlank(category)) {
+			serializedForm.put(JsonSchema.KEY_CATEGORY, category);
+		}
+
 		return serializedForm;
 	}
 
@@ -826,6 +840,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		this.isInterface = schemaNode.getProperty(SchemaNode.isInterface);
 		this.isAbstract  = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.category    = schemaNode.getProperty(SchemaNode.category);
 	}
 
 	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
@@ -985,6 +1000,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		schemaNode.setProperty(SchemaNode.isInterface, isInterface);
 		schemaNode.setProperty(SchemaNode.isAbstract, isAbstract);
+		schemaNode.setProperty(SchemaNode.category, category);
 		schemaNode.setProperty(SchemaNode.isBuiltinType, SchemaService.DynamicSchemaRootURI.equals(root.getId()));
 
 		return schemaNode;
@@ -1127,6 +1143,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (isInterfaceValue != null && Boolean.TRUE.equals(isInterfaceValue)) {
 
 			typeDefinition.setIsInterface();
+		}
+
+		final Object categoryValue = source.get(JsonSchema.KEY_CATEGORY);
+		if (categoryValue != null) {
+
+			typeDefinition.setCategory(categoryValue.toString());
 		}
 
 		return typeDefinition;

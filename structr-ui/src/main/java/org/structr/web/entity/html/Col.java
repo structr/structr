@@ -33,6 +33,7 @@ public interface Col extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Col"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 
 		type.overrideMethod("isVoidElement", false, "return true;");
 	}}

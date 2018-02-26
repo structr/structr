@@ -33,5 +33,6 @@ public interface Div extends DOMElement {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Div"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
+		type.setCategory("html");
 	}}
 }
