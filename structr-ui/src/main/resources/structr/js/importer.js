@@ -862,6 +862,21 @@ var Importer = {
 							}
 						});
 					}
+
+					nonRoot.append('<label>Use batching for this type</label>');
+					nonRoot.append('<input type="checkbox" id="batching-checkbox" />');
+
+					if (configuration['batchType'] === type) {
+						$('#batching-checkbox').prop('checked', true);
+					}
+
+					$('#batching-checkbox').on('change', function() {
+						if ($(this).is(':checked')) {
+							configuration['batchType'] = typeSelector.val();
+						} else {
+							configuration['batchType'] = null;
+						}
+					});
 				}
 			}
 
