@@ -73,10 +73,6 @@ public class ActionContext {
 
 			this.locale = this.securityContext.getEffectiveLocale();
 
-			if (this.securityContext.getContextStore() == null) {
-				this.securityContext.setContextStore(new ContextStore());
-			}
-
 			if (parameters != null) {
 				this.securityContext.getContextStore().setParameters(parameters);
 			}

@@ -840,6 +840,11 @@ public class SecurityContext {
 	}
 
 	public ContextStore getContextStore() {
+
+		if (contextStore == null) {
+			setContextStore(new ContextStore());
+		}
+
 		return contextStore;
 	}
 
