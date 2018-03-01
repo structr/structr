@@ -610,13 +610,15 @@ public class SecurityContext {
 
 	}
 
-	public void setAttribute(String key, Object value) {
+	public void setAttribute(final String key, final Object value) {
 
-		attrs.put(key, value);
+		if (value != null) {
+			attrs.put(key, value);
+		}
 
 	}
 
-	public void setAccessMode(AccessMode accessMode) {
+	public void setAccessMode(final AccessMode accessMode) {
 
 		this.accessMode = accessMode;
 
