@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -55,11 +56,6 @@ public class ActionContext {
 	private final Map<String, String> libraryCache = new HashMap<>();
 	protected SecurityContext securityContext      = null;
 	protected Predicate predicate                  = null;
-	protected Map<String, String> headers          = new HashMap<>();
-	protected Map<String, Object> constants        = new HashMap<>();
-	protected Map<String, Object> tmpStore         = new HashMap<>();
-	protected Map<String, Date> timerStore         = new HashMap<>();
-	protected Map<Integer, Integer> counters       = new HashMap<>();
 	protected ErrorBuffer errorBuffer              = new ErrorBuffer();
 	protected StringBuilder outputBuffer           = new StringBuilder();
 	protected Locale locale                        = Locale.getDefault();
@@ -71,24 +67,24 @@ public class ActionContext {
 
 	public ActionContext(final SecurityContext securityContext, final Map<String, Object> parameters) {
 
-		if (parameters != null) {
-			this.tmpStore.putAll(parameters);
-		}
-
 		this.securityContext = securityContext;
 
-		if (securityContext != null) {
-			this.locale = securityContext.getEffectiveLocale();
+		if (this.securityContext != null) {
+
+			this.locale = this.securityContext.getEffectiveLocale();
+
+			if (this.securityContext.getContextStore() == null) {
+				this.securityContext.setContextStore(new ContextStore());
+			}
+
+			if (parameters != null) {
+				this.securityContext.getContextStore().setParameters(parameters);
+			}
 		}
 	}
 
 	public ActionContext(final ActionContext other) {
-
-		this.tmpStore        = other.tmpStore;
-		this.timerStore      = other.timerStore;
-		this.counters        = other.counters;
 		this.errorBuffer     = other.errorBuffer;
-		this.constants       = other.constants;
 		this.securityContext = other.securityContext;
 		this.locale          = other.locale;
 	}
@@ -106,11 +102,11 @@ public class ActionContext {
 	}
 
 	public Object getConstant(final String name) {
-		return constants.get(name);
+		return getContextStore().getConstant(name);
 	}
 
 	public void setConstant(final String name, final Object data) {
-		constants.put(name, data);
+		getContextStore().setConstant(name, data);
 	}
 
 	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData, final int depth) throws FrameworkException {
@@ -156,62 +152,52 @@ public class ActionContext {
 	}
 
 	public void incrementCounter(final int level) {
-
-		Integer value = counters.get(level);
-		if (value == null) {
-
-			value = 0;
-		}
-
-		counters.put(level, value+1);
+		getContextStore().incrementCounter(level);
 	}
 
 	public int getCounter(final int level) {
+		return getContextStore().getCounter(level);
+	}
 
-		Integer value = counters.get(level);
-		if (value == null) {
-
-			return 0;
-		}
-
-		return value;
+	public void setCounter(final int level, final int value) {
+		getContextStore().setCounter(level, value);
 	}
 
 	public void resetCounter(final int level) {
-		counters.put(level, 0);
+		getContextStore().resetCounter(level);
 	}
 
 	public void store(final String key, final Object value) {
-		tmpStore.put(key, value);
+		getContextStore().store(key, value);
 	}
 
 	public Object retrieve(final String key) {
-		return tmpStore.get(key);
+		return getContextStore().retrieve(key);
 	}
 
 	public Map<String, Object> getAllVariables () {
-		return tmpStore;
+		return getContextStore().getAllVariables();
 	}
 
 	public void addTimer(final String key) {
-		timerStore.put(key, new Date());
+		getContextStore().addTimer(key);
 	}
 
 	public Date getTimer(final String key) {
-		return timerStore.get(key);
+		return getContextStore().getTimer(key);
 	}
 
 	public void addHeader(final String key, final String value) {
-		headers.put(key, value);
+		getContextStore().addHeader(key, value);
 	}
 
 	public Map<String, String> getHeaders() {
-		return headers;
+		return getContextStore().getHeaders();
 	}
 
 	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {
 
-		Object value = constants.get(key);
+		Object value = getContextStore().getConstant(key);
 		if (value == null) {
 
 			// special HttpServletRequest handling
@@ -447,5 +433,9 @@ public class ActionContext {
 
 	public Predicate getPredicate() {
 		return predicate;
+	}
+
+	public ContextStore getContextStore() {
+		return this.securityContext.getContextStore();
 	}
 }

@@ -1587,7 +1587,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid store() result", "", Scripting.replaceVariables(ctx, testOne, "${store('tmp', this.name)}"));
 			assertEquals("Invalid stored value", "A-nice-little-name-for-my-test-object", ctx.retrieve("tmp"));
 			assertEquals("Invalid retrieve() result", "A-nice-little-name-for-my-test-object", Scripting.replaceVariables(ctx, testOne, "${retrieve('tmp')}"));
-			assertEquals("Invalid retrieve() result", "", Scripting.replaceVariables(new ActionContext(securityContext), testOne, "${retrieve('tmp')}"));
+			assertEquals("Invalid retrieve() result", "", Scripting.replaceVariables(new ActionContext(SecurityContext.getSuperUserInstance()), testOne, "${retrieve('tmp')}"));
 
 			// test store and retrieve within filter expression
 			assertEquals("Invalid store() result", "", Scripting.replaceVariables(ctx, testOne, "${store('tmp', 10)}"));
