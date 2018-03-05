@@ -52,7 +52,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
 
 public class KafkaClient extends MessageClient {
 	protected Producer<String, String> producer;

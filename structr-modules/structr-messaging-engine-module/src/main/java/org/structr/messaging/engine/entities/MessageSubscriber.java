@@ -86,7 +86,9 @@ public class MessageSubscriber extends AbstractNode {
 
     @Override
     public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		subscribeOnAllClients();
+    	if(getProperty(MessageSubscriber.topic) != null) {
+			subscribeOnAllClients();
+    	}
         return super.onCreation(securityContext, errorBuffer);
     }
 

@@ -456,7 +456,7 @@ public class MQTTClient extends MessageClient implements MQTTInfo{
 =======
 	@Export
 	public RestMethodResult subscribeTopic(final String topic) throws FrameworkException {
-
+		
 		if (getProperty(isEnabled)) {
 
 			final MQTTClientConnection connection = MQTTContext.getClientForId(getUuid());
