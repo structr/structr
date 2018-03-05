@@ -132,7 +132,6 @@ public class KafkaClient extends MessageClient {
 			return new RestMethodResult(422);
 		}
 		if(producer != null) {
-			logger.info("Sending message through KafkaClient: " + message);
 			producer.send(new ProducerRecord<>(topic, message));
 		}
 
