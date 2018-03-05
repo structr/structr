@@ -25,8 +25,10 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.KafkaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.NotInTransactionException;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -50,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class KafkaClient extends MessageClient {
 	protected Producer<String, String> producer;
@@ -68,6 +71,8 @@ public class KafkaClient extends MessageClient {
 	);
 
 	static {
+
+
 
 		SchemaService.registerBuiltinTypeOverride("KafkaClient", KafkaClient.class.getName());
 
@@ -88,11 +93,16 @@ public class KafkaClient extends MessageClient {
 				logger.error("Unable to initialize Kafka clients: {}", t.getMessage());
 			}
 		});
+
 	}
 
 	@Override
 	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		refreshConfiguration();
+		if(this.getProperty(KafkaClient.servers) != null) {
+			this.refreshConfiguration();
+		}
+		this.setup();
 		return super.onCreation(securityContext, errorBuffer);
 	}
 
@@ -115,13 +125,15 @@ public class KafkaClient extends MessageClient {
 	@Export
 	public RestMethodResult sendMessage(final String topic, final String message) throws FrameworkException {
 
-		if(producer == null) {
+		if(producer == null && this.getProperty(KafkaClient.servers) != null && getProperty(servers).length > 0) {
 			producer = new KafkaProducer<>(getConfiguration(KafkaProducer.class));
+		} else if(this.getProperty(KafkaClient.servers) == null || getProperty(servers).length == 0) {
+			logger.error("Could not initialize producer. No servers configured.");
+			return new RestMethodResult(422);
 		}
 		if(producer != null) {
 			logger.info("Sending message through KafkaClient: " + message);
 			producer.send(new ProducerRecord<>(topic, message));
-			producer.flush();
 		}
 
 		return new RestMethodResult(200);
@@ -130,8 +142,11 @@ public class KafkaClient extends MessageClient {
 	@Export
 	public RestMethodResult subscribeTopic(final String topic) throws FrameworkException {
 
-		if(consumer == null) {
+		if(consumer == null && this.getProperty(KafkaClient.servers) != null && getProperty(servers).length > 0) {
 			consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
+		} else if(this.getProperty(KafkaClient.servers) == null || getProperty(servers).length == 0) {
+			logger.error("Could not initialize consumer. No servers configured.");
+			return new RestMethodResult(422);
 		}
 		if(consumer != null) {
 			List<String> newSubs = new ArrayList<>();
@@ -145,8 +160,11 @@ public class KafkaClient extends MessageClient {
 	@Export
 	public RestMethodResult unsubscribeTopic(final String topic) throws FrameworkException {
 
-		if(consumer == null) {
+		if(consumer == null && this.getProperty(KafkaClient.servers) != null && getProperty(servers).length > 0) {
 			consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
+		} else if(this.getProperty(KafkaClient.servers) == null || getProperty(servers).length == 0) {
+			logger.error("Could not initialize consumer. No servers configured.");
+			return new RestMethodResult(422);
 		}
 		if(consumer != null) {
 			Set<String> subs = consumer.subscription();
@@ -181,7 +199,9 @@ public class KafkaClient extends MessageClient {
 				producer = new KafkaProducer<>(getConfiguration(KafkaProducer.class));
 				refreshSubscriptions();
 			}
-		} catch (JsonSyntaxException ex ) {
+		} catch (JsonSyntaxException | KafkaException ex) {
+			consumer = null;
+			producer = null;
 			logger.error("Could not refresh Kafka configuration: " + ex.getLocalizedMessage());
 		}
 	}
@@ -248,7 +268,7 @@ public class KafkaClient extends MessageClient {
 
 		public ConsumerWorker(KafkaClient client) {
 			this.client = client;
-			logger.info("Started ConsumerWorker for id: " + client.getProperty(id));
+			logger.info("Started ConsumerWorker for id: " + client.getProperty(id) + (client.getProperty(name) != null ? " name:" + client.getProperty(name) : ""));
 		}
 
 		@Override
@@ -256,35 +276,62 @@ public class KafkaClient extends MessageClient {
 
 			// wait for service layer to be initialized
 			while (!Services.getInstance().isInitialized()) {
-				try { Thread.sleep(1000); } catch(InterruptedException iex) { }
-			}
-
-			while(true) {
-				if(consumer == null) {
-					consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
-					client.refreshSubscriptions();
-				} else {
-
-					if(consumer.subscription().size() > 0) {
-						final ConsumerRecords<String, String> records = consumer.poll(1000);
-
-						records.forEach(record -> {
-							try {
-								logger.info("ConsumerWorker received message from queue: " + record.topic() + "/" + record.value());
-								client.forwardReceivedMessage(record.topic(), record.value());
-							} catch (FrameworkException e) {
-								logger.error("Could not process records in ConsumerWorker: " + e.getMessage());
-							}
-						});
-
-					} else {
-						try { Thread.sleep(1000); } catch(InterruptedException iex) { }
-						logger.info("Subscription size: " + consumer.subscription().size());
-					}
-
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException iex) {
 				}
 			}
 
+			try {
+				while (true) {
+					if (this.client == null) {
+						break;
+					}
+
+					if (this.client.getProperty(KafkaClient.servers) != null && this.client.getProperty(KafkaClient.servers).length > 0) {
+						if (consumer == null) {
+							try {
+								consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
+								client.refreshSubscriptions();
+							} catch (KafkaException ex) {
+								logger.error("Could not construct consumer for KafkaClient, triggered by ConsumerWorker Thread. " + ex.getLocalizedMessage());
+								try {Thread.sleep(1000);} catch (InterruptedException iex) {}
+							}
+						} else {
+
+							if (consumer.subscription().size() > 0) {
+								final ConsumerRecords<String, String> records = consumer.poll(1000);
+
+								records.forEach(record -> {
+									try {
+										client.forwardReceivedMessage(record.topic(), record.value());
+									} catch (FrameworkException e) {
+										logger.error("Could not process records in ConsumerWorker: " + e.getMessage());
+									}
+								});
+
+							} else {
+								try {
+									Thread.sleep(1000);
+								} catch (InterruptedException iex) {
+								}
+								// Wait for subscriptions
+							}
+
+						}
+					} else {
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException iex) {
+							// Wait for servers to be configured
+						}
+					}
+				}
+
+			} catch (NotInTransactionException ex) {
+				// Terminate thread since client became stale or invalid
+				logger.warn("Terminating KafkaClient Thread with stale or invalid client reference.");
+			}
 		}
 
 	}

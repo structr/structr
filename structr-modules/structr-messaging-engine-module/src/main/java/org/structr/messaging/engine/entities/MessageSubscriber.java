@@ -93,7 +93,7 @@ public class MessageSubscriber extends AbstractNode {
     @Override
     public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-        if(modificationQueue.isPropertyModified(this, MessageSubscriber.topic)) {
+        if(modificationQueue.isPropertyModified(this, MessageSubscriber.topic) || modificationQueue.isPropertyModified(this, MessageSubscriber.clients)) {
 			subscribeOnAllClients();
         }
 

@@ -65,7 +65,8 @@ public class MessageClient extends AbstractNode {
             List<MessageSubscriber> subscribers = getProperty(MessageClient.subscribers);
             if (subscribers != null) {
                 subscribers.forEach(sub -> {
-                    if (sub.getProperty(MessageSubscriber.topic).equals(topic)) {
+					String subTopic = sub.getProperty(MessageSubscriber.topic);
+                    if ( subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
                         Map<String, Object> params = new HashMap<>();
                         params.put("topic", topic);
                         params.put("message", message);
