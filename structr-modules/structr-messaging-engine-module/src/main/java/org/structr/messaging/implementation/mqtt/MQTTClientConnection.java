@@ -89,11 +89,9 @@ public class MQTTClientConnection implements MqttCallback {
 			if(client.isConnected()){
 
 				MqttMessage msg = new MqttMessage(message.getBytes());
-<<<<<<< HEAD
-				msg.setQos(info.getQos());
-=======
+
 				msg.setQos(info.getQoS());
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
+
 				client.publish(topic, msg);
 			}
 		} catch (MqttException ex) {
@@ -109,11 +107,8 @@ public class MQTTClientConnection implements MqttCallback {
 
 			if(client.isConnected()){
 
-<<<<<<< HEAD
-				client.subscribe(topic, info.getQos());
-=======
 				client.subscribe(topic, info.getQoS());
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
+
 			}
 		} catch (MqttException ex) {
 
@@ -183,15 +178,13 @@ public class MQTTClientConnection implements MqttCallback {
 
 		@Override
 		public void run() {
-<<<<<<< HEAD
-			info.messageCallback(topic, message);
-=======
+
 			try {
 				info.messageCallback(topic, message);
 			} catch (FrameworkException e) {
 				logger.error("Error during MQTT message callback: " + e.getMessage());
 			}
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
+
 		}
 
 	}

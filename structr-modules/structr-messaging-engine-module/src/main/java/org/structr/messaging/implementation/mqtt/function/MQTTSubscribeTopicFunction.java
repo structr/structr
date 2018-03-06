@@ -43,7 +43,7 @@ public class MQTTSubscribeTopicFunction extends Function<Object, Object> {
 				return "";
 			}
 
-			client.subscribeTopic(sources[1].toString());
+			MQTTClient.subscribeTopic(client, sources[1].toString());
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());

@@ -46,7 +46,7 @@ public class MQTTPublishFunction extends Function<Object, Object> {
 				return "";
 			}
 
-			client.sendMessage(sources[1].toString(), sources[2].toString());
+			MQTTClient.sendMessage(client, sources[1].toString(), sources[2].toString());
 
 		} else {
 

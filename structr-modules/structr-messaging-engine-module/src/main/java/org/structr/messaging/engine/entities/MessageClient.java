@@ -18,54 +18,70 @@
  */
 package org.structr.messaging.engine.entities;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
-import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MessageClient extends AbstractNode {
-    public static final Property<List<MessageSubscriber>>	subscribers		= new EndNodes<>("subscribers", MessageClientHASMessageSubscriber.class);
+public interface MessageClient extends NodeInterface {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageClient.class.getName());
+    class Impl {
+        static {
 
-    public static final View publicView = new View(MessageSubscriber.class, PropertyView.Public,
-            subscribers
-    );
+			final JsonSchema schema     = SchemaService.getDynamicSchema();
+			final JsonObjectType type   = schema.addType("MessageClient");
+			final JsonObjectType sub 	= schema.addType("MessageSubscriber");
 
-    public static final View uiView = new View(MessageSubscriber.class, PropertyView.Ui,
-            subscribers
-    );
+			type.setImplements(URI.create("https://structr.org/v1.1/definitions/MessageClient"));
 
-    static {
+			type.addMethod("sendMessage")
+				.setReturnType(RestMethodResult.class.getName())
+				.addParameter("topic", String.class.getName())
+				.addParameter("message", String.class.getName())
+				.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message);")
+				.addException(FrameworkException.class.getName());
 
-        SchemaService.registerBuiltinTypeOverride("MessageClient", MessageClient.class.getName());
+			type.addMethod("subscribeTopic")
+					.setReturnType(RestMethodResult.class.getName())
+					.addParameter("topic", String.class.getName())
+					.setSource("return " + MessageClient.class.getName() + ".subscribeTopic(this, topic);")
+					.addException(FrameworkException.class.getName());
+
+			type.addMethod("unsubscribeTopic")
+					.setReturnType(RestMethodResult.class.getName())
+					.addParameter("topic", String.class.getName())
+					.setSource("return " + MessageClient.class.getName() + ".unsubscribeTopic(this, topic);")
+					.addException(FrameworkException.class.getName());
+
+			type.relate(sub, "HAS_SUBSCRIBER", Relation.Cardinality.ManyToMany,"subscribers","clients");
+
+			type.addViewProperty(PropertyView.Public, "subscribers");
+			type.addViewProperty(PropertyView.Ui,     "subscribers");
+
+        }
     }
 
-    @Export
-    public RestMethodResult sendMessage(final String topic, final String message) throws FrameworkException {
+    static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message) throws FrameworkException {
 
         final App app = StructrApp.getInstance();
         try (final Tx tx = app.tx()) {
 
-            List<MessageSubscriber> subscribers = getProperty(MessageClient.subscribers);
+            List<MessageSubscriber> subscribers = thisClient.getProperty(StructrApp.key(MessageSubscriber.class,"subscribers") );
             if (subscribers != null) {
                 subscribers.forEach(sub -> {
-					String subTopic = sub.getProperty(MessageSubscriber.topic);
+					String subTopic = sub.getProperty(StructrApp.key(MessageSubscriber.class,"topic"));
                     if ( subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
                         Map<String, Object> params = new HashMap<>();
                         params.put("topic", topic);
@@ -85,14 +101,12 @@ public class MessageClient extends AbstractNode {
         return new RestMethodResult(200);
     }
 
-    @Export
-    public RestMethodResult subscribeTopic(final String topic) throws FrameworkException {
+    static RestMethodResult subscribeTopic(final String topic) throws FrameworkException {
 
         return new RestMethodResult(200);
     }
 
-    @Export
-    public RestMethodResult unsubscribeTopic(final String topic) throws FrameworkException {
+    static RestMethodResult unsubscribeTopic(final String topic) throws FrameworkException {
 
         return new RestMethodResult(200);
     }

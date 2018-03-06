@@ -43,11 +43,8 @@ public class MQTTUnsubscribeTopicFunction extends Function<Object, Object> {
 				return "";
 			}
 
-			client.unsubscribeTopic(sources[1].toString());
-<<<<<<< HEAD
+			MQTTClient.unsubscribeTopic(client, sources[1].toString());
 
-=======
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());

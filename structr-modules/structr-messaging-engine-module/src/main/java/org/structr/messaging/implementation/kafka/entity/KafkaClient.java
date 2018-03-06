@@ -31,182 +31,200 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyMap;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.lang.reflect.Array;
+import java.net.URI;
+import java.util.*;
 
-public class KafkaClient extends MessageClient {
-	protected Producer<String, String> producer;
-	protected Consumer<String, String> consumer;
+public interface KafkaClient extends MessageClient {
 
-	private static final Logger logger = LoggerFactory.getLogger(KafkaClient.class.getName());
-
-	public static final Property<String[]> servers = new ArrayProperty<>("servers", String.class);
-
-	public static final View publicView = new View(MessageSubscriber.class, PropertyView.Public,
-			servers
-	);
-
-	public static final View uiView = new View(MessageSubscriber.class, PropertyView.Ui,
-			servers
-	);
-
-	static {
+	class Impl {
+		static {
 
 
+			final JsonSchema schema   = SchemaService.getDynamicSchema();
+			final JsonObjectType type = schema.addType("KafkaClient");
 
-		SchemaService.registerBuiltinTypeOverride("KafkaClient", KafkaClient.class.getName());
+			type.setImplements(URI.create("https://structr.org/v1.1/definitions/KafkaClient"));
+
+			type.setExtends(URI.create("#/definitions/MessageClient"));
+
+			type.addStringArrayProperty("servers", PropertyView.Public, PropertyView.Ui);
 
 
-		Services.getInstance().registerInitializationCallback(() -> {
+			type.addPropertyGetter("servers", Array.class);
+			type.addPropertyGetter("subscribers", List.class);
 
-			final App app = StructrApp.getInstance();
 
-			try (final Tx tx = app.tx()) {
+			type.overrideMethod("onCreation",     true, KafkaClient.class.getName() + ".onCreation(this, arg0, arg1);");
+			type.overrideMethod("onModification", true, KafkaClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+			type.overrideMethod("onDeletion",     true, KafkaClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
-				for (final KafkaClient client : app.nodeQuery(KafkaClient.class).getAsList()) {
-					client.setup();
+			type.overrideMethod("sendMessage",      false, "return "+ KafkaClient.class.getName() + ".sendMessage(this, arg0, arg1);").setDoExport(true);
+			type.overrideMethod("subscribeTopic",   false, "return "+ KafkaClient.class.getName() + ".subscribeTopic(this, arg0);").setDoExport(true);
+			type.overrideMethod("unsubscribeTopic", false, "return "+ KafkaClient.class.getName() + ".unsubscribeTopic(this, arg0);").setDoExport(true);
+
+
+			Services.getInstance().registerInitializationCallback(() -> {
+
+				final App app = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					for (final KafkaClient client : app.nodeQuery(KafkaClient.class).getAsList()) {
+						setup(client);
+					}
+
+					tx.success();
+
+				} catch (Throwable t) {
+					logger.error("Unable to initialize Kafka clients: {}", t.getMessage());
 				}
+			});
 
-				tx.success();
-
-			} catch (Throwable t) {
-				logger.error("Unable to initialize Kafka clients: {}", t.getMessage());
-			}
-		});
-
-	}
-
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-		refreshConfiguration();
-		if(this.getProperty(KafkaClient.servers) != null) {
-			this.refreshConfiguration();
 		}
-		this.setup();
-		return super.onCreation(securityContext, errorBuffer);
 	}
 
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if(modificationQueue.isPropertyModified(this,servers)) {
-			refreshConfiguration();
+	Map<String, Producer<String,String>> producerMap = new HashMap();
+	Map<String, Consumer<String,String>> consumerMap = new HashMap();
+
+	static Producer<String,String> getProducer(KafkaClient thisClient) {
+		return producerMap.get(thisClient.getUuid());
+	}
+
+	static void setProducer(KafkaClient thisClient, KafkaProducer<String, String> producer) {
+		producerMap.put(thisClient.getUuid(), producer);
+	}
+
+	static Consumer<String,String> getConsumer(KafkaClient thisClient) {
+		return consumerMap.get(thisClient.getUuid());
+	}
+
+	static void setConsumer(KafkaClient thisClient, KafkaConsumer<String, String> consumer) {
+		consumerMap.put(thisClient.getUuid(), consumer);
+	}
+
+	String[] getServers();
+	List<MessageSubscriber> getSubscribers();
+
+	static void onCreation(final KafkaClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		refreshConfiguration(thisClient);
+		setup(thisClient);
+	}
+
+
+	static void onModification(final KafkaClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(KafkaClient.class,"servers"))) {
+			refreshConfiguration(thisClient);
 		}
 
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
-	@Override
-	public boolean onDeletion(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
-		close();
-		return super.onDeletion(securityContext, errorBuffer, properties);
+	static void onDeletion(final KafkaClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+		close(thisClient);
 	}
 
-	@Export
-	public RestMethodResult sendMessage(final String topic, final String message) throws FrameworkException {
 
-		if(producer == null && this.getProperty(KafkaClient.servers) != null && getProperty(servers).length > 0) {
-			producer = new KafkaProducer<>(getConfiguration(KafkaProducer.class));
-		} else if(this.getProperty(KafkaClient.servers) == null || getProperty(servers).length == 0) {
+	static RestMethodResult sendMessage(KafkaClient thisClient, final String topic, final String message) throws FrameworkException {
+
+		if(getProducer(thisClient) == null && thisClient.getServers() != null && thisClient.getServers().length > 0) {
+			setProducer(thisClient,new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
+		} else if(thisClient.getServers() == null || thisClient.getServers().length == 0) {
 			logger.error("Could not initialize producer. No servers configured.");
 			return new RestMethodResult(422);
 		}
-		if(producer != null) {
-			producer.send(new ProducerRecord<>(topic, message));
+		if(getProducer(thisClient) != null) {
+			getProducer(thisClient).send(new ProducerRecord<>(topic, message));
 		}
 
 		return new RestMethodResult(200);
 	}
 
-	@Export
-	public RestMethodResult subscribeTopic(final String topic) throws FrameworkException {
+	static RestMethodResult subscribeTopic(KafkaClient thisClient, final String topic) throws FrameworkException {
 
-		if(consumer == null && this.getProperty(KafkaClient.servers) != null && getProperty(servers).length > 0) {
-			consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
-		} else if(this.getProperty(KafkaClient.servers) == null || getProperty(servers).length == 0) {
+		if(getConsumer(thisClient) == null && thisClient.getServers() != null && thisClient.getServers().length > 0) {
+			setConsumer(thisClient, new KafkaConsumer<>(getConfiguration(thisClient, KafkaConsumer.class)));
+		} else if(thisClient.getServers() == null || thisClient.getServers().length == 0) {
 			logger.error("Could not initialize consumer. No servers configured.");
 			return new RestMethodResult(422);
 		}
-		if(consumer != null) {
+		if(getConsumer(thisClient) != null) {
 			List<String> newSubs = new ArrayList<>();
 			newSubs.add(topic);
-			consumer.subscribe(newSubs);
+			getConsumer(thisClient).subscribe(newSubs);
 		}
 
 		return new RestMethodResult(200);
 	}
 
-	@Export
-	public RestMethodResult unsubscribeTopic(final String topic) throws FrameworkException {
 
-		if(consumer == null && this.getProperty(KafkaClient.servers) != null && getProperty(servers).length > 0) {
-			consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
-		} else if(this.getProperty(KafkaClient.servers) == null || getProperty(servers).length == 0) {
+	static RestMethodResult unsubscribeTopic(KafkaClient thisClient, final String topic) throws FrameworkException {
+
+		if(getConsumer(thisClient) == null && thisClient.getServers() != null && thisClient.getServers().length > 0) {
+			setConsumer(thisClient, new KafkaConsumer<>(getConfiguration(thisClient, KafkaConsumer.class)));
+		} else if(thisClient.getServers() == null || thisClient.getServers().length == 0) {
 			logger.error("Could not initialize consumer. No servers configured.");
 			return new RestMethodResult(422);
 		}
-		if(consumer != null) {
-			Set<String> subs = consumer.subscription();
+		if(getConsumer(thisClient) != null) {
+			Set<String> subs = getConsumer(thisClient).subscription();
 			List<String> newSubs = new ArrayList<>();
 			subs.forEach(s -> newSubs.add(s));
-			consumer.subscribe(newSubs);
+			getConsumer(thisClient).subscribe(newSubs);
 			newSubs.remove(topic);
-			consumer.unsubscribe();
-			consumer.subscribe(newSubs);
+			getConsumer(thisClient).unsubscribe();
+			getConsumer(thisClient).subscribe(newSubs);
 		}
 
 		return new RestMethodResult(200);
 	}
 
-	protected void setup() {
-		new Thread(new ConsumerWorker(this)).start();
+	static void setup(KafkaClient thisClient) {
+		new Thread(new ConsumerWorker(thisClient)).start();
 	}
 
-	private void close() {
-		if(consumer != null) {
-			consumer.close();
+	static void close(KafkaClient thisClient) {
+		if(getConsumer(thisClient) != null) {
+			getConsumer(thisClient).close();
 		}
-		if(producer != null) {
-			producer.close();
+		if(getProducer(thisClient) != null) {
+			getProducer(thisClient).close();
 		}
 	}
 
-	private void refreshConfiguration() {
+	static void refreshConfiguration(KafkaClient thisClient) {
 		try {
-			if(getProperty(servers) != null && getProperty(servers).length > 0) {
-				consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
-				producer = new KafkaProducer<>(getConfiguration(KafkaProducer.class));
-				refreshSubscriptions();
+			if(thisClient.getServers() != null && thisClient.getServers().length > 0) {
+				setConsumer(thisClient, new KafkaConsumer<>(getConfiguration(thisClient, KafkaConsumer.class)));
+				setProducer(thisClient, new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
+				refreshSubscriptions(thisClient);
 			}
 		} catch (JsonSyntaxException | KafkaException ex) {
-			consumer = null;
-			producer = null;
+			setConsumer(thisClient, null);
+			setConsumer(thisClient, null);
 			logger.error("Could not refresh Kafka configuration: " + ex.getLocalizedMessage());
 		}
 	}
 
-	private Properties getConfiguration(Class clazz) {
+	static Properties getConfiguration(KafkaClient thisClient, Class clazz) {
 		Properties props = new Properties();
-		String[] servers = getProperty(KafkaClient.servers);
+		String[] servers = thisClient.getServers();
 		if(servers != null) {
 			props.setProperty("bootstrap.servers", String.join(",", servers));
 		} else {
@@ -235,16 +253,16 @@ public class KafkaClient extends MessageClient {
 		return props;
 	}
 
-	private void refreshSubscriptions() {
+	static void refreshSubscriptions(KafkaClient thisClient) {
 
 		final App app = StructrApp.getInstance();
 		try(final Tx tx = app.tx()) {
 
-			getProperty(MessageClient.subscribers).forEach((MessageSubscriber sub) -> {
+			thisClient.getSubscribers().forEach((MessageSubscriber sub) -> {
 				try {
-					String topic = sub.getProperty(MessageSubscriber.topic);
+					String topic = sub.getProperty(StructrApp.key(MessageSubscriber.class,"topic"));
 					if (topic != null) {
-						subscribeTopic(topic);
+						subscribeTopic(thisClient, topic);
 					}
 				} catch (FrameworkException e) {
 					logger.warn("Could not subscribe to topic in KafkaClient: " + e.getMessage());
@@ -256,11 +274,11 @@ public class KafkaClient extends MessageClient {
 		}
 	}
 
-	protected void forwardReceivedMessage(String topic, String message) throws FrameworkException {
-		super.sendMessage(topic,message);
+	static void forwardReceivedMessage(KafkaClient thisClient, String topic, String message) throws FrameworkException {
+		sendMessage(thisClient,topic,message);
 	}
 
-	private class ConsumerWorker implements Runnable {
+	class ConsumerWorker implements Runnable {
 		private KafkaClient client;
 		private final Logger logger = LoggerFactory.getLogger(ConsumerWorker.class.getName());
 
@@ -286,23 +304,23 @@ public class KafkaClient extends MessageClient {
 						break;
 					}
 
-					if (this.client.getProperty(KafkaClient.servers) != null && this.client.getProperty(KafkaClient.servers).length > 0) {
-						if (consumer == null) {
+					if (this.client.getServers() != null && this.client.getServers().length > 0) {
+						if (getConsumer(client) == null) {
 							try {
-								consumer = new KafkaConsumer<>(getConfiguration(KafkaConsumer.class));
-								client.refreshSubscriptions();
+								setConsumer(client, new KafkaConsumer<>(getConfiguration(client, KafkaConsumer.class)));
+								refreshSubscriptions(client);
 							} catch (KafkaException ex) {
 								logger.error("Could not construct consumer for KafkaClient, triggered by ConsumerWorker Thread. " + ex.getLocalizedMessage());
 								try {Thread.sleep(1000);} catch (InterruptedException iex) {}
 							}
 						} else {
 
-							if (consumer.subscription().size() > 0) {
-								final ConsumerRecords<String, String> records = consumer.poll(1000);
+							if (getConsumer(client).subscription().size() > 0) {
+								final ConsumerRecords<String, String> records = getConsumer(client).poll(1000);
 
 								records.forEach(record -> {
 									try {
-										client.forwardReceivedMessage(record.topic(), record.value());
+										forwardReceivedMessage(client, record.topic(), record.value());
 									} catch (FrameworkException e) {
 										logger.error("Could not process records in ConsumerWorker: " + e.getMessage());
 									}

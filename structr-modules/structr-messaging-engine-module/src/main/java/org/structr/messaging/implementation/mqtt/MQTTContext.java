@@ -30,19 +30,8 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-<<<<<<< HEAD
-=======
 import org.structr.core.property.PropertyMap;
-<<<<<<< HEAD:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/MQTTContext.java
-<<<<<<< HEAD:structr-modules/structr-mqtt-module/src/main/java/org/structr/mqtt/MQTTContext.java
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
-import org.structr.mqtt.entity.MQTTClient;
-=======
-import org.structr.messaging.engine.implementation.mqtt.entity.MQTTClient;
->>>>>>> a6e9d11... Streamlines MQTT module into the messaging module.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/engine/implementation/mqtt/MQTTContext.java
-=======
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
->>>>>>> 0a011a7... Adds working proof of concept for KafkaClient implementation.:structr-modules/structr-messaging-engine-module/src/main/java/org/structr/messaging/implementation/mqtt/MQTTContext.java
 
 public abstract class MQTTContext {
 
@@ -131,17 +120,10 @@ public abstract class MQTTContext {
 
 				for (final MQTTClient client : app.nodeQuery(MQTTClient.class).getAsList()) {
 
-<<<<<<< HEAD
-					client.setIsConnected(false);
+					client.setProperties(client.getSecurityContext(), new PropertyMap(StructrApp.key(MQTTClient.class,"isConnected"), false));
 
 					// enable clients on startup
-					if (client.getIsEnabled()) {
-=======
-					client.setProperties(client.getSecurityContext(), new PropertyMap(MQTTClient.isConnected, false));
-
-					// enable clients on startup
-					if (client.getProperty(MQTTClient.isEnabled)) {
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
+					if (client.getProperty(StructrApp.key(MQTTClient.class,"isEnabled"))) {
 
 						MQTTContext.connect(client);
 						MQTTContext.subscribeAllTopics(client);

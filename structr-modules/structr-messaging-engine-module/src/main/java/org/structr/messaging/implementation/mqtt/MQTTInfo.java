@@ -18,29 +18,18 @@
  */
 package org.structr.messaging.implementation.mqtt;
 
-<<<<<<< HEAD
-=======
 import org.structr.common.error.FrameworkException;
 
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
 public interface MQTTInfo {
 
 	public String getProtocol();
 	public String getUrl();
 	public int getPort();
-<<<<<<< HEAD
-	public int getQos();
-=======
 	public int getQoS();
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
 	public String getUuid();
 
 	public String[] getTopics();
 
-<<<<<<< HEAD
-	public void messageCallback(String topic, String message);
-=======
 	public void messageCallback(String topic, String message) throws FrameworkException;
->>>>>>> e50de8c... Fixes transaction context in MessageClient.
 	public void connectionStatusCallback(boolean connected);
 }
