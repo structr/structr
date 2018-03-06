@@ -433,8 +433,12 @@ public class MQTTClient extends MessageClient implements MQTTInfo{
 		if (getProperty(isEnabled)) {
 
 			final MQTTClientConnection connection = MQTTContext.getClientForId(getUuid());
+<<<<<<< HEAD
 >>>>>>> e50de8c... Fixes transaction context in MessageClient.
 			if (connection.isConnected()) {
+=======
+			if (connection != null && connection.isConnected()) {
+>>>>>>> e5241a4... Fixes minor bug in MQTTClient.
 
 				connection.sendMessage(topic, message);
 
@@ -456,7 +460,7 @@ public class MQTTClient extends MessageClient implements MQTTInfo{
 =======
 	@Export
 	public RestMethodResult subscribeTopic(final String topic) throws FrameworkException {
-		
+
 		if (getProperty(isEnabled)) {
 
 			final MQTTClientConnection connection = MQTTContext.getClientForId(getUuid());
