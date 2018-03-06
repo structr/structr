@@ -101,7 +101,6 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "get_request_header",       new GetRequestHeaderFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "from_xml",                 new FromXmlFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse",                    new ParseFunction());
-		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "createArchive",            new CreateArchiveFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "create_archive",           new CreateArchiveFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "schedule",                 new ScheduleFunction());
 	}
