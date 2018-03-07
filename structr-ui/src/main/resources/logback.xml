@@ -11,4 +11,11 @@
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>
+
+  <!-- Module specific logging configuration -->
+	<logger name="org.apache.kafka">
+		<level value="warn" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
 </configuration>

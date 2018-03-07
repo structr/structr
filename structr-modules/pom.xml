@@ -34,10 +34,10 @@
 		<module>structr-payment-module</module>
 		<module>structr-crawler-module</module>
 		<module>structr-xml-module</module>
-		<module>structr-mqtt-module</module>
 		<module>structr-knowledge-module</module>
 		<module>structr-java-parser-module</module>
 		<module>structr-translation-module</module>
+		<module>structr-messaging-engine-module</module>
 	</modules>
 
 	<profiles>

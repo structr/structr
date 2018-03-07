@@ -1,5 +1,4 @@
-.directory
-.settings
+ettings
 .project
 .classpath
 target
@@ -31,4 +30,7 @@ docs/screenshots
 **nbactions.xml
 import-*.log
 license.key
-/structr-ui/nbproject/
+
+# IntelliJ specific ignores
+.idea
+*.iml
