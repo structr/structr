@@ -58,19 +58,23 @@ public interface MessageClient extends NodeInterface {
 				.addParameter("topic", String.class.getName())
 				.addParameter("message", String.class.getName())
 				.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message);")
-				.addException(FrameworkException.class.getName());
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
+
 
 			type.addMethod("subscribeTopic")
 					.setReturnType(RestMethodResult.class.getName())
 					.addParameter("topic", String.class.getName())
 					.setSource("return " + MessageClient.class.getName() + ".subscribeTopic(this, topic);")
-					.addException(FrameworkException.class.getName());
+					.addException(FrameworkException.class.getName())
+					.setDoExport(true);
 
 			type.addMethod("unsubscribeTopic")
 					.setReturnType(RestMethodResult.class.getName())
 					.addParameter("topic", String.class.getName())
 					.setSource("return " + MessageClient.class.getName() + ".unsubscribeTopic(this, topic);")
-					.addException(FrameworkException.class.getName());
+					.addException(FrameworkException.class.getName())
+					.setDoExport(true);
 
 
 

@@ -81,27 +81,9 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 			type.overrideMethod("getQoS", false, "return getQos();");
 
-			type.addMethod("sendMessage")
-					.addParameter("client", "MQTTClient")
-					.addParameter("topic", "String")
-					.addParameter("message", "String")
-					.setReturnType(RestMethodResult.class.getName())
-					.addException(FrameworkException.class.getName())
-					.setSource("return " + MQTTClient.class.getName() + ".sendMessage(client,topic,message);");
-
-			type.addMethod("subscribeTopic")
-					.addParameter("client", "MQTTClient")
-					.addParameter("topic", "String")
-					.setReturnType(RestMethodResult.class.getName())
-					.addException(FrameworkException.class.getName())
-					.setSource("return " + MQTTClient.class.getName() + ".subscribeTopic(client,topic);");
-
-			type.addMethod("unsubscribeTopic")
-					.addParameter("client", "MQTTClient")
-					.addParameter("topic", "String")
-					.setReturnType(RestMethodResult.class.getName())
-					.addException(FrameworkException.class.getName())
-					.setSource("return " + MQTTClient.class.getName() + ".unsubscribeTopic(client,topic);");
+			type.overrideMethod("sendMessage", true, "return " + MQTTClient.class.getName() + ".sendMessage(this,topic,message);");
+			type.overrideMethod("subscribeTopic", false, "return " + MQTTClient.class.getName() + ".subscribeTopic(this,topic);");
+			type.overrideMethod("unsubscribeTopic", false, "return " + MQTTClient.class.getName() + ".unsubscribeTopic(this,topic);");
 
 
 		}

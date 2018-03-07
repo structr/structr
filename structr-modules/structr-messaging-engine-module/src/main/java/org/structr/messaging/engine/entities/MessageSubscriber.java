@@ -74,7 +74,8 @@ public interface MessageSubscriber extends NodeInterface {
 					.addParameter("topic", String.class.getName())
 					.addParameter("message", String.class.getName())
 					.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, securityContext);")
-					.addException(FrameworkException.class.getName());
+					.addException(FrameworkException.class.getName())
+					.setDoExport(true);
 
 
 			type.addViewProperty(PropertyView.Public, "clients");

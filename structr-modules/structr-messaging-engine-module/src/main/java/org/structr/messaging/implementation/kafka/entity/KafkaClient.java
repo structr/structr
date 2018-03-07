@@ -76,27 +76,9 @@ public interface KafkaClient extends MessageClient {
 			type.overrideMethod("onModification", true, KafkaClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 			type.overrideMethod("onDeletion",     true, KafkaClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
-			type.addMethod("sendMessage")
-				.addParameter("client", "KafkaClient")
-				.addParameter("topic", "String")
-				.addParameter("message", "String")
-				.setReturnType(RestMethodResult.class.getName())
-				.addException(FrameworkException.class.getName())
-				.setSource("return " + KafkaClient.class.getName() + ".sendMessage(client,topic,message);");
-
-			type.addMethod("subscribeTopic")
-					.addParameter("client", "KafkaClient")
-					.addParameter("topic", "String")
-					.setReturnType(RestMethodResult.class.getName())
-					.addException(FrameworkException.class.getName())
-					.setSource("return " + KafkaClient.class.getName() + ".subscribeTopic(client,topic);");
-
-			type.addMethod("unsubscribeTopic")
-					.addParameter("client", "KafkaClient")
-					.addParameter("topic", "String")
-					.setReturnType(RestMethodResult.class.getName())
-					.addException(FrameworkException.class.getName())
-					.setSource("return " + KafkaClient.class.getName() + ".unsubscribeTopic(client,topic);");
+			type.overrideMethod("sendMessage", true, "return " + KafkaClient.class.getName() + ".sendMessage(this,topic,message);");
+			type.overrideMethod("subscribeTopic", false, "return " + KafkaClient.class.getName() + ".subscribeTopic(this,topic);");
+			type.overrideMethod("unsubscribeTopic", false, "return " + KafkaClient.class.getName() + ".unsubscribeTopic(this,topic);");
 
 			Services.getInstance().registerInitializationCallback(() -> {
 
