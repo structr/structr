@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,10 +103,9 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 			// remove existing relationships
 			for (S sourceNode : toBeDeleted) {
 
-				for (AbstractRelationship rel : actualTargetNode.getIncomingRelationships()) {
+				for (Iterator<AbstractRelationship> it = actualTargetNode.getIncomingRelationships(relation.getClass()).iterator(); it.hasNext();) {
 
-					final String relTypeName    = rel.getRelType().name();
-					final String desiredRelType = relation.name();
+					final AbstractRelationship rel = it.next();
 
 					if (sourceNode.equals(actualTargetNode)) {
 
@@ -114,8 +114,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 						// skip self relationships
 						continue;
 					}
-
-					if (relTypeName.equals(desiredRelType) && rel.getSourceNode().equals(sourceNode)) {
+					if (rel.getSourceNode().equals(sourceNode)) {
 						app.delete(rel);
 					}
 				}

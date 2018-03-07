@@ -131,7 +131,7 @@ public interface User extends Principal {
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
-			final PropertyKey<Folder> homeFolderKey = StructrApp.key(AbstractFile.class, "homeFolderOfUser");
+			final PropertyKey<Folder> homeFolderKey = StructrApp.key(Folder.class, "homeFolderOfUser");
 			final PropertyKey<Folder> parentKey     = StructrApp.key(AbstractFile.class, "parent");
 
 			// use superuser context here

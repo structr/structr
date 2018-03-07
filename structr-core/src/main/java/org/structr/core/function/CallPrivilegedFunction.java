@@ -44,7 +44,10 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public SecurityContext getSecurityContext(final ActionContext ctx) {
-		return SecurityContext.getSuperUserInstance();
-	}
 
+		final SecurityContext superuserSecurityContext = SecurityContext.getSuperUserInstance();
+		superuserSecurityContext.setContextStore(ctx.getContextStore());
+
+		return superuserSecurityContext;
+	}
 }

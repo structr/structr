@@ -49,6 +49,7 @@ import org.structr.core.function.DivFunction;
 import org.structr.core.function.DoubleSumFunction;
 import org.structr.core.function.EmptyFunction;
 import org.structr.core.function.EnableNotificationsFunction;
+import org.structr.core.function.EndsWithFunction;
 import org.structr.core.function.EnumInfoFunction;
 import org.structr.core.function.EqualFunction;
 import org.structr.core.function.ErrorFunction;
@@ -136,6 +137,7 @@ import org.structr.core.function.SizeFunction;
 import org.structr.core.function.SortFunction;
 import org.structr.core.function.SplitFunction;
 import org.structr.core.function.SplitRegexFunction;
+import org.structr.core.function.StartsWithFunction;
 import org.structr.core.function.StoreFunction;
 import org.structr.core.function.StrReplaceFunction;
 import org.structr.core.function.SubstringFunction;
@@ -308,6 +310,8 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "find", new FindFunction());
 		Functions.put(true, LicenseManager.Community, "get_or_create", new GetOrCreateFunction());
 		Functions.put(true, LicenseManager.Community, "find_relationship", new FindRelationshipFunction());
+		Functions.put(true, LicenseManager.Community, "starts_with", new StartsWithFunction());
+		Functions.put(true, LicenseManager.Community, "ends_with", new EndsWithFunction());
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(true, LicenseManager.Community, "set", new SetFunction());

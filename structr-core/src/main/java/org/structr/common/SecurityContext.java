@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
@@ -77,6 +76,7 @@ public class SecurityContext {
 	private String cachedUserName                = null;
 	private String cachedUserId                  = null;
 	private String sessionId                     = null;
+	private ContextStore contextStore            = null;
 
 	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
@@ -392,13 +392,19 @@ public class SecurityContext {
 		uriBuilder.append("/");
 
 		return uriBuilder;
-
 	}
 
 	public Object getAttribute(String key) {
-
 		return attrs.get(key);
+	}
 
+	public <T> T getAttribute(String key, final T defaultValue) {
+
+		if (attrs.containsKey(key)) {
+			return (T)attrs.get(key);
+		}
+
+		return defaultValue;
 	}
 
 	public static long getResourceFlags(String resource) {
@@ -605,13 +611,15 @@ public class SecurityContext {
 
 	}
 
-	public void setAttribute(String key, Object value) {
+	public void setAttribute(final String key, final Object value) {
 
-		attrs.put(key, value);
+		if (value != null) {
+			attrs.put(key, value);
+		}
 
 	}
 
-	public void setAccessMode(AccessMode accessMode) {
+	public void setAccessMode(final AccessMode accessMode) {
 
 		this.accessMode = accessMode;
 
@@ -677,7 +685,7 @@ public class SecurityContext {
 			// Priority 2: User locale
 			final String userLocaleString = cachedUser.getLocale();
 			if (userLocaleString != null) {
-				
+
 				userHasLocaleString = true;
 
 				try {
@@ -829,6 +837,19 @@ public class SecurityContext {
 
 	public int getSerializationDepth() {
 		return serializationDepth;
+	}
+
+	public ContextStore getContextStore() {
+
+		if (contextStore == null) {
+			setContextStore(new ContextStore());
+		}
+
+		return contextStore;
+	}
+
+	public void setContextStore(ContextStore contextStore) {
+		this.contextStore = contextStore;
 	}
 
 	// ----- nested classes -----

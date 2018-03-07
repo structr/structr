@@ -37,6 +37,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.graph.Tx;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
@@ -329,7 +330,35 @@ public class PropertyMap {
 		return fallbackPropertyMap(source);
 	}
 
-	public static PropertyMap inputTypeToJavaType(SecurityContext securityContext, Class<? extends GraphObject> entity, Map<String, Object> source) throws FrameworkException {
+	public static PropertyMap inputTypeToJavaType(final SecurityContext securityContext, Class<? extends GraphObject> entity, final Map<String, Object> source) throws FrameworkException {
+
+		final String batchType = securityContext.getAttribute("batchType", "__");
+		if (batchType.equals(source.get("type"))) {
+
+			// only to batching if a type is set for which batch is enable
+			final Integer count   = securityContext.getAttribute("objectCount", 0);
+			final Integer overall = securityContext.getAttribute("overallCount", 0);
+
+			securityContext.setAttribute("objectCount",  count   + 1);
+			securityContext.setAttribute("overallCount", overall + 1);
+
+			if (count == 100) {
+
+				final Tx tx = (Tx)securityContext.getAttribute("currentTransaction");
+				if (tx != null) {
+
+					logger.info("Committing batch transaction after {} objects of type {}.", overall, batchType);
+
+					// try to commit this batch
+					tx.success();
+					tx.close();
+
+					// open new transaction and store it in context
+					securityContext.setAttribute("currentTransaction", StructrApp.getInstance(securityContext).tx());
+					securityContext.setAttribute("objectCount",        0);
+				}
+			}
+		}
 
 		PropertyMap resultMap = new PropertyMap();
 		if (source != null) {

@@ -485,7 +485,6 @@ var _Files = {
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		var handleChildren = function(children) {
-			console.warn(children);
 			if (children && children.length) {
 				children.forEach(_Files.appendFileOrFolder);
 			}
