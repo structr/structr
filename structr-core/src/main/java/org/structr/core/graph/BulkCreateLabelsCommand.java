@@ -43,6 +43,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		final DatabaseService graphDb             = (DatabaseService) arguments.get("graphDb");
 		final SecurityContext superUserContext    = SecurityContext.getSuperUserInstance();
 		final NodeFactory nodeFactory             = new NodeFactory(superUserContext);
+		final boolean removeUnused                = !attributes.containsKey("removeUnused");
 		final Iterator<AbstractNode> nodeIterator = Iterables.map(nodeFactory, Iterables.filter(new StructrAndSpatialPredicate(true, false, false), graphDb.getNodesByTypeProperty(entityType))).iterator();
 
 		if (entityType == null) {
@@ -59,7 +60,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			@Override
 			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-				TypeProperty.updateLabels(graphDb, node, node.getClass());
+				TypeProperty.updateLabels(graphDb, node, node.getClass(), removeUnused);
 			}
 
 			@Override

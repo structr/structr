@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.property.TypeProperty;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -88,9 +87,6 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 							node.unlockSystemPropertiesOnce();
 							node.setProperty(GraphObject.id, NodeServiceCommand.getNextUuid());
 						}
-
-						// update labels as well
-						TypeProperty.updateLabels(graphDb, node, node.getClass());
 
 					} catch (FrameworkException fex) {
 

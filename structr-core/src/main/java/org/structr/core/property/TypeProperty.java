@@ -56,7 +56,7 @@ public class TypeProperty extends StringProperty {
 
 			final Class type = StructrApp.getConfiguration().getNodeEntityClass(value);
 
-			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)obj, type);
+			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)obj, type, true);
 		}
 
 		return null;
@@ -79,7 +79,7 @@ public class TypeProperty extends StringProperty {
 		return result;
 	}
 
-	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class newType) {
+	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class newType, final boolean removeUnused) {
 
 		final Set<Label> intersection = new LinkedHashSet<>();
 		final Set<Label> toRemove     = new LinkedHashSet<>();
@@ -116,9 +116,12 @@ public class TypeProperty extends StringProperty {
 		toAdd.removeAll(intersection);
 		toRemove.removeAll(intersection);
 
-		// remove difference
-		for (final Label remove : toRemove) {
-			dbNode.removeLabel(remove);
+		if (removeUnused) {
+
+			// remove difference
+			for (final Label remove : toRemove) {
+				dbNode.removeLabel(remove);
+			}
 		}
 
 		// add difference

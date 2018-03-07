@@ -192,7 +192,7 @@ public interface GraphObject {
 
 								final Class type = StructrApp.getConfiguration().getNodeEntityClass((String)value);
 
-								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)this, type);
+								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)this, type, true);
 							}
 						}
 
@@ -209,7 +209,7 @@ public interface GraphObject {
 
 								final Class type = StructrApp.getConfiguration().getNodeEntityClass((String)value);
 
-								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)this, type);
+								TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)this, type, true);
 							}
 						}
 					}

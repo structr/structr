@@ -69,7 +69,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SuperUser;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -641,22 +640,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	private static void importDatabase(final DatabaseService graphDb, final SecurityContext securityContext, final ZipInputStream zis, boolean doValidation, final Long batchSize) throws FrameworkException, IOException {
 
-		final App app                        = StructrApp.getInstance();
-		final DataInputStream dis            = new DataInputStream(new BufferedInputStream(zis));
-		final RelationshipFactory relFactory = new RelationshipFactory(securityContext);
-		final long internalBatchSize         = batchSize != null ? batchSize : 200;
-		final NodeFactory nodeFactory        = new NodeFactory(securityContext);
-		final String uuidPropertyName        = GraphObject.id.dbName();
-		final Map<String, Node> uuidMap      = new LinkedHashMap<>();
-		final Set<Long> deletedNodes         = new HashSet<>();
-		final Set<Long> deletedRels          = new HashSet<>();
-		final SuperUser superUser            = new SuperUser();
-		double t0                            = System.nanoTime();
-		PropertyContainer currentObject      = null;
-		String currentKey                    = null;
-		boolean finished                     = false;
-		long totalNodeCount                  = 0;
-		long totalRelCount                   = 0;
+		final App app                   = StructrApp.getInstance();
+		final DataInputStream dis       = new DataInputStream(new BufferedInputStream(zis));
+		final long internalBatchSize    = batchSize != null ? batchSize : 200;
+		final String uuidPropertyName   = GraphObject.id.dbName();
+		final Map<String, Node> uuidMap = new LinkedHashMap<>();
+		final Set<Long> deletedNodes    = new HashSet<>();
+		double t0                       = System.nanoTime();
+		PropertyContainer currentObject = null;
+		String currentKey               = null;
+		boolean finished                = false;
+		long totalNodeCount             = 0;
+		long totalRelCount              = 0;
 
 		do {
 
@@ -796,37 +791,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				totalNodeCount += nodeCount;
 				totalRelCount  += relCount;
 
-				/*
-				for (Node node : nodes) {
-
-					if (!deletedNodes.contains(node.getId())) {
-
-						NodeInterface entity = nodeFactory.instantiate(node);
-
-						// check for existing schema node and merge
-						if (entity instanceof AbstractSchemaNode) {
-							checkAndMerge(entity, deletedNodes, deletedRels);
-						}
-
-						if (!deletedNodes.contains(node.getId())) {
-
-							TransactionCommand.nodeCreated(superUser, entity);
-							entity.addToIndex();
-						}
-					}
-				}
-
-				for (Relationship rel : rels) {
-
-					if (!deletedRels.contains(rel.getId())) {
-
-						RelationshipInterface entity = relFactory.instantiate(rel);
-						TransactionCommand.relationshipCreated(superUser, entity);
-						entity.addToIndex();
-					}
-				}
-				*/
-
 				logger.info("Imported {} nodes and {} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
 
 				tx.success();
@@ -844,8 +808,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			logger.warn("", fex);
 		}
 
+		final Map<String, Object> params = new HashMap<>();
+		params.put("removeUnused", false);
+
 		// set correct labels after schema has been compiled
-		app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
+		app.command(BulkCreateLabelsCommand.class).execute(params);
 
 		double t1   = System.nanoTime();
 		double time = ((t1 - t0) / 1000000000.0);
