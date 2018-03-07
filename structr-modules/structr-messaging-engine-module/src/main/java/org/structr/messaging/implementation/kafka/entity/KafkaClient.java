@@ -49,6 +49,7 @@ import org.structr.schema.json.JsonSchema;
 import java.lang.reflect.Array;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface KafkaClient extends MessageClient {
 
@@ -101,8 +102,8 @@ public interface KafkaClient extends MessageClient {
 	}
 
 
-	Map<String, Producer<String,String>> producerMap = new HashMap();
-	Map<String, Consumer<String,String>> consumerMap = new HashMap();
+	Map<String, Producer<String,String>> producerMap = new ConcurrentHashMap<>();
+	Map<String, Consumer<String,String>> consumerMap = new ConcurrentHashMap<>();
 
 	static Producer<String,String> getProducer(KafkaClient thisClient) {
 		return producerMap.get(thisClient.getUuid());
@@ -276,7 +277,7 @@ public interface KafkaClient extends MessageClient {
 	}
 
 	static void forwardReceivedMessage(KafkaClient thisClient, String topic, String message) throws FrameworkException {
-		sendMessage(thisClient,topic,message);
+		MessageClient.sendMessage(thisClient, topic, message);
 	}
 
 	class ConsumerWorker implements Runnable {
