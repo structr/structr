@@ -182,6 +182,11 @@ public class SchemaService implements Service {
 						}
 
 						tx.success();
+						
+					} else {
+					
+						logger.error("Unable to compile dynamic schema. A frequent cause is a missing or expired license, please check license file. If unsure, contact licensing@structr.com.");
+					
 					}
 
 				} catch (Throwable t) {
