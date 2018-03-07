@@ -73,7 +73,7 @@ public interface MessageSubscriber extends NodeInterface {
 					.setReturnType(RestMethodResult.class.getName())
 					.addParameter("topic", String.class.getName())
 					.addParameter("message", String.class.getName())
-					.setSource("return " + MessageClient.class.getName() + ".onMessage(this, topic, message, securityContext);")
+					.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, securityContext);")
 					.addException(FrameworkException.class.getName());
 
 

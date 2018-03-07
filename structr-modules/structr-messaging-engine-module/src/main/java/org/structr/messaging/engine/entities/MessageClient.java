@@ -46,6 +46,13 @@ public interface MessageClient extends NodeInterface {
 
 			type.setImplements(URI.create("https://structr.org/v1.1/definitions/MessageClient"));
 
+			type.relate(sub, "HAS_SUBSCRIBER", Relation.Cardinality.ManyToMany,"clients","subscribers");
+
+			type.addViewProperty(PropertyView.Public, "subscribers");
+			type.addViewProperty(PropertyView.Ui,     "subscribers");
+
+			type.addPropertyGetter("subscribers", List.class);
+
 			type.addMethod("sendMessage")
 				.setReturnType(RestMethodResult.class.getName())
 				.addParameter("topic", String.class.getName())
@@ -65,20 +72,19 @@ public interface MessageClient extends NodeInterface {
 					.setSource("return " + MessageClient.class.getName() + ".unsubscribeTopic(this, topic);")
 					.addException(FrameworkException.class.getName());
 
-			type.relate(sub, "HAS_SUBSCRIBER", Relation.Cardinality.ManyToMany,"subscribers","clients");
 
-			type.addViewProperty(PropertyView.Public, "subscribers");
-			type.addViewProperty(PropertyView.Ui,     "subscribers");
 
         }
     }
+
+    List<MessageSubscriber> getSubscribers();
 
     static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message) throws FrameworkException {
 
         final App app = StructrApp.getInstance();
         try (final Tx tx = app.tx()) {
 
-            List<MessageSubscriber> subscribers = thisClient.getProperty(StructrApp.key(MessageSubscriber.class,"subscribers") );
+            List<MessageSubscriber> subscribers = thisClient.getSubscribers();
             if (subscribers != null) {
                 subscribers.forEach(sub -> {
 					String subTopic = sub.getProperty(StructrApp.key(MessageSubscriber.class,"topic"));
@@ -101,12 +107,12 @@ public interface MessageClient extends NodeInterface {
         return new RestMethodResult(200);
     }
 
-    static RestMethodResult subscribeTopic(final String topic) throws FrameworkException {
+    static RestMethodResult subscribeTopic(MessageClient client, final String topic) throws FrameworkException {
 
         return new RestMethodResult(200);
     }
 
-    static RestMethodResult unsubscribeTopic(final String topic) throws FrameworkException {
+    static RestMethodResult unsubscribeTopic(MessageClient client, final String topic) throws FrameworkException {
 
         return new RestMethodResult(200);
     }

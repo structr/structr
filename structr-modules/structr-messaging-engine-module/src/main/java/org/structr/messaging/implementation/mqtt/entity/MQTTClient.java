@@ -79,10 +79,29 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.overrideMethod("connectionStatusCallback", false, MQTTClient.class.getName() + ".connectionStatusCallback(this, arg0);");
 			type.overrideMethod("getTopics",                false, "return " + MQTTClient.class.getName() + ".getTopics(this);");
 
-			type.overrideMethod("sendMessage",      false, "return "+ MQTTClient.class.getName() + ".sendMessage(this, arg0, arg1);").setDoExport(true);
-			type.overrideMethod("subscribeTopic",   false, "return "+ MQTTClient.class.getName() + ".subscribeTopic(this, arg0);").setDoExport(true);
-			type.overrideMethod("unsubscribeTopic", false, "return "+ MQTTClient.class.getName() + ".unsubscribeTopic(this, arg0);").setDoExport(true);
+			type.overrideMethod("getQoS", false, "return getQos();");
 
+			type.addMethod("sendMessage")
+					.addParameter("client", "MQTTClient")
+					.addParameter("topic", "String")
+					.addParameter("message", "String")
+					.setReturnType(RestMethodResult.class.getName())
+					.addException(FrameworkException.class.getName())
+					.setSource("return " + MQTTClient.class.getName() + ".sendMessage(client,topic,message);");
+
+			type.addMethod("subscribeTopic")
+					.addParameter("client", "MQTTClient")
+					.addParameter("topic", "String")
+					.setReturnType(RestMethodResult.class.getName())
+					.addException(FrameworkException.class.getName())
+					.setSource("return " + MQTTClient.class.getName() + ".subscribeTopic(client,topic);");
+
+			type.addMethod("unsubscribeTopic")
+					.addParameter("client", "MQTTClient")
+					.addParameter("topic", "String")
+					.setReturnType(RestMethodResult.class.getName())
+					.addException(FrameworkException.class.getName())
+					.setSource("return " + MQTTClient.class.getName() + ".unsubscribeTopic(client,topic);");
 
 
 		}
@@ -96,7 +115,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 	String getUrl();
 	List<MessageSubscriber> getSubscribers();
 
-	void setIsConnected(boolean connected);
+	void setIsConnected(boolean connected) throws FrameworkException;
 
 	static void onCreation(MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 

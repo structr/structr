@@ -66,18 +66,37 @@ public interface KafkaClient extends MessageClient {
 			type.addStringArrayProperty("servers", PropertyView.Public, PropertyView.Ui);
 
 
-			type.addPropertyGetter("servers", Array.class);
 			type.addPropertyGetter("subscribers", List.class);
 
+			type.addMethod("getServers")
+					.setReturnType("String[]")
+					.setSource("return getProperty(serversProperty);");
 
 			type.overrideMethod("onCreation",     true, KafkaClient.class.getName() + ".onCreation(this, arg0, arg1);");
 			type.overrideMethod("onModification", true, KafkaClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 			type.overrideMethod("onDeletion",     true, KafkaClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
-			type.overrideMethod("sendMessage",      false, "return "+ KafkaClient.class.getName() + ".sendMessage(this, arg0, arg1);").setDoExport(true);
-			type.overrideMethod("subscribeTopic",   false, "return "+ KafkaClient.class.getName() + ".subscribeTopic(this, arg0);").setDoExport(true);
-			type.overrideMethod("unsubscribeTopic", false, "return "+ KafkaClient.class.getName() + ".unsubscribeTopic(this, arg0);").setDoExport(true);
+			type.addMethod("sendMessage")
+				.addParameter("client", "KafkaClient")
+				.addParameter("topic", "String")
+				.addParameter("message", "String")
+				.setReturnType(RestMethodResult.class.getName())
+				.addException(FrameworkException.class.getName())
+				.setSource("return " + KafkaClient.class.getName() + ".sendMessage(client,topic,message);");
 
+			type.addMethod("subscribeTopic")
+					.addParameter("client", "KafkaClient")
+					.addParameter("topic", "String")
+					.setReturnType(RestMethodResult.class.getName())
+					.addException(FrameworkException.class.getName())
+					.setSource("return " + KafkaClient.class.getName() + ".subscribeTopic(client,topic);");
+
+			type.addMethod("unsubscribeTopic")
+					.addParameter("client", "KafkaClient")
+					.addParameter("topic", "String")
+					.setReturnType(RestMethodResult.class.getName())
+					.addException(FrameworkException.class.getName())
+					.setSource("return " + KafkaClient.class.getName() + ".unsubscribeTopic(client,topic);");
 
 			Services.getInstance().registerInitializationCallback(() -> {
 

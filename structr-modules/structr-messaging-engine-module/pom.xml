@@ -18,7 +18,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-rest</artifactId>
+			<artifactId>structr-ui</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 
@@ -38,6 +38,13 @@
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
 			<version>0.10.2.0</version>
+		</dependency>
+
+		<!-- Tests -->
+		<dependency>
+			<groupId>com.jayway.restassured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
