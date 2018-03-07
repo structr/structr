@@ -24,10 +24,13 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.EntityNotionProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.Schema;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -155,11 +158,6 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 					String propertyName     = parts[i];
 					String fullPropertyName = propertyName;
 
-					// remove prefix from full property name
-					if (fullPropertyName.startsWith("_")) {
-						fullPropertyName = fullPropertyName.substring(1) + "Property";
-					}
-
 					if (!"true".equals(propertyName.toLowerCase()) && !propertyName.contains(".")) {
 
 						buf.append(relatedType);
@@ -167,13 +165,13 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 						fullPropertyName = relatedType + "." + fullPropertyName;
 					}
-
+					
+					fullPropertyName = extendPropertyName(fullPropertyName, null);
+					
 					properties.add(fullPropertyName);
 
-					if (propertyName.startsWith("_")) {
-						propertyName = propertyName.substring(1) + "Property";
-					}
-
+					propertyName = extendPropertyName(propertyName, relatedType);
+					
 					buf.append(propertyName);
 
 					if (i < parts.length-1) {
@@ -193,6 +191,34 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 		parameters = buf.toString();
 	}
 
+	private String extendPropertyName(final String propertyName, final String relatedType) throws FrameworkException {
+		Class type;
+		
+		if (propertyName.contains(".")) {
+
+			String[] typeAndKey = StringUtils.split(propertyName, ".");
+			type = SchemaHelper.getEntityClassForRawType(typeAndKey[0]);
+			
+			if (type != null && SchemaHelper.isDynamic(type.getSimpleName(), typeAndKey[1])) {
+				return propertyName + "Property";
+			}
+			
+		} else {
+			
+			type = SchemaHelper.getEntityClassForRawType(relatedType);
+			
+			if (type != null && SchemaHelper.isDynamic(type.getSimpleName(), propertyName)) {
+				return propertyName + "Property";
+			}
+		}
+		
+		if (propertyName.startsWith("_")) {
+			return propertyName.substring(1) + "Property";
+		}
+		
+		return propertyName;
+	}
+	
 	public boolean isPropertySet() {
 		return isPropertySet;
 	}

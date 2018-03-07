@@ -45,6 +45,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.OneFourOneToOne;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.TestEnum;
 import org.structr.core.entity.TestFive;
@@ -1854,15 +1855,15 @@ public class PropertyTest extends StructrTest {
 	}
 
 	// ----- function property tests -----
+
+	/** This test creates a new type "Test" and links it to
+	 * the built-in type "Group". It then creates a function
+	 * property that references the name of the related group
+	 * and assumes that a test entity is found by its related
+	 * group name.
+	 */
 	@Test
 	public void testFunctionPropertyIndexing() {
-
-		/* This test creates a new type "Test" and links it to
-		 * the built-in type "Group". It then creates a function
-		 * property that references the name of the related group
-		 * and assumes that a test entity is found by its related
-		 * group name.
-		 */
 
 		// schema setup
 		try (final Tx tx = app.tx()) {
@@ -1956,4 +1957,49 @@ public class PropertyTest extends StructrTest {
 		}
 
 	}
+	// ----- notion property tests -----
+	
+	/**
+	 * This test creates a new type "Test" with different Notion properties.
+	 */
+	@Test
+	public void testNotionProperty() {
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode test  = app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "Test")
+			);
+			
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "ownerName"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "owner, name"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "ownerEmail"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "owner, eMail"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "ownerPrincipalEmail"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "owner, Principal.eMail"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+	}	
+
 }

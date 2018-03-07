@@ -144,7 +144,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 	static void onModification(final XMPPClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+		XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
 		boolean enabled                 = thisClient.getIsEnabled();
 
 		if (!enabled) {
@@ -159,7 +159,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 				XMPPContext.connect(thisClient);
 			}
 
-			connection = XMPPContext.getClientForId(getUuid());
+			connection = XMPPContext.getClientForId(thisClient.getUuid());
 			if (connection != null) {
 
 				if (connection.isConnected()) {
@@ -282,7 +282,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 		if (thisClient.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
 			if (connection.isConnected()) {
 
 				connection.joinChat(chatRoom, nickname, password);
@@ -301,7 +301,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 
 		if (thisClient.getIsEnabled()) {
 
-			final XMPPClientConnection connection = XMPPContext.getClientForId(getUuid());
+			final XMPPClientConnection connection = XMPPContext.getClientForId(thisClient.getUuid());
 			if (connection.isConnected()) {
 
 				connection.sendChatMessage(chatRoom, message, password);

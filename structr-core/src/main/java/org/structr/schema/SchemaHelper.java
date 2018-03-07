@@ -272,6 +272,11 @@ public class SchemaHelper {
 
 		// third try: interface
 		if (type == null) {
+			type = configuration.getInterfaces().get(normalizedEntityName);
+		}
+
+		// third try: interface with FQN
+		if (type == null) {
 			type = configuration.getInterfaces().get("org.structr.dynamic." + normalizedEntityName);
 		}
 
@@ -1592,6 +1597,53 @@ public class SchemaHelper {
 		view.addAll(list);
 	}
 
+	public static boolean isDynamic(final String typeName, final String propertyName) throws FrameworkException {
+
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Class type                   = config.getNodeEntityClass(typeName);
+
+		if (type != null) {
+
+			final PropertyKey property = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, propertyName, false);
+			if (property != null && property.isDynamic()) {
+
+				return true;
+			}
+
+		} else if (hasSchemaProperty(typeName, propertyName)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public static boolean hasPeerToPeerService() {
+
+		try {
+
+			Class.forName("org.structr.net.SharedNodeInterface");
+
+			// success
+			return true;
+
+		} catch (Throwable t) {
+		}
+
+		return false;
+	}
+
+	public static Class classForName(final String fqcn) {
+
+		try {
+
+			return Class.forName(cleanTypeName(fqcn));
+
+		} catch (Throwable t) {}
+
+		return null;
+	}
+
 	// ----- private methods -----
 	private static PropertySourceGenerator getSourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) throws FrameworkException {
 
@@ -1641,32 +1693,6 @@ public class SchemaHelper {
 		return false;
 	}
 
-	public static boolean hasPeerToPeerService() {
-
-		try {
-
-			Class.forName("org.structr.net.SharedNodeInterface");
-
-			// success
-			return true;
-
-		} catch (Throwable t) {
-		}
-
-		return false;
-	}
-
-	public static Class classForName(final String fqcn) {
-
-		try {
-
-			return Class.forName(cleanTypeName(fqcn));
-
-		} catch (Throwable t) {}
-
-		return null;
-	}
-
 	private static class ReverseTypeComparator implements Comparator<Type> {
 
 		@Override
@@ -1707,27 +1733,6 @@ public class SchemaHelper {
 				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
 
 			.getFirst() != null) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private static boolean isDynamic(final String typeName, final String propertyName) throws FrameworkException {
-
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class type                   = config.getNodeEntityClass(typeName);
-
-		if (type != null) {
-
-			final PropertyKey property = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, propertyName, false);
-			if (property != null && property.isDynamic()) {
-
-				return true;
-			}
-
-		} else if (hasSchemaProperty(typeName, propertyName)) {
 
 			return true;
 		}
