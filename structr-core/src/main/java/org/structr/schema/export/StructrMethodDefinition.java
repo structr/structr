@@ -20,6 +20,7 @@ package org.structr.schema.export;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -352,8 +353,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 					throw new IllegalStateException("Method parameter definition " + paramName + " must be of type string or map.");
 				}
 			}
-		}
 
+			// sort parameters
+			Collections.sort(parameters, (o1, o2) -> Integer.valueOf(o1.getIndex()).compareTo(o2.getIndex()));
+		}
 	}
 
 	void deserialize(final SchemaMethod method) {
