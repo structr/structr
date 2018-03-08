@@ -280,6 +280,8 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test03SchemaBuilder() {
 
+		Settings.LogSchemaOutput.setValue(true);
+
 		// we need to wait for the schema service to be initialized here.. :(
 		try { Thread.sleep(1000); } catch (Throwable t) {}
 
@@ -351,14 +353,11 @@ public class SchemaTest extends StructrTest {
 			assertEquals("Invalid schema URI", "https://structr.org/schema/" + instanceId + "/definitions/Task/properties/description", desc.getId().toString());
 			assertEquals("Invalid schema URI", "https://structr.org/schema/" + instanceId + "/definitions/Worker/properties/renamedTasks", tasksProperty.getId().toString());
 
-
-
-
-
 			compareSchemaRoundtrip(sourceSchema);
 
 		} catch (Exception ex) {
 
+			ex.printStackTrace();
 			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
