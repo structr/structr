@@ -120,7 +120,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 	public static Result transformOutput(final VirtualType thisType, final SecurityContext securityContext, final Class sourceType, final Result result) throws FrameworkException {
 
 		final List<VirtualProperty> props         = VirtualType.sort(thisType.getVirtualProperties());
-		final Mapper mapper                       = new Mapper(securityContext, props, thisType.getClass());
+		final Mapper mapper                       = new Mapper(securityContext, props, StructrApp.getConfiguration().getNodeEntityClass(thisType.getSourceType()));
 		final Filter filter                       = new Filter(securityContext, thisType.getFilterExpression());
 		final Iterable<GraphObject> iterable      = Iterables.map(mapper, Iterables.filter(filter, result.getResults()));
 		final List<GraphObject> transformedResult = Iterables.toList(iterable);
