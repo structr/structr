@@ -168,6 +168,7 @@ public interface User extends Principal {
 
 			} catch (Throwable t) {
 
+				t.printStackTrace();
 
 			} finally {
 

@@ -781,7 +781,7 @@ public class Importer {
 				if (newNode == null) {
 
 					final PropertyKey<Boolean> hideOnDetailKey = StructrApp.key(DOMNode.class,    "hideOnDetail");
-					final PropertyKey<Boolean> showOnDetailKey = StructrApp.key(DOMNode.class,    "showOnDetail");
+					final PropertyKey<Boolean> hideOnIndexKey  = StructrApp.key(DOMNode.class,    "hideOnIndex");
 					final PropertyKey<String> tagKey           = StructrApp.key(DOMElement.class, "tag");
 
 					// experimental: create DOM element with literal tag
@@ -789,10 +789,11 @@ public class Importer {
 
 						new NodeAttribute(tagKey,          node.nodeName()),
 						new NodeAttribute(hideOnDetailKey, false),
-						new NodeAttribute(showOnDetailKey, false)
+						new NodeAttribute(hideOnIndexKey,  false)
 					);
 
 					if (newNode != null && page != null) {
+
 						newNode.doAdopt(page);
 					}
 
@@ -982,14 +983,14 @@ public class Importer {
 						continue;
 
 					}
-					
+
 				} else if ("style".equals(tag)) {
-					
+
 					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
 					final String contentType          = newNode.getProperty(typeKey);
 
 					if (contentType.equals("text/css")) {
-						
+
 						// parse content of style elements and add referenced files to list of resources to be downloaded
 						for (final Node styleContentNode : node.childNodes()) {
 
@@ -1003,9 +1004,9 @@ public class Importer {
 								logger.warn("Couldn't process CSS source", ex);
 							}
 						}
-					}					
-					
-					
+					}
+
+
 				}
 
 				if (instructions != null) {

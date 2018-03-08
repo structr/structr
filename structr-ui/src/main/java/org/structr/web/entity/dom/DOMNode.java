@@ -1141,13 +1141,13 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			if (linkable != null) {
 
 				final String linkableInstruction = (linkable instanceof Page) ? "pagelink" : "link";
-				
+
 				String path                = linkable.getPath();
-				
+
 				if (linkable instanceof Page && path == null) {
 					path = linkable.getName();
 				}
-				
+
 				if (path != null) {
 
 					instructions.add("@structr:" + linkableInstruction + "(" + path + ")");
