@@ -73,8 +73,8 @@ $(function() {
 
 	$(window).on('hashchange', function(e) {
 		var anchor = getAnchorFromUrl(window.location.href);
-		if (anchor === 'logout' || loginBox.is(':visible')) return
-		Structr.activateModule(e, anchor);
+		if (anchor === 'logout' || loginBox.is(':visible')) return;
+		Structr.requestActivateModule(e, anchor);
 	});
 
 	$(document).on('mouseenter', '[data-toggle="popup"]', function () {
@@ -90,7 +90,7 @@ $(function() {
 	$(document).on('click', '[data-activate-module]', function(e) {
 		var module = $(this).data('activateModule');
 		_Logger.log(_LogType.INIT, 'Activating module ' + module);
-		Structr.activateModule(e, module);
+		Structr.requestActivateModule(e, module);
 	});
 
 	Structr.connect();
@@ -386,23 +386,14 @@ var Structr = {
 
 			var browserUrl = window.location.href;
 			var anchor = getAnchorFromUrl(browserUrl);
-			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : LSWrapper.getItem(lastMenuEntryKey));
+			lastMenuEntry = ((!isLogin && anchor && anchor !== 'logout') ? anchor : Structr.getActiveModuleName());
 			if (!lastMenuEntry) {
-				lastMenuEntry = LSWrapper.getItem(lastMenuEntryKey) || 'dashboard';
+				lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
 			} else {
 				_Logger.log(_LogType.INIT, 'Last menu entry found: ' + lastMenuEntry);
 			}
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
-			Structr.activateMenuEntry(lastMenuEntry);
-			_Logger.log(_LogType.INIT, Structr.modules);
-			var module = Structr.modules[lastMenuEntry];
-			if (module) {
-				module.onload();
-				Structr.adaptUiToAvailableFeatures();
-				if (module.resize) {
-					module.resize();
-				}
-			}
+			Structr.doActivateModule(lastMenuEntry);
 			Structr.updateVersionInfo();
 			
 			callback();
@@ -832,11 +823,16 @@ var Structr = {
 			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
 		}, ms);
 	},
-	activateModule: function(event, name) {
+	requestActivateModule: function(event, name) {
 		if (menuBlocked) return;
 		event.stopPropagation();
-		if (LSWrapper.getItem(lastMenuEntryKey) !== name || main.children().length === 0) {
-			var activeModule = Structr.modules[LSWrapper.getItem(lastMenuEntryKey)];
+		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
+			Structr.doActivateModule(name);
+		}
+	},
+	doActivateModule: function(name) {
+		if (Structr.modules[name]) {
+			var activeModule = Structr.modules[Structr.getActiveModuleName()];
 			if (activeModule && activeModule.unload) {
 				activeModule.unload();
 			}
@@ -844,6 +840,9 @@ var Structr = {
 			Structr.activateMenuEntry(name);
 			Structr.modules[name].onload();
 			Structr.adaptUiToAvailableFeatures();
+		} else {
+			_Logger.log(_LogType.INIT, 'Module ' + name + ' does not exist.');
+			Structr.unblockMenu();
 		}
 	},
 	activateMenuEntry: function(name) {
@@ -854,9 +853,7 @@ var Structr = {
 			return false;
 		}
 		lastMenuEntry = name;
-		$('.menu li').each(function(i, v) {
-			$(this).removeClass('active');
-		});
+		$('.menu li').removeClass('active');
 		li.addClass('active');
 		$('#title').text('Structr ' + menuEntry.text());
 		window.location.hash = lastMenuEntry;
