@@ -98,7 +98,6 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 
-
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(this));
 	}

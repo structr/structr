@@ -18,10 +18,12 @@
  */
 package org.structr.schema.export;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
 
 
@@ -42,9 +44,12 @@ public class StructrCountProperty extends StructrStringProperty {
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final PropertyMap properties  = new PropertyMap();
 
-		property.setProperty(SchemaProperty.propertyType, SchemaHelper.Type.Count.name());
-		property.setProperty(SchemaProperty.format, getFormat());
+		properties.put(SchemaProperty.propertyType, SchemaHelper.Type.Count.name());
+		properties.put(SchemaProperty.format, getFormat());
+	
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

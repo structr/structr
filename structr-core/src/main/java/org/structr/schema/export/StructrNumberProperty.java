@@ -19,10 +19,12 @@
 package org.structr.schema.export;
 
 import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.json.JsonNumberProperty;
 import org.structr.schema.json.JsonSchema;
@@ -183,8 +185,9 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final PropertyMap properties  = new PropertyMap();
 
-		property.setProperty(SchemaProperty.propertyType, Type.Double.name());
+		properties.put(SchemaProperty.propertyType, Type.Double.name());
 
 		if (minimum != null && maximum != null) {
 
@@ -206,8 +209,10 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 				range.append("]");
 			}
 
-			property.setProperty(SchemaProperty.format, range.toString());
+			properties.put(SchemaProperty.format, range.toString());
 		}
+
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

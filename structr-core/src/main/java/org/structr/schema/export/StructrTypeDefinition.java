@@ -92,7 +92,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.name = name;
 	}
 
-	abstract T createSchemaNode(final App app) throws FrameworkException;
+	abstract T createSchemaNode(final App app, final PropertyMap createProperties) throws FrameworkException;
 
 	@Override
 	public String toString() {
@@ -847,7 +847,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
 		final Map<String, SchemaMethod> schemaMethods      = new TreeMap<>();
-		final T schemaNode                                 = createSchemaNode(app);
+		final PropertyMap createProperties                 = new PropertyMap();
+		final PropertyMap nodeProperties                   = new PropertyMap();
+
+		// properties that always need to be set
+		createProperties.put(SchemaNode.isInterface, isInterface);
+		createProperties.put(SchemaNode.isAbstract, isAbstract);
+		createProperties.put(SchemaNode.category, category);
+		createProperties.put(SchemaNode.isBuiltinType, SchemaService.DynamicSchemaRootURI.equals(root.getId()));
+
+		final T schemaNode = createSchemaNode(app, createProperties);
 
 		for (final StructrPropertyDefinition property : properties) {
 
@@ -918,7 +927,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				final JsonType jsonType     = (JsonType)def;
 				final String superclassName = "org.structr.dynamic." + jsonType.getName();
 
-				schemaNode.setProperty(SchemaNode.extendsClass, superclassName);
+				nodeProperties.put(SchemaNode.extendsClass, superclassName);
 
 			} else {
 
@@ -927,17 +936,17 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					if (superclass.isInterface()) {
 
-						schemaNode.setProperty(SchemaNode.implementsInterfaces, superclass.getName());
+						nodeProperties.put(SchemaNode.implementsInterfaces, superclass.getName());
 
 					} else {
 
-						schemaNode.setProperty(SchemaNode.extendsClass, superclass.getName());
+						nodeProperties.put(SchemaNode.extendsClass, superclass.getName());
 					}
 
 				} else if ("https://structr.org/v1.1/definitions/FileBase".equals(baseTypeReference.toString())) {
 
 					// FileBase doesn't exist any more, but we need to support it for some time..
-					schemaNode.setProperty(SchemaNode.implementsInterfaces, "org.structr.web.entity.File");
+					nodeProperties.put(SchemaNode.implementsInterfaces, "org.structr.web.entity.File");
 
 				} else if (!StructrApp.getSchemaBaseURI().relativize(baseTypeReference).isAbsolute()) {
 
@@ -950,7 +959,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
 					if (internal != null) {
 
-						schemaNode.setProperty(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
+						nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
 					}
 				}
 			}
@@ -976,7 +985,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					} else {
 
-						schemaNode.setProperty(SchemaNode.extendsClass, superclassName);
+						nodeProperties.put(SchemaNode.extendsClass, superclassName);
 					}
 
 				} else {
@@ -995,13 +1004,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				}
 			}
 
-			schemaNode.setProperty(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
+			nodeProperties.put(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
 		}
 
-		schemaNode.setProperty(SchemaNode.isInterface, isInterface);
-		schemaNode.setProperty(SchemaNode.isAbstract, isAbstract);
-		schemaNode.setProperty(SchemaNode.category, category);
-		schemaNode.setProperty(SchemaNode.isBuiltinType, SchemaService.DynamicSchemaRootURI.equals(root.getId()));
+		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
 		return schemaNode;
 	}

@@ -27,6 +27,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
@@ -188,7 +189,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	}
 
 	@Override
-	SchemaNode createSchemaNode(App app) throws FrameworkException {
+	SchemaNode createSchemaNode(final App app, final PropertyMap createProperties) throws FrameworkException {
 
 		// re-use existing schema nodes here!
 		final SchemaNode existingNode = app.nodeQuery(SchemaNode.class).andName(getName()).getFirst();
@@ -197,7 +198,9 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 			return existingNode;
 		}
 
-		return app.create(SchemaNode.class, getName());
+		createProperties.put(SchemaNode.name, getName());
+
+		return app.create(SchemaNode.class, createProperties);
 	}
 
 	// ----- private methods -----

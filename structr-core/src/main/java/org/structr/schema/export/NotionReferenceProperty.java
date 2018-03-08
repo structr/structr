@@ -23,10 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
@@ -66,9 +68,12 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final PropertyMap properties  = new PropertyMap();
 
-		property.setProperty(SchemaProperty.format, referenceName + ", " + StringUtils.join(properties, ", "));
-		property.setProperty(SchemaProperty.propertyType, SchemaHelper.Type.Notion.name());
+		properties.put(SchemaProperty.format, referenceName + ", " + StringUtils.join(properties, ", "));
+		properties.put(SchemaProperty.propertyType, SchemaHelper.Type.Notion.name());
+	
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

@@ -74,7 +74,6 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Boolean>                      isBuiltinType        = new BooleanProperty("isBuiltinType").readOnly().indexed();
 	public static final Property<Integer>                      hierarchyLevel       = new IntProperty("hierarchyLevel").indexed();
 	public static final Property<Integer>                      relCount             = new IntProperty("relCount").indexed();
-	public static final Property<Boolean>                      shared               = new BooleanProperty("shared").indexed();
 	public static final Property<Boolean>                      isInterface          = new BooleanProperty("isInterface").indexed();
 	public static final Property<Boolean>                      isAbstract           = new BooleanProperty("isAbstract").indexed();
 	public static final Property<String>                       category             = new StringProperty("category").indexed();

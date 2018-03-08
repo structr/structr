@@ -21,6 +21,7 @@ package org.structr.schema.export;
 import java.net.URI;
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -28,7 +29,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.relationship.SchemaRelationship;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonReferenceProperty;
@@ -401,8 +402,8 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 			this.cascadingCreate = getCascadingString(cascadingCreateFlag.intValue());
 		}
 
-		final String sourceMultiplicity = schemaNode.getProperty(SchemaRelationship.sourceMultiplicity);
-		final String targetMultiplicity = schemaNode.getProperty(SchemaRelationship.targetMultiplicity);
+		final String sourceMultiplicity = schemaNode.getProperty(SchemaRelationshipNode.sourceMultiplicity);
+		final String targetMultiplicity = schemaNode.getProperty(SchemaRelationshipNode.targetMultiplicity);
 
 		if ("1".equals(sourceMultiplicity)) {
 
@@ -428,53 +429,56 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 
 	@Override
-	SchemaRelationshipNode createSchemaNode(final App app) throws FrameworkException {
+	SchemaRelationshipNode createSchemaNode(final App app, final PropertyMap createProperties) throws FrameworkException {
 
+		final PropertyMap properties       = new PropertyMap();
 		SchemaRelationshipNode _schemaNode = app.nodeQuery(SchemaRelationshipNode.class).andName(getName()).getFirst();
 		if (_schemaNode == null) {
 
 			_schemaNode = app.create(SchemaRelationshipNode.class, getName());
 		}
 
-		_schemaNode.setProperty(SchemaRelationshipNode.relationshipType, getRelationship());
-		_schemaNode.setProperty(SchemaRelationshipNode.sourceJsonName, sourcePropertyName);
-		_schemaNode.setProperty(SchemaRelationshipNode.targetJsonName, targetPropertyName);
-		_schemaNode.setProperty(SchemaRelationshipNode.sourceMultiplicity, getSourceMultiplicity(cardinality));
-		_schemaNode.setProperty(SchemaRelationshipNode.targetMultiplicity, getTargetMultiplicity(cardinality));
-		_schemaNode.setProperty(SchemaRelationshipNode.cascadingDeleteFlag, getCascadingFlag(cascadingDelete));
-		_schemaNode.setProperty(SchemaRelationshipNode.autocreationFlag, getCascadingFlag(cascadingCreate));
+		properties.put(SchemaRelationshipNode.relationshipType, getRelationship());
+		properties.put(SchemaRelationshipNode.sourceJsonName, sourcePropertyName);
+		properties.put(SchemaRelationshipNode.targetJsonName, targetPropertyName);
+		properties.put(SchemaRelationshipNode.sourceMultiplicity, getSourceMultiplicity(cardinality));
+		properties.put(SchemaRelationshipNode.targetMultiplicity, getTargetMultiplicity(cardinality));
+		properties.put(SchemaRelationshipNode.cascadingDeleteFlag, getCascadingFlag(cascadingDelete));
+		properties.put(SchemaRelationshipNode.autocreationFlag, getCascadingFlag(cascadingCreate));
 
 		if (aclResolution != null) {
-			_schemaNode.setProperty(SchemaRelationshipNode.permissionPropagation, SchemaRelationshipNode.Direction.valueOf(aclResolution));
+			properties.put(SchemaRelationshipNode.permissionPropagation, SchemaRelationshipNode.Direction.valueOf(aclResolution));
 		}
 
 		if (aclReadMask != null) {
-			_schemaNode.setProperty(SchemaRelationshipNode.readPropagation, SchemaRelationshipNode.Propagation.valueOf(aclReadMask));
+			properties.put(SchemaRelationshipNode.readPropagation, SchemaRelationshipNode.Propagation.valueOf(aclReadMask));
 		}
 
 		if (aclWriteMask != null) {
-			_schemaNode.setProperty(SchemaRelationshipNode.writePropagation, SchemaRelationshipNode.Propagation.valueOf(aclWriteMask));
+			properties.put(SchemaRelationshipNode.writePropagation, SchemaRelationshipNode.Propagation.valueOf(aclWriteMask));
 		}
 
 		if (aclDeleteMask != null) {
-			_schemaNode.setProperty(SchemaRelationshipNode.deletePropagation, SchemaRelationshipNode.Propagation.valueOf(aclDeleteMask));
+			properties.put(SchemaRelationshipNode.deletePropagation, SchemaRelationshipNode.Propagation.valueOf(aclDeleteMask));
 		}
 
 		if (aclAccessControlMask != null)  {
-			_schemaNode.setProperty(SchemaRelationshipNode.accessControlPropagation, SchemaRelationshipNode.Propagation.valueOf(aclAccessControlMask));
+			properties.put(SchemaRelationshipNode.accessControlPropagation, SchemaRelationshipNode.Propagation.valueOf(aclAccessControlMask));
 		}
 
 		if (aclHiddenProperties != null) {
-			_schemaNode.setProperty(SchemaRelationshipNode.propertyMask, aclHiddenProperties);
+			properties.put(SchemaRelationshipNode.propertyMask, aclHiddenProperties);
 		}
 
 		if (root != null) {
 
 			if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
 
-				_schemaNode.setProperty(SchemaRelationshipNode.isPartOfBuiltInSchema, true);
+				properties.put(SchemaRelationshipNode.isPartOfBuiltInSchema, true);
 			}
 		}
+
+		_schemaNode.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return _schemaNode;
 	}

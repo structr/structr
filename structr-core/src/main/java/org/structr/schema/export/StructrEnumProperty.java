@@ -23,10 +23,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonSchema;
@@ -128,10 +130,13 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final PropertyMap properties  = new PropertyMap();
 
-		property.setProperty(SchemaProperty.propertyType, Type.Enum.name());
-		property.setProperty(SchemaProperty.fqcn, this.fqcn);
-		property.setProperty(SchemaProperty.format, StringUtils.join(getEnums(), ", "));
+		properties.put(SchemaProperty.propertyType, Type.Enum.name());
+		properties.put(SchemaProperty.fqcn, this.fqcn);
+		properties.put(SchemaProperty.format, StringUtils.join(getEnums(), ", "));
+	
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}

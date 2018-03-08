@@ -19,10 +19,12 @@
 package org.structr.schema.export;
 
 import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.json.JsonProperty;
 import org.structr.schema.json.JsonSchema;
@@ -98,9 +100,12 @@ public class StructrCustomProperty extends StructrPropertyDefinition implements 
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final PropertyMap properties  = new PropertyMap();
 
-		property.setProperty(SchemaProperty.propertyType, Type.Custom.name());
-		property.setProperty(SchemaProperty.fqcn, fqcn);
+		properties.put(SchemaProperty.propertyType, Type.Custom.name());
+		properties.put(SchemaProperty.fqcn, fqcn);
+	
+		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
 	}
