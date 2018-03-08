@@ -19,9 +19,22 @@
 package org.structr.messaging;
 
 import org.junit.Test;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.Scripting;
+import org.structr.messaging.engine.entities.MessageClient;
+import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class SimpleMessagingTest extends StructrMessagingEngineModuleTest {
@@ -31,6 +44,19 @@ public class SimpleMessagingTest extends StructrMessagingEngineModuleTest {
 
 		try(final Tx tx = app.tx()) {
 
+			MessageClient client1 = app.create(MessageClient.class, "client1");
+			MessageSubscriber sub = app.create(MessageSubscriber.class, "sub");
+
+			List<MessageSubscriber> subList = new ArrayList<>();
+			subList.add(sub);
+
+			client1.setProperty(StructrApp.key(MessageClient.class, "subscribers"), subList);
+			sub.setProperty(StructrApp.key(MessageSubscriber.class, "topic"), "test");
+			sub.setProperty(StructrApp.key(MessageSubscriber.class, "callback"), "set(this, 'name', retrieve('message'))");
+
+			Scripting.replaceVariables(new ActionContext(securityContext, null), client1, "${{Structr.log('Sending message'); Structr.get('this').sendMessage('test','testmessage');}}");
+
+			assertEquals("testmessage", sub.getName());
 
 			tx.success();
 		} catch (FrameworkException ex) {
