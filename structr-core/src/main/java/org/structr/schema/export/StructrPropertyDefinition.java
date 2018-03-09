@@ -371,6 +371,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 	void deserialize(final SchemaProperty property) {
 
+		setFormat(property.getFormat());
 		setDefaultValue(property.getDefaultValue());
 		setCompound(property.isCompound());
 		setRequired(property.isRequired());

@@ -104,7 +104,7 @@ public class StructrCustomProperty extends StructrPropertyDefinition implements 
 
 		properties.put(SchemaProperty.propertyType, Type.Custom.name());
 		properties.put(SchemaProperty.fqcn, fqcn);
-	
+
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;

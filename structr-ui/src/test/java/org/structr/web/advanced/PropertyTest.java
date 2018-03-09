@@ -18,6 +18,7 @@
  */
 package org.structr.web.advanced;
 
+import java.util.Arrays;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -27,6 +28,8 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
 import org.structr.web.StructrUiTest;
 
 /**
@@ -37,8 +40,6 @@ public class PropertyTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PropertyTest.class);
 
-	// ----- notion property tests -----
-	
 	/**
 	 * This test creates a new type "Test" with a Notion property that references a type (User)
 	 * which is only present in the ui module.
@@ -52,7 +53,7 @@ public class PropertyTest extends StructrUiTest {
 			final SchemaNode test  = app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "Test")
 			);
-			
+
 			app.create(SchemaProperty.class,
 					new NodeAttribute<>(SchemaProperty.name, "ownerPrincipalEmail"),
 					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
@@ -67,6 +68,31 @@ public class PropertyTest extends StructrUiTest {
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
-	}	
+	}
+
+	@Test
+	public void testCustomProperty() {
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app, Arrays.asList("Image"));
+
+			System.out.println(schema.toString());
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
 
 }
+
+
+
+
+
