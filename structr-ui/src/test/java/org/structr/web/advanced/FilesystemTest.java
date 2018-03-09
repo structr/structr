@@ -18,18 +18,24 @@
  */
 package org.structr.web.advanced;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.User;
 
 public class FilesystemTest extends StructrUiTest {
 
@@ -108,6 +114,84 @@ public class FilesystemTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test03UserHomeDirectory() {
+
+		Settings.FilesystemEnabled.setValue(true);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(User.class, "tester");
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final User tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			tester.setEMail("tester@structr.com");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final User tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			tester.setEMail("tester2@structr.com");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final User tester = app.nodeQuery(User.class).andName("tester").getFirst();
+			tester.setEMail("tester3@structr.com");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final User tester       = app.nodeQuery(User.class).andName("tester").getFirst();
+			final List<Folder> dirs = app.nodeQuery(Folder.class).getAsList();
+			final Set<String> names = new HashSet<>();
+
+			// there should only be two directories: home, and the home directory of the user
+			assertEquals("Too many directories exist after modifying a user", 2, dirs.size());
+
+			for (final Folder folder : dirs) {
+				names.add(folder.getName());
+			}
+
+			// check for "home" directory
+			assertTrue("A directory named 'home' must exist", names.contains("home"));
+
+			// check for user home directory (which has the user's UUID as its name)
+			assertTrue("A directory named 'home' must exist", names.contains(tester.getUuid()));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

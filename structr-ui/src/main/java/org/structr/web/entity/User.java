@@ -83,7 +83,7 @@ public interface User extends Principal {
 			.addParameter("workingDirectory", "org.structr.web.entity.Folder");
 
 		user.relate(image,  "PICTURE_OF",  Cardinality.OneToOne,  "pictureOfUser",     "img");
-		user.relate(folder, "HOME_DIR",    Cardinality.ManyToOne, "homeFolderOfUser",  "homeDirectory");
+		user.relate(folder, "HOME_DIR",    Cardinality.OneToOne,  "homeFolderOfUser",  "homeDirectory");
 		user.relate(folder, "WORKING_DIR", Cardinality.ManyToOne, "workFolderOfUsers", "workingDirectory");
 
 		// view configuration
@@ -195,10 +195,7 @@ public interface User extends Principal {
 					StructrApp.getInstance().delete(homeDir);
 				}
 
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-
+			} catch (Throwable ignore) {
 			} finally {
 
 				// restore previous context

@@ -130,8 +130,6 @@ public class ModificationQueue {
 
 		for (final TransactionPostProcess process : postProcesses.values()) {
 
-			System.out.println(process.getClass().getName());
-
 			if (!process.execute(securityContext, errorBuffer)) {
 				return false;
 			}
