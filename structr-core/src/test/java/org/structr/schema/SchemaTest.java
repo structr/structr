@@ -34,7 +34,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -280,8 +279,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test03SchemaBuilder() {
 
-		Settings.LogSchemaOutput.setValue(true);
-
 		// we need to wait for the schema service to be initialized here.. :(
 		try { Thread.sleep(1000); } catch (Throwable t) {}
 
@@ -484,8 +481,6 @@ public class SchemaTest extends StructrTest {
 		final Class groupType = StructrApp.getConfiguration().getNodeEntityClass("Group");
 		NodeInterface group   = null;
 
-		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
-
 		try (final Tx tx = app.tx()) {
 
 			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Group").getFirst();
@@ -540,7 +535,6 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testJavaSchemaMethodWithEmptySource() {
 
-		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
 
 		try (final Tx tx = app.tx()) {
 
@@ -567,8 +561,6 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void testViewInheritedFromInterface() {
-
-		Settings.LogSchemaOutput.setValue(Boolean.TRUE);
 
 		try (final Tx tx = app.tx()) {
 

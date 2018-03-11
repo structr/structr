@@ -67,7 +67,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            overridesExisting     = new BooleanProperty("overridesExisting").indexed();
 	public static final Property<Boolean>            doExport              = new BooleanProperty("doExport").indexed();
 	public static final Property<String>             codeType              = new StringProperty("codeType").indexed();
-	public static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
+	public static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema").indexed();
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
 		name, schemaNode, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema

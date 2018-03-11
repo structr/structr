@@ -183,9 +183,13 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		super.onCreation(securityContext, errorBuffer);
 
+		final PropertyMap map = new PropertyMap();
+
 		// store old property names
-		setProperty(previousSourceJsonName, getProperty(sourceJsonName));
-		setProperty(previousTargetJsonName, getProperty(targetJsonName));
+		map.put(previousSourceJsonName, getProperty(sourceJsonName));
+		map.put(previousTargetJsonName, getProperty(targetJsonName));
+
+		setProperties(securityContext, map);
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
@@ -200,9 +204,13 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		checkAndRenameSourceAndTargetJsonNames();
 
+		final PropertyMap map = new PropertyMap();
+
 		// store old property names
-		setProperty(previousSourceJsonName, getProperty(sourceJsonName));
-		setProperty(previousTargetJsonName, getProperty(targetJsonName));
+		map.put(previousSourceJsonName, getProperty(sourceJsonName));
+		map.put(previousTargetJsonName, getProperty(targetJsonName));
+
+		setProperties(securityContext, map);
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());

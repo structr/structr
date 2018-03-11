@@ -30,7 +30,6 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -244,7 +243,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
 		int index                               = 0;
 
 		getOrCreateProperties.put(SchemaMethod.name,                  getName());
@@ -258,15 +256,13 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
 		getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
 		getOrCreateProperties.put(SchemaMethod.doExport,              doExport());
+		getOrCreateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 
 		SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(getOrCreateProperties).getFirst();
 		if (method == null) {
 
 			method = app.create(SchemaMethod.class, getOrCreateProperties);
 		}
-
-		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
-		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// create database schema for method parameters
 		for (final StructrParameterDefinition param : parameters) {

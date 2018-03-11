@@ -93,6 +93,7 @@ public class StructrCustomProperty extends StructrPropertyDefinition implements 
 
 		super.deserialize(schemaProperty);
 
+		setFormat(schemaProperty.getFormat());
 		setFqcn(schemaProperty.getFqcn());
 	}
 

@@ -113,7 +113,7 @@ public class NodeExtender {
 
 		if (!jfiles.isEmpty()) {
 
-			logger.debug("Compiling {} dynamic entities...", jfiles.size());
+			logger.info("Compiling {} dynamic entities...", jfiles.size());
 
 			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
 
