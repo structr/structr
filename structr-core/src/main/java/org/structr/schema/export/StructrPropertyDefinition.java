@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -270,6 +271,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
+		final PropertyMap updateProperties      = new PropertyMap();
 
 		getOrCreateProperties.put(SchemaProperty.name, getName());
 		getOrCreateProperties.put(SchemaProperty.schemaNode, schemaNode);
@@ -289,20 +291,23 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
 			getOrCreateProperties.put(SchemaProperty.defaultValue, defaultValue);
 
-			if (parent != null) {
-
-				final JsonSchema root = parent.getSchema();
-				if (root != null) {
-
-					if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
-
-						getOrCreateProperties.put(SchemaProperty.isPartOfBuiltInSchema, true);
-					}
-				}
-			}
-
 			property = app.create(SchemaProperty.class, getOrCreateProperties);
 		}
+
+		if (parent != null) {
+
+			final JsonSchema root = parent.getSchema();
+			if (root != null) {
+
+				if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
+
+				updateProperties.put(SchemaProperty.isPartOfBuiltInSchema, true);
+				}
+			}
+		}
+
+		// update properties
+		property.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// return modified property
 		return property;
