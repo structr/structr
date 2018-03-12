@@ -156,6 +156,11 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		return false;
 	}
 
+	@Override
+	public boolean waitAndRetry() {
+		return false;
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {

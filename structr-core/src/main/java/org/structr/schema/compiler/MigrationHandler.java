@@ -16,15 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.error;
+package org.structr.schema.compiler;
+
+import org.structr.common.error.ErrorToken;
+import org.structr.common.error.FrameworkException;
 
 /**
  *
- *
  */
-public class InvalidPropertySchemaToken extends ErrorToken {
+public interface MigrationHandler {
 
-	public InvalidPropertySchemaToken(final String type, final String property, final String source, final String errorToken, final String reason) {
-		super(type, property, errorToken, reason);
-	}
+	public void handleMigration(final ErrorToken errorToken) throws FrameworkException;
 }

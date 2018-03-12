@@ -295,6 +295,11 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	}
 
 	@Override
+	public boolean waitAndRetry() {
+		return false;
+	}
+
+	@Override
 	public String getModuleName() {
 		return "ui";
 	}

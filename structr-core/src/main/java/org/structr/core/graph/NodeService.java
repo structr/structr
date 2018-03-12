@@ -164,6 +164,11 @@ public class NodeService implements SingletonService {
 		return true;
 	}
 
+	@Override
+	public boolean waitAndRetry() {
+		return true;
+	}
+
 	public Index<Node> getNodeIndex() {
 		return nodeIndex;
 	}

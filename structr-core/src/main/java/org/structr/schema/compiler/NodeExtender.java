@@ -189,7 +189,7 @@ public class NodeExtender {
 			if (diagnostic.getKind().equals(Kind.ERROR)) {
 
 				final JavaFileObject obj = diagnostic.getSource();
-				String name        = "unknown";
+				String name              = "unknown";
 
 				if (obj != null && obj instanceof CharSequenceJavaFileObject) {
 					name = ((CharSequenceJavaFileObject)obj).getClassName();

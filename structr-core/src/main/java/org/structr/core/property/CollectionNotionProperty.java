@@ -64,8 +64,8 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 		super(name);
 
-		this.notion = notion;
-		this.collectionProperty   = base;
+		this.notion             = notion;
+		this.collectionProperty = base;
 
 		notion.setType(base.relatedType());
 	}

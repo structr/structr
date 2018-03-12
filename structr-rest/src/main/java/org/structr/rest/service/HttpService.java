@@ -44,7 +44,6 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -222,7 +221,7 @@ public class HttpService implements RunnableService {
 		}
 
 		servletContext.setGzipHandler(gzipHandler);
-		
+
 		final List<Connector> connectors = new LinkedList<>();
 
 		// create resource collection from base path & source JAR
@@ -266,21 +265,21 @@ public class HttpService implements RunnableService {
 		}
 
 		sessionCache = new DefaultSessionCache(servletContext.getSessionHandler());
-		
+
 		if (licenseManager != null) {
-			
+
 			final String hardwareId = licenseManager.getHardwareFingerprint();
-			
+
 			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server);
 			idManager.setWorkerName(hardwareId);
-			
+
 			sessionCache.getSessionHandler().setSessionIdManager(idManager);
-			
+
 		}
-		
+
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
 		//sessionDataStore.setSavePeriodSec(60);
-	
+
 		sessionCache.setSessionDataStore(sessionDataStore);
 		//sessionCache.setSaveOnCreate(true);
 		sessionCache.setSaveOnInactiveEviction(false);
@@ -493,6 +492,11 @@ public class HttpService implements RunnableService {
 	@Override
 	public boolean isVital() {
 		return true;
+	}
+
+	@Override
+	public boolean waitAndRetry() {
+		return false;
 	}
 
 	// ----- interface Feature -----

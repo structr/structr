@@ -274,17 +274,17 @@ public class Services implements StructrServices {
 			final ExecutorService service = Executors.newSingleThreadExecutor();
 			service.submit(new Runnable() {
 
-					@Override
-					public void run() {
+				@Override
+				public void run() {
 
-						// wait a second
-						try { Thread.sleep(100); } catch (Throwable ignore) {}
+					// wait a second
+					try { Thread.sleep(100); } catch (Throwable ignore) {}
 
-						// call initialization callbacks from a different thread
-						for (final InitializationCallback callback : singletonInstance.callbacks) {
-							callback.initializationDone();
-						}
+					// call initialization callbacks from a different thread
+					for (final InitializationCallback callback : singletonInstance.callbacks) {
+						callback.initializationDone();
 					}
+				}
 
 			}).get();
 
@@ -443,6 +443,11 @@ public class Services implements StructrServices {
 
 	public void startService(final Class serviceClass) {
 
+		int retryCount       = 10;
+		int retryDelay       = 30;
+		boolean waitAndRetry = true;
+		boolean isVital      = false;
+
 		logger.info("Creating {}..", serviceClass.getSimpleName());
 
 		try {
@@ -455,36 +460,76 @@ public class Services implements StructrServices {
 				return;
 			}
 
-			if (service.initialize(this)) {
+			isVital    = service.isVital();
+			retryCount = service.getRetryCount();
+			retryDelay = service.getRetryDelay();
 
-				if (service instanceof RunnableService) {
+			while (waitAndRetry && retryCount-- > 0) {
 
-					RunnableService runnableService = (RunnableService) service;
+				waitAndRetry = service.waitAndRetry();
 
-					if (runnableService.runOnStartup()) {
+				try {
 
-						// start RunnableService and cache it
-						runnableService.startService();
+					if (service.initialize(this)) {
+
+						if (service instanceof RunnableService) {
+
+							RunnableService runnableService = (RunnableService) service;
+
+							if (runnableService.runOnStartup()) {
+
+								// start RunnableService and cache it
+								runnableService.startService();
+							}
+						}
+
+						if (service.isRunning()) {
+
+							// cache service instance
+							serviceCache.put(serviceClass, service);
+						}
+
+						// initialization callback
+						service.initialized();
+
+						// abort wait and retry loop
+						waitAndRetry = false;
+
+					} else if (isVital && !waitAndRetry) {
+
+						checkVitalService(serviceClass, null);
+					}
+
+				} catch (Throwable t) {
+
+					logger.warn("Service {} failed to start: {}", serviceClass.getSimpleName(), t.getMessage());
+
+					if (isVital && !waitAndRetry) {
+						checkVitalService(serviceClass, t);
 					}
 				}
 
-				if (service.isRunning()) {
+				if (waitAndRetry) {
 
-					// cache service instance
-					serviceCache.put(serviceClass, service);
+					if (retryCount > 0) {
+
+						logger.warn("Retrying in {} seconds..", (retryDelay * 1000));
+						Thread.sleep(retryDelay * 1000);
+
+					} else {
+
+						if (isVital) {
+							checkVitalService(serviceClass, null);
+						}
+					}
 				}
-
-				// initialization callback
-				service.initialized();
-
-			} else {
-
-				logger.error("Service {} failed to start", serviceClass.getSimpleName());
 			}
 
 		} catch (Throwable t) {
 
-			logger.error("Service {} failed to start", serviceClass.getSimpleName(), t);
+			if (isVital) {
+				checkVitalService(serviceClass, t);
+			}
 		}
 	}
 
@@ -711,5 +756,22 @@ public class Services implements StructrServices {
 		}
 
 		return false;
+	}
+
+	// ----- private methods -----
+	private void checkVitalService(final Class service, final Throwable t) {
+
+		if (t != null) {
+
+			logger.error("Vital service {} failed to start with {}, aborting.", service.getSimpleName(), t.getMessage() );
+			System.err.println("Vital service " + service.getSimpleName() + " failed to start with " + t.getMessage() + ", aborting.");
+
+		} else {
+
+			logger.error("Vital service {} failed to start, aborting.", service.getSimpleName() );
+			System.err.println("Vital service " + service.getSimpleName() + " failed to start, aborting.");
+
+		}
+		System.exit(1);
 	}
 }

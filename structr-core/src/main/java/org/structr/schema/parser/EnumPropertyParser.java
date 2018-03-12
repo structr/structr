@@ -96,7 +96,7 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 
 				} else {
 
-					reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]{1}[a-zA-Z0-9_]*."));
+					reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid enum type name, must match [a-zA-Z_]{1}[a-zA-Z0-9_]*."));
 
 				}
 			}
@@ -114,7 +114,7 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 
 		} else {
 
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
+			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "No enum types found, please specify a list of types, e.g. (red, green, blue)"));
 		}
 	}
 

@@ -34,8 +34,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Deserializes a {@link GraphObject} using a type and a property value.
  *
@@ -45,18 +43,18 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeAndValueDeserializationStrategy.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	protected RelationProperty<S> relationProperty = null;
 	protected boolean createIfNotExisting          = false;
 	protected PropertyKey propertyKey              = null;
-
-	//~--- constructors ---------------------------------------------------
 
 	public TypeAndValueDeserializationStrategy(PropertyKey propertyKey, boolean createIfNotExisting) {
 
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKey         = propertyKey;
+
+		if (propertyKey == null) {
+			throw new IllegalStateException("TypeAndValueDeserializationStrategy must contain at least one property.");
+		}
 	}
 
 	@Override

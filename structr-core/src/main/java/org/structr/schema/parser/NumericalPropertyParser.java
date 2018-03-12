@@ -88,7 +88,7 @@ public abstract class NumericalPropertyParser extends PropertySourceGenerator {
 		}
 
 		if (error) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_range_expression", rangeFormatErrorMessage));
+			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_range_expression", rangeFormatErrorMessage));
 		}
 	}
 

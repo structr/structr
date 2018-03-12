@@ -35,8 +35,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
  *
@@ -50,15 +48,18 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	protected PropertyKey[] propertyKeys        = null;
 	protected boolean createIfNotExisting       = false;
 
-	//~--- constructors ---------------------------------------------------
-
 	public TypeAndPropertySetDeserializationStrategy(PropertyKey... propertyKeys) {
 		this(false, propertyKeys);
 	}
 
 	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, PropertyKey... propertyKeys) {
+
 		this.createIfNotExisting = createIfNotExisting;
 		this.propertyKeys = propertyKeys;
+
+		if (propertyKeys == null || propertyKeys.length == 0) {
+			throw new IllegalStateException("TypeAndPropertySetDeserializationStrategy must contain at least one property.");
+		}
 	}
 
 	@Override
@@ -164,8 +165,8 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 				default:
 
 					errorMessage = "Found " + size + " nodes for given type and properties, property set is ambiguous";
-					logger.error(""
-						+ "This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
+					logger.error(errorMessage +
+						". This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
 
 					break;
 			}

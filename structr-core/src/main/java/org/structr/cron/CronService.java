@@ -185,6 +185,11 @@ public class CronService extends Thread implements RunnableService {
 		return false;
 	}
 
+	@Override
+	public boolean waitAndRetry() {
+		return false;
+	}
+
 	// ----- private methods -----
 	private Class instantiate(final String taskClass) {
 

@@ -76,4 +76,17 @@ public interface Service extends Feature {
 	 * @return a boolean indicating whether the service is vital for startup
 	 */
 	boolean isVital();
+
+	/**
+	 * @return a boolean indicating whether the system should wait for this service to start and retry
+	 */
+	boolean waitAndRetry();
+
+	default int getRetryCount() {
+		return 10;
+	}
+
+	default int getRetryDelay() {
+		return 30;
+	}
 }

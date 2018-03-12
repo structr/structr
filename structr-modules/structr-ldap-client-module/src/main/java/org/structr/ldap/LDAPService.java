@@ -347,6 +347,11 @@ public class LDAPService extends Thread implements RunnableService {
 		return false;
 	}
 
+	@Override
+	public boolean waitAndRetry() {
+		return false;
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {

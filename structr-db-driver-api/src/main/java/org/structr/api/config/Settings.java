@@ -135,6 +135,7 @@ public class Settings {
 	public static final Setting<String> HttpProxyUrl          = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.url",                  "");
 	public static final Setting<String> HttpProxyUser         = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.username",             "");
 	public static final Setting<String> HttpProxyPassword     = new StringSetting(applicationGroup,  "Proxy",      "application.proxy.http.password",             "");
+	public static final Setting<Boolean> SchemAutoMigration   = new BooleanSetting(applicationGroup, "Schema",     "application.schema.automigration",            false);
 
 	// mail settings
 	public static final Setting<String> SmtpHost              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.host",         "localhost");

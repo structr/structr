@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,11 +38,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.service.StructrServices;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -54,6 +57,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
+import org.structr.schema.compiler.DeleteSchemaNodeWhenMissingPackage;
+import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
+import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
@@ -64,11 +70,18 @@ import org.structr.schema.json.JsonSchema;
  */
 public class SchemaService implements Service {
 
-	public static final URI DynamicSchemaRootURI  = URI.create("https://structr.org/v2.0/#");
-	private static final Logger logger            = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final JsonSchema dynamicSchema = StructrSchema.newInstance(DynamicSchemaRootURI);
-	private static final AtomicBoolean compiling  = new AtomicBoolean(false);
-	private static final AtomicBoolean updating   = new AtomicBoolean(false);
+	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
+	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
+	private static final List<MigrationHandler> migrationHandlers = new LinkedList<>();
+	private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
+	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
+	private static final AtomicBoolean updating                   = new AtomicBoolean(false);
+
+	static {
+
+		migrationHandlers.add(new DeleteSchemaNodeWhenMissingPackage());
+		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
+	}
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -76,7 +89,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public boolean initialize(final StructrServices services) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return true;
+		return reloadSchema(new ErrorBuffer(), null);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -86,6 +99,7 @@ public class SchemaService implements Service {
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final App app                      = StructrApp.getInstance();
 		boolean success = true;
 
 		// compiling must only be done once
@@ -93,17 +107,17 @@ public class SchemaService implements Service {
 
 			try {
 
-				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(StructrApp.getConfiguration().getTypeAndPropertyMapping());
+				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
 				final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
 				final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
-				try (final Tx tx = StructrApp.getInstance().tx()) {
+				try (final Tx tx = app.tx()) {
 
 					// collect auto-generated schema nodes
 					SchemaService.ensureBuiltinTypesExist();
 
 					// add schema nodes from database
-					for (final SchemaNode schemaInfo : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+					for (final SchemaNode schemaInfo : app.nodeQuery(SchemaNode.class).getAsList()) {
 
 						schemaInfo.handleMigration();
 
@@ -118,7 +132,7 @@ public class SchemaService implements Service {
 					}
 
 					// collect relationship classes
-					for (final SchemaRelationshipNode schemaRelationship : StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+					for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
 						dynamicViews.addAll(schemaRelationship.getDynamicViews());
@@ -150,7 +164,7 @@ public class SchemaService implements Service {
 					}
 
 					// create properties and views etc.
-					for (final SchemaNode schemaNode : StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList()) {
+					for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
 						schemaNode.createBuiltInSchemaEntities(errorBuffer);
 					}
 
@@ -182,19 +196,42 @@ public class SchemaService implements Service {
 						}
 
 						tx.success();
-
-					} else {
-
-						logger.error("Unable to compile dynamic schema. A frequent cause is a missing or expired license, please check license file. If unsure, contact licensing@structr.com.");
-
 					}
+
+				} catch (FrameworkException fex) {
+
+					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
+					success = false;
+
+					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
 				} catch (Throwable t) {
 
-					t.printStackTrace();
-
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					success = false;
+				}
+
+				if (!success) {
+
+					if (Settings.SchemAutoMigration.getValue()) {
+
+						// handle migration in separate transaction
+						try (final Tx tx = app.tx()) {
+
+							// try to handle certain errors automatically
+							handleAutomaticMigration(errorBuffer);
+
+							tx.success();
+
+						} catch (FrameworkException fex) {
+
+						}
+
+					} else {
+
+						logger.error("Unable to compile dynamic schema, and automatic migration is not enabled. Please set application.schema.automigration = true in structr.conf to enable modification of existing schema classes.");
+
+					}
 				}
 
 			} finally {
@@ -210,7 +247,6 @@ public class SchemaService implements Service {
 
 	@Override
 	public void initialized() {
-		reloadSchema(new ErrorBuffer(), null);
 	}
 
 	@Override
@@ -244,6 +280,21 @@ public class SchemaService implements Service {
 	@Override
 	public boolean isVital() {
 		return true;
+	}
+
+	@Override
+	public boolean waitAndRetry() {
+		return true;
+	}
+
+	@Override
+	public int getRetryCount() {
+		return 3;
+	}
+
+	@Override
+	public int getRetryDelay() {
+		return 1;
 	}
 
 	// ----- interface Feature -----
@@ -443,5 +494,18 @@ public class SchemaService implements Service {
 
 		// fallback: use dynamic class from simple name
 		return StructrApp.getConfiguration().getNodeEntityClass(StringUtils.substringAfterLast(name, "."));
+	}
+
+	private static void handleAutomaticMigration(final ErrorBuffer errorBuffer) throws FrameworkException {
+
+
+		for (final ErrorToken errorToken : errorBuffer.getErrorTokens()) {
+
+			for (final MigrationHandler handler : migrationHandlers) {
+
+				handler.handleMigration(errorToken);
+			}
+		}
+
 	}
 }

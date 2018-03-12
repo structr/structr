@@ -66,7 +66,7 @@ public class StringPropertySourceGenerator extends PropertySourceGenerator {
 	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
 
 		if ("[]".equals(expression)) {
-			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_validation_expression", "Empty validation expression."));
+			reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), source.getPropertyName(), expression, "invalid_validation_expression", "Empty validation expression."));
 			return;
 		}
 
