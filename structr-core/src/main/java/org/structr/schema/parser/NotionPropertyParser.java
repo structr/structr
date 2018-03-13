@@ -204,7 +204,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 				return propertyName + "Property";
 			}
 
-		} else {
+		} else if (relatedType != null) {
 
 			type = SchemaHelper.getEntityClassForRawType(relatedType);
 
