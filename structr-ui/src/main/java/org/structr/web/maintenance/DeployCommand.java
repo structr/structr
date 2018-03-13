@@ -1390,6 +1390,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
+			fex.printStackTrace();
+
+			throw fex;
 		}
 	}
 
