@@ -179,6 +179,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 				buf.append(")");
 
 			} else {
+
 				throw new FrameworkException(422, "Invalid notion property expression for property " + source.getPropertyName() +  ".", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + "."));
 			}
 

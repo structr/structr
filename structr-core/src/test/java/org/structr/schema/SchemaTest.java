@@ -326,13 +326,11 @@ public class SchemaTest extends StructrTest {
 
 			worker.addReferenceProperty("taskNames",  tasksProperty, "public", "ui").setProperties("name");
 			worker.addReferenceProperty("taskInfos",  tasksProperty, "public", "ui").setProperties("id", "name");
-			worker.addReferenceProperty("taskErrors", tasksProperty, "public", "ui");
+			worker.addReferenceProperty("taskErrors", tasksProperty, "public", "ui").setProperties("id");
 
 
 			task.addReferenceProperty("workerName",   workerProperty, "public", "ui").setProperties("name");
-			task.addReferenceProperty("workerNotion", workerProperty, "public", "ui");
-
-
+			task.addReferenceProperty("workerNotion", workerProperty, "public", "ui").setProperties("id");
 
 
 			// test date properties..
