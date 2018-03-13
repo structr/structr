@@ -92,7 +92,7 @@ public class ContextStore {
 	}
 
 	public void setCounter(final int level, final int value) {
-		counters.put(level, value+1);
+		counters.put(level, value);
 	}
 
 	public void resetCounter(final int level) {
