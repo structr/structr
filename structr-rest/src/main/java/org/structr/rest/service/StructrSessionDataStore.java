@@ -26,7 +26,7 @@ import org.eclipse.jetty.server.session.SessionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
@@ -41,16 +41,15 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
-	private final App app;
-
 	public StructrSessionDataStore() {
-		app = StructrApp.getInstance();
 	}
 
 	@Override
 	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		assertInitialized();
+
+		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(id);
 
@@ -81,7 +80,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	@Override
 	public boolean exists(final String id) throws Exception {
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		assertInitialized();
+
+		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
 			final boolean exists = AuthHelper.getPrincipalForSessionId(id) != null;
 
@@ -100,9 +101,11 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	@Override
 	public SessionData load(final String id) throws Exception {
 
+		assertInitialized();
+
 		SessionData sessionData = null;
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(id);
 
@@ -130,7 +133,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	@Override
 	public boolean delete(final String id) throws Exception {
 
-		try (final Tx tx = app.tx(false, false, false)) {
+		assertInitialized();
+
+		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
 			SessionHelper.clearSession(id);
 
@@ -144,5 +149,14 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 		}
 
 		return false;
+	}
+
+
+	// ----- private methods -----
+	private void assertInitialized() {
+
+		while (!Services.getInstance().isInitialized()) {
+			try { Thread.sleep(1000); } catch (Throwable t) {}
+		}
 	}
 }

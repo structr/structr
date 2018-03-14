@@ -81,6 +81,7 @@ public class Services implements StructrServices {
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean overridingSchemaTypesAllowed               = true;
+	private boolean shuttingDown                               = false;
 	private boolean shutdownDone                               = false;
 	private String configuredServiceNames                      = null;
 	private String configurationClass                          = null;
@@ -108,6 +109,10 @@ public class Services implements StructrServices {
 	 * @return the command
 	 */
 	public <T extends Command> T command(final SecurityContext securityContext, final Class<T> commandType) {
+
+		if (shuttingDown) {
+			throw new IllegalStateException("System is shutting down, cannot create command of type " + commandType.getSimpleName());
+		}
 
 		try {
 
@@ -330,7 +335,7 @@ public class Services implements StructrServices {
 
 	public void shutdown() {
 
-		initializationDone = false;
+		shuttingDown = true;
 
 		if (!shutdownDone) {
 
