@@ -155,10 +155,6 @@ public class ActionContext {
 		return getContextStore().getCounter(level);
 	}
 
-	public void setCounter(final int level, final int value) {
-		getContextStore().setCounter(level, value);
-	}
-
 	public void resetCounter(final int level) {
 		getContextStore().resetCounter(level);
 	}
