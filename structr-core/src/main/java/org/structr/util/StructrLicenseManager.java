@@ -27,13 +27,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.security.CodeSigner;
 import java.security.Key;
-import java.security.KeyFactory;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,9 +40,6 @@ import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Base64.Decoder;
@@ -60,7 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -368,7 +362,7 @@ public class StructrLicenseManager implements LicenseManager {
 		// verify host ID
 		if (!thisHostId.equals(hostId) && !"*".equals(hostId)) {
 
-			logger.error("Host ID found in license file does not match current host ID.");
+			logger.error("Host ID found in license ({}) file does not match current host ID.", hostId);
 			return false;
 		}
 
