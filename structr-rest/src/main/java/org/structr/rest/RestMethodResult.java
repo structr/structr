@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
@@ -44,13 +45,13 @@ public class RestMethodResult {
 
 	private static final Logger logger = LoggerFactory.getLogger(RestMethodResult.class.getName());
 
-	private List<GraphObject> content                 = null;
+	private boolean serializeSingleObjectAsCollection = Settings.ForceArrays.getValue(false);
+	private boolean serializeAsPrimitiveArray         = false;
 	private Map<String, String> headers               = null;
+	private List<GraphObject> content                 = null;
+	private Object nonGraphObjectResult               = null;
 	private int responseCode                          = 0;
 	private String message                            = null;
-	private boolean serializeSingleObjectAsCollection = false;
-	private boolean serializeAsPrimitiveArray         = false;
-	private Object nonGraphObjectResult               = null;
 
 	public RestMethodResult(final int responseCode) {
 		this.headers      = new LinkedHashMap<>();
