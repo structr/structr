@@ -854,7 +854,7 @@ public class Importer {
 								if (value != null) {
 
 									// store value using actual input converter
-									final PropertyKey actualKey = StructrApp.key(newNodeType, camelCaseKey);
+									final PropertyKey actualKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, camelCaseKey, false);
 									if (actualKey != null) {
 
 										final PropertyConverter converter = actualKey.inputConverter(securityContext);
@@ -876,13 +876,14 @@ public class Importer {
 
 							} else if (key.startsWith(DATA_STRUCTR_PREFIX)) { // don't convert data-structr-* attributes as they are internal
 
-								final PropertyKey propertyKey = StructrApp.key(newNodeType, key);
+								final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, key);
 								if (propertyKey != null) {
 
 									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
 									if (value != null && inputConverter != null) {
 
 										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
+
 									} else {
 
 										newNodeProperties.put(propertyKey, value);
@@ -989,7 +990,7 @@ public class Importer {
 					final PropertyKey<String> typeKey = StructrApp.key(Input.class, "_html_type");
 					final String contentType          = newNode.getProperty(typeKey);
 
-					if (contentType.equals("text/css")) {
+					if ("text/css".equals(contentType)) {
 
 						// parse content of style elements and add referenced files to list of resources to be downloaded
 						for (final Node styleContentNode : node.childNodes()) {
