@@ -54,7 +54,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
@@ -70,7 +69,6 @@ import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.schema.json.JsonMethod;
 import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.ClosingFileOutputStream;
 import org.structr.web.common.FileHelper;
@@ -184,12 +182,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			.setReturnType(java.io.File.class.getName())
 			.addParameter("doCreate", "boolean")
 			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);");
-
-		// relationships
-		final JsonObjectType minifiedFile = (JsonObjectType)schema.getType("AbstractMinifiedFile");
-		final JsonReferenceType rel       = minifiedFile.relate(type, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
-
-		rel.addIntegerProperty("position", PropertyView.Public);
 
 		type.addMethod("doCSVImport")
 			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")

@@ -32,15 +32,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.NodeHasLocation;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * A factory for structr nodes.
+ * A factory for Structr nodes.
  *
  * @param <T>
- *
- *
- *
  */
 public class NodeFactory<T extends NodeInterface & AccessControllable> extends Factory<Node, T> {
 

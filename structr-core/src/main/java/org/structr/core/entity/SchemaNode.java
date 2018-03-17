@@ -18,12 +18,22 @@
  */
 package org.structr.core.entity;
 
+import graphql.Scalars;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLOutputType;
+import graphql.schema.GraphQLType;
+import static graphql.schema.GraphQLTypeReference.typeRef;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -52,6 +62,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.graphql.PropertyKeyDataFetcher;
 
 /**
  *
@@ -341,6 +352,105 @@ public class SchemaNode extends AbstractSchemaNode {
 				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
 				removeProperty(extendsClass);
 			}
+		}
+	}
+
+	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes) {
+
+		final Map<String, GraphQLFieldDefinition> fields = new LinkedHashMap<>();
+		final String className                           = getClassName();
+
+		// add dynamic fields
+		for (final SchemaProperty property : getSchemaProperties()) {
+
+			final GraphQLFieldDefinition field = property.getGraphQLField(className);
+			if (field != null) {
+
+				fields.put(field.getName(), field);
+			}
+		}
+
+		// outgoing relationships
+		for (final SchemaRelationshipNode outNode : getProperty(SchemaNode.relatedTo)) {
+			registerOutgoingGraphQLFields(fields, outNode);
+		}
+
+		// incoming relationships
+		for (final SchemaRelationshipNode inNode : getProperty(SchemaNode.relatedFrom)) {
+			registerIncomingGraphQLFields(fields, inNode);
+		}
+
+		// add static fields (id, name etc.)
+		fields.putIfAbsent("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "id")).build());
+		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "type")).build());
+		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "name")).build());
+		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "owner")).build());
+		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "createdBy")).build());
+		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "createdDate")).build());
+		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "lastModifiedBy")).build());
+		fields.putIfAbsent("lastModifiedDate", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedDate").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "lastModifiedDate")).build());
+		fields.putIfAbsent("visibleToPublicUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToPublicUsers").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "visibleToPublicUsers")).build());
+		fields.putIfAbsent("visibleToAuthenticatedUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToAuthenticatedUsers").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "visibleToAuthenticatedUsers")).build());
+
+		// register type in GraphQL schema
+		graphQLTypes.put(className, GraphQLObjectType.newObject().name(className).fields(new LinkedList<>(fields.values())).build());
+	}
+
+	// ----- private methods -----
+	private void registerOutgoingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode outNode) {
+
+		final SchemaNode sourceNode = outNode.getSourceNode();
+		final SchemaNode targetNode = outNode.getTargetNode();
+		final String targetTypeName = targetNode.getClassName();
+		final String propertyName   = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
+
+		final GraphQLFieldDefinition field = GraphQLFieldDefinition
+			.newFieldDefinition()
+			.name(propertyName)
+			.type(getGraphQLTypeForCardinality(outNode, targetTypeName, true))
+			.dataFetcher(new PropertyKeyDataFetcher<>(sourceNode.getClassName(), propertyName))
+			.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
+			.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
+			.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
+			.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
+			.build();
+
+		// register field
+		fields.put(propertyName, field);
+	}
+
+	private void registerIncomingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode inNode) {
+
+		final SchemaNode sourceNode = inNode.getSourceNode();
+		final SchemaNode targetNode = inNode.getTargetNode();
+		final String sourceTypeName = sourceNode.getClassName();
+		final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
+
+		final GraphQLFieldDefinition field = GraphQLFieldDefinition
+			.newFieldDefinition()
+			.name(propertyName)
+			.type(getGraphQLTypeForCardinality(inNode, sourceTypeName, false))
+			.dataFetcher(new PropertyKeyDataFetcher<>(targetNode.getClassName(), propertyName))
+			.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
+			.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
+			.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
+			.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
+			.build();
+
+		// register field
+		fields.put(propertyName, field);
+	}
+
+	private GraphQLOutputType getGraphQLTypeForCardinality(final SchemaRelationshipNode node, final String targetTypeName, final boolean outgoing) {
+
+		switch (node.getMultiplicity(outgoing)) {
+
+			case "1":
+				return typeRef(targetTypeName);
+
+			default:
+				return new GraphQLList(typeRef(targetTypeName));
+
 		}
 	}
 

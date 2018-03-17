@@ -18,6 +18,10 @@
  */
 package org.structr.core.entity;
 
+import graphql.Scalars;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,6 +69,7 @@ import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionEntry;
+import org.structr.schema.graphql.PropertyKeyDataFetcher;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.schema.parser.Validator;
@@ -657,7 +662,31 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return _targetType + "/" + _sourceType;
 	}
 
-	// ----- private methods -----
+	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes) {
+
+		final List<GraphQLFieldDefinition> fields = new LinkedList<>();
+		final String className                    = getClassName();
+
+		// add static fields (id, name etc.)
+		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "id")).build());
+		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "type")).build());
+
+		// add dynamic fields
+		for (final SchemaProperty property : getSchemaProperties()) {
+
+			final GraphQLFieldDefinition field = property.getGraphQLField(getClassName());
+			if (field != null) {
+
+				fields.add(field);
+			}
+		}
+
+		final GraphQLObjectType graphQLType = GraphQLObjectType.newObject().name(getClassName()).fields(fields).build();
+
+		// register type in GraphQL schema
+		graphQLTypes.put(className, graphQLType);
+	}
+
 	private String getRelationshipType() {
 
 		String relType = getProperty(relationshipType);

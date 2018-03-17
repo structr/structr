@@ -45,6 +45,7 @@ public class UiResourceProvider implements ResourceProvider {
 
 		resourceMap.put(Pattern.compile("[a-fA-F0-9]{32}"), UuidResource.class);        // matches a UUID without dashes
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);          // cypher query
+		resourceMap.put(Pattern.compile("graphQL"), GraphQLResource.class);             // graphQL query
 		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login
 		resourceMap.put(Pattern.compile("logout"), LogoutResource.class);               // logout
 		resourceMap.put(Pattern.compile("registration"), RegistrationResource.class);   // self-registration

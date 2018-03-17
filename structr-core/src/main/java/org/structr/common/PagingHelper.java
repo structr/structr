@@ -22,21 +22,14 @@ import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.GraphObject;
 import org.structr.core.Result;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Utility for paging
- *
- *
+ * Utility for pagination.
  */
 public class PagingHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(PagingHelper.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	/**
 	 * Return a single page of the list with the given paging parameters.
@@ -46,7 +39,7 @@ public class PagingHelper {
 	 * @param page
 	 * @return subList
 	 */
-	public static List<? extends GraphObject> subList(final List<? extends GraphObject> list, int pageSize, int page) {
+	public static <T> List<T> subList(final List<T> list, int pageSize, int page) {
 
 		if (pageSize <= 0 || page == 0) {
 
@@ -116,7 +109,6 @@ public class PagingHelper {
 		result.setPageSize(pageSize);
 
 		return new Result(subList(result.getResults(), pageSize, page), result.getResults().size(), result.isCollection(), result.isPrimitiveArray());
-
 	}
 
 	public static Result addPagingParameter(Result result, int pageSize, int page) {
@@ -136,15 +128,10 @@ public class PagingHelper {
 		}
 
 		return result;
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	private static int getPageCount(int resultCount, int pageSize) {
 
 		return (int) Math.rint(Math.ceil((double) resultCount / (double) pageSize));
-
 	}
-
 }

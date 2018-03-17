@@ -18,6 +18,8 @@
  */
 package org.structr.schema;
 
+import graphql.Scalars;
+import graphql.schema.GraphQLScalarType;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -127,8 +129,9 @@ public class SchemaHelper {
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
-	private static final Map<String, String> normalizedEntityNameCache = new LinkedHashMap<>();
-	private static final Set<String> basePropertyNames = new LinkedHashSet<>(Arrays.asList("id", "type", "name", "owner", "visibleToAuthenticatedUsers", "visibleToPublicUsers"));
+	public static final Map<Type, GraphQLScalarType> graphQLTypeMap                   = new LinkedHashMap<>();
+	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
+	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList("id", "type", "name", "owner", "visibleToAuthenticatedUsers", "visibleToPublicUsers"));
 
 	static {
 
@@ -154,6 +157,14 @@ public class SchemaHelper {
 		parserMap.put(Type.Date, DatePropertyParser.class);
 		parserMap.put(Type.Count, CountPropertyParser.class);
 		parserMap.put(Type.Join, JoinPropertyParser.class);
+
+		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
+		graphQLTypeMap.put(Type.Integer, Scalars.GraphQLInt);
+		graphQLTypeMap.put(Type.String, Scalars.GraphQLString);
+		graphQLTypeMap.put(Type.Double, Scalars.GraphQLFloat);
+		graphQLTypeMap.put(Type.Long, Scalars.GraphQLLong);
+		graphQLTypeMap.put(Type.Enum, Scalars.GraphQLString);
+		graphQLTypeMap.put(Type.Date, Scalars.GraphQLString);
 	}
 
 	/**
@@ -1595,6 +1606,10 @@ public class SchemaHelper {
 		} catch (Throwable t) {}
 
 		return null;
+	}
+
+	public static GraphQLScalarType getGraphQLTypeForPrimitive(final Type type) {
+		return graphQLTypeMap.get(type);
 	}
 
 	// ----- private methods -----

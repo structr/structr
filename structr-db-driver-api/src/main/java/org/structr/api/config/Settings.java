@@ -159,7 +159,7 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet");
+	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet GraphQLServlet");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "ConfigServlet.enabled",             true);
 
@@ -215,6 +215,11 @@ public class Settings {
 	public static final Setting<Boolean> UploadAllowAnonymous   = new BooleanSetting(servletsGroup, "UploadServlet", "UploadServlet.allowAnonymousUploads", false);
 	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxFileSize",           1000);
 	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet", "UploadServlet.maxRequestSize",        1200);
+
+	public static final Setting<String> GraphQLServletPath       = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.path",                  "/structr/graphql");
+	public static final Setting<String> GraphQLServletClass      = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.class",                 "org.structr.rest.servlet.GraphQLServlet");
+	public static final Setting<String> GraphQLAuthenticator     = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> GraphQLResourceProvider  = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
 
 	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.path",                      "/structr/deploy");
 	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.class",                     "org.structr.web.servlet.DeploymentServlet");

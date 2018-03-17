@@ -23,6 +23,13 @@
 
 package org.structr.schema;
 
+import graphql.Scalars;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -62,6 +69,7 @@ import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
 import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.graphql.NodeDataFetcher;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -76,6 +84,7 @@ public class SchemaService implements Service {
 	private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
 	private static final AtomicBoolean updating                   = new AtomicBoolean(false);
+	private static GraphQLSchema graphQLSchema                    = null;
 
 	static {
 
@@ -96,6 +105,10 @@ public class SchemaService implements Service {
 		return dynamicSchema;
 	}
 
+	public static synchronized GraphQLSchema getGraphQLSchema() {
+		return graphQLSchema;
+	}
+
 	public static boolean reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
@@ -108,6 +121,7 @@ public class SchemaService implements Service {
 			try {
 
 				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
+				final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
 				final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
 				final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
@@ -124,10 +138,15 @@ public class SchemaService implements Service {
 						final String sourceCode = SchemaHelper.getSource(schemaInfo, errorBuffer);
 						if (sourceCode != null) {
 
+							final String className = schemaInfo.getClassName();
+
 							// only load dynamic node if there were no errors while generating
 							// the source code (missing modules etc.)
-							nodeExtender.addClass(schemaInfo.getClassName(), sourceCode);
+							nodeExtender.addClass(className, sourceCode);
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
+
+							// initialize GraphQL engine as well
+							schemaInfo.initializeGraphQL(graphQLTypes);
 						}
 					}
 
@@ -136,6 +155,9 @@ public class SchemaService implements Service {
 
 						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
 						dynamicViews.addAll(schemaRelationship.getDynamicViews());
+
+						// initialize GraphQL engine as well
+						schemaRelationship.initializeGraphQL(graphQLTypes);
 					}
 
 					// this is a very critical section :)
@@ -196,6 +218,40 @@ public class SchemaService implements Service {
 						}
 
 						tx.success();
+
+
+						final GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject();
+
+						// register types in "Query" type
+						for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
+
+							final String className = entry.getKey();
+							final GraphQLType type = entry.getValue();
+
+							// register type in query type
+							queryTypeBuilder.field(GraphQLFieldDefinition
+								.newFieldDefinition()
+								.name(className)
+								.type(new GraphQLList(type))
+								.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
+								.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
+								.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
+								.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
+								.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
+								.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
+								.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
+								.dataFetcher(new NodeDataFetcher(className))
+							);
+						}
+
+						// exchange graphQL schema after successful build
+						synchronized (SchemaService.class) {
+
+							graphQLSchema = GraphQLSchema
+								.newSchema()
+								.query(queryTypeBuilder.name("Query").build())
+								.build(new LinkedHashSet<>(graphQLTypes.values()));
+						}
 					}
 
 				} catch (FrameworkException fex) {
@@ -206,6 +262,8 @@ public class SchemaService implements Service {
 					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
 				} catch (Throwable t) {
+
+					t.printStackTrace();
 
 					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
 					success = false;

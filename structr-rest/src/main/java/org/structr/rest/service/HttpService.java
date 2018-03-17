@@ -597,7 +597,11 @@ public class HttpService implements RunnableService {
 									// check license for servlet
 									if (licenseManager == null || licenseManager.isValid(httpServiceServlet)) {
 
-										httpServiceServlet.getConfig().initializeFromSettings(servletName, resourceProviders);
+										final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();
+										if (cfg != null) {
+											
+											cfg.initializeFromSettings(servletName, resourceProviders);
+										}
 
 										if (servletPath.endsWith("*")) {
 
