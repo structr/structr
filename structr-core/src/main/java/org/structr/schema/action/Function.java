@@ -584,6 +584,11 @@ public abstract class Function<S, T> extends Hint {
 			}
 
 			return res;
+
+		} else if (sourceObject instanceof String) {
+
+			return Function.wrapStringInGraphObjectMap((String)sourceObject);
+
 		}
 
 		return null;
