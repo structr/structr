@@ -19,6 +19,7 @@
 package org.structr.api.index;
 
 import org.structr.api.QueryResult;
+import org.structr.api.search.QueryContext;
 import org.structr.api.search.QueryPredicate;
 
 /**
@@ -31,5 +32,5 @@ public interface Index<T> {
 	void remove(final T t);
 	void remove(final T t, final String key);
 
-	QueryResult<T> query(final QueryPredicate predicate);
+	QueryResult<T> query(final QueryContext context, final QueryPredicate predicate);
 }

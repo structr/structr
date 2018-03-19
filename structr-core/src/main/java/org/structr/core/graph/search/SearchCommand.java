@@ -33,6 +33,7 @@ import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
+import org.structr.api.search.QueryContext;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -220,7 +221,8 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				final QueryResult hits = getIndex().query(rootGroup);
+				final QueryContext ctx = new QueryContext(100000);
+				final QueryResult hits = index.query(ctx, rootGroup);
 				intermediateResult     = factory.instantiate(hits);
 			}
 		}

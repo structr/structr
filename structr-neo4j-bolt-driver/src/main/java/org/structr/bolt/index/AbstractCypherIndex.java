@@ -37,6 +37,7 @@ import org.structr.api.search.ExactQuery;
 import org.structr.api.search.FulltextQuery;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.NotEmptyQuery;
+import org.structr.api.search.QueryContext;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.RangeQuery;
 import org.structr.api.search.RelationshipQuery;
@@ -146,9 +147,9 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	}
 
 	@Override
-	public QueryResult<T> query(final QueryPredicate predicate) {
+	public QueryResult<T> query(final QueryContext context, final QueryPredicate predicate) {
 
-		final AdvancedCypherQuery query = new AdvancedCypherQuery(this);
+		final AdvancedCypherQuery query = new AdvancedCypherQuery(context, this);
 
 		createQuery(this, predicate, query, true);
 
