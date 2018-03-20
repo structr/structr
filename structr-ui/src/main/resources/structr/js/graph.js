@@ -666,8 +666,10 @@ var _Graph = {
 		relIds = [];
 		hiddenNodeTypes = [];
 		hiddenRelTypes = [];
-		graphBrowser.kill();
-		graphBrowser = undefined;
+		if (graphBrowser) {
+			graphBrowser.kill();
+			graphBrowser = undefined;
+		}
 	},
 
 	drawNode: function(node, x, y) {
