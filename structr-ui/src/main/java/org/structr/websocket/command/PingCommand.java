@@ -53,12 +53,12 @@ public class PingCommand extends AbstractCommand {
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("PING received from session {}", sessionId);
 
-		final Principal currentUser = AuthHelper.getPrincipalForSessionId(SessionHelper.getShortSessionId(sessionId));
+		final Principal currentUser = AuthHelper.getPrincipalForSessionId(SessionHelper.getShortSessionId(sessionId), true);
 
 		if (currentUser != null) {
 
 			logger.debug("User found by session id: " + currentUser.getName());
-			
+
 			getWebSocket().send(MessageBuilder.status()
 				.callback(webSocketData.getCallback())
 				.data("username", currentUser.getProperty(AbstractNode.name))

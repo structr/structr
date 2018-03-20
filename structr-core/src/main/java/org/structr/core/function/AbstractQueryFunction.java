@@ -19,17 +19,41 @@
 package org.structr.core.function;
 
 import org.structr.core.app.Query;
+import org.structr.schema.action.Function;
 
 /**
- * Interface to identify functions that execute database queries. This interface
- * allows built-in function evaluation to identify database query functions and
- * set query parameters like paging etc. BEFORE execution of the actual query.
+ * Abstract implementation of the basic functions of the Interface QueryFunction.
  */
-public interface QueryFunction {
+public abstract class AbstractQueryFunction extends Function<Object, Object> implements QueryFunction {
 
-	void setRangeStart(final int start);
-	void setRangeEnd(final int end);
+	private int start = -1;
+	private int end   = -1;
 
-	void applyRange(final Query query);
-	void resetRange();
+	// ----- interface QueryFunction -----
+	@Override
+	public void setRangeStart(final int start) {
+		this.start = start;
+	}
+
+	@Override
+	public void setRangeEnd(final int end) {
+		this.end = end;
+	}
+
+	@Override
+	public void applyRange(final Query query) {
+
+		// paging applied by surrounding slice() function
+		if (start >= 0 && end >= 0) {
+
+			query.getQueryContext().slice(start, end);
+		}
+	}
+
+	@Override
+	public void resetRange() {
+
+		this.start = -1;
+		this.end   = -1;
+	}
 }

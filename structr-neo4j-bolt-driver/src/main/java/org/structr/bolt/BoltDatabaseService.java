@@ -452,6 +452,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return Settings.CypherDebugLogging.getValue();
 	}
 
+	public boolean logPingQueries() {
+		return Settings.CypherDebugLoggingPing.getValue();
+	}
+
 	// ----- interface GraphProperties -----
 	@Override
 	public void setProperty(final String name, final Object value) {

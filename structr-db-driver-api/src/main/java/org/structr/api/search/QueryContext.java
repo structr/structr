@@ -16,27 +16,50 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.index;
-
-import java.util.Map;
-import org.neo4j.driver.v1.types.Node;
-import org.structr.api.QueryResult;
-import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
+package org.structr.api.search;
 
 /**
+ * Context object for index queries.
  */
-public class NodeResultStream extends AbstractResultStream<Node> {
+public class QueryContext {
 
-	public NodeResultStream(final BoltDatabaseService db, final PageableQuery query) {
-		super(db, query);
+	private boolean sliced = false;
+	private int skip = -1;
+	private int limit = -1;
+
+	private boolean isPing = false;
+
+	public QueryContext() {
 	}
 
-	@Override
-	protected QueryResult<Node> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
+	public QueryContext slice(final int from, final int to) {
 
-		final SessionTransaction tx = db.getCurrentTransaction();
-		tx.setIsPing(getQuery().getQueryContext().isPing());
-		return tx.getNodes(statement, data);
+		sliced = true;
+		skip = from;
+		limit = to - from;
+
+		return this;
 	}
+
+	public boolean isSliced () {
+		return sliced;
+	}
+
+	public int getSkip() {
+		return skip;
+	}
+
+	public int getLimit() {
+		return limit;
+	}
+
+	public QueryContext isPing(final boolean isPing) {
+		this.isPing = isPing;
+		return this;
+	}
+
+	public boolean isPing() {
+		return this.isPing;
+	}
+
 }

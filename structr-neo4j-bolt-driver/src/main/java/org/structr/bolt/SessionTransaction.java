@@ -63,6 +63,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	private Transaction tx                            = null;
 	private boolean closed                            = false;
 	private boolean success                           = false;
+	private boolean isPing                            = false;
 
 	public SessionTransaction(final BoltDatabaseService db, final Session session) {
 
@@ -459,27 +460,34 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		if (db.logQueries()) {
 
-			final long time  = System.currentTimeMillis() - t0;
-			final String log = time + "ms";
+			if (!isPing || db.logPingQueries()) {
 
-			if (map != null && map.size() > 0) {
+				final long time  = System.currentTimeMillis() - t0;
+				final String log = time + "ms";
 
-				System.out.print(StringUtils.leftPad(log, 5) + " ");
-				if (statement.contains("extractedContent")) {
-					System.out.println(statement + "\t\t SET on extractedContent - value suppressed");
+				if (map != null && map.size() > 0) {
+
+					System.out.print(StringUtils.leftPad(log, 5) + " ");
+					if (statement.contains("extractedContent")) {
+						System.out.println(statement + "\t\t SET on extractedContent - value suppressed");
+					} else {
+						System.out.println(statement + "\t\t Parameters: " + map.toString());
+					}
 				} else {
-					System.out.println(statement + "\t\t Parameters: " + map.toString());
-				}
-			} else {
 
-				System.out.print(StringUtils.leftPad(log, 5) + " ");
-				System.out.println(statement);
+					System.out.print(StringUtils.leftPad(log, 5) + " ");
+					System.out.println(statement);
+				}
 			}
 		}
 	}
 
 	public void modified(final EntityWrapper wrapper) {
 		modifiedEntities.add(wrapper);
+	}
+
+	public void setIsPing(final boolean isPing) {
+		this.isPing = isPing;
 	}
 
 	// ----- public static methods -----
@@ -564,6 +572,5 @@ public class SessionTransaction implements org.structr.api.Transaction {
 				}
 			};
 		}
-
 	}
 }

@@ -33,6 +33,7 @@ import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
+import org.structr.api.search.QueryContext;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
@@ -95,6 +96,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
+	private QueryContext queryContext            = new QueryContext();
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page);
 	public abstract boolean isRelationshipSearch();
@@ -220,7 +222,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				final QueryResult hits = getIndex().query(rootGroup);
+				final QueryResult hits = index.query(getQueryContext(), rootGroup);
 				intermediateResult     = factory.instantiate(hits);
 			}
 		}
@@ -805,6 +807,23 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		allSupertypes.removeAll(baseTypes);
 
 		return allSupertypes;
+	}
+
+	@Override
+	public void setQueryContext(final QueryContext queryContext) {
+		this.queryContext = queryContext;
+	}
+
+	@Override
+	public QueryContext getQueryContext() {
+		return queryContext;
+	}
+
+	@Override
+	public org.structr.core.app.Query<T> isPing(final boolean isPing) {
+
+		getQueryContext().isPing(isPing);
+		return this;
 	}
 
 	// ----- private methods ----

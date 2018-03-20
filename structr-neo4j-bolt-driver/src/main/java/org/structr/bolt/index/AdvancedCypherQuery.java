@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortType;
 
 /**
@@ -43,10 +44,12 @@ public class AdvancedCypherQuery implements PageableQuery {
 	private int page                             = 0;
 	private int pageSize                         = 0;
 	private int count                            = 0;
+	private QueryContext queryContext            = null;
 
-	public AdvancedCypherQuery(final AbstractCypherIndex<?> index) {
-		this.index    = index;
+	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index) {
+		this.queryContext = queryContext;
 		this.pageSize = 100000;
+		this.index    = index;
 	}
 
 	@Override
@@ -146,7 +149,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 					buf.append(" ORDER BY n.`");
 					buf.append(sortKey);
 					buf.append("` ");
-					
+
 					break;
 
 				default:
@@ -154,11 +157,11 @@ public class AdvancedCypherQuery implements PageableQuery {
 					buf.append(" ORDER BY COALESCE(n.`");
 					buf.append(sortKey);
 					buf.append("`, ");
-					
+
 					// COALESCE needs a correctly typed minimum value,
 					// so we need to supply a value based on the sort
 					// type.
-					
+
 					buf.append("-1");
 					buf.append(")");
 			}
@@ -168,10 +171,21 @@ public class AdvancedCypherQuery implements PageableQuery {
 			}
 		}
 
-		buf.append(" SKIP ");
-		buf.append(page * pageSize);
-		buf.append(" LIMIT ");
-		buf.append(pageSize);
+		if (queryContext.isSliced()) {
+
+			buf.append(" SKIP ");
+			buf.append(queryContext.getSkip());
+			buf.append(" LIMIT ");
+			buf.append(queryContext.getLimit());
+
+		} else {
+
+			buf.append(" SKIP ");
+			buf.append(page * pageSize);
+			buf.append(" LIMIT ");
+			buf.append(pageSize);
+
+		}
 
 		return buf.toString();
 	}
@@ -228,11 +242,11 @@ public class AdvancedCypherQuery implements PageableQuery {
 			final String paramKey = "param" + count++;
 
 			if (isProperty) {
-				
+
 				if (caseInsensitive) {
 					buffer.append("toLower(");
 				}
-				
+
 				buffer.append("n.`");
 			}
 
@@ -354,5 +368,10 @@ public class AdvancedCypherQuery implements PageableQuery {
 		}
 
 		return buf.toString().hashCode();
+	}
+
+	@Override
+	public QueryContext getQueryContext() {
+		return queryContext;
 	}
 }

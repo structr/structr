@@ -19,6 +19,7 @@
 package org.structr.bolt.index;
 
 import java.util.Map;
+import org.structr.api.search.QueryContext;
 
 public interface PageableQuery {
 
@@ -27,4 +28,5 @@ public interface PageableQuery {
 	String getStatement();
 	Map<String, Object> getParameters();
 
+	QueryContext getQueryContext();
 }

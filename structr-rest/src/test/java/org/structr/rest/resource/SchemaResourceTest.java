@@ -22,6 +22,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
 import org.junit.Test;
+import org.structr.api.config.Settings;
 import org.structr.rest.common.StructrRestTest;
 
 /**
@@ -877,6 +878,8 @@ public class SchemaResourceTest extends StructrRestTest {
 		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", ___test: \"find('Test')\" }");
 		createEntity("Test", "{ name: Test }");
 
+		// default setting for "force arrays" is false..
+		Settings.ForceArrays.setValue(false);
 
 		RestAssured
 
@@ -897,6 +900,29 @@ public class SchemaResourceTest extends StructrRestTest {
 
 			.when()
 				.post("/Test/test");
+
+		// test with true as well
+		Settings.ForceArrays.setValue(true);
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result_count", equalTo(1))
+				.body("result[0].type", equalTo("Test"))
+				.body("result[0].name", equalTo("Test"))
+
+			.when()
+				.post("/Test/test");
 	}
 
 	@Test
@@ -906,6 +932,8 @@ public class SchemaResourceTest extends StructrRestTest {
 		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"org.structr.dynamic.TestBase\" }");
 		createEntity("Test", "{ name: Test }");
 
+		// default setting for "force arrays" is false..
+		Settings.ForceArrays.setValue(false);
 
 		RestAssured
 
@@ -923,6 +951,29 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result_count", equalTo(1))
 				.body("result.type", equalTo("Test"))
 				.body("result.name", equalTo("Test"))
+
+			.when()
+				.post("/Test/test");
+
+		// test with true as well
+		Settings.ForceArrays.setValue(true);
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result_count", equalTo(1))
+				.body("result[0].type", equalTo("Test"))
+				.body("result[0].name", equalTo("Test"))
 
 			.when()
 				.post("/Test/test");

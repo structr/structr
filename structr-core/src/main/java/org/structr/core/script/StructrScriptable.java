@@ -259,6 +259,12 @@ public class StructrScriptable extends ScriptableObject {
 			}, null, 0, 0);
 		}
 
+		if ("slice".equals(name)) {
+
+			return new IdFunctionObject(new SliceFunctionCall(actionContext, entity, scriptingContext), null, 0, 0);
+
+		}
+
 		if ("doPrivileged".equals(name) || "do_privileged".equals(name)) {
 
 			return new IdFunctionObject(new IdFunctionCall() {

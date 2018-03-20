@@ -28,18 +28,14 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class SearchFunction extends Function<Object, Object> implements QueryFunction {
+public class SearchFunction extends AbstractQueryFunction {
 
 	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
 	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";
-
-	private int start = -1;
-	private int end   = -1;
 
 	@Override
 	public String getName() {
@@ -49,21 +45,18 @@ public class SearchFunction extends Function<Object, Object> implements QueryFun
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources != null) {
+		try {
+
+			if (sources == null) {
+
+				throw new IllegalArgumentException();
+			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
 
-			// paging applied by surrounding slice() function
-			if (start >= 0 && end >= 0) {
-
-				final int pageSize = end - start;
-				final int page     = start % pageSize;
-
-				query.pageSize(pageSize);
-				query.page(page);
-			}
+			applyRange(query);
 
 			Class type = null;
 
@@ -132,17 +125,17 @@ public class SearchFunction extends Function<Object, Object> implements QueryFun
 				}
 			}
 
-			final Object x = query.getAsList();
-
 			// return search results
-			return x;
+			return query.getAsList();
 
-		} else {
+		} catch (final IllegalArgumentException e) {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
+
+		} finally {
+			resetRange();
 		}
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -154,14 +147,4 @@ public class SearchFunction extends Function<Object, Object> implements QueryFun
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
 	}
 
-	// ----- interface QueryFunction -----
-	@Override
-	public void setRangeStart(final int start) {
-		this.start = start;
-	}
-
-	@Override
-	public void setRangeEnd(final int end) {
-		this.end = end;
-	}
 }
