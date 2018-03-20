@@ -60,7 +60,20 @@ public class BooleanSetting extends Setting<Boolean> {
 	 * @param value
 	 */
 	public BooleanSetting(final SettingsGroup group, final String categoryName, final String key, final Boolean value) {
-		super(group, categoryName, key, value);
+		this(group, categoryName, key, value, null);
+	}
+
+	/**
+	 * Constructor to create a BooleanSetting with category name, default
+	 * value and comment.
+	 *
+	 * @param group
+	 * @param categoryName
+	 * @param key
+	 * @param value
+	 */
+	public BooleanSetting(final SettingsGroup group, final String categoryName, final String key, final Boolean value, final String comment) {
+		super(group, categoryName, key, value, comment);
 	}
 
 	@Override
@@ -68,7 +81,12 @@ public class BooleanSetting extends Setting<Boolean> {
 
 		final Tag group = parent.block("div").css("form-group");
 
-		group.block("label").text(getKey());
+		final Tag label = group.block("label").text(getKey());
+
+		if (getComment() != null) {
+			label.attr(new Attr("class", "has-comment"));
+			label.attr(new Attr("data-comment", getComment()));
+		}
 
 		final Tag trueInput  = group.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value",  "true"));
 		group.block("span").text("Enabled");
