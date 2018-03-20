@@ -23,13 +23,32 @@ package org.structr.api.search;
  */
 public class QueryContext {
 
-	private int pageSize = 100000;
+	private boolean sliced = false;
+	private int skip = -1;
+	private int limit = -1;
 
-	public QueryContext(final int pageSize) {
-		this.pageSize = pageSize;
+	public QueryContext() {
 	}
 
-	public int getPageSize() {
-		return pageSize;
+	public QueryContext slice(final int from, final int to) {
+
+		sliced = true;
+		skip = from;
+		limit = to - from;
+
+		return this;
 	}
+
+	public boolean isSliced () {
+		return sliced;
+	}
+
+	public int getSkip() {
+		return skip;
+	}
+
+	public int getLimit() {
+		return limit;
+	}
+
 }

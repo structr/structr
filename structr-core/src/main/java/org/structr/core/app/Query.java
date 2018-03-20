@@ -20,6 +20,7 @@ package org.structr.core.app;
 
 import java.util.List;
 import org.structr.api.Predicate;
+import org.structr.api.search.QueryContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -34,6 +35,9 @@ import org.structr.core.property.PropertyMap;
  * @param <T>
  */
 public interface Query<T extends GraphObject> extends Iterable<T> {
+
+	public void setQueryContext(final QueryContext queryContext);
+	public QueryContext getQueryContext();
 
 	public Result<T> getResult() throws FrameworkException;
 	public List<T> getAsList() throws FrameworkException;

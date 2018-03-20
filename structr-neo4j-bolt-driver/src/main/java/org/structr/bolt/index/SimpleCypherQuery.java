@@ -20,6 +20,7 @@ package org.structr.bolt.index;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.api.search.QueryContext;
 
 /**
  *
@@ -30,6 +31,7 @@ public class SimpleCypherQuery implements PageableQuery {
 	private String base                      = null;
 	private int pageSize                     = 0;
 	private int page                         = 0;
+	private QueryContext queryContext        = null;
 
 	public SimpleCypherQuery(final String base) {
 
@@ -63,5 +65,10 @@ public class SimpleCypherQuery implements PageableQuery {
 	@Override
 	public Map<String, Object> getParameters() {
 		return params;
+	}
+
+	@Override
+	public QueryContext getQueryContext() {
+		return queryContext;
 	}
 }

@@ -103,15 +103,23 @@ public class SliceExpression extends Expression {
 		}
 
 		// check bounds BEFORE evaluating list expression
-		if (start < 0)   { valid = false; logger.warn("Error in slice(): start index must be > 0."); }
-		if (end < 0)     { valid = false; logger.warn("Error in slice(): end index must be > 0."); }
-		if (start > end) { valid = false; logger.warn("Error in slice(): start index must be <= end index."); }
+		if (start < 0)    { valid = false; logger.warn("Error in slice(): start index must be >= 0."); }
+		if (end < 0)      { valid = false; logger.warn("Error in slice(): end index must be > 0."); }
+		if (start >= end) { valid = false; logger.warn("Error in slice(): start index must be < end index."); }
 
 		if (valid) {
 
 			if (listExpression instanceof QueryFunction) {
 
 				final QueryFunction queryFunction = (QueryFunction)listExpression;
+				queryFunction.setRangeStart(start);
+				queryFunction.setRangeEnd(end);
+
+				return listExpression.evaluate(ctx, entity);
+
+			} else if (listExpression instanceof FunctionExpression && ((FunctionExpression)listExpression).getFunction() instanceof QueryFunction) {
+
+				final QueryFunction queryFunction = (QueryFunction)((FunctionExpression)listExpression).getFunction();
 				queryFunction.setRangeStart(start);
 				queryFunction.setRangeEnd(end);
 

@@ -96,6 +96,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private Class type                           = null;
 	private int pageSize                         = Integer.MAX_VALUE;
 	private int page                             = 1;
+	private QueryContext queryContext            = new QueryContext();
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page);
 	public abstract boolean isRelationshipSearch();
@@ -221,8 +222,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				final QueryContext ctx = new QueryContext(100000);
-				final QueryResult hits = index.query(ctx, rootGroup);
+				final QueryResult hits = index.query(getQueryContext(), rootGroup);
 				intermediateResult     = factory.instantiate(hits);
 			}
 		}
@@ -807,6 +807,16 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		allSupertypes.removeAll(baseTypes);
 
 		return allSupertypes;
+	}
+
+	@Override
+	public void setQueryContext(final QueryContext queryContext) {
+		this.queryContext = queryContext;
+	}
+
+	@Override
+	public QueryContext getQueryContext() {
+		return queryContext;
 	}
 
 	// ----- private methods ----

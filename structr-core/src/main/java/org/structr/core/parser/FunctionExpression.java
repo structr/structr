@@ -105,4 +105,8 @@ public class FunctionExpression extends Expression {
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedException {
 		return source;
 	}
+
+	public Function<Object, Object> getFunction() {
+		return function;
+	}
 }
