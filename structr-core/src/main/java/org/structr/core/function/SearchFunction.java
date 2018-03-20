@@ -56,7 +56,7 @@ public class SearchFunction extends AbstractQueryFunction {
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
 
-			applyRange(query);
+			applyRange(securityContext, query);
 
 			Class type = null;
 

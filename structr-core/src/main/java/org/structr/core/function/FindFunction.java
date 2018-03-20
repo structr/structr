@@ -34,7 +34,7 @@ import org.structr.schema.action.ActionContext;
 /**
  *
  */
-public class FindFunction  extends AbstractQueryFunction {
+public class FindFunction extends AbstractQueryFunction {
 
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
@@ -47,7 +47,6 @@ public class FindFunction  extends AbstractQueryFunction {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
-
 
 		try {
 
@@ -62,7 +61,7 @@ public class FindFunction  extends AbstractQueryFunction {
 			final Query query                     = app.nodeQuery().sort(GraphObject.createdDate).order(false);
 
 			// paging applied by surrounding slice() function
-			applyRange(query);
+			applyRange(securityContext, query);
 
 			// the type to query for
 			Class type = null;

@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
 
 /**
@@ -30,6 +31,6 @@ public interface QueryFunction {
 	void setRangeStart(final int start);
 	void setRangeEnd(final int end);
 
-	void applyRange(final Query query);
+	void applyRange(final SecurityContext securityContext, final Query query);
 	void resetRange();
 }

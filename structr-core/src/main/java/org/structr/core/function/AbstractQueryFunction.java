@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
 import org.structr.schema.action.Function;
 
@@ -41,12 +42,20 @@ public abstract class AbstractQueryFunction extends Function<Object, Object> imp
 	}
 
 	@Override
-	public void applyRange(final Query query) {
+	public void applyRange(final SecurityContext securityContext, final Query query) {
 
 		// paging applied by surrounding slice() function
 		if (start >= 0 && end >= 0) {
 
-			query.getQueryContext().slice(start, end);
+			if (securityContext.getUser(false) != null && (securityContext.getUser(false).isAdmin() || securityContext.isSuperUser())) {
+
+				query.getQueryContext().slice(start, end);
+
+			} else {
+
+				logger.warn("slice() can only be used by privileged users - not applying slice.");
+
+			}
 		}
 	}
 
