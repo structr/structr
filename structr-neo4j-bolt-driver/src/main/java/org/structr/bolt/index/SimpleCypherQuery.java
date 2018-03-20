@@ -31,7 +31,7 @@ public class SimpleCypherQuery implements PageableQuery {
 	private String base                      = null;
 	private int pageSize                     = 0;
 	private int page                         = 0;
-	private QueryContext queryContext        = null;
+	private QueryContext queryContext        = new QueryContext();
 
 	public SimpleCypherQuery(final String base) {
 
