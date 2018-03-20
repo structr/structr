@@ -149,7 +149,7 @@ public class HttpHelper {
 	private static String skipBOMIfPresent (final String content) {
 
 		// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
-		if (content.charAt(0) == 65279) {
+		if (content != null && content.length() > 1 && content.charAt(0) == 65279) {
 			return content.substring(1);
 		}
 
