@@ -105,19 +105,20 @@ public class Settings {
 	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "StructrUiHandler.welcomeFiles",      "index.html");
 
 	// database settings
-	public static final Setting<String> DatabaseDriver         = new StringSetting(databaseGroup,  "Database Driver",     "database.driver",                  "org.structr.bolt.BoltDatabaseService");
-	public static final Setting<String> DatabaseDriverMode     = new ChoiceSetting(databaseGroup,  "Database Driver",     "database.driver.mode",             "embedded", "embedded", "remote");
-	public static final Setting<String> ConnectionUrl          = new StringSetting(databaseGroup,  "Database Connection", "database.connection.url",          "bolt://localhost:7688");
-	public static final Setting<String> TestingConnectionUrl   = new StringSetting(databaseGroup,  "hidden",              "testing.connection.url",           "bolt://localhost:7689");
-	public static final Setting<String> ConnectionUser         = new StringSetting(databaseGroup,  "Database Connection", "database.connection.username",     "neo4j");
-	public static final Setting<String> ConnectionPassword     = new StringSetting(databaseGroup,  "Database Connection", "database.connection.password",     "neo4j");
-	public static final Setting<String> TenantIdentifier       = new StringSetting(databaseGroup,  "Database Connection", "database.tenant.identifier",       "");
-	public static final Setting<Integer> RelationshipCacheSize = new IntegerSetting(databaseGroup, "Caching",             "database.cache.relationship.size", 100000);
-	public static final Setting<Integer> NodeCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.node.size",         100000);
-	public static final Setting<Integer> UuidCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.uuid.size",         100000);
-	public static final Setting<Integer> QueryCacheSize        = new IntegerSetting(databaseGroup, "Caching",             "database.cache.query.size",        1000);
-	public static final Setting<Boolean> CypherDebugLogging    = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug",                 false);
-	public static final Setting<Boolean> SyncDebugging         = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
+	public static final Setting<String> DatabaseDriver          = new StringSetting(databaseGroup,  "Database Driver",     "database.driver",                  "org.structr.bolt.BoltDatabaseService");
+	public static final Setting<String> DatabaseDriverMode      = new ChoiceSetting(databaseGroup,  "Database Driver",     "database.driver.mode",             "embedded", "embedded", "remote");
+	public static final Setting<String> ConnectionUrl           = new StringSetting(databaseGroup,  "Database Connection", "database.connection.url",          "bolt://localhost:7688");
+	public static final Setting<String> TestingConnectionUrl    = new StringSetting(databaseGroup,  "hidden",              "testing.connection.url",           "bolt://localhost:7689");
+	public static final Setting<String> ConnectionUser          = new StringSetting(databaseGroup,  "Database Connection", "database.connection.username",     "neo4j");
+	public static final Setting<String> ConnectionPassword      = new StringSetting(databaseGroup,  "Database Connection", "database.connection.password",     "neo4j");
+	public static final Setting<String> TenantIdentifier        = new StringSetting(databaseGroup,  "Database Connection", "database.tenant.identifier",       "");
+	public static final Setting<Integer> RelationshipCacheSize  = new IntegerSetting(databaseGroup, "Caching",             "database.cache.relationship.size", 100000);
+	public static final Setting<Integer> NodeCacheSize          = new IntegerSetting(databaseGroup, "Caching",             "database.cache.node.size",         100000);
+	public static final Setting<Integer> UuidCacheSize          = new IntegerSetting(databaseGroup, "Caching",             "database.cache.uuid.size",         100000);
+	public static final Setting<Integer> QueryCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.query.size",        1000);
+	public static final Setting<Boolean> CypherDebugLogging     = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
+	public static final Setting<Boolean> CypherDebugLoggingPing = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
+	public static final Setting<Boolean> SyncDebugging          = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
 
 	// application settings
 	public static final Setting<Integer> ResolutionDepth      = new IntegerSetting(applicationGroup, "Security",   "application.security.resolution.depth",       5);

@@ -102,4 +102,8 @@ public abstract class AbstractResultStream<T> implements QueryResult<T> {
 			}
 		};
 	}
+
+	public PageableQuery getQuery() {
+		return query;
+	}
 }

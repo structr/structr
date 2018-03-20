@@ -27,6 +27,8 @@ public class QueryContext {
 	private int skip = -1;
 	private int limit = -1;
 
+	private boolean isPing = false;
+
 	public QueryContext() {
 	}
 
@@ -49,6 +51,15 @@ public class QueryContext {
 
 	public int getLimit() {
 		return limit;
+	}
+
+	public QueryContext isPing(final boolean isPing) {
+		this.isPing = isPing;
+		return this;
+	}
+
+	public boolean isPing() {
+		return this.isPing;
 	}
 
 }

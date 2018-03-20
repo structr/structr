@@ -819,6 +819,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return queryContext;
 	}
 
+	@Override
+	public org.structr.core.app.Query<T> isPing(final boolean isPing) {
+
+		getQueryContext().isPing(isPing);
+		return this;
+	}
+
 	// ----- private methods ----
 	private void assertPropertyIsIndexed(final PropertyKey key) {
 

@@ -38,6 +38,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 
 	public void setQueryContext(final QueryContext queryContext);
 	public QueryContext getQueryContext();
+	public Query<T> isPing(final boolean isPing);
 
 	public Result<T> getResult() throws FrameworkException;
 	public List<T> getAsList() throws FrameworkException;

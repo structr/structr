@@ -36,6 +36,7 @@ public class NodeResultStream extends AbstractResultStream<Node> {
 	protected QueryResult<Node> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
+		tx.setIsPing(getQuery().getQueryContext().isPing());
 		return tx.getNodes(statement, data);
 	}
 }
