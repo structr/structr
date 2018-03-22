@@ -41,13 +41,13 @@ public interface Location extends NodeInterface {
 		type.addNumberProperty("latitude",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addNumberProperty("longitude",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addNumberProperty("altitude",      PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("country");
-		type.addStringProperty("postalCode");
-		type.addStringProperty("city");
-		type.addStringProperty("street");
-		type.addStringProperty("houseNumber");
-		type.addStringProperty("state");
-		type.addStringProperty("stateDistrict");
+		type.addStringProperty("country",       PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("postalCode",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("city",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("street",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("houseNumber",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("state",         PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("stateDistrict", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 	}}
 
 	/*
