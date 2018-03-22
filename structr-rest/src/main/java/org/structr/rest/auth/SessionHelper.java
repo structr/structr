@@ -77,7 +77,7 @@ public class SessionHelper {
 
 	}
 
-	public static HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
+	public static synchronized HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
 
 		try {
 
@@ -123,7 +123,7 @@ public class SessionHelper {
 	 *
 	 * @param sessionId
 	 */
-	public static void clearSession(final String sessionId) {
+	public static synchronized void clearSession(final String sessionId) {
 
 		final App app                            = StructrApp.getInstance();
 		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
@@ -149,7 +149,7 @@ public class SessionHelper {
 	 *
 	 * @param user
 	 */
-	public static void clearInvalidSessions(final Principal user) {
+	public static synchronized void clearInvalidSessions(final Principal user) {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
@@ -164,10 +164,7 @@ public class SessionHelper {
 				try {
 
 					final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
-
-					synchronized (sessionCache) {
-						session = sessionCache.get(sessionId);
-					}
+					session = sessionCache.get(sessionId);
 
 				} catch (Exception ex) {
 					logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
@@ -181,7 +178,7 @@ public class SessionHelper {
 		}
 	}
 
-	public static void invalidateSession(final HttpSession session) {
+	public static synchronized void invalidateSession(final HttpSession session) {
 
 		if (session != null) {
 
@@ -203,7 +200,7 @@ public class SessionHelper {
 		}
 	}
 
-	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
+	public static synchronized Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
 		String requestedSessionId = request.getRequestedSessionId();
 		String sessionId          = null;

@@ -49,7 +49,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(id);
 
@@ -82,7 +82,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final boolean exists = AuthHelper.getPrincipalForSessionId(id) != null;
 
@@ -105,7 +105,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		SessionData sessionData = null;
 
-		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final Principal user = AuthHelper.getPrincipalForSessionId(id);
 
@@ -135,7 +135,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			SessionHelper.clearSession(id);
 
