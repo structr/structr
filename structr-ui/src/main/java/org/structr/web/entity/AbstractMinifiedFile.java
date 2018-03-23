@@ -59,7 +59,7 @@ public interface AbstractMinifiedFile extends File {
 		type.overrideMethod("onModification", true,  AbstractMinifiedFile.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 
 		// relationships
-		final JsonObjectType file   = (JsonObjectType)schema.getType("AbstractMinifiedFile");
+		final JsonObjectType file   = (JsonObjectType)schema.getType("File");
 		final JsonReferenceType rel = type.relate(file, "MINIFICATION", Cardinality.ManyToMany, "minificationTargets", "minificationSources");
 
 		// add method

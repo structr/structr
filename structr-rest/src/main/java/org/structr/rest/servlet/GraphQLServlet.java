@@ -1,0 +1,207 @@
+/**
+ * Copyright (C) 2010-2018 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.rest.servlet;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import graphql.ExecutionInput;
+import graphql.ExecutionResult;
+import graphql.GraphQL;
+import java.io.IOException;
+import java.util.Collections;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.Tx;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.service.HttpServiceServlet;
+import org.structr.rest.service.StructrHttpServiceConfig;
+import org.structr.schema.SchemaService;
+
+/**
+ * A servlet that implements the structr graphQL endpoint.
+ */
+public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
+
+	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
+	private static final Logger logger                                  = LoggerFactory.getLogger(GraphQLServlet.class.getName());
+
+	// final fields
+	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+
+	@Override
+	public StructrHttpServiceConfig getConfig() {
+		return config;
+	}
+
+	@Override
+	public String getModuleName() {
+		return "graphql";
+	}
+
+	@Override
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		try {
+
+			assertInitialized();
+
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			final String query = request.getParameter("query");
+
+			handleGraphQLRequest(request, response, query);
+
+		} catch (FrameworkException fex) {
+
+			// set status & write JSON output
+			response.setStatus(fex.getStatus());
+
+			getGson().toJson(fex, response.getWriter());
+
+			response.getWriter().println();
+		}
+	}
+
+	@Override
+	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		try {
+
+			assertInitialized();
+
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			// get reader before initalizing security context
+			final String query = IOUtils.toString(request.getReader());
+
+			handleGraphQLRequest(request, response, query);
+
+		} catch (FrameworkException fex) {
+
+			// set status & write JSON output
+			response.setStatus(fex.getStatus());
+
+			getGson().toJson(fex, response.getWriter());
+
+			response.getWriter().println();
+		}
+	}
+
+	// ----- private methods -----
+	private void handleGraphQLRequest(final HttpServletRequest request, final HttpServletResponse response, final String query) throws IOException, FrameworkException {
+
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+
+		try {
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				authenticator   = config.getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+
+				tx.success();
+			}
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			if (securityContext != null) {
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+
+					final GraphQL graphQL        = GraphQL.newGraphQL(SchemaService.getGraphQLSchema()).build();
+					final ExecutionResult result = graphQL.execute(new ExecutionInput(query, null, securityContext, null, Collections.EMPTY_MAP));
+
+					if (result != null) {
+
+						getGson().toJson(result.toSpecification(), response.getWriter());
+					}
+
+					tx.success();
+				}
+			}
+
+		} catch (FrameworkException frameworkException) {
+
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			getGson().toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+
+		} catch (UnsupportedOperationException uoe) {
+
+			logger.warn("POST not supported");
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "POST not supported: " + uoe.getMessage()));
+
+		} catch (Throwable t) {
+
+			logger.warn("Exception in POST", t);
+
+			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+
+		} finally {
+
+			try {
+				//response.getWriter().flush();
+				response.getWriter().close();
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
+			}
+		}
+	}
+
+	private void assertInitialized() throws FrameworkException {
+
+		if (!Services.getInstance().isInitialized()) {
+			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
+		}
+	}
+
+	private Gson getGson() {
+		return new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+	}
+}

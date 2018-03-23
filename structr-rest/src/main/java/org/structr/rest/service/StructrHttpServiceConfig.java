@@ -105,8 +105,8 @@ public class StructrHttpServiceConfig {
 
 		}
 
-		this.defaultPropertyView = Settings.getOrCreateStringSetting(servletName, defaultPropertyKeyName).getValue();
-		this.outputNestingDepth  = Settings.getOrCreateIntegerSetting(servletName, nestingDepthKeyName).getValue();
+		this.defaultPropertyView = Settings.getOrCreateStringSetting(servletName, defaultPropertyKeyName).getValue("public");
+		this.outputNestingDepth  = Settings.getOrCreateIntegerSetting(servletName, nestingDepthKeyName).getValue(0);
 	}
 
 	public Authenticator getAuthenticator() {

@@ -78,8 +78,8 @@ public interface ODFExporter extends NodeInterface {
 			.addException(FrameworkException.class.getName())
 			.setDoExport(true);
 
-		type.relate(file, "EXPORTS_TO",               Relation.Cardinality.OneToOne, "odfExporter", "resultDocument");
-		type.relate(file, "USES_TEMPLATE",            Relation.Cardinality.OneToOne, "odfExporter", "documentTemplate");
+		type.relate(file, "EXPORTS_TO",               Relation.Cardinality.OneToOne, "resultDocumentForExporter", "resultDocument");
+		type.relate(file, "USES_TEMPLATE",            Relation.Cardinality.OneToOne, "documentTemplateForExporter", "documentTemplate");
 		type.relate(virt, "GETS_TRANSFORMATION_FROM", Relation.Cardinality.OneToOne, "odfExporter", "transformationProvider");
 
 		type.addViewProperty(PropertyView.Public, "transformationProvider");

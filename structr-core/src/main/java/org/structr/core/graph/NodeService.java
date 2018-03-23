@@ -49,15 +49,11 @@ public class NodeService implements SingletonService {
 	private static final Logger logger            = LoggerFactory.getLogger(NodeService.class.getName());
 	private static final String INITIAL_SEED_FILE = "seed.zip";
 
-	//~--- fields ---------------------------------------------------------
-
 	private DatabaseService graphDb      = null;
 	private Index<Node> nodeIndex        = null;
 	private Index<Relationship> relIndex = null;
 	private String filesPath             = null;
 	private boolean isInitialized        = false;
-
-	//~--- constant enums -------------------------------------------------
 
 	@Override
 	public void injectArguments(Command command) {
@@ -137,9 +133,7 @@ public class NodeService implements SingletonService {
 
 			graphDb       = null;
 			isInitialized = false;
-
 		}
-
 	}
 
 	@Override

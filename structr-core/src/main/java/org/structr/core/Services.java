@@ -110,10 +110,6 @@ public class Services implements StructrServices {
 	 */
 	public <T extends Command> T command(final SecurityContext securityContext, final Class<T> commandType) {
 
-		if (shuttingDown) {
-			throw new IllegalStateException("System is shutting down, cannot create command of type " + commandType.getSimpleName());
-		}
-
 		try {
 
 			final T command          = commandType.newInstance();
@@ -340,9 +336,12 @@ public class Services implements StructrServices {
 		if (!shutdownDone) {
 
 			System.out.println("INFO: Shutting down...");
-			for (Service service : serviceCache.values()) {
 
-				shutdownService(service);
+			final List<String> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+			Collections.reverse(reverseServiceClassNames);
+
+			for (final String serviceClassName : reverseServiceClassNames) {
+				shutdownService(serviceClassName);
 			}
 
 			serviceCache.clear();

@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLScalarType;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,7 +44,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.graphql.PropertyKeyDataFetcher;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
@@ -442,16 +446,20 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		setProperty(fqcn, value);
 	}
 
-	// ----- private methods -----
-	private int addContentHash(final PropertyKey key, final int contentHash) {
+	public GraphQLFieldDefinition getGraphQLField(final String typeName) {
 
-		final Object value = getProperty(key);
-		if (value != null) {
+		final GraphQLScalarType scalarType = SchemaHelper.getGraphQLTypeForPrimitive(getPropertyType());
+		if (scalarType != null) {
 
-			return contentHash ^ value.hashCode();
+			return GraphQLFieldDefinition
+				.newFieldDefinition()
+				.name(SchemaHelper.cleanPropertyName(getPropertyName()))
+				.type(scalarType)
+				.dataFetcher(new PropertyKeyDataFetcher<>(typeName, getName()))
+				.build();
 		}
 
-		return contentHash;
+		return null;
 	}
 
 	public NotionPropertyParser getNotionPropertyParser() {
@@ -571,5 +579,17 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return doubleArrayPropertyParser;
+	}
+
+	// ----- private methods -----
+	private int addContentHash(final PropertyKey key, final int contentHash) {
+
+		final Object value = getProperty(key);
+		if (value != null) {
+
+			return contentHash ^ value.hashCode();
+		}
+
+		return contentHash;
 	}
 }
