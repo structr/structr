@@ -1009,9 +1009,10 @@ var _Elements = {
 			});
 		}
 
-		appendSeparator();
 
 		if (!isPage) {
+
+			appendSeparator();
 
 			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
 				elements.push({
@@ -1026,6 +1027,19 @@ var _Elements = {
 					name: 'Select element',
 					clickHandler: function() {
 						_Elements.selectEntity(entity);
+						return false;
+					}
+				});
+			}
+
+			var isEntitySharedComponent = entity.sharedComponent || entity.pageId === shadowPage.id;
+			if (!isEntitySharedComponent) {
+				appendSeparator();
+
+				elements.push({
+					name: 'Convert to Shared Component',
+					clickHandler: function() {
+						Command.createComponent(entity.id);
 						return false;
 					}
 				});
