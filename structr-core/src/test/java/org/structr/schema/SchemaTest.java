@@ -455,7 +455,7 @@ public class SchemaTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 

@@ -443,15 +443,17 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	private GraphQLOutputType getGraphQLTypeForCardinality(final SchemaRelationshipNode node, final String targetTypeName, final boolean outgoing) {
 
-		switch (node.getMultiplicity(outgoing)) {
+		final String multiplicity = node.getMultiplicity(outgoing);
+		if (multiplicity != null) {
 
-			case "1":
-				return typeRef(targetTypeName);
+			switch (multiplicity) {
 
-			default:
-				return new GraphQLList(typeRef(targetTypeName));
-
+				case "1":
+					return typeRef(targetTypeName);
+			}
 		}
+
+		return new GraphQLList(typeRef(targetTypeName));
 	}
 
 	@Export
