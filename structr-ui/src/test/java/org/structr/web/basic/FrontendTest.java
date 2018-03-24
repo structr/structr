@@ -20,85 +20,20 @@ package org.structr.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.StructrUiTest;
-import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
 
-/**
- * Run casperjs frontend tests.
- */
 public abstract class FrontendTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(FrontendTest.class.getName());
 
 	public static final String ADMIN_USERNAME = "admin";
 	public static final String ADMIN_PASSWORD = "admin";
-
-	protected int run(final String testName) {
-
-		try (final Tx tx = app.tx()) {
-
-			createAdminUser();
-			ResourceAccessTest.createResourceAccess("_login", UiAuthenticator.NON_AUTH_USER_POST);
-			tx.success();
-
-		} catch (Exception ex) {
-			logger.error("", ex);
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			String[] args = {"/bin/sh", "-c", "cd src/test/javascript ; PATH=./bin/`uname`/:$PATH casperjs/bin/casperjs --httpPort=" + httpPort + " test " + testName + ".js"};
-
-			Process proc = Runtime.getRuntime().exec(args);
-			logger.info(IOUtils.toString(proc.getInputStream()));
-			String warnings = IOUtils.toString(proc.getErrorStream());
-
-			if (StringUtils.isNotBlank(warnings)) {
-				logger.warn(warnings);
-			}
-
-			final int maxRetries = 60;
-
-			Integer exitValue = 1; // default is error
-			try {
-
-				int r = 0;
-
-				while (proc.isAlive() && r < maxRetries) {
-					Thread.sleep(1000);
-					r++;
-				}
-
-				exitValue = proc.exitValue();
-				//makeVideo(testName);
-
-				return exitValue;
-
-			} catch (IllegalThreadStateException ex) {
-				logger.warn("Subprocess has not properly exited", ex);
-				logger.warn("", ex);
-			}
-
-			logger.info("casperjs subprocess returned with {}", exitValue);
-
-			tx.success();
-
-
-		} catch (Exception ex) {
-			logger.error("", ex);
-		}
-
-		return 1;
-
-	}
 
 	protected void clearLocalStorage() {
 
