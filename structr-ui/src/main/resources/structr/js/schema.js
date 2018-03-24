@@ -144,14 +144,6 @@ var _Schema = {
 			_Schema.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 
 			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
-			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="ggist-url" type="text" size="20" placeholder="Enter GraphGist URL"><button id="gg-import" class="btn">Start Import</button></div>');
-			$('#gg-import').on('click', function(e) {
-				var btn = $(this);
-				var text = btn.text();
-				Structr.updateButtonWithAjaxLoaderAndText(btn, text);
-				e.preventDefault();
-				_Schema.importGraphGist($('#ggist-url').val(), text);
-			});
 
 			schemaInputContainer.append('<select id="connector-style"></select>');
 			['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
@@ -2707,25 +2699,6 @@ var _Schema = {
 				element.children('input').val(oldVal);
 			});
 		}
-	},
-	importGraphGist: function(graphGistUrl, text) {
-		$.ajax({
-			url: rootUrl + 'maintenance/importGist',
-			type: 'POST',
-			data: JSON.stringify({'url': graphGistUrl}),
-			contentType: 'application/json',
-			statusCode: {
-				200: function() {
-					var btn = $('#import-ggist');
-					btn.removeClass('disabled').attr('disabled', null);
-					btn.html(text + ' <i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-					window.setTimeout(function() {
-						$('i', btn).fadeOut();
-						document.location.reload();
-					}, 1000);
-				}
-			}
-		});
 	},
 	appendSnapshotsDialogToContainer: function(container) {
 
