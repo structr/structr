@@ -1638,7 +1638,7 @@ button.disabled {
 	border-bottom-right-radius: 3px;
 	border-left: none;
 	margin: 0;
-	margin-top: -4px;
+	margin-top: -5px;
 	height: 24px;
 	vertical-align: middle;
 	padding: 0 5px 0 4px;
@@ -1702,7 +1702,7 @@ button.add_property {
  * Schema
  */
 
-#create-type i, #schema-tools i {
+#create-type i, #schema-tools i, #global-schema-methods i {
 	margin-top: -3px;
 }
 
