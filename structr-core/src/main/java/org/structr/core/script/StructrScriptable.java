@@ -47,6 +47,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.Functions;
@@ -54,6 +55,7 @@ import org.structr.core.function.GrantFunction;
 import org.structr.core.parser.CacheExpression;
 import org.structr.core.parser.ConstantExpression;
 import org.structr.core.property.EnumProperty;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.action.ActionContext;
@@ -623,50 +625,63 @@ public class StructrScriptable extends ScriptableObject {
 		@Override
 		public void put(String string, Scriptable s, Object o) {
 
-			final PropertyKey key = getKey(string);
-			if (key != null) {
+			if (obj instanceof GraphObjectMap) {
 
 				try {
 
-					// call enclosing class's unwrap method instead of ours
-					Object value = StructrScriptable.this.unwrap(o);
-//
-//					if (source instanceof Scriptable && "Date".equals(((Scriptable)source).getClassName())) {
-//						return Context.jsToJava(source, Date.class);
-//					}
-//
-//					// ECMA will return numbers a double, all the time.....
-//					if (value instanceof Double && key instanceof NumericalPropertyKey) {
-//						value = ((NumericalPropertyKey)key).convertToNumber((Double)value);
-//					}
-//
-					// use inputConverter of EnumProperty to convert to native enums
-					if (key instanceof EnumProperty) {
-
-						// should we really use the inputConverter here??
-						PropertyConverter inputConverter = key.inputConverter(actionContext.getSecurityContext());
-						if (inputConverter != null) {
-
-							value = inputConverter.convert(value);
-						}
-
-
-					} else {
-
-						final Class valueType   = key.valueType();
-						final Class relatedType = key.relatedType();
-
-						// do not convert entity / collection properties
-						if (valueType != null && relatedType == null) {
-
-							value = Context.jsToJava(value, valueType);
-						}
-					}
-
-					obj.setProperty(key, value);
+					obj.setProperty(new GenericProperty(string), StructrScriptable.this.unwrap(o));
 
 				} catch (FrameworkException fex) {
 					exception = fex;
+				}
+
+			} else {
+
+				final PropertyKey key = getKey(string);
+				if (key != null) {
+
+					try {
+
+						// call enclosing class's unwrap method instead of ours
+						Object value = StructrScriptable.this.unwrap(o);
+	//
+	//					if (source instanceof Scriptable && "Date".equals(((Scriptable)source).getClassName())) {
+	//						return Context.jsToJava(source, Date.class);
+	//					}
+	//
+	//					// ECMA will return numbers a double, all the time.....
+	//					if (value instanceof Double && key instanceof NumericalPropertyKey) {
+	//						value = ((NumericalPropertyKey)key).convertToNumber((Double)value);
+	//					}
+	//
+						// use inputConverter of EnumProperty to convert to native enums
+						if (key instanceof EnumProperty) {
+
+							// should we really use the inputConverter here??
+							PropertyConverter inputConverter = key.inputConverter(actionContext.getSecurityContext());
+							if (inputConverter != null) {
+
+								value = inputConverter.convert(value);
+							}
+
+
+						} else {
+
+							final Class valueType   = key.valueType();
+							final Class relatedType = key.relatedType();
+
+							// do not convert entity / collection properties
+							if (valueType != null && relatedType == null) {
+
+								value = Context.jsToJava(value, valueType);
+							}
+						}
+
+						obj.setProperty(key, value);
+
+					} catch (FrameworkException fex) {
+						exception = fex;
+					}
 				}
 			}
 		}

@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import org.apache.tika.io.IOUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -55,7 +56,6 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
-
 			// a customer
 			final JsonObjectType customer = sourceSchema.addType("Customer");
 			customer.addStringProperty("name", "public", "ui").setRequired(true).setUnique(true);
@@ -87,7 +87,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 			source = sourceSchema.toString();
 
-			try (final FileWriter writer = new FileWriter("/home/chrisi/export1.txt")) {
+			try (final FileWriter writer = new FileWriter(createTempFile(1))) {
 
 				writer.append(source);
 				writer.flush();
@@ -120,7 +120,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 			export = IOUtils.toString(new FileInputStream(file)).trim();
 
-			try (final FileWriter writer = new FileWriter("/home/chrisi/export3.txt")) {
+			try (final FileWriter writer = new FileWriter(createTempFile(3))) {
 
 				writer.append(export);
 				writer.flush();
@@ -166,7 +166,7 @@ public class SchemaSnapshotTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
-		try (final FileWriter writer = new FileWriter("/home/chrisi/export2.txt")) {
+		try (final FileWriter writer = new FileWriter(createTempFile(2))) {
 
 			writer.append(imp);
 			writer.flush();
@@ -178,5 +178,9 @@ public class SchemaSnapshotTest extends StructrUiTest {
 
 		// step 7: compare import result to initial source
 		assertEquals("Invalid schema export result, ", source, imp);
+	}
+
+	public File createTempFile(final int count) throws IOException {
+		return Files.createTempFile("schema_export_" + count + "_", ".json").toFile();
 	}
 }
