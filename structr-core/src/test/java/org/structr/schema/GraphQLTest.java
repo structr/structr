@@ -23,6 +23,17 @@ import com.google.gson.GsonBuilder;
 import graphql.ExecutionResult;
 import graphql.GraphQL;
 import graphql.GraphQLError;
+import graphql.language.Document;
+import graphql.language.Field;
+import graphql.language.Node;
+import graphql.language.OperationDefinition;
+import graphql.language.Selection;
+import graphql.language.SelectionSet;
+import graphql.parser.Parser;
+import graphql.schema.GraphQLSchema;
+import graphql.validation.Validator;
+import graphql.validation.ValidationError;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import org.junit.Assert;
@@ -34,6 +45,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.ISO8601DateProperty;
 
 /**
  *
@@ -57,7 +69,7 @@ public class GraphQLTest extends StructrTest {
 			group1.setProperty(NodeInterface.owner, p1);
 
 			final GraphQL graphQL        = GraphQL.newGraphQL(SchemaService.getGraphQLSchema()).build();
-			final ExecutionResult result = graphQL.execute("{ Group { id, type, name, owner { id, name }, members { id, type, name } } }");
+			final ExecutionResult result = graphQL.execute("{ Group { id, type, name, createdDate, owner { id, name }, members { id, type, name } } }");
 			final Gson gson              = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
 			if (result != null) {
@@ -67,6 +79,7 @@ public class GraphQLTest extends StructrTest {
 
 					Assert.assertTrue("GraphQL result should contain a field named Group", data.containsKey("Group"));
 
+					final SimpleDateFormat df              = new SimpleDateFormat(ISO8601DateProperty.getDefaultFormat());
 					final List<Map<String, Object>> groups = (List<Map<String, Object>>)data.get("Group");
 
 					Assert.assertEquals("Result should contain 3 elements", 3, groups.size());
@@ -79,6 +92,7 @@ public class GraphQLTest extends StructrTest {
 					Assert.assertEquals("ID mismatch for first group",   group1.getUuid(), g1.get("id"));
 					Assert.assertEquals("Type mismatch for first group", group1.getType(), g1.get("type"));
 					Assert.assertEquals("Name mismatch for first group", group1.getName(), g1.get("name"));
+					Assert.assertEquals("Date mismatch for first group", df.format(group1.getCreatedDate()), g1.get("createdDate"));
 
 					Assert.assertTrue("First group should contain a field named owner", g1.containsKey("owner"));
 
@@ -102,11 +116,13 @@ public class GraphQLTest extends StructrTest {
 					Assert.assertEquals("ID mismatch for second group",   group2.getUuid(), g2.get("id"));
 					Assert.assertEquals("Type mismatch for second group", group2.getType(), g2.get("type"));
 					Assert.assertEquals("Name mismatch for second group", group2.getName(), g2.get("name"));
+					Assert.assertEquals("Date mismatch for second group", df.format(group2.getCreatedDate()), g2.get("createdDate"));
 
 					// test third group
 					Assert.assertEquals("ID mismatch for third group",   group3.getUuid(), g3.get("id"));
 					Assert.assertEquals("Type mismatch for third group", group3.getType(), g3.get("type"));
 					Assert.assertEquals("Name mismatch for third group", group3.getName(), g3.get("name"));
+					Assert.assertEquals("Date mismatch for third group", df.format(group3.getCreatedDate()), g3.get("createdDate"));
 
 				} else {
 
@@ -136,7 +152,6 @@ public class GraphQLTest extends StructrTest {
 
 			final GraphQL graphQL        = GraphQL.newGraphQL(SchemaService.getGraphQLSchema()).build();
 			final ExecutionResult result = graphQL.execute("{ Group(name: \"group2\") { id, type, name } }");
-			final Gson gson              = new GsonBuilder().setPrettyPrinting().serializeNulls().create();
 
 			if (result != null) {
 
@@ -282,5 +297,60 @@ public class GraphQLTest extends StructrTest {
 			t.printStackTrace();
 		}
 
+	}
+
+	@Test
+	public void testSchemaWalk() {
+
+		try (final Tx tx = app.tx()) {
+
+			final GraphQLSchema schema = SchemaService.getGraphQLSchema();
+			final GraphQL graphQL      = GraphQL.newGraphQL(schema).build();
+
+			final Parser parser                = new Parser();
+			final Document doc                 = parser.parseDocument("{ Group(_pageSize: 1, _page: 3, _sort: \"name\") { id, type, name }, User }");
+			//final Document doc                 = parser.parseDocument("{ Group { id, type, name, createdDate, owner { id, name }, members { id, type, name } } }");
+			final Validator validator          = new Validator();
+			final List<ValidationError> errors = validator.validateDocument(schema, doc);
+
+			for (final Node child : doc.getChildren()) {
+
+				if (child instanceof OperationDefinition) {
+
+					final OperationDefinition operationDefinition = (OperationDefinition)child;
+					final SelectionSet selectionSet               = operationDefinition.getSelectionSet();
+
+					print(selectionSet, 0);
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	// ----- private methods -----
+	private void print(final SelectionSet set, final int depth) {
+
+		for (final Selection selection : set.getSelections()) {
+
+			if (selection instanceof Field) {
+
+				final Field field = (Field)selection;
+
+				for (int i=0; i<depth; i++) { System.out.print("    "); }
+				System.out.println("Field " + field.getName());
+				System.out.println("    Arguments: " + field.getArguments());
+
+				final SelectionSet subSet = field.getSelectionSet();
+				if (subSet != null) {
+
+					print(field.getSelectionSet(), depth+1);
+				}
+
+			}
+		}
 	}
 }

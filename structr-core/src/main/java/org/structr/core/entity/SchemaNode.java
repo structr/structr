@@ -62,7 +62,6 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.graphql.PropertyKeyDataFetcher;
 
 /**
  *
@@ -336,6 +335,14 @@ public class SchemaNode extends AbstractSchemaNode {
 				setProperty(extendsClass, _extendsClass);
 			}
 
+			// migrate Messaging
+			if (_extendsClass.startsWith("org.structr.messaging.engine.entities.")) {
+
+				removeProperty(extendsClass);
+				setProperty(implementsInterfaces, addToList(interfaces, _extendsClass));
+				return;
+			}
+
 			// move most of the extendsClass to implementsInterfaces
 			if (
 				_extendsClass.startsWith("org.structr.knowledge.")
@@ -355,10 +362,26 @@ public class SchemaNode extends AbstractSchemaNode {
 		}
 	}
 
-	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes) {
+	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes) throws FrameworkException {
+
+		// check if some base class already initialized us
+		if (graphQLTypes.containsKey(getClassName())) {
+
+			// nothing to do
+			return;
+		}
 
 		final Map<String, GraphQLFieldDefinition> fields = new LinkedHashMap<>();
 		final String className                           = getClassName();
+
+		// add inherited fields from superclass
+		registerParentType(getParentSchemaNode(), graphQLTypes, fields);
+
+		// add inherited fields from interfaces
+		for (final SchemaNode ifaceNode : getInterfaceSchemaNodes()) {
+
+			registerParentType(ifaceNode, graphQLTypes, fields);
+		}
 
 		// add dynamic fields
 		for (final SchemaProperty property : getSchemaProperties()) {
@@ -380,23 +403,75 @@ public class SchemaNode extends AbstractSchemaNode {
 			registerIncomingGraphQLFields(fields, inNode);
 		}
 
-		// add static fields (id, name etc.)
-		fields.putIfAbsent("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "id")).build());
-		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "type")).build());
-		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "name")).build());
-		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "owner")).build());
-		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "createdBy")).build());
-		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "createdDate")).build());
-		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "lastModifiedBy")).build());
-		fields.putIfAbsent("lastModifiedDate", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedDate").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "lastModifiedDate")).build());
-		fields.putIfAbsent("visibleToPublicUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToPublicUsers").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "visibleToPublicUsers")).build());
-		fields.putIfAbsent("visibleToAuthenticatedUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToAuthenticatedUsers").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "visibleToAuthenticatedUsers")).build());
+		fields.put("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).build());
+
+		// add static fields (name etc., can be overwritten)
+		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
+
+		fields.putIfAbsent("name", GraphQLFieldDefinition
+			.newFieldDefinition()
+			.name("name")
+			.type(Scalars.GraphQLString)
+			.argument(getDefaultStringArguments())
+			.build()
+		);
+
+		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).build());
+		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
+		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
+		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).build());
+		fields.putIfAbsent("lastModifiedDate", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedDate").type(Scalars.GraphQLString).build());
+		fields.putIfAbsent("visibleToPublicUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToPublicUsers").type(Scalars.GraphQLString).build());
+		fields.putIfAbsent("visibleToAuthenticatedUsers", GraphQLFieldDefinition.newFieldDefinition().name("visibleToAuthenticatedUsers").type(Scalars.GraphQLString).build());
 
 		// register type in GraphQL schema
 		graphQLTypes.put(className, GraphQLObjectType.newObject().name(className).fields(new LinkedList<>(fields.values())).build());
 	}
 
 	// ----- private methods -----
+	private List<GraphQLArgument> getDefaultStringArguments() {
+
+		final List<GraphQLArgument> arguments = new LinkedList<>();
+
+		arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
+		arguments.add(GraphQLArgument.newArgument().name("_contains").type(Scalars.GraphQLString).build());
+		arguments.add(GraphQLArgument.newArgument().name("_matches").type(Scalars.GraphQLString).build());
+		arguments.add(GraphQLArgument.newArgument().name("_starts").type(Scalars.GraphQLString).build());
+		arguments.add(GraphQLArgument.newArgument().name("_ends").type(Scalars.GraphQLString).build());
+
+		return arguments;
+	}
+
+	private void registerParentType(final SchemaNode parentSchemaNode, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields) throws FrameworkException {
+
+		if (parentSchemaNode != null && !parentSchemaNode.equals(this)) {
+
+			final String parentName = parentSchemaNode.getClassName();
+			if (parentName != null) {
+
+				if (!graphQLTypes.containsKey(parentName)) {
+
+					// initialize parent type
+					parentSchemaNode.initializeGraphQL(graphQLTypes);
+				}
+
+				// second try: add fields from parent type
+				if (graphQLTypes.containsKey(parentName)) {
+
+					final GraphQLObjectType parentType = (GraphQLObjectType)graphQLTypes.get(parentName);
+					if (parentType != null) {
+
+						for (final GraphQLFieldDefinition field : parentType.getFieldDefinitions()) {
+
+							fields.put(field.getName(), field);
+						}
+					}
+				}
+			}
+		}
+
+	}
+
 	private void registerOutgoingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode outNode) {
 
 		final SchemaNode sourceNode = outNode.getSourceNode();
@@ -408,7 +483,6 @@ public class SchemaNode extends AbstractSchemaNode {
 			.newFieldDefinition()
 			.name(propertyName)
 			.type(getGraphQLTypeForCardinality(outNode, targetTypeName, true))
-			.dataFetcher(new PropertyKeyDataFetcher<>(sourceNode.getClassName(), propertyName))
 			.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
@@ -430,7 +504,6 @@ public class SchemaNode extends AbstractSchemaNode {
 			.newFieldDefinition()
 			.name(propertyName)
 			.type(getGraphQLTypeForCardinality(inNode, sourceTypeName, false))
-			.dataFetcher(new PropertyKeyDataFetcher<>(targetNode.getClassName(), propertyName))
 			.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
@@ -498,6 +571,43 @@ public class SchemaNode extends AbstractSchemaNode {
 		}
 
 		return null;
+	}
+
+	private SchemaNode getParentSchemaNode() throws FrameworkException {
+
+		final String parentClass = getProperty(SchemaNode.extendsClass);
+		if (parentClass != null) {
+
+			// check if property is defined in parent class
+			return StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
+		}
+
+		return null;
+	}
+
+	private List<SchemaNode> getInterfaceSchemaNodes() throws FrameworkException {
+
+		final List<SchemaNode> interfaces = new LinkedList<>();
+		final String inheritsFrom         = getProperty(SchemaNode.implementsInterfaces);
+
+		if (inheritsFrom != null) {
+
+			for (final String iface : inheritsFrom.split("[,]+")) {
+
+				final String trimmed = iface.trim();
+
+				if (trimmed.length() > 0) {
+
+					final SchemaNode node = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(trimmed, ".")).getFirst();
+					if (node != null && !node.equals(this)) {
+
+						interfaces.add(node);
+					}
+				}
+			}
+		}
+
+		return interfaces;
 	}
 
 	/**

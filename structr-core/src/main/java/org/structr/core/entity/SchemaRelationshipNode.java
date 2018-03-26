@@ -69,7 +69,6 @@ import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionEntry;
-import org.structr.schema.graphql.PropertyKeyDataFetcher;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonSchema.Cascade;
 import org.structr.schema.parser.Validator;
@@ -668,8 +667,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String className                    = getClassName();
 
 		// add static fields (id, name etc.)
-		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "id")).build());
-		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).dataFetcher(new PropertyKeyDataFetcher<>("AbstractNode", "type")).build());
+		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).build());
+		fields.add(GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
 
 		// add dynamic fields
 		for (final SchemaProperty property : getSchemaProperties()) {

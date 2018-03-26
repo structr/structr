@@ -23,6 +23,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -34,9 +36,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FrameworkException extends Exception {
 
-	private final ErrorBuffer errorBuffer = new ErrorBuffer();
-	private String message                = null;
-	private int status                    = HttpServletResponse.SC_OK;
+	private ErrorBuffer errorBuffer  = new ErrorBuffer();
+	private Map<String, String> data = null;
+	private String message           = null;
+	private int status               = HttpServletResponse.SC_OK;
 
 	public FrameworkException(final int status, final String message) {
 		this(status, message, (ErrorToken)null);
@@ -92,6 +95,15 @@ public class FrameworkException extends Exception {
 		JsonArray errors     = new JsonArray();
 
 		container.add("code", new JsonPrimitive(getStatus()));
+
+		if (data != null) {
+
+			for (final Entry<String, String> entry : data.entrySet()) {
+
+				container.add(entry.getKey(), new JsonPrimitive(entry.getValue()));
+			}
+		}
+
 		container.add("message", new JsonPrimitive(getMessage()));
 
 		// add errors if there are any
@@ -108,12 +120,20 @@ public class FrameworkException extends Exception {
 		return container;
 	}
 
+	public void setErrorBuffer(final ErrorBuffer errorBuffer) {
+		this.errorBuffer = errorBuffer;
+	}
+
 	public ErrorBuffer getErrorBuffer() {
 		return errorBuffer;
 	}
 
 	public int getStatus() {
 		return status;
+	}
+
+	public void setData(final Map<String, String> data) {
+		this.data = data;
 	}
 
 	@Override

@@ -20,15 +20,22 @@ package org.structr.rest.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import graphql.ExecutionInput;
-import graphql.ExecutionResult;
-import graphql.GraphQL;
+import graphql.language.Document;
+import graphql.parser.Parser;
+import graphql.validation.ValidationError;
+import graphql.validation.Validator;
 import java.io.IOException;
-import java.util.Collections;
+import java.io.Writer;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +46,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.Tx;
+import org.structr.core.graphql.GraphQLRequest;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.adapter.FrameworkExceptionGSONAdapter;
+import org.structr.rest.serialization.GraphQLWriter;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.schema.SchemaService;
@@ -144,12 +154,38 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					final GraphQL graphQL        = GraphQL.newGraphQL(SchemaService.getGraphQLSchema()).build();
-					final ExecutionResult result = graphQL.execute(new ExecutionInput(query, null, securityContext, null, Collections.EMPTY_MAP));
+					final Document doc = parse(new Parser(), query);
+					if (doc != null) {
 
-					if (result != null) {
+						final List<ValidationError> errors = new Validator().validateDocument(SchemaService.getGraphQLSchema(), doc);
+						if (errors.isEmpty()) {
 
-						getGson().toJson(result.toSpecification(), response.getWriter());
+							// no validation errors in query, do request
+							final GraphQLWriter graphQLWriter  = new GraphQLWriter(true);
+
+							// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
+							response.setContentType("application/json; charset=utf-8");
+
+							final Writer writer = response.getWriter();
+
+							graphQLWriter.stream(securityContext, writer, new GraphQLRequest(doc, query));
+							writer.append("\n");    // useful newline
+
+						} else {
+
+							final Map<String, Object> map = new LinkedHashMap<>();
+							final Writer writer           = response.getWriter();
+							final Gson gson               = getGson();
+
+							map.put("errors", errors);
+
+							gson.toJson(map, writer);
+
+							writer.append("\n");    // useful newline
+
+							// send 422 status
+							response.setStatus(422);
+						}
 					}
 
 					tx.success();
@@ -201,7 +237,59 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
+	private Document parse(final Parser parser, final String query) throws FrameworkException {
+
+		try {
+
+			return parser.parseDocument(query);
+
+		} catch (Throwable t) {
+
+			String message = t.getMessage();
+			if (message == null) {
+
+				message = t.getClass().getName();
+
+				if (t instanceof ParseCancellationException) {
+
+					final Throwable cause = t.getCause();
+					if (cause instanceof RecognitionException) {
+
+						final RecognitionException err = (RecognitionException)cause;
+						final Token offendingToken     = err.getOffendingToken();
+
+						if (offendingToken != null) {
+
+							final int line    = offendingToken.getLine();
+							final int column  = offendingToken.getCharPositionInLine();
+							final String text = offendingToken.getText();
+
+							message = "Parse error at " + text + " in line " + line + ", column " + column;
+						}
+					}
+
+				}
+			}
+
+			final FrameworkException fex   = new FrameworkException(422, message);
+			final Map<String, String> data = new LinkedHashMap<>();
+
+			// do not output an empty array of errors
+			fex.setErrorBuffer(null);
+			fex.setData(data);
+
+			data.put("query", query);
+
+			throw fex;
+		}
+	}
+
 	private Gson getGson() {
-		return new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+
+		return new GsonBuilder()
+			.serializeNulls()
+			.setPrettyPrinting()
+			.registerTypeHierarchyAdapter(FrameworkException.class, new FrameworkExceptionGSONAdapter())
+			.create();
 	}
 }

@@ -19,6 +19,7 @@
 package org.structr.schema;
 
 import graphql.Scalars;
+import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import java.util.Arrays;
 import java.util.Collection;
@@ -158,6 +159,7 @@ public class SchemaHelper {
 		parserMap.put(Type.Count, CountPropertyParser.class);
 		parserMap.put(Type.Join, JoinPropertyParser.class);
 
+		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
 		graphQLTypeMap.put(Type.Integer, Scalars.GraphQLInt);
 		graphQLTypeMap.put(Type.String, Scalars.GraphQLString);
@@ -1608,8 +1610,37 @@ public class SchemaHelper {
 		return null;
 	}
 
-	public static GraphQLScalarType getGraphQLTypeForPrimitive(final Type type) {
-		return graphQLTypeMap.get(type);
+	public static GraphQLOutputType getGraphQLTypeForProperty(final SchemaProperty property) {
+
+		GraphQLOutputType outputType = graphQLTypeMap.get(property.getPropertyType());
+		if (outputType != null) {
+
+			return outputType;
+		}
+
+		return null;
+
+		/*
+
+			TODO: we need to decide whether a function property must specify a
+			      fixed type, which can then be set here
+
+		return GraphQLUnionType.newUnionType()
+			.name(RandomStringUtils.randomAlphabetic(10))
+			.possibleType(typeRef("User"))
+			.typeResolver(env -> {
+
+				final Object o = env.getObject();
+				if (o != null && o instanceof GraphObject) {
+
+					final GraphObject g = (GraphObject)o;
+					return env.getSchema().getObjectType(g.getType());
+				}
+
+				return null;
+			})
+			.build();
+		*/
 	}
 
 	// ----- private methods -----

@@ -69,7 +69,6 @@ import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
 import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.graphql.NodeDataFetcher;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -240,7 +239,6 @@ public class SchemaService implements Service {
 								.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 								.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 								.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-								.dataFetcher(new NodeDataFetcher(className))
 							);
 						}
 

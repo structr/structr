@@ -19,7 +19,7 @@
 package org.structr.core.entity;
 
 import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLScalarType;
+import graphql.schema.GraphQLOutputType;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +46,6 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.graphql.PropertyKeyDataFetcher;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
 import org.structr.schema.parser.DoublePropertyParser;
 import org.structr.schema.parser.IntPropertyParser;
@@ -448,14 +447,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	public GraphQLFieldDefinition getGraphQLField(final String typeName) {
 
-		final GraphQLScalarType scalarType = SchemaHelper.getGraphQLTypeForPrimitive(getPropertyType());
-		if (scalarType != null) {
+		final GraphQLOutputType outputType = SchemaHelper.getGraphQLTypeForProperty(this);
+		if (outputType != null) {
 
 			return GraphQLFieldDefinition
 				.newFieldDefinition()
 				.name(SchemaHelper.cleanPropertyName(getPropertyName()))
-				.type(scalarType)
-				.dataFetcher(new PropertyKeyDataFetcher<>(typeName, getName()))
+				.type(outputType)
 				.build();
 		}
 
