@@ -3,11 +3,13 @@
 	<tr id="general-operations">
 		<td><button id="rebuild-index"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}" /> Rebuild Index</button></td>
 		<td><button id="flush-caches"><i class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}" /> Flush Caches</button></td>
+		<td><button id="analyze-schema"><i class="${_Icons.getFullSpriteClass(_Icons.warning_icon)}" /> Analyze Schema</button></td>
 		<td><button id="clear-schema"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}" /> Clear Schema</button></td>
 	</tr>
 	<tr>
 		<td><label for="rebuild-index">Rebuild database index<br>for all nodes and relationships</label></td>
 		<td><label for="flush-caches">Flushes internal caches<br>to refresh schema information</label></td>
+		<td><label for="analyze-schema"><b>Experimental</b>: Analyzes the existing database and tries to create a Structr schema from it</label></td>
 		<td><label for="clear-schema">Delete all schema nodes and<br>relationships in custom schema</label></td>
 	</tr>
 	<tr>

@@ -44,6 +44,7 @@ import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.importer.RDFImporter;
+import org.structr.schema.importer.SchemaAnalyzer;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
 
@@ -72,6 +73,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("sync", SyncCommand.class);
 		maintenanceCommandMap.put("snapshot", SnapshotCommand.class);
 		maintenanceCommandMap.put("flushCaches", FlushCachesCommand.class);
+		maintenanceCommandMap.put("analyzeSchema", SchemaAnalyzer.class);
 
 	}
 

@@ -2867,6 +2867,43 @@ var _Schema = {
 				});
 			});
 
+			$('#analyze-schema').on('click', function() {
+				Structr.confirmation('<h3>Analyze Schema</h3><p>Did you make a backup?<br>Answering "No" cancels the action.</p><p>&nbsp;</p>', function() {
+					$.unblockUI({
+						fadeOut: 25
+					});
+
+					window.setTimeout(function() {
+						Structr.confirmation('<h3>Analyze Schema</h3><p>Are you sure you want to analyze the database schema?<br>Your current schema will be lost!</p><p>&nbsp;</p>', function() {
+							$.unblockUI({
+								fadeOut: 25
+							});
+
+							window.setTimeout(function() {
+								_Schema.openSchemaToolsDialog();
+
+								window.setTimeout(function() {
+									var btn = $('#analyze-schema');
+									var oldHtml = btn.html();
+									Structr.updateButtonWithAjaxLoaderAndText(btn, oldHtml);
+									$.ajax({
+										url: rootUrl + 'maintenance/analyzeSchema',
+										type: 'POST',
+										data: JSON.stringify({}),
+										contentType: 'application/json',
+										statusCode: {
+											200: function() {
+												Structr.updateButtonWithSuccessIcon(btn, oldHtml);
+											}
+										}
+									});
+								}, 250);
+							}, 100);
+						});
+					}, 250);
+				}, _Schema.openSchemaToolsDialog);
+			});
+
 			var nodeTypeSelector = $('#node-type-selector');
 			Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name', function(nodes) {
 				nodes.forEach(function(node) {
