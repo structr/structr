@@ -18,14 +18,9 @@
  */
 package org.structr.core.graphql;
 
-import graphql.language.Argument;
-import graphql.language.BooleanValue;
 import graphql.language.Field;
-import graphql.language.IntValue;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
-import graphql.language.StringValue;
-import graphql.language.Value;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -43,7 +38,7 @@ import org.structr.core.property.PropertyKey;
 public class GraphQLQuery {
 
 	private static final Set<String> SchemaRequestFieldNames       = new HashSet<>(Arrays.asList("__schema", "__directive", "__directiveLocation", "__type", "__field", "__inputvalue", "__enumvalue", "__typekind", "__typename"));
-	private Map<Integer, GraphQLQueryConfiguration> configurations = new LinkedHashMap<>();
+	private Map<Integer, QueryConfig> configurations = new LinkedHashMap<>();
 	private String fieldName                                       = null;
 	private Class type                                             = null;
 
@@ -66,28 +61,24 @@ public class GraphQLQuery {
 		return fieldName;
 	}
 
+	public GraphQLQueryConfiguration getQueryConfiguration(final int depth) {
+		return configurations.get(depth);
+	}
+
 	public Set<PropertyKey> getPropertyKeys(final int depth) {
 
-		final GraphQLQueryConfiguration config = configurations.get(depth);
+		final QueryConfig config = configurations.get(depth);
 
 		return config.getPropertyKeys();
 	}
 
 	public Iterable<GraphObject> getEntities(final SecurityContext securityContext) throws FrameworkException {
 
-		final GraphQLQueryConfiguration config = getConfig(0);
-		final Class type                       = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
-		final Query query                      = StructrApp.getInstance(securityContext).nodeQuery(type);
-		final PropertyKey sortKey              = config.getSortKey();
+		final Class type         = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
+		final Query query        = StructrApp.getInstance(securityContext).nodeQuery(type);
+		final QueryConfig config = getConfig(0);
 
-		query.page(config.getPage());
-		query.pageSize(config.getPageSize());
-
-		if (config.sortDescending()) {
-			query.sortDescending(sortKey);
-		} else {
-			query.sortAscending(sortKey);
-		}
+		config.configureQuery(query);
 
 		return query.getAsList();
 	}
@@ -95,39 +86,10 @@ public class GraphQLQuery {
 	// ----- private methods -----
 	private void init(final Field field, final int depth) {
 
-		final GraphQLQueryConfiguration config = getConfig(depth);
+		final QueryConfig config = getConfig(depth);
 
-		// parse arguments
-		for (final Argument argument : field.getArguments()) {
+		config.handleTypeArguments(type, field.getArguments());
 
-			final String name = argument.getName();
-			final Value value = argument.getValue();
-
-			switch (name) {
-
-				case "_page":
-					config.setPage(getIntegerValue(value, 1));
-					break;
-
-				case "_pageSize":
-					config.setPageSize(getIntegerValue(value, Integer.MAX_VALUE));
-					break;
-
-				case "_sort":
-					config.setSortKey(StructrApp.getConfiguration().getPropertyKeyForJSONName(type, getStringValue(value, "name")));
-					break;
-
-				case "_desc":
-					config.setSortDescending(getBooleanValue(value, false));
-					break;
-
-				default:
-					//
-					break;
-			}
-		}
-
-		// recurse
 		final SelectionSet selectionSet = field.getSelectionSet();
 		if (selectionSet != null) {
 
@@ -135,12 +97,14 @@ public class GraphQLQuery {
 
 				if (selection instanceof Field) {
 
-					final Field childField = (Field)selection;
+					final Field childField      = (Field)selection;
 					final SelectionSet childSet = childField.getSelectionSet();
 
 					// add field to property set
 					config.addPropertyKey(StructrApp.getConfiguration().getPropertyKeyForJSONName(type, childField.getName()));
+					config.handleFieldArguments(type, field, childField);
 
+					// recurse
 					if (childSet != null) {
 
 						init(childField, depth + 1);
@@ -150,42 +114,12 @@ public class GraphQLQuery {
 		}
 	}
 
-	private boolean getBooleanValue(final Value value, final boolean defaultValue) {
+	private QueryConfig getConfig(final int depth) {
 
-		if (value != null && value instanceof BooleanValue) {
-
-			return ((BooleanValue)value).isValue();
-		}
-
-		return defaultValue;
-	}
-
-	private int getIntegerValue(final Value value, final int defaultValue) {
-
-		if (value != null && value instanceof IntValue) {
-
-			return ((IntValue)value).getValue().intValue();
-		}
-
-		return defaultValue;
-	}
-
-	private String getStringValue(final Value value, final String defaultValue) {
-
-		if (value != null && value instanceof StringValue) {
-
-			return ((StringValue)value).getValue();
-		}
-
-		return defaultValue;
-	}
-
-	private GraphQLQueryConfiguration getConfig(final int depth) {
-
-		GraphQLQueryConfiguration config = configurations.get(depth);
+		QueryConfig config = configurations.get(depth);
 		if (config == null) {
 
-			config = new GraphQLQueryConfiguration();
+			config = new QueryConfig();
 			configurations.put(depth, config);
 		}
 

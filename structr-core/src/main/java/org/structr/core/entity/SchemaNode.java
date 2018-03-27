@@ -435,9 +435,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
 		arguments.add(GraphQLArgument.newArgument().name("_contains").type(Scalars.GraphQLString).build());
-		arguments.add(GraphQLArgument.newArgument().name("_matches").type(Scalars.GraphQLString).build());
-		arguments.add(GraphQLArgument.newArgument().name("_starts").type(Scalars.GraphQLString).build());
-		arguments.add(GraphQLArgument.newArgument().name("_ends").type(Scalars.GraphQLString).build());
+		arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
 
 		return arguments;
 	}

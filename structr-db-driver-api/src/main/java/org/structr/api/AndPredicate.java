@@ -16,16 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.graphql;
-
-import java.util.Set;
-import org.structr.api.Predicate;
-import org.structr.core.property.PropertyKey;
+package org.structr.api;
 
 /**
  */
-public interface GraphQLQueryConfiguration {
+public class AndPredicate<T> implements Predicate<T> {
 
-	Set<PropertyKey> getPropertyKeys();
-	Predicate getPredicateForPropertyKey(final PropertyKey key);
+	private Predicate<T> p1 = null;
+	private Predicate<T> p2 = null;
+
+	public AndPredicate(final Predicate<T> p1, final Predicate<T> p2) {
+
+		this.p1 = p1;
+		this.p2 = p2;
+	}
+
+	@Override
+	public boolean accept(final T value) {
+		return p1.accept(value) && p2.accept(value);
+	}
 }

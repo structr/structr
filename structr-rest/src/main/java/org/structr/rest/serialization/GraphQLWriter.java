@@ -33,12 +33,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.QueryRange;
+import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.Functions;
+import org.structr.core.graphql.GraphQLQueryConfiguration;
 import org.structr.core.graphql.GraphQLRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -294,22 +295,25 @@ public class GraphQLWriter {
 			// mark object as visited
 			if (source != null) {
 
+				final GraphQLQueryConfiguration propertyConfig  = graphQLQuery.getQueryConfiguration(depth);
+				final GraphQLQueryConfiguration selectionConfig = graphQLQuery.getQueryConfiguration(depth + 1);
+
 				hashCode = source.hashCode();
 				visitedObjects.add(hashCode);
 
 				writer.beginObject(source);
 
 				// property keys
-				for (final PropertyKey key : graphQLQuery.getPropertyKeys(depth)) {
+				for (final PropertyKey key : propertyConfig.getPropertyKeys()) {
 
-					final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
-					if (range != null) {
+					Predicate predicate = null;
+					if (selectionConfig != null) {
 
-						// Reset count for each key
-						range.resetCount();
+						// do something with the selection
+						predicate = selectionConfig.getPredicateForPropertyKey(key);
 					}
 
-					final Object value = source.getProperty(key, range);
+					final Object value = source.getProperty(key, predicate);
 					if (value != null) {
 
 						writer.name(key.jsonName());

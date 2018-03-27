@@ -139,6 +139,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 				new NodeAttribute<>(membersKey, team)
 			);
 
+			app.create(Group.class,
+				new NodeAttribute<>(Group.name, "All teams"),
+				new NodeAttribute<>(membersKey, Arrays.asList(group))
+			);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -147,11 +152,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		RestAssured.basePath = "/structr/graphql";
 
-		System.out.println(fetchGraphQL("{ Principal { id, type, name(_equals: \"Axel\") }}"));
-		System.out.println(fetchGraphQL("{ Principal { id, type, name(_contains: \"e\") }}"));
-		System.out.println(fetchGraphQL("{ Principal { id, type, name(_starts: \"I\") }}"));
+		System.out.println(fetchGraphQL("{ Group { members(name: {_contains: \"K\", _contains: \"L\", _conj: \"or\"}) }}}"));
+		//System.out.println(fetchGraphQL("{ Group { members { name(_contains: \"K\", _contains: \"L\", _conj: \"or\") }}}"));
+		//System.out.println(fetchGraphQL("{ Group { members { members { name(_contains: \"K\", _contains: \"L\", _conj: \"or\") }}}}"));
+		//System.out.println(fetchGraphQL("{ Principal { id, type, name(_contains: \"K\", _contains: \"L\") }}"));
+		//System.out.println(fetchGraphQL("{ Principal { id, type, name(_equals: \"Axel\") }}"));
+		//System.out.println(fetchGraphQL("{ Principal { id, type, name(_contains: \"e\") }}"));
 
-		// work in progress, these tests don't assert anything yet
 	}
 
 	@Test
