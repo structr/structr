@@ -2882,22 +2882,29 @@ var _Schema = {
 							window.setTimeout(function() {
 								_Schema.openSchemaToolsDialog();
 
-								window.setTimeout(function() {
-									var btn = $('#analyze-schema');
-									var oldHtml = btn.html();
-									Structr.updateButtonWithAjaxLoaderAndText(btn, oldHtml);
-									$.ajax({
-										url: rootUrl + 'maintenance/analyzeSchema',
-										type: 'POST',
-										data: JSON.stringify({}),
-										contentType: 'application/json',
-										statusCode: {
-											200: function() {
-												Structr.updateButtonWithSuccessIcon(btn, oldHtml);
-											}
+								new MessageBuilder()
+										.title("Analyzing Database")
+										.info("Analyzing the database contents - depending on the database content this might take a while.<br>Please refer to the server log for more info.")
+										.delayDuration(5000)
+										.show();
+
+								$.ajax({
+									url: rootUrl + 'maintenance/analyzeSchema',
+									type: 'POST',
+									data: JSON.stringify({}),
+									contentType: 'application/json',
+									statusCode: {
+										200: function() {
+											new MessageBuilder()
+													.title("Finished analyzing database")
+													.info("Analyzing the database contents has finished. Reload the page to see the changes.")
+													.specialInteractionButton("Reload", function () {
+														location.reload();
+													}, "Ignore")
+													.show();
 										}
-									});
-								}, 250);
+									}
+								});
 							}, 100);
 						});
 					}, 250);
