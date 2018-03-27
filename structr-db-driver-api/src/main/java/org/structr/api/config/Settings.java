@@ -151,7 +151,7 @@ public class Settings {
 	public static final Setting<String> ForeignTypeName          = new StringSetting(advancedGroup,  "hidden", "foreign.type.key",          "");
 	public static final Setting<Boolean> JsonRedundancyReduction = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyReduction",  true);
 	public static final Setting<Boolean> JsonLenient             = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",              false);
-	public static final Setting<Boolean> ForceArrays             = new BooleanSetting(advancedGroup, "JSON",   "json.output.forceArrays",   true);
+	public static final Setting<Boolean> ForceArrays             = new BooleanSetting(advancedGroup, "JSON",   "json.output.forceArrays",   false);
 
 	public static final Setting<String> GeocodingProvider        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider");
 	public static final Setting<String> GeocodingLanguage        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.language",            "de");
