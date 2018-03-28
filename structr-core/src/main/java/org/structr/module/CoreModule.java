@@ -27,6 +27,8 @@ import org.structr.core.function.AddToGroupFunction;
 import org.structr.core.function.AncestorTypesFunction;
 import org.structr.core.function.AndFunction;
 import org.structr.core.function.AppendFunction;
+import org.structr.core.function.Base64DecodeFunction;
+import org.structr.core.function.Base64EncodeFunction;
 import org.structr.core.function.CallFunction;
 import org.structr.core.function.CallPrivilegedFunction;
 import org.structr.core.function.CapitalizeFunction;
@@ -312,6 +314,8 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "find_relationship", new FindRelationshipFunction());
 		Functions.put(true, LicenseManager.Community, "starts_with", new StartsWithFunction());
 		Functions.put(true, LicenseManager.Community, "ends_with", new EndsWithFunction());
+		Functions.put(true, LicenseManager.Community, "base64encode", new Base64EncodeFunction());
+		Functions.put(true, LicenseManager.Community, "base64decode", new Base64DecodeFunction());
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(true, LicenseManager.Community, "set", new SetFunction());
