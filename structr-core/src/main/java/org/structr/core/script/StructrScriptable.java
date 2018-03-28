@@ -593,7 +593,19 @@ public class StructrScriptable extends ScriptableObject {
 			final Method method = StructrApp.getConfiguration().getAnnotatedMethods(obj.getClass(), Export.class).get(name);
 			if (method != null) {
 
-				return new NativeJavaMethod(method, name);
+				return new NativeJavaMethod(method, name) {
+
+					@Override
+					public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+
+						if (args.length == 0) {
+							return super.call(cx, scope, thisObj, new Object[]{ new NativeObject() });
+						} else {
+							return super.call(cx, scope, thisObj, args);
+						}
+
+					}
+				};
 			}
 
 			// default: direct evaluation of object
