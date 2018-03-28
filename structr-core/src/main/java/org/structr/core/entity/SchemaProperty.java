@@ -18,6 +18,8 @@
  */
 package org.structr.core.entity;
 
+import graphql.Scalars;
+import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLOutputType;
 import java.util.LinkedHashSet;
@@ -454,6 +456,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				.newFieldDefinition()
 				.name(SchemaHelper.cleanPropertyName(getPropertyName()))
 				.type(outputType)
+				.argument(SchemaProperty.getGraphQLArgumentsForType(getPropertyType()))
 				.build();
 		}
 
@@ -577,6 +580,33 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		}
 
 		return doubleArrayPropertyParser;
+	}
+
+	// ----- public static methods -----
+	public static List<GraphQLArgument> getGraphQLArgumentsForType(final Type type) {
+
+		final List<GraphQLArgument> arguments = new LinkedList<>();
+
+		switch (type) {
+
+			case String:
+				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
+				arguments.add(GraphQLArgument.newArgument().name("_contains").type(Scalars.GraphQLString).build());
+				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
+				break;
+
+			case Integer:
+				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLInt).build());
+				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
+				break;
+
+			case Long:
+				arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLLong).build());
+				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
+				break;
+		}
+
+		return arguments;
 	}
 
 	// ----- private methods -----

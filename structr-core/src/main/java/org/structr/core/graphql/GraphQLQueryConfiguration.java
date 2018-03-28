@@ -28,4 +28,7 @@ public interface GraphQLQueryConfiguration {
 
 	Set<PropertyKey> getPropertyKeys();
 	Predicate getPredicateForPropertyKey(final PropertyKey key);
+
+	int getPage();
+	int getPageSize();
 }

@@ -37,19 +37,19 @@ import org.structr.core.property.PropertyKey;
  */
 public class GraphQLQuery {
 
-	private static final Set<String> SchemaRequestFieldNames       = new HashSet<>(Arrays.asList("__schema", "__directive", "__directiveLocation", "__type", "__field", "__inputvalue", "__enumvalue", "__typekind", "__typename"));
-	private Map<Integer, QueryConfig> configurations = new LinkedHashMap<>();
-	private String fieldName                                       = null;
-	private Class type                                             = null;
+	private static final Set<String> SchemaRequestFieldNames = new HashSet<>(Arrays.asList("__schema", "__directive", "__directiveLocation", "__type", "__field", "__inputvalue", "__enumvalue", "__typekind", "__typename"));
+	private Map<String, QueryConfig> configurations          = new LinkedHashMap<>();
+	private String fieldName                                 = null;
+	private Class type                                       = null;
 
 	public GraphQLQuery(final Field field) {
 
-		this.type      = StructrApp.getConfiguration().getNodeEntityClass(field.getName());
 		this.fieldName = field.getName();
+		this.type      = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
 
 		if (type != null) {
 
-			init(field, 0);
+			init(field, "/" + fieldName);
 		}
 	}
 
@@ -57,17 +57,21 @@ public class GraphQLQuery {
 		return SchemaRequestFieldNames.contains(this.fieldName);
 	}
 
+	public String getRootPath() {
+		return "/" + getFieldName();
+	}
+
 	public String getFieldName() {
 		return fieldName;
 	}
 
-	public GraphQLQueryConfiguration getQueryConfiguration(final int depth) {
-		return configurations.get(depth);
+	public GraphQLQueryConfiguration getQueryConfiguration(final String path) {
+		return configurations.get(path);
 	}
 
-	public Set<PropertyKey> getPropertyKeys(final int depth) {
+	public Set<PropertyKey> getPropertyKeys(final String path) {
 
-		final QueryConfig config = configurations.get(depth);
+		final QueryConfig config = configurations.get(path);
 
 		return config.getPropertyKeys();
 	}
@@ -76,7 +80,7 @@ public class GraphQLQuery {
 
 		final Class type         = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
 		final Query query        = StructrApp.getInstance(securityContext).nodeQuery(type);
-		final QueryConfig config = getConfig(0);
+		final QueryConfig config = getConfig(getRootPath());
 
 		config.configureQuery(query);
 
@@ -84,9 +88,9 @@ public class GraphQLQuery {
 	}
 
 	// ----- private methods -----
-	private void init(final Field field, final int depth) {
+	private void init(final Field field, final String path) {
 
-		final QueryConfig config = getConfig(depth);
+		final QueryConfig config = getConfig(path);
 
 		config.handleTypeArguments(type, field.getArguments());
 
@@ -107,20 +111,20 @@ public class GraphQLQuery {
 					// recurse
 					if (childSet != null) {
 
-						init(childField, depth + 1);
+						init(childField, path + "/" + childField.getName());
 					}
 				}
 			}
 		}
 	}
 
-	private QueryConfig getConfig(final int depth) {
+	private QueryConfig getConfig(final String path) {
 
-		QueryConfig config = configurations.get(depth);
+		QueryConfig config = configurations.get(path);
 		if (config == null) {
 
 			config = new QueryConfig();
-			configurations.put(depth, config);
+			configurations.put(path, config);
 		}
 
 		return config;

@@ -28,7 +28,6 @@ import graphql.schema.GraphQLType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -62,6 +61,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
@@ -136,13 +136,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			propertyKeys.add(newKey);
 		}
 
-		Collections.sort(propertyKeys, new Comparator<PropertyKey>() {
-
-			@Override
-			public int compare(PropertyKey o1, PropertyKey o2) {
-				return o1.jsonName().compareTo(o2.jsonName());
-			}
-		});
+		Collections.sort(propertyKeys, (o1, o2) -> { return o1.jsonName().compareTo(o2.jsonName()); });
 
 		return new LinkedHashSet<>(propertyKeys);
 	}
@@ -412,7 +406,7 @@ public class SchemaNode extends AbstractSchemaNode {
 			.newFieldDefinition()
 			.name("name")
 			.type(Scalars.GraphQLString)
-			.argument(getDefaultStringArguments())
+			.argument(SchemaProperty.getGraphQLArgumentsForType(Type.String))
 			.build()
 		);
 
@@ -429,17 +423,6 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	// ----- private methods -----
-	private List<GraphQLArgument> getDefaultStringArguments() {
-
-		final List<GraphQLArgument> arguments = new LinkedList<>();
-
-		arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
-		arguments.add(GraphQLArgument.newArgument().name("_contains").type(Scalars.GraphQLString).build());
-		arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
-
-		return arguments;
-	}
-
 	private void registerParentType(final SchemaNode parentSchemaNode, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields) throws FrameworkException {
 
 		if (parentSchemaNode != null && !parentSchemaNode.equals(this)) {
@@ -472,7 +455,6 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	private void registerOutgoingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode outNode) {
 
-		final SchemaNode sourceNode = outNode.getSourceNode();
 		final SchemaNode targetNode = outNode.getTargetNode();
 		final String targetTypeName = targetNode.getClassName();
 		final String propertyName   = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
@@ -494,7 +476,6 @@ public class SchemaNode extends AbstractSchemaNode {
 	private void registerIncomingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode inNode) {
 
 		final SchemaNode sourceNode = inNode.getSourceNode();
-		final SchemaNode targetNode = inNode.getTargetNode();
 		final String sourceTypeName = sourceNode.getClassName();
 		final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
 

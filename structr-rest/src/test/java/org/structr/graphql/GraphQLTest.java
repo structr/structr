@@ -24,8 +24,10 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,13 +154,34 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		RestAssured.basePath = "/structr/graphql";
 
-		System.out.println(fetchGraphQL("{ Group { members(name: {_contains: \"K\", _contains: \"L\", _conj: \"or\"}) }}}"));
-		//System.out.println(fetchGraphQL("{ Group { members { name(_contains: \"K\", _contains: \"L\", _conj: \"or\") }}}"));
-		//System.out.println(fetchGraphQL("{ Group { members { members { name(_contains: \"K\", _contains: \"L\", _conj: \"or\") }}}}"));
-		//System.out.println(fetchGraphQL("{ Principal { id, type, name(_contains: \"K\", _contains: \"L\") }}"));
-		//System.out.println(fetchGraphQL("{ Principal { id, type, name(_equals: \"Axel\") }}"));
-		//System.out.println(fetchGraphQL("{ Principal { id, type, name(_contains: \"e\") }}"));
+		{
+			final Map<String, Object> result1 = fetchGraphQL("{ Group(_pageSize: 1) { name }, Principal(_pageSize: 2, _page: 2) { name(_contains: \"i\") } }");
+			assertMapPathValueIs(result1, "Group.0.name", "All teams");
+			assertMapPathValueIs(result1, "Group.1", null);
+			assertMapPathValueIs(result1, "Principal.0.name", "Inès");
+			assertMapPathValueIs(result1, "Principal.1.name", "Kai");
+			assertMapPathValueIs(result1, "Principal.2.name", null);
+		}
 
+		{
+			final Map<String, Object> result2 = fetchGraphQL("{ Group { name, members(_pageSize: 2, _page: 2) { name }}}");
+			assertMapPathValueIs(result2, "Group.0.name",           "All teams");
+			assertMapPathValueIs(result2, "Group.0.members",        new LinkedList<>());
+			assertMapPathValueIs(result2, "Group.1.name",           "Structr Team");
+			assertMapPathValueIs(result2, "Group.1.members.0.name", "Christian");
+			assertMapPathValueIs(result2, "Group.1.members.1.name", "Inès");
+		}
+
+		{
+			final Map<String, Object> result3 = fetchGraphQL("{ Group { members { name(_contains: \"K\", _contains: \"L\", _conj: \"or\") }}}");
+		}
+
+		/*
+
+		final Map<String, Object> result4 = fetchGraphQL("{ Principal { id, type, name(_contains: \"K\", _contains: \"L\") }}");
+		final Map<String, Object> result5 = fetchGraphQL("{ Principal { id, type, name(_equals: \"Axel\") }}");
+		final Map<String, Object> result6 = fetchGraphQL("{ Principal { id, type, name(_contains: \"e\") }}");
+		*/
 	}
 
 	@Test
@@ -240,5 +263,45 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.andReturn()
 			.as(Map.class);
+	}
+
+	private void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
+
+		final String[] parts = mapPath.split("[\\.]+");
+		Object current       = map;
+
+		for (int i=0; i<parts.length; i++) {
+
+			final String part = parts[i];
+			if (StringUtils.isNumeric(part)) {
+
+				int index = Integer.valueOf(part);
+				if (current instanceof List) {
+
+					final List list = (List)current;
+					if (index >= list.size()) {
+
+						// value for nonexisting fields must be null
+						assertEquals("Invalid map path result for " + mapPath, value, null);
+
+						// nothing more to check here
+						return;
+
+					} else {
+
+						current = list.get(index);
+					}
+				}
+
+			} else {
+
+				if (current instanceof Map) {
+
+					current = ((Map)current).get(part);
+				}
+			}
+		}
+
+		assertEquals("Invalid map path result for " + mapPath, value, current);
 	}
 }
