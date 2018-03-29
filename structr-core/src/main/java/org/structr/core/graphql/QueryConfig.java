@@ -138,6 +138,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					break;
 
 				case "_pageSize":
+				case "_first":
 					this.pageSize = getIntegerValue(value, Integer.MAX_VALUE);
 					break;
 
