@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -107,7 +106,6 @@ public class StructrCsvTest {
 		}
 	};
 
-	@After
 	@Before
 	public void cleanDatabase() {
 

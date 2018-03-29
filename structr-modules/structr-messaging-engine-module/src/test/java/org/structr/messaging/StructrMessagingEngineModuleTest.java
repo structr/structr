@@ -97,7 +97,6 @@ public class StructrMessagingEngineModuleTest {
 		}
 	};
 
-	@After
 	@Before
 	public void cleanDatabase() {
 

@@ -32,8 +32,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -57,13 +57,9 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 
-//~--- classes ----------------------------------------------------------------
 /**
- * Base class for all structr UI tests
- *
- * All tests are executed in superuser context
- *
- *
+ * Base class for all structr UI tests.
+ * All tests are executed in superuser context.
  */
 public abstract class StructrUiTest {
 
@@ -163,7 +159,7 @@ public abstract class StructrUiTest {
 
 	}
 
-	@After
+	@Before
 	public void cleanDatabase() {
 
 		try (final Tx tx = app.tx()) {
