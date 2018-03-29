@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -142,7 +143,7 @@ public class GraphQLWriter {
 
 					for (final GraphObject object : query.getEntities(securityContext)) {
 
-						root.serialize(writer, object, query, query.getRootPath());
+						root.serialize(writer, null, object, query, query.getRootPath());
 					}
 
 					writer.endArray();
@@ -232,16 +233,16 @@ public class GraphQLWriter {
 
 	public abstract class Serializer<T> {
 
-		public abstract void serialize(final RestWriter writer, final T value, final GraphQLQuery graphQLQuery, final String path) throws IOException;
+		public abstract void serialize(final RestWriter writer, final PropertyKey key, final T value, final GraphQLQuery graphQLQuery, final String path) throws IOException;
 
-		public void serializeRoot(final RestWriter writer, final Object value, final GraphQLQuery graphQLQuery, final String path) throws IOException {
+		public void serializeRoot(final RestWriter writer, final PropertyKey key, final Object value, final GraphQLQuery graphQLQuery, final String path) throws IOException {
 
 			if (value != null) {
 
 				Serializer serializer = getSerializerForType(value.getClass());
 				if (serializer != null) {
 
-					serializer.serialize(writer, value, graphQLQuery, path);
+					serializer.serialize(writer, key, value, graphQLQuery, path);
 
 					return;
 				}
@@ -263,14 +264,16 @@ public class GraphQLWriter {
 					// ignore conversion errors
 					try { convertedValue = converter.revert(value); } catch (Throwable t) {}
 
-					serializeRoot(writer, convertedValue, graphQLQuery, path);
+					serializeRoot(writer, key, convertedValue, graphQLQuery, path);
 
 				} else {
 
-					serializeRoot(writer, value, graphQLQuery, path);
+					serializeRoot(writer, key, value, graphQLQuery, path);
 				}
 
 			} catch(Throwable t) {
+
+				t.printStackTrace();
 
 				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", new Object[] {
 					key.jsonName(),
@@ -287,7 +290,7 @@ public class GraphQLWriter {
 	public class RootSerializer extends Serializer<GraphObject> {
 
 		@Override
-		public void serialize(final RestWriter writer, final GraphObject source, final GraphQLQuery graphQLQuery, final String path) throws IOException {
+		public void serialize(final RestWriter writer, final PropertyKey parentKey, final GraphObject source, final GraphQLQuery graphQLQuery, final String path) throws IOException {
 
 			int hashCode = -1;
 
@@ -329,9 +332,10 @@ public class GraphQLWriter {
 	public class IterableSerializer extends Serializer<Iterable> {
 
 		@Override
-		public void serialize(final RestWriter writer, final Iterable value, final GraphQLQuery graphQLQuery, final String path) throws IOException {
+		public void serialize(final RestWriter writer, final PropertyKey key, final Iterable value, final GraphQLQuery graphQLQuery, final String path) throws IOException {
 
 			final GraphQLQueryConfiguration config = graphQLQuery.getQueryConfiguration(path);
+			final Predicate predicate              = config.getPredicateForPropertyKey(key);
 			int pageSize                           = Integer.MAX_VALUE;
 			int start                              = 0;
 			int count                              = 0;
@@ -349,15 +353,18 @@ public class GraphQLWriter {
 
 			for (Object o : value) {
 
-				if (pos++ >= start) {
+				if (predicate == null || predicate.accept(o)) {
 
-					serializeRoot(writer, o, graphQLQuery, path);
-					count++;
-				}
+					if (pos++ >= start) {
 
-				// stop serialization if page size is reached
-				if (count >= pageSize) {
-					break;
+						serializeRoot(writer, null, o, graphQLQuery, path);
+						count++;
+					}
+
+					// stop serialization if page size is reached
+					if (count >= pageSize) {
+						break;
+					}
 				}
 			}
 
@@ -368,7 +375,7 @@ public class GraphQLWriter {
 	public class MapSerializer extends Serializer {
 
 		@Override
-		public void serialize(final RestWriter writer, final Object source, final GraphQLQuery graphQLQuery, final String path) throws IOException {
+		public void serialize(final RestWriter writer, final PropertyKey parentKey, final Object source, final GraphQLQuery graphQLQuery, final String path) throws IOException {
 
 			final Set<String> requestedKeys = graphQLQuery.getPropertyKeys(path).stream().map(PropertyKey::jsonName).collect(Collectors.toSet());
 
@@ -382,7 +389,7 @@ public class GraphQLWriter {
 					final Object value = entry.getValue();
 
 					writer.name(key);
-					serializeRoot(writer, value, graphQLQuery, path + "/" + key);
+					serializeRoot(writer, null, value, graphQLQuery, path + "/" + key);
 				}
 			}
 
@@ -395,7 +402,7 @@ public class GraphQLWriter {
 		public PropertyMapSerializer() {}
 
 		@Override
-		public void serialize(final RestWriter writer, final PropertyMap source, final GraphQLQuery graphQLQuery, final String path) throws IOException {
+		public void serialize(final RestWriter writer, final PropertyKey parentKey, final PropertyMap source, final GraphQLQuery graphQLQuery, final String path) throws IOException {
 
 			final Set<PropertyKey> requestedKeys = graphQLQuery.getPropertyKeys(path);
 

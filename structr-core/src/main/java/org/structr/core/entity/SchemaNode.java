@@ -21,6 +21,8 @@ package org.structr.core.entity;
 import graphql.Scalars;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLOutputType;
@@ -70,6 +72,7 @@ import org.structr.schema.SchemaHelper.Type;
 public class SchemaNode extends AbstractSchemaNode {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(SchemaNode.class.getName());
+	private static final String GraphQLNodeReferenceName = "StructrNodeReference";
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"Relation"
@@ -365,6 +368,17 @@ public class SchemaNode extends AbstractSchemaNode {
 			return;
 		}
 
+		// register node reference type to filter related nodes
+		if (!graphQLTypes.containsKey(GraphQLNodeReferenceName)) {
+
+			graphQLTypes.put(GraphQLNodeReferenceName, GraphQLInputObjectType.newInputObject()
+			.name(GraphQLNodeReferenceName)
+			.field(GraphQLInputObjectField.newInputObjectField().name("id").type(Scalars.GraphQLString).build())
+			.field(GraphQLInputObjectField.newInputObjectField().name("name").type(Scalars.GraphQLString).build())
+			.build());
+		}
+
+		// variables
 		final Map<String, GraphQLFieldDefinition> fields = new LinkedHashMap<>();
 		final String className                           = getClassName();
 
@@ -401,16 +415,8 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		// add static fields (name etc., can be overwritten)
 		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
-
-		fields.putIfAbsent("name", GraphQLFieldDefinition
-			.newFieldDefinition()
-			.name("name")
-			.type(Scalars.GraphQLString)
-			.argument(SchemaProperty.getGraphQLArgumentsForType(Type.String))
-			.build()
-		);
-
-		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).build());
+		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).argument(SchemaProperty.getGraphQLArgumentsForType(Type.String)).build());
+		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).argument(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build()).build());
 		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).build());
@@ -459,18 +465,28 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String targetTypeName = targetNode.getClassName();
 		final String propertyName   = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
 
-		final GraphQLFieldDefinition field = GraphQLFieldDefinition
+		final GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition
 			.newFieldDefinition()
 			.name(propertyName)
 			.type(getGraphQLTypeForCardinality(outNode, targetTypeName, true))
 			.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
-			.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-			.build();
+			.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build());
+
+		// register reference type so that GraphQL can be used to query related nodes
+		if (isMultiple(outNode, true)) {
+
+			builder.argument(GraphQLArgument.newArgument().name("_contains").type(typeRef(GraphQLNodeReferenceName)).build());
+
+		} else {
+
+			builder.argument(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build());
+		}
+
 
 		// register field
-		fields.put(propertyName, field);
+		fields.put(propertyName, builder.build());
 	}
 
 	private void registerIncomingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode inNode) {
@@ -479,21 +495,40 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String sourceTypeName = sourceNode.getClassName();
 		final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
 
-		final GraphQLFieldDefinition field = GraphQLFieldDefinition
+		final GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition
 			.newFieldDefinition()
 			.name(propertyName)
 			.type(getGraphQLTypeForCardinality(inNode, sourceTypeName, false))
 			.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 			.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
-			.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-			.build();
+			.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build());
+
+		// register reference type so that GraphQL can be used to query related nodes
+		if (isMultiple(inNode, false)) {
+
+			builder.argument(GraphQLArgument.newArgument().name("_contains").type(typeRef(GraphQLNodeReferenceName)).build());
+
+		} else {
+
+			builder.argument(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build());
+		}
+
 
 		// register field
-		fields.put(propertyName, field);
+		fields.put(propertyName, builder.build());
 	}
 
 	private GraphQLOutputType getGraphQLTypeForCardinality(final SchemaRelationshipNode node, final String targetTypeName, final boolean outgoing) {
+
+		if (isMultiple(node, outgoing)) {
+			return new GraphQLList(typeRef(targetTypeName));
+		}
+
+		return typeRef(targetTypeName);
+	}
+
+	private boolean isMultiple(final SchemaRelationshipNode node, final boolean outgoing) {
 
 		final String multiplicity = node.getMultiplicity(outgoing);
 		if (multiplicity != null) {
@@ -501,11 +536,11 @@ public class SchemaNode extends AbstractSchemaNode {
 			switch (multiplicity) {
 
 				case "1":
-					return typeRef(targetTypeName);
+					return false;
 			}
 		}
 
-		return new GraphQLList(typeRef(targetTypeName));
+		return true;
 	}
 
 	@Export

@@ -168,7 +168,7 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 
 							final Writer writer = response.getWriter();
 
-							graphQLWriter.stream(securityContext, writer, new GraphQLRequest(doc, query));
+							graphQLWriter.stream(securityContext, writer, new GraphQLRequest(securityContext, doc, query));
 							writer.append("\n");    // useful newline
 
 						} else {

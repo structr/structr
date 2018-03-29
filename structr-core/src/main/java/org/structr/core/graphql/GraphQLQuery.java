@@ -40,16 +40,15 @@ public class GraphQLQuery {
 	private static final Set<String> SchemaRequestFieldNames = new HashSet<>(Arrays.asList("__schema", "__directive", "__directiveLocation", "__type", "__field", "__inputvalue", "__enumvalue", "__typekind", "__typename"));
 	private Map<String, QueryConfig> configurations          = new LinkedHashMap<>();
 	private String fieldName                                 = null;
-	private Class type                                       = null;
 
-	public GraphQLQuery(final Field field) {
+	public GraphQLQuery(final SecurityContext securityContex, final Field field) throws FrameworkException {
 
 		this.fieldName = field.getName();
-		this.type      = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
 
+		final Class type = StructrApp.getConfiguration().getNodeEntityClass(fieldName);
 		if (type != null) {
 
-			init(field, "/" + fieldName);
+			init(securityContex, type, field, "/" + fieldName);
 		}
 	}
 
@@ -88,11 +87,11 @@ public class GraphQLQuery {
 	}
 
 	// ----- private methods -----
-	private void init(final Field field, final String path) {
+	private void init(final SecurityContext securityContext, final Class type, final Field field, final String path) throws FrameworkException {
 
 		final QueryConfig config = getConfig(path);
 
-		config.handleTypeArguments(type, field.getArguments());
+		config.handleTypeArguments(securityContext, type, field.getArguments());
 
 		final SelectionSet selectionSet = field.getSelectionSet();
 		if (selectionSet != null) {
@@ -103,15 +102,17 @@ public class GraphQLQuery {
 
 					final Field childField      = (Field)selection;
 					final SelectionSet childSet = childField.getSelectionSet();
+					final PropertyKey key       = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, childField.getName());
+					final Class relatedType     = key.relatedType() != null ? key.relatedType() : type;
 
 					// add field to property set
-					config.addPropertyKey(StructrApp.getConfiguration().getPropertyKeyForJSONName(type, childField.getName()));
-					config.handleFieldArguments(type, field, childField);
+					config.addPropertyKey(key);
+					config.handleFieldArguments(securityContext, relatedType, field, childField);
 
 					// recurse
 					if (childSet != null) {
 
-						init(childField, path + "/" + childField.getName());
+						init(securityContext, relatedType, childField, path + "/" + childField.getName());
 					}
 				}
 			}

@@ -22,6 +22,8 @@ import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
 import graphql.language.IntValue;
+import graphql.language.ObjectField;
+import graphql.language.ObjectValue;
 import graphql.language.StringValue;
 import graphql.language.Value;
 import java.util.LinkedHashMap;
@@ -32,24 +34,26 @@ import java.util.Map;
 import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 
 /**
  */
 public class QueryConfig implements GraphQLQueryConfiguration {
 
-	private Map<PropertyKey, SearchAttribute> attributes = new LinkedHashMap<>();
-	private Set<PropertyKey> propertyKeys                = new LinkedHashSet<>();
-	private PropertyKey sortKey                          = null;
-	private int pageSize                                 = Integer.MAX_VALUE;
-	private int page                                     = 1;
-	private boolean sortDescending                       = false;
+	private final Map<PropertyKey, SearchAttribute> attributes = new LinkedHashMap<>();
+	private final Set<PropertyKey> propertyKeys                = new LinkedHashSet<>();
+	private PropertyKey sortKey                                = null;
+	private boolean sortDescending                             = false;
+	private int pageSize                                       = Integer.MAX_VALUE;
+	private int page                                           = 1;
 
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
@@ -58,7 +62,14 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 	@Override
 	public Predicate getPredicateForPropertyKey(final PropertyKey key) {
-		return attributes.get(key);
+
+		if (key != null) {
+
+			// key can be null
+			return attributes.get(key);
+		}
+
+		return null;
 	}
 
 	public void addPropertyKey(final PropertyKey key) {
@@ -69,6 +80,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		this.page = page;
 	}
 
+	@Override
 	public int getPage() {
 		return page;
 	}
@@ -77,6 +89,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		this.pageSize = pageSize;
 	}
 
+	@Override
 	public int getPageSize() {
 		return pageSize;
 	}
@@ -110,7 +123,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		}
 	}
 
-	public void handleTypeArguments(final Class type, final List<Argument> arguments) {
+	public void handleTypeArguments(final SecurityContext securityContext, final Class type, final List<Argument> arguments) throws FrameworkException {
 
 		// parse arguments
 		for (final Argument argument : arguments) {
@@ -137,14 +150,18 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					break;
 
 				default:
+					// handle simple selections like an _equals on the field
+					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name, false);
+					if (key != null) {
 
-					//
+						addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, castValue(securityContext, type, key, value), true, null), Occurrence.REQUIRED);
+					}
 					break;
 			}
 		}
 	}
 
-	public void handleFieldArguments(final Class type, final Field parentField, final Field field) {
+	public void handleFieldArguments(final SecurityContext securityContext, final Class type, final Field parentField, final Field field) throws FrameworkException {
 
 		final ConfigurationProvider config   = StructrApp.getConfiguration();
 		final PropertyKey parentKey          = config.getPropertyKeyForJSONName(type, parentField.getName());
@@ -161,11 +178,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			switch (name) {
 
 				case "_equals":
-					searchTuples.add(new SearchTuple(castValue(key, value), true));
+					searchTuples.add(new SearchTuple(castValue(securityContext, key.relatedType(), key, value), true));
 					break;
 
 				case "_contains":
-					searchTuples.add(new SearchTuple(castValue(key, value), false));
+					searchTuples.add(new SearchTuple(castValue(securityContext, key.relatedType(), key, value), false));
 					break;
 
 				case "_conj":
@@ -173,34 +190,14 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					break;
 
 				default:
-					//
 					break;
 			}
 		}
 
 		// only add field if a value was set
-		final int valueCount = searchTuples.size();
-		if (valueCount > 0) {
+		for (final SearchTuple tuple : searchTuples) {
 
-			if (valueCount == 1) {
-
-				final SearchTuple tuple = searchTuples.get(0);
-
-				// single value, no group
-				attributes.put(parentKey, new PropertySearchAttribute(key, tuple.value, occurrence, tuple.exact));
-
-			} else {
-
-				// multiple values
-				final SearchAttributeGroup group = new SearchAttributeGroup(Occurrence.REQUIRED);
-
-				for (final SearchTuple tuple : searchTuples) {
-
-					group.add(new PropertySearchAttribute(key, tuple.value, occurrence, tuple.exact));
-				}
-
-				attributes.put(parentKey, group);
-			}
+			addAttribute(parentKey, key.getSearchAttribute(securityContext, occurrence, tuple.value, tuple.exact, null), occurrence);
 		}
 	}
 
@@ -235,6 +232,24 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return defaultValue;
 	}
 
+	private Map<String, Object> getMapValue(final SecurityContext securityContext, final Class type, final Value value) throws FrameworkException {
+
+		final Map<String, Object> map = new LinkedHashMap<>();
+
+		if (value != null && value instanceof ObjectValue) {
+
+			final ObjectValue obj = (ObjectValue)value;
+
+			for (final ObjectField field : obj.getObjectFields()) {
+
+				// recurse
+				map.put(field.getName(), castValue(securityContext, type, null, field.getValue()));
+			}
+		}
+
+		return map;
+	}
+
 	private Occurrence getOccurrence(final Value value) {
 
 		final String val = getStringValue(value, null);
@@ -256,28 +271,81 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return Occurrence.REQUIRED;
 	}
 
-	private Object castValue(final PropertyKey key, final Value value) {
+	private Object castValue(final SecurityContext securityContext, final Class type, final PropertyKey key, final Value value) throws FrameworkException {
 
-		final String typeName = key.typeName();
-		if (typeName != null) {
+		if (value instanceof StringValue) {
+			return getStringValue(value, null);
+		}
 
-			switch (typeName) {
+		if (value instanceof IntValue) {
+			return getIntegerValue(value, -1);
+		}
 
-				case "String":
-					return getStringValue(value, null);
+		if (value instanceof BooleanValue) {
+			return getBooleanValue(value, false);
+		}
 
-				case "Integer":
-					return getIntegerValue(value, -1);
+		if (value instanceof ObjectValue && key != null) {
 
-				case "Boolean":
-					return getBooleanValue(value, false);
+			final Map<String, Object> parameters = new LinkedHashMap<>();
 
-				default:
-					break;
-			}
+			parameters.put(key.jsonName(), getMapValue(securityContext, type, value));
+
+			final PropertyMap propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, parameters);
+
+			// return converted result (should be replaced by NodeInterface)
+			return propertyMap.get(key);
+
 		}
 
 		return null;
+	}
+
+	private void addAttribute(final PropertyKey parentKey, final SearchAttribute newAttribute, final Occurrence occurrence) {
+
+		final SearchAttribute existingAttribute = attributes.get(parentKey);
+		if (existingAttribute == null) {
+
+			// single value, no group, no existing attribute
+			attributes.put(parentKey, newAttribute);
+
+		} else {
+
+			// we need to combine the attributes
+			if (existingAttribute instanceof SearchAttributeGroup) {
+
+				// attribute already set, add
+				((SearchAttributeGroup)existingAttribute).add(newAttribute);
+
+			} else {
+
+				// create group from two single attributes
+				final SearchAttributeGroup group = new SearchAttributeGroup(occurrence);
+				group.add(existingAttribute);
+				group.add(newAttribute);
+
+				attributes.put(parentKey, group);
+			}
+		}
+	}
+
+	private SearchAttributeGroup getOrCreateGroup(final SearchAttribute existingAttribute) {
+
+		if (existingAttribute instanceof SearchAttributeGroup) {
+
+			return (SearchAttributeGroup)existingAttribute;
+
+		}
+
+		final SearchAttributeGroup group = new SearchAttributeGroup(Occurrence.REQUIRED);
+
+		if (existingAttribute != null) {
+
+			// create new group and add existing attribute
+			group.add(existingAttribute);
+		}
+
+		return group;
 	}
 
 	// ----- nested classes -----

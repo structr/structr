@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 
 /**
@@ -39,15 +40,15 @@ public class GraphQLRequest {
 
 	private static final Logger logger = LoggerFactory.getLogger(GraphQLRequest.class);
 
-	private List<GraphQLQuery> queries = new LinkedList<>();
-	private boolean hasSchemaQuery       = false;
-	private String originalQuery         = null;
+	private final List<GraphQLQuery> queries = new LinkedList<>();
+	private boolean hasSchemaQuery           = false;
+	private String originalQuery             = null;
 
-	public GraphQLRequest(final Document document, final String originalQuery) throws FrameworkException {
+	public GraphQLRequest(final SecurityContext securityContext, final Document document, final String originalQuery) throws FrameworkException {
 
 		this.originalQuery = originalQuery;
 
-		initialize(document);
+		initialize(securityContext, document);
 		checkSchemaRequest();
 	}
 
@@ -64,7 +65,7 @@ public class GraphQLRequest {
 	}
 
 	// ----- private methods -----
-	private void initialize(final Document document) {
+	private void initialize(final SecurityContext securityContext,  Document document) throws FrameworkException {
 
 		for (final Node child : document.getChildren()) {
 
@@ -77,7 +78,7 @@ public class GraphQLRequest {
 
 					if (selection instanceof Field) {
 
-						queries.add(new GraphQLQuery((Field)selection));
+						queries.add(new GraphQLQuery(securityContext, (Field)selection));
 
 					} else {
 
