@@ -35,6 +35,10 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -82,6 +86,26 @@ public class StructrCsvTest {
 		RestAssured.baseURI = "http://" + host + ":" + httpPort;
 		RestAssured.port = httpPort;
 	}
+
+	@Rule
+	public TestRule watcher = new TestWatcher() {
+
+		@Override
+		protected void starting(Description description) {
+
+			System.out.println("######################################################################################");
+			System.out.println("# Starting " + description.getClassName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+
+		@Override
+		protected void finished(Description description) {
+
+			System.out.println("######################################################################################");
+			System.out.println("# Finished " + description.getClassName() + "#" + description.getMethodName());
+			System.out.println("######################################################################################");
+		}
+	};
 
 	@After
 	@Before
@@ -318,6 +342,9 @@ public class StructrCsvTest {
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);
+
+		// sleep again to wait for schema initialization
+		try { Thread.sleep(2000); } catch (Throwable t) {}
 	}
 
 
