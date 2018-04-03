@@ -285,6 +285,20 @@ public class GraphQLWriter {
 				});
 			}
 		}
+
+		protected Predicate<GraphObject> getPredicate(final GraphQLQuery query, final String path, final PropertyKey key) {
+
+			if (query != null) {
+
+				final GraphQLQueryConfiguration subkeyConfig = query.getQueryConfiguration(path);
+				if (subkeyConfig != null) {
+
+					return subkeyConfig.getPredicateForPropertyKey(key);
+				}
+			}
+
+			return null;
+		}
 	}
 
 	public class RootSerializer extends Serializer<GraphObject> {
@@ -297,7 +311,7 @@ public class GraphQLWriter {
 			// mark object as visited
 			if (source != null) {
 
-				final GraphQLQueryConfiguration propertyConfig  = graphQLQuery.getQueryConfiguration(path);
+				final GraphQLQueryConfiguration propertyConfig = graphQLQuery.getQueryConfiguration(path);
 
 				hashCode = source.hashCode();
 				visitedObjects.add(hashCode);
@@ -307,8 +321,9 @@ public class GraphQLWriter {
 				// property keys
 				for (final PropertyKey key : propertyConfig.getPropertyKeys()) {
 
-					final Object value = source.getProperty(key, propertyConfig.getPredicateForPropertyKey(key));
-					final String name  = key.jsonName();
+					final String name                      = key.jsonName();
+					final Predicate<GraphObject> predicate = getPredicate(graphQLQuery, path + "/" + name, key);
+					final Object value                     = source.getProperty(key, predicate);
 
 					if (value != null) {
 

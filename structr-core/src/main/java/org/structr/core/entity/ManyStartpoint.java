@@ -18,13 +18,13 @@
  */
 package org.structr.core.entity;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -63,14 +63,19 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 		if (rels != null) {
 
-			return Iterables.map(new Function<Relationship, S>() {
+			if (predicate != null && predicate.comparator() != null) {
 
-				@Override
-				public S apply(Relationship from) throws RuntimeException {
-					return nodeFactory.instantiate(from.getStartNode(), from);
-				}
+				final List<S> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), from), rels));
 
-			}, sort(rels));
+				Collections.sort(result, predicate.comparator());
+
+				return result;
+
+			} else {
+
+				// sort relationships by id
+				return Iterables.map((Relationship from) -> nodeFactory.instantiate(from.getStartNode(), from), sort(rels));
+			}
 		}
 
 		return null;

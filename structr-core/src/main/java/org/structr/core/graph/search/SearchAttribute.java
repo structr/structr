@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.api.Predicate;
@@ -38,10 +39,11 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 	public static final String WILDCARD = "*";
 
- 	private Set<GraphObject> result    = new LinkedHashSet<>();
-	private Occurrence occur           = null;
-	private PropertyKey sortKey        = null;
-	private boolean sortDescending     = false;
+	private Comparator<GraphObject> comparator = null;
+ 	private Set<GraphObject> result            = new LinkedHashSet<>();
+	private Occurrence occur                   = null;
+	private PropertyKey sortKey                = null;
+	private boolean sortDescending             = false;
 
 	public abstract boolean includeInResult(GraphObject entity);
 
@@ -89,10 +91,19 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		this.sortDescending = sortDescending;
 	}
 
+	public void setComparator(final Comparator<GraphObject> comparator) {
+		this.comparator = comparator;
+	}
+
 	// ----- interface Predicate<GraphObject> -----
 	@Override
 	public boolean accept(final GraphObject obj) {
 		return includeInResult(obj);
+	}
+
+	@Override
+	public Comparator<GraphObject> comparator() {
+		return comparator;
 	}
 
 	// ----- interface QueryPredicate -----

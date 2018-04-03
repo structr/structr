@@ -76,6 +76,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		final String query1 = "{ Group { id, type, name, members { id, type, name } }, Principal(_pageSize: 1) { id, type name }}";
 		final String query2 = "{ Group { id, type, name, members { } }}";
+		final String query3 = "{ Group(id: \"" + group.getUuid() + "\") { id, type, name }}";
 
 		RestAssured
 
@@ -113,6 +114,23 @@ public class GraphQLTest extends StructrGraphQLTest {
 				.body("message", equalTo("Parse error at } in line 1, column 36"))
 				.body("code",    equalTo(422))
 				.body("query",   equalTo(query2))
+
+			.when()
+				.post("/");
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.body(query3)
+
+			.expect()
+				.statusCode(200)
+				.body("Group",                    hasSize(1))
+				.body("Group[0].id",              equalTo(group.getUuid()))
+				.body("Group[0].type",            equalTo("Group"))
+				.body("Group[0].name",            equalTo("TestGroup"))
 
 			.when()
 				.post("/");
@@ -227,6 +245,42 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Group.1.members.#",      2);
 			assertMapPathValueIs(result, "Group.1.members.0.name", "Christian");
 			assertMapPathValueIs(result, "Group.1.members.1.name", "Inès");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Group { name, members(_sort: \"name\") { name }}}");
+			assertMapPathValueIs(result, "Group.#",                2);
+			assertMapPathValueIs(result, "Group.0.name",           "All teams");
+			assertMapPathValueIs(result, "Group.0.members.#",      1);
+			assertMapPathValueIs(result, "Group.1.name",           "Structr Team");
+			assertMapPathValueIs(result, "Group.1.members.#",      9);
+			assertMapPathValueIs(result, "Group.1.members.0.name", "Axel");
+			assertMapPathValueIs(result, "Group.1.members.1.name", "Christian");
+			assertMapPathValueIs(result, "Group.1.members.2.name", "Christian");
+			assertMapPathValueIs(result, "Group.1.members.3.name", "Inès");
+			assertMapPathValueIs(result, "Group.1.members.4.name", "Kai");
+			assertMapPathValueIs(result, "Group.1.members.5.name", "Lukas");
+			assertMapPathValueIs(result, "Group.1.members.6.name", "Michael");
+			assertMapPathValueIs(result, "Group.1.members.7.name", "Susanne");
+			assertMapPathValueIs(result, "Group.1.members.8.name", "Tobias");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Group { name, members(_sort: \"name\", _desc: true) { name }}}");
+			assertMapPathValueIs(result, "Group.#",                2);
+			assertMapPathValueIs(result, "Group.0.name",           "All teams");
+			assertMapPathValueIs(result, "Group.0.members.#",      1);
+			assertMapPathValueIs(result, "Group.1.name",           "Structr Team");
+			assertMapPathValueIs(result, "Group.1.members.#",      9);
+			assertMapPathValueIs(result, "Group.1.members.8.name", "Axel");
+			assertMapPathValueIs(result, "Group.1.members.7.name", "Christian");
+			assertMapPathValueIs(result, "Group.1.members.6.name", "Christian");
+			assertMapPathValueIs(result, "Group.1.members.5.name", "Inès");
+			assertMapPathValueIs(result, "Group.1.members.4.name", "Kai");
+			assertMapPathValueIs(result, "Group.1.members.3.name", "Lukas");
+			assertMapPathValueIs(result, "Group.1.members.2.name", "Michael");
+			assertMapPathValueIs(result, "Group.1.members.1.name", "Susanne");
+			assertMapPathValueIs(result, "Group.1.members.0.name", "Tobias");
 		}
 
 		{

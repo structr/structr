@@ -26,6 +26,7 @@ import graphql.language.ObjectField;
 import graphql.language.ObjectValue;
 import graphql.language.StringValue;
 import graphql.language.Value;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -34,8 +35,10 @@ import java.util.Map;
 import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
+import org.structr.common.GraphObjectComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchAttribute;
@@ -65,8 +68,34 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		if (key != null) {
 
-			// key can be null
-			return attributes.get(key);
+			final SearchAttribute attribute = attributes.get(key);
+			if (attribute != null) {
+
+				if (sortKey != null) {
+					// insert comparator to allow sorting
+					attribute.setComparator(new GraphObjectComparator(sortKey, sortDescending));
+				}
+
+				// SearchAttribute implements Predicate
+				return attribute;
+
+			} else if (sortKey != null) {
+
+				// accept-all predicate just for sorting
+				return new Predicate<GraphObject>() {
+
+					@Override
+					public boolean accept(final GraphObject value) {
+						return true;
+					}
+
+					@Override
+					public Comparator<GraphObject> comparator() {
+						return new GraphObjectComparator(sortKey, sortDescending);
+					}
+
+				};
+			}
 		}
 
 		return null;
@@ -328,25 +357,6 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 				attributes.put(parentKey, group);
 			}
 		}
-	}
-
-	private SearchAttributeGroup getOrCreateGroup(final SearchAttribute existingAttribute) {
-
-		if (existingAttribute instanceof SearchAttributeGroup) {
-
-			return (SearchAttributeGroup)existingAttribute;
-
-		}
-
-		final SearchAttributeGroup group = new SearchAttributeGroup(Occurrence.REQUIRED);
-
-		if (existingAttribute != null) {
-
-			// create new group and add existing attribute
-			group.add(existingAttribute);
-		}
-
-		return group;
 	}
 
 	// ----- nested classes -----

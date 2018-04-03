@@ -71,8 +71,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class SchemaNode extends AbstractSchemaNode {
 
-	private static final Logger logger                   = LoggerFactory.getLogger(SchemaNode.class.getName());
-	private static final String GraphQLNodeReferenceName = "StructrNodeReference";
+	private static final Logger logger                  = LoggerFactory.getLogger(SchemaNode.class.getName());
+	public static final String GraphQLNodeReferenceName = "StructrNodeReference";
 
 	private static final Set<String> EntityNameBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"Relation"
@@ -411,12 +411,12 @@ public class SchemaNode extends AbstractSchemaNode {
 			registerIncomingGraphQLFields(fields, inNode);
 		}
 
-		fields.put("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).build());
+		fields.put("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).argument(SchemaProperty.getGraphQLArgumentsForUUID()).build());
 
 		// add static fields (name etc., can be overwritten)
 		fields.putIfAbsent("type", GraphQLFieldDefinition.newFieldDefinition().name("type").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("name", GraphQLFieldDefinition.newFieldDefinition().name("name").type(Scalars.GraphQLString).argument(SchemaProperty.getGraphQLArgumentsForType(Type.String)).build());
-		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).argument(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build()).build());
+		fields.putIfAbsent("owner", GraphQLFieldDefinition.newFieldDefinition().name("owner").type(typeRef("Principal")).argument(SchemaProperty.getGraphQLArgumentsForRelatedType("Principal")).build());
 		fields.putIfAbsent("createdBy", GraphQLFieldDefinition.newFieldDefinition().name("createdBy").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("createdDate", GraphQLFieldDefinition.newFieldDefinition().name("createdDate").type(Scalars.GraphQLString).build());
 		fields.putIfAbsent("lastModifiedBy", GraphQLFieldDefinition.newFieldDefinition().name("lastModifiedBy").type(Scalars.GraphQLString).build());

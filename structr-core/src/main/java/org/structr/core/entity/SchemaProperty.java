@@ -22,6 +22,7 @@ import graphql.Scalars;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLOutputType;
+import static graphql.schema.GraphQLTypeReference.typeRef;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
@@ -605,6 +607,26 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 				arguments.add(GraphQLArgument.newArgument().name("_conj").type(Scalars.GraphQLString).build());
 				break;
 		}
+
+		return arguments;
+	}
+
+	public static List<GraphQLArgument> getGraphQLArgumentsForUUID() {
+
+		final List<GraphQLArgument> arguments = new LinkedList<>();
+
+		arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
+
+		return arguments;
+	}
+
+	public static List<GraphQLArgument> getGraphQLArgumentsForRelatedType(final String relatedTye) {
+
+		// related type parameter is unused right now
+
+		final List<GraphQLArgument> arguments = new LinkedList<>();
+
+		arguments.add(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build());
 
 		return arguments;
 	}

@@ -31,6 +31,7 @@ import org.structr.api.search.SortType;
 import org.structr.api.util.Iterables;
 import org.structr.common.NotNullPredicate;
 import org.structr.common.SecurityContext;
+import org.structr.common.TruePredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
@@ -155,7 +156,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 		if (predicate != null) {
 
-			return Iterables.toList(Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, null))));
+			return Iterables.toList(Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), endpoint.get(securityContext, (NodeInterface)obj, new TruePredicate(predicate.comparator())))));
 
 		} else {
 

@@ -16,24 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.common;
 
 import java.util.Comparator;
+import org.structr.api.Predicate;
+import org.structr.core.GraphObject;
 
 /**
- *
+ * A predicate that accepts all inputs and supports a comparator.
  */
-public interface Predicate<T> {
+public class TruePredicate implements Predicate<GraphObject> {
 
-	boolean accept(final T value);
+	private Comparator<GraphObject> comparator = null;
 
-	/**
-	 * Returns an optional Comparator to allow ordering
-	 * of elements according to this predicate.
-	 *
-	 * @return a comparator or null
-	 */
-	default Comparator<T> comparator() {
-		return null;
+	public TruePredicate(final Comparator<GraphObject> comparator) {
+		this.comparator = comparator;
+	}
+
+	@Override
+	public boolean accept(final GraphObject value) {
+		return true;
+	}
+
+	@Override
+	public Comparator<GraphObject> comparator() {
+		return comparator;
 	}
 }
