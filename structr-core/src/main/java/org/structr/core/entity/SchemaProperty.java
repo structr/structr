@@ -627,6 +627,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		final List<GraphQLArgument> arguments = new LinkedList<>();
 
 		arguments.add(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build());
+		arguments.add(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build());
+		arguments.add(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLString).build());
 
 		return arguments;
 	}

@@ -36,6 +36,7 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.common.GraphObjectComparator;
+import org.structr.common.PathResolvingComparator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -53,6 +54,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 	private final Map<PropertyKey, SearchAttribute> attributes = new LinkedHashMap<>();
 	private final Set<PropertyKey> propertyKeys                = new LinkedHashSet<>();
+	private String sortKeySource                               = null;
 	private PropertyKey sortKey                                = null;
 	private boolean sortDescending                             = false;
 	private int pageSize                                       = Integer.MAX_VALUE;
@@ -71,15 +73,13 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			final SearchAttribute attribute = attributes.get(key);
 			if (attribute != null) {
 
-				if (sortKey != null) {
-					// insert comparator to allow sorting
-					attribute.setComparator(new GraphObjectComparator(sortKey, sortDescending));
-				}
+				// insert comparator to allow sorting
+				attribute.setComparator(getComparator());
 
 				// SearchAttribute implements Predicate
 				return attribute;
 
-			} else if (sortKey != null) {
+			} else if (sortKeySource != null || sortKey != null) {
 
 				// accept-all predicate just for sorting
 				return new Predicate<GraphObject>() {
@@ -91,9 +91,8 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 					@Override
 					public Comparator<GraphObject> comparator() {
-						return new GraphObjectComparator(sortKey, sortDescending);
+						return getComparator();
 					}
-
 				};
 			}
 		}
@@ -145,10 +144,20 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		query.pageSize(pageSize);
 		query.attributes(new LinkedList<>(attributes.values()));
 
-		if (sortDescending) {
-			query.sortDescending(sortKey);
-		} else {
-			query.sortAscending(sortKey);
+		if (sortKey != null) {
+
+			if (sortDescending) {
+
+				query.sortDescending(sortKey);
+
+			} else {
+
+				query.sortAscending(sortKey);
+			}
+
+		} else if (sortKeySource != null) {
+
+			query.comparator(new PathResolvingComparator(sortKeySource, sortDescending));
 		}
 	}
 
@@ -172,7 +181,8 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					break;
 
 				case "_sort":
-					this.sortKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, getStringValue(value, "name"));
+					this.sortKeySource = getStringValue(value, "name");
+					this.sortKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, sortKeySource, false);
 					break;
 
 				case "_desc":
@@ -357,6 +367,21 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 				attributes.put(parentKey, group);
 			}
 		}
+	}
+
+	private Comparator<GraphObject> getComparator() {
+
+		if (sortKey != null) {
+
+			return new GraphObjectComparator(sortKey, sortDescending);
+		}
+
+		if (sortKeySource != null) {
+
+			return new PathResolvingComparator(sortKeySource, sortDescending);
+		}
+
+		return null;
 	}
 
 	// ----- nested classes -----

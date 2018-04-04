@@ -29,16 +29,12 @@ import org.structr.core.ViewTransformation;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A comparator for structr entities that uses a given property key and sort
  * order for comparison.
  *
  * Properties with null values (not existing properties) are always handled
  * as "lower than", so that any not-null value ranks higher.
- *
- *
  */
 public class GraphObjectComparator extends ViewTransformation<GraphObject> implements Comparator<GraphObject> {
 
@@ -46,12 +42,8 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 	public static final String DESCENDING = "desc";
 	private static final Logger logger    = LoggerFactory.getLogger(GraphObjectComparator.class.getName());
 
-	//~--- fields ---------------------------------------------------------
-
 	private PropertyKey sortKey;
 	private String sortOrder;
-
-	//~--- constructors ---------------------------------------------------
 
 	/**
 	 * Creates a new GraphObjectComparator with the given sort key and order.
@@ -67,8 +59,6 @@ public class GraphObjectComparator extends ViewTransformation<GraphObject> imple
 		this.sortKey   = sortKey;
 		this.sortOrder = sortOrder;
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public int compare(GraphObject n1, GraphObject n2) {

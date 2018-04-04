@@ -168,21 +168,45 @@ public class GraphQLTest extends StructrGraphQLTest {
 			);
 
 			templates.add(app.create(MailTemplate.class,
-				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "MailTemplate1"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "MailTemplate4"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
-				new NodeAttribute<>(AbstractNode.owner, team.get(0))
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "zrtsga"),
+				new NodeAttribute<>(AbstractNode.owner, team.get(2))
 			));
 
 			templates.add(app.create(MailTemplate.class,
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "MailTemplate2"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "lertdf"),
 				new NodeAttribute<>(AbstractNode.owner, team.get(0))
+			));
+
+			templates.add(app.create(MailTemplate.class,
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "MailTemplate5"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "tzegsg"),
+				new NodeAttribute<>(AbstractNode.owner, team.get(3))
 			));
 
 			templates.add(app.create(MailTemplate.class,
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "MailTemplate3"),
 				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "asgw"),
 				new NodeAttribute<>(AbstractNode.owner, team.get(1))
+			));
+
+			templates.add(app.create(MailTemplate.class,
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "MailTemplate6"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "dfjgr"),
+				new NodeAttribute<>(AbstractNode.owner, team.get(4))
+			));
+
+			templates.add(app.create(MailTemplate.class,
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "text"),   "MailTemplate1"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "locale"), "de_DE"),
+				new NodeAttribute<>(StructrApp.key(MailTemplate.class, "name"),   "abcdef"),
+				new NodeAttribute<>(AbstractNode.owner, team.get(0))
 			));
 
 
@@ -312,6 +336,41 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "MailTemplate.0.text",        "MailTemplate2");
 			assertMapPathValueIs(result, "MailTemplate.0.name",        null);
 			assertMapPathValueIs(result, "MailTemplate.0.owner.name",  "Axel");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(_sort: \"owner.name\") { name, owner { name }}}");
+			assertMapPathValueIs(result, "MailTemplate.#",                6);
+			assertMapPathValueIs(result, "MailTemplate.0.name",           "abcdef");
+			assertMapPathValueIs(result, "MailTemplate.0.owner.name",     "Axel");
+			assertMapPathValueIs(result, "MailTemplate.1.name",           "lertdf");
+			assertMapPathValueIs(result, "MailTemplate.1.owner.name",     "Axel");
+			assertMapPathValueIs(result, "MailTemplate.2.name",           "asgw");
+			assertMapPathValueIs(result, "MailTemplate.2.owner.name",     "Christian");
+			assertMapPathValueIs(result, "MailTemplate.3.name",           "zrtsga");
+			assertMapPathValueIs(result, "MailTemplate.3.owner.name",     "Christian");
+			assertMapPathValueIs(result, "MailTemplate.4.name",           "tzegsg");
+			assertMapPathValueIs(result, "MailTemplate.4.owner.name",     "Inès");
+			assertMapPathValueIs(result, "MailTemplate.5.name",           "dfjgr");
+			assertMapPathValueIs(result, "MailTemplate.5.owner.name",     "Kai");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Group { name, members(_sort: \"name\", _desc: true) { name }}}");
+			assertMapPathValueIs(result, "Group.#",                2);
+			assertMapPathValueIs(result, "Group.0.name",           "All teams");
+			assertMapPathValueIs(result, "Group.0.members.#",      1);
+			assertMapPathValueIs(result, "Group.1.name",           "Structr Team");
+			assertMapPathValueIs(result, "Group.1.members.#",      9);
+			assertMapPathValueIs(result, "Group.1.members.8.name", "Axel");
+			assertMapPathValueIs(result, "Group.1.members.7.name", "Christian");
+			assertMapPathValueIs(result, "Group.1.members.6.name", "Christian");
+			assertMapPathValueIs(result, "Group.1.members.5.name", "Inès");
+			assertMapPathValueIs(result, "Group.1.members.4.name", "Kai");
+			assertMapPathValueIs(result, "Group.1.members.3.name", "Lukas");
+			assertMapPathValueIs(result, "Group.1.members.2.name", "Michael");
+			assertMapPathValueIs(result, "Group.1.members.1.name", "Susanne");
+			assertMapPathValueIs(result, "Group.1.members.0.name", "Tobias");
 		}
 	}
 

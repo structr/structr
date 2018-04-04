@@ -20,6 +20,7 @@ package org.structr.core.graph.search;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -88,6 +89,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
 	private SearchAttributeGroup currentGroup    = rootGroup;
+	private Comparator<T> comparator             = null;
 	private PropertyKey sortKey                  = null;
 	private boolean publicOnly                   = false;
 	private boolean includeDeletedAndHidden      = true;
@@ -217,13 +219,22 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			if (index != null) {
 
 				// paging needs to be done AFTER instantiating all nodes
-				if (hasEmptySearchFields) {
+				if (hasEmptySearchFields || comparator != null) {
 					factory.disablePaging();
 				}
 
 				// do query
 				final QueryResult hits = index.query(getQueryContext(), rootGroup);
 				intermediateResult     = factory.instantiate(hits);
+
+				if (comparator != null) {
+
+					final List<T> rawResult = intermediateResult.getResults();
+
+					Collections.sort(rawResult, comparator);
+
+					return new Result(PagingHelper.subList(rawResult, pageSize, page), rawResult.size(), true, false);
+				}
 			}
 		}
 
@@ -396,6 +407,15 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		this.doNotSort      = false;
 		this.sortDescending = descending;
+
+		return this;
+	}
+
+	@Override
+	public org.structr.core.app.Query<T> comparator(final Comparator<T> comparator) {
+
+		this.doNotSort  = false;
+		this.comparator = comparator;
 
 		return this;
 	}

@@ -18,6 +18,7 @@
  */
 package org.structr.core.app;
 
+import java.util.Comparator;
 import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.search.QueryContext;
@@ -50,6 +51,7 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> sortAscending(final PropertyKey key);
 	public Query<T> sortDescending(final PropertyKey key);
 	public Query<T> order(final boolean descending);
+	public Query<T> comparator(final Comparator<T> comparator);
 	public Query<T> pageSize(final int pageSize);
 	public Query<T> page(final int page);
 	public Query<T> publicOnly();

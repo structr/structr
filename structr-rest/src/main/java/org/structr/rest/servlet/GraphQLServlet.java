@@ -199,6 +199,18 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 			getGson().toJson(frameworkException, response.getWriter());
 			response.getWriter().println();
 
+		} catch (IllegalStateException | IllegalArgumentException iex) {
+
+			final Map<String, Object> map = new LinkedHashMap<>();
+
+			map.put("code", 422);
+			map.put("message", iex.getMessage());
+
+			// set status & write JSON output
+			response.setStatus(422);
+			getGson().toJson(map, response.getWriter());
+			response.getWriter().println();
+
 		} catch (UnsupportedOperationException uoe) {
 
 			logger.warn("POST not supported");

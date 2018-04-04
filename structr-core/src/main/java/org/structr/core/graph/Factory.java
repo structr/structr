@@ -196,7 +196,6 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		return SchemaHelper.getEntityClassForRawType(rawType);
 	}
 
-	// <editor-fold defaultstate="collapsed" desc="private methods">
 	protected List<S> read(final Iterable<S> iterable) {
 
 		final List<S> nodes  = new ArrayList();
@@ -380,8 +379,5 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 			this.securityContext = securityContext;
 
 		}
-
 	}
-
-	// </editor-fold>
 }

@@ -119,9 +119,6 @@ import org.structr.schema.parser.Validator;
 public class SchemaHelper {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(SchemaHelper.class.getName());
-	private static final String BeginStructrMixinComment = "----- begin structr mixin -----";
-	private static final String EndStructrMixinComment   = "----- end structr mixin -----";
-	private static final String StructrImportPrefix      = "import ";
 	private static final String WORD_SEPARATOR           = "_";
 
 	public enum Type {
