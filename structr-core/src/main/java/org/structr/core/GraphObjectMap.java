@@ -34,6 +34,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
@@ -153,6 +154,17 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 		return true;
+	}
+	
+	public static GraphObjectMap fromMap(final Map<String, Object> map) {
+		
+		final GraphObjectMap newGraphObjectMap = new GraphObjectMap();
+
+		for (final Map.Entry<String, Object> prop : map.entrySet()) {
+
+			newGraphObjectMap.put(new GenericProperty(prop.getKey()), prop.getValue());
+		}
+		return newGraphObjectMap;
 	}
 
 	public Map<String, Object> toMap() {
