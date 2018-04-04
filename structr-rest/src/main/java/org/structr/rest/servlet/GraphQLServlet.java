@@ -33,9 +33,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,7 +151,7 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					final Document doc = parse(new Parser(), query);
+					final Document doc = GraphQLRequest.parse(new Parser(), query);
 					if (doc != null) {
 
 						final List<ValidationError> errors = new Validator().validateDocument(SchemaService.getGraphQLSchema(), doc);
@@ -234,53 +231,6 @@ public class GraphQLServlet extends HttpServlet implements HttpServiceServlet {
 
 		if (!Services.getInstance().isInitialized()) {
 			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
-		}
-	}
-
-	private Document parse(final Parser parser, final String query) throws FrameworkException {
-
-		try {
-
-			return parser.parseDocument(query);
-
-		} catch (Throwable t) {
-
-			String message = t.getMessage();
-			if (message == null) {
-
-				message = t.getClass().getName();
-
-				if (t instanceof ParseCancellationException) {
-
-					final Throwable cause = t.getCause();
-					if (cause instanceof RecognitionException) {
-
-						final RecognitionException err = (RecognitionException)cause;
-						final Token offendingToken     = err.getOffendingToken();
-
-						if (offendingToken != null) {
-
-							final int line    = offendingToken.getLine();
-							final int column  = offendingToken.getCharPositionInLine();
-							final String text = offendingToken.getText();
-
-							message = "Parse error at " + text + " in line " + line + ", column " + column;
-						}
-					}
-
-				}
-			}
-
-			final FrameworkException fex   = new FrameworkException(422, message);
-			final Map<String, String> data = new LinkedHashMap<>();
-
-			// do not output an empty array of errors
-			fex.setErrorBuffer(null);
-			fex.setData(data);
-
-			data.put("query", query);
-
-			throw fex;
 		}
 	}
 
