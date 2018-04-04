@@ -166,9 +166,12 @@ public class CsvTest extends StructrCsvTest {
 	@Test
 	public void test02CsvOutput() {
 
+		try { Thread.sleep(2000); } catch (Throwable t) {}
+
 		// create some objects
 
 		String test0Id = getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
 			.expect().statusCode(201).when().post(testOneResource).getHeader("Location"));
