@@ -24,10 +24,15 @@ import graphql.language.Node;
 import graphql.language.OperationDefinition;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
+import graphql.parser.Parser;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -62,6 +67,53 @@ public class GraphQLRequest {
 
 	public String getOriginalQuery() {
 		return originalQuery;
+	}
+
+	public static Document parse(final Parser parser, final String query) throws FrameworkException {
+
+		try {
+
+			return parser.parseDocument(query);
+
+		} catch (Throwable t) {
+
+			String message = t.getMessage();
+			if (message == null) {
+
+				message = t.getClass().getName();
+
+				if (t instanceof ParseCancellationException) {
+
+					final Throwable cause = t.getCause();
+					if (cause instanceof RecognitionException) {
+
+						final RecognitionException err = (RecognitionException)cause;
+						final Token offendingToken     = err.getOffendingToken();
+
+						if (offendingToken != null) {
+
+							final int line    = offendingToken.getLine();
+							final int column  = offendingToken.getCharPositionInLine();
+							final String text = offendingToken.getText();
+
+							message = "Parse error at " + text + " in line " + line + ", column " + column;
+						}
+					}
+
+				}
+			}
+
+			final FrameworkException fex   = new FrameworkException(422, message);
+			final Map<String, String> data = new LinkedHashMap<>();
+
+			// do not output an empty array of errors
+			fex.setErrorBuffer(null);
+			fex.setData(data);
+
+			data.put("query", query);
+
+			throw fex;
+		}
 	}
 
 	// ----- private methods -----

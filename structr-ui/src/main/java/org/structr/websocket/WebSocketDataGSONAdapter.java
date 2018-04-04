@@ -25,9 +25,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import graphql.language.Document;
+import graphql.parser.Parser;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,14 +43,19 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
+import org.structr.core.graphql.GraphQLRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.rest.GraphObjectGSONAdapter;
 import org.structr.core.rest.JsonInputGSONAdapter;
 import static org.structr.core.rest.JsonInputGSONAdapter.fromPrimitive;
+import org.structr.rest.serialization.GraphQLWriter;
+import org.structr.rest.serialization.RestWriter;
+import org.structr.rest.serialization.StructrJsonWriter;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------
@@ -231,37 +243,71 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		// serialize result list
 		if (src.getResult() != null) {
-
-			if (src.getView() != null) {
-
+			
+			if ("GRAPHQL".equals(src.getCommand())) {
+				
 				try {
-					propertyView.set(null, src.getView());
+				
+					if (src.getResult() != null && !src.getResult().isEmpty()) {
+					
+						final GraphObject firstResultObject = src.getResult().get(0);
+						final SecurityContext securityContext = firstResultObject.getSecurityContext();
 
-				} catch(FrameworkException fex) {
+						final StringWriter output = new StringWriter();
 
-					logger.warn("Unable to set property view", fex);
+						final String query = (String) src.getNodeData().get("query");
+						final Document doc = GraphQLRequest.parse(new Parser(), query);
+
+						final GraphQLWriter graphQLWriter  = new GraphQLWriter(false);
+						graphQLWriter.stream(securityContext, output, new GraphQLRequest(securityContext, doc, query));
+
+						JsonElement graphQLResult = new JsonParser().parse(output.toString());
+						root.add("result", graphQLResult);
+						
+					} else {
+						
+						root.add("result", new JsonArray());
+					}
+					
+				} catch (IOException | FrameworkException ex) {
+
+					logger.warn("Unable to set process GraphQL query", ex);
 				}
-
+				
 			} else {
 
-				try {
-					propertyView.set(null, PropertyView.Ui);
+				if (src.getView() != null) {
 
-				} catch(FrameworkException fex) {
+					try {
+						propertyView.set(null, src.getView());
 
-					logger.warn("Unable to set property view", fex);
+					} catch (FrameworkException fex) {
+
+						logger.warn("Unable to set property view", fex);
+					}
+
+				} else {
+
+					try {
+						propertyView.set(null, PropertyView.Ui);
+
+					} catch (FrameworkException fex) {
+
+						logger.warn("Unable to set property view", fex);
+					}
+
 				}
 
+				JsonArray result = new JsonArray();
+
+				for (GraphObject obj : src.getResult()) {
+
+					result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
+				}
+
+				root.add("result", result);
+			
 			}
-
-			JsonArray result = new JsonArray();
-
-			for (GraphObject obj : src.getResult()) {
-
-				result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
-			}
-
-			root.add("result", result);
 			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
 
 		}

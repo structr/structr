@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,7 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISDocumentInfo;
@@ -441,7 +443,23 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 					try {
 
 						final String result = Scripting.replaceVariables(new ActionContext(securityContext), thisFile, content);
-						return IOUtils.toInputStream(result, "UTF-8");
+
+						String encoding = "UTF-8";
+
+						final String cType = getContentType();
+						if (cType != null) {
+
+							final String charset = StringUtils.substringAfterLast(cType, "charset=").trim().toUpperCase();
+							try {
+								if (!"".equals(charset) && Charset.isSupported(charset)) {
+									encoding = charset;
+								}
+							} catch (IllegalCharsetNameException ice) {
+								logger.warn("Charset is not supported '{}'. Using 'UTF-8'", charset);
+							}
+						}
+
+						return IOUtils.toInputStream(result, encoding);
 
 					} catch (Throwable t) {
 
