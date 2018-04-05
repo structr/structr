@@ -109,6 +109,11 @@ public class StructrCsvTest {
 	@Before
 	public void cleanDatabase() {
 
+		// configure RestAssured
+		RestAssured.basePath = restUrl;
+		RestAssured.baseURI = "http://" + host + ":" + httpPort;
+		RestAssured.port = httpPort;
+
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface node : app.nodeQuery().getAsList()) {

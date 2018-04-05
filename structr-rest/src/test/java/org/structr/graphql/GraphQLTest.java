@@ -53,6 +53,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 	@Test
 	public void testBasics() {
 
+		RestAssured.basePath = "/structr/graphql";
+
 		Group group      = null;
 		Principal tester = null;
 
@@ -71,8 +73,6 @@ public class GraphQLTest extends StructrGraphQLTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
-
-		RestAssured.basePath = "/structr/graphql";
 
 		final String query1 = "{ Group { id, type, name, members { id, type, name } }, Principal(_pageSize: 1) { id, type name }}";
 		final String query2 = "{ Group { id, type, name, members { } }}";

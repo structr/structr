@@ -35,9 +35,9 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matcher;
-import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.fail;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -326,8 +326,13 @@ public class StructrGraphQLTest {
 
 	}
 
-	@After
+	@Before
 	public void cleanDatabase() {
+
+		// configure RestAssured
+		RestAssured.basePath = restUrl;
+		RestAssured.baseURI = "http://" + host + ":" + httpPort;
+		RestAssured.port = httpPort;
 
 		try (final Tx tx = app.tx()) {
 
