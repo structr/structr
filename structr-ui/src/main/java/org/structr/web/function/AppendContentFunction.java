@@ -23,7 +23,7 @@ import java.io.IOException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.entity.FileBase;
+import org.structr.web.entity.File;
 
 public class AppendContentFunction extends Function<Object, Object> {
 
@@ -39,11 +39,11 @@ public class AppendContentFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!(arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof FileBase)) {
+			if (!(arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof File)) {
 				return null;
 			}
 
-			final FileBase file   = (FileBase)sources[0];
+			final File file       = (File)sources[0];
 			final String content  = (String)sources[1];
 			final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
 
@@ -52,7 +52,7 @@ public class AppendContentFunction extends Function<Object, Object> {
 				fos.write(content.getBytes(encoding));
 
 			} catch (IOException ioex) {
-				logger.warn("append_content(): Unable to append to file '{}'", file.getProperty(FileBase.path), ioex);
+				logger.warn("append_content(): Unable to append to file '{}'", file.getPath(), ioex);
 			}
 
 		} catch (IllegalArgumentException iae) {
