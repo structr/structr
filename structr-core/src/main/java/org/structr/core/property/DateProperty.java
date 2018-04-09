@@ -21,6 +21,7 @@ package org.structr.core.property;
 import java.util.Date;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.ScriptRuntime;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -85,7 +86,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
-	public PropertyConverter<String, Date> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Date> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
 
@@ -150,29 +151,48 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		}
 	}
 
-	private class InputConverter extends PropertyConverter<String, Date> {
+	private class InputConverter extends PropertyConverter<Object, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
 		@Override
-		public Date convert(String source) throws FrameworkException {
+		public Date convert(Object source) throws FrameworkException {
 
-			if (StringUtils.isNotBlank(source)) {
+			if (source != null) {
 
-				Date result = DatePropertyParser.parse(source, format);
+				if (source instanceof Date) {
 
-				if (result != null) {
-					return result;
+					return (Date)source;
+
+				} else if (source instanceof String) {
+
+					if (StringUtils.isNotBlank((String)source)) {
+
+						Date result = DatePropertyParser.parse((String)source, format);
+
+						if (result != null) {
+							return result;
+						}
+
+						throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+
+					}
+
+				} else if (source.getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
+
+					final Double value = ScriptRuntime.toNumber(source);
+					return new Date(value.longValue());
+
+				} else {
+
+					throw new FrameworkException(422, "Unkown input type for date property " + jsonName() + ": " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+
 				}
-
-				throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
-
 			}
 
 			return null;
-
 		}
 
 		@Override
