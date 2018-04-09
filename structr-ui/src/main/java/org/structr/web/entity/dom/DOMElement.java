@@ -498,10 +498,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
 		if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
-			final String name = _syncedNode.getProperty(AbstractNode.name);
-
 			out.append("<structr:component src=\"");
-			out.append(name != null ? name : _syncedNode.getUuid());
+
+			final String _name = _syncedNode.getProperty(AbstractNode.name);
+			out.append(_name != null ? _name.concat("-").concat(_syncedNode.getUuid()) : _syncedNode.getUuid());
+
 			out.append("\"");
 
 			thisElement.renderSharedComponentConfiguration(out, editMode);
