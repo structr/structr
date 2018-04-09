@@ -82,12 +82,12 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
-	public static final Property<Integer>       cascadeDelete              = new IntProperty("cascadeDelete");
-	public static final Property<String>        relType                    = new RelationshipTypeProperty();
-	public static final SourceId                sourceId                   = new SourceId("sourceId");
-	public static final TargetId                targetId                   = new TargetId("targetId");
-	public static final Property<NodeInterface> sourceNodeProperty         = new SourceNodeProperty("sourceNode");
-	public static final Property<NodeInterface> targetNodeProperty         = new TargetNodeProperty("targetNode");
+	public static final Property<Integer>       cascadeDelete      = new IntProperty("cascadeDelete");
+	public static final Property<String>        relType            = new RelationshipTypeProperty();
+	public static final SourceId                sourceId           = new SourceId("sourceId");
+	public static final TargetId                targetId           = new TargetId("targetId");
+	public static final Property<NodeInterface> sourceNode         = new SourceNodeProperty("sourceNode");
+	public static final Property<NodeInterface> targetNode         = new TargetNodeProperty("targetNode");
 
 	public static final View defaultView = new View(AbstractRelationship.class, PropertyView.Public,
 		id, type, relType, sourceId, targetId
@@ -98,7 +98,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	);
 
 	public static final View graphView = new View(AbstractRelationship.class, View.INTERNAL_GRAPH_VIEW,
-		id, type, relType, sourceNodeProperty, targetNodeProperty
+		id, type, relType, sourceNode, targetNode
 	);
 
 	public boolean internalSystemPropertiesUnlocked = false;
