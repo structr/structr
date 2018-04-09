@@ -79,8 +79,10 @@ import org.structr.web.diff.DeleteOperation;
 import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.diff.MoveOperation;
 import org.structr.web.diff.UpdateOperation;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
@@ -92,8 +94,6 @@ import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Input;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CreateComponentCommand;
-import org.structr.web.entity.File;
-import org.structr.web.entity.LinkSource;
 
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
@@ -741,6 +741,11 @@ public class Importer {
 					if (DeployCommand.isUuid(src)) {
 
 						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, src).getFirst();
+
+					} else if (DeployCommand.endsWithUuid(src)) {
+
+						final String uuid = src.substring(src.length() - 32);
+						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, uuid).getFirst();
 
 					} else {
 

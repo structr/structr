@@ -186,13 +186,17 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private void createComponent(final Path file, final String fileName) throws IOException, FrameworkException {
 
-		final String name               = StringUtils.substringBeforeLast(fileName, ".html");
-		final DOMNode existingComponent = getExistingComponent(name);
-		final boolean byId              = DeployCommand.isUuid(name);
+		final String componentName      = StringUtils.substringBeforeLast(fileName, ".html");
+
+		// either the template was exported with name + uuid or just the uuid
+		final boolean byNameAndId       = DeployCommand.endsWithUuid(componentName);
+		final boolean byId              = DeployCommand.isUuid(componentName);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final PropertyMap properties    = getPropertiesForComponent(name);
+			final DOMNode existingComponent = (byId ? app.get(DOMNode.class, componentName) : (byNameAndId ? app.get(DOMNode.class, componentName.substring(componentName.length() - 32)) : getExistingComponent(componentName)));
+
+			final PropertyMap properties    = getPropertiesForComponent(componentName);
 
 			if (properties == null) {
 
@@ -215,14 +219,14 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 					} else {
 
-						deleteComponent(app, name);
+						deleteComponent(app, componentName);
 					}
 				}
 
-				final String src        = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
+				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
 				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
+				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth);
 
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);
@@ -230,7 +234,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 				final boolean parseOk = importer.parse(false);
 				if (parseOk) {
 
-					logger.info("Importing component {} from {}..", new Object[] { name, fileName } );
+					logger.info("Importing component {} from {}..", new Object[] { componentName, fileName } );
 
 					// set comment handler that can parse and apply special Structr comments in HTML source files
 					importer.setCommentHandler(new DeploymentCommentHandler());
@@ -245,12 +249,22 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 							// set UUID
 							rootElement.unlockSystemPropertiesOnce();
-							rootElement.setProperty(GraphObject.id, name);
+							rootElement.setProperty(GraphObject.id, componentName);
+
+						} else if (byNameAndId) {
+
+							// the last characters in the name string are the uuid
+							final String uuid = componentName.substring(componentName.length() - 32);
+							final String name = componentName.substring(0, componentName.length() - 33);
+
+							rootElement.unlockSystemPropertiesOnce();
+							rootElement.setProperty(GraphObject.id, uuid);
+							properties.put(AbstractNode.name, name);
 
 						} else {
 
 							// set name
-							rootElement.setProperty(AbstractNode.name, name);
+							rootElement.setProperty(AbstractNode.name, componentName);
 						}
 
 						// store properties from components.json if present

@@ -900,11 +900,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					final String content = node.getContent(RenderContext.EditMode.DEPLOYMENT);
 					if (content != null) {
 
+						// name with uuid or just uuid
 						String name = node.getProperty(AbstractNode.name);
-						if (name == null) {
+
+						if (name != null) {
+
+							name += "-" + node.getUuid();
+
+						} else {
 
 							name = node.getUuid();
 						}
+
 
 						final Map<String, Object> properties = new TreeMap<>();
 						final Path targetFile = target.resolve(name + ".html");

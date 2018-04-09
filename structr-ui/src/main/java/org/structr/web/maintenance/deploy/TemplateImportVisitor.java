@@ -172,7 +172,7 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 				logger.info("Ignoring {} (not in templates.json)", fileName);
 			} else {
 
-				final String src = new String (Files.readAllBytes(file),Charset.forName("UTF-8"));
+				final String src = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
 
 				final Template template;
 
@@ -207,18 +207,17 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 
 				} else {
 
-					final String name = byId ? null : templateName;
+					// old export format: only name of template in filename
+					logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
 
-					logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
-
-					final DOMNode existingTemplate = getExistingTemplate(name);
+					final DOMNode existingTemplate = getExistingTemplate(templateName);
 					if (existingTemplate != null) {
 
 						deleteTemplate(app, existingTemplate);
 					}
 
 					template = app.create(Template.class);
-					properties.put(Template.name, name);
+					properties.put(Template.name, templateName);
 				}
 
 				properties.put(StructrApp.key(Template.class, "content"), src);

@@ -471,16 +471,13 @@ function StructrApp(baseUrl, locale) {
 			+ '" data-structr-reload="' + reload
 			+ (returnUrl ? '" data-structr-return="' + returnUrl : '')
 			+ '">' + s.labels[s.lang].save + '</button>');
+		saveButton.data('structrErrorHandler', btn.data('structrErrorHandler'));
 		saveButton.insertBefore(btn);
 		saveButton.prop('class', btn.prop('class')).after(' ');
 		saveButton.addClass(clazz);
 		btn.addClass(clazz);
 		enableButton(saveButton);
-		if (type) {
-			btn.text(s.labels[s.lang].cancel).attr('data-structr-action', 'cancel-edit:' + type);
-		} else {
-			btn.text(s.labels[s.lang].cancel).attr('data-structr-action', 'cancel-edit');
-		}
+		btn.text(s.labels[s.lang].cancel).attr('data-structr-action', 'cancel-edit' + (type ? ':' + type : ''));
 		enableButton(btn);
 	},
 
@@ -750,10 +747,21 @@ function StructrApp(baseUrl, locale) {
 	};
 
 	this.request = function(btn, method, url, data, reload, returnUrl, appendId, successMsg, errorMsg, onSuccess, onError) {
+
+		var errorHandlerFn;
+		var errorHandlerName = btn.data('structrErrorHandler');
+		if (window[errorHandlerName] && typeof window[errorHandlerName] === "function") {
+			errorHandlerFn = window[errorHandlerName];
+		}
+
 		var dataString = JSON.stringify(data);
 
 		var simpleAjaxErrorMessage = function(data, status, xhr) {
-			s.dialog('error', errorMsg + ': ' + data.responseText);
+			if (errorHandlerFn) {
+				errorHandlerFn(errorMsg, data);
+			} else {
+				s.dialog('error', errorMsg + ': ' + data.responseText);
+			}
 			if (onError) {
 				onError();
 			}
@@ -797,13 +805,21 @@ function StructrApp(baseUrl, locale) {
 				401: simpleAjaxErrorMessage,
 				403: simpleAjaxErrorMessage,
 				404: function(data, status, xhr) {
-					s.dialog('error', errorMsg + ': ' + data.responseText);
+					if (errorHandlerFn) {
+						errorHandlerFn(errorMsg, data);
+					} else {
+						s.dialog('error', errorMsg + ': ' + data.responseText);
+					}
 					if (onError) {
 						onError(data);
 					}
 				},
 				422: function(data, status, xhr) {
-					s.dialog('error', errorMsg + ': ' + data.responseText);
+					if (errorHandlerFn) {
+						errorHandlerFn(errorMsg, data);
+					} else {
+						s.dialog('error', errorMsg + ': ' + data.responseText);
+					}
 					var revertEditMode = s.showFormErrors(btn, data.responseJSON);
 					if (onError) {
 						onError(revertEditMode);
