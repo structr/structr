@@ -34,8 +34,10 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Cardinality;
@@ -46,6 +48,7 @@ import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.InvalidSchemaException;
@@ -634,7 +637,43 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
 
+	@Test
+	public void testNonGraphPropertyInView() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.addViewProperty(PropertyView.Public, "createdBy");
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// check that createdBy is registered in the public view of type Test
+
+			final Class test                   = StructrApp.getConfiguration().getNodeEntityClass("Test");
+			final Set<PropertyKey> propertySet = StructrApp.getConfiguration().getPropertySet(test, PropertyView.Public);
+
+			assertTrue("Non-graph property not registered correctly", propertySet.contains(GraphObject.createdBy));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 
 	}
 

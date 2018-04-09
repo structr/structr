@@ -129,7 +129,11 @@ public class SchemaHelper {
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
 	public static final Map<Type, GraphQLScalarType> graphQLTypeMap                   = new LinkedHashMap<>();
 	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
-	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList("id", "type", "name", "owner", "visibleToAuthenticatedUsers", "visibleToPublicUsers"));
+	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
+		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUser", "structrChangeLog",		// from GraphObject
+		"cascadeDelete", "relType", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",											// from AbstractRelationship
+		"name", "deleted", "hidden", "owner", "ownerId", "grantees"															// from NodeInterface
+	));
 
 	static {
 
