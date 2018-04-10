@@ -132,6 +132,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public String format();
 
 	/**
+	 * Returns the type hint for this property.
+	 *
+	 * @return typeHint
+	 */
+	public String typeHint();
+
+	/**
 	 * Returns the default value for this property.
 	 *
 	 * @return defaultValue
@@ -326,6 +333,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public PropertyKey<T> notNull(final boolean notNull);
 	public PropertyKey<T> unique(final boolean unique);
 	public PropertyKey<T> format(final String format);
+	public PropertyKey<T> typeHint(final String typeHint);
 	public PropertyKey<T> partOfBuiltInSchema();
 	public PropertyKey<T> dynamic();
 	public PropertyKey<T> readFunction(final String readFunction);

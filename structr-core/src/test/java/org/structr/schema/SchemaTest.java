@@ -674,7 +674,6 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 	}
 
 	// ----- private methods -----

@@ -98,6 +98,7 @@ public interface JsonSchema {
 	public static final String KEY_TARGET_NAME             = "targetName";
 	public static final String KEY_READ_FUNCTION           = "readFunction";
 	public static final String KEY_WRITE_FUNCTION          = "writeFunction";
+	public static final String KEY_TYPE_HINT               = "typeHint";
 	public static final String KEY_ACL_RESOLUTION          = "aclResolution";
 	public static final String KEY_ACL_READ_MASK           = "aclReadMask";
 	public static final String KEY_ACL_WRITE_MASK          = "aclWriteMask";

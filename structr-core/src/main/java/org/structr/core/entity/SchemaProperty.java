@@ -77,6 +77,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             dbName                = new StringProperty("dbName");
 	public static final Property<String>             fqcn                  = new StringProperty("fqcn");
 	public static final Property<String>             format                = new StringProperty("format");
+	public static final Property<String>             typeHint              = new StringProperty("typeHint");
 	public static final Property<String>             hint                  = new StringProperty("hint");
 	public static final Property<String>             category              = new StringProperty("category");
 	public static final Property<Boolean>            notNull               = new BooleanProperty("notNull");
@@ -96,19 +97,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -244,6 +245,11 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
+	public String getTypeHint() {
+		return getProperty(typeHint);
+	}
+
+	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 
 		super.onCreation(securityContext, errorBuffer);
@@ -288,6 +294,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(contentType,       _contentHash);
 		_contentHash = addContentHash(dbName,            _contentHash);
 		_contentHash = addContentHash(format,            _contentHash);
+		_contentHash = addContentHash(typeHint,          _contentHash);
 		_contentHash = addContentHash(notNull,           _contentHash);
 		_contentHash = addContentHash(unique,            _contentHash);
 		_contentHash = addContentHash(indexed,           _contentHash);
@@ -441,12 +448,29 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return getProperty(SchemaProperty.validators);
 	}
 
+	@Override
 	public String getFqcn() {
 		return getProperty(fqcn);
 	}
 
 	public void setFqcn(final String value) throws FrameworkException {
 		setProperty(fqcn, value);
+	}
+
+	public String getFullName() {
+
+		final AbstractSchemaNode schemaNode = getProperty(SchemaProperty.schemaNode);
+		final StringBuilder buf             = new StringBuilder();
+
+		if (schemaNode != null) {
+
+			buf.append(schemaNode.getProperty(SchemaNode.name));
+			buf.append(".");
+		}
+
+		buf.append(getProperty(SchemaProperty.name));
+
+		return buf.toString();
 	}
 
 	public GraphQLFieldDefinition getGraphQLField(final String typeName) {

@@ -38,6 +38,7 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 	protected String readFunction  = null;
 	protected String writeFunction = null;
 	protected String contentType   = null;
+	protected String typeHint      = null;
 
 	public StructrFunctionProperty(final StructrTypeDefinition parent, final String name) {
 
@@ -86,6 +87,18 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 	}
 
 	@Override
+	public JsonFunctionProperty setTypeHint(String typeHint) {
+
+		this.typeHint = typeHint;
+		return this;
+	}
+
+	@Override
+	public String getTypeHint() {
+		return typeHint;
+	}
+
+	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();
@@ -96,6 +109,10 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 
 		if (writeFunction != null) {
 			map.put(JsonSchema.KEY_WRITE_FUNCTION, writeFunction);
+		}
+
+		if (typeHint != null) {
+			map.put(JsonSchema.KEY_TYPE_HINT, typeHint);
 		}
 
 		return map;
@@ -145,6 +162,19 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 			}
 		}
 
+		final Object typeHintValue = source.get(JsonSchema.KEY_TYPE_HINT);
+		if (typeHintValue != null) {
+
+			if (typeHintValue instanceof String) {
+
+				this.typeHint = (String)typeHintValue;
+
+			} else {
+
+				throw new IllegalStateException("Invalid typeHint for property " + name + ", expected string.");
+			}
+		}
+
 	}
 
 	@Override
@@ -155,6 +185,7 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 		setReadFunction(property.getReadFunction());
 		setWriteFunction(property.getWriteFunction());
 		setContentType(property.getSourceContentType());
+		setTypeHint(property.getTypeHint());
 	}
 
 	@Override
@@ -186,7 +217,8 @@ public class StructrFunctionProperty extends StructrStringProperty implements Js
 
 		properties.put(SchemaProperty.readFunction,  readFunction);
 		properties.put(SchemaProperty.writeFunction, writeFunction);
-	
+		properties.put(SchemaProperty.typeHint,      typeHint);
+
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;

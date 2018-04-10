@@ -301,7 +301,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 				if (SchemaService.DynamicSchemaRootURI.equals(root.getId())) {
 
-				updateProperties.put(SchemaProperty.isPartOfBuiltInSchema, true);
+					updateProperties.put(SchemaProperty.isPartOfBuiltInSchema, true);
 				}
 			}
 		}

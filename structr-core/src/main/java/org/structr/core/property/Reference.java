@@ -312,6 +312,16 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public String typeHint() {
+		return null;
+	}
+
+	@Override
+	public PropertyKey<T> typeHint(String typeHint) {
+		return null;
+	}
+
+	@Override
 	public Property<T> readFunction(final String readFunction) {
 		return null;
 	}

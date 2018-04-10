@@ -77,6 +77,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
+	protected String typeHint                              = null;
 	protected String readFunction                          = null;
 	protected String writeFunction                         = null;
 	protected String hint                                  = null;
@@ -362,6 +363,17 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> writeFunction(final String writeFunction) {
 		this.writeFunction = writeFunction;
+		return this;
+	}
+
+	@Override
+	public String typeHint() {
+		return typeHint;
+	}
+
+	@Override
+	public Property<T> typeHint(final String typeHint) {
+		this.typeHint = typeHint;
 		return this;
 	}
 

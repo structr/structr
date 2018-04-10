@@ -16,14 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.json;
+package org.structr.core.graphql;
+
+import graphql.schema.GraphQLList;
+import graphql.schema.GraphQLType;
 
 /**
  *
- *
+ * @author Christian Morgner
  */
-public interface JsonStringProperty extends JsonProperty {
-	
-	public JsonStringProperty setContentType(final String contentType);
-	public String getContentType();
+public class GraphQLListType extends GraphQLList {
+
+	private String name = null;
+
+	public GraphQLListType(final GraphQLType wrappedType) {
+
+		super(wrappedType);
+		this.name = wrappedType.getName();
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
 }

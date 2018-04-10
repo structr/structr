@@ -33,6 +33,7 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private String source                 = null;
 	private String dbName                 = null;
 	private String format                 = null;
+	private String typeHint               = null;
 	private String hint                   = null;
 	private String category               = null;
 	private String defaultValue           = null;
@@ -152,6 +153,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	@Override
 	public String getFormat() {
 		return format;
+	}
+
+	@Override
+	public String getTypeHint() {
+		return typeHint;
 	}
 
 	@Override

@@ -20,6 +20,7 @@ package org.structr.graphql;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +39,15 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.StructrGraphQLTest;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
  *
@@ -431,6 +438,150 @@ public class GraphQLTest extends StructrGraphQLTest {
 				.body("message", equalTo("Unsupported query type, schema and data queries cannot be mixed."))
 				.body("code",    equalTo(422))
 				.body("query",   equalTo(query2))
+
+			.when()
+				.post("/");
+	}
+
+	@Test
+	public void testGraphQLErrorMessages() {
+
+		RestAssured.basePath = "/structr/graphql";
+
+		final String query1 = "{ Group { id. type, name, members } }";
+		final String query2 = "{ Group { id. type, name, owner } }";
+
+		RestAssured.given()
+
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body(query1)
+
+			.expect()
+				.statusCode(422)
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field members"))
+				.body("errors[0].locations[0].line",   equalTo(1))
+				.body("errors[0].locations[0].column", equalTo(27))
+				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field members"))
+				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
+
+			.when()
+				.post("/");
+
+		RestAssured.given()
+
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body(query2)
+
+			.expect()
+				.statusCode(422)
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field owner"))
+				.body("errors[0].locations[0].line",   equalTo(1))
+				.body("errors[0].locations[0].column", equalTo(27))
+				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field owner"))
+				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
+
+			.when()
+				.post("/");
+	}
+
+	@Test
+	public void testFunctionPropertyTypeHint() {
+
+		RestAssured.basePath = "/structr/graphql";
+
+		List<NodeInterface> children = null;
+		Principal user               = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema             = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type           = schema.addType("Test");
+			final JsonObjectType tmpType        = schema.addType("Tmp");
+
+			type.relate(tmpType, "TMP", Relation.Cardinality.OneToMany, "parent", "children");
+
+			type.addFunctionProperty("test1").setReadFunction("'test'").setTypeHint("String");
+			type.addFunctionProperty("test2").setReadFunction("false").setTypeHint("Boolean");
+			type.addFunctionProperty("test3").setReadFunction("int(42)").setTypeHint("Int");
+			type.addFunctionProperty("test4").setReadFunction("12.34").setTypeHint("Double");
+			type.addFunctionProperty("test5").setReadFunction("7465423674522").setTypeHint("Long");
+			type.addFunctionProperty("test6").setReadFunction("this.owner").setTypeHint("Principal");
+			type.addFunctionProperty("test7").setReadFunction("this.children").setTypeHint("Tmp[]");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException | FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// create test node
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(Principal.class, "tester");
+
+			final Class tmpType  = StructrApp.getConfiguration().getNodeEntityClass("Tmp");
+			final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
+
+			final PropertyKey nameKey     = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "name");
+			final PropertyKey ownerKey    = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "owner");
+			final PropertyKey childrenKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "children");
+
+			children = createTestNodes(tmpType, 10);
+
+			app.create(testType,
+				new NodeAttribute<>(nameKey, "Test"),
+				new NodeAttribute<>(ownerKey, user),
+				new NodeAttribute<>(childrenKey, children)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Map<String, Object> result = fetchGraphQL("{ Test { test1, test2, test3, test4, test5, test6 { id, type, name }, test7 { id, type } }}");
+		assertMapPathValueIs(result, "Test.0.test1",        "test");
+		assertMapPathValueIs(result, "Test.0.test2",        false);
+		assertMapPathValueIs(result, "Test.0.test3",        42.0);
+		assertMapPathValueIs(result, "Test.0.test4",        12.34);
+		assertMapPathValueIs(result, "Test.0.test5",        7.465423674522E12);
+		assertMapPathValueIs(result, "Test.0.test6.id",     user.getUuid());
+		assertMapPathValueIs(result, "Test.0.test6.type",   "Principal");
+		assertMapPathValueIs(result, "Test.0.test6.name",   "tester");
+		assertMapPathValueIs(result, "Test.0.test7.#",      10);
+
+		for (int i=0; i<10; i++) {
+			assertMapPathValueIs(result, "Test.0.test7." + i + ".id",   children.get(i).getUuid());
+			assertMapPathValueIs(result, "Test.0.test7." + i + ".type", "Tmp");
+		}
+
+		final String query = "{ Test { test6, test7 } }";
+
+		RestAssured.given()
+
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body(query)
+
+			.expect()
+				.statusCode(422)
+				.body("errors[0].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Principal of field test6"))
+				.body("errors[0].locations[0].line",   equalTo(1))
+				.body("errors[0].locations[0].column", equalTo(10))
+				.body("errors[0].description",         equalTo("Sub selection required for type Principal of field test6"))
+				.body("errors[0].validationErrorType", equalTo("SubSelectionRequired"))
+				.body("errors[1].message",             equalTo("Validation error of type SubSelectionRequired: Sub selection required for type Tmp of field test7"))
+				.body("errors[1].locations[0].line",   equalTo(1))
+				.body("errors[1].locations[0].column", equalTo(17))
+				.body("errors[1].description",         equalTo("Sub selection required for type Tmp of field test7"))
+				.body("errors[1].validationErrorType", equalTo("SubSelectionRequired"))
 
 			.when()
 				.post("/");
