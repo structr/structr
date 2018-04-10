@@ -1101,12 +1101,17 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 						}
 
 					} catch (Throwable t) {
-						logger.warn("Unable to instantiate module " + clazz.getName(), t);
+
+						// log only errors from internal classes
+						if (className.startsWith("org.structr.")) {
+
+							logger.warn("Unable to instantiate module " + clazz.getName(), t);
+						}
 					}
 				}
 
 			} catch (Throwable t) {
-				logger.debug("Error trying to load class " + className, t);
+				logger.warn("Error trying to load class {}: {}",  className, t.getMessage());
 			}
 		}
 	}
