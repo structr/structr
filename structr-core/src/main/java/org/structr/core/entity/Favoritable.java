@@ -50,7 +50,7 @@ public interface Favoritable extends NodeInterface {
 		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav");
 
 		// add relationshipId to public and fav view
-		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id");
+		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id").setTypeHint("String");
 
 		type.addViewProperty("fav", "id");
 		type.addViewProperty("fav", "name");

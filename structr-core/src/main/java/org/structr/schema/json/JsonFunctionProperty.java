@@ -30,8 +30,12 @@ public interface JsonFunctionProperty extends JsonStringProperty {
 	public JsonFunctionProperty setWriteFunction(final String writeFunction);
 	public String getWriteFunction();
 
+	public JsonFunctionProperty setTypeHint(final String typeHint);
+	public String getTypeHint();
+
 	@Override
 	public JsonFunctionProperty setContentType(final String contentType);
+
 	@Override
 	public String getContentType();
 

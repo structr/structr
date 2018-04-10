@@ -32,6 +32,7 @@ public interface PropertyDefinition {
 	String getSource();
 	String getDbName();
 	String getFormat();
+	String getTypeHint();
 	String getHint();
 	String getCategory();
 	String getFqcn();

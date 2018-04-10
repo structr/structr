@@ -21,6 +21,7 @@ package org.structr.schema;
 import graphql.Scalars;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
+import static graphql.schema.GraphQLTypeReference.typeRef;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,6 +79,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.LongProperty;
@@ -1613,35 +1615,48 @@ public class SchemaHelper {
 
 	public static GraphQLOutputType getGraphQLTypeForProperty(final SchemaProperty property) {
 
-		GraphQLOutputType outputType = graphQLTypeMap.get(property.getPropertyType());
+		final Type propertyType            = property.getPropertyType();
+		final GraphQLOutputType outputType = graphQLTypeMap.get(propertyType);
 		if (outputType != null) {
 
 			return outputType;
 		}
 
-		return null;
+		if (Type.Function.equals(propertyType)) {
 
-		/*
+			final String typeHint = property.getTypeHint();
+			if (typeHint != null) {
 
-			TODO: we need to decide whether a function property must specify a
-			      fixed type, which can then be set here
+				final String lowerCaseTypeHint = typeHint.toLowerCase();
+				switch (lowerCaseTypeHint) {
 
-		return GraphQLUnionType.newUnionType()
-			.name(RandomStringUtils.randomAlphabetic(10))
-			.possibleType(typeRef("User"))
-			.typeResolver(env -> {
-
-				final Object o = env.getObject();
-				if (o != null && o instanceof GraphObject) {
-
-					final GraphObject g = (GraphObject)o;
-					return env.getSchema().getObjectType(g.getType());
+					case "boolean": return graphQLTypeMap.get(Type.Boolean);
+					case "string":  return graphQLTypeMap.get(Type.String);
+					case "int":     return graphQLTypeMap.get(Type.Integer);
+					case "long":    return graphQLTypeMap.get(Type.Long);
+					case "double":  return graphQLTypeMap.get(Type.Double);
+					case "date":    return graphQLTypeMap.get(Type.Date);
 				}
 
-				return null;
-			})
-			.build();
-		*/
+				// object array type?
+				if (typeHint.endsWith("[]")) {
+
+					// list type
+					return new GraphQLListType(typeRef(StringUtils.substringBefore(typeHint, "[]")));
+
+				} else {
+
+					// object type
+					return typeRef(typeHint);
+				}
+
+			} else {
+
+				logger.warn("Unable to register FunctionProperty {} with GraphQL, no type hint present. Please set format property of FunctionProperty {} to use it with GraphQL", property.getFullName(), property.getUuid());
+			}
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----
