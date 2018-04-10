@@ -53,6 +53,8 @@ import org.structr.web.property.ThumbnailProperty;
  */
 public interface Image extends File {
 
+	final static String STRUCTR_THUMBNAIL_FOLDER = "._structr_thumbnails/";
+
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
@@ -94,6 +96,7 @@ public interface Image extends File {
 		type.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 		type.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
 		type.overrideMethod("isGranted",            false, "if (this.isThumbnail()) { final org.structr.web.entity.Image originalImage = getOriginalImage(); if (originalImage != null) { return originalImage.isGranted(arg0, arg1); } } return super.isGranted(arg0, arg1);");
+		type.overrideMethod("getThumbnailParentFolder", false, "final StringBuilder pathBuffer = new StringBuilder(" + Image.class.getName() + ".STRUCTR_THUMBNAIL_FOLDER); if (arg0 != null) { pathBuffer.append(arg0.getPath()); } return " + FileHelper.class.getName() + ".createFolderPath(arg1, pathBuffer.toString());");
 
 		final JsonMethod getScaledImage1 = type.addMethod("getScaledImage");
 		getScaledImage1.setReturnType(Image.class.getName());
@@ -146,6 +149,8 @@ public interface Image extends File {
 	Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit);
 
 	List<Image> getThumbnails();
+
+	Folder getThumbnailParentFolder(final Folder originalParentFolder, final SecurityContext securityContext) throws FrameworkException;
 
 	//public Image getScaledImage(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
@@ -459,7 +464,7 @@ public interface Image extends File {
 						properties.put(StructrApp.key(AbstractNode.class, "visibleToPublicUsers"),        originalImage.getProperty(AbstractNode.visibleToPublicUsers));
 						properties.put(StructrApp.key(File.class, "size"),                                Long.valueOf(data.length));
 						properties.put(StructrApp.key(AbstractNode.class, "owner"),                       originalImage.getProperty(AbstractNode.owner));
-						properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getParent());
+						properties.put(StructrApp.key(File.class, "parent"),                              originalImage.getThumbnailParentFolder(originalImage.getProperty(StructrApp.key(File.class, "parent")), securityContext));
 						properties.put(StructrApp.key(File.class, "hasParent"),                           originalImage.getProperty(StructrApp.key(Image.class, "hasParent")));
 
 						thumbnail.unlockSystemPropertiesOnce();
