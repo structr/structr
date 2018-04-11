@@ -27,11 +27,6 @@
 			<artifactId>rest-assured</artifactId>
 			<optional>false</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>flow</artifactId>
-			<version>0.1-SNAPSHOT</version>
-		</dependency>
 	</dependencies>
 
 	<build>

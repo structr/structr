@@ -46,7 +46,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.flow.FlowFunction;
+import org.structr.flow.impl.FlowFunction;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.schema.action.Actions;
