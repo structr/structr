@@ -763,6 +763,11 @@ public class Importer {
 
 						newNode = (DOMNode) component.cloneNode(false);
 
+						final String _html_src = newNode.getProperty(new StringProperty("_html_src"));
+						if (!StringUtils.isEmpty(_html_src)) {
+							node.attr("src", _html_src);
+						}
+
 						newNode.setSharedComponent(component);
 						newNode.setOwnerDocument(page);
 
