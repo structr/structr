@@ -60,6 +60,7 @@ public class ActionContext {
 	protected StringBuilder outputBuffer           = new StringBuilder();
 	protected Locale locale                        = Locale.getDefault();
 	private boolean javaScriptContext              = false;
+	private ContextStore temporaryContextStore     = new ContextStore();
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -98,11 +99,11 @@ public class ActionContext {
 	}
 
 	public Object getConstant(final String name) {
-		return getContextStore().getConstant(name);
+		return this.temporaryContextStore.getConstant(name);
 	}
 
 	public void setConstant(final String name, final Object data) {
-		getContextStore().setConstant(name, data);
+		this.temporaryContextStore.setConstant(name, data);
 	}
 
 	public Object getReferencedProperty(final GraphObject entity, final String refKey, final Object initialData, final int depth) throws FrameworkException {
@@ -190,6 +191,10 @@ public class ActionContext {
 	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {
 
 		Object value = getContextStore().getConstant(key);
+		if (this.temporaryContextStore.getConstant(key) != null) {
+			value = this.temporaryContextStore.getConstant(key);
+		}
+
 		if (value == null) {
 
 			// special HttpServletRequest handling

@@ -48,7 +48,7 @@ public class FlowGetFlowResult extends FlowDataSource {
 		if (_otherSource != null) {
 
 			final FlowEngine engine = new FlowEngine(context);
-			final FlowResult result = engine.execute(_otherSource);
+			final FlowResult result = engine.execute(context, _otherSource);
 
 			// TODO: handle error
 			return result.getResult();

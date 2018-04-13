@@ -47,18 +47,16 @@ public class FlowAction extends FlowNode implements Action {
 		final String _script = getProperty(script);
 		if (_script != null) {
 
-
 			try {
 
-				final ActionContext ctx          = new ActionContext(securityContext);
 				final FlowDataSource _dataSource = getProperty(FlowAction.dataSource);
 
 				// make data available to action if present
 				if (_dataSource != null) {
-					ctx.setConstant("data", _dataSource.get(context));
+					context.setData(_dataSource.get(context));
 				}
 
-				Scripting.evaluate(ctx, this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
+				Scripting.evaluate(context.getActionContext(securityContext), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
 
 			} catch (FrameworkException fex) {
 				fex.printStackTrace();

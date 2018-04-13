@@ -48,7 +48,7 @@ public class FlowDataSource extends FlowBaseNode implements DataSource {
 		if (_script != null) {
 
 			try {
-				return Scripting.evaluate(new ActionContext(securityContext), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
+				return Scripting.evaluate(context.getActionContext(securityContext), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
 
 			} catch (FrameworkException fex) {
 				fex.printStackTrace();

@@ -20,14 +20,17 @@ package org.structr.flow.engine;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.schema.action.ActionContext;
 
 /**
  *
  */
 public class Context {
 
-	private Map<String, Object> data = new LinkedHashMap<>();
+	private Object data 			 = null;
 	private GraphObject thisObject   = null;
 	private Object result            = null;
 	private FlowError error          = null;
@@ -40,9 +43,9 @@ public class Context {
 		this.thisObject = thisObject;
 	}
 
-	public Context(final GraphObject thisObject, final Map<String, Object> data) {
+	public Context(final GraphObject thisObject, final Object data) {
 		this.thisObject = thisObject;
-		this.data.putAll(data);
+		this.data = data;
 	}
 
 	public GraphObject getThisObject() {
@@ -73,11 +76,19 @@ public class Context {
 		return error != null;
 	}
 
-	public void setData(final String key, final Object value) {
-		data.put(key, value);
+	public void setData(final Object value) {
+		this.data = value;
 	}
 
-	public Object getData(final String key) {
-		return data.get(key);
+	public Object getData() {
+		return this.data;
+	}
+
+	public ActionContext getActionContext(SecurityContext securityContext) {
+		ActionContext ctx = new ActionContext(securityContext);
+		if(this.data != null) {
+			ctx.setConstant("data", this.data);
+		}
+		return ctx;
 	}
 }

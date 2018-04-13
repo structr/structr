@@ -24,6 +24,7 @@ import org.structr.flow.api.DataHandler;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ForEach;
 import org.structr.flow.api.FlowElement;
+import org.structr.schema.action.ActionContext;
 
 /**
  *
@@ -39,22 +40,29 @@ public class ForEachHandler<T> implements FlowHandler<ForEach<T>> {
 		final FlowElement loopBody    = flowElement.getLoopBody();
 		final Object data             = dataSource.get(context);
 
+		// Register current data in context
+		if (data != null) {
+			context.setData(data);
+		}
+
+		Context loopContext = new Context(context.getThisObject());
+
 		if (data instanceof Collection) {
 
 			for (final Object o : ((Collection)data)) {
 
-				dataHandler.data(context, o);
+				dataHandler.data(loopContext, o);
 
 				// ignore sub result for now..
-				engine.execute(loopBody);
+				engine.execute(loopContext, loopBody);
 			}
 
 		} else {
 
-			dataHandler.data(context, data);
+			dataHandler.data(loopContext, data);
 
 			// ignore sub result for now..
-			engine.execute(loopBody);
+			engine.execute(loopContext, loopBody);
 		}
 
 		return flowElement.next();

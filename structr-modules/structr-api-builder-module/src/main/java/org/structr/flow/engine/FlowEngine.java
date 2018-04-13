@@ -50,6 +50,10 @@ public class FlowEngine {
 	}
 
 	public FlowResult execute(final FlowElement step) {
+		return this.execute(this.context,step);
+	}
+
+	public FlowResult execute(final Context context, final FlowElement step) {
 
 		FlowElement current = step;
 

@@ -45,7 +45,7 @@ public class FlowReturn extends FlowNode implements Return {
 		if (_script != null) {
 
 			try {
-				return Scripting.evaluate(new ActionContext(securityContext), context.getThisObject(), "${" + _script + "}", "FlowReturn(" + getUuid() + ")");
+				return Scripting.evaluate(context.getActionContext(securityContext), context.getThisObject(), "${" + _script + "}", "FlowReturn(" + getUuid() + ")");
 
 			} catch (FrameworkException fex) {
 				fex.printStackTrace();

@@ -16,24 +16,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.impl.rels;
 
-import org.structr.flow.api.DataHandler;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
+import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.Relation;
+import org.structr.flow.impl.FlowCall;
+import org.structr.flow.impl.FlowContainer;
 
-/**
- *
- */
-public class FlowDataHandler extends FlowDataSource implements DataHandler, DataSource {
+public class FlowCallContainer extends ManyToOne<FlowCall, FlowContainer> {
 
 	@Override
-	public void data(final Context context, final Object value) {
-		context.setData(value);
+	public Class<FlowCall> getSourceType() {
+		return FlowCall.class;
 	}
 
 	@Override
-	public Object get(final Context context) {
-		return context.getData();
+	public Class<FlowContainer> getTargetType() {
+		return FlowContainer.class;
+	}
+
+	@Override
+	public String name() {
+		return "FLOW";
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
 	}
 }
