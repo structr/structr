@@ -676,8 +676,22 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				if (!key.isUnvalidated()) {
 					properties.put(key, thisNode.getProperty(key));
 				}
-}
+			}
 
+			// also clone data-* attributes
+			for (Iterator<PropertyKey> it = thisNode.getDataPropertyKeys().iterator(); it.hasNext();) {
+
+				final PropertyKey key = it.next();
+
+				// skip blacklisted properties
+				if (cloneBlacklist.contains(key.jsonName())) {
+					continue;
+				}
+
+				if (!key.isUnvalidated()) {
+					properties.put(key, thisNode.getProperty(key));
+				}
+			}
 
 			if (thisNode instanceof LinkSource) {
 
