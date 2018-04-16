@@ -190,6 +190,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("setNodeValue",           false, "");
 		type.overrideMethod("getNodeValue",           false, "return null;");
 		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
+		type.overrideMethod("getPropertyKeys",        false, "final Set<PropertyKey> allProperties = new LinkedHashSet<>(); final Set<PropertyKey> htmlAttrs = super.getPropertyKeys(arg0); for (final PropertyKey attr : htmlAttrs) { allProperties.add(attr); } allProperties.addAll(getDataPropertyKeys()); return allProperties;");
 
 		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
 		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
@@ -273,6 +274,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	Property[] getHtmlAttributes();
 	List<String> getHtmlAttributeNames();
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys(String propertyView);
 
 	// ----- static methods -----
 	public static String getOffsetAttributeName(final DOMElement elem, final String name, final int offset) {
