@@ -21,7 +21,10 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
@@ -187,6 +190,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("setNodeValue",           false, "");
 		type.overrideMethod("getNodeValue",           false, "return null;");
 		type.overrideMethod("getNodeType",            false, "return ELEMENT_NODE;");
+		type.overrideMethod("getPropertyKeys",        false, "final Set<PropertyKey> allProperties = new LinkedHashSet<>(); final Set<PropertyKey> htmlAttrs = super.getPropertyKeys(arg0); for (final PropertyKey attr : htmlAttrs) { allProperties.add(attr); } allProperties.addAll(getDataPropertyKeys()); return allProperties;");
 
 		type.overrideMethod("openingTag",             false, DOMElement.class.getName() + ".openingTag(this, arg0, arg1, arg2, arg3, arg4);");
 		type.overrideMethod("renderContent",          false, DOMElement.class.getName() + ".renderContent(this, arg0, arg1);");
@@ -270,6 +274,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	Property[] getHtmlAttributes();
 	List<String> getHtmlAttributeNames();
+
+	@Override
+	public Set<PropertyKey> getPropertyKeys(String propertyView);
 
 	// ----- static methods -----
 	public static String getOffsetAttributeName(final DOMElement elem, final String name, final int offset) {
@@ -514,7 +521,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			out.append("<").append(tag);
 
-			for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(thisElement.getEntityType(), PropertyView.Html)) {
+			Set<PropertyKey> htmlAttributes = StructrApp.getConfiguration().getPropertySet(thisElement.getEntityType(), PropertyView.Html);
+
+			if (EditMode.DEPLOYMENT.equals(editMode)) {
+				List sortedAttributes = new LinkedList(htmlAttributes);
+				Collections.sort(sortedAttributes);
+				htmlAttributes = new LinkedHashSet<>(sortedAttributes);
+			}
+
+			for (PropertyKey attribute : htmlAttributes) {
 
 				String value = null;
 
