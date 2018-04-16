@@ -21,7 +21,10 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
@@ -514,7 +517,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			out.append("<").append(tag);
 
-			for (PropertyKey attribute : StructrApp.getConfiguration().getPropertySet(thisElement.getEntityType(), PropertyView.Html)) {
+			Set<PropertyKey> htmlAttributes = StructrApp.getConfiguration().getPropertySet(thisElement.getEntityType(), PropertyView.Html);
+
+			if (EditMode.DEPLOYMENT.equals(editMode)) {
+				List sortedAttributes = new LinkedList(htmlAttributes);
+				Collections.sort(sortedAttributes);
+				htmlAttributes = new LinkedHashSet<>(sortedAttributes);
+			}
+
+			for (PropertyKey attribute : htmlAttributes) {
 
 				String value = null;
 

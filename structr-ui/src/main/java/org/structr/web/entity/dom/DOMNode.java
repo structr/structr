@@ -1288,7 +1288,15 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		final EditMode editMode = renderContext.getEditMode(securityContext.getUser(false));
 
-		for (PropertyKey key : thisNode.getDataPropertyKeys()) {
+		Set<PropertyKey> dataAttributes = thisNode.getDataPropertyKeys();
+
+		if (EditMode.DEPLOYMENT.equals(editMode)) {
+			List sortedAttributes = new LinkedList(dataAttributes);
+			Collections.sort(sortedAttributes);
+			dataAttributes = new LinkedHashSet<>(sortedAttributes);
+		}
+
+		for (PropertyKey key : dataAttributes) {
 
 			String value = "";
 
