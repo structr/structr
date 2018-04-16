@@ -25,14 +25,13 @@ import org.structr.common.View;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.flow.api.Action;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowCallContainer;
 import org.structr.flow.impl.rels.FlowDataInput;
 
-public class FlowCall extends FlowNode implements Action {
+public class FlowCall extends FlowActionNode {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowCall.class);
 

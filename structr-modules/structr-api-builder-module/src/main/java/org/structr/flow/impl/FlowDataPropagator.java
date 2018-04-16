@@ -20,45 +20,29 @@ package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
 
-/**
- *
- */
-public class FlowAction extends FlowActionNode {
-
+public class FlowDataPropagator extends FlowActionNode {
 	public static final Property<FlowDataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<String> script             = new StringProperty("script");
 
-	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, script, dataSource);
-	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui,     script, dataSource);
+	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, dataSource);
+	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui,     dataSource);
 
 	@Override
 	public void execute(final Context context) {
 
-		final String _script = getProperty(script);
-		if (_script != null) {
+		final FlowDataSource _dataSource = getProperty(FlowAction.dataSource);
 
-			try {
+		if (dataSource != null) {
 
-				final FlowDataSource _dataSource = getProperty(FlowAction.dataSource);
-
-				// make data available to action if present
-				if (_dataSource != null) {
-					context.setData(_dataSource.get(context));
-				}
-
-				Scripting.evaluate(context.getActionContext(securityContext), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+			// make data available to action if present
+			if (_dataSource != null) {
+				context.setData(_dataSource.get(context));
 			}
 		}
 	}
+
 }

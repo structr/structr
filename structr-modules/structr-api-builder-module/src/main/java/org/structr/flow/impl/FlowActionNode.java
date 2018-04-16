@@ -16,35 +16,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl.rels;
+package org.structr.flow.impl;
 
-import org.structr.core.entity.OneToMany;
-import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowActionNode;
-import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.api.Action;
 
-/**
- *
- */
-public class FlowDataInput extends OneToMany<FlowDataSource, FlowActionNode> {
-
-	@Override
-	public Class<FlowDataSource> getSourceType() {
-		return FlowDataSource.class;
-	}
-
-	@Override
-	public Class<FlowActionNode> getTargetType() {
-		return FlowActionNode.class;
-	}
-
-	@Override
-	public String name() {
-		return "DATA";
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.ALWAYS;
-	}
+public abstract class FlowActionNode extends FlowNode implements Action {
 }
