@@ -18,6 +18,7 @@
  */
 package org.structr.flow.engine;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import org.structr.schema.action.ActionContext;
 public class Context {
 
 	private Object data 			 = null;
+	private Map<String,Object> store = new HashMap<>();
 	private GraphObject thisObject   = null;
 	private Object result            = null;
 	private FlowError error          = null;
@@ -82,6 +84,14 @@ public class Context {
 
 	public Object getData() {
 		return this.data;
+	}
+
+	public Object retrieveFromStore(final String key) {
+		return store.get(key);
+	}
+
+	public void putIntoStore(final String key, final Object value) {
+		store.put(key,value);
 	}
 
 	public ActionContext getActionContext(SecurityContext securityContext) {

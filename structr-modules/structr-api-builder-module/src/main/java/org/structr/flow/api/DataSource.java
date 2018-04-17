@@ -18,12 +18,13 @@
  */
 package org.structr.flow.api;
 
+import org.structr.core.graph.NodeInterface;
 import org.structr.flow.engine.Context;
 
 /**
  *
  */
-public interface DataSource<T> {
+public interface DataSource<T> extends NodeInterface {
 
 	T get(final Context context);
 }

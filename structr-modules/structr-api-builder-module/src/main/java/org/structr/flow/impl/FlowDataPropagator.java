@@ -20,13 +20,10 @@ package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowDataInput;
 
 public class FlowDataPropagator extends FlowActionNode {
-	public static final Property<FlowDataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
 
 	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, dataSource);
 	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui,     dataSource);
@@ -34,7 +31,7 @@ public class FlowDataPropagator extends FlowActionNode {
 	@Override
 	public void execute(final Context context) {
 
-		final FlowDataSource _dataSource = getProperty(FlowAction.dataSource);
+		final DataSource _dataSource = getProperty(FlowAction.dataSource);
 
 		if (dataSource != null) {
 
