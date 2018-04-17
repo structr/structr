@@ -23,28 +23,30 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowCallContainer;
 import org.structr.flow.impl.rels.FlowDataInput;
 
+import java.util.List;
+
 public class FlowCall extends FlowActionNode {
 
-	private static final Logger logger = LoggerFactory.getLogger(FlowCall.class);
+	public static final Property<List<FlowNode>> dataTarget 		= new EndNodes<>("dataTarget", FlowDataInput.class);
+	private static final Logger logger 								= LoggerFactory.getLogger(FlowCall.class);
 
-	public static final Property<FlowDataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<FlowContainer> flow              = new EndNode<>("flow", FlowCallContainer.class);
+	public static final Property<FlowContainer> flow                = new EndNode<>("flow", FlowCallContainer.class);
 
-	public static final View defaultView 							= new View(FlowCall.class, PropertyView.Public, flow, dataSource);
-	public static final View uiView      							= new View(FlowCall.class, PropertyView.Ui,     flow, dataSource);
+	public static final View defaultView 							= new View(FlowCall.class, PropertyView.Public, flow, dataSource, dataTarget);
+	public static final View uiView      							= new View(FlowCall.class, PropertyView.Ui,     flow, dataSource, dataTarget);
 
 	@Override
 	public void execute(Context context) {
-
-		FlowDataSource dataSource = getProperty(FlowCall.dataSource);
+		DataSource dataSource = getProperty(FlowCall.dataSource);
 		FlowContainer flow = getProperty(FlowCall.flow);
 
 		if (flow != null) {
@@ -78,7 +80,6 @@ public class FlowCall extends FlowActionNode {
 
 			logger.warn("Unable to evaluate FlowCall {}, missing flow container.", getUuid());
 		}
-
 
 	}
 

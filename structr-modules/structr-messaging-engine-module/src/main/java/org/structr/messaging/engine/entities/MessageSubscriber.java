@@ -135,6 +135,8 @@ public interface MessageSubscriber extends NodeInterface {
             params.put("message", message);
 
             ActionContext ac = new ActionContext(securityContext, params);
+            ac.setConstant("topic", topic);
+            ac.setConstant("message", message);
             Scripting.replaceVariables(ac, thisSubscriber, script);
         }
 

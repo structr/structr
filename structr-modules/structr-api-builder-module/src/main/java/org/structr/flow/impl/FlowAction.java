@@ -21,44 +21,50 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
+
+import java.util.List;
 
 /**
  *
  */
 public class FlowAction extends FlowActionNode {
 
-	public static final Property<FlowDataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<String> script             = new StringProperty("script");
+	public static final Property<List<FlowNode>> dataTarget 		= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<String> script             		= new StringProperty("script");
 
-	public static final View defaultView = new View(FlowAction.class, PropertyView.Public, script, dataSource);
-	public static final View uiView      = new View(FlowAction.class, PropertyView.Ui,     script, dataSource);
+	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget);
+	public static final View uiView      							= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget);
 
 	@Override
 	public void execute(final Context context) {
-
 		final String _script = getProperty(script);
 		if (_script != null) {
 
 			try {
 
-				final FlowDataSource _dataSource = getProperty(FlowAction.dataSource);
+				final DataSource _dataSource = getProperty(FlowAction.dataSource);
 
 				// make data available to action if present
 				if (_dataSource != null) {
 					context.setData(_dataSource.get(context));
 				}
 
-				Scripting.evaluate(context.getActionContext(securityContext), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
+				// Evaluate script and write result to context
+				Object result = Scripting.evaluate(context.getActionContext(securityContext), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
+				context.setData(result);
 
 			} catch (FrameworkException fex) {
 				fex.printStackTrace();
 			}
 		}
+
 	}
+
 }

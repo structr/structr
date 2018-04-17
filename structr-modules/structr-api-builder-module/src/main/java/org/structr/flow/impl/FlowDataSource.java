@@ -21,25 +21,26 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowConditionDataInput;
-import org.structr.schema.action.ActionContext;
+import org.structr.flow.impl.rels.FlowDataInput;
+
+import java.util.List;
 
 /**
  *
  */
 public class FlowDataSource extends FlowBaseNode implements DataSource {
 
-	public static final Property<FlowCondition> dataTarget = new EndNode<>("dataTarget", FlowConditionDataInput.class);
-	public static final Property<String> query             = new StringProperty("query");
+	public static final Property<List<FlowNode>> dataTarget 	= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<String> query             		= new StringProperty("query");
 
-	public static final View defaultView = new View(FlowDataSource.class, PropertyView.Public, query, dataTarget);
-	public static final View uiView      = new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget);
+	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget);
+	public static final View uiView      						= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget);
 
 	@Override
 	public Object get(final Context context) {

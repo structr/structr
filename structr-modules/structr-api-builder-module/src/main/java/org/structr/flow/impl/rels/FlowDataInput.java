@@ -20,22 +20,22 @@ package org.structr.flow.impl.rels;
 
 import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowActionNode;
-import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.impl.FlowNode;
 
 /**
  *
  */
-public class FlowDataInput extends OneToMany<FlowDataSource, FlowActionNode> {
+public class FlowDataInput extends OneToMany<DataSource, FlowNode> {
 
 	@Override
-	public Class<FlowDataSource> getSourceType() {
-		return FlowDataSource.class;
+	public Class<DataSource> getSourceType() {
+		return DataSource.class;
 	}
 
 	@Override
-	public Class<FlowActionNode> getTargetType() {
-		return FlowActionNode.class;
+	public Class<FlowNode> getTargetType() {
+		return FlowNode.class;
 	}
 
 	@Override

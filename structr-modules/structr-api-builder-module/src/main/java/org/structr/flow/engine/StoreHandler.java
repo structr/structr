@@ -16,15 +16,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.engine;
 
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.flow.api.Action;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.api.FlowElement;
+import org.structr.flow.api.FlowHandler;
+import org.structr.flow.api.Store;
 
-public abstract class FlowActionNode extends FlowNode implements Action {
-	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
+public class StoreHandler implements FlowHandler<Store> {
 
+
+	@Override
+	public FlowElement handle(Context context, Store flowElement) {
+
+		flowElement.handleStorage(context);
+		return flowElement.next();
+	}
 }
