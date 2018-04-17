@@ -34,9 +34,9 @@ import java.util.List;
 /**
  *
  */
-public class FlowAction extends FlowActionNode {
+public class FlowAction extends FlowActionNode implements DataSource {
 
-	public static final Property<List<FlowNode>> dataTarget 		= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<List<FlowNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> script             		= new StringProperty("script");
 
 	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget);
@@ -53,12 +53,12 @@ public class FlowAction extends FlowActionNode {
 
 				// make data available to action if present
 				if (_dataSource != null) {
-					context.setData(_dataSource.get(context));
+					context.setData(getUuid(), _dataSource.get(context));
 				}
 
 				// Evaluate script and write result to context
-				Object result = Scripting.evaluate(context.getActionContext(securityContext), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
-				context.setData(result);
+				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
+				context.setData(getUuid(), result);
 
 			} catch (FrameworkException fex) {
 				fex.printStackTrace();
@@ -67,4 +67,8 @@ public class FlowAction extends FlowActionNode {
 
 	}
 
+	@Override
+	public Object get(Context context) {
+		return context.getData(getUuid());
+	}
 }

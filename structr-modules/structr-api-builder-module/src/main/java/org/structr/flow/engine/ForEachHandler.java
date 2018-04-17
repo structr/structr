@@ -40,11 +40,6 @@ public class ForEachHandler<T> implements FlowHandler<ForEach<T>> {
 		final FlowElement loopBody    = flowElement.getLoopBody();
 		final Object data             = dataSource.get(context);
 
-		// Register current data in context
-		if (data != null) {
-			context.setData(data);
-		}
-
 		Context loopContext = new Context(context.getThisObject());
 
 		if (data instanceof Collection) {

@@ -34,11 +34,11 @@ import org.structr.flow.impl.rels.FlowDataInput;
 
 import java.util.List;
 
-public class FlowCall extends FlowActionNode {
+public class FlowCall extends FlowActionNode implements DataSource {
 
-	public static final Property<List<FlowNode>> dataTarget 		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	private static final Logger logger 								= LoggerFactory.getLogger(FlowCall.class);
 
+	public static final Property<List<FlowNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowContainer> flow                = new EndNode<>("flow", FlowCallContainer.class);
 
 	public static final View defaultView 							= new View(FlowCall.class, PropertyView.Public, flow, dataSource, dataTarget);
@@ -53,22 +53,19 @@ public class FlowCall extends FlowActionNode {
 
 			Context functionContext = new Context(context.getThisObject());
 
-			if (dataSource != null) {
-
-				functionContext.setData(dataSource.get(context));
-			} else {
-
-				functionContext.setData(context.getData());
-			}
-
 			final FlowEngine engine = new FlowEngine(functionContext);
 			FlowNode startNode = flow.getProperty(FlowContainer.startNode);
 
 			if (startNode != null) {
 
+				if (dataSource != null) {
+
+					functionContext.setData(startNode.getUuid(), dataSource.get(context));
+				}
+
 				final FlowResult result = engine.execute(functionContext, startNode);
 				// Save result
-				context.setData(result.getResult());
+				context.setData(getUuid(), result.getResult());
 			} else {
 
 				logger.warn("Unable to evaluate FlowCall {}, flow container doesn't specify a start node.", getUuid());
@@ -83,4 +80,8 @@ public class FlowCall extends FlowActionNode {
 
 	}
 
+	@Override
+	public Object get(Context context) {
+		return context.getData(getUuid());
+	}
 }

@@ -24,6 +24,8 @@ import java.util.Map;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.impl.FlowNode;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -31,7 +33,7 @@ import org.structr.schema.action.ActionContext;
  */
 public class Context {
 
-	private Object data 			 = null;
+	private Map<String,Object> data  = new HashMap<>();
 	private Map<String,Object> store = new HashMap<>();
 	private GraphObject thisObject   = null;
 	private Object result            = null;
@@ -45,7 +47,7 @@ public class Context {
 		this.thisObject = thisObject;
 	}
 
-	public Context(final GraphObject thisObject, final Object data) {
+	public Context(final GraphObject thisObject, final Map<String,Object> data) {
 		this.thisObject = thisObject;
 		this.data = data;
 	}
@@ -78,12 +80,12 @@ public class Context {
 		return error != null;
 	}
 
-	public void setData(final Object value) {
-		this.data = value;
+	public void setData(final String key, final Object value) {
+		this.data.put(key, value);
 	}
 
-	public Object getData() {
-		return this.data;
+	public Object getData(final String key) {
+		return this.data.get(key);
 	}
 
 	public Object retrieveFromStore(final String key) {
@@ -94,10 +96,10 @@ public class Context {
 		store.put(key,value);
 	}
 
-	public ActionContext getActionContext(SecurityContext securityContext) {
+	public ActionContext getActionContext(final SecurityContext securityContext, final FlowBaseNode node) {
 		ActionContext ctx = new ActionContext(securityContext);
-		if(this.data != null) {
-			ctx.setConstant("data", this.data);
+		if(this.data.get(node.getUuid()) != null) {
+			ctx.setConstant("data", this.data.get(node.getUuid()));
 		}
 		return ctx;
 	}

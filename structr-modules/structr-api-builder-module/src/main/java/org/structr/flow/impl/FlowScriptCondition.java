@@ -45,7 +45,7 @@ public class FlowScriptCondition extends FlowCondition implements DataSource {
 		if (_script != null) {
 
 			try {
-				return Scripting.evaluate(context.getActionContext(securityContext), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
+				return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
 
 			} catch (FrameworkException fex) {
 				fex.printStackTrace();

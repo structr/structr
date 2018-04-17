@@ -45,17 +45,30 @@ public class FlowDataSource extends FlowBaseNode implements DataSource {
 	@Override
 	public Object get(final Context context) {
 
-		final String _script = getProperty(query);
-		if (_script != null) {
+		Object currentData = context.getData(getUuid());
 
-			try {
-				return Scripting.evaluate(context.getActionContext(securityContext), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
+		if(currentData == null) {
 
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+			final String _script = getProperty(query);
+			if (_script != null) {
+
+				try {
+
+					Object result = Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
+					context.setData(getUuid(), result);
+					return result;
+				} catch (FrameworkException fex) {
+
+					fex.printStackTrace();
+				}
 			}
-		}
 
-		return null;
+			return null;
+
+		} else {
+
+			return currentData;
+		}
 	}
+
 }

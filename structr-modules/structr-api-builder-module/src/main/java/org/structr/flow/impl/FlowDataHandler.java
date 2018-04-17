@@ -29,11 +29,11 @@ public class FlowDataHandler extends FlowDataSource implements DataHandler, Data
 
 	@Override
 	public void data(final Context context, final Object value) {
-		context.setData(value);
+		context.setData(getUuid(), value);
 	}
 
 	@Override
 	public Object get(final Context context) {
-		return context.getData();
+		return context.getData(getUuid());
 	}
 }

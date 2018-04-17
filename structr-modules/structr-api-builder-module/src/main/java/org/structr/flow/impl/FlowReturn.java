@@ -22,8 +22,11 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.schema.action.ActionContext;
 import org.structr.flow.api.Return;
 import org.structr.flow.engine.Context;
@@ -33,22 +36,29 @@ import org.structr.flow.engine.Context;
  */
 public class FlowReturn extends FlowNode implements Return {
 
+	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<String> result = new StringProperty("result");
 
-	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result);
-	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result);
+	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource);
+	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource);
 
 	@Override
 	public Object getResult(final Context context) {
 
+		final DataSource ds = getProperty(dataSource);
 		final String _script = getProperty(result);
+
 		String script = _script;
 		if (script == null) {
 			script = "data";
 		}
 
+		if (ds != null) {
+			context.setData(getUuid(), ds.get(context));
+		}
+
 		try {
-			return Scripting.evaluate(context.getActionContext(securityContext), context.getThisObject(), "${" + script + "}", "FlowReturn(" + getUuid() + ")");
+			return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + script + "}", "FlowReturn(" + getUuid() + ")");
 
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();

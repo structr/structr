@@ -22,42 +22,48 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;
 import org.structr.flow.engine.Context;
+import org.structr.flow.impl.rels.FlowDataInput;
 
-public class FlowStore extends FlowNode implements Store {
+import java.util.List;
+
+public class FlowStore extends FlowNode implements Store, DataSource {
 
 	public enum Operation {
 		store,
 		retrieve
 	}
 
-	private static final Logger logger 								= LoggerFactory.getLogger(FlowStore.class);
+	private static final Logger logger 							= LoggerFactory.getLogger(FlowStore.class);
 
+	public static final Property<DataSource> dataSource			= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<Operation> operation			= new EnumProperty<>("operation", Operation.class);
 	public static final Property<String> key             		= new StringProperty("key");
 
-	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation);
-	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation);
+	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation, dataSource, dataTarget);
+	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget);
 
 	@Override
 	public void handleStorage(Context context) {
 
 		Operation op = getProperty(operation);
 		String _key = getProperty(key);
-
+		DataSource ds = getProperty(dataSource);
 
 		if(op != null && _key != null ) {
 
 			switch (op) {
 				case store:
-					context.putIntoStore(_key,context.getData());
+					if (ds != null) {
+						context.putIntoStore(_key, ds.get(context));
+					}
 					break;
 				case retrieve:
-					context.setData(context.retrieveFromStore(_key));
+					context.setData(getUuid(), context.retrieveFromStore(_key));
 					break;
 			}
 
@@ -67,6 +73,11 @@ public class FlowStore extends FlowNode implements Store {
 		}
 
 
+	}
+
+	@Override
+	public Object get(Context context) {
+		return context.getData(getUuid());
 	}
 
 }
