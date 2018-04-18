@@ -277,7 +277,14 @@ var _UsersAndGroups = {
 				}
 
 				if (nodeId) {
-					Command.appendUser(nodeId, group.id);
+					if (nodeId !== group.id) {
+						Command.appendUser(nodeId, group.id);
+					} else {
+						new MessageBuilder()
+								.title("Warning")
+								.warning("Prevented adding group as a member of itself")
+								.show();
+					}
 				} else {
 					_Logger.log(_LogType.SECURTIY, 'drop on group -> could not identify node/user', ui.draggable);
 				}
