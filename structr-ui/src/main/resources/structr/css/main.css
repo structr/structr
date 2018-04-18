@@ -2052,15 +2052,15 @@ input.property-name:disabled {
 	margin: 1em 0 0 0;
 }
 
-#schema-options-table th {
+.schema-visibility-table th {
 	position: relative;
 }
 
-#schema-options-table .toggle-column-header {
+.schema-visibility-table .toggle-column-header {
    width: 80px;
 }
 
-#schema-options-table th .invert-icon {
+.schema-visibility-table th .invert-icon {
 	position: absolute;
 	right: 26px;
 	top: 8px;
@@ -2068,11 +2068,11 @@ input.property-name:disabled {
 	margin-left: 40px;
 }
 
-#schema-options-table td .toggle-type {
+.schema-visibility-table td .toggle-type {
 	float: right;
 }
 
-#schema-options-table th #toggle-all-types{
+.schema-visibility-table th .toggle-all-types{
 	position: absolute;
 	right: 6px;
 	top: 6px;

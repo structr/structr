@@ -44,6 +44,44 @@ $(document).ready(function() {
 			);
 		}
 	});
+
+	$(document).on('click', 'input.toggle-all-types', function() {
+		var typeTable = $(this).closest('table');
+		var checked = $(this).prop("checked");
+		$('.toggle-type', typeTable).each(function(i, checkbox) {
+			var inp = $(checkbox);
+			inp.prop("checked", checked);
+			_Schema.checkIsHiddenSchemaNode(inp);
+		});
+		_Schema.reload();
+	});
+
+	$(document).on('click', 'i.invert-all-types', function() {
+		var typeTable = $(this).closest('table');
+		$('.toggle-type', typeTable).each(function(i, checkbox) {
+			var inp = $(checkbox);
+			inp.prop("checked", !inp.prop("checked"));
+			_Schema.checkIsHiddenSchemaNode(inp);
+		});
+		_Schema.reload();
+	});
+
+	$(document).on('click', 'td .toggle-type', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		return false;
+	});
+
+	$(document).on('mouseup', '.schema-visibility-table td', function(e) {
+		e.stopPropagation();
+		e.preventDefault();
+		var td = $(this);
+		var inp = $('.toggle-type', td.parent());
+		inp.prop("checked", !inp.prop("checked"));
+		_Schema.checkIsHiddenSchemaNode(inp);
+		_Schema.reload();
+		return false;
+	});
 });
 
 var _Schema = {
@@ -64,6 +102,7 @@ var _Schema = {
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + port,
+	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + port,
 	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
 	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
 	selectionInProgress: false,
@@ -3180,50 +3219,74 @@ var _Schema = {
 	},
 	appendTypeVisibilityOptionsToContainer: function(container) {
 
-		container.append('<table class="props" id="schema-options-table"><tr><th class="toggle-column-header"><input type="checkbox" id="toggle-all-types"><i id="invert-all-types" class="invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" /> Visible</th><th>Type</th></tr></table>');
-		var schemaOptionsTable = $('#schema-options-table');
+		var visibilityTables = [
+			{
+				caption: "Custom Types",
+				filter: { isBuiltinType: false },
+				exact: true
+			},
+			{
+				caption: "Core Types",
+				filter: { isBuiltinType: true, isAbstract:false, category: 'core' },
+				exact: false
+			},
+			{
+				caption: "Html Types",
+				filter: { isBuiltinType: true, isAbstract:false, category: 'ui' },
+				exact: false
+			},
+			{
+				caption: "Page Types",
+				filter: { isBuiltinType: true, isAbstract:false, category: 'html' },
+				exact: false
+			},
+			{
+				caption: "Uncategorized Types",
+				filter: { isBuiltinType: true, category: null },
+				exact: true
+			}
+		];
 
-		Command.list('SchemaNode', false, 1000, 1, 'name', 'asc', null, function(schemaNodes) {
-			schemaNodes.forEach(function(schemaNode) {
-				schemaOptionsTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
-			});
+		var id = "schema-tools-visibility";
+		container.append('<div id="' + id + '_head"><div class="data-tabs level-two"><ul id="' + id + '-tabs"></ul></div></div>');
+		var ul = $('#' + id + '-tabs', container);
+		var contentEl = $('<div id="' + id + '_content"></div>');
+		container.append(contentEl);
 
-			$('#toggle-all-types', schemaOptionsTable).on('click', function() {
-				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
-					var inp = $(checkbox);
-					inp.prop("checked", $('#toggle-all-types', schemaOptionsTable).prop("checked"));
-					_Schema.checkIsHiddenSchemaNode(inp);
+		var activateTab = function(tabName) {
+			$('.tab', container).hide();
+			$('li', ul).removeClass('active');
+			$('div[data-name="' + tabName + '"]', contentEl).show();
+			$('li[data-name="' + tabName + '"]', ul).addClass('active');
+			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
+		};
+
+		visibilityTables.forEach(function(visType) {
+			ul.append('<li id="tab" data-name="' + visType.caption + '">' + visType.caption + '</li>');
+
+			var tab = $('<div class="tab" data-name="' + visType.caption + '"></div>');
+			contentEl.append(tab);
+
+			var schemaVisibilityTable = $('<table class="props schema-visibility-table"></table>');
+			schemaVisibilityTable.append('<tr><th class="" colspan=2>' + visType.caption + '</th></tr>');
+			schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" /> Visible</th><th>Type</th></tr>');
+			tab.append(schemaVisibilityTable);
+
+			Command.query('SchemaNode', 1000, 1, 'name', 'asc', visType.filter, function(schemaNodes) {
+				schemaNodes.forEach(function(schemaNode) {
+					schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1 ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
 				});
-				_Schema.reload();
-			});
+			}, visType.exact);
 
-			$('#invert-all-types', schemaOptionsTable).on('click', function() {
-				$('.toggle-type', schemaOptionsTable).each(function(i, checkbox) {
-					var inp = $(checkbox);
-					inp.prop("checked", !inp.prop("checked"));
-					_Schema.checkIsHiddenSchemaNode(inp);
-				});
-				_Schema.reload();
-			});
-
-			// Suppress click action on checkbox, action is triggered by event bound to underlying td element
-			$('td .toggle-type', schemaOptionsTable).on('click', function(e) {
-				e.stopPropagation();
-				e.preventDefault();
-				return false;
-			});
-
-			$('td', schemaOptionsTable).on('mouseup', function(e) {
-				e.stopPropagation();
-				e.preventDefault();
-				var td = $(this);
-				var inp = $('.toggle-type', td);
-				inp.prop("checked", !inp.prop("checked"));
-				_Schema.checkIsHiddenSchemaNode(inp);
-				_Schema.reload();
-				return false;
-			});
 		});
+
+		$('#' + id + '-tabs > li', container).on('click', function(e) {
+			e.stopPropagation();
+			activateTab($(this).data('name'));
+		});
+
+		var activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
+		activateTab(activeTab);
 	},
 	checkIsHiddenSchemaNode: function(inp) {
 		var typeName = inp.attr('data-structr-type');
