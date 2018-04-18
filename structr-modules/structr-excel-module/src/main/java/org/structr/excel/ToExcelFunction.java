@@ -27,6 +27,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.apache.poi.ss.usermodel.Comment;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -44,9 +47,8 @@ import org.structr.schema.parser.DatePropertyParser;
 
 public class ToExcelFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_TO_EXCEL    = "Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain]]])}. Example: ${to_csv(find('Page'), 'ui')}";
-	public static final String ERROR_MESSAGE_TO_EXCEL_JS = "Usage: ${{Structr.to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}";
-
+	public static final String ERROR_MESSAGE_TO_EXCEL    = "Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${to_excel(find('Page'), 'ui')}";
+	public static final String ERROR_MESSAGE_TO_EXCEL_JS = "Usage: ${{Structr.to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}}. Example: ${{Structr.to_excel(Structr.find('Page'), 'ui'))}}";
 
 	@Override
 	public String getName() {
@@ -58,7 +60,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 		try {
 
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 8)) {
+			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 7)) {
 
 				if ( !(sources[0] instanceof List) ) {
 					logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -69,6 +71,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 				boolean includeHeader                   = true;
 				boolean localizeHeader                  = false;
 				String headerLocalizationDomain         = null;
+				Integer maxCellLength                   = 32767;
+				String overflowMode                     = "o";
 				String propertyView                     = null;
 				List<String> properties                 = null;
 
@@ -80,9 +84,11 @@ public class ToExcelFunction extends Function<Object, Object> {
 				}
 
 				switch (sources.length) {
-					case 5: headerLocalizationDomain = (String)sources[7];
-					case 4: localizeHeader = (Boolean)sources[6];
-					case 3: includeHeader = (Boolean)sources[5];
+					case 7: overflowMode = (String)sources[6];
+					case 6: maxCellLength = Math.min(maxCellLength, (Integer)sources[5]);
+					case 5: headerLocalizationDomain = (String)sources[4];
+					case 4: localizeHeader = (Boolean)sources[3];
+					case 3: includeHeader = (Boolean)sources[2];
 					case 2: {
 						if (sources[1] instanceof String) {
 							// view is given
@@ -108,7 +114,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 				try {
 
-					final Workbook wb = writeExcel(nodes, propertyView, properties, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale());
+					final Workbook wb = writeExcel(nodes, propertyView, properties, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale(), maxCellLength, overflowMode);
 					final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					wb.write(baos);
 					return baos.toString("ISO-8859-1");
@@ -142,10 +148,12 @@ public class ToExcelFunction extends Function<Object, Object> {
 		return "Creates Excel from given data";
 	}
 
-	public Workbook writeExcel(final List list, final String propertyView, final List<String> properties, final boolean includeHeader, final boolean localizeHeader, final String headerLocalizationDomain, final Locale locale) throws IOException {
+	public Workbook writeExcel(final List list, final String propertyView, final List<String> properties, final boolean includeHeader, final boolean localizeHeader, final String headerLocalizationDomain, final Locale locale, final Integer maxCellLength, final String overflowMode) throws IOException {
 
 		final Workbook workbook = new XSSFWorkbook();
+		final CreationHelper factory = workbook.getCreationHelper();
 		final XSSFSheet sheet = (XSSFSheet) workbook.createSheet();
+		final Drawing drawing = sheet.createDrawingPatriarch();
 
 		int rowCount = 0;
 		int cellCount = 0;
@@ -204,7 +212,6 @@ public class ToExcelFunction extends Function<Object, Object> {
 			}
 		}
 
-
 		for (final Object obj : list) {
 
 			currentRow = (XSSFRow)sheet.createRow(rowCount++);
@@ -219,7 +226,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 						final Object value = ((GraphObject)obj).getProperty(key);
 
 						cell = (XSSFCell)currentRow.createCell(cellCount++);
-						cell.setCellValue(escapeForExcel(value));
+
+						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}
 
 				} else {
@@ -237,7 +245,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
 						final Object value = castedObj.getProperty(key);
 						cell = (XSSFCell)currentRow.createCell(cellCount++);
-						cell.setCellValue(escapeForExcel(value));
+
+						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}
 
 				} else if (obj instanceof Map) {
@@ -247,7 +256,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 					for (final String colName : properties) {
 						final Object value = castedObj.get(colName);
 						cell = (XSSFCell)currentRow.createCell(cellCount++);
-						cell.setCellValue(escapeForExcel(value));
+
+						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}
 				}
 			}
@@ -290,5 +300,32 @@ public class ToExcelFunction extends Function<Object, Object> {
 		}
 
 		return result;
+	}
+
+	public void writeToCell(final CreationHelper factory, final Drawing drawing, final XSSFCell cell, final Object value, final Integer maxCellLength, final String overflowMode) {
+
+		final String cellValue = escapeForExcel(value);
+
+		if (cellValue.length() <= maxCellLength) {
+
+			cell.setCellValue(cellValue);
+
+		} else {
+
+			cell.setCellValue(cellValue.substring(0, maxCellLength));
+
+			if (!overflowMode.equals("t")) {
+				final Comment comment = drawing.createCellComment(factory.createClientAnchor());
+
+				if (overflowMode.equals("o")) {
+					final String overflow = cellValue.substring(maxCellLength, Math.min(maxCellLength + 32767, cellValue.length()));
+					comment.setString(factory.createRichTextString(overflow));
+				} else {
+					comment.setString(factory.createRichTextString(overflowMode));
+				}
+
+				cell.setCellComment(comment);
+			}
+		}
 	}
 }
