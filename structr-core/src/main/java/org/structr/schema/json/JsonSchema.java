@@ -68,6 +68,7 @@ public interface JsonSchema {
 	public static final String KEY_DEFINITIONS             = "definitions";
 	public static final String KEY_PROPERTIES              = "properties";
 	public static final String KEY_VIEWS                   = "views";
+	public static final String KEY_VIEW_ORDER              = "viewOrder";
 	public static final String KEY_METHODS                 = "methods";
 	public static final String KEY_REQUIRED                = "required";
 	public static final String KEY_MIN_ITEMS               = "minItems";
