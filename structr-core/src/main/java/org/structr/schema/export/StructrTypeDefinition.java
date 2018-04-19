@@ -81,6 +81,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected boolean isInterface                                 = false;
 	protected boolean isAbstract                                  = false;
+	protected boolean isBuiltinType                               = false;
 	protected StructrSchemaDefinition root                        = null;
 	protected URI baseTypeReference                               = null;
 	protected String category                                     = null;
@@ -659,6 +660,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		serializedForm.put(JsonSchema.KEY_TYPE, "object");
 		serializedForm.put(JsonSchema.KEY_IS_ABSTRACT, isAbstract);
 		serializedForm.put(JsonSchema.KEY_IS_INTERFACE, isInterface);
+		if (getClass().equals(StructrNodeTypeDefinition.class)) {
+			serializedForm.put(JsonSchema.KEY_IS_BUILTIN_TYPE, isBuiltinType);
+		}
 
 		// properties
 		if (!serializedProperties.isEmpty()) {
@@ -719,6 +723,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		if (source.containsKey(JsonSchema.KEY_IS_INTERFACE)) {
 			this.isInterface = (Boolean)source.get(JsonSchema.KEY_IS_INTERFACE);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_IS_BUILTIN_TYPE)) {
+			this.isBuiltinType = (Boolean)source.get(JsonSchema.KEY_IS_BUILTIN_TYPE);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_EXTENDS)) {
@@ -845,9 +853,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		this.isInterface = schemaNode.getProperty(SchemaNode.isInterface);
-		this.isAbstract  = schemaNode.getProperty(SchemaNode.isAbstract);
-		this.category    = schemaNode.getProperty(SchemaNode.category);
+		this.isInterface    = schemaNode.getProperty(SchemaNode.isInterface);
+		this.isAbstract     = schemaNode.getProperty(SchemaNode.isAbstract);
+		this.isBuiltinType  = schemaNode.getProperty(SchemaNode.isBuiltinType);
+		this.category       = schemaNode.getProperty(SchemaNode.category);
 	}
 
 	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
@@ -861,7 +870,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.isInterface, isInterface);
 		createProperties.put(SchemaNode.isAbstract, isAbstract);
 		createProperties.put(SchemaNode.category, category);
-		createProperties.put(SchemaNode.isBuiltinType, SchemaService.DynamicSchemaRootURI.equals(root.getId()));
+		createProperties.put(SchemaNode.isBuiltinType, isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
 
 		final T schemaNode = createSchemaNode(app, createProperties);
 
@@ -983,6 +992,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			for (final URI implementedInterface : implementedInterfaces) {
 
+				if (!isBuiltinType && implementedInterface.toString().equals("https://structr.org/v1.1/definitions/" + getName())) {
+					isBuiltinType = true;
+					nodeProperties.put(SchemaNode.isBuiltinType, isBuiltinType);
+				}
+
 				final Object def = root.resolveURI(implementedInterface);
 
 				if (def != null && def instanceof JsonType) {
@@ -1037,6 +1051,14 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	Map<String, String> getViewOrder() {
 		return viewOrder;
+	}
+
+	public boolean isBuiltinType() {
+		return isBuiltinType;
+	}
+
+	public void setIsBuiltinType() {
+		this.isBuiltinType = true;
 	}
 
 	void initializeReferenceProperties() {
@@ -1170,6 +1192,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (isInterfaceValue != null && Boolean.TRUE.equals(isInterfaceValue)) {
 
 			typeDefinition.setIsInterface();
+		}
+
+		final Object isBuiltinType = source.get(JsonSchema.KEY_IS_BUILTIN_TYPE);
+		if (isBuiltinType != null && Boolean.TRUE.equals(isBuiltinType)) {
+
+			typeDefinition.setIsBuiltinType();
 		}
 
 		final Object categoryValue = source.get(JsonSchema.KEY_CATEGORY);
