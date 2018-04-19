@@ -161,7 +161,7 @@ public class Settings {
 	public static final Setting<Boolean> CmisEnabled             = new BooleanSetting(advancedGroup, "hidden",      "cmis.enabled",                  false);
 
 	// servlets
-	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet GraphQLServlet");
+	public static final Setting<String> Servlets              = new StringSetting(servletsGroup,  "General", "HttpService.servlets",             "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "ConfigServlet.enabled",             true);
 
@@ -222,7 +222,9 @@ public class Settings {
 	public static final Setting<String> GraphQLServletClass      = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.class",                 "org.structr.rest.servlet.GraphQLServlet");
 	public static final Setting<String> GraphQLAuthenticator     = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
 	public static final Setting<String> GraphQLResourceProvider  = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-
+	public static final Setting<String> GraphQLDefaultView       = new StringSetting(servletsGroup,  "GraphQLServlet", "GraphQLServlet.defaultview",           "public");
+	public static final Setting<Integer> GraphQLOutputDepth      = new IntegerSetting(servletsGroup, "GraphQLServlet", "GraphQLServlet.outputdepth",	   3);
+	
 	public static final Setting<String> DeploymentServletPath                = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.path",                      "/structr/deploy");
 	public static final Setting<String> DeploymentServletClass               = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.class",                     "org.structr.web.servlet.DeploymentServlet");
 	public static final Setting<String> DeploymentAuthenticator              = new StringSetting(servletsGroup,  "DeploymentServlet", "DeploymentServlet.authenticator",             "org.structr.web.auth.UiAuthenticator");
@@ -304,6 +306,16 @@ public class Settings {
 	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserClass",              "");
 	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(miscGroup, "User Self Registration", "Registration.allowLoginBeforeConfirmation", false);
 	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserAttributes",         "name");
+	
+	public static final Setting<String> TranslationGoogleApiKey = new StringSetting(miscGroup,  "Translation Module", "translation.google.apikey",         "");
+	
+	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");
+	public static final Setting<String> PaymentPaypalUsername  = new StringSetting(miscGroup,  "Payment Options", "paypal.username",     "");
+	public static final Setting<String> PaymentPaypalPassword  = new StringSetting(miscGroup,  "Payment Options", "paypal.password",     "");
+	public static final Setting<String> PaymentPaypalSignature = new StringSetting(miscGroup,  "Payment Options", "paypal.signature",    "");
+	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
+	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
+	
 
 	public static Collection<SettingsGroup> getGroups() {
 		return groups.values();
