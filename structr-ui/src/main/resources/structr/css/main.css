@@ -1702,7 +1702,7 @@ button.add_property {
  * Schema
  */
 
-#create-type i, #schema-tools i, #global-schema-methods i {
+#create-type i, #schema-tools i, #global-schema-methods i, .schema-tool-button i {
 	margin-top: -3px;
 }
 
@@ -1718,7 +1718,7 @@ button.add_property {
 	margin: 8px 12px 4px 12px;
 }
 
-#connector-style, #node-type-selector, #rel-type-selector, #saved-layout-selector {
+#connector-style, #node-type-selector, #rel-type-selector, #saved-layout-selector, #layout-style {
 	color: #222;
 	padding: 1px 2px 3px 4px;
 	vertical-align: middle;
@@ -1731,6 +1731,10 @@ button.add_property {
 
 #connector-style {
 	margin: 0 8px 4px 12px;
+}
+
+#layout-style {
+	margin: 0 0 4px 48px;
 }
 
 #zoom-slider {
@@ -2038,7 +2042,7 @@ input.property-name:disabled {
 	opacity: .7;
 }
 
-#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods {
+#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods, #schema-layout {
 	margin: 0 0 4px 12px;
 }
 

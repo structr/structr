@@ -1229,17 +1229,37 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			return null;
 		}
 
+		final long t0 = System.currentTimeMillis();
+
 		for (final Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
 
 			if (r != null) {
 
 				if (p.equals(r.getSourceNode())) {
 
+					final long t1 = System.currentTimeMillis();
+					final long dt= (t1 - t0);
+
+					if (dt > 20) {
+
+						logger.warn("AbstractNode.getSecurityRelationship took {} ms", dt);
+					}
+
+
 					return r;
 
 				}
 			}
 		}
+
+		final long t1 = System.currentTimeMillis();
+		final long dt= (t1 - t0);
+
+		if (dt > 20) {
+
+			logger.warn("AbstractNode.getSecurityRelationship took {} ms", dt);
+		}
+
 
 		return null;
 
@@ -1788,11 +1808,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		Security secRel = getSecurityRelationship(principal);
-		if (secRel == null) {
-
-			logger.error("Could not create revoke permission, no security relationship exists!");
-
-		} else {
+		if (secRel != null) {
 
 			secRel.removePermission(permission);
 		}

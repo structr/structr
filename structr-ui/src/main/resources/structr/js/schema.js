@@ -215,12 +215,14 @@ var _Schema = {
 			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
 			schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
 			schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
+			schemaInputContainer.append('<button class="btn schema-tool-button" id="schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Layout</button>');
 
 			$('#schema-show-overlays').on('change', function() {
 				_Schema.updateOverlayVisibility($(this).prop('checked'));
 			});
 			$('#schema-tools').on('click', _Schema.openSchemaToolsDialog);
 			$('#global-schema-methods').on('click', _Schema.showGlobalSchemaMethods);
+			$('#schema-layout').on('click', _Schema.doLayout);
 
 			$('#type-name').on('keyup', function(e) {
 
@@ -3327,23 +3329,108 @@ var _Schema = {
 	},
 	doLayout: function() {
 
-		var nodesToLayout = new Array();
-		var relsToLayout = new Array();
+		// Create a new directed graph
+		var layouter        = new dagre.graphlib.Graph();
+		var marginTop       = 100;
+		var highestPosition = -1;
+		var nonLayoutNodes  = [];
+		var gObj            = {};
+
+		gObj['nodesep']   = 50;
+		gObj['edgesep']   = 0;
+		gObj['ranksep']   = 400;
+		gObj['align']     = 'UR';
+		gObj['rankdir']   = 'TB';
+		gObj['ranker']    = 'longest-path';
+		gObj['acyclicer'] = 'greedy';
+
+		// align:   Alignment for rank nodes. Can be UL, UR, DL, or DR, where U = up, D = down, L = left, and R = right.
+ 		// rankdir: Direction for rank nodes. Can be TB, BT, LR, or RL, where T = top, B = bottom, L = left, and R = right.
+		// ranker:  Type of algorithm to assigns a rank to each node in the input graph. Possible values: network-simplex, tight-tree or longest-path
+
+		// Set an object for the graph label
+		layouter.setGraph(gObj);
+
+		// Default to assigning a new object as a label for each new edge.
+		layouter.setDefaultEdgeLabel(function() { return {}; });
+
+		// Add nodes to the graph. The first argument is the node id. The second is
+		// metadata about the node. In this case we're going to add labels to each of
+		// our nodes.
 
 		$.each(Object.keys(nodes), function(i, id) {
 
 			if (!id.endsWith('_top') && !id.endsWith('_bottom')) {
 
-				var node = $('#id_' + id);
-				nodesToLayout.push(node);
+				var idString = 'id_' + id;
+				var node     = $('#' + idString);
+				var entity   = nodes[id];
+
+				if (node && entity) {
+
+					var obj  = node.position();
+					if (obj) {
+
+						if (entity.relCount > 0) {
+
+							obj.left = (obj.left - canvas.offset().left) / _Schema.zoomLevel;
+							obj.top  = (obj.top  - canvas.offset().top)  / _Schema.zoomLevel;
+
+							layouter.setNode(idString, { label: idString,  width: node.width(), height: node.height() });
+
+						} else {
+
+							var top = (obj.top - canvas.offset().top) / _Schema.zoomLevel;
+							if (highestPosition === -1) {
+
+								highestPosition = top;
+							}
+
+							nonLayoutNodes.push(node);
+						}
+					}
+				}
 			}
 		});
 
 		$.each(Object.keys(rels), function(i, id) {
-			relsToLayout.push(rels[id]);
+
+			var rel = rels[id];
+			var src = $('#' + rel.source.id);
+			var tgt = $('#' + rel.target.id);
+
+			if (src && tgt) {
+				layouter.setEdge(rel.source.id, rel.target.id);
+			}
 		});
 
-		_Layout.doLayout(nodesToLayout, relsToLayout);
+		dagre.layout(layouter);
+
+		var width  = layouter.graph().width;
+		var height = layouter.graph().height;
+		var offset = height - highestPosition + 300;
+
+		layouter.nodes().forEach(function(v) {
+
+			var position = layouter.node(v);
+			var node     = $('#' + v);
+			var left     = -position.x + width;
+			var top      = position.y + marginTop;
+
+			node.css('top', top);
+			node.css('left', left);
+		});
+
+		// move nodes to the bottom that have not been layouted
+		nonLayoutNodes.forEach(n => {
+
+			var top = (n.position().top + offset - canvas.offset().top) / _Schema.zoomLevel;
+			n.css('top', top);
+		});
+
+		_Schema.storePositions();
+		instance.repaintEverything();
+
 	},
 	setZoom: function(zoom, instance, transformOrigin, el) {
 		transformOrigin = transformOrigin || [ 0.5, 0.5 ];
