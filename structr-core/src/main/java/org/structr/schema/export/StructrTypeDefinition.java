@@ -857,6 +857,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.isAbstract     = schemaNode.getProperty(SchemaNode.isAbstract);
 		this.isBuiltinType  = schemaNode.getProperty(SchemaNode.isBuiltinType);
 		this.category       = schemaNode.getProperty(SchemaNode.category);
+
+		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
+			final JsonType type = SchemaService.getDynamicSchema().getType(this.getName());
+			if (type != null) {
+				this.category = type.getCategory();
+			}
+		}
 	}
 
 	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
