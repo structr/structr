@@ -76,6 +76,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
+	protected final Map<String, String> viewOrder                 = new TreeMap<>();
 	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected boolean isInterface                                 = false;
@@ -676,6 +677,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			// FIXME: views are different
 
 			serializedForm.put(JsonSchema.KEY_VIEWS, views);
+			serializedForm.put(JsonSchema.KEY_VIEW_ORDER, viewOrder);
 		}
 
 		// methods
@@ -787,6 +789,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 				if (!propertySet.isEmpty()) {
 					views.put(view.getName(), propertySet);
+
+					final String order = view.getProperty(SchemaView.sortOrder);
+					if (order != null) {
+						viewOrder.put(view.getName(), order);
+					}
 				}
 			}
 		}
@@ -903,6 +910,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 			updateProperties.put(SchemaView.schemaProperties, viewProperties);
 			updateProperties.put(SchemaView.nonGraphProperties, StringUtils.join(nonGraphProperties, ", "));
+
+			if (viewOrder.containsKey(view.getKey())) {
+				updateProperties.put(SchemaView.sortOrder, viewOrder.get(view.getKey()));
+			}
 
 			// update properties of existing or new schema view node
 			viewNode.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
@@ -1024,6 +1035,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return views;
 	}
 
+	Map<String, String> getViewOrder() {
+		return viewOrder;
+	}
+
 	void initializeReferenceProperties() {
 
 		for (final StructrPropertyDefinition property : properties) {
@@ -1040,6 +1055,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
 		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
 		final Map<String, Object> views                                     = (Map)source.get(JsonSchema.KEY_VIEWS);
+		final Map<String, String> viewOrder                                 = (Map)source.get(JsonSchema.KEY_VIEW_ORDER);
 		final Map<String, Object> methods                                   = (Map)source.get(JsonSchema.KEY_METHODS);
 
 		if (properties != null) {
@@ -1099,6 +1115,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					throw new IllegalStateException("View definition " + viewName + " must be of type array.");
 				}
 			}
+		}
+
+		if (viewOrder != null) {
+
+			typeDefinition.getViewOrder().putAll(viewOrder);
 		}
 
 		if (methods != null) {
