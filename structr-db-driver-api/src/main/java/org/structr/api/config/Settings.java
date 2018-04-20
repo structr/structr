@@ -301,8 +301,6 @@ public class Settings {
 	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/");
 
 	// miscellaneous settings
-	public static final Setting<Integer> TcpPort                                  = new IntegerSetting(miscGroup, "Cloud Service",          "tcp.port",                                  54555);
-	public static final Setting<Integer> UdpPort                                  = new IntegerSetting(miscGroup, "Cloud Service",          "udp.port",                                  57555);
 	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserClass",              "");
 	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(miscGroup, "User Self Registration", "Registration.allowLoginBeforeConfirmation", false);
 	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserAttributes",         "name");
