@@ -26,6 +26,7 @@ package org.structr.schema;
 import graphql.Scalars;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
@@ -220,6 +221,7 @@ public class SchemaService implements Service {
 
 
 						final GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject();
+						final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
 
 						// register types in "Query" type
 						for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
@@ -239,6 +241,7 @@ public class SchemaService implements Service {
 								.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 								.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 								.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
+								.argument(SchemaHelper.getGraphQLQueryArgumentsForType(selectionTypes, className))
 							);
 						}
 

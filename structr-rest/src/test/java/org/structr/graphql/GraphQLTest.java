@@ -379,6 +379,19 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Group.1.members.1.name", "Susanne");
 			assertMapPathValueIs(result, "Group.1.members.0.name", "Tobias");
 		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(_pageSize: 2, _sort: \"name\", owner: { name: { _contains: \"x\" }} ) { id, type, name, owner { name }}}");
+			assertMapPathValueIs(result, "MailTemplate.#",            2);
+			assertMapPathValueIs(result, "MailTemplate.0.id",         templates.get(5).getUuid());
+			assertMapPathValueIs(result, "MailTemplate.0.type",       "MailTemplate");
+			assertMapPathValueIs(result, "MailTemplate.0.name",       "abcdef");
+			assertMapPathValueIs(result, "MailTemplate.0.owner.name", "Axel");
+			assertMapPathValueIs(result, "MailTemplate.1.id",         templates.get(1).getUuid());
+			assertMapPathValueIs(result, "MailTemplate.1.type",       "MailTemplate");
+			assertMapPathValueIs(result, "MailTemplate.1.name",       "lertdf");
+			assertMapPathValueIs(result, "MailTemplate.1.owner.name", "Axel");
+		}
 	}
 
 	@Test

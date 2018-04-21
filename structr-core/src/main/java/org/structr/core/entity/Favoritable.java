@@ -45,9 +45,9 @@ public interface Favoritable extends NodeInterface {
 
 		type.addBooleanProperty("isFavoritable", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
-		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), "fav");
-		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      "fav");
-		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav");
+		type.addCustomProperty("favoriteContentType", FavoriteContentTypeProperty.class.getName(), "fav").setTypeHint("String");
+		type.addCustomProperty("favoriteContent",    FavoriteContentProperty.class.getName(),      "fav").setTypeHint("String");
+		type.addCustomProperty("favoriteContext",    FavoriteContextProperty.class.getName(),      "fav").setTypeHint("String");
 
 		// add relationshipId to public and fav view
 		type.addFunctionProperty("relationshipId", "fav").setReadFunction("this._path.id").setTypeHint("String");

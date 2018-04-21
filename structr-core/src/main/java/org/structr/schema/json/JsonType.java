@@ -76,7 +76,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonScriptProperty addScriptProperty(final String name, final String...views);
 	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
 	JsonEnumProperty addEnumProperty(final String name, final String...views);
-	JsonProperty addCustomProperty(final String name, final String fqcn, final String... views);
+	JsonDynamicProperty addCustomProperty(final String name, final String fqcn, final String... views);
 	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
 	JsonIntegerArrayProperty addIntegerArrayProperty(final String name, final String... views);
 	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);

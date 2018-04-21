@@ -19,6 +19,9 @@
 package org.structr.schema;
 
 import graphql.Scalars;
+import graphql.schema.GraphQLArgument;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLInputObjectType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
@@ -1622,41 +1625,140 @@ public class SchemaHelper {
 			return outputType;
 		}
 
-		if (Type.Function.equals(propertyType)) {
+		switch (propertyType) {
 
-			final String typeHint = property.getTypeHint();
-			if (typeHint != null) {
+			case Function:
+			case Custom:
+			case Cypher:
+				final String typeHint = property.getTypeHint();
+				if (typeHint != null) {
 
-				final String lowerCaseTypeHint = typeHint.toLowerCase();
-				switch (lowerCaseTypeHint) {
+					final String lowerCaseTypeHint = typeHint.toLowerCase();
+					switch (lowerCaseTypeHint) {
 
-					case "boolean": return graphQLTypeMap.get(Type.Boolean);
-					case "string":  return graphQLTypeMap.get(Type.String);
-					case "int":     return graphQLTypeMap.get(Type.Integer);
-					case "long":    return graphQLTypeMap.get(Type.Long);
-					case "double":  return graphQLTypeMap.get(Type.Double);
-					case "date":    return graphQLTypeMap.get(Type.Date);
-				}
+						case "boolean": return graphQLTypeMap.get(Type.Boolean);
+						case "string":  return graphQLTypeMap.get(Type.String);
+						case "int":     return graphQLTypeMap.get(Type.Integer);
+						case "long":    return graphQLTypeMap.get(Type.Long);
+						case "double":  return graphQLTypeMap.get(Type.Double);
+						case "date":    return graphQLTypeMap.get(Type.Date);
+					}
 
-				// object array type?
-				if (typeHint.endsWith("[]")) {
+					// object array type?
+					if (typeHint.endsWith("[]")) {
 
-					// list type
-					return new GraphQLListType(typeRef(StringUtils.substringBefore(typeHint, "[]")));
+						// list type
+						return new GraphQLListType(typeRef(StringUtils.substringBefore(typeHint, "[]")));
+
+					} else {
+
+						// object type
+						return typeRef(typeHint);
+					}
 
 				} else {
 
-					// object type
-					return typeRef(typeHint);
+					logger.warn("Unable to register property {} with GraphQL, no type hint present. Please set typeHint property of {} to use it with GraphQL", property.getFullName(), property.getUuid());
+				}
+				break;
+		}
+
+
+		return null;
+	}
+
+	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws FrameworkException {
+
+		final List<GraphQLArgument> arguments = new LinkedList<>();
+		final SchemaNode schemaNode           = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type).getFirst();
+
+		if (schemaNode != null) {
+
+			// outgoing relationships
+			for (final SchemaRelationshipNode outNode : schemaNode.getProperty(SchemaNode.relatedTo)) {
+
+				final SchemaNode targetNode                = outNode.getTargetNode();
+				final String targetTypeName                = targetNode.getClassName();
+				final String propertyName                  = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
+
+				arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
+					.name(type + propertyName + targetTypeName + "InInput")
+					.fields(getGraphQLInputFieldsForType(selectionTypes, targetNode))
+					.build()
+				).build());
+			}
+
+			// incoming relationships
+			for (final SchemaRelationshipNode inNode : schemaNode.getProperty(SchemaNode.relatedFrom)) {
+
+				final SchemaNode sourceNode = inNode.getSourceNode();
+				final String sourceTypeName = sourceNode.getClassName();
+				final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
+
+				arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
+					.name(type + propertyName + sourceTypeName + "OutInput")
+					.fields(getGraphQLInputFieldsForType(selectionTypes, sourceNode))
+					.build()
+				).build());
+			}
+
+			// manual registration for built-in relationships that are not dynamic
+			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
+				.name(type + "ownerInput")
+				.fields(getGraphQLInputFieldsForType(selectionTypes, StructrApp.getInstance().nodeQuery(SchemaNode.class).andName("Principal").getFirst()))
+				.build()
+			).build());
+
+		}
+
+		return arguments;
+	}
+
+	public static List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final SchemaNode targetNode) {
+
+		final Map<String, GraphQLInputObjectField> fields = new LinkedHashMap<>();
+
+		for (final SchemaProperty property : targetNode.getSchemaProperties()) {
+
+			if (property.isIndexed() || property.isCompound()) {
+
+				final String name          = property.getName();
+				final String selectionName = name + "Selection";
+
+				GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
+				if (selectionType == null) {
+
+					selectionType = GraphQLInputObjectType.newInputObject()
+						.name(selectionName)
+						.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
+						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+						.build();
+
+					selectionTypes.put(selectionName, selectionType);
 				}
 
-			} else {
-
-				logger.warn("Unable to register FunctionProperty {} with GraphQL, no type hint present. Please set format property of FunctionProperty {} to use it with GraphQL", property.getFullName(), property.getUuid());
+				fields.put(name, GraphQLInputObjectField.newInputObjectField().name(name).type(selectionType).build());
 			}
 		}
 
-		return null;
+		if (!fields.containsKey("name")) {
+
+			GraphQLInputObjectType selectionType = selectionTypes.get("nameSelection");
+			if (selectionType == null) {
+
+				selectionType = GraphQLInputObjectType.newInputObject()
+					.name("nameSelection")
+					.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
+					.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+					.build();
+
+				selectionTypes.put("nameSelection", selectionType);
+			}
+
+			fields.put("name", GraphQLInputObjectField.newInputObjectField().name("name").type(selectionType).build());
+		}
+
+		return new LinkedList<>(fields.values());
 	}
 
 	// ----- private methods -----

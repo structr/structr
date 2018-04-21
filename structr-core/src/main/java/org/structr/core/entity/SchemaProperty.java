@@ -473,7 +473,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return buf.toString();
 	}
 
-	public GraphQLFieldDefinition getGraphQLField(final String typeName) {
+	public GraphQLFieldDefinition getGraphQLField() {
 
 		final GraphQLOutputType outputType = SchemaHelper.getGraphQLTypeForProperty(this);
 		if (outputType != null) {
@@ -644,7 +644,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return arguments;
 	}
 
-	public static List<GraphQLArgument> getGraphQLArgumentsForRelatedType(final String relatedTye) {
+	public static List<GraphQLArgument> getGraphQLArgumentsForRelatedType(final String relatedType) {
 
 		// related type parameter is unused right now
 

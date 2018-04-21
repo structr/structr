@@ -50,6 +50,7 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonBooleanArrayProperty;
 import org.structr.schema.json.JsonBooleanProperty;
 import org.structr.schema.json.JsonDateProperty;
+import org.structr.schema.json.JsonDynamicProperty;
 import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonIntegerArrayProperty;
@@ -517,7 +518,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonProperty addCustomProperty(final String name, final String fqcn, final String... views) {
+	public JsonDynamicProperty addCustomProperty(final String name, final String fqcn, final String... views) {
 
 		final StructrCustomProperty customProperty = new StructrCustomProperty(this, name);
 

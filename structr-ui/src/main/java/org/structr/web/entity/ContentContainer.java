@@ -43,7 +43,7 @@ public interface ContentContainer extends NodeInterface {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ContentContainer"));
 
 		type.addBooleanProperty("isContentContainer",                       PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addCustomProperty("path", ContentPathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setReadOnly(true).setIndexed(true);
+		type.addCustomProperty("path", ContentPathProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("String").setReadOnly(true).setIndexed(true);
 
 		type.addPropertyGetter("parent", ContentContainer.class);
 		type.addPropertyGetter("items", List.class);

@@ -25,34 +25,32 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.json.JsonDynamicProperty;
 import org.structr.schema.json.JsonSchema;
 
 /**
  *
  *
  */
-public class StructrCustomProperty extends StructrDynamicProperty {
+public abstract class StructrDynamicProperty extends StructrStringProperty implements JsonDynamicProperty {
 
 	protected String typeHint = null;
-	protected String fqcn     = null;
 
-	public StructrCustomProperty(final StructrTypeDefinition parent, final String name) {
+	public StructrDynamicProperty(final StructrTypeDefinition parent, final String name) {
 
 		super(parent, name);
 	}
 
 	@Override
-	public String getType() {
-		return "custom";
+	public JsonDynamicProperty setTypeHint(String typeHint) {
+
+		this.typeHint = typeHint;
+		return this;
 	}
 
-	public void setFqcn(final String value) {
-		this.fqcn = value;
-	}
-
-	public String getFqcn() {
-		return fqcn;
+	@Override
+	public String getTypeHint() {
+		return typeHint;
 	}
 
 	@Override
@@ -60,7 +58,9 @@ public class StructrCustomProperty extends StructrDynamicProperty {
 
 		final Map<String, Object> map = super.serialize();
 
-		map.put(JsonSchema.KEY_FQCN, fqcn);
+		if (typeHint != null) {
+			map.put(JsonSchema.KEY_TYPE_HINT, typeHint);
+		}
 
 		return map;
 	}
@@ -70,31 +70,27 @@ public class StructrCustomProperty extends StructrDynamicProperty {
 
 		super.deserialize(source);
 
-		final Object fqcnValue = source.get(JsonSchema.KEY_FQCN);
-		if (fqcnValue != null) {
+		final Object typeHintValue = source.get(JsonSchema.KEY_TYPE_HINT);
+		if (typeHintValue != null) {
 
-			if (fqcnValue instanceof String) {
+			if (typeHintValue instanceof String) {
 
-				this.fqcn = (String)fqcnValue;
+				this.typeHint = (String)typeHintValue;
 
 			} else {
 
-				throw new IllegalStateException("Invalid fqcn for property " + name + ", expected string.");
+				throw new IllegalStateException("Invalid typeHint for property " + name + ", expected string.");
 			}
-
-		} else {
-
-			throw new IllegalStateException("Missing fqcn value for property " + name);
 		}
+
 	}
 
 	@Override
-	void deserialize(final SchemaProperty schemaProperty) {
+	void deserialize(final SchemaProperty property) {
 
-		super.deserialize(schemaProperty);
+		super.deserialize(property);
 
-		setFormat(schemaProperty.getFormat());
-		setFqcn(schemaProperty.getFqcn());
+		setTypeHint(property.getTypeHint());
 	}
 
 	@Override
@@ -103,8 +99,7 @@ public class StructrCustomProperty extends StructrDynamicProperty {
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, Type.Custom.name());
-		properties.put(SchemaProperty.fqcn, fqcn);
+		properties.put(SchemaProperty.typeHint,      typeHint);
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

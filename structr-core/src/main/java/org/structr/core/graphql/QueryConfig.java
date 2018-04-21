@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
@@ -190,12 +191,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					break;
 
 				default:
-					// handle simple selections like an _equals on the field
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name, false);
-					if (key != null) {
-
-						addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, castValue(securityContext, type, key, value), true, null), Occurrence.REQUIRED);
-					}
+					handleNonPrimitiveSearchObject(securityContext, type, name, value);
 					break;
 			}
 		}
@@ -382,6 +378,88 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		}
 
 		return null;
+	}
+
+	private void handleNonPrimitiveSearchObject(final SecurityContext securityContext, final Class type, final String name, final Value value) throws FrameworkException {
+
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name, false);
+		if (key != null) {
+
+			if (value instanceof StringValue || value instanceof IntValue || value instanceof BooleanValue) {
+
+				// handle simple selections like an _equals on the field
+				addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, castValue(securityContext, type, key, value), true, null), Occurrence.REQUIRED);
+
+			} else if (value instanceof ObjectValue) {
+
+				// handle complex query object
+				final Map<String, Object> input = unwrapValue((ObjectValue)value);
+
+				for (final Entry<String, Object> entry : input.entrySet()) {
+
+					final String searchKey   = entry.getKey();
+					final Object searchValue = entry.getValue();
+					final Class relatedType  = key.relatedType();
+
+					if (relatedType != null && searchValue instanceof Map) {
+
+						final PropertyKey searchPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(key.relatedType(), searchKey, false);
+						if (searchPropertyKey != null) {
+
+							final Query<GraphObject> query      = StructrApp.getInstance(securityContext).nodeQuery(relatedType);
+							final Map<String, Object> searchMap = (Map)searchValue;
+							final String contains               = (String)searchMap.get("_contains");
+							final String equals                 = (String)searchMap.get("_equals");
+
+							if (equals != null) {
+
+								query.and(searchPropertyKey, equals);
+
+							} else if (contains != null) {
+
+								query.and(searchPropertyKey, contains, false);
+							}
+
+							for (final GraphObject candidate : query.getAsList()) {
+
+								// add sources that will be merge later on
+								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, true, null), Occurrence.REQUIRED);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private Map<String, Object> unwrapValue(final ObjectValue value) {
+
+		final Map<String, Object> map = new LinkedHashMap<>();
+
+		for (final ObjectField field : value.getObjectFields()) {
+
+			final String name = field.getName();
+			final Value child = field.getValue();
+
+			if (child instanceof ObjectValue) {
+
+				map.put(name, unwrapValue((ObjectValue)child));
+
+			} else if (child instanceof StringValue) {
+
+				map.put(name, ((StringValue)child).getValue());
+
+			} else if (child instanceof IntValue) {
+
+				map.put(name, ((IntValue)child).getValue());
+
+			} else if (child instanceof BooleanValue) {
+
+				map.put(name, ((BooleanValue)child).isValue());
+			}
+		}
+
+		return map;
 	}
 
 	// ----- nested classes -----

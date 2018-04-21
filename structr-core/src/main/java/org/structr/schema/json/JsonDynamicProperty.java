@@ -22,18 +22,8 @@ package org.structr.schema.json;
  *
  *
  */
-public interface JsonFunctionProperty extends JsonDynamicProperty {
+public interface JsonDynamicProperty extends JsonStringProperty {
 
-	public JsonFunctionProperty setReadFunction(final String readFunction);
-	public String getReadFunction();
-
-	public JsonFunctionProperty setWriteFunction(final String writeFunction);
-	public String getWriteFunction();
-
-	@Override
-	public JsonFunctionProperty setContentType(final String contentType);
-
-	@Override
-	public String getContentType();
-
+	public JsonDynamicProperty setTypeHint(final String typeHint);
+	public String getTypeHint();
 }

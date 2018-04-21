@@ -394,7 +394,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		// add dynamic fields
 		for (final SchemaProperty property : getSchemaProperties()) {
 
-			final GraphQLFieldDefinition field = property.getGraphQLField(className);
+			final GraphQLFieldDefinition field = property.getGraphQLField();
 			if (field != null) {
 
 				fields.put(field.getName(), field);

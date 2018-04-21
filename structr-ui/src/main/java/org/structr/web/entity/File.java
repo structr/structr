@@ -125,7 +125,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addPropertyGetter("basicAuthRealm", String.class);
 		type.addPropertyGetter("size", Long.class);
 
-		type.addCustomProperty("base64Data", FileDataProperty.class.getName());
+		type.addCustomProperty("base64Data", FileDataProperty.class.getName()).setTypeHint("String");
 
 		type.overrideMethod("onCreation",                  true,  File.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification",              true,  File.class.getName() + ".onModification(this, arg0, arg1, arg2);");

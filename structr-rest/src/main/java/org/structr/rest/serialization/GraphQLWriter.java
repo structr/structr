@@ -119,35 +119,15 @@ public class GraphQLWriter {
 
 			for (final GraphQLQuery query : request.getQueries()) {
 
-				if (query.isSchemaQuery()) {
+				writer.name(query.getFieldName());
+				writer.beginArray();
 
-					// use graphql-java schema response
-					final String originalQuery   = request.getOriginalQuery();
-					final GraphQL graphQL        = GraphQL.newGraphQL(SchemaService.getGraphQLSchema()).build();
-					final ExecutionResult result = graphQL.execute(originalQuery);
-					final Gson gson              = new GsonBuilder().setPrettyPrinting().create();
+				for (final GraphObject object : query.getEntities(securityContext)) {
 
-					if (result != null) {
-
-						final Map<String, Object> data = result.getData();
-						if (data != null) {
-
-							gson.toJson(data, output);
-						}
-					}
-
-				} else {
-
-					writer.name(query.getFieldName());
-					writer.beginArray();
-
-					for (final GraphObject object : query.getEntities(securityContext)) {
-
-						root.serialize(writer, null, object, query, query.getRootPath());
-					}
-
-					writer.endArray();
+					root.serialize(writer, null, object, query, query.getRootPath());
 				}
+
+				writer.endArray();
 			}
 
 			// finished

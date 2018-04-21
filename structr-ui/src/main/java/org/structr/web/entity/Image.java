@@ -74,9 +74,9 @@ public interface Image extends File {
 		type.addBooleanProperty("isThumbnail",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty("isCreatingThumb").setIndexed(true);
 
-		type.addCustomProperty("imageData", ImageDataProperty.class.getName());
-		type.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat("100, 100, false");
-		type.addCustomProperty("tnMid",     ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setFormat("300, 300, false");
+		type.addCustomProperty("imageData", ImageDataProperty.class.getName()).setTypeHint("String");
+		type.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Image").setFormat("100, 100, false");
+		type.addCustomProperty("tnMid",     ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Image").setFormat("300, 300, false");
 
 		type.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
 		type.addPropertySetter("isCreatingThumb", Boolean.TYPE);
