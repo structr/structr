@@ -1155,6 +1155,7 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 
@@ -1180,6 +1181,7 @@ public class DeploymentTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
 

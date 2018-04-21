@@ -313,6 +313,10 @@ public class ActionContext {
 
 					case "locale":
 						return locale != null ? locale.toString() : null;
+
+					case "tenantIdentifier":
+					case "tenant_identifier":
+						return Settings.TenantIdentifier.getValue();
 				}
 			}
 		}

@@ -65,6 +65,7 @@ public interface JsonSchema {
 	public static final String KEY_ITEMS                   = "items";
 	public static final String KEY_IS_ABSTRACT             = "isAbstract";
 	public static final String KEY_IS_INTERFACE            = "isInterface";
+	public static final String KEY_IS_BUILTIN_TYPE         = "isBuiltinType";
 	public static final String KEY_DEFINITIONS             = "definitions";
 	public static final String KEY_PROPERTIES              = "properties";
 	public static final String KEY_VIEWS                   = "views";
