@@ -72,7 +72,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue          = new StringProperty("defaultValue");
-	public static final Property<String>             propertyType          = new StringProperty("propertyType");
+	public static final Property<String>             propertyType          = new StringProperty("propertyType").indexed();
 	public static final Property<String>             contentType           = new StringProperty("contentType");
 	public static final Property<String>             dbName                = new StringProperty("dbName");
 	public static final Property<String>             fqcn                  = new StringProperty("fqcn");
