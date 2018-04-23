@@ -166,6 +166,8 @@ public abstract class StructrUiTest {
 	@Before
 	public void cleanDatabase() {
 
+		System.out.println("Cleaning database..");
+
 		try (final Tx tx = app.tx()) {
 
 			for (final NodeInterface node : app.nodeQuery().getAsList()) {

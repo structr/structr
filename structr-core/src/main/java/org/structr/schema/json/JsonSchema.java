@@ -129,6 +129,7 @@ public interface JsonSchema {
 
 	public JsonObjectType addType(final String name);
 	public JsonType getType(final String name);
+	public JsonType getType(final String name, final boolean create);
 	public void removeType(final String name);
 
 	public void createDatabaseSchema(final App app, final ImportMode importMode) throws FrameworkException;

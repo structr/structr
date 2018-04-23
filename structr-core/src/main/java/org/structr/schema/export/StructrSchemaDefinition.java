@@ -76,6 +76,11 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 	}
 
 	@Override
+	public JsonType getType(final String name, final boolean create) {
+		return typeDefinitions.getType(name, create);
+	}
+
+	@Override
 	public String getTitle() {
 		return title;
 	}
