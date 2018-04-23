@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
+import org.structr.common.AdvancedMailContainer;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -186,6 +187,10 @@ public class ActionContext {
 
 	public Map<String, String> getHeaders() {
 		return getContextStore().getHeaders();
+	}
+
+	public AdvancedMailContainer getAdvancedMailContainer() {
+		return getContextStore().getAdvancedMailContainer();
 	}
 
 	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth) throws FrameworkException {

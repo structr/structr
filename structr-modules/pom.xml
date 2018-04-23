@@ -39,6 +39,7 @@
 		<module>structr-translation-module</module>
 		<module>structr-messaging-engine-module</module>
 		<module>structr-excel-module</module>
+		<module>structr-advanced-mail-module</module>
 	</modules>
 
 	<profiles>
