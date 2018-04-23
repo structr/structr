@@ -264,7 +264,7 @@ public class RenderContextTest extends StructrUiTest {
 			currentTaskProperties.put(SchemaRelationshipNode.relationshipType, "CURRENT");
 			currentTaskProperties.put(SchemaRelationshipNode.sourceMultiplicity, "1");
 			currentTaskProperties.put(SchemaRelationshipNode.targetMultiplicity, "1");
-			currentTaskProperties.put(SchemaRelationshipNode.sourceJsonName, "project");
+			currentTaskProperties.put(SchemaRelationshipNode.sourceJsonName, "projectOfCurrentTask");
 			currentTaskProperties.put(SchemaRelationshipNode.targetJsonName, "currentTask");
 
 			app.create(SchemaRelationshipNode.class, currentTaskProperties);
