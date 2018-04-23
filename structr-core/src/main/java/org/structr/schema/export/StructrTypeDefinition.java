@@ -860,8 +860,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.category       = schemaNode.getProperty(SchemaNode.category);
 
 		if (this.category == null && getClass().equals(StructrNodeTypeDefinition.class)) {
-			final JsonType type = SchemaService.getDynamicSchema().getType(this.getName());
+
+			final JsonType type = SchemaService.getDynamicSchema().getType(this.getName(), false);
 			if (type != null) {
+
 				this.category = type.getCategory();
 			}
 		}
