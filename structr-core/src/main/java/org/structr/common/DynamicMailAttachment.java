@@ -21,27 +21,28 @@ package org.structr.common;
 import javax.activation.DataSource;
 import org.apache.commons.mail.EmailAttachment;
 
-	public class DynamicMailAttachment extends EmailAttachment {
-		private boolean dynamic;
-		private DataSource ds;
+public class DynamicMailAttachment extends EmailAttachment {
 
-		public DynamicMailAttachment() {
-			dynamic = false;
-		}
+	private boolean dynamic;
+	private DataSource ds;
 
-		public void setIsDynamic(boolean dynamic) {
-			this.dynamic = dynamic;
-		}
-
-		public void setDataSource(DataSource ds) {
-			this.ds = ds;
-		}
-
-		public boolean isDynamic() {
-			return this.dynamic;
-		}
-
-		public DataSource getDataSource() {
-			return this.ds;
-		}
+	public DynamicMailAttachment() {
+		dynamic = false;
 	}
+
+	public void setIsDynamic(boolean dynamic) {
+		this.dynamic = dynamic;
+	}
+
+	public void setDataSource(DataSource ds) {
+		this.ds = ds;
+	}
+
+	public boolean isDynamic() {
+		return this.dynamic;
+	}
+
+	public DataSource getDataSource() {
+		return this.ds;
+	}
+}

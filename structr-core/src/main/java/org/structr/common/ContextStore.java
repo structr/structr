@@ -32,6 +32,7 @@ public class ContextStore {
 	protected Map<String, Object> tmpStore         = new HashMap<>();
 	protected Map<String, Date> timerStore         = new HashMap<>();
 	protected Map<Integer, Integer> counters       = new HashMap<>();
+	protected AdvancedMailContainer amc            = new AdvancedMailContainer();
 
 
 	// --- Headers ---
@@ -109,4 +110,7 @@ public class ContextStore {
 		return timerStore.get(key);
 	}
 
+	public AdvancedMailContainer getAdvancedMailContainer () {
+		return amc;
+	}
 }
