@@ -35,9 +35,10 @@ public class AdvancedMailContainer {
 	private String htmlContent   = null;
 	private String textContent   = null;
 
-	private final Map<String, String> to  = new LinkedHashMap<>(1);
-	private final Map<String, String> cc  = new LinkedHashMap<>(0);
-	private final Map<String, String> bcc = new LinkedHashMap<>(0);
+	private final Map<String, String> to      = new LinkedHashMap<>(1);
+	private final Map<String, String> cc      = new LinkedHashMap<>(0);
+	private final Map<String, String> bcc     = new LinkedHashMap<>(0);
+	private final Map<String, String> replyTo = new LinkedHashMap<>(0);
 
 	private final ArrayList<DynamicMailAttachment> attachments = new ArrayList();
 
@@ -67,6 +68,10 @@ public class AdvancedMailContainer {
 		getBcc().put(address, name);
 	}
 
+	public void addReplyTo(final String address, final String name) {
+		getReplyTo().put(address, name);
+	}
+
 	public void setBounce(final String address) {
 		bounceAddress = address;
 	}
@@ -88,72 +93,46 @@ public class AdvancedMailContainer {
 		MailHelper.sendAdvancedMail(this);
 	}
 
-	/**
-	 * @return the fromName
-	 */
 	public String getFromName() {
 		return fromName;
 	}
 
-	/**
-	 * @return the fromAddress
-	 */
 	public String getFromAddress() {
 		return fromAddress;
 	}
 
-	/**
-	 * @return the bounceAddress
-	 */
 	public String getBounceAddress() {
 		return bounceAddress;
 	}
 
-	/**
-	 * @return the subject
-	 */
 	public String getSubject() {
 		return subject;
 	}
 
-	/**
-	 * @return the htmlContent
-	 */
 	public String getHtmlContent() {
 		return htmlContent;
 	}
 
-	/**
-	 * @return the textContent
-	 */
 	public String getTextContent() {
 		return textContent;
 	}
 
-	/**
-	 * @return the to
-	 */
 	public Map<String, String> getTo() {
 		return to;
 	}
 
-	/**
-	 * @return the cc
-	 */
 	public Map<String, String> getCc() {
 		return cc;
 	}
 
-	/**
-	 * @return the bcc
-	 */
 	public Map<String, String> getBcc() {
 		return bcc;
 	}
 
-	/**
-	 * @return the attachments
-	 */
+	public Map<String, String> getReplyTo() {
+		return replyTo;
+	}
+
 	public ArrayList<DynamicMailAttachment> getAttachments() {
 		return attachments;
 	}

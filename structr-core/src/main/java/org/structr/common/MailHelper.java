@@ -84,6 +84,14 @@ public abstract class MailHelper {
 			}
 		}
 
+		for (Map.Entry<String, String> entry : amc.getReplyTo().entrySet()) {
+			if (StringUtils.isNotBlank(entry.getValue())) {
+				mail.addReplyTo(entry.getKey(), entry.getValue());
+			} else {
+				mail.addReplyTo(entry.getKey());
+			}
+		}
+
 		if (StringUtils.isNotBlank(amc.getBounceAddress())) {
 			mail.setBounceAddress(amc.getBounceAddress());
 		}
