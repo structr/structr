@@ -18,13 +18,7 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.flow.api.Action;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.impl.rels.FlowDataInput;
 
 public abstract class FlowActionNode extends FlowNode implements Action {
-	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
-
 }

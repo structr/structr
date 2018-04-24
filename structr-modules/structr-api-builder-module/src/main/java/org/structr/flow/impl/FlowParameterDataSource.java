@@ -18,41 +18,31 @@
  */
 package org.structr.flow.impl;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
+import org.structr.core.property.StringProperty;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
-import org.structr.flow.impl.rels.FlowConditionDataInput;
+import org.structr.flow.impl.rels.FlowDataInput;
 
-/**
- *
- */
-public class FlowNotNull extends FlowCondition implements DataSource {
+import java.util.List;
 
-	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowConditionDataInput.class);
+public class FlowParameterDataSource extends FlowBaseNode implements DataSource {
 
-	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources);
-	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources);
+    public static final Property<List<FlowBaseNode>> dataTarget 	= new EndNodes<>("dataTarget", FlowDataInput.class);
+    public static final Property<String> key             		    = new StringProperty("key");
 
-	@Override
-	public Object get(final Context context) {
+    public static final View defaultView 						    = new View(FlowDataSource.class, PropertyView.Public, key, dataTarget);
+    public static final View uiView      						    = new View(FlowDataSource.class, PropertyView.Ui, key, dataTarget);
 
-		final List<DataSource> _dataSources = getProperty(dataSources);
-		if (_dataSources.isEmpty()) {
-
-			return false;
-		}
-
-		for (final DataSource _dataSource : getProperty(dataSources)) {
-
-			if (_dataSource.get(context) == null) {
-				return false;
-			}
-		}
-
-		return true;
-	}
+    @Override
+    public Object get(Context context) {
+        String _key = getProperty(key);
+        if (_key != null) {
+           return context.getParameter(_key);
+        }
+        return null;
+    }
 }

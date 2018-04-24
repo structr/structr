@@ -33,11 +33,12 @@ import org.structr.schema.action.ActionContext;
  */
 public class Context {
 
-	private Map<String,Object> data  = new HashMap<>();
-	private Map<String,Object> store = new HashMap<>();
-	private GraphObject thisObject   = null;
-	private Object result            = null;
-	private FlowError error          = null;
+	private Map<String,Object> data  		= new HashMap<>();
+	private Map<String,Object> store 		= new HashMap<>();
+	private Map<String,Object> parameters 	= new HashMap<>();
+	private GraphObject thisObject   		= null;
+	private Object result            		= null;
+	private FlowError error          		= null;
 
 	public Context() {
 		this(null);
@@ -86,6 +87,12 @@ public class Context {
 
 	public Object getData(final String key) {
 		return this.data.get(key);
+	}
+
+	public void setParameter(final String key, final Object value) { this.parameters.put(key,value); }
+
+	public Object getParameter(final String key) {
+		return this.parameters.get(key);
 	}
 
 	public Object retrieveFromStore(final String key) {

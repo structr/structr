@@ -23,6 +23,7 @@ import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
@@ -31,12 +32,10 @@ import org.structr.flow.impl.rels.FlowDataInput;
 
 import java.util.List;
 
-/**
- *
- */
 public class FlowAction extends FlowActionNode implements DataSource {
 
-	public static final Property<List<FlowNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> script             		= new StringProperty("script");
 
 	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget);

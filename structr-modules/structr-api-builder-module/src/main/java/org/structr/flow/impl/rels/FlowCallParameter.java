@@ -18,30 +18,26 @@
  */
 package org.structr.flow.impl.rels;
 
-import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.Relation;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.impl.FlowBaseNode;
-import org.structr.flow.impl.FlowNode;
+import org.structr.flow.impl.FlowCall;
+import org.structr.flow.impl.FlowParameterInput;
 
-/**
- *
- */
-public class FlowDataInput extends OneToMany<DataSource, FlowBaseNode> {
+public class FlowCallParameter extends ManyToOne<FlowParameterInput, FlowCall> {
 
 	@Override
-	public Class<DataSource> getSourceType() {
-		return DataSource.class;
+	public Class<FlowParameterInput> getSourceType() {
+		return FlowParameterInput.class;
 	}
 
 	@Override
-	public Class<FlowBaseNode> getTargetType() {
-		return FlowBaseNode.class;
+	public Class<FlowCall> getTargetType() {
+		return FlowCall.class;
 	}
 
 	@Override
 	public String name() {
-		return "DATA";
+		return "INPUT_FOR";
 	}
 
 	@Override

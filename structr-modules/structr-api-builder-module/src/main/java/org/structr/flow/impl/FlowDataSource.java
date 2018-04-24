@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class FlowDataSource extends FlowBaseNode implements DataSource {
 
-	public static final Property<List<FlowNode>> dataTarget 	= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget 	= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> query             		= new StringProperty("query");
 
 	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget);

@@ -40,7 +40,7 @@ public class FlowStore extends FlowNode implements Store, DataSource {
 	private static final Logger logger 							= LoggerFactory.getLogger(FlowStore.class);
 
 	public static final Property<DataSource> dataSource			= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<Operation> operation			= new EnumProperty<>("operation", Operation.class);
 	public static final Property<String> key             		= new StringProperty("key");
 
