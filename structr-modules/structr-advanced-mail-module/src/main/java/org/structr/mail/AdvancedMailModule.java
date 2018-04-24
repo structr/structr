@@ -25,6 +25,7 @@ import org.structr.core.function.Functions;
 import org.structr.mail.function.MailAddAttachmentFunction;
 import org.structr.mail.function.MailAddBccFunction;
 import org.structr.mail.function.MailAddCcFunction;
+import org.structr.mail.function.MailAddHeaderFunction;
 import org.structr.mail.function.MailAddReplyToFunction;
 import org.structr.mail.function.MailAddToFunction;
 import org.structr.mail.function.MailBeginFunction;
@@ -50,6 +51,7 @@ public class AdvancedMailModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_set_bounce_address",  new MailSetBounceAddressFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_reply_to",        new MailAddReplyToFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_attachment",      new MailAddAttachmentFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_add_header",          new MailAddHeaderFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "mail_send",                new MailSendFunction());
 
 	}

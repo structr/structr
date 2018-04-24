@@ -39,6 +39,7 @@ public class AdvancedMailContainer {
 	private final Map<String, String> cc      = new LinkedHashMap<>(0);
 	private final Map<String, String> bcc     = new LinkedHashMap<>(0);
 	private final Map<String, String> replyTo = new LinkedHashMap<>(0);
+	private final Map<String, String> headers = new LinkedHashMap<>(0);
 
 	private final ArrayList<DynamicMailAttachment> attachments = new ArrayList();
 
@@ -70,6 +71,10 @@ public class AdvancedMailContainer {
 
 	public void addReplyTo(final String address, final String name) {
 		getReplyTo().put(address, name);
+	}
+
+	public void addHeader(final String name, final String content) {
+		getCustomHeaders().put(name, content);
 	}
 
 	public void setBounce(final String address) {
@@ -131,6 +136,10 @@ public class AdvancedMailContainer {
 
 	public Map<String, String> getReplyTo() {
 		return replyTo;
+	}
+
+	public Map<String, String> getCustomHeaders() {
+		return headers;
 	}
 
 	public ArrayList<DynamicMailAttachment> getAttachments() {
