@@ -1889,9 +1889,7 @@ public class SchemaHelper {
 		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
 			.and(SchemaRelationshipNode.sourceNode, schemaNode)
 			.and()
-				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
 				.or(SchemaRelationshipNode.targetJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
 
 			.getFirst() != null) {
@@ -1903,9 +1901,7 @@ public class SchemaHelper {
 			.and(SchemaRelationshipNode.targetNode, schemaNode)
 			.and()
 				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
-				.or(SchemaRelationshipNode.targetJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
 
 			.getFirst() != null) {
 
