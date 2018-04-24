@@ -92,6 +92,10 @@ public abstract class MailHelper {
 			}
 		}
 
+		for (Map.Entry<String, String> entry : amc.getCustomHeaders().entrySet()) {
+			mail.addHeader(entry.getKey(), entry.getValue());
+		}
+
 		if (StringUtils.isNotBlank(amc.getBounceAddress())) {
 			mail.setBounceAddress(amc.getBounceAddress());
 		}
