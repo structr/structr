@@ -22,6 +22,7 @@ import graphql.Scalars;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
@@ -1616,7 +1617,7 @@ public class SchemaHelper {
 		return null;
 	}
 
-	public static GraphQLOutputType getGraphQLTypeForProperty(final SchemaProperty property) {
+	public static GraphQLOutputType getGraphQLOutputTypeForProperty(final SchemaProperty property) {
 
 		final Type propertyType            = property.getPropertyType();
 		final GraphQLOutputType outputType = graphQLTypeMap.get(propertyType);
@@ -1667,6 +1668,35 @@ public class SchemaHelper {
 		return null;
 	}
 
+	public static GraphQLInputType getGraphQLInputTypeForProperty(final SchemaProperty property) {
+
+		final Type propertyType = property.getPropertyType();
+		switch (propertyType) {
+
+			case Function:
+			case Custom:
+			case Cypher:
+				final String typeHint = property.getTypeHint();
+				if (typeHint != null) {
+
+					final String lowerCaseTypeHint = typeHint.toLowerCase();
+					switch (lowerCaseTypeHint) {
+
+						case "boolean": return graphQLTypeMap.get(Type.Boolean);
+						case "string":  return graphQLTypeMap.get(Type.String);
+						case "int":     return graphQLTypeMap.get(Type.Integer);
+						case "long":    return graphQLTypeMap.get(Type.Long);
+						case "double":  return graphQLTypeMap.get(Type.Double);
+						case "date":    return graphQLTypeMap.get(Type.Date);
+					}
+				}
+				break;
+		}
+
+		// default / fallback
+		return Scalars.GraphQLString;
+	}
+
 	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws FrameworkException {
 
 		final List<GraphQLArgument> arguments = new LinkedList<>();
@@ -1702,6 +1732,34 @@ public class SchemaHelper {
 				).build());
 			}
 
+			// properties
+			for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
+
+				if (property.isIndexed() || property.isCompound()) {
+
+					final String name          = property.getName();
+					final String selectionName = name + "Selection";
+
+					GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
+					if (selectionType == null) {
+
+						selectionType = GraphQLInputObjectType.newInputObject()
+							.name(selectionName)
+							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+							.build();
+
+						selectionTypes.put(selectionName, selectionType);
+					}
+
+					arguments.add(GraphQLArgument.newArgument()
+						.name(name)
+						.type(selectionType)
+						.build()
+					);
+				}
+			}
+
 			// manual registration for built-in relationships that are not dynamic
 			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 				.name(type + "ownerInput")
@@ -1731,7 +1789,7 @@ public class SchemaHelper {
 					selectionType = GraphQLInputObjectType.newInputObject()
 						.name(selectionName)
 						.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
 						.build();
 
 					selectionTypes.put(selectionName, selectionType);

@@ -46,6 +46,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.StructrGraphQLTest;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
@@ -391,6 +392,94 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "MailTemplate.1.type",       "MailTemplate");
 			assertMapPathValueIs(result, "MailTemplate.1.name",       "lertdf");
 			assertMapPathValueIs(result, "MailTemplate.1.owner.name", "Axel");
+		}
+	}
+
+	@Test
+	public void testFunctionPropertyQueries() {
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType type             = schema.addType("FunctionTest");
+			final JsonFunctionProperty stringTest = type.addFunctionProperty("stringTest");
+			final JsonFunctionProperty boolTest   = type.addFunctionProperty("boolTest");
+
+			stringTest.setReadFunction("if(eq(this.name, 'test1'), 'true', 'false')");
+			stringTest.setIndexed(true);
+			stringTest.setTypeHint("String");
+
+			boolTest.setReadFunction("if(eq(this.name, 'test2'), true, false)");
+			boolTest.setIndexed(true);
+			boolTest.setTypeHint("Boolean");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		// test data setup
+		try (final Tx tx = app.tx()) {
+
+			final Class type = StructrApp.getConfiguration().getNodeEntityClass("FunctionTest");
+
+			app.create(type, "test1");
+			app.create(type, "test2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_equals: \"true\"}) { id, type, name, stringTest, boolTest }}");
+			assertMapPathValueIs(result, "FunctionTest.#",            1);
+			assertMapPathValueIs(result, "FunctionTest.0.name",       "test1");
+			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "true");
+			assertMapPathValueIs(result, "FunctionTest.0.boolTest",   false);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_equals: \"false\"}) { id, type, name, stringTest, boolTest }}");
+			assertMapPathValueIs(result, "FunctionTest.#",            1);
+			assertMapPathValueIs(result, "FunctionTest.0.name",       "test2");
+			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "false");
+			assertMapPathValueIs(result, "FunctionTest.0.boolTest",   true);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(stringTest: {_contains: \"e\"}) { id, type, name, stringTest, boolTest }}");
+			assertMapPathValueIs(result, "FunctionTest.#",            2);
+			assertMapPathValueIs(result, "FunctionTest.0.name",       "test1");
+			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "true");
+			assertMapPathValueIs(result, "FunctionTest.0.boolTest",   false);
+			assertMapPathValueIs(result, "FunctionTest.1.name",       "test2");
+			assertMapPathValueIs(result, "FunctionTest.1.stringTest", "false");
+			assertMapPathValueIs(result, "FunctionTest.1.boolTest",   true);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(boolTest: {_equals: true}) { id, type, name, stringTest, boolTest }}");
+			assertMapPathValueIs(result, "FunctionTest.#",            1);
+			assertMapPathValueIs(result, "FunctionTest.0.name",       "test2");
+			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "false");
+			assertMapPathValueIs(result, "FunctionTest.0.boolTest",   true);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ FunctionTest(boolTest: {_equals: false}) { id, type, name, stringTest, boolTest }}");
+			assertMapPathValueIs(result, "FunctionTest.#",            1);
+			assertMapPathValueIs(result, "FunctionTest.0.name",       "test1");
+			assertMapPathValueIs(result, "FunctionTest.0.stringTest", "true");
+			assertMapPathValueIs(result, "FunctionTest.0.boolTest",   false);
 		}
 	}
 
