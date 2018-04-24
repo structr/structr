@@ -31,7 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.web.StructrUiTest;
+import org.structr.web.common.RenderContext;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -335,6 +337,100 @@ public class PageTest extends StructrUiTest {
 
 				tx.success();
 			}
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testClonePageWithTemplateNode() {
+
+		Page pageToClone = null;
+		Page newPage     = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			pageToClone = app.create(Page.class, "test");
+
+			final Template templ = app.create(Template.class, "#template");
+
+			templ.setContent("Template: ${render(children)}");
+			templ.setContentType("text/html");
+
+			pageToClone.adoptNode(templ);
+			pageToClone.appendChild(templ);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// clone page
+		try (final Tx tx = app.tx()) {
+
+			newPage = (Page) pageToClone.cloneNode(false);
+			newPage.setProperties(securityContext, new PropertyMap(Page.name, pageToClone.getProperty(Page.name) + "-" + newPage.getIdString()));
+
+			DOMNode firstChild = (DOMNode) pageToClone.getFirstChild().getNextSibling();
+
+			if (firstChild == null) {
+				firstChild = (DOMNode) pageToClone.treeGetFirstChild();
+			}
+
+			if (firstChild != null) {
+				final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
+				newPage.adoptNode(newHtmlNode);
+				newPage.appendChild(newHtmlNode);
+			}
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// modify pages
+		try (final Tx tx = app.tx()) {
+
+			// change all templates
+			for (final Template template : app.nodeQuery(Template.class).getAsList()) {
+
+				final Page page = template.getOwnerDocument();
+
+				assertNotNull("Page must have pageId set", page);
+
+				final Node div1 = page.createElement("div");
+				div1.appendChild(page.createTextNode("div1"));
+
+				template.appendChild(div1);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check result
+		try (final Tx tx = app.tx()) {
+
+			final String content1 = pageToClone.getContent(RenderContext.EditMode.NONE);
+			final String content2 = newPage.getContent(RenderContext.EditMode.NONE);
+
+			assertEquals("Content comparison after page clone failed", content1, content2);
+
+			tx.success();
 
 		} catch (Throwable t) {
 
