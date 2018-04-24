@@ -25,29 +25,32 @@ import org.structr.common.View;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowCallContainer;
+import org.structr.flow.impl.rels.FlowCallParameter;
 import org.structr.flow.impl.rels.FlowDataInput;
 
 import java.util.List;
 
 public class FlowCall extends FlowActionNode implements DataSource {
 
-	private static final Logger logger 								= LoggerFactory.getLogger(FlowCall.class);
+	private static final Logger logger 									= LoggerFactory.getLogger(FlowCall.class);
 
-	public static final Property<List<FlowNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<FlowContainer> flow                = new EndNode<>("flow", FlowCallContainer.class);
+	public static final Property<List<FlowBaseNode>> dataTarget			= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<List<FlowParameterInput>> parameters 	= new StartNodes<>("parameters", FlowCallParameter.class);
+	public static final Property<FlowContainer> flow                	= new EndNode<>("flow", FlowCallContainer.class);
 
-	public static final View defaultView 							= new View(FlowCall.class, PropertyView.Public, flow, dataSource, dataTarget);
-	public static final View uiView      							= new View(FlowCall.class, PropertyView.Ui,     flow, dataSource, dataTarget);
+	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters);
+	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters);
 
 	@Override
 	public void execute(Context context) {
-		DataSource dataSource = getProperty(FlowCall.dataSource);
 		FlowContainer flow = getProperty(FlowCall.flow);
+		List<FlowParameterInput> params = getProperty(parameters);
 
 		if (flow != null) {
 
@@ -58,9 +61,11 @@ public class FlowCall extends FlowActionNode implements DataSource {
 
 			if (startNode != null) {
 
-				if (dataSource != null) {
-
-					functionContext.setData(startNode.getUuid(), dataSource.get(context));
+				// Inject all parameters into context
+				if (params != null && params.size() > 0) {
+					for (FlowParameterInput p : params) {
+						p.process(context, functionContext);
+					}
 				}
 
 				final FlowResult result = engine.execute(functionContext, startNode);

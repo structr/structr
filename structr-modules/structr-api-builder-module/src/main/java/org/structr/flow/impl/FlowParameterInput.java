@@ -20,46 +20,34 @@ package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.impl.rels.FlowCallParameter;
 import org.structr.flow.impl.rels.FlowDataInput;
 
-/**
- *
- */
-public class FlowScriptCondition extends FlowCondition implements DataSource {
+public class FlowParameterInput extends FlowBaseNode {
 
+	public static final Property<FlowCall> call 				= new EndNode<>("call", FlowCallParameter.class);
 	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<String> script 				= new StringProperty("script");
 
-	public static final View defaultView = new View(FlowScriptCondition.class, PropertyView.Public, script);
-	public static final View uiView      = new View(FlowScriptCondition.class, PropertyView.Ui,     script);
+	public static final Property<String> key             		= new StringProperty("key");
 
-	@Override
-	public Object get(final Context context) {
+	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
+	public static final View uiView      						= new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
 
-		final DataSource _ds = getProperty(dataSource);
-		final String _script = getProperty(script);
 
-		if (_script != null) {
+	public void process(final Context context, final Context functionContext) {
+		DataSource _ds = getProperty(dataSource);
+		String _key = getProperty(key);
 
-			if (_ds != null) {
-				context.setData(getUuid(), _ds.get(context));
-			}
-
-			try {
-				return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-			}
+		if(_ds != null && _key != null) {
+			Object data = _ds.get(context);
+			functionContext.setParameter(_key, data);
 		}
 
-		return null;
 	}
 }
