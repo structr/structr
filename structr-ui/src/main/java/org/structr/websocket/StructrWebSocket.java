@@ -362,7 +362,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 			// ignore
-			logger.debug("Unable to send websocket message to remote client");
+			logger.info("Unable to send websocket message to remote client");
 		}
 
 	}
@@ -432,27 +432,29 @@ public class StructrWebSocket implements WebSocketListener {
 
 			try {
 
-				final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
+				synchronized (this) {
+				
+					final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
 
-				if (sessionValid) {
+					if (sessionValid) {
 
-					logger.debug("Valid session: " + sessionId);
-					setAuthenticated(sessionId, user);
+						logger.debug("Valid session: " + sessionId);
+						setAuthenticated(sessionId, user);
 
-				} else {
+					} else {
 
-					logger.warn("Session {} timed out - last accessed by {} ({})", sessionId, user.getName(), user.getUuid());
+						logger.warn("Session {} timed out - last accessed by {} ({})", sessionId, user.getName(), user.getUuid());
 
-					SessionHelper.clearSession(sessionId);
+						SessionHelper.clearSession(sessionId);
+						SessionHelper.invalidateSession(sessionId);
 
-					SessionHelper.invalidateSession(SessionHelper.getSessionBySessionId(sessionId));
+						AuthHelper.sendLogoutNotification(user);
 
-					AuthHelper.sendLogoutNotification(user);
+						invalidateConsole();
 
-					invalidateConsole();
+						timedOut = true;
 
-					timedOut = true;
-
+					}
 				}
 
 			} catch (FrameworkException ex) {
