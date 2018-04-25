@@ -396,6 +396,239 @@ public class GraphQLTest extends StructrGraphQLTest {
 	}
 
 	@Test
+	public void testAdvancedQueriesManyToMany() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS", Relation.Cardinality.ManyToMany, "projects", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> projects = new LinkedList<>();
+		final List<NodeInterface> tasks    = new LinkedList<>();
+		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+
+		try (final Tx tx = app.tx()) {
+
+			tasks.add(app.create(task, "task1"));
+			tasks.add(app.create(task, "task2"));
+			tasks.add(app.create(task, "task3"));
+			tasks.add(app.create(task, "task4"));
+			tasks.add(app.create(task, "task5"));
+
+			projects.add(app.create(project, "project1"));
+			projects.add(app.create(project, "project2"));
+			projects.add(app.create(project, "project3"));
+			projects.add(app.create(project, "project4"));
+			projects.add(app.create(project, "project5"));
+
+			for (int i=0; i<5; i++) {
+				projects.get(i).setProperty(tasksKey, tasks.subList(i, 5));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task1\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task2\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task3\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            3);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task4\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task5\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            5);
+		}
+
+
+
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projects: { name: { _equals: \"project1\"}}) { name, projects { name }}}");
+			assertMapPathValueIs(result, "Task.#",            5);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projects: { name: { _equals: \"project2\"}}) { name, projects { name }}}");
+			assertMapPathValueIs(result, "Task.#",            4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projects: { name: { _equals: \"project3\"}}) { name, projects { name }}}");
+			assertMapPathValueIs(result, "Task.#",            3);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projects: { name: { _equals: \"project4\"}}) { name, projects { name }}}");
+			assertMapPathValueIs(result, "Task.#",            2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projects: { name: { _equals: \"project5\"}}) { name, projects { name }}}");
+			assertMapPathValueIs(result, "Task.#",            1);
+		}
+	}
+
+	@Test
+	public void testAdvancedQueriesOneToMany() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> projects = new LinkedList<>();
+		final List<NodeInterface> tasks    = new LinkedList<>();
+		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+
+		try (final Tx tx = app.tx()) {
+
+			tasks.add(app.create(task, "task0"));
+			tasks.add(app.create(task, "task1"));
+			tasks.add(app.create(task, "task2"));
+			tasks.add(app.create(task, "task3"));
+			tasks.add(app.create(task, "task4"));
+			tasks.add(app.create(task, "task5"));
+			tasks.add(app.create(task, "task6"));
+			tasks.add(app.create(task, "task7"));
+			tasks.add(app.create(task, "task8"));
+			tasks.add(app.create(task, "task9"));
+
+			projects.add(app.create(project, "project1"));
+			projects.add(app.create(project, "project2"));
+			projects.add(app.create(project, "project3"));
+			projects.add(app.create(project, "project4"));
+			projects.add(app.create(project, "project5"));
+
+
+			projects.get(0).setProperty(tasksKey, tasks.subList(0,  2));
+			projects.get(1).setProperty(tasksKey, tasks.subList(2,  4));
+			projects.get(2).setProperty(tasksKey, tasks.subList(4,  6));
+			projects.get(3).setProperty(tasksKey, tasks.subList(6,  8));
+			projects.get(4).setProperty(tasksKey, tasks.subList(8, 10));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task1\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task3\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task5\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task7\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task9\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+
+
+
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project1\"}}) { name, project { name }}}");
+			assertMapPathValueIs(result, "Task.#",                 2);
+			assertMapPathValueIs(result, "Task.0.name",            "task0");
+			assertMapPathValueIs(result, "Task.1.name",            "task1");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project2\"}}) { name, project { name }}}");
+			assertMapPathValueIs(result, "Task.#",                 2);
+			assertMapPathValueIs(result, "Task.0.name",            "task2");
+			assertMapPathValueIs(result, "Task.1.name",            "task3");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project3\"}}) { name, project { name }}}");
+			assertMapPathValueIs(result, "Task.#",                 2);
+			assertMapPathValueIs(result, "Task.0.name",            "task4");
+			assertMapPathValueIs(result, "Task.1.name",            "task5");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project4\"}}) { name, project { name }}}");
+			assertMapPathValueIs(result, "Task.#",                 2);
+			assertMapPathValueIs(result, "Task.0.name",            "task6");
+			assertMapPathValueIs(result, "Task.1.name",            "task7");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(project: { name: { _equals: \"project5\"}}) { name, project { name }}}");
+			assertMapPathValueIs(result, "Task.#",                 2);
+			assertMapPathValueIs(result, "Task.0.name",            "task8");
+			assertMapPathValueIs(result, "Task.1.name",            "task9");
+		}
+	}
+
+
+	@Test
 	public void testFunctionPropertyQueries() {
 
 		// schema setup

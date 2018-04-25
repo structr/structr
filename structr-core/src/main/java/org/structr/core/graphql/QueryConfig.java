@@ -424,10 +424,17 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 									query.and(searchPropertyKey, contains, false);
 								}
 
-								for (final GraphObject candidate : query.getAsList()) {
+								// add sources that will be merge later on
+								if (key.isCollection()) {
 
-									// add sources that will be merge later on
-									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, true, null), Occurrence.REQUIRED);
+									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, query.getAsList(), true, null), Occurrence.REQUIRED);
+
+								} else {
+
+									for (final GraphObject candidate : query.getAsList()) {
+
+										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, true, null), Occurrence.REQUIRED);
+									}
 								}
 							}
 
