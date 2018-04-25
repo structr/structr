@@ -68,6 +68,9 @@ public class FlowAction extends FlowActionNode implements DataSource {
 
 	@Override
 	public Object get(Context context) {
+		if (!context.hasData(getUuid())) {
+			this.execute(context);
+		}
 		return context.getData(getUuid());
 	}
 }

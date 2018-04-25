@@ -89,6 +89,10 @@ public class Context {
 		return this.data.get(key);
 	}
 
+	public boolean hasData(final String key) {
+		return this.data.containsKey(key);
+	}
+
 	public void setParameter(final String key, final Object value) { this.parameters.put(key,value); }
 
 	public Object getParameter(final String key) {

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flows</title>
+    <script type="module" src="../persistence/Persistence.js"></script>
+    <script type="module" src="../flow/model/FlowContainer.js"></script>
+</head>
+<body>
+
+    <div>
+        <table>
+            <thead>
+                <td>ID</td>
+                <td>Name</td>
+            </thead>
+            <tbody id="flow-table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module">
+        import { Persistence } from "../persistence/Persistence.js";
+        import { FlowContainer } from "../flow/model/FlowContainer.js";
+
+        let persistence = new Persistence();
+
+        let tableDOM = document.getElementById("flow-table-body");
+
+        persistence.getNodesByClass(new FlowContainer()).then( r => {
+
+            const markup = `
+                ${r.map(flowContainer => `
+                <tr>
+                    <td>${flowContainer.id}</td>
+                    <td><a href="/structr/js/flow-editor/src/pages/flow.html?id=${flowContainer.id}">${flowContainer.name}</a></td>
+                </tr>
+                `).join('')}
+            `;
+
+            tableDOM.insertAdjacentHTML("beforeend", markup);
+
+        });
+    </script>
+
+</body>
+</html>

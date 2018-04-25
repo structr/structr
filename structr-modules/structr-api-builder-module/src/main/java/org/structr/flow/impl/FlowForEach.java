@@ -36,7 +36,7 @@ import org.structr.flow.impl.rels.FlowForEachDataInput;
  */
 public class FlowForEach extends FlowNode implements ForEach {
 
-	public static final Property<FlowDataSource> dataSource   = new StartNode<>("dataSource", FlowForEachDataInput.class);
+	public static final Property<DataSource> dataSource   = new StartNode<>("dataSource", FlowForEachDataInput.class);
 	public static final Property<FlowDataHandler> dataHandler = new EndNode<>("dataHandler", FlowForEachDataHandler.class);
 	public static final Property<FlowNode> loopBody           = new EndNode<>("loopBody", FlowForEachBody.class);
 

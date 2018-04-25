@@ -23,6 +23,7 @@ import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
@@ -36,11 +37,12 @@ import java.util.List;
  */
 public class FlowDataSource extends FlowBaseNode implements DataSource {
 
-	public static final Property<List<FlowBaseNode>> dataTarget 	= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> query             		= new StringProperty("query");
 
-	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget);
-	public static final View uiView      						= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget);
+	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, dataSource);
+	public static final View uiView      						= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, dataSource);
 
 	@Override
 	public Object get(final Context context) {
@@ -48,6 +50,12 @@ public class FlowDataSource extends FlowBaseNode implements DataSource {
 		Object currentData = context.getData(getUuid());
 
 		if(currentData == null) {
+
+			final DataSource _ds = getProperty(dataSource);
+			if (_ds != null) {
+				Object data = _ds.get(context);
+				context.setData(getUuid(), data);
+			}
 
 			final String _script = getProperty(query);
 			if (_script != null) {

@@ -22,50 +22,49 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
+import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowKeySource;
 import org.structr.flow.impl.rels.FlowValueSource;
+
+import java.util.List;
 
 /**
  *
  */
-public class FlowKeyValue extends FlowDataSource {
+public class FlowKeyValue extends FlowBaseNode implements DataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
-	public static final Property<FlowDataSource> keySource   = new StartNode<>("keySource",   FlowKeySource.class);
-	public static final Property<FlowDataSource> valueSource = new StartNode<>("valueSource", FlowValueSource.class);
+	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 
-	public static final View defaultView = new View(FlowKeyValue.class, PropertyView.Public, keySource, valueSource);
-	public static final View uiView      = new View(FlowKeyValue.class, PropertyView.Ui,     keySource, valueSource);
+	public static final Property<String> key             		= new StringProperty("key");
+
+	public static final View defaultView = new View(FlowKeyValue.class, PropertyView.Public, key, dataSource, dataTarget);
+	public static final View uiView      = new View(FlowKeyValue.class, PropertyView.Ui, key, dataSource, dataTarget);
 
 	@Override
 	public Object get(final Context context) {
 
-		final FlowDataSource _keySource   = getProperty(keySource);
-		final FlowDataSource _valueSource = getProperty(valueSource);
+		final String _key   = getProperty(key);
+		final DataSource _ds = getProperty(dataSource);
 
-		if (_keySource != null && _valueSource != null) {
+		if (_key != null && _ds != null) {
 
-			final Object key = _keySource.get(context);
-			if (key != null) {
+			final Object data = _ds.get(context);
+			if (_key.length() > 0) {
 
-				final Object value = _valueSource.get(context);
-				if (value != null) {
-
-					return new KeyValue(key.toString(), value);
-
-				} else {
-
-					logger.warn("Value source of {} returned no data", getUuid());
-				}
-
+				return new KeyValue(_key, data);
 			} else {
 
-				logger.warn("Key source of {} returned no data", getUuid());
+				logger.warn("Unable to evaluate FlowKeyValue {}, key was empty", getUuid());
 			}
 
 		} else {
