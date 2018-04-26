@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class MailSendFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
@@ -62,5 +61,4 @@ public class MailSendFunction extends Function<Object, Object> {
 	public String getName() {
 		return "mail_send()";
 	}
-
 }

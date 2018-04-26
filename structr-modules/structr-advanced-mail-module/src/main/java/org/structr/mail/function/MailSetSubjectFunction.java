@@ -22,22 +22,19 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class MailAddCcFunction extends Function<Object, Object> {
+public class MailSetSubjectFunction extends Function<Object, Object> {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_cc(ccAddress[, bccName])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_add_cc(ccAddress[, bccName])}";
+	public final String ERROR_MESSAGE    = "Usage: ${mail_set_subject(subject)}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_subject(subject)}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			final String address = sources[0].toString();
-			final String name    = (sources.length == 2) ? sources[1].toString() : null;
-
-			ctx.getAdvancedMailContainer().addCc(address, name);
+			ctx.getAdvancedMailContainer().setSubject(sources[0].toString());
 
 			return "";
 
@@ -60,6 +57,6 @@ public class MailAddCcFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_add_cc()";
+		return "mail_set_subject(subject)";
 	}
 }

@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class MailAddReplyToFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_reply_to(replyToAddress[, replyToName])}";
@@ -40,13 +39,13 @@ public class MailAddReplyToFunction extends Function<Object, Object> {
 
 			ctx.getAdvancedMailContainer().addReplyTo(address, name);
 
+			return "";
+
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override
@@ -63,5 +62,4 @@ public class MailAddReplyToFunction extends Function<Object, Object> {
 	public String getName() {
 		return "mail_add_reply_to()";
 	}
-
 }

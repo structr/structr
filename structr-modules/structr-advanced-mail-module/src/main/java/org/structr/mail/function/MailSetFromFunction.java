@@ -22,10 +22,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class MailAddCcFunction extends Function<Object, Object> {
+public class MailSetFromFunction extends Function<Object, Object> {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_cc(ccAddress[, bccName])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_add_cc(ccAddress[, bccName])}";
+	public final String ERROR_MESSAGE    = "Usage: ${mail_set_from(fromAddress[, fromName])}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_from(fromAddress[, fromName])}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -37,15 +37,15 @@ public class MailAddCcFunction extends Function<Object, Object> {
 			final String address = sources[0].toString();
 			final String name    = (sources.length == 2) ? sources[1].toString() : null;
 
-			ctx.getAdvancedMailContainer().addCc(address, name);
-
-			return "";
+			ctx.getAdvancedMailContainer().setFrom(address, name);
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
+
+		return "";
 	}
 
 	@Override
@@ -60,6 +60,6 @@ public class MailAddCcFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "mail_add_cc()";
+		return "mail_set_from()";
 	}
 }
