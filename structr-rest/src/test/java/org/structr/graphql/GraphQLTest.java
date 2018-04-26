@@ -473,6 +473,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Project.#",            5);
 		}
 
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _contains: \"task\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            5);
+		}
+
 
 
 
@@ -499,6 +504,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 		{
 			final Map<String, Object> result = fetchGraphQL("{ Task(projects: { name: { _equals: \"project5\"}}) { name, projects { name }}}");
 			assertMapPathValueIs(result, "Task.#",            1);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(projects: { name: { _contains: \"project\"}}) { name, projects { name }}}");
+			assertMapPathValueIs(result, "Task.#",            5);
 		}
 	}
 

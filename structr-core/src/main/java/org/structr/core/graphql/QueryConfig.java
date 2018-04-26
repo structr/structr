@@ -414,26 +414,29 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							if (searchPropertyKey != null) {
 
 								final Query<GraphObject> query = StructrApp.getInstance(securityContext).nodeQuery(relatedType);
+								boolean exactMatch             = true;
 
 								if (equals != null) {
 
 									query.and(searchPropertyKey, equals);
+									exactMatch = true;
 
 								} else if (contains != null) {
 
 									query.and(searchPropertyKey, contains, false);
+									exactMatch = false;
 								}
 
 								// add sources that will be merge later on
 								if (key.isCollection()) {
 
-									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, query.getAsList(), true, null), Occurrence.REQUIRED);
+									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, query.getAsList(), exactMatch, null), Occurrence.REQUIRED);
 
 								} else {
 
 									for (final GraphObject candidate : query.getAsList()) {
 
-										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, true, null), Occurrence.REQUIRED);
+										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, exactMatch, null), Occurrence.REQUIRED);
 									}
 								}
 							}
