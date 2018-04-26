@@ -38,7 +38,9 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final Object toCopy       = sources[0];
 			final Object toBeReplaced = sources[1];
@@ -55,7 +57,6 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 						logger.warn("Error: Given source file does not exist. Parameters: {}", getParametersAsString(sources));
 						return "Error: Given source file does not exist.";
-
 					}
 
 					java.io.File fileToBeReplaced = nodeToBeReplaced.getFileOnDisk();
@@ -64,7 +65,6 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 						// Call afterCreation method to ensure that the file is properly initialized.
 						nodeToBeReplaced.afterCreation(nodeToBeReplaced.getSecurityContext());
-
 					}
 
 					Files.copy(fileToCopy, fileToBeReplaced);
@@ -80,7 +80,7 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 					long fileSize = FileHelper.getSize(fileToBeReplaced);
 					if (fileSize > 0) {
-						
+
 						changedProperties.put(sizeKey, fileSize);
 					}
 
@@ -93,19 +93,17 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 					logger.error("Error: Could not copy file due to exception.", ex);
 					return "Error: Could not copy file due to exception.";
-
 				}
 
 			} else {
 
 				logger.warn("Error: entities are not instances of File. Parameters: {}", getParametersAsString(sources));
 				return "Error: entities are not nodes.";
-
 			}
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -124,5 +122,4 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 	public String getName() {
 		return "copy_file_contents()";
 	}
-
 }

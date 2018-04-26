@@ -28,17 +28,22 @@ public class MailAddReplyToFunction extends Function<Object, Object> {
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_reply_to(replyToAddress[, replyToName])}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_add_reply_to(replyToAddress[, replyToName])}";
 
-
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			final String address = sources[0].toString();
 			final String name    = (sources.length == 2) ? sources[1].toString() : null;
 
 			ctx.getAdvancedMailContainer().addReplyTo(address, name);
 
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";

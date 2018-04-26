@@ -18,14 +18,13 @@
  */
 package org.structr.javaparser.entity;
 
-import org.structr.javaparser.*;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
+import org.structr.javaparser.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class AddJarsToIndexFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_ADD_JARS_TO_INDEX = "Usage: ${add_jars_to_index(localFilePath)}";
@@ -40,20 +39,26 @@ public class AddJarsToIndexFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
-				return null;
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			if (sources[0] instanceof String) {
+
+				new JavaParserModule().addJarsToIndex((String) sources[0]);
+
+				return "";
 			}
 
-			new JavaParserModule().addJarsToIndex((String) sources[0]);
+		} catch (ArgumentNullException pe) {
 
-		} catch (final IllegalArgumentException e) {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentCountException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-		
-		return "";
+
+		return null;
 	}
 
 	@Override

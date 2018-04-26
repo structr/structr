@@ -21,14 +21,13 @@ package org.structr.core.function;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class GrantFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_GRANT    = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
@@ -43,10 +42,8 @@ public class GrantFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 3)) {
-				
-				return "";
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			if (sources[0] instanceof Principal) {
 
@@ -97,12 +94,15 @@ public class GrantFunction extends Function<Object, Object> {
 				return "Error: first argument is not of type Principal.";
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return "";
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
@@ -115,5 +115,4 @@ public class GrantFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Grants the given permissions on the given entity to a user";
 	}
-
 }

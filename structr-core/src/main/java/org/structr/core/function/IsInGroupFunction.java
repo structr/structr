@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
@@ -34,13 +36,9 @@ public class IsInGroupFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-
 		try {
 
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-				return "";
-			}
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			if (!(sources[0] instanceof Group)) {
 
@@ -60,21 +58,21 @@ public class IsInGroupFunction extends Function<Object, Object> {
 
 			return group.hasRelationshipTo(type, user);
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return "";
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-
-		if (inJavaScriptContext) {
-			return ERROR_MESSAGE_JS;
-		}
-
-		return ERROR_MESSAGE;
+		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
 	}
 
 	@Override

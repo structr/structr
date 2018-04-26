@@ -19,19 +19,14 @@
 package org.structr.web.function;
 
 import org.apache.commons.mail.EmailException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.MailHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class SendPlaintextMailFunction extends Function<Object, Object> {
-
-	private static final Logger logger = LoggerFactory.getLogger(SendPlaintextMailFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 
@@ -44,17 +39,14 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 6)) {
-				
-				return null;
-			}
 
-			final String from = sources[0].toString();
-			final String fromName = sources[1].toString();
-			final String to = sources[2].toString();
-			final String toName = sources[3].toString();
-			final String subject = sources[4].toString();
+			assertArrayHasLengthAndAllElementsNotNull(sources, 6);
+
+			final String from        = sources[0].toString();
+			final String fromName    = sources[1].toString();
+			final String to          = sources[2].toString();
+			final String toName      = sources[3].toString();
+			final String subject     = sources[4].toString();
 			final String textContent = sources[5].toString();
 
 			try {
@@ -64,15 +56,17 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 			} catch (EmailException eex) {
 
 				logException(caller, eex, sources);
-
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
 		return "";
@@ -87,5 +81,4 @@ public class SendPlaintextMailFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Sends a plaintext e-mail";
 	}
-
 }

@@ -20,19 +20,25 @@ package org.structr.core.function;
 
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class CopyPermissionsFunction extends Function<Object, Object> {
+
+	public static final String ERROR_MESSAGE    = "Usage: copy_permissions(this, this.child)";
+	public static final String ERROR_MESSAGE_JS = "Usage: Structr.copyPermissions(Structr.this, other);";
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final Object source = sources[0];
 			final Object target = sources[1];
@@ -57,8 +63,13 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 			}
 
-		} else {
+		} catch (ArgumentNullException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 
@@ -67,15 +78,7 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(final boolean inJavaScriptContext) {
-
-		if (inJavaScriptContext) {
-
-			return "Usage: Structr.copyPermissions(Structr.this, other);";
-
-		} else {
-
-			return "Usage: copy_permissions(this, this.child)";
-		}
+		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
 	}
 
 	@Override
@@ -87,5 +90,4 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 	public String getName() {
 		return "copy_permissions()";
 	}
-
 }

@@ -26,6 +26,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -35,8 +37,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.File;
+import org.structr.web.entity.dom.DOMNode;
 
 /**
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
@@ -57,7 +59,9 @@ public class IncludeFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!(arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+
+			if (!(sources[0] instanceof String)) {
 
 				return null;
 			}
@@ -185,12 +189,15 @@ public class IncludeFunction extends Function<Object, Object> {
 
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 

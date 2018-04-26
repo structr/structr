@@ -36,7 +36,9 @@ public class MailBeginFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 4, 6)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 4, 6);
 
 			final AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 
@@ -67,9 +69,10 @@ public class MailBeginFunction extends Function<Object, Object> {
 				}
 			}
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";

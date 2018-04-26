@@ -43,8 +43,8 @@ public class AdvancedMailContainer {
 
 	private final ArrayList<DynamicMailAttachment> attachments = new ArrayList();
 
-	public void init (final String fromAddress, final String fromName, final String subject, final String textContent) {
-		init(fromAddress, fromName, subject, textContent, null);
+	public void init (final String fromAddress, final String fromName, final String subject, final String htmlContent) {
+		init(fromAddress, fromName, subject, htmlContent, null);
 	}
 
 	public void init (final String fromAddress, final String fromName, final String subject, final String htmlContent, final String textContent) {
@@ -83,19 +83,6 @@ public class AdvancedMailContainer {
 
 	public void addAttachment(final DynamicMailAttachment att) {
 		getAttachments().add(att);
-	}
-
-	public void send() throws EmailException, FrameworkException {
-
-		if (!this.initDone) {
-			throw new FrameworkException(422, "Cant send mail - must call 'mail_begin()'");
-		}
-
-		if(getTo().isEmpty() && getCc().isEmpty() && getBcc().isEmpty()) {
-			throw new FrameworkException(422, "Cant send mail without any recipients");
-		}
-
-		MailHelper.sendAdvancedMail(this);
 	}
 
 	public String getFromName() {
@@ -144,5 +131,47 @@ public class AdvancedMailContainer {
 
 	public ArrayList<DynamicMailAttachment> getAttachments() {
 		return attachments;
+	}
+
+
+	public void clearTo() {
+		getTo().clear();
+	}
+
+	public void clearCc() {
+		getCc().clear();
+	}
+
+	public void clearBcc() {
+		getBcc().clear();
+	}
+
+	public void clearReplyTo() {
+		getReplyTo().clear();
+	}
+
+	public void clearCustomHeaders() {
+		getCustomHeaders().clear();
+	}
+
+	public void clearAttachments() {
+		getAttachments().clear();
+	}
+
+	public void clearBounce() {
+		bounceAddress = null;
+	}
+
+	public void send() throws EmailException, FrameworkException {
+
+		if (!this.initDone) {
+			throw new FrameworkException(422, "Cant send mail - must call 'mail_begin()'");
+		}
+
+		if(getTo().isEmpty() && getCc().isEmpty() && getBcc().isEmpty()) {
+			throw new FrameworkException(422, "Cant send mail without any recipients");
+		}
+
+		MailHelper.sendAdvancedMail(this);
 	}
 }

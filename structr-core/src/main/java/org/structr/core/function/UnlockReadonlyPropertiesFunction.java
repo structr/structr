@@ -19,13 +19,12 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_UNLOCK_READONLY_PROPERTIES_ONCE    = "Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once(this)}";
@@ -41,34 +40,30 @@ public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-
-				return null;
-			}
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (sources[0] instanceof AbstractNode) {
 
 				((AbstractNode)sources[0]).unlockReadOnlyPropertiesOnce();
+				return "";
 
 			} else {
 
 				logger.warn("Parameter 1 is not a node. Parameters: {}", getParametersAsString(sources));
-
 				return usage(ctx.isJavaScriptContext());
-
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
-		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -79,5 +74,4 @@ public class UnlockReadonlyPropertiesFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Unlocks any read-only property for a single access";
 	}
-
 }

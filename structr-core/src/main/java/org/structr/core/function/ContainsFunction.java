@@ -21,12 +21,11 @@ package org.structr.core.function;
 import java.util.Collection;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class ContainsFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_CONTAINS = "Usage: ${contains(string, word)} or ${contains(collection, element)}. Example: ${contains(this.name, \"the\")} or ${contains(find('Page'), page)}";
@@ -40,10 +39,8 @@ public class ContainsFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
 
-				return false;
-			}
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			if (sources[0] instanceof String && sources[1] instanceof String) {
 
@@ -62,18 +59,18 @@ public class ContainsFunction extends Function<Object, Object> {
 				return ArrayUtils.contains((Object[])sources[0], sources[1]);
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-		
+
 		return false;
-
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -84,5 +81,4 @@ public class ContainsFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns true if the given string or collection contains an element";
 	}
-
 }

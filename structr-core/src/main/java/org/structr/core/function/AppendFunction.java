@@ -28,9 +28,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class AppendFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
@@ -43,7 +40,9 @@ public class AppendFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			try {
 
@@ -61,24 +60,21 @@ public class AppendFunction extends Function<Object, Object> {
 
 						writer.flush();
 					}
-
 				}
 
 			} catch (IOException ioex) {
 
 				logException(caller, ioex, sources);
-
 			}
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -89,5 +85,4 @@ public class AppendFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Appends to the given file in the exchange directoy";
 	}
-
 }

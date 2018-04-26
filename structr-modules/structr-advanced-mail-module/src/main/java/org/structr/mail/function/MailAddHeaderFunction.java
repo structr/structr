@@ -31,13 +31,19 @@ public class MailAddHeaderFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final String name  = sources[0].toString();
 			final String value = sources[1].toString();
 
 			ctx.getAdvancedMailContainer().addHeader(name, value);
 
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";

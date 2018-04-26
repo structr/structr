@@ -22,12 +22,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class ParseDateFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_date(\"2014-01-01\", \"yyyy-MM-dd\")}";
@@ -47,11 +46,8 @@ public class ParseDateFunction extends Function<Object, Object> {
 		}
 
 		try {
-		
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-				
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final String dateString = sources[0].toString();
 
@@ -71,12 +67,15 @@ public class ParseDateFunction extends Function<Object, Object> {
 
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
 		return "";
@@ -91,5 +90,4 @@ public class ParseDateFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Parses the given date string using the given format string";
 	}
-
 }

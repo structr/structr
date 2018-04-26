@@ -21,13 +21,12 @@ package org.structr.core.function;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class CypherFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}";
@@ -42,10 +41,8 @@ public class CypherFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
 
-				return null;
-			}
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			final Map<String, Object> params = new LinkedHashMap<>();
 			final String query = sources[0].toString();
@@ -57,11 +54,15 @@ public class CypherFunction extends Function<Object, Object> {
 
 			return StructrApp.getInstance(ctx.getSecurityContext()).cypher(query, params);
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
