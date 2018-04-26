@@ -26,9 +26,6 @@ import org.structr.flow.engine.FlowEngine;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class FlowFunction extends Function<Object, Object> {
 
 	public static final String USAGE    = "Usage: ${flow(name)}";
@@ -37,7 +34,9 @@ public class FlowFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (sources[0] instanceof String) {
 
@@ -58,25 +57,24 @@ public class FlowFunction extends Function<Object, Object> {
 
 						logger.warn("FlowContainer {} does not have a start node set", container.getUuid());
 					}
+
 				} else {
 
 					logger.warn("FlowContainer {} does not exist", name);
 				}
 			}
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 		}
 
-		return usage(false);
+		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override
 	public String usage(final boolean inJavaScriptContext) {
-
-
-		if (inJavaScriptContext) {
-			return USAGE_JS;
-		}
-
-		return USAGE;
+		return (inJavaScriptContext ? USAGE_JS : USAGE);
 	}
 
 	@Override
@@ -86,7 +84,6 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "flow";
+		return "flow()";
 	}
-
 }

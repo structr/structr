@@ -21,14 +21,13 @@ package org.structr.core.function;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class OutgoingFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_OUTGOING    = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
@@ -42,7 +41,9 @@ public class OutgoingFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			final RelationshipFactory factory = new RelationshipFactory(ctx.getSecurityContext());
 			final Object source = sources[0];
@@ -68,18 +69,20 @@ public class OutgoingFunction extends Function<Object, Object> {
 
 				logger.warn("Error: entity is not a node. Parameters: {}", getParametersAsString(sources));
 				return "Error: entity is not a node.";
-
 			}
 
-		} else {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -90,5 +93,4 @@ public class OutgoingFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the outgoing relationships of the given entity";
 	}
-
 }

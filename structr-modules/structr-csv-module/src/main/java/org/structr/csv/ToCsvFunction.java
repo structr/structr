@@ -56,84 +56,76 @@ public class ToCsvFunction extends UiFunction {
 
 		try {
 
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 8)) {
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 8);
 
-				if ( !(sources[0] instanceof List) ) {
-					logParameterError(caller, sources, ctx.isJavaScriptContext());
-					return "ERROR: First parameter must be a collection!".concat(usage(ctx.isJavaScriptContext()));
-				}
-
-				final List<GraphObject> nodes           = (List)sources[0];
-				String delimiterChar                    = ";";
-				String quoteChar                        = "\"";
-				String recordSeparator                  = "\n";
-				boolean includeHeader                   = true;
-				boolean localizeHeader                  = false;
-				String headerLocalizationDomain         = null;
-				String propertyView                     = null;
-				List<String> properties                 = null;
-
-				// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
-				if (nodes.size() == 0) {
-					logger.warn("to_csv(): Can not create CSV if no nodes are given!");
-					logParameterError(caller, sources, ctx.isJavaScriptContext());
-					return "";
-				}
-
-				switch (sources.length) {
-					case 8: headerLocalizationDomain = (String)sources[7];
-					case 7: localizeHeader = (Boolean)sources[6];
-					case 6: includeHeader = (Boolean)sources[5];
-					case 5: recordSeparator = (String)sources[4];
-					case 4: quoteChar = (String)sources[3];
-					case 3: delimiterChar = (String)sources[2];
-					case 2: {
-						if (sources[1] instanceof String) {
-							// view is given
-							propertyView = (String)sources[1];
-
-						} else if (sources[1] instanceof List) {
-							// named properties are given
-							properties = (List)sources[1];
-
-							// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
-							if (properties.size() == 0) {
-								logger.warn("to_csv(): Can not create CSV if list of properties is empty!");
-								logParameterError(caller, sources, ctx.isJavaScriptContext());
-								return "";
-							}
-
-						} else {
-							logParameterError(caller, sources, ctx.isJavaScriptContext());
-							return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
-						}
-					}
-				}
-				try {
-
-					final StringWriter writer = new StringWriter();
-					writeCsv(nodes, writer, propertyView, properties, quoteChar.charAt(0), delimiterChar.charAt(0), recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale());
-					return writer.toString();
-
-				} catch (Throwable t) {
-					logger.warn("to_csv(): Exception occurred", t);
-					return "";
-				}
-
-			} else {
-
+			if ( !(sources[0] instanceof List) ) {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
+				return "ERROR: First parameter must be a collection!".concat(usage(ctx.isJavaScriptContext()));
 			}
 
-		} catch (final IllegalArgumentException e) {
+			final List<GraphObject> nodes           = (List)sources[0];
+			String delimiterChar                    = ";";
+			String quoteChar                        = "\"";
+			String recordSeparator                  = "\n";
+			boolean includeHeader                   = true;
+			boolean localizeHeader                  = false;
+			String headerLocalizationDomain         = null;
+			String propertyView                     = null;
+			List<String> properties                 = null;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
+			if (nodes.size() == 0) {
+				logger.warn("to_csv(): Can not create CSV if no nodes are given!");
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				return "";
+			}
 
+			switch (sources.length) {
+				case 8: headerLocalizationDomain = (String)sources[7];
+				case 7: localizeHeader = (Boolean)sources[6];
+				case 6: includeHeader = (Boolean)sources[5];
+				case 5: recordSeparator = (String)sources[4];
+				case 4: quoteChar = (String)sources[3];
+				case 3: delimiterChar = (String)sources[2];
+				case 2: {
+					if (sources[1] instanceof String) {
+						// view is given
+						propertyView = (String)sources[1];
+
+					} else if (sources[1] instanceof List) {
+						// named properties are given
+						properties = (List)sources[1];
+
+						// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
+						if (properties.size() == 0) {
+							logger.warn("to_csv(): Can not create CSV if list of properties is empty!");
+							logParameterError(caller, sources, ctx.isJavaScriptContext());
+							return "";
+						}
+
+					} else {
+						logParameterError(caller, sources, ctx.isJavaScriptContext());
+						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
+					}
+				}
+			}
+
+			try {
+
+				final StringWriter writer = new StringWriter();
+				writeCsv(nodes, writer, propertyView, properties, quoteChar.charAt(0), delimiterChar.charAt(0), recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale());
+				return writer.toString();
+
+			} catch (Throwable t) {
+				logger.warn("to_csv(): Exception occurred", t);
+				return "";
+			}
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
 
 	@Override

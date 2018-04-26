@@ -36,39 +36,29 @@ public class AncestorTypesFunction extends Function<Object, Object> {
 
 		try {
 
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-				final String typeName = sources[0].toString();
-				final ArrayList<String> ancestorTypes = new ArrayList();
+			final String typeName = sources[0].toString();
+			final ArrayList<String> ancestorTypes = new ArrayList();
 
-				Class type = SchemaHelper.getEntityClassForRawType(typeName);
+			Class type = SchemaHelper.getEntityClassForRawType(typeName);
 
-				while (type != null && !type.equals(Object.class)) {
+			while (type != null && !type.equals(Object.class)) {
 
-					ancestorTypes.add(type.getSimpleName());
-					type = type.getSuperclass();
-
-				}
-
-				final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList("AbstractNode");
-				ancestorTypes.removeAll(blackList);
-
-				return ancestorTypes;
-
-			} else {
-
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
-
+				ancestorTypes.add(type.getSimpleName());
+				type = type.getSuperclass();
 			}
 
-		} catch (final IllegalArgumentException e) {
+			final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList("AbstractNode");
+			ancestorTypes.removeAll(blackList);
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return ancestorTypes;
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
 
 	@Override
@@ -85,5 +75,4 @@ public class AncestorTypesFunction extends Function<Object, Object> {
 	public String getName() {
 		return "ancestor_types()";
 	}
-
 }

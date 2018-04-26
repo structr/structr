@@ -25,12 +25,11 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class WriteFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
@@ -43,9 +42,12 @@ public class WriteFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			try {
+
 				final String sandboxFilename = getSandboxFileName(sources[0].toString());
 				if (sandboxFilename != null) {
 
@@ -66,25 +68,26 @@ public class WriteFunction extends Function<Object, Object> {
 					} else {
 
 						logger.error("Trying to overwrite an existing file, please use append() for that purpose.");
-
 					}
 				}
 
 			} catch (IOException ioex) {
 
 				logException(caller, ioex, sources);
-
 			}
 
-		} else {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -95,5 +98,4 @@ public class WriteFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Writes to the given file in the exchange directoy";
 	}
-
 }

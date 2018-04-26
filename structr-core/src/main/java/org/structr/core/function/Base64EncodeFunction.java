@@ -20,9 +20,10 @@ package org.structr.core.function;
 
 import java.util.Base64;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-
 
 public class Base64EncodeFunction extends Function<Object, Object> {
 
@@ -38,37 +39,44 @@ public class Base64EncodeFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-				final byte[] input = sources[0].toString().getBytes();
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-				String encodingSchema = "basic";
-				if (sources.length == 2) {
-					encodingSchema = sources[1].toString();
-				}
+			final byte[] input = sources[0].toString().getBytes();
 
-				final Base64.Encoder encoder;
-
-				switch (encodingSchema) {
-					case "url":
-						encoder = Base64.getUrlEncoder();
-						break;
-					case "mime":
-						encoder = Base64.getMimeEncoder();
-						break;
-					default:
-						logger.warn("Unsupported base64 encoding scheme '{}' - using 'basic' scheme", encodingSchema);
-					case "basic":
-						encoder = Base64.getEncoder();
-						break;
-				}
-
-				return encoder.encodeToString(input);
+			String encodingSchema = "basic";
+			if (sources.length == 2) {
+				encodingSchema = sources[1].toString();
 			}
 
-		} catch (IllegalArgumentException iae) {
+			final Base64.Encoder encoder;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			switch (encodingSchema) {
+				case "url":
+					encoder = Base64.getUrlEncoder();
+					break;
+
+				case "mime":
+					encoder = Base64.getMimeEncoder();
+					break;
+
+				default:
+					logger.warn("Unsupported base64 encoding scheme '{}' - using 'basic' scheme", encodingSchema);
+
+				case "basic":
+					encoder = Base64.getEncoder();
+					break;
+			}
+
+			return encoder.encodeToString(input);
+
+		} catch (ArgumentNullException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 

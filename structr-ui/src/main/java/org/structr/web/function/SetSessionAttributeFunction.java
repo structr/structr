@@ -19,12 +19,11 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class SetSessionAttributeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE    = "Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute(\"do_no_track\", true)}";
@@ -40,24 +39,23 @@ public class SetSessionAttributeFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-				
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			ctx.getSecurityContext().getSession().setAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
 
-		} catch (final IllegalArgumentException e) {
+			return "";
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentNullException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
-		return "";
-
 	}
 
 	@Override
@@ -69,5 +67,4 @@ public class SetSessionAttributeFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "";
 	}
-
 }

@@ -21,6 +21,8 @@ package org.structr.web.function;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
@@ -39,25 +41,31 @@ public class SetContentFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!(arrayHasMinLengthAndAllElementsNotNull(sources, 2) && sources[0] instanceof File)) {
-				return null;
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+
+			if (sources[0] instanceof File) {
+
+				final File file       = (File)sources[0];
+				final String content  = (String)sources[1];
+				final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
+
+				try (final FileOutputStream fos = file.getOutputStream(true, false)) {
+
+					fos.write(content.getBytes(encoding));
+
+				} catch (IOException ioex) {
+					logger.warn("set_content(): Unable to write to file '{}'", file.getPath(), ioex);
+				}
 			}
 
-			final File file       = (File)sources[0];
-			final String content  = (String)sources[1];
-			final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
+		} catch (ArgumentNullException pe) {
 
-			try (final FileOutputStream fos = file.getOutputStream(true, false)) {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-				fos.write(content.getBytes(encoding));
+		} catch (ArgumentCountException pe) {
 
-			} catch (IOException ioex) {
-				logger.warn("set_content(): Unable to write to file '{}'", file.getPath(), ioex);
-			}
-
-		} catch (IllegalArgumentException iae) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 

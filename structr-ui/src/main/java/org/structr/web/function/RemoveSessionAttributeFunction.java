@@ -19,13 +19,12 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import static org.structr.web.function.SetSessionAttributeFunction.SESSION_ATTRIBUTE_PREFIX;
 
-/**
- *
- */
 public class RemoveSessionAttributeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE    = "Usage: ${remove_session_attribute(key)}. Example: ${remove_session_attribute(\"do_no_track\")}";
@@ -40,25 +39,23 @@ public class RemoveSessionAttributeFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			ctx.getSecurityContext().getSession().removeAttribute(SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
-			
 
-		} catch (final IllegalArgumentException e) {
+			return "";
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentNullException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-		
-		return "";
-
 	}
 
 	@Override
@@ -70,5 +67,4 @@ public class RemoveSessionAttributeFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "";
 	}
-
 }

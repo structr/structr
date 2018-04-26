@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Locale;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
@@ -31,9 +33,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class LocalizeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_LOCALIZE    = "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
@@ -49,7 +48,9 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		final Locale ctxLocale  = ctx.getLocale();
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			if (sources[0] instanceof List) {
 
@@ -73,20 +74,19 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 			}
 
-		} else if (sources.length == 1 || sources.length == 2) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
 			// silently ignore null values
 			return "";
 
-		} else {
+		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
 			// only show the error message for wrong parameter count
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 

@@ -60,82 +60,75 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 		try {
 
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 7)) {
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 7);
 
-				if ( !(sources[0] instanceof List) ) {
-					logParameterError(caller, sources, ctx.isJavaScriptContext());
-					return "ERROR: First parameter must be a collection! ".concat(usage(ctx.isJavaScriptContext()));
-				}
-
-				final List<GraphObject> nodes           = (List)sources[0];
-				boolean includeHeader                   = true;
-				boolean localizeHeader                  = false;
-				String headerLocalizationDomain         = null;
-				Integer maxCellLength                   = 32767;
-				String overflowMode                     = "o";
-				String propertyView                     = null;
-				List<String> properties                 = null;
-
-				// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
-				if (nodes.size() == 0) {
-					logger.warn("to_csv(): Can not create Excel if no nodes are given!");
-					logParameterError(caller, sources, ctx.isJavaScriptContext());
-					return "";
-				}
-
-				switch (sources.length) {
-					case 7: overflowMode = (String)sources[6];
-					case 6: maxCellLength = Math.min(maxCellLength, (Integer)sources[5]);
-					case 5: headerLocalizationDomain = (String)sources[4];
-					case 4: localizeHeader = (Boolean)sources[3];
-					case 3: includeHeader = (Boolean)sources[2];
-					case 2: {
-						if (sources[1] instanceof String) {
-							// view is given
-							propertyView = (String)sources[1];
-
-						} else if (sources[1] instanceof List) {
-							// named properties are given
-							properties = (List)sources[1];
-
-							// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
-							if (properties.size() == 0) {
-								logger.warn("to_excel(): Can not create Excel if list of properties is empty!");
-								logParameterError(caller, sources, ctx.isJavaScriptContext());
-								return "";
-							}
-
-						} else {
-							logParameterError(caller, sources, ctx.isJavaScriptContext());
-							return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
-						}
-					}
-				}
-
-				try {
-
-					final Workbook wb = writeExcel(nodes, propertyView, properties, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale(), maxCellLength, overflowMode);
-					final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					wb.write(baos);
-					return baos.toString("ISO-8859-1");
-
-				} catch (Throwable t) {
-					logger.warn("to_excel(): Exception occurred", t);
-					return "";
-				}
-
-			} else {
-
+			if ( !(sources[0] instanceof List) ) {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
+				return "ERROR: First parameter must be a collection! ".concat(usage(ctx.isJavaScriptContext()));
 			}
 
-		} catch (final IllegalArgumentException e) {
+			final List<GraphObject> nodes           = (List)sources[0];
+			boolean includeHeader                   = true;
+			boolean localizeHeader                  = false;
+			String headerLocalizationDomain         = null;
+			Integer maxCellLength                   = 32767;
+			String overflowMode                     = "o";
+			String propertyView                     = null;
+			List<String> properties                 = null;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
+			if (nodes.size() == 0) {
+				logger.warn("to_csv(): Can not create Excel if no nodes are given!");
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
+				return "";
+			}
+
+			switch (sources.length) {
+				case 7: overflowMode = (String)sources[6];
+				case 6: maxCellLength = Math.min(maxCellLength, (Integer)sources[5]);
+				case 5: headerLocalizationDomain = (String)sources[4];
+				case 4: localizeHeader = (Boolean)sources[3];
+				case 3: includeHeader = (Boolean)sources[2];
+				case 2: {
+					if (sources[1] instanceof String) {
+						// view is given
+						propertyView = (String)sources[1];
+
+					} else if (sources[1] instanceof List) {
+						// named properties are given
+						properties = (List)sources[1];
+
+						// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
+						if (properties.size() == 0) {
+							logger.warn("to_excel(): Can not create Excel if list of properties is empty!");
+							logParameterError(caller, sources, ctx.isJavaScriptContext());
+							return "";
+						}
+
+					} else {
+						logParameterError(caller, sources, ctx.isJavaScriptContext());
+						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
+					}
+				}
+			}
+
+			try {
+
+				final Workbook wb = writeExcel(nodes, propertyView, properties, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale(), maxCellLength, overflowMode);
+				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				wb.write(baos);
+				return baos.toString("ISO-8859-1");
+
+			} catch (Throwable t) {
+				logger.warn("to_excel(): Exception occurred", t);
+				return "";
+			}
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
 	}
 
 	@Override

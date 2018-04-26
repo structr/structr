@@ -21,12 +21,11 @@ package org.structr.core.function;
 import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class JoinFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_JOIN = "Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}";
@@ -40,32 +39,31 @@ public class JoinFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-				
-				return "";
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			if (sources[0] instanceof Collection) {
 
 				return StringUtils.join((Collection)sources[0], sources[1].toString());
-			}
 
-			if (sources[0].getClass().isArray()) {
+			} else if (sources[0].getClass().isArray()) {
 
 				return StringUtils.join((Object[])sources[0], sources[1].toString());
 			}
 
-		} catch (final IllegalArgumentException e) {
+			return "";
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentNullException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return "";
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
-		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -76,5 +74,4 @@ public class JoinFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Joins all its parameters to a single string";
 	}
-
 }

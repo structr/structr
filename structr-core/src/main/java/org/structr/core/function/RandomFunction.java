@@ -20,12 +20,11 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class RandomFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_RANDOM = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
@@ -39,33 +38,31 @@ public class RandomFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-		
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number)) {
-				
-				return null;
-			}
 
-			try {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			if (sources[0] instanceof Number) {
 
 				return RandomStringUtils.randomAlphanumeric(((Number)sources[0]).intValue());
-
-			} catch (Throwable t) {
-
-				logException(caller, t, sources);
-
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
+		} catch (Throwable t) {
+
+			logException(caller, t, sources);
 		}
 
 		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -76,5 +73,4 @@ public class RandomFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns a random alphanumeric string of the given length";
 	}
-
 }

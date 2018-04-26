@@ -19,12 +19,11 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class ResetCounterFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_RESET_COUNTER = "Usage: ${reset_counter(level)}. Example: ${reset_counter(1)}";
@@ -38,33 +37,28 @@ public class ResetCounterFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-		
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
 
-			try {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-				ctx.resetCounter(parseInt(sources[0]));
+			ctx.resetCounter(parseInt(sources[0]));
 
-			} catch (NumberFormatException nfe) {
+		} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), caller, getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), caller, getParametersAsString(sources) });
 
-			}
+		} catch (ArgumentNullException pe) {
 
-		} catch (final IllegalArgumentException e) {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentCountException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
 		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -75,5 +69,4 @@ public class ResetCounterFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Resets the value of the counter with the given index";
 	}
-
 }

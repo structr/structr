@@ -19,6 +19,8 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
@@ -26,9 +28,6 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class PropertyInfoFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_PROPERTY_INFO    = "Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}";
@@ -39,10 +38,7 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-
-				return null;
-			}
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final String typeName = sources[0].toString();
@@ -73,12 +69,15 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 				return "Unknown type " + typeName;
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
@@ -96,5 +95,4 @@ public class PropertyInfoFunction extends Function<Object, Object> {
 	public String getName() {
 		return "schema_property()";
 	}
-
 }

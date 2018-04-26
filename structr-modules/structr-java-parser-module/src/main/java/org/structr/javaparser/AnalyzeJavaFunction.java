@@ -21,14 +21,13 @@ package org.structr.javaparser;
 import com.github.javaparser.ParseProblemException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class AnalyzeJavaFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_ANALYZE_JAVA = "Usage: ${analyze_java(javaSource)}";
@@ -43,36 +42,36 @@ public class AnalyzeJavaFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-				return null;
-			}
+			if (sources[0] instanceof String) {
 
-			try {
-			
 				final SecurityContext securityContext = ctx.getSecurityContext();
 				final App app                         = StructrApp.getInstance(securityContext);
-				
+
 				// Analyze string as Java code
 				new JavaParserModule(app).analyzeMethodsInJavaFile((String) sources[0]);
-				
+
 				return "";
-				
-			} catch (final ParseProblemException ex) {
-				
-				logException(caller, ex, sources);
-				
 			}
 
-		} catch (final IllegalArgumentException e) {
+			return null;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (final ParseProblemException ex) {
 
+			logException(caller, ex, sources);
+			return "";
+
+		} catch (ArgumentNullException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-		
-		return "";
 	}
 
 	@Override
