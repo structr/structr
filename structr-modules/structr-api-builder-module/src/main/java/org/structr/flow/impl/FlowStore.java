@@ -44,8 +44,8 @@ public class FlowStore extends FlowNode implements Store, DataSource {
 	public static final Property<Operation> operation			= new EnumProperty<>("operation", Operation.class);
 	public static final Property<String> key             		= new StringProperty("key");
 
-	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation, dataSource, dataTarget);
-	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget);
+	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation, dataSource, dataTarget, isStartNodeOfContainer);
+	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget, isStartNodeOfContainer);
 
 	@Override
 	public void handleStorage(Context context) {

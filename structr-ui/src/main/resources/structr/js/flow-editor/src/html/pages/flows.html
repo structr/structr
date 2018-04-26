@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Flows</title>
-    <script type="module" src="../persistence/Persistence.js"></script>
-    <script type="module" src="../flow/model/FlowContainer.js"></script>
+    <script type="module" src="../../js/persistence/Persistence.js"></script>
+    <script type="module" src="../../js/editor/entities/FlowContainer.js"></script>
 </head>
 <body>
 
@@ -20,8 +20,8 @@
     </div>
 
     <script type="module">
-        import { Persistence } from "../persistence/Persistence.js";
-        import { FlowContainer } from "../flow/model/FlowContainer.js";
+        import { Persistence } from "../../js/persistence/Persistence.js";
+        import { FlowContainer } from "../../js/editor/entities/FlowContainer.js";
 
         let persistence = new Persistence();
 
@@ -33,7 +33,7 @@
                 ${r.map(flowContainer => `
                 <tr>
                     <td>${flowContainer.id}</td>
-                    <td><a href="/structr/js/flow-editor/src/pages/flow.html?id=${flowContainer.id}">${flowContainer.name}</a></td>
+                    <td><a href="/structr/js/flow-editor/src/html/pages/flow.html?id=${flowContainer.id}">${flowContainer.name}</a></td>
                 </tr>
                 `).join('')}
             `;

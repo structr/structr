@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flow</title>
+    <script type="module" src="../../js/persistence/Persistence.js"></script>
+    <script type="module" src="../../js/editor/entities/FlowContainer.js"></script>
+    <script src="../../lib/yfiles/license.js"></script>
+    <script src="../../lib/yfiles/yfiles-typeinfo.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../css/FlowEditor.css">
+</head>
+<body>
+
+    <script type="module">
+        import { Persistence } from "../../js/persistence/Persistence.js";
+        import { FlowContainer } from "../../js/editor/entities/FlowContainer.js";
+
+        import {FlowNode} from "../../js/editor/entities/FlowNode.js";
+        import {FlowEditor} from "../../js/editor/FlowEditor.js";
+
+        let persistence = new Persistence();
+        let urlParams = new URLSearchParams(window.location.search);
+
+        var id = urlParams.get("id");
+
+        persistence.getNodesById(id, new FlowContainer()).then( r => {
+            document.title = "Flow - " + r[0].name;
+
+            const markup = `
+                <div><p>Hier entsteht die Editor-Seite für den Flow <b>${r[0].name}</b></p></div>
+                <div><button id="btn-layout">Fix Layout</button></div>
+                <div id="graphComponent"></div>
+            `;
+
+            document.body.innerHTML = markup;
+
+            let editor = new FlowEditor(document.querySelector("#graphComponent"));
+
+            r[0].flowNodes.forEach(node => {
+
+                persistence.getNodesById(node.id).then( n => editor.renderNode(n[0]));
+
+            });
+
+            let layoutButton = document.querySelector("#btn-layout");
+
+            layoutButton.addEventListener("click", () => {
+                editor.doLayout(this);
+            });
+
+        });
+
+
+    </script>
+</body>
+</html>

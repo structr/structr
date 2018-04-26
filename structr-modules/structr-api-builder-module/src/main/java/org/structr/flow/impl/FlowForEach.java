@@ -40,8 +40,8 @@ public class FlowForEach extends FlowNode implements ForEach {
 	public static final Property<FlowDataHandler> dataHandler = new EndNode<>("dataHandler", FlowForEachDataHandler.class);
 	public static final Property<FlowNode> loopBody           = new EndNode<>("loopBody", FlowForEachBody.class);
 
-	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, dataHandler, loopBody);
-	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, dataHandler, loopBody);
+	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, dataHandler, loopBody, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, dataHandler, loopBody, isStartNodeOfContainer);
 
 	@Override
 	public DataHandler getDataHandler() {

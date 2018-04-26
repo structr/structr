@@ -1,0 +1,17 @@
+html, body { width: 100%; height: 100%; padding: 0; margin: 0; }
+
+#graphComponent { width: 100%; height: 75%; padding: 0; magin: 0;}
+
+.label {
+    border-style: solid;
+    background-color: white;
+    padding: 1em;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.startNode {
+    background-color: lightgreen;
+}

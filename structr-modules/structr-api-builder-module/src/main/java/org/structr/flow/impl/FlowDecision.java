@@ -39,8 +39,8 @@ public class FlowDecision extends FlowNode implements Decision {
 	public static final Property<FlowNode> trueElement    = new EndNode<>("trueElement", FlowDecisionTrue.class);
 	public static final Property<FlowNode> falseElement   = new EndNode<>("falseElement", FlowDecisionFalse.class);
 
-	public static final View defaultView = new View(FlowDecision.class, PropertyView.Public, condition, trueElement, falseElement);
-	public static final View uiView      = new View(FlowDecision.class, PropertyView.Ui,     condition, trueElement, falseElement);
+	public static final View defaultView = new View(FlowDecision.class, PropertyView.Public, condition, trueElement, falseElement, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowDecision.class, PropertyView.Ui,     condition, trueElement, falseElement, isStartNodeOfContainer);
 
 	@Override
 	public DataSource getCondition() {

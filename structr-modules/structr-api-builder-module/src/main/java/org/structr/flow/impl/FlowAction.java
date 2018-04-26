@@ -38,8 +38,8 @@ public class FlowAction extends FlowActionNode implements DataSource {
 	public static final Property<List<FlowBaseNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> script             		= new StringProperty("script");
 
-	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget);
-	public static final View uiView      							= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget);
+	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, isStartNodeOfContainer);
+	public static final View uiView      							= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, isStartNodeOfContainer);
 
 	@Override
 	public void execute(final Context context) {

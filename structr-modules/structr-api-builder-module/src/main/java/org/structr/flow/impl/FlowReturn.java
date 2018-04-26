@@ -39,8 +39,8 @@ public class FlowReturn extends FlowNode implements Return {
 	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<String> result = new StringProperty("result");
 
-	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource);
-	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource);
+	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource, isStartNodeOfContainer);
 
 	@Override
 	public Object getResult(final Context context) {
