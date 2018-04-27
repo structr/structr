@@ -21,9 +21,9 @@ package org.structr.javaparser;
 import com.github.javaparser.ParseProblemException;
 import com.google.gson.GsonBuilder;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
@@ -65,7 +65,7 @@ public class ParseJavaFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
 			return null;
 
 		} catch (ArgumentCountException pe) {

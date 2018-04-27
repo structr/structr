@@ -57,7 +57,7 @@ public class GetRequestHeaderFunction extends UiFunction {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
 			return null;
 
 		} catch (ArgumentCountException pe) {

@@ -20,9 +20,9 @@ package org.structr.core.function;
 
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
@@ -96,7 +96,7 @@ public class RevokeFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
 			return null;
 
 		} catch (ArgumentCountException pe) {

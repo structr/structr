@@ -21,9 +21,9 @@ package org.structr.web.function;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
@@ -45,33 +45,33 @@ public class GetContentFunction extends Function<Object, Object> {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			if (!(sources[0] instanceof File)) {
-				return null;
-			}
+			if (sources[0] instanceof File) {
 
-			final File file = (File)sources[0];
-			final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : "UTF-8";
+				final File file = (File)sources[0];
+				final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : "UTF-8";
 
-			try (final InputStream is = file.getInputStream()) {
+				try (final InputStream is = file.getInputStream()) {
 
-				return new Scanner(is, encoding).useDelimiter("\\A").next();
+					return new Scanner(is, encoding).useDelimiter("\\A").next();
 
-			} catch (IOException e) {
+				} catch (IOException e) {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
+					logParameterError(caller, sources, ctx.isJavaScriptContext());
+					return usage(ctx.isJavaScriptContext());
+				}
 			}
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return null;
+			// silently ignore null arguments
 
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
+
+		return null;
 	}
 
 	@Override

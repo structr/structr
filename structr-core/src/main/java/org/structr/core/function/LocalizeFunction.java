@@ -22,9 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.structr.api.util.FixedSizeCache;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
@@ -76,10 +76,19 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			if (sources.length == 1 || sources.length == 2) {
 
-			// silently ignore null values
-			return "";
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+				return "";
+
+			} else {
+
+				logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+				// only show the error message for wrong parameter count
+				return usage(ctx.isJavaScriptContext());
+			}
 
 		} catch (ArgumentCountException pe) {
 

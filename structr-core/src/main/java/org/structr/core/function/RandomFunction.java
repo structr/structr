@@ -19,9 +19,9 @@
 package org.structr.core.function;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -46,9 +46,11 @@ public class RandomFunction extends Function<Object, Object> {
 				return RandomStringUtils.randomAlphanumeric(((Number)sources[0]).intValue());
 			}
 
+			return null;
+
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
 			return null;
 
 		} catch (ArgumentCountException pe) {

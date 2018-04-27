@@ -19,9 +19,9 @@
 package org.structr.core.function;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -45,7 +45,7 @@ public class EscapeJavascriptFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pne) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
 			return null;
 
 		} catch (ArgumentCountException pce) {

@@ -19,8 +19,8 @@
 package org.structr.core.function;
 
 import org.structr.api.graph.Node;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -50,7 +50,7 @@ public class InstantiateFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
 			return null;
 
 		} catch (IllegalArgumentException e) {

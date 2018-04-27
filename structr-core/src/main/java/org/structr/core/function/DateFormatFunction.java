@@ -82,7 +82,7 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			// silently ignore null values
+			// silently ignore null arguments
 			return "";
 
 		} catch (ArgumentCountException pe) {
