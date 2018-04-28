@@ -20,9 +20,9 @@ package org.structr.web.function;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
@@ -61,7 +61,7 @@ public class AppendContentFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
 
 		} catch (ArgumentCountException pe) {
 

@@ -20,8 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.Permissions;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.ArgumentCountException;
-import org.structr.common.error.ArgumentNullException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
@@ -63,17 +61,14 @@ public class CopyPermissionsFunction extends Function<Object, Object> {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 			}
 
-		} catch (ArgumentNullException pe) {
+			return null;
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-		} catch (ArgumentCountException pe) {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		return null;
 	}
 
 	@Override

@@ -18,9 +18,9 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -48,12 +48,11 @@ public class NumFunction extends Function<Object, Object> {
 
 				logException(caller, t, sources);
 				return null;
-
 			}
 
 		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			// silently ignore null arguments
 			return null;
 
 		} catch (ArgumentCountException pe) {
