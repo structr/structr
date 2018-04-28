@@ -111,6 +111,7 @@ public class StructrLicenseManager implements LicenseManager {
 	private static final int EnterpriseMask        = 0x0f; // 1111
 
 	private final Set<String> modules            = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
+	private final Set<String> classes            = new LinkedHashSet<>();
 	private final SimpleDateFormat format        = new SimpleDateFormat(DatePattern);
 	private Certificate certificate              = null;
 	private PublicKey publicKey                  = null;
@@ -202,6 +203,11 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	@Override
+	public boolean isClassLicensed(final String fqcn) {
+		return allModulesLicensed || classes.contains(fqcn);
+	}
+
+	@Override
 	public boolean isEdition(final int bitmask) {
 		return (editionMask & bitmask) > 0;
 	}
@@ -269,6 +275,10 @@ public class StructrLicenseManager implements LicenseManager {
 
 		// none of the code signer certificates could be verified using our key => not valid
 		return false;
+	}
+
+	public void addLicensedClass(final String fqcn) {
+		classes.add(fqcn);
 	}
 
 	// ----- private methods -----

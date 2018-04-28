@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
@@ -100,7 +100,7 @@ public class Scripting {
 							}
 						}
 
-					} catch (UnlicensedException ex) {
+					} catch (UnlicensedScriptException ex) {
 						ex.log(logger);
 					}
 				}
@@ -148,9 +148,9 @@ public class Scripting {
 	 *
 	 * @return
 	 * @throws FrameworkException
-	 * @throws UnlicensedException
+	 * @throws UnlicensedScriptException
 	 */
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = input.trim();
 		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");

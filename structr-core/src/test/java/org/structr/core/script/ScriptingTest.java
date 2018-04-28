@@ -44,7 +44,7 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
@@ -423,7 +423,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch(UnlicensedException|FrameworkException fex) {
+		} catch(UnlicensedScriptException |FrameworkException fex) {
 
 			logger.warn("", fex);
 			fail("Unexpected exception.");
@@ -447,7 +447,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch(UnlicensedException|FrameworkException fex) {
+		} catch(UnlicensedScriptException |FrameworkException fex) {
 
 			logger.warn("", fex);
 			fail("Unexpected exception.");
@@ -471,7 +471,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch(UnlicensedException|FrameworkException fex) {
+		} catch(UnlicensedScriptException |FrameworkException fex) {
 
 			logger.warn("", fex);
 			fail("Unexpected exception.");
@@ -545,7 +545,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch(UnlicensedException|FrameworkException fex) {
+		} catch(UnlicensedScriptException |FrameworkException fex) {
 
 			logger.warn("", fex);
 			fail("Unexpected exception.");
@@ -595,7 +595,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch(UnlicensedException|FrameworkException fex) {
+		} catch(UnlicensedScriptException |FrameworkException fex) {
 
 			logger.warn("", fex);
 			fail("Unexpected exception.");
@@ -613,7 +613,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch(UnlicensedException|FrameworkException fex) {
+		} catch(UnlicensedScriptException |FrameworkException fex) {
 
 			logger.warn("", fex);
 			fail("Unexpected exception.");
@@ -634,7 +634,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (UnlicensedException|FrameworkException fex) {
+		} catch (UnlicensedScriptException |FrameworkException fex) {
 
 			logger.warn("", fex);
 			fail("Unexpected exception.");
@@ -1612,13 +1612,13 @@ public class ScriptingTest extends StructrTest {
 				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\")}", "test");
 				fail("error() should throw an exception.");
 
-			} catch (UnlicensedException|FrameworkException fex) { }
+			} catch (UnlicensedScriptException |FrameworkException fex) { }
 
 			try {
 				Actions.execute(securityContext, testTwo, "${error(\"base\", \"test1\", \"test2\")}", "test");
 				fail("error() should throw an exception.");
 
-			} catch (UnlicensedException|FrameworkException fex) { }
+			} catch (UnlicensedScriptException |FrameworkException fex) { }
 
 			// test multiline statements
 			assertEquals("Invalid replace() result", "equal", Scripting.replaceVariables(ctx, testOne, "${if(equal(2, 2),\n    (\"equal\"),\n    (\"not equal\")\n)}"));
@@ -2273,7 +2273,7 @@ public class ScriptingTest extends StructrTest {
 
 			tx.success();
 
-		} catch (UnlicensedException|FrameworkException fex) {
+		} catch (UnlicensedScriptException |FrameworkException fex) {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");

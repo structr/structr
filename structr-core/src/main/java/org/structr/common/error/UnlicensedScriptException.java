@@ -24,12 +24,12 @@ import org.structr.api.service.LicenseManager;
 /**
  * Exception to be thrown when an unlicensed scripting function is encountered.
  */
-public class UnlicensedException extends RuntimeException {
+public class UnlicensedScriptException extends RuntimeException {
 
 	private String name    = null;
 	private String edition = null;
 
-	public UnlicensedException(final String name, final int editionBitmask) {
+	public UnlicensedScriptException(final String name, final int editionBitmask) {
 
 		this.edition = LicenseManager.getEdition(editionBitmask);
 		this.name    = name;

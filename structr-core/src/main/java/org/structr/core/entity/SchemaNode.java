@@ -45,6 +45,7 @@ import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedTypeException;
 import org.structr.core.Export;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -64,6 +65,7 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.SchemaService;
 
 /**
  *
@@ -359,7 +361,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		}
 	}
 
-	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes) throws FrameworkException {
+	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {
 
 		// check if some base class already initialized us
 		if (graphQLTypes.containsKey(getClassName())) {
@@ -383,12 +385,12 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String className                           = getClassName();
 
 		// add inherited fields from superclass
-		registerParentType(getParentSchemaNode(), graphQLTypes, fields);
+		registerParentType(getParentSchemaNode(), graphQLTypes, fields, blacklist);
 
 		// add inherited fields from interfaces
 		for (final SchemaNode ifaceNode : getInterfaceSchemaNodes()) {
 
-			registerParentType(ifaceNode, graphQLTypes, fields);
+			registerParentType(ifaceNode, graphQLTypes, fields, blacklist);
 		}
 
 		// add dynamic fields
@@ -403,12 +405,12 @@ public class SchemaNode extends AbstractSchemaNode {
 
 		// outgoing relationships
 		for (final SchemaRelationshipNode outNode : getProperty(SchemaNode.relatedTo)) {
-			registerOutgoingGraphQLFields(fields, outNode);
+			registerOutgoingGraphQLFields(fields, outNode, blacklist);
 		}
 
 		// incoming relationships
 		for (final SchemaRelationshipNode inNode : getProperty(SchemaNode.relatedFrom)) {
-			registerIncomingGraphQLFields(fields, inNode);
+			registerIncomingGraphQLFields(fields, inNode, blacklist);
 		}
 
 		fields.put("id", GraphQLFieldDefinition.newFieldDefinition().name("id").type(Scalars.GraphQLString).argument(SchemaProperty.getGraphQLArgumentsForUUID()).build());
@@ -429,17 +431,17 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	// ----- private methods -----
-	private void registerParentType(final SchemaNode parentSchemaNode, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields) throws FrameworkException {
+	private void registerParentType(final SchemaNode parentSchemaNode, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields, final Set<String> blacklist) throws FrameworkException {
 
 		if (parentSchemaNode != null && !parentSchemaNode.equals(this)) {
 
 			final String parentName = parentSchemaNode.getClassName();
-			if (parentName != null) {
+			if (parentName != null && !blacklist.contains(parentName)) {
 
 				if (!graphQLTypes.containsKey(parentName)) {
 
 					// initialize parent type
-					parentSchemaNode.initializeGraphQL(graphQLTypes);
+					parentSchemaNode.initializeGraphQL(graphQLTypes, blacklist);
 				}
 
 				// second try: add fields from parent type
@@ -459,11 +461,15 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	}
 
-	private void registerOutgoingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode outNode) {
+	private void registerOutgoingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode outNode, final Set<String> blacklist) {
 
 		final SchemaNode targetNode = outNode.getTargetNode();
 		final String targetTypeName = targetNode.getClassName();
 		final String propertyName   = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
+
+		if (blacklist.contains(targetTypeName)) {
+			return;
+		}
 
 		final GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition
 			.newFieldDefinition()
@@ -489,11 +495,15 @@ public class SchemaNode extends AbstractSchemaNode {
 		fields.put(propertyName, builder.build());
 	}
 
-	private void registerIncomingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode inNode) {
+	private void registerIncomingGraphQLFields(final Map<String, GraphQLFieldDefinition> fields, final SchemaRelationshipNode inNode, final Set<String> blacklist) {
 
 		final SchemaNode sourceNode = inNode.getSourceNode();
 		final String sourceTypeName = sourceNode.getClassName();
 		final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
+
+		if (blacklist.contains(sourceTypeName)) {
+			return;
+		}
 
 		final GraphQLFieldDefinition.Builder builder = GraphQLFieldDefinition
 			.newFieldDefinition()
@@ -544,8 +554,8 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	@Export
-	public String getGeneratedSourceCode() throws FrameworkException {
-		return SchemaHelper.getSource(this, new ErrorBuffer());
+	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
+		return SchemaHelper.getSource(this, SchemaService.getBlacklist(), new ErrorBuffer());
 	}
 
 	// ----- private methods -----

@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
@@ -110,7 +110,7 @@ public class SchemaMethodResource extends SortableResource {
 
 			return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName));
 
-		} catch (UnlicensedException ex) {
+		} catch (UnlicensedScriptException ex) {
 			ex.log(logger);
 		}
 

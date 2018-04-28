@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
@@ -211,7 +211,7 @@ public class AuthHelper {
 
 				Actions.call(Actions.NOTIFICATION_LOGIN, user);
 
-			} catch (UnlicensedException ex) {
+			} catch (UnlicensedScriptException ex) {
 				ex.log(logger);
 			}
 		}
@@ -236,7 +236,7 @@ public class AuthHelper {
 
 			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
 
-		} catch (UnlicensedException ex) {
+		} catch (UnlicensedScriptException ex) {
 				ex.log(logger);
 		}
 	}

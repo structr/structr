@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionPropagation;
@@ -58,6 +59,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.common.error.UnlicensedTypeException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -520,10 +522,9 @@ public class SchemaHelper {
 
 	}
 
-	public static String getSource(final AbstractSchemaNode schemaNode, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String getSource(final AbstractSchemaNode schemaNode, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
 
 		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
-		final App app                                          = StructrApp.getInstance();
 		final Map<String, List<ActionEntry>> methods           = new LinkedHashMap<>();
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final List<String> propertyValidators                  = new LinkedList<>();
@@ -602,6 +603,11 @@ public class SchemaHelper {
 		// output related node definitions, collect property views
 		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
+			// skip relationship properties whose endpoint types are blacklisted
+			if (blacklist.contains(outRel.getSchemaNodeTargetType())) {
+				continue;
+			}
+
 			final String propertyName = outRel.getPropertyName(_className, existingPropertyNames, true);
 
 			propertyNames.add(propertyName);
@@ -619,6 +625,11 @@ public class SchemaHelper {
 
 		// output related node definitions, collect property views
 		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
+
+			// skip relationship properties whose endpoint types are blacklisted
+			if (blacklist.contains(inRel.getSchemaNodeSourceType())) {
+				continue;
+			}
 
 			final String propertyName = inRel.getPropertyName(_className, existingPropertyNames, false);
 
@@ -692,6 +703,19 @@ public class SchemaHelper {
 		src.append("}\n");
 
 		return src.toString();
+	}
+
+	public static Set<String> getUnlicensedTypes(final SchemaNode schemaNode) throws FrameworkException {
+
+		final String _extendsClass              = schemaNode.getProperty(SchemaNode.extendsClass);
+		final String superClass                 = _extendsClass != null ? _extendsClass : AbstractNode.class.getSimpleName();
+		final Set<String> implementedInterfaces = new LinkedHashSet<>();
+
+		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
+		SchemaHelper.collectInterfaces(schemaNode, implementedInterfaces);
+
+		// check if base types and interfaces are part of the licensed package
+		return checkLicense(Services.getInstance().getLicenseManager(), superClass, implementedInterfaces);
 	}
 
 	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final List<String> propertyValidators, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -1976,5 +2000,51 @@ public class SchemaHelper {
 
 	private static String cleanTypeName(final String src) {
 		return StringUtils.substringBefore(src, "<");
+	}
+
+	private static Set<String> checkLicense(final LicenseManager licenseManager, final String superClass, final Set<String> implementedInterfaces) {
+
+		final Set<String> types = new LinkedHashSet<>();
+		final String cleaned    = cleanTypeName(superClass);
+
+		if (!checkLicense(licenseManager, cleaned)) {
+			types.add(StringUtils.substringAfterLast(cleaned, "."));
+		}
+
+		for (final String iface : implementedInterfaces) {
+
+			final String cleanedInterfaceName = cleanTypeName(iface);
+
+			if (!checkLicense(licenseManager, cleanedInterfaceName)) {
+				types.add(StringUtils.substringAfterLast(cleanedInterfaceName, "."));
+			}
+		}
+
+		return types;
+	}
+
+	private static boolean checkLicense(final LicenseManager licenseManager, final String fqcn) {
+
+		if (licenseManager == null) {
+			return true;
+		}
+
+		if (fqcn == null) {
+			return true;
+		}
+
+		if (AbstractNode.class.getSimpleName().equals(fqcn)) {
+			return true;
+		}
+
+		if (fqcn.startsWith("org.structr.dynamic.")) {
+			return true;
+		}
+
+		if (licenseManager.isClassLicensed(fqcn)) {
+			return true;
+		}
+
+		return false;
 	}
 }

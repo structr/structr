@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.parser.AllExpression;
 import org.structr.core.parser.AnyExpression;
@@ -87,7 +87,7 @@ public class Functions {
 		return new LinkedList<>(functions.values());
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String expression) throws FrameworkException, UnlicensedScriptException {
 
 		final String expressionWithoutNewlines = expression.replace('\n', ' ').replace('\r', ' ');
 		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expressionWithoutNewlines));
