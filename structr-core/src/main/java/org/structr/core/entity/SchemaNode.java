@@ -327,6 +327,13 @@ public class SchemaNode extends AbstractSchemaNode {
 				return;
 			}
 
+			// migrate ContentContainer
+			if (_extendsClass.equals("org.structr.web.entity.ContentContainer")) {
+
+				setProperty(extendsClass, "org.structr.dynamic.ContentContainer");
+				return;
+			}
+
 			// we need to migrate the feed package
 			if (_extendsClass.startsWith("org.structr.web.entity.feed.")) {
 
