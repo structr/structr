@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -81,6 +82,7 @@ public abstract class StructrUiTest {
 	protected static final int ftpPort = (System.getProperty("ftpPort") != null ? Integer.parseInt(System.getProperty("ftpPort")) : 8876);
 
 	protected static String baseUri;
+	protected static boolean needsDatabaseCleanup = false;
 
 	static {
 
@@ -166,23 +168,32 @@ public abstract class StructrUiTest {
 	@Before
 	public void cleanDatabase() {
 
-		System.out.println("Cleaning database..");
+		if (needsDatabaseCleanup) {
 
-		try (final Tx tx = app.tx()) {
+			System.out.println("Cleaning database..");
 
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
-				app.delete(node);
+			try (final Tx tx = app.tx()) {
+
+				for (final NodeInterface node : app.nodeQuery().getAsList()) {
+					app.delete(node);
+				}
+
+				// delete remaining nodes without UUIDs etc.
+				app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				 logger.error("Exception while trying to clean database: {}", t);
 			}
-
-			// delete remaining nodes without UUIDs etc.
-			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
-
-			tx.success();
-
-		} catch (Throwable t) {
-
-			 logger.error("Exception while trying to clean database: {}", t);
 		}
+	}
+
+	@After
+	public void enableCleaning() {
+		needsDatabaseCleanup = true;
+
 	}
 
 	@AfterClass
