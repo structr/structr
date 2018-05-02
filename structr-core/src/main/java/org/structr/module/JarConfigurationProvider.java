@@ -1207,15 +1207,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					String fileEntry = file.getAbsolutePath();
 
-					fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
-					fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
-					fileEntry = fileEntry.replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
+					if (fileEntry.endsWith(".class")) {
 
-					if (fileEntry.startsWith(".")) {
-						fileEntry = fileEntry.substring(1);
+						fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
+						fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
+						fileEntry = fileEntry.replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
+
+						if (fileEntry.startsWith(".")) {
+							fileEntry = fileEntry.substring(1);
+						}
+
+						classes.add(fileEntry);
 					}
-
-					classes.add(fileEntry);
 
 				} catch (Throwable t) {
 					// ignore
