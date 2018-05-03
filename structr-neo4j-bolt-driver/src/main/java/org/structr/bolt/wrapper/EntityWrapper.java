@@ -197,16 +197,27 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 	}
 
 	@Override
-	public void delete() throws NotInTransactionException {
+	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
 
 		assertNotStale();
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final Map<String, Object> map = new HashMap<>();
+		final StringBuilder buf       = new StringBuilder();
 
 		map.put("id", id);
 
-		tx.set(getQueryPrefix() + " WHERE ID(n) = {id} DELETE n", map);
+		buf.append(getQueryPrefix());
+		buf.append(" WHERE ID(n) = {id}");
+
+		if (deleteRelationships) {
+
+			buf.append(" DETACH");
+		}
+
+		buf.append(" DELETE n");
+
+		tx.set(buf.toString(), map);
 		tx.modified(this);
 
 		stale = true;

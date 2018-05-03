@@ -61,7 +61,7 @@ public class NodeWrapperTest {
 
 			final Relationship rel = node1.createRelationshipTo(node2, s.forName(RelationshipType.class, "TEST"));
 
-			rel.delete();
+			rel.delete(true);
 
 			tx.success();
 

@@ -79,7 +79,7 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 			finalRel.removeFromIndex();
 
 			// delete node in database
-			relToDelete.delete();
+			relToDelete.delete(true);
 		}
 
 		return null;

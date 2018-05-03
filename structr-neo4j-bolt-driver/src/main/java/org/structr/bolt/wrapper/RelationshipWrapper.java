@@ -134,9 +134,9 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	}
 
 	@Override
-	public void delete() {
+	public void delete(final boolean deleteRelationships) {
 
-		super.delete();
+		super.delete(deleteRelationships);
 		relationshipCache.remove(id);
 
 		final NodeWrapper startNode = (NodeWrapper)getStartNode();
