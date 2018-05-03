@@ -57,7 +57,6 @@ public abstract class FrontendTest extends StructrUiTest {
 		properties.put(StructrApp.key(User.class, "name"), ADMIN_USERNAME);
 		properties.put(StructrApp.key(User.class, "password"), ADMIN_PASSWORD);
 		properties.put(StructrApp.key(User.class, "isAdmin"), true);
-		properties.put(StructrApp.key(User.class, "backendUser"), true);
 
 		User user = null;
 

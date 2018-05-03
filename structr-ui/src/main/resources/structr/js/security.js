@@ -348,29 +348,26 @@ var _ResourceAccessGrants = {
 	refreshResourceAccesses: function() {
 		_Security.resourceAccesses.empty();
 
-		Structr.ensureIsAdmin(_Security.resourceAccesses, function() {
+		Structr.fetchHtmlTemplate('security/resource-access', {}, function (html) {
 
-			Structr.fetchHtmlTemplate('security/resource-access', {}, function (html) {
+			var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
 
-				var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
+			raPager.cleanupFunction = function () {
+				$('#resourceAccesses table tbody tr').remove();
+			};
 
-				raPager.cleanupFunction = function () {
-					$('#resourceAccesses table tbody tr').remove();
-				};
+			_Security.resourceAccesses.append(html);
 
-				_Security.resourceAccesses.append(html);
+			raPager.activateFilterElements(_Security.resourceAccesses);
 
-				raPager.activateFilterElements(_Security.resourceAccesses);
+			$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
+				_ResourceAccessGrants.addResourceGrant(e);
+			});
 
-				$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
+			$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
+				if (e.keyCode === 13) {
 					_ResourceAccessGrants.addResourceGrant(e);
-				});
-
-				$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
-					if (e.keyCode === 13) {
-						_ResourceAccessGrants.addResourceGrant(e);
-					}
-				});
+				}
 			});
 		});
 	},

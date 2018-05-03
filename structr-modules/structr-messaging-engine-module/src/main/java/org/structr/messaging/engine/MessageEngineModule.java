@@ -18,14 +18,33 @@
  */
 package org.structr.messaging.engine;
 
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
+import org.structr.messaging.engine.entities.MessageClient;
+import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.implementation.kafka.entity.KafkaClient;
+import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
 
-import java.util.Set;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 public class MessageEngineModule implements StructrModule {
+
+	private static final Logger logger = LoggerFactory.getLogger(MessageEngineModule.class.getName());
 
     @Override
     public void onLoad(LicenseManager licenseManager) {
@@ -62,5 +81,211 @@ public class MessageEngineModule implements StructrModule {
     @Override
     public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
     }
+
+    @Override
+    public boolean hasDeploymentData () {
+        return true;
+    }
+
+    @Override
+	public void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
+		final App app = StructrApp.getInstance();
+		final Path messagingEngineFile = target.resolve("messaging-engine.json");
+
+
+		final List<Map<String, Object>> entities = new LinkedList();
+		try (final Tx tx = app.tx()) {
+
+			for (final MessageSubscriber sub : app.nodeQuery(MessageSubscriber.class).sort(MessageSubscriber.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+
+				entry.put("type",sub.getType());
+				entry.put("id", sub.getUuid());
+				entry.put("name", sub.getName());
+				entry.put("topic", sub.getTopic());
+				entry.put("callback", sub.getCallback());
+
+				entities.add(entry);
+			}
+
+
+			for (final MessageClient client : app.nodeQuery(MessageClient.class).andType(MessageClient.class).and("type", "MessageClient").sort(MessageClient.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+
+				entry.put("type",client.getType());
+				entry.put("name", client.getName());
+
+				List<String> subIds = new ArrayList<>();
+				for (MessageSubscriber sub : client.getSubscribers()) {
+					subIds.add(sub.getUuid());
+				}
+
+				entry.put("subscribers", subIds);
+
+				entities.add(entry);
+
+			}
+
+			for (final MQTTClient client : app.nodeQuery(MQTTClient.class).andType(MQTTClient.class).sort(MQTTClient.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+
+				entry.put("type",client.getType());
+				entry.put("name", client.getName());
+
+				entry.put("protocol", client.getProtocol());
+				entry.put("url", client.getUrl());
+				entry.put("port", client.getPort());
+				entry.put("qos", client.getQos());
+				entry.put("isEnabled", client.getIsEnabled());
+
+				List<String> subIds = new ArrayList<>();
+				for (MessageSubscriber sub : client.getSubscribers()) {
+					subIds.add(sub.getUuid());
+				}
+
+				entry.put("subscribers", subIds);
+
+				entities.add(entry);
+
+			}
+
+			for (final KafkaClient client : app.nodeQuery(KafkaClient.class).andType(KafkaClient.class).sort(KafkaClient.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+
+				entry.put("type",client.getType());
+				entry.put("name", client.getProperty(KafkaClient.name));
+
+				entry.put("servers", client.getServers());
+				entry.put("groupId", client.getGroupId());
+
+				List<String> subIds = new ArrayList<>();
+				for (MessageSubscriber sub : client.getSubscribers()) {
+					subIds.add(sub.getUuid());
+				}
+
+				entry.put("subscribers", subIds);
+
+				entities.add(entry);
+
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(messagingEngineFile.toFile()))) {
+
+			gson.toJson(entities, fos);
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
+		}
+	}
+
+	@Override
+	public void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
+
+		final Path messagingEngineConf = source.resolve("messaging-engine.json");
+		if (Files.exists(messagingEngineConf)) {
+
+			logger.info("Reading {}..", messagingEngineConf);
+
+			try (final Reader reader = Files.newBufferedReader(messagingEngineConf, Charset.forName("utf-8"))) {
+
+				final List<Map<String, Object>> entities = gson.fromJson(reader, List.class);
+
+				final SecurityContext context = SecurityContext.getSuperUserInstance();
+				context.setDoTransactionNotifications(false);
+
+				final App app = StructrApp.getInstance(context);
+
+				try (final Tx tx = app.tx()) {
+
+					for (final MessageClient toDelete : app.nodeQuery(MessageClient.class).getAsList()) {
+						app.delete(toDelete);
+					}
+
+					for (final KafkaClient toDelete : app.nodeQuery(KafkaClient.class).getAsList()) {
+						app.delete(toDelete);
+					}
+
+					for (final MQTTClient toDelete : app.nodeQuery(MQTTClient.class).getAsList()) {
+						app.delete(toDelete);
+					}
+
+					for (final MessageSubscriber toDelete : app.nodeQuery(MessageSubscriber.class).getAsList()) {
+						app.delete(toDelete);
+					}
+
+					for (Map<String, Object> entry : entities) {
+
+						List<String> subIds = null;
+						if (entry.containsKey("subscribers")) {
+							subIds = (List<String>)entry.get("subscribers");
+							entry.remove("subscribers");
+						}
+
+						final PropertyMap map;
+						MessageClient client;
+						switch ((String)entry.get("type")) {
+							case "MessageClient":
+								map = PropertyMap.inputTypeToJavaType(context, MessageClient.class, entry);
+								client = app.create(MessageClient.class, map);
+								client.setSubscribers(getSubscribersByIds(subIds));
+								break;
+							case "KafkaClient":
+								map = PropertyMap.inputTypeToJavaType(context, KafkaClient.class, entry);
+								client = app.create(KafkaClient.class, map);
+								client.setSubscribers(getSubscribersByIds(subIds));
+								break;
+							case "MQTTClient":
+								map = PropertyMap.inputTypeToJavaType(context, MQTTClient.class, entry);
+								client = app.create(MQTTClient.class, map);
+								client.setSubscribers(getSubscribersByIds(subIds));
+								break;
+							case "MessageSubscriber":
+								map = PropertyMap.inputTypeToJavaType(context, MessageSubscriber.class, entry);
+								app.create(MessageSubscriber.class, map);
+								break;
+						}
+
+					}
+
+					tx.success();
+				}
+
+			} catch (IOException ioex) {
+				logger.warn("", ioex);
+			}
+		}
+
+	}
+
+	private List<MessageSubscriber> getSubscribersByIds(List<String> ids) {
+
+    	List<MessageSubscriber> result = new ArrayList<>();
+
+    	if (ids != null && ids.size() > 0) {
+
+			final App app = StructrApp.getInstance();
+			try (Tx tx = app.tx()) {
+
+				for (String id : ids) {
+					MessageSubscriber sub = (MessageSubscriber) app.getNodeById(MessageSubscriber.class, id);
+					result.add(sub);
+				}
+
+			} catch (FrameworkException ex) {
+
+				logger.error("MessageEngineModule: getSubscribersById error while getting subs by id: " + ex.getMessage());
+			}
+
+		}
+
+		return result;
+	}
 
 }

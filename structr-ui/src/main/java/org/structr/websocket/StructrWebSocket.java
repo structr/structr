@@ -46,7 +46,6 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.File;
-import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.FileUploadHandler;
 import org.structr.websocket.command.LoginCommand;
@@ -433,7 +432,7 @@ public class StructrWebSocket implements WebSocketListener {
 			try {
 
 				synchronized (this) {
-				
+
 					final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
 
 					if (sessionValid) {
@@ -520,7 +519,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public boolean isPrivilegedUser(Principal user) {
 
-		return (user != null && (user.isAdmin() || (user instanceof User && ((User)user).isBackendUser())));
+		return (user != null && user.isAdmin());
 
 	}
 

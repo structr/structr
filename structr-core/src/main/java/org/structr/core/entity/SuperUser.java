@@ -191,12 +191,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	}
 
-	public boolean isBackendUser() {
-
-		return (true);
-
-	}
-
 	@Override
 	public boolean shouldSkipSecurityRelationships() {
 		return true;
@@ -215,8 +209,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	public void setConfirmationKey(String value) throws FrameworkException {}
-
-	public void setBackendUser(boolean isBackendUser) throws FrameworkException {}
 
 	@Override
 	public Object setProperty(PropertyKey key, Object value) throws FrameworkException {

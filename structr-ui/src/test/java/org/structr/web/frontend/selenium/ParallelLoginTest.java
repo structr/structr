@@ -34,9 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.web.basic.FrontendTest;
 import org.structr.web.frontend.selenium.SeleniumTest.SupportedBrowsers;
 
-/**
- * Parallel login login tests
- */
+
 public class ParallelLoginTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ParallelLoginTest.class.getName());
@@ -56,8 +54,9 @@ public class ParallelLoginTest extends FrontendTest {
 		final int waitForSec              = 30 * 8;
 
 		// Typically, one login is done in under about 2 seconds on faster machines so let's wait double the time plus once the timeout
-		final long waitAtEnd = ((numberOfRequests / numberOfParallelThreads * 2) * 2) + waitForSec;
-		
+//		final long waitAtEnd = ((numberOfRequests / numberOfParallelThreads * 2) * 2) + waitForSec;
+		final long waitAtEnd = waitForSec * 2;
+
 		final ExecutorService service = Executors.newFixedThreadPool(numberOfParallelThreads);
 		final List<Future<Exception>> results = new ArrayList<>();
 
@@ -82,21 +81,21 @@ public class ParallelLoginTest extends FrontendTest {
 				try {
 					long t0 = System.currentTimeMillis();
 
-					
+
 					// Wait for successful login
 					SeleniumTest.loginAsAdmin(menuEntry, localDriver, waitForSec);
-					
+
 					long t1 = System.currentTimeMillis();
-					
+
 					logger.info("Successful login after " + (t1-t0) + " ms  with thread " +  Thread.currentThread().toString());
-					
+
 				} catch (Exception ex) {
 					logger.error("Error in nested test in thread " +  Thread.currentThread().toString(), ex);
 					return ex;
 				} finally {
 					localDriver.quit();
 				}
-				
+
 				localDriver = null;
 
 				return null;
@@ -107,34 +106,34 @@ public class ParallelLoginTest extends FrontendTest {
 
 		int r = 0;
 		long t0 = System.currentTimeMillis();
-		
+
 		for (final Future<Exception> result : results) {
 
 			try {
-				
+
 				long t1 = System.currentTimeMillis();
 				Exception res = result.get();
 				long t2 = System.currentTimeMillis();
 				r++;
 
 				logger.info(r + ": Got result from future after " + (t2-t1) + " ms");
-				
+
 				assertNull(res);
-				
-				
+
+
 			} catch (final InterruptedException | ExecutionException ex) {
 				logger.error("Error while checking result of nested test", ex);
 			}
 		}
-		
+
 		long t3 = System.currentTimeMillis();
-		
+
 		logger.info("Got all results within " + (t3-t0)/1000 + " s");
 
 		service.shutdown();
 
 		logger.info("Waiting " + waitAtEnd + " s to allow login processes to finish before stopping the instance");
-		
+
 		try {
 			Thread.sleep(waitAtEnd * 1000);
 		} catch (InterruptedException ex) {}
