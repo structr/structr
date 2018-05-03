@@ -201,7 +201,7 @@ public class BasicTest extends StructrTest {
 
 			try {
 				// try to delete relationship
-				rel.getRelationship().delete();
+				rel.getRelationship().delete(true);
 
 				fail("Should have raised an org.neo4j.graphdb.NotInTransactionException");
 			} catch (NotInTransactionException e) {}

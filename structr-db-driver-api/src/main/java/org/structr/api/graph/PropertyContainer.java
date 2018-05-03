@@ -37,7 +37,7 @@ public interface PropertyContainer {
 
 	Iterable<String> getPropertyKeys();
 
-	void delete() throws NotInTransactionException;
+	void delete(final boolean deleteRelationships) throws NotInTransactionException;
 
 	boolean isSpatialEntity();
 }

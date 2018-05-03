@@ -321,7 +321,7 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public void delete() throws NotInTransactionException {
+	public void delete(final boolean deleteRelationships) throws NotInTransactionException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
