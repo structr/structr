@@ -322,10 +322,10 @@ public class LDAPService extends Thread implements RunnableService {
 		this.binddn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BINDDN).getValue("");
 		this.secret         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SECRET).getValue("");
 
-		this.host           = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST, "localhost").getValue();
-		this.baseDn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN, "ou=system").getValue();
-		this.filter         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_FILTER, "(objectclass=*)").getValue();
-		this.scope          = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE, "SUBTREE").getValue();
+		this.host           = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_HOST).getValue("localhost");
+		this.baseDn         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_BASEDN).getValue("");
+		this.filter         = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_FILTER).getValue("(objectclass=*)");
+		this.scope          = Settings.getOrCreateStringSetting(CONFIG_KEY_LDAP_SCOPE).getValue("SUBTREE");
 
 		this.port           = Settings.getOrCreateIntegerSetting(CONFIG_KEY_LDAP_PORT).getValue(339);
 		this.useSsl         = Settings.getOrCreateBooleanSetting(CONFIG_KEY_LDAP_SSL).getValue(true);
