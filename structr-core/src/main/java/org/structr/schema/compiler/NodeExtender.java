@@ -21,6 +21,7 @@ package org.structr.schema.compiler;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -29,6 +30,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -197,8 +199,16 @@ public class NodeExtender {
 
 				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
 
+				String src = ((CharSequenceJavaFileObject) diagnostic.getSource()).getCharContent(true).toString();
+
+				// Add line numbers
+				final AtomicInteger index = new AtomicInteger();
+				src = Arrays.asList(src.split("\\R")).stream()
+					.map(line -> (index.getAndIncrement()+1) + ": " + line)
+					.collect(Collectors.joining("\n"));
+				
 				// log also to log file
-				logger.warn("Unable to compile dynamic entity {}:{}: {}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH));
+				logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), src);
 			}
 		}
 	}

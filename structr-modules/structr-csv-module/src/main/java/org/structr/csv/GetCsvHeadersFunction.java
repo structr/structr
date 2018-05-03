@@ -25,9 +25,6 @@ import org.apache.commons.csv.QuoteMode;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
-/**
- *
- */
 public class GetCsvHeadersFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${get_csv_headers(source[, delimiter[, quoteChar[, recordSeparator]]])}. Example: ${get_csv_headers('COL1;COL2;COL3\none;two;three')}";
@@ -41,7 +38,9 @@ public class GetCsvHeadersFunction extends UiFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 4);
 
 			try {
 
@@ -78,18 +77,15 @@ public class GetCsvHeadersFunction extends UiFunction {
 			} catch (Throwable t) {
 
 				logException(t, "{}: Exception for parameter: {}", new Object[] { getName(), getParametersAsString(sources) });
-
 			}
 
 			return "";
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override

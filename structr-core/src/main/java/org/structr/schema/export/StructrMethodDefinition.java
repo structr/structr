@@ -252,7 +252,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
 		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
 		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
-		getOrCreateProperties.put(SchemaMethod.source,                getSource());
 		getOrCreateProperties.put(SchemaMethod.comment,               getComment());
 		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
 		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
@@ -265,7 +264,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			method = app.create(SchemaMethod.class, getOrCreateProperties);
 		}
 
+		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
+		
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// create database schema for method parameters

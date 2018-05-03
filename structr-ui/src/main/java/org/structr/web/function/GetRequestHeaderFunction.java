@@ -20,11 +20,10 @@ package org.structr.web.function;
 
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 
-/**
- *
- */
 public class GetRequestHeaderFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER    = "Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}";
@@ -39,10 +38,8 @@ public class GetRequestHeaderFunction extends UiFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
-			
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final String name = sources[0].toString();
@@ -58,12 +55,15 @@ public class GetRequestHeaderFunction extends UiFunction {
 
 			return "";
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
@@ -76,5 +76,4 @@ public class GetRequestHeaderFunction extends UiFunction {
 	public String shortDescription() {
 		return "Returns the value of the given request header field";
 	}
-
 }

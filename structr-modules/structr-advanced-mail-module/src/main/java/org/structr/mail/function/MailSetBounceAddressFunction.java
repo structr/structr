@@ -23,23 +23,28 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class MailSetBounceAddressFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_set_bounce_address(bounceAddress)}";
 	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_bounce_address(bounceAddress)}";
 
-
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 1)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
-			amc.setBounce(sources[0].toString());
-		}
+			amc.setBounceAddress(sources[0].toString());
 
-		return "";
+			return "";
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
 	}
 
 	@Override
@@ -56,5 +61,4 @@ public class MailSetBounceAddressFunction extends Function<Object, Object> {
 	public String getName() {
 		return "mail_add_to()";
 	}
-
 }

@@ -41,7 +41,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -1052,7 +1052,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				return false;
 			}
 
-		} catch (UnlicensedException|FrameworkException ex) {
+		} catch (UnlicensedScriptException |FrameworkException ex) {
 			logger.error("Hide conditions " + _hideConditions + " could not be evaluated.", ex);
 		}
 		try {
@@ -1061,7 +1061,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				return false;
 			}
 
-		} catch (UnlicensedException|FrameworkException ex) {
+		} catch (UnlicensedScriptException |FrameworkException ex) {
 			logger.error("Show conditions " + _showConditions + " could not be evaluated.", ex);
 		}
 

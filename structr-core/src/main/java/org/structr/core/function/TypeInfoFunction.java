@@ -33,28 +33,19 @@ public class TypeInfoFunction extends Function<Object, Object> {
 
 		try {
 
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-				final String typeName = sources[0].toString();
-				final Class type = SchemaHelper.getEntityClassForRawType(typeName);
-				final String viewName = (sources.length == 2 ? sources[1].toString() : null);
+			final String typeName = sources[0].toString();
+			final Class type      = SchemaHelper.getEntityClassForRawType(typeName);
+			final String viewName = (sources.length == 2 ? sources[1].toString() : null);
 
-				return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
+			return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
 
-			} else {
+		} catch (IllegalArgumentException e) {
 
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
-
-			}
-
-		} catch (final IllegalArgumentException e) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
 
 	@Override
@@ -71,5 +62,4 @@ public class TypeInfoFunction extends Function<Object, Object> {
 	public String getName() {
 		return "type_info()";
 	}
-
 }

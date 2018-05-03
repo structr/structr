@@ -22,18 +22,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class ReadFunction extends Function<Object, Object> {
-
-	private static final Logger logger = LoggerFactory.getLogger(ReadFunction.class.getName());
 
 	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 
@@ -46,43 +41,39 @@ public class ReadFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-		
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
 
-			try {
-				final String sandboxFilename = getSandboxFileName(sources[0].toString());
-				if (sandboxFilename != null) {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-					final File file = new File(sandboxFilename);
-					if (file.exists() && file.length() < 10000000) {
+			final String sandboxFilename = getSandboxFileName(sources[0].toString());
+			if (sandboxFilename != null) {
 
-						try (final FileInputStream fis = new FileInputStream(file)) {
+				final File file = new File(sandboxFilename);
+				if (file.exists()) {
 
-							return IOUtils.toString(fis, "utf-8");
-						}
+					try (final FileInputStream fis = new FileInputStream(file)) {
+
+						return IOUtils.toString(fis, "utf-8");
 					}
 				}
-
-			} catch (IOException ioex) {
-
-				logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
-
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (IOException ioex) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logException(ioex, "{}: IOException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
 
+		} catch (ArgumentNullException pe) {
+
+			// silently ignore null arguments
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
 		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -93,5 +84,4 @@ public class ReadFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Reads and returns the contents of the given file from the exchange directoy";
 	}
-
 }

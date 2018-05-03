@@ -36,34 +36,25 @@ public class InheritingTypesFunction extends Function<Object, Object> {
 
 		try {
 
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-				final String typeName = sources[0].toString();
-				final Class type = SchemaHelper.getEntityClassForRawType(typeName);
-				final ArrayList inheritants = new ArrayList();
+			final String typeName = sources[0].toString();
+			final Class type = SchemaHelper.getEntityClassForRawType(typeName);
+			final ArrayList inheritants = new ArrayList();
 
-				inheritants.addAll(SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName()));
+			inheritants.addAll(SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName()));
 
-				if (sources.length == 2) {
-					inheritants.removeAll((List)sources[1]);
-				}
-
-				return inheritants;
-
-			} else {
-
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
-
+			if (sources.length == 2) {
+				inheritants.removeAll((List)sources[1]);
 			}
 
-		} catch (final IllegalArgumentException e) {
+			return inheritants;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
 
 	@Override
@@ -80,5 +71,4 @@ public class InheritingTypesFunction extends Function<Object, Object> {
 	public String getName() {
 		return "inheriting_types()";
 	}
-
 }

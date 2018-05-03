@@ -18,14 +18,13 @@
  */
 package org.structr.web.function;
 
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.dom.DOMNode;
 
-/**
- *
- */
 public class UnescapeHtmlFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_UNESCAPE_HTML    = "Usage: ${unescape_html(text)}. Example: ${unescape_html(\"test &amp; test\")}";
@@ -40,22 +39,21 @@ public class UnescapeHtmlFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			return DOMNode.unescapeForHtmlAttributes(sources[0].toString());
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
 
 	@Override
@@ -67,5 +65,4 @@ public class UnescapeHtmlFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "";
 	}
-
 }

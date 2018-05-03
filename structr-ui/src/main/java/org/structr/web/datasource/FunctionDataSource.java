@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.Function;
@@ -60,7 +60,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
 			}
 
-		} catch (UnlicensedException ex) {
+		} catch (UnlicensedScriptException ex) {
 			ex.log(LoggerFactory.getLogger(FunctionDataSource.class));
 		}
 

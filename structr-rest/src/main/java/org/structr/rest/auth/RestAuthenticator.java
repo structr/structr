@@ -335,10 +335,10 @@ public class RestAuthenticator implements Authenticator {
 				AuthHelper.doLogout(request, user);
 			}
 
-			final HttpSession session = request.getSession(false);
-			if (session != null) {
+			final String sessionId = request.getRequestedSessionId();
+			if (sessionId != null) {
 				
-				SessionHelper.invalidateSession(session);
+				SessionHelper.invalidateSession(sessionId);
 			}
 
 		} catch (IllegalStateException | FrameworkException ex) {

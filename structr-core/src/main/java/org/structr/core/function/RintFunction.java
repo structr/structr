@@ -19,13 +19,12 @@
 package org.structr.core.function;
 
 import java.util.Random;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class RintFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_RINT = "Usage: ${rint(range)}. Example: ${rint(1000)}";
@@ -39,33 +38,34 @@ public class RintFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-		
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof Number)) {
-				
-				return null;
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			if (sources[0] instanceof Number) {
+
+				try {
+
+					return new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
+
+				} catch (Throwable t) {
+
+					logException(caller, t, sources);
+					return "";
+				}
 			}
 
-			try {
+		} catch (ArgumentNullException pe) {
 
-				return new Random(System.currentTimeMillis()).nextInt(((Number)sources[0]).intValue());
+			// silently ignore null arguments
 
-			} catch (Throwable t) {
+		} catch (ArgumentCountException pe) {
 
-				logException(caller, t, sources);
-
-			}
-
-		} catch (final IllegalArgumentException e) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
-		return "";
+		return null;
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -76,5 +76,4 @@ public class RintFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns a random integer in the given range";
 	}
-
 }

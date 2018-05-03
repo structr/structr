@@ -46,7 +46,6 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.File;
-import org.structr.web.entity.User;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.FileUploadHandler;
 import org.structr.websocket.command.LoginCommand;
@@ -362,7 +361,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		} catch (Throwable t) {
 			// ignore
-			logger.debug("Unable to send websocket message to remote client");
+			logger.info("Unable to send websocket message to remote client");
 		}
 
 	}
@@ -432,27 +431,29 @@ public class StructrWebSocket implements WebSocketListener {
 
 			try {
 
-				final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
+				synchronized (this) {
 
-				if (sessionValid) {
+					final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
 
-					logger.debug("Valid session: " + sessionId);
-					setAuthenticated(sessionId, user);
+					if (sessionValid) {
 
-				} else {
+						logger.debug("Valid session: " + sessionId);
+						setAuthenticated(sessionId, user);
 
-					logger.warn("Session {} timed out - last accessed by {} ({})", sessionId, user.getName(), user.getUuid());
+					} else {
 
-					SessionHelper.clearSession(sessionId);
+						logger.warn("Session {} timed out - last accessed by {} ({})", sessionId, user.getName(), user.getUuid());
 
-					SessionHelper.invalidateSession(SessionHelper.getSessionBySessionId(sessionId));
+						SessionHelper.clearSession(sessionId);
+						SessionHelper.invalidateSession(sessionId);
 
-					AuthHelper.sendLogoutNotification(user);
+						AuthHelper.sendLogoutNotification(user);
 
-					invalidateConsole();
+						invalidateConsole();
 
-					timedOut = true;
+						timedOut = true;
 
+					}
 				}
 
 			} catch (FrameworkException ex) {
@@ -518,7 +519,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 	public boolean isPrivilegedUser(Principal user) {
 
-		return (user != null && (user.isAdmin() || (user instanceof User && ((User)user).isBackendUser())));
+		return (user != null && user.isAdmin());
 
 	}
 

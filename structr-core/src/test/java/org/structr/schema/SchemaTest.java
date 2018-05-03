@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
@@ -674,6 +675,34 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testInheritedSchemaPropertyResolution() {
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		// create "invalid" schema configuration
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Test");
+
+			type.setExtends(schema.getType("File"));
+
+			type.addViewProperty(PropertyView.Public, "children");
+
+			// add new type
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		Settings.LogSchemaOutput.setValue(false);
 	}
 
 	// ----- private methods -----

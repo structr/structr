@@ -42,6 +42,9 @@ public interface LicenseManager {
 	boolean isValid(final CodeSigner[] codeSigners);
 
 	boolean isModuleLicensed(final String module);
+	boolean isClassLicensed(final String fqcn);
+
+	void addLicensedClass(final String fqcn);
 
 	/**
 	 * Returns the highest edition represented by this bitmask.

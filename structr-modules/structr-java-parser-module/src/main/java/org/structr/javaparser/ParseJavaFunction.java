@@ -21,15 +21,14 @@ package org.structr.javaparser;
 import com.github.javaparser.ParseProblemException;
 import com.google.gson.GsonBuilder;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class ParseJavaFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_PARSE_JAVA = "Usage: ${parse_java(javaSource)}";
@@ -44,36 +43,36 @@ public class ParseJavaFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-				return null;
-			}
+			if (sources[0] instanceof String) {
 
-			try {
 				final SecurityContext securityContext = ctx.getSecurityContext();
 				final App app                         = StructrApp.getInstance(securityContext);
-			
+
 				// Parse string as Java code
-				final String resultJson = new GsonBuilder().setPrettyPrinting().create()
-					.toJson(new JavaParserModule(app).parse((String) sources[0]).get());
-				
+				final String resultJson = new GsonBuilder().setPrettyPrinting().create().toJson(new JavaParserModule(app).parse((String) sources[0]).get());
+
 				return resultJson;
-				
-			} catch (final ParseProblemException ex) {
-				
-				logException(caller, ex, sources);
-				
 			}
 
-		} catch (final IllegalArgumentException e) {
+			return null;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (final ParseProblemException ex) {
 
+			logException(caller, ex, sources);
+			return "";
+
+		} catch (ArgumentNullException pe) {
+
+			// silently ignore null arguments
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-		
-		return "";
 	}
 
 	@Override

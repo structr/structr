@@ -18,15 +18,14 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class CreateRelationshipFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP    = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
@@ -41,10 +40,8 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 3)) {
-				
-				return "";
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			final Object source = sources[0];
 			final Object target = sources[1];
@@ -76,16 +73,17 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 				return "Error: Unknown relationship type";
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return "";
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
-
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -96,5 +94,4 @@ public class CreateRelationshipFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Creates a relationship of the given type between two entities";
 	}
-
 }

@@ -401,31 +401,72 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					final Object searchValue = entry.getValue();
 					final Class relatedType  = key.relatedType();
 
-					if (relatedType != null && searchValue instanceof Map) {
+					if (searchValue instanceof Map) {
 
-						final PropertyKey searchPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(key.relatedType(), searchKey, false);
-						if (searchPropertyKey != null) {
+						final Map<String, Object> searchMap = (Map)searchValue;
+						final String contains               = (String)searchMap.get("_contains");
+						final String equals                 = (String)searchMap.get("_equals");
 
-							final Query<GraphObject> query      = StructrApp.getInstance(securityContext).nodeQuery(relatedType);
-							final Map<String, Object> searchMap = (Map)searchValue;
-							final String contains               = (String)searchMap.get("_contains");
-							final String equals                 = (String)searchMap.get("_equals");
+						if (relatedType != null) {
+
+							// relationship property
+							final PropertyKey searchPropertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(key.relatedType(), searchKey, false);
+							if (searchPropertyKey != null) {
+
+								final Query<GraphObject> query = StructrApp.getInstance(securityContext).nodeQuery(relatedType);
+								boolean exactMatch             = true;
+
+								if (equals != null) {
+
+									query.and(searchPropertyKey, equals);
+									exactMatch = true;
+
+								} else if (contains != null) {
+
+									query.and(searchPropertyKey, contains, false);
+									exactMatch = false;
+								}
+
+								// add sources that will be merge later on
+								if (key.isCollection()) {
+
+									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, query.getAsList(), exactMatch, null), Occurrence.REQUIRED);
+
+								} else {
+
+									for (final GraphObject candidate : query.getAsList()) {
+
+										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, exactMatch, null), Occurrence.REQUIRED);
+									}
+								}
+							}
+
+						} else {
 
 							if (equals != null) {
 
-								query.and(searchPropertyKey, equals);
+								// primitive property
+								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, equals, true, null), Occurrence.REQUIRED);
 
 							} else if (contains != null) {
 
-								query.and(searchPropertyKey, contains, false);
-							}
-
-							for (final GraphObject candidate : query.getAsList()) {
-
-								// add sources that will be merge later on
-								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, true, null), Occurrence.REQUIRED);
+								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, contains, false, null), Occurrence.REQUIRED);
 							}
 						}
+
+					} else {
+
+						switch (searchKey) {
+
+							case "_contains":
+								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, false, null), Occurrence.REQUIRED);
+								break;
+
+							case "_equals":
+								addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, searchValue, true, null), Occurrence.REQUIRED);
+								break;
+						}
+
 					}
 				}
 			}

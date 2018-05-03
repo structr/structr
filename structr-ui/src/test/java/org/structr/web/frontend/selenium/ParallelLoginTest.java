@@ -31,35 +31,43 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.web.basic.SeleniumTest;
+import org.structr.web.basic.FrontendTest;
+import org.structr.web.frontend.selenium.SeleniumTest.SupportedBrowsers;
 
-/**
- * Parallel login login tests
- */
-public class ParallelLoginTest extends SeleniumTest {
+
+public class ParallelLoginTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ParallelLoginTest.class.getName());
-
-	static {
-		activeBrowser = SupportedBrowsers.NONE;
-	}
 
 	@Test
 	public void testParallelLogin() {
 
-		// Wait for the backend to finish initialization
-		try {
-			Thread.sleep(10000L);
-		} catch (InterruptedException ex) {}
+//		// Wait for the backend to finish initialization
+//		try {
+//			Thread.sleep(1000L);
+//		} catch (InterruptedException ex) {}
 
 		createAdminUser();
 
 		final int numberOfRequests        = 1000;
-		final int numberOfParallelThreads = 8;
-		final int waitForSec              = 60;
+		final int numberOfParallelThreads = 2;
+		final int waitForSec              = 30 * 8;
+
+		// Typically, one login is done in under about 2 seconds on faster machines so let's wait double the time plus once the timeout
+//		final long waitAtEnd = ((numberOfRequests / numberOfParallelThreads * 2) * 2) + waitForSec;
+		final long waitAtEnd = waitForSec * 2;
 
 		final ExecutorService service = Executors.newFixedThreadPool(numberOfParallelThreads);
 		final List<Future<Exception>> results = new ArrayList<>();
+
+		final String menuEntry = "Pages";
+
+		System.setProperty("webdriver.chrome.driver", SeleniumTest.getBrowserDriverLocation(SupportedBrowsers.CHROME));
+
+		final ChromeOptions chromeOptions = new ChromeOptions();
+		chromeOptions.setHeadless(true);
+
+
 
 		for (int i = 0; i< numberOfRequests; i++) {
 
@@ -68,30 +76,27 @@ public class ParallelLoginTest extends SeleniumTest {
 				//System.out.println(SimpleDateFormat.getDateInstance().format(new Date()) + " Login attempt from thread " + Thread.currentThread().toString());
 				logger.info("Login attempt from thread " + Thread.currentThread().toString());
 
-				final String menuEntry = "Pages";
-
-				System.setProperty("webdriver.chrome.driver", getBrowserDriverLocation(SupportedBrowsers.CHROME));
-
-				final ChromeOptions chromeOptions = new ChromeOptions();
-				chromeOptions.setHeadless(true);
-				WebDriver driver = new ChromeDriver(chromeOptions);
+				WebDriver localDriver = new ChromeDriver(chromeOptions);
 
 				try {
 					long t0 = System.currentTimeMillis();
-					
+
+
 					// Wait for successful login
-					loginAsAdmin(menuEntry, driver, waitForSec);
-					
+					SeleniumTest.loginAsAdmin(menuEntry, localDriver, waitForSec);
+
 					long t1 = System.currentTimeMillis();
-					
+
 					logger.info("Successful login after " + (t1-t0) + " ms  with thread " +  Thread.currentThread().toString());
-					
+
 				} catch (Exception ex) {
 					logger.error("Error in nested test in thread " +  Thread.currentThread().toString(), ex);
 					return ex;
 				} finally {
-					driver.quit();
+					localDriver.quit();
 				}
+
+				localDriver = null;
 
 				return null;
 			});
@@ -100,36 +105,39 @@ public class ParallelLoginTest extends SeleniumTest {
 		}
 
 		int r = 0;
-		
+		long t0 = System.currentTimeMillis();
+
 		for (final Future<Exception> result : results) {
 
 			try {
-				
-				long t0 = System.currentTimeMillis();
-				Exception res = result.get();
+
 				long t1 = System.currentTimeMillis();
+				Exception res = result.get();
+				long t2 = System.currentTimeMillis();
 				r++;
-				if (res != null) {
-					
-					logger.error(r + ": Got " + res + " from future after " + (t1-t0) + " ms");
-					
-					assertNull(result.get());
-					
-					break;
-				}
-				
+
+				logger.info(r + ": Got result from future after " + (t2-t1) + " ms");
+
+				assertNull(res);
+
+
 			} catch (final InterruptedException | ExecutionException ex) {
 				logger.error("Error while checking result of nested test", ex);
 			}
 		}
 
+		long t3 = System.currentTimeMillis();
+
+		logger.info("Got all results within " + (t3-t0)/1000 + " s");
+
 		service.shutdown();
 
+		logger.info("Waiting " + waitAtEnd + " s to allow login processes to finish before stopping the instance");
+
 		try {
-			// Typically, one login is done in under about 2 seconds, so we assume non-parallel execution and add the waiting time
-			Thread.sleep(1000L);
-			//Thread.sleep((numberOfRequests * 2000) + (waitForSec*1000));
+			Thread.sleep(waitAtEnd * 1000);
 		} catch (InterruptedException ex) {}
+
 
 	}
 

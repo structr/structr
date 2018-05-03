@@ -18,13 +18,12 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class IntFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_INT = "Usage: ${int(string)}. Example: ${int(this.numericalStringValue)}";
@@ -38,32 +37,31 @@ public class IntFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (sources[0] instanceof Number) {
 				return ((Number)sources[0]).intValue();
 			}
 
-			try {
-				return getDoubleOrNull(sources[0]).intValue();
+			return getDoubleOrNull(sources[0]).intValue();
 
-			} catch (Throwable t) {
+		} catch (ArgumentNullException pe) {
 
-				logException(caller, t, sources);
-				return null;
-			}
+			// silently ignore null arguments
+			return null;
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentCountException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
+		} catch (Throwable t) {
+
+			logException(caller, t, sources);
+			return null;
 		}
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -74,5 +72,4 @@ public class IntFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Converts the given string to an integer";
 	}
-
 }

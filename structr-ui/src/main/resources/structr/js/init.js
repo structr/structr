@@ -395,7 +395,7 @@ var Structr = {
 			_Logger.log(_LogType.INIT, 'lastMenuEntry', lastMenuEntry);
 			Structr.doActivateModule(lastMenuEntry);
 			Structr.updateVersionInfo();
-			
+
 			callback();
 		});
 	},
@@ -1082,18 +1082,6 @@ var Structr = {
 			}
 		});
 		LSWrapper.removeItem(activeTabKey);
-	},
-	ensureIsAdmin: function(el, callback) {
-		Structr.ping(function() {
-			if (!isAdmin) {
-				Structr.error('You do not have sufficient permissions<br>to access this function.', true);
-				el.append('<div class="errorText"><i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '" /> You do not have sufficient permissions to access this function.</div>');
-			} else {
-				if (callback) {
-					callback();
-				}
-			}
-		});
 	},
 	updateVersionInfo: function() {
 		$.get(rootUrl + '_env', function(data) {

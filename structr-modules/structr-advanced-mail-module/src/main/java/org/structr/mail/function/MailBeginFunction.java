@@ -26,53 +26,54 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
-
 public class MailBeginFunction extends Function<Object, Object> {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_begin(fromAddress, fromName, subject, htmlContent[, textContent][, files])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_begin(type[, view])}";
-
+	public final String ERROR_MESSAGE    = "Usage: ${mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 4, 6)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 6);
 
 			final AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 
-			final String from = sources[0].toString();
-			final String fromName = sources[1].toString();
-			final String subject = sources[2].toString();
-			final String htmlContent = sources[3].toString();
-			String textContent = "";
+			// clear current mail container in case it has been used before in the same scripting environment
+			amc.clearMailContainer();
 
-			if (sources.length >= 5) {
-				textContent = sources[4].toString();
-			}
+			switch (sources.length) {
+				case 6: {
+					if (sources[5] instanceof List && ((List) sources[5]).size() > 0 && ((List) sources[5]).get(0) instanceof File) {
 
-			amc.init(from, fromName, subject, htmlContent, textContent);
+						for (File fileNode : (List<File>) sources[5]) {
 
-			if (sources.length == 6 && sources[5] instanceof List && ((List) sources[5]).size() > 0 && ((List) sources[5]).get(0) instanceof File) {
+							try {
 
-				for (File fileNode : (List<File>) sources[5]) {
+								MailAddAttachmentFunction.addAttachment(amc, fileNode);
 
-					try {
+							} catch (MalformedURLException ex) {
 
-						MailAddAttachmentFunction.addAttachment(amc, fileNode);
-
-					} catch (MalformedURLException ex) {
-
-						logException(caller, ex, sources);
+								logException(caller, ex, sources);
+							}
+						}
 					}
 				}
+				case 5: amc.setTextContent(sources[4].toString());
+				case 4: amc.setHtmlContent(sources[3].toString());
+				case 3: amc.setSubject(sources[2].toString());
+				case 2: amc.setFromName(sources[1].toString());
+				case 1: amc.setFromAddress(sources[0].toString());
 			}
 
-		} else {
+			return "";
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override

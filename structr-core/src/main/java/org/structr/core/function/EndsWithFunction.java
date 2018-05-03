@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class EndsWithFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_ENDS_WITH = "Usage: ${ends_with(string, suffix)}. Example: ${ends_with(locale, \"de\")}";
@@ -35,20 +34,20 @@ public class EndsWithFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final String searchString = sources[0].toString();
 			final String suffix       = sources[1].toString();
 
 			return searchString.endsWith(suffix);
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override

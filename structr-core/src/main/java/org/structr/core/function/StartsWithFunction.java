@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class StartsWithFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_STARTS_WITH = "Usage: ${starts_with(string, prefix)}. Example: ${starts_with(locale, \"de\")}";
@@ -35,20 +34,20 @@ public class StartsWithFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final String searchString = sources[0].toString();
 			final String prefix       = sources[1].toString();
 
 			return searchString.startsWith(prefix);
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override
@@ -60,5 +59,4 @@ public class StartsWithFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns true if the given string starts with the given prefix";
 	}
-
 }

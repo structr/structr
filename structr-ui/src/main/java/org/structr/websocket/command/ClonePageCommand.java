@@ -67,6 +67,7 @@ public class ClonePageCommand extends AbstractCommand {
 
 					if (firstChild != null) {
 						final DOMNode newHtmlNode = DOMNode.cloneAndAppendChildren(securityContext, firstChild);
+						newPage.adoptNode(newHtmlNode);
 						newPage.appendChild(newHtmlNode);
 					}
 				}

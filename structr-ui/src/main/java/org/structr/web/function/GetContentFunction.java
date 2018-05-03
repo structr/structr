@@ -21,6 +21,8 @@ package org.structr.web.function;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -39,22 +41,37 @@ public class GetContentFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (!(arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof File)) {
-			return null;
-		}
+		try {
 
-		final File file = (File)sources[0];
-		final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : "UTF-8";
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-		try (final InputStream is = file.getInputStream()) {
+			if (sources[0] instanceof File) {
 
-			return new Scanner(is, encoding).useDelimiter("\\A").next();
+				final File file = (File)sources[0];
+				final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : "UTF-8";
 
-		} catch (final IOException | IllegalArgumentException e) {
+				try (final InputStream is = file.getInputStream()) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+					return new Scanner(is, encoding).useDelimiter("\\A").next();
+
+				} catch (IOException e) {
+
+					logParameterError(caller, sources, ctx.isJavaScriptContext());
+					return usage(ctx.isJavaScriptContext());
+				}
+			}
+
+		} catch (ArgumentNullException pe) {
+
+			// silently ignore null arguments
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
+
+		return null;
 	}
 
 	@Override

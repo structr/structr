@@ -53,8 +53,6 @@ public interface User extends Principal {
 		user.addStringProperty("localStorage");
 
 		user.addBooleanProperty("skipSecurityRelationships", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
-		user.addBooleanProperty("backendUser",               PropertyView.Ui).setIndexed(true);
-		user.addBooleanProperty("frontendUser",              PropertyView.Ui).setIndexed(true);
 		user.addBooleanProperty("isUser",                    PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 
 		user.addPropertySetter("localStorage", String.class);
@@ -68,9 +66,6 @@ public interface User extends Principal {
 		user.overrideMethod("onCreation",     true, User.class.getName() + ".onCreateAndModify(this, arg0);");
 		user.overrideMethod("onModification", true, User.class.getName() + ".onCreateAndModify(this, arg0);");
 		user.overrideMethod("onDeletion",     true, User.class.getName() + ".checkAndRemoveHomeDirectory(this, arg0);");
-
-		user.addMethod("isFrontendUser").setReturnType("boolean").setSource("return getProperty(frontendUserProperty);");
-		user.addMethod("isBackendUser").setReturnType("boolean").setSource("return getProperty(backendUserProperty);");
 
 		user.addMethod("setHomeDirectory")
 			.setSource("setProperty(homeDirectoryProperty, (org.structr.dynamic.Folder)homeDirectory);")
@@ -109,9 +104,6 @@ public interface User extends Principal {
 
 	String getLocalStorage();
 	void setLocalStorage(final String localStorage) throws FrameworkException;
-
-	boolean isBackendUser();
-	boolean isFrontendUser();
 
 	void setHomeDirectory(final Folder homeDir) throws FrameworkException;
 	Folder getHomeDirectory();

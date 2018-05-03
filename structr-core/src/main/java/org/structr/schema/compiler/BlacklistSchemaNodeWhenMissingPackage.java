@@ -23,14 +23,12 @@ import java.util.regex.Pattern;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.logger;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
+import org.structr.schema.SchemaService;
 
 /**
  *
  */
-public class DeleteSchemaNodeWhenMissingPackage implements MigrationHandler {
+public class BlacklistSchemaNodeWhenMissingPackage implements MigrationHandler {
 
 	private static final Pattern PATTERN = Pattern.compile("package ([a-zA-Z0-9\\.]+) does not exist");
 
@@ -45,22 +43,9 @@ public class DeleteSchemaNodeWhenMissingPackage implements MigrationHandler {
 
 			if (matcher.matches()) {
 
-				logger.info("Identified missing package {}, deleting entity {}", matcher.group(1), errorToken.getType());
+				logger.info("Identified missing package {}, blacklisting entity {}", matcher.group(1), errorToken.getType());
 
-				final App app               = StructrApp.getInstance();
-				final String name           = errorToken.getType();
-				final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(name).getFirst();
-
-				if (schemaNode != null) {
-
-					logger.info("Deleting erroneous schema entity {}", schemaNode.getName());
-
-					app.delete(schemaNode);
-
-				} else {
-
-					logger.info("No SchemaNode with name {} found, cannot delete.", name);
-				}
+				SchemaService.blacklist(errorToken.getType());
 			}
 		}
 	}

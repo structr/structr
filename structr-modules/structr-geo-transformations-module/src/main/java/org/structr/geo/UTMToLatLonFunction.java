@@ -25,15 +25,14 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.DoubleProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class UTMToLatLonFunction extends Function<Object, Object> {
 
 	private static final String ERROR_MESSAGE            = "Usage: ${utmToLatLon(latitude, longitude)}. Example: ${utmToLatLon('32U 395473 5686479')}";
@@ -46,7 +45,9 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final String utmString = (String)sources[0];
 			if (utmString != null) {
@@ -84,6 +85,18 @@ public class UTMToLatLonFunction extends Function<Object, Object> {
 
 				logger.warn("Invalid argument(s), cannot convert to double: {}, {}", new Object[] { sources[0], sources[1] });
 			}
+
+		} catch (ArgumentNullException ae) {
+
+			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
+			logParameterError(caller, sources, ae.getMessage(), isJs);
+			return "Unsupported UTM string";
+
+		} catch (ArgumentCountException ae) {
+
+			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
+			logParameterError(caller, sources, ae.getMessage(), isJs);
+			return usage(isJs);
 		}
 
 		return "Unsupported UTM string";

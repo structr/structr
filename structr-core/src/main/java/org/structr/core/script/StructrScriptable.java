@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.CaseHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -452,7 +452,7 @@ public class StructrScriptable extends ScriptableObject {
 
 				return wrap(context, scope, null, function.apply(actionContext, entity, unwrappedParameters));
 
-			} catch (final UnlicensedException uex) {
+			} catch (final UnlicensedScriptException uex) {
 				uex.log(logger);
 			} catch (final FrameworkException fex) {
 				exception = fex;

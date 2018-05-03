@@ -31,7 +31,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
 import org.structr.schema.action.ActionContext;
@@ -59,7 +59,7 @@ public class StructrScriptEngine extends AbstractScriptEngine {
 
 			return Functions.evaluate(actionContext, entity, script);
 
-		} catch (UnlicensedException|FrameworkException fex) {
+		} catch (UnlicensedScriptException |FrameworkException fex) {
 
 			// wrap FrameworkException in ScriptException and re-throw
 			throw new ScriptException(fex);

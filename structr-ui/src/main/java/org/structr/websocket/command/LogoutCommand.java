@@ -49,9 +49,7 @@ public class LogoutCommand extends AbstractCommand {
 			if (sessionId != null) {
 
 				SessionHelper.clearSession(sessionId);
-
-				SessionHelper.invalidateSession(SessionHelper.getSessionBySessionId(sessionId));
-
+				SessionHelper.invalidateSession(sessionId);
 			}
 
 			AuthHelper.sendLogoutNotification(user);

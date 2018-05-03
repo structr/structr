@@ -475,7 +475,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	public GraphQLFieldDefinition getGraphQLField() {
 
-		final GraphQLOutputType outputType = SchemaHelper.getGraphQLTypeForProperty(this);
+		final GraphQLOutputType outputType = SchemaHelper.getGraphQLOutputTypeForProperty(this);
 		if (outputType != null) {
 
 			return GraphQLFieldDefinition

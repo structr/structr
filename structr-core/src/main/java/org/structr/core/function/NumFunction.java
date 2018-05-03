@@ -18,13 +18,12 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class NumFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_NUM = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
@@ -38,29 +37,30 @@ public class NumFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			try {
+
 				return getDoubleOrNull(sources[0]);
 
 			} catch (Throwable t) {
 
 				logException(caller, t, sources);
 				return null;
-
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -71,5 +71,4 @@ public class NumFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Converts the given string to a floating-point number";
 	}
-
 }

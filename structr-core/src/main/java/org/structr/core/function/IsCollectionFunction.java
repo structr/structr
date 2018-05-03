@@ -19,13 +19,12 @@
 package org.structr.core.function;
 
 import java.util.Collection;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class IsCollectionFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_IS_COLLECTION = "Usage: ${is_collection(value)}. Example: ${is_collection(this)}";
@@ -39,22 +38,22 @@ public class IsCollectionFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return false;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			return (sources[0] instanceof Collection);
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return false;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -65,5 +64,4 @@ public class IsCollectionFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns true if the given argument is a collection";
 	}
-
 }

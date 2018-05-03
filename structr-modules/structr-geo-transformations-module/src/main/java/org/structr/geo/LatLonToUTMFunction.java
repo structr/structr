@@ -29,9 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class LatLonToUTMFunction extends Function<Object, Object> {
 
 	private static final String ERROR_MESSAGE = "Usage: ${latLonToUTM(latitude, longitude)}. Example: ${latLonToUTM(41.3445, 7.35)}";
@@ -41,7 +38,9 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final Double lat = getDoubleOrNull(sources[0]);
 			final Double lon = getDoubleOrNull(sources[1]);
@@ -101,6 +100,12 @@ public class LatLonToUTMFunction extends Function<Object, Object> {
 
 				logger.warn("Invalid argument(s), cannot convert to double: {}, {}", new Object[] { sources[0], sources[1] });
 			}
+
+		} catch (IllegalArgumentException e) {
+
+			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
+			logParameterError(caller, sources, e.getMessage(), isJs);
+			return usage(isJs);
 		}
 
 		return usage(ctx != null ? ctx.isJavaScriptContext() : false);

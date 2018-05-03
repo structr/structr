@@ -19,12 +19,11 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class SubtFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_SUBT = "Usage: ${subt(value1, value2)}. Example: ${subt(5, 2)}";
@@ -37,7 +36,9 @@ public class SubtFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			try {
 
@@ -46,7 +47,6 @@ public class SubtFunction extends Function<Object, Object> {
 				for (int i = 1; i < sources.length; i++) {
 
 					result -= Double.parseDouble(sources[i].toString());
-
 				}
 
 				return result;
@@ -55,19 +55,20 @@ public class SubtFunction extends Function<Object, Object> {
 
 				logException(caller, t, sources);
 				return t.getMessage();
-
 			}
 
-		} else {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";
-
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -78,5 +79,4 @@ public class SubtFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Substracts the second argument from the first argument";
 	}
-
 }

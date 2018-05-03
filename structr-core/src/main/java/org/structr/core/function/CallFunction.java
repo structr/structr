@@ -23,7 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
@@ -79,7 +79,7 @@ public class CallFunction extends Function<Object, Object> {
 
 				}
 
-			} catch (UnlicensedException ex) {
+			} catch (UnlicensedScriptException ex) {
 
 				ex.printStackTrace();
 			}

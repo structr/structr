@@ -58,7 +58,11 @@ public abstract class MailHelper {
 		HtmlEmail mail = new HtmlEmail();
 		configureMail(mail);
 
-		mail.setFrom(amc.getFromAddress(), amc.getFromName());
+		if (StringUtils.isNotBlank(amc.getFromName())) {
+			mail.setFrom(amc.getFromAddress(), amc.getFromName());
+		} else {
+			mail.setFrom(amc.getFromAddress());
+		}
 
 		for (Map.Entry<String, String> entry : amc.getTo().entrySet()) {
 			if (StringUtils.isNotBlank(entry.getValue())) {
@@ -102,8 +106,12 @@ public abstract class MailHelper {
 
 		mail.setSubject(amc.getSubject());
 
+
 		mail.setHtmlMsg(amc.getHtmlContent());
-		mail.setTextMsg(amc.getTextContent());
+
+		if (StringUtils.isNotBlank(amc.getTextContent())) {
+			mail.setTextMsg(amc.getTextContent());
+		}
 
 		final List<DynamicMailAttachment> attachments = amc.getAttachments();
 		if (attachments != null) {
