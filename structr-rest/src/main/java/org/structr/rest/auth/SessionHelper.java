@@ -77,7 +77,7 @@ public class SessionHelper {
 
 	}
 
-	public static synchronized HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
+	public static HttpSession getSessionBySessionId (final String sessionId) throws FrameworkException {
 
 		try {
 
@@ -123,7 +123,11 @@ public class SessionHelper {
 	 *
 	 * @param sessionId
 	 */
-	public static synchronized void clearSession(final String sessionId) {
+	public static void clearSession(final String sessionId) {
+		
+		if (StringUtils.isBlank(sessionId)) {
+			return;
+		}
 
 		final App app                            = StructrApp.getInstance();
 		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
@@ -149,7 +153,7 @@ public class SessionHelper {
 	 *
 	 * @param user
 	 */
-	public static synchronized void clearInvalidSessions(final Principal user) {
+	public static void clearInvalidSessions(final Principal user) {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
@@ -178,20 +182,12 @@ public class SessionHelper {
 		}
 	}
 
-	public static synchronized void invalidateSession(final HttpSession session) {
+	public static void invalidateSession(final String sessionId) {
 
-		if (session != null) {
-
-			final String sessionId = session.getId();
+		if (sessionId != null) {
 
 			try {
-				final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
-				synchronized (sessionCache) {
-
-					SessionHandler handler = sessionCache.getSessionHandler();
-					handler.clearEventListeners();
-					handler.removeSession(sessionId, true);
-				}
+				Services.getInstance().getService(HttpService.class).getSessionCache().delete(sessionId);
 
 			} catch (final Exception ex) {
 
@@ -200,7 +196,7 @@ public class SessionHelper {
 		}
 	}
 
-	public static synchronized Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
+	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
 		String requestedSessionId = request.getRequestedSessionId();
 		String sessionId          = null;
@@ -277,7 +273,7 @@ public class SessionHelper {
 				isNotTimedOut = false;
 
 				// invalidate session
-				SessionHelper.invalidateSession(session);
+				SessionHelper.invalidateSession(sessionId);
 
 				// remove invalid session ID
 				SessionHelper.clearSession(sessionId);

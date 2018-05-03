@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -44,12 +44,12 @@ public class UnlicensedFunction extends Function<Object, Object> {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
-		throw new UnlicensedException(name, edition);
+		throw new UnlicensedScriptException(name, edition);
 	}
 
 	@Override
 	public String usage(final boolean inJavaScriptContext) {
-		return new UnlicensedException(name, edition).buildLogMessage();
+		return new UnlicensedScriptException(name, edition).buildLogMessage();
 	}
 
 	@Override

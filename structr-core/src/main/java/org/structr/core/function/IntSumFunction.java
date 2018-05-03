@@ -19,13 +19,12 @@
 package org.structr.core.function;
 
 import java.util.Collection;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class IntSumFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_INT_SUM = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
@@ -38,13 +37,11 @@ public class IntSumFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		int result = 0;
-
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			int result = 0;
 
 			if (sources[0] instanceof Collection) {
 
@@ -54,15 +51,23 @@ public class IntSumFunction extends Function<Object, Object> {
 				}
 			}
 
-		} catch (final IllegalArgumentException e) {
+			return result;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentNullException pe) {
 
+			// silently ignore null arguments
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 
-		}
+		} catch (Throwable t) {
 
-		return result;
+			logException(caller, t, sources);
+			return null;
+		}
 	}
 
 	@Override
@@ -74,5 +79,4 @@ public class IntSumFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the sum of the given arguments as an integer";
 	}
-
 }

@@ -23,6 +23,8 @@ import com.google.gson.GsonBuilder;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -33,9 +35,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class SetFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_SET = "Usage: ${set(entity, propertyKey, value, ...)}. Example: ${set(this, \"email\", lower(this.email))}";
@@ -49,7 +48,9 @@ public class SetFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config = StructrApp.getConfiguration();
@@ -126,10 +127,14 @@ public class SetFunction extends Function<Object, Object> {
 				sourceObject.setProperties(securityContext, propertyMap);
 			}
 
+		} catch (ArgumentNullException pe) {
 
-		} else {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";

@@ -26,7 +26,6 @@ import com.google.cloud.translate.Translation;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
-
 public class TranslateFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage)}. Example: ${translate(\"Hello world!\", \"en\", \"ru\")}";
@@ -40,7 +39,8 @@ public class TranslateFunction extends UiFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 3)) {
+		try {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			try {
 
@@ -72,18 +72,15 @@ public class TranslateFunction extends UiFunction {
 			} catch (Throwable t) {
 
 				logException(t, "{}: Exception for parameter: {}", new Object[] { getName(), getParametersAsString(sources) });
-
 			}
 
 			return "";
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override

@@ -27,14 +27,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- * @author Christian Morgner
- */
 public class JdbcFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query)}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
@@ -42,13 +40,16 @@ public class JdbcFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final List<Map<String, Object>> data = new LinkedList<>();
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
 
 			try {
+
 				Class.forName("com.mysql.jdbc.Driver").newInstance();
 
 				final Connection connection      = DriverManager.getConnection(url);
@@ -77,9 +78,17 @@ public class JdbcFunction extends Function<Object, Object> {
 			}
 
 			return data;
-		}
 
-		return null;
+		} catch (ArgumentNullException pe) {
+
+			// silently ignore null arguments
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
 	}
 
 	@Override

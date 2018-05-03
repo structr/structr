@@ -31,7 +31,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.console.rest.RestCommand;
 import org.structr.console.shell.AdminConsoleCommand;
 import org.structr.console.tabcompletion.AdminTabCompletionProvider;
@@ -270,7 +270,7 @@ public class Console {
 
 			tx.success();
 
-		} catch (UnlicensedException ex) {
+		} catch (UnlicensedScriptException ex) {
 			ex.log(LoggerFactory.getLogger(Console.class));
 		}
 	}

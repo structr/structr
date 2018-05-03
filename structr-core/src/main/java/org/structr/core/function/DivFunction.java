@@ -19,12 +19,11 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class DivFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_DIV = "Usage: ${div(value1, value2)}. Example: ${div(5, 2)}";
@@ -39,43 +38,42 @@ public class DivFunction extends Function<Object, Object> {
 
 		try {
 
-			if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-				try {
+			try {
 
-					return Long.parseLong(sources[0].toString()) / Long.parseLong(sources[1].toString());
+				return Double.parseDouble(sources[0].toString()) / Double.parseDouble(sources[1].toString());
 
-				} catch (NumberFormatException nfe) {
+			} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
-					return nfe.getMessage();
-
-				}
-
-			} else if (sources.length > 0 && sources[0] != null) {
-
-				try {
-
-					return Long.parseLong(sources[0].toString());
-
-				} catch (NumberFormatException nfe) {
-
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
-					return nfe.getMessage();
-				}
+				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+				return nfe.getMessage();
 
 			}
 
-		} catch (final IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentNullException pe) {
 
+			if (sources.length > 0 && sources[0] != null) {
+
+				try {
+
+					return Double.parseDouble(sources[0].toString());
+
+				} catch (NumberFormatException nfe) {
+
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getName(), caller, getParametersAsString(sources) });
+					return nfe.getMessage();
+				}
+			}
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
 		return null;
-
 	}
 
 	@Override
@@ -87,5 +85,4 @@ public class DivFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Integer division, first argument / second argument";
 	}
-
 }

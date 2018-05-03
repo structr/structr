@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-
 public class MailAddHeaderFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_header(name, value)}";
@@ -31,16 +30,22 @@ public class MailAddHeaderFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 2)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final String name  = sources[0].toString();
 			final String value = sources[1].toString();
 
-			ctx.getAdvancedMailContainer().addHeader(name, value);
+			ctx.getAdvancedMailContainer().addCustomHeader(name, value);
 
+			return "";
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override
@@ -57,5 +62,4 @@ public class MailAddHeaderFunction extends Function<Object, Object> {
 	public String getName() {
 		return "mail_add_header()";
 	}
-
 }

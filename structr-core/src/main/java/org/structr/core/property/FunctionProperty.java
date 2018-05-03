@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -101,6 +102,20 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public Class valueType() {
+
+		if (typeHint != null) {
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": return Boolean.class;
+				case "string":  return String.class;
+				case "int":     return Integer.class;
+				case "long":    return Long.class;
+				case "double":  return Double.class;
+				case "date":    return Date.class;
+			}
+		}
+
 		return Object.class;
 	}
 
@@ -111,7 +126,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return valueType().getSimpleName();
 	}
 
 	@Override

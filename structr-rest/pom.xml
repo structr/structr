@@ -198,17 +198,17 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>9.4.8.v20171121</version>
+			<version>9.4.9.v20180320</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>9.4.8.v20171121</version>
+			<version>9.4.9.v20180320</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-runner</artifactId>
-			<version>9.4.8.v20171121</version>
+			<version>9.4.9.v20180320</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>

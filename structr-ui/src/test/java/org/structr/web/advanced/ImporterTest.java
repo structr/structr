@@ -21,6 +21,7 @@ package org.structr.web.advanced;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -338,8 +339,6 @@ public class ImporterTest extends StructrUiTest {
 		);
 	}
 
-
-
 	@Test
 	public void testWidgetWithScriptTags() {
 
@@ -354,8 +353,6 @@ public class ImporterTest extends StructrUiTest {
 							+ "      <script type=\"text/javascript\"></script>\n"
 							+ "</div>",
 					RenderContext.EditMode.WIDGET, "https://widgets.structr.org/structr/rest/widgets");
-
-			//System.out.println(source);
 
 			assertEquals("<!DOCTYPE html>\n"
 					+ "<html>\n"
@@ -374,9 +371,44 @@ public class ImporterTest extends StructrUiTest {
 
 			assertNull(secondScriptElement.getOutgoingRelationship(StructrApp.getConfiguration().getRelationshipEntityClass("LinkSourceLINKLinkable")));
 
+			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.warn("", ex);
+		}
+	}
+
+	@Test
+	public void testScriptAttributes() {
+
+		try (final Tx tx = app.tx()) {
+
+			Settings.JsonIndentation.setValue(true);
+			Settings.HtmlIndentation.setValue(true);
+
+			final String source = testImportWidget("<div><script type=\"module\"></script></div>", RenderContext.EditMode.WIDGET);
+
+			assertEquals("<!DOCTYPE html>\n"
+					+ "<html>\n"
+					+ "	<head></head>\n"
+					+ "	<body>\n"
+					+ "		<div>\n"
+					+ "			<script type=\"module\"></script>\n"
+					+ "		</div>\n"
+					+ "	</body>\n"
+					+ "</html>",
+					source
+			);
+
+			Script script = app.nodeQuery(Script.class).getFirst();
+
+			assertEquals("Script type is not imported correctly", "module", script.getProperty(StructrApp.key(Script.class, "_html_type")));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

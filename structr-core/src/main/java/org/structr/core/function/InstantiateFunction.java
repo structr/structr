@@ -19,14 +19,12 @@
 package org.structr.core.function;
 
 import org.structr.api.graph.Node;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class InstantiateFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_INSTANTIATE = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
@@ -40,26 +38,27 @@ public class InstantiateFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 1)) {
-				
-				return null;
-			}
-			
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
 			if (!(sources[0] instanceof Node)) {
-				
+
 				throw new IllegalArgumentException();
 			}
 
 			return new NodeFactory<>(ctx.getSecurityContext()).instantiate((Node)sources[0]);
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return null;
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -70,5 +69,4 @@ public class InstantiateFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Instantiates the given Neo4j nodes into Structr nodes";
 	}
-
 }

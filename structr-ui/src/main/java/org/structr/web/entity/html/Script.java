@@ -21,8 +21,11 @@ package org.structr.web.entity.html;
 import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -48,7 +51,7 @@ public interface Script extends LinkSource {
 		type.addStringProperty("_html_type",    PropertyView.Html);
 		type.addStringProperty("_html_charset", PropertyView.Html);
 
-		type.overrideMethod("onCreation",        true,  "setProperty(_html_typeProperty, \"text/javascript\");");
+		type.overrideMethod("onCreation",        true,  Script.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("handleNewChild",    false, Script.class.getName() + ".handleNewChild(this, arg0);");
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
 	}}
@@ -88,6 +91,16 @@ public interface Script extends LinkSource {
 
 	}
 	*/
+
+	static void onCreation(final Script thisScript, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		final PropertyKey<String> key = StructrApp.key(Script.class, "_html_type");
+		final String value            = thisScript.getProperty(key);
+
+		if (StringUtils.isBlank(value)) {
+			thisScript.setProperty(key, "text/javascript");
+		}
+	}
 
 	static void handleNewChild(final Script thisScript, final Node newChild) {
 

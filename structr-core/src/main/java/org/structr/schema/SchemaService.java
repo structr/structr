@@ -65,7 +65,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.compiler.DeleteSchemaNodeWhenMissingPackage;
+import org.structr.schema.compiler.BlacklistSchemaNodeWhenMissingPackage;
+import org.structr.schema.compiler.BlacklistUnlicensedTypes;
 import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
 import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
@@ -84,12 +85,14 @@ public class SchemaService implements Service {
 	private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);
 	private static final AtomicBoolean updating                   = new AtomicBoolean(false);
+	private static final Set<String> blacklist                    = new LinkedHashSet<>();
 	private static GraphQLSchema graphQLSchema                    = null;
 
 	static {
 
-		migrationHandlers.add(new DeleteSchemaNodeWhenMissingPackage());
+		migrationHandlers.add(new BlacklistSchemaNodeWhenMissingPackage());
 		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
+		migrationHandlers.add(new BlacklistUnlicensedTypes());
 	}
 
 	@Override
@@ -130,12 +133,23 @@ public class SchemaService implements Service {
 					// collect auto-generated schema nodes
 					SchemaService.ensureBuiltinTypesExist();
 
+					// check licenses prior to source code generation
+					for (final SchemaNode schemaInfo : app.nodeQuery(SchemaNode.class).getAsList()) {
+						blacklist.addAll(SchemaHelper.getUnlicensedTypes(schemaInfo));
+					}
+
 					// add schema nodes from database
 					for (final SchemaNode schemaInfo : app.nodeQuery(SchemaNode.class).getAsList()) {
 
+						final String name = schemaInfo.getName();
+						if (blacklist.contains(name)) {
+
+							continue;
+						}
+
 						schemaInfo.handleMigration();
 
-						final String sourceCode = SchemaHelper.getSource(schemaInfo, errorBuffer);
+						final String sourceCode = SchemaHelper.getSource(schemaInfo, blacklist, errorBuffer);
 						if (sourceCode != null) {
 
 							final String className = schemaInfo.getClassName();
@@ -146,18 +160,24 @@ public class SchemaService implements Service {
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
 							// initialize GraphQL engine as well
-							schemaInfo.initializeGraphQL(graphQLTypes);
+							schemaInfo.initializeGraphQL(graphQLTypes, blacklist);
 						}
 					}
 
 					// collect relationship classes
 					for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
-						nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
-						dynamicViews.addAll(schemaRelationship.getDynamicViews());
+						final String sourceType = schemaRelationship.getSchemaNodeSourceType();
+						final String targetType = schemaRelationship.getSchemaNodeTargetType();
 
-						// initialize GraphQL engine as well
-						schemaRelationship.initializeGraphQL(graphQLTypes);
+						if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
+
+							nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
+							dynamicViews.addAll(schemaRelationship.getDynamicViews());
+
+							// initialize GraphQL engine as well
+							schemaRelationship.initializeGraphQL(graphQLTypes);
+						}
 					}
 
 					// this is a very critical section :)
@@ -229,29 +249,41 @@ public class SchemaService implements Service {
 							final String className = entry.getKey();
 							final GraphQLType type = entry.getValue();
 
-							// register type in query type
-							queryTypeBuilder.field(GraphQLFieldDefinition
-								.newFieldDefinition()
-								.name(className)
-								.type(new GraphQLList(type))
-								.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
-								.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
-								.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
-								.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
-								.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
-								.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
-								.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-								.argument(SchemaHelper.getGraphQLQueryArgumentsForType(selectionTypes, className))
-							);
+							try {
+
+								// register type in query type
+								queryTypeBuilder.field(GraphQLFieldDefinition
+									.newFieldDefinition()
+									.name(className)
+									.type(new GraphQLList(type))
+									.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
+									.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
+									.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
+									.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
+									.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
+									.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
+									.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
+									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(selectionTypes, className))
+								);
+
+							} catch (Throwable t) {
+								logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
+							}
 						}
 
 						// exchange graphQL schema after successful build
 						synchronized (SchemaService.class) {
 
-							graphQLSchema = GraphQLSchema
-								.newSchema()
-								.query(queryTypeBuilder.name("Query").build())
-								.build(new LinkedHashSet<>(graphQLTypes.values()));
+							try {
+
+								graphQLSchema = GraphQLSchema
+									.newSchema()
+									.query(queryTypeBuilder.name("Query").build())
+									.build(new LinkedHashSet<>(graphQLTypes.values()));
+
+							} catch (Throwable t) {
+								logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
+							}
 						}
 					}
 
@@ -320,6 +352,14 @@ public class SchemaService implements Service {
 	@Override
 	public boolean isRunning() {
 		return true;
+	}
+
+	public static void blacklist(final String typeName) {
+		SchemaService.blacklist.add(typeName);
+	}
+
+	public static Set<String> getBlacklist() {
+		return SchemaService.blacklist;
 	}
 
 	public static void ensureBuiltinTypesExist() throws FrameworkException {

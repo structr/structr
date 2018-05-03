@@ -23,15 +23,14 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-/**
- *
- */
 public class XmlFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
@@ -45,41 +44,43 @@ public class XmlFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-		
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
-				
-				return null;
-			}
 
-			try {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-				final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-				if (builder != null) {
+			if (sources[0] instanceof String) {
 
-					final String xml = (String)sources[0];
-					final StringReader reader = new StringReader(xml);
-					final InputSource src = new InputSource(reader);
+				try {
 
-					return builder.parse(src);
+					final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+					if (builder != null) {
+
+						final String xml = (String)sources[0];
+						final StringReader reader = new StringReader(xml);
+						final InputSource src = new InputSource(reader);
+
+						return builder.parse(src);
+					}
+
+				} catch (IOException | SAXException | ParserConfigurationException ex) {
+
+					logException(caller, ex, sources);
 				}
 
-			} catch (IOException | SAXException | ParserConfigurationException ex) {
-
-				logException(caller, ex, sources);
-
+				return "";
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
-		return "";
+		return null;
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -90,5 +91,4 @@ public class XmlFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Parses the given string to an XML DOM";
 	}
-
 }

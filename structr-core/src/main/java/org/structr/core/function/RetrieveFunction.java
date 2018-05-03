@@ -18,13 +18,12 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class RetrieveFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_RETRIEVE    = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
@@ -39,24 +38,26 @@ public class RetrieveFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-		
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
-				
-				return null;
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			if (sources[0] instanceof String) {
+
+				return ctx.retrieve(sources[0].toString());
 			}
 
-			return ctx.retrieve(sources[0].toString());
+		} catch (ArgumentNullException pe) {
 
-		} catch (final IllegalArgumentException e) {
+			// silently ignore null arguments
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentCountException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 
+		return null;
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -67,5 +68,4 @@ public class RetrieveFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the value associated with the given key from the temporary store";
 	}
-
 }

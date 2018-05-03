@@ -20,15 +20,14 @@ package org.structr.core.function;
 
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class RevokeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_REVOKE    = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
@@ -43,11 +42,8 @@ public class RevokeFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-		
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 3)) {
-				
-				return null;
-			}
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			if (sources[0] instanceof Principal) {
 
@@ -98,12 +94,15 @@ public class RevokeFunction extends Function<Object, Object> {
 				return "Error: first argument is not of type Principal.";
 			}
 
-		} catch (final IllegalArgumentException e) {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			// silently ignore null arguments
+			return null;
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
@@ -116,5 +115,4 @@ public class RevokeFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Revokes the given permissions on the given entity from a user";
 	}
-
 }

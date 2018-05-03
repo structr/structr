@@ -19,10 +19,11 @@
 package org.structr.core.function;
 
 import java.util.Base64;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-
 
 public class Base64DecodeFunction extends Function<Object, Object> {
 
@@ -38,45 +39,52 @@ public class Base64DecodeFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
 
-				final String input = sources[0].toString();
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-				String decodingSchema = "basic";
-				if (sources.length == 2) {
-					decodingSchema = sources[1].toString();
-				}
+			final String input = sources[0].toString();
 
-				final Base64.Decoder decoder;
-
-				switch (decodingSchema) {
-					case "url":
-						decoder = Base64.getUrlDecoder();
-						break;
-					case "mime":
-						decoder = Base64.getMimeDecoder();
-						break;
-					default:
-						logger.warn("Unsupported base64 decoding scheme '{}' - using 'basic' scheme", decodingSchema);
-					case "basic":
-						decoder = Base64.getDecoder();
-						break;
-				}
-
-				try {
-
-					return new String(decoder.decode(input));
-
-				} catch  (IllegalArgumentException iae) {
-
-					logger.warn("Exception encountered while decoding '{}' with scheme '{}'", input, decodingSchema, iae);
-					return iae.getMessage();
-				}
+			String decodingSchema = "basic";
+			if (sources.length == 2) {
+				decodingSchema = sources[1].toString();
 			}
 
-		} catch (IllegalArgumentException iae) {
+			final Base64.Decoder decoder;
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			switch (decodingSchema) {
+				case "url":
+					decoder = Base64.getUrlDecoder();
+					break;
+
+				case "mime":
+					decoder = Base64.getMimeDecoder();
+					break;
+
+				default:
+					logger.warn("Unsupported base64 decoding scheme '{}' - using 'basic' scheme", decodingSchema);
+
+				case "basic":
+					decoder = Base64.getDecoder();
+					break;
+			}
+
+			try {
+
+				return new String(decoder.decode(input));
+
+			} catch  (IllegalArgumentException iae) {
+
+				logger.warn("Exception encountered while decoding '{}' with scheme '{}'", input, decodingSchema, iae);
+				return iae.getMessage();
+			}
+
+		} catch (ArgumentNullException pe) {
+
+			// silently ignore null arguments
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
 

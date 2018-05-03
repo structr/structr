@@ -19,6 +19,8 @@
 package org.structr.javaparser;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -26,9 +28,6 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.Folder;
 
-/**
- *
- */
 public class AnalyzeSourceTreeFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_ANALYZE_SOURCE_TREE = "Usage: ${analyze_source_tree(path)}";
@@ -43,23 +42,29 @@ public class AnalyzeSourceTreeFunction extends Function<Object, Object> {
 
 		try {
 
-			if (!(arrayHasLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof String)) {
-				return null;
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+
+			if (sources[0] instanceof String) {
+
+				final SecurityContext securityContext = ctx.getSecurityContext();
+				final App app                         = StructrApp.getInstance(securityContext);
+
+				new JavaParserModule().analyzeSourceTree(app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), (String) sources[0]).getFirst());
+
+				return "";
 			}
-			
-			final SecurityContext securityContext = ctx.getSecurityContext();
-			final App app                         = StructrApp.getInstance(securityContext);
 
-			new JavaParserModule().analyzeSourceTree(app.nodeQuery(Folder.class).and(StructrApp.key(Folder.class, "path"), (String) sources[0]).getFirst());
+		} catch (ArgumentNullException pe) {
 
-		} catch (final IllegalArgumentException e) {
+			// silently ignore null arguments
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentCountException pe) {
 
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-		
-		return "";
+
+		return null;
 	}
 
 	@Override

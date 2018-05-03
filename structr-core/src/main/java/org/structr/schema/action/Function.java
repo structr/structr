@@ -35,6 +35,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -63,7 +65,18 @@ public abstract class Function<S, T> extends Hint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final boolean inJavaScriptContext) {
-		logger.warn("{}: unsupported parameter combination/count in \"{}\". Parameters: {}. {}", new Object[] { getName(), caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
+		logParameterError(caller, parameters, "Unsupported parameter combination/count in", inJavaScriptContext);
+	}
+
+	/**
+	 * Basic logging for functions called with wrong parameter count
+	 *
+	 * @param caller The element that caused the error
+	 * @param parameters The function parameters
+	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
+	 */
+	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
+		logger.warn("{}: {} \"{}\". Parameters: {}. {}", new Object[] { getName(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
@@ -96,34 +109,22 @@ public abstract class Function<S, T> extends Hint {
 	 * Test if the given object array has a minimum length and all its elements are not null.
 	 *
 	 * @param array
-	 * @param minLength If null, don't do length check
-	 * @return true if array has min length and all elements are not null
+	 * @param minLength
+	 * @return true if array has exact length and all elements are not null
 	 * @throws IllegalArgumentException in case of wrong number of parameters
 	 */
-	protected boolean arrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) throws IllegalArgumentException  {
+	protected void assertArrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) throws ArgumentCountException, ArgumentNullException  {
 
-		if (array == null) {
-			return false;
+		if (array.length < minLength) {
+			throw ArgumentCountException.tooFew(array.length, minLength);
 		}
 
-		if (minLength != null) {
+		for (final Object element : array) {
 
-			if (array.length < minLength) {
-				throw new IllegalArgumentException();
+			if (element == null) {
+				throw new ArgumentNullException();
 			}
-
-			for (final Object element : array) {
-
-				if (element == null) {
-					return false;
-				}
-
-			}
-
-			return true;
 		}
-
-		return false;
 	}
 
 	/**
@@ -132,29 +133,21 @@ public abstract class Function<S, T> extends Hint {
 	 * @param array
 	 * @param minLength
 	 * @param maxLength
-	 * @return true if array has min length and all elements are not null
-	 * @throws IllegalArgumentException in case of wrong number of parameters
+	 * @throws ArgumentCountException in case of wrong number of parameters
+	 * @throws ArgumentNullException in case of a null parameter
 	 */
-	protected boolean arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final int minLength, final int maxLength) throws IllegalArgumentException {
-
-		if (array == null) {
-			return false;
-		}
+	protected void assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final Integer minLength, final Integer maxLength) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length < minLength || array.length > maxLength) {
-
-			throw new IllegalArgumentException();
-
+			throw ArgumentCountException.notBetween(array.length, minLength, maxLength);
 		}
 
 		for (final Object element : array) {
 
 			if (element == null) {
-				return false;
+				throw new ArgumentNullException();
 			}
 		}
-
-		return true;
 	}
 
 	/**
@@ -162,27 +155,21 @@ public abstract class Function<S, T> extends Hint {
 	 *
 	 * @param array
 	 * @param length
-	 * @return true if array has exact length and all elements are not null
-	 * @throws IllegalArgumentException in case of wrong number of parameters
+	 * @throws ArgumentCountException in case of wrong number of parameters
+	 * @throws ArgumentNullException in case of a null parameter
 	 */
-	protected boolean arrayHasLengthAndAllElementsNotNull(final Object[] array, final int length) throws IllegalArgumentException {
-
-		if (array == null) {
-			return false;
-		}
+	protected void assertArrayHasLengthAndAllElementsNotNull(final Object[] array, final Integer length) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length != length) {
-			throw new IllegalArgumentException();
+			throw ArgumentCountException.notEqual(array.length, length);
 		}
 
 		for (final Object element : array) {
 
 			if (element == null) {
-				return false;
+				throw new ArgumentNullException();
 			}
 		}
-
-		return true;
 	}
 
 	protected Double getDoubleOrNull(final Object obj) {

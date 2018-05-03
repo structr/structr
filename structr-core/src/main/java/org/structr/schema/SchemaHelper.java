@@ -22,6 +22,7 @@ import graphql.Scalars;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLInputObjectField;
 import graphql.schema.GraphQLInputObjectType;
+import graphql.schema.GraphQLInputType;
 import graphql.schema.GraphQLOutputType;
 import graphql.schema.GraphQLScalarType;
 import static graphql.schema.GraphQLTypeReference.typeRef;
@@ -47,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.api.service.LicenseManager;
 import org.structr.common.CaseHelper;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PermissionPropagation;
@@ -57,6 +59,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.common.error.UnlicensedTypeException;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -519,10 +522,9 @@ public class SchemaHelper {
 
 	}
 
-	public static String getSource(final AbstractSchemaNode schemaNode, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String getSource(final AbstractSchemaNode schemaNode, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
 
 		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
-		final App app                                          = StructrApp.getInstance();
 		final Map<String, List<ActionEntry>> methods           = new LinkedHashMap<>();
 		final Map<String, Set<String>> viewProperties          = new LinkedHashMap<>();
 		final List<String> propertyValidators                  = new LinkedList<>();
@@ -601,6 +603,11 @@ public class SchemaHelper {
 		// output related node definitions, collect property views
 		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
+			// skip relationship properties whose endpoint types are blacklisted
+			if (blacklist.contains(outRel.getSchemaNodeTargetType())) {
+				continue;
+			}
+
 			final String propertyName = outRel.getPropertyName(_className, existingPropertyNames, true);
 
 			propertyNames.add(propertyName);
@@ -618,6 +625,11 @@ public class SchemaHelper {
 
 		// output related node definitions, collect property views
 		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
+
+			// skip relationship properties whose endpoint types are blacklisted
+			if (blacklist.contains(inRel.getSchemaNodeSourceType())) {
+				continue;
+			}
 
 			final String propertyName = inRel.getPropertyName(_className, existingPropertyNames, false);
 
@@ -691,6 +703,19 @@ public class SchemaHelper {
 		src.append("}\n");
 
 		return src.toString();
+	}
+
+	public static Set<String> getUnlicensedTypes(final SchemaNode schemaNode) throws FrameworkException {
+
+		final String _extendsClass              = schemaNode.getProperty(SchemaNode.extendsClass);
+		final String superClass                 = _extendsClass != null ? _extendsClass : AbstractNode.class.getSimpleName();
+		final Set<String> implementedInterfaces = new LinkedHashSet<>();
+
+		// import mixins, check that all types exist and return null otherwise (causing this class to be ignored)
+		SchemaHelper.collectInterfaces(schemaNode, implementedInterfaces);
+
+		// check if base types and interfaces are part of the licensed package
+		return checkLicense(Services.getInstance().getLicenseManager(), superClass, implementedInterfaces);
 	}
 
 	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final List<String> propertyValidators, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -1616,7 +1641,7 @@ public class SchemaHelper {
 		return null;
 	}
 
-	public static GraphQLOutputType getGraphQLTypeForProperty(final SchemaProperty property) {
+	public static GraphQLOutputType getGraphQLOutputTypeForProperty(final SchemaProperty property) {
 
 		final Type propertyType            = property.getPropertyType();
 		final GraphQLOutputType outputType = graphQLTypeMap.get(propertyType);
@@ -1667,6 +1692,35 @@ public class SchemaHelper {
 		return null;
 	}
 
+	public static GraphQLInputType getGraphQLInputTypeForProperty(final SchemaProperty property) {
+
+		final Type propertyType = property.getPropertyType();
+		switch (propertyType) {
+
+			case Function:
+			case Custom:
+			case Cypher:
+				final String typeHint = property.getTypeHint();
+				if (typeHint != null) {
+
+					final String lowerCaseTypeHint = typeHint.toLowerCase();
+					switch (lowerCaseTypeHint) {
+
+						case "boolean": return graphQLTypeMap.get(Type.Boolean);
+						case "string":  return graphQLTypeMap.get(Type.String);
+						case "int":     return graphQLTypeMap.get(Type.Integer);
+						case "long":    return graphQLTypeMap.get(Type.Long);
+						case "double":  return graphQLTypeMap.get(Type.Double);
+						case "date":    return graphQLTypeMap.get(Type.Date);
+					}
+				}
+				break;
+		}
+
+		// default / fallback
+		return Scalars.GraphQLString;
+	}
+
 	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws FrameworkException {
 
 		final List<GraphQLArgument> arguments = new LinkedList<>();
@@ -1702,6 +1756,34 @@ public class SchemaHelper {
 				).build());
 			}
 
+			// properties
+			for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
+
+				if (property.isIndexed() || property.isCompound()) {
+
+					final String name          = property.getName();
+					final String selectionName = name + "Selection";
+
+					GraphQLInputObjectType selectionType = selectionTypes.get(selectionName);
+					if (selectionType == null) {
+
+						selectionType = GraphQLInputObjectType.newInputObject()
+							.name(selectionName)
+							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+							.build();
+
+						selectionTypes.put(selectionName, selectionType);
+					}
+
+					arguments.add(GraphQLArgument.newArgument()
+						.name(name)
+						.type(selectionType)
+						.build()
+					);
+				}
+			}
+
 			// manual registration for built-in relationships that are not dynamic
 			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 				.name(type + "ownerInput")
@@ -1731,7 +1813,7 @@ public class SchemaHelper {
 					selectionType = GraphQLInputObjectType.newInputObject()
 						.name(selectionName)
 						.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(Scalars.GraphQLString).build())
+						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
 						.build();
 
 					selectionTypes.put(selectionName, selectionType);
@@ -1831,9 +1913,7 @@ public class SchemaHelper {
 		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
 			.and(SchemaRelationshipNode.sourceNode, schemaNode)
 			.and()
-				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
 				.or(SchemaRelationshipNode.targetJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
 
 			.getFirst() != null) {
@@ -1845,9 +1925,7 @@ public class SchemaHelper {
 			.and(SchemaRelationshipNode.targetNode, schemaNode)
 			.and()
 				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
-				.or(SchemaRelationshipNode.targetJsonName, propertyName)
 				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
 
 			.getFirst() != null) {
 
@@ -1922,5 +2000,51 @@ public class SchemaHelper {
 
 	private static String cleanTypeName(final String src) {
 		return StringUtils.substringBefore(src, "<");
+	}
+
+	private static Set<String> checkLicense(final LicenseManager licenseManager, final String superClass, final Set<String> implementedInterfaces) {
+
+		final Set<String> types = new LinkedHashSet<>();
+		final String cleaned    = cleanTypeName(superClass);
+
+		if (!checkLicense(licenseManager, cleaned)) {
+			types.add(StringUtils.substringAfterLast(cleaned, "."));
+		}
+
+		for (final String iface : implementedInterfaces) {
+
+			final String cleanedInterfaceName = cleanTypeName(iface);
+
+			if (!checkLicense(licenseManager, cleanedInterfaceName)) {
+				types.add(StringUtils.substringAfterLast(cleanedInterfaceName, "."));
+			}
+		}
+
+		return types;
+	}
+
+	private static boolean checkLicense(final LicenseManager licenseManager, final String fqcn) {
+
+		if (licenseManager == null) {
+			return true;
+		}
+
+		if (fqcn == null) {
+			return true;
+		}
+
+		if (AbstractNode.class.getSimpleName().equals(fqcn)) {
+			return true;
+		}
+
+		if (fqcn.startsWith("org.structr.dynamic.")) {
+			return true;
+		}
+
+		if (licenseManager.isClassLicensed(fqcn)) {
+			return true;
+		}
+
+		return false;
 	}
 }

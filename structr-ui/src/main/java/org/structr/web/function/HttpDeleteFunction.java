@@ -27,9 +27,7 @@ import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
+
 public class HttpDeleteFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_DELETE    = "Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}";
@@ -43,7 +41,9 @@ public class HttpDeleteFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			final String uri = sources[0].toString();
 			String contentType = "application/json";
@@ -71,7 +71,6 @@ public class HttpDeleteFunction extends Function<Object, Object> {
 			} else {
 
 				response.setProperty(new StringProperty("body"), responseBody);
-
 			}
 
 			response.setProperty(new IntProperty("status"), statusCode);
@@ -87,12 +86,11 @@ public class HttpDeleteFunction extends Function<Object, Object> {
 
 			return response;
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
 	}
 
 	@Override
@@ -104,5 +102,4 @@ public class HttpDeleteFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Sends an HTTP DELETE request to the given URL and returns the response body";
 	}
-
 }

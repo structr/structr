@@ -1151,9 +1151,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 									if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
 
 										final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+										final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
 
 										// add class entry to Module
-										classes.add(fileEntry.substring(0, fileEntry.length() - 6));
+										classes.add(fqcn);
+
+										if (licenseManager != null) {
+											// store licensing information
+											licenseManager.addLicensedClass(fqcn);
+										}
 									}
 								}
 							}
@@ -1176,7 +1182,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return ret;
 	}
 
-	private void addClassesRecursively(File dir, String prefix, Set<String> classes) {
+	private void addClassesRecursively(final File dir, final String prefix, final Set<String> classes) {
 
 		if (dir == null) {
 			return;
@@ -1201,15 +1207,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					String fileEntry = file.getAbsolutePath();
 
-					fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
-					fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
-					fileEntry = fileEntry.replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
+					if (fileEntry.endsWith(".class")) {
 
-					if (fileEntry.startsWith(".")) {
-						fileEntry = fileEntry.substring(1);
+						fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
+						fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
+						fileEntry = fileEntry.replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
+
+						if (fileEntry.startsWith(".")) {
+							fileEntry = fileEntry.substring(1);
+						}
+
+						classes.add(fileEntry);
 					}
-
-					classes.add(fileEntry);
 
 				} catch (Throwable t) {
 					// ignore

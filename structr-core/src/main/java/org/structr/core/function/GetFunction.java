@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -31,9 +33,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class GetFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_GET        = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
@@ -48,13 +47,11 @@ public class GetFunction extends Function<Object, Object> {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
-		
+
 		try {
-			if (!arrayHasLengthAndAllElementsNotNull(sources, 2)) {
-				
-				return "";
-			}
-		
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+
 			final String keyName = sources[1].toString();
 			GraphObject dataObject = null;
 
@@ -126,13 +123,16 @@ public class GetFunction extends Function<Object, Object> {
 				return ERROR_MESSAGE_GET_ENTITY;
 			}
 
-		} catch (final IllegalArgumentException e) {
-			
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentNullException pe) {
 
+			// silently ignore null arguments
+			return "";
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
 	}
 
 	@Override
@@ -144,5 +144,4 @@ public class GetFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Returns the value with the given name of the given entity, or an empty string";
 	}
-
 }

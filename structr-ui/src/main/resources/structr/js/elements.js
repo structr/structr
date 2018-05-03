@@ -692,7 +692,7 @@ var _Elements = {
 			subDiv.on('click', function(e) {
 				if (!subDiv.children('.node').length) {
 					e.stopPropagation();
-					Command.get(subFolder.id, "id,files,folders", function(node) {
+					Command.get(subFolder.id, "id,name,files,folders", function(node) {
 						_Elements.expandFolder(e, entity, node, callback);
 					});
 				} else {

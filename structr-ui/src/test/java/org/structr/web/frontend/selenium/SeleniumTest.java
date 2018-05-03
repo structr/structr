@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.basic;
+package org.structr.web.frontend.selenium;
 
 import java.util.Date;
 import org.junit.After;
@@ -34,6 +34,7 @@ import org.openqa.selenium.logging.LogEntry;
 import org.openqa.selenium.logging.LogType;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.structr.web.basic.FrontendTest;
 
 /**
  * Base class for selenium tests
@@ -104,9 +105,7 @@ public class SeleniumTest extends FrontendTest {
 	 * @param driver
 	 * @param waitForSeconds
 	 */
-	protected void loginAsAdmin(final String menuEntry, final WebDriver driver, final int waitForSeconds) {
-
-		createAdminUser();
+	protected static void loginAsAdmin(final String menuEntry, final WebDriver driver, final int waitForSeconds) {
 
 		driver.get("http://localhost:8875/structr/#" + menuEntry.toLowerCase());
 
@@ -143,10 +142,11 @@ public class SeleniumTest extends FrontendTest {
 	 * @param menuEntry
 	 */
 	protected void loginAsAdmin(final String menuEntry) {
+		createAdminUser();
 		loginAsAdmin(menuEntry, driver, 5);
 	}
 
-	public  String getBrowserDriverLocation (SupportedBrowsers BROWSER) {
+	public static String getBrowserDriverLocation (SupportedBrowsers BROWSER) {
 
 		final String osName = System.getProperty("os.name").toLowerCase();
 		final String driverRootPath = "src/test/selenium" + ((osName.contains("mac")) ? "_mac/" : "/");

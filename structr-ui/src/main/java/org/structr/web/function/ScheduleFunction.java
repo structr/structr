@@ -20,13 +20,10 @@ package org.structr.web.function;
 
 import java.util.Collections;
 import org.structr.common.error.FrameworkException;
-import org.structr.schema.action.ActionContext;
 import org.structr.core.scheduler.JobQueueManager;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
 
-/**
- *
- */
 public class ScheduleFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_SCHEDULE    = "Usage: ${schedule(script)}. Example: ${schedule('delete(find('User'))')}";
@@ -40,7 +37,8 @@ public class ScheduleFunction extends UiFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0]);
 
@@ -54,13 +52,11 @@ public class ScheduleFunction extends UiFunction {
 
 			return "";
 
-		} else {
+		} catch (IllegalArgumentException e) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return null;
 		}
-
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override
@@ -72,5 +68,4 @@ public class ScheduleFunction extends UiFunction {
 	public String shortDescription() {
 		return "Schedules a script or a function to be executed in a separate thread.";
 	}
-
 }

@@ -517,7 +517,7 @@ public class Services implements StructrServices {
 
 					if (retryCount > 0) {
 
-						logger.warn("Retrying in {} seconds..", (retryDelay * 1000));
+						logger.warn("Retrying in {} seconds..", retryDelay);
 						Thread.sleep(retryDelay * 1000);
 
 					} else {

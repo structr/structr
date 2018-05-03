@@ -28,7 +28,6 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.File;
 
-
 public class MailAddAttachmentFunction extends Function<Object, Object> {
 
 	public final String ERROR_MESSAGE    = "Usage: ${mail_add_attachment(file[, name])}";
@@ -37,7 +36,9 @@ public class MailAddAttachmentFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			final AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 
@@ -56,12 +57,13 @@ public class MailAddAttachmentFunction extends Function<Object, Object> {
 				}
 			}
 
-		} else {
+			return "";
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override

@@ -576,49 +576,6 @@ public class AdvancedSearchTest extends IndexingTest {
 			.when()
 				.get(concat("/test_eights?testNinePostalCodes=44139"));
 
-		// test geocoding, expected result is a list of 2 objects
-		// test03 and test04.
-
-		// NOTE: This test assumes that the geocoding will NOT find a postal
-		// code for the address "Köln, Heumarkt", so this test will fail if
-		// the  geocoding information of the given provider changes!
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(2))
-				.body("result_count",         equalTo(2))
-				.body("result[0].id",         equalTo(test03))
-				.body("result[1].id",         equalTo(test04))
-
-			.when()
-				.get(concat("/test_eights?testNinePostalCodes="));
-
-		// test geocoding, expected result is a list of 2 objects
-		// test03 and test04.
-
-		// NOTE: This test is exactly the same as above, but with a list of
-		// the "empty" values for testNinePostalCodes
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result",	              hasSize(2))
-				.body("result_count",         equalTo(2))
-				.body("result[0].id",         equalTo(test03))
-				.body("result[1].id",         equalTo(test04))
-
-			.when()
-				.get(concat("/test_eights?testNinePostalCodes=,,,"));
-
 		// test spatial search, expected result is a single object:
 		// test05
 		RestAssured

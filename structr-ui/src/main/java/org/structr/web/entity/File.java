@@ -49,7 +49,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedException;
+import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
@@ -596,7 +596,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 					map.put("headers", func.apply(new ActionContext(thisFile.getSecurityContext()), null, sources));
 
-				} catch (UnlicensedException ex) {
+				} catch (UnlicensedScriptException ex) {
 
 					logger.warn("CSV module is not available.");
 				}

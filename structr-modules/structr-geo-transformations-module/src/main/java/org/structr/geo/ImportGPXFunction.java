@@ -40,9 +40,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-/**
- *
- */
 public class ImportGPXFunction extends Function<Object, Object> {
 
 	private static final Logger logger                                   = LoggerFactory.getLogger(ImportGPXFunction.class.getName());
@@ -85,7 +82,9 @@ public class ImportGPXFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasLengthAndAllElementsNotNull(sources, 1)) {
+		try {
+
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (sources[0] instanceof String) {
 
@@ -153,9 +152,13 @@ public class ImportGPXFunction extends Function<Object, Object> {
 			}
 
 			return "Invalid parameters";
-		}
 
-		return usage(ctx != null ? ctx.isJavaScriptContext() : false);
+		} catch (IllegalArgumentException e) {
+
+			boolean isJs = ctx != null ? ctx.isJavaScriptContext() : false;
+			logParameterError(caller, sources, e.getMessage(), isJs);
+			return usage(isJs);
+		}
 	}
 
 	@Override

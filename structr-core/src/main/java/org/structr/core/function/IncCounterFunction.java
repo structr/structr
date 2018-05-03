@@ -19,12 +19,11 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
 public class IncCounterFunction extends Function<Object, Object> {
 
 	public static final String ERROR_MESSAGE_INC_COUNTER = "Usage: ${inc_counter(level[, resetLowerLevels])}. Example: ${inc_counter(1, true)}";
@@ -37,7 +36,9 @@ public class IncCounterFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (arrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2)) {
+		try {
+
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			try {
 
@@ -57,18 +58,20 @@ public class IncCounterFunction extends Function<Object, Object> {
 			} catch (NumberFormatException nfe) {
 
 				logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getName(), sources[0].toString(), caller, getParametersAsString(sources) });
-
 			}
 
-		} else {
+		} catch (ArgumentNullException pe) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 		}
 
 		return "";
 	}
-
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
@@ -79,5 +82,4 @@ public class IncCounterFunction extends Function<Object, Object> {
 	public String shortDescription() {
 		return "Increases the value of the counter with the given index";
 	}
-
 }
