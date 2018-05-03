@@ -23,6 +23,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.InputStream;
 import static org.hamcrest.CoreMatchers.equalTo;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
@@ -33,8 +35,15 @@ import org.structr.web.entity.User;
  */
 public class MediaTest extends StructrMediaModuleTest {
 
+	private static final Logger logger = LoggerFactory.getLogger(MediaTest.class.getName());
+
 	@Test
 	public void test01() {
+
+		if (!AVConv.isAVConvInstalled()) {
+			logger.info("Not performing test because `avconv` is not installed!");
+			return;
+		}
 
 		final Class type = StructrApp.getConfiguration().getNodeEntityClass("VideoFile");
 
@@ -80,7 +89,5 @@ public class MediaTest extends StructrMediaModuleTest {
 			.when()
 			.get("/VideoFile");
 
-
 	}
-
 }
