@@ -177,159 +177,155 @@ var _Schema = {
 
 		var schemaInputContainer = $('.schema-input-container');
 
-		Structr.ensureIsAdmin(schemaInputContainer, function() {
+		_Schema.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 
-			_Schema.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-			_Schema.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
 
-			schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
+		schemaInputContainer.append('<select id="connector-style"></select>');
+		['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
+			$('#connector-style').append('<option value="' + style + '" ' + (style === _Schema.connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
+		});
+		$('#connector-style').on('change', function() {
+			var newStyle = $(this).val();
+			_Schema.connectorStyle = newStyle;
+			LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
+			_Schema.reload();
+		});
 
-			schemaInputContainer.append('<select id="connector-style"></select>');
-			['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
-				$('#connector-style').append('<option value="' + style + '" ' + (style === _Schema.connectorStyle ? 'selected="selected"' : '') + '>' + style + '</option>');
-			});
-			$('#connector-style').on('change', function() {
-				var newStyle = $(this).val();
-				_Schema.connectorStyle = newStyle;
-				LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
-				_Schema.reload();
-			});
-
-			schemaInputContainer.append('<div id="zoom-slider"></div>');
-			$('#zoom-slider').slider({
-				min:0.25,
-				max:1,
-				step:0.05,
-				value:_Schema.zoomLevel,
-				slide: function( event, ui ) {
-					_Schema.zoomLevel = ui.value;
-					LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
-					_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-					if (_Schema.selectedNodes.length > 0) {
-						_Schema.updateSelectedNodes();
-					}
-					_Schema.resize();
+		schemaInputContainer.append('<div id="zoom-slider"></div>');
+		$('#zoom-slider').slider({
+			min:0.25,
+			max:1,
+			step:0.05,
+			value:_Schema.zoomLevel,
+			slide: function( event, ui ) {
+				_Schema.zoomLevel = ui.value;
+				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.zoomLevel);
+				_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+				if (_Schema.selectedNodes.length > 0) {
+					_Schema.updateSelectedNodes();
 				}
-			});
+				_Schema.resize();
+			}
+		});
 
-			schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
-			schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
-			schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
-			schemaInputContainer.append('<button class="btn schema-tool-button" id="schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Layout</button>');
+		schemaInputContainer.append('<input type="checkbox" id="schema-show-overlays" name="schema-show-overlays"><label for="schema-show-overlays"> Show relationship labels</label>');
+		schemaInputContainer.append('<button class="btn" id="schema-tools"><i class="' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" /> Tools</button>');
+		schemaInputContainer.append('<button class="btn" id="global-schema-methods"><i class="' + _Icons.getFullSpriteClass(_Icons.book_icon) + '" /> Global schema methods</button>');
+		schemaInputContainer.append('<button class="btn schema-tool-button" id="schema-layout"><i class="' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" /> Layout</button>');
 
-			$('#schema-show-overlays').on('change', function() {
-				_Schema.updateOverlayVisibility($(this).prop('checked'));
-			});
-			$('#schema-tools').on('click', _Schema.openSchemaToolsDialog);
-			$('#global-schema-methods').on('click', _Schema.showGlobalSchemaMethods);
-			$('#schema-layout').on('click', _Schema.doLayout);
+		$('#schema-show-overlays').on('change', function() {
+			_Schema.updateOverlayVisibility($(this).prop('checked'));
+		});
+		$('#schema-tools').on('click', _Schema.openSchemaToolsDialog);
+		$('#global-schema-methods').on('click', _Schema.showGlobalSchemaMethods);
+		$('#schema-layout').on('click', _Schema.doLayout);
 
-			$('#type-name').on('keyup', function(e) {
+		$('#type-name').on('keyup', function(e) {
 
-				if (e.keyCode === 13) {
-					e.preventDefault();
-					if ($('#type-name').val().length) {
-						$('#create-type').click();
-					}
-					return false;
+			if (e.keyCode === 13) {
+				e.preventDefault();
+				if ($('#type-name').val().length) {
+					$('#create-type').click();
 				}
-
-			});
-			$('#create-type').on('click', function() {
-				_Schema.createNode($('#type-name').val());
-			});
-
-			jsPlumb.ready(function() {
-				schemaContainer.append('<div class="canvas" id="schema-graph"></div>');
-
-				canvas = $('#schema-graph');
-
-				instance = jsPlumb.getInstance({
-					//Connector: "StateMachine",
-					PaintStyle: {
-						lineWidth: 5,
-						strokeStyle: "#81ce25"
-					},
-					Endpoint: ["Dot", {radius: 6}],
-					EndpointStyle: {
-						fillStyle: "#aaa"
-					},
-					Container: "schema-graph",
-					ConnectionOverlays: [
-						["PlainArrow", {
-								location: 1,
-								width: 15,
-								length: 12
-							}
-						]
-					]
-				});
-
-				_Schema.loadSchema(function() {
-
-					$('.node').css({zIndex: ++maxZ});
-
-					instance.bind('connection', function(info, originalEvent) {
-						if (!originalEvent) {
-							_Logger.log(_LogType.SCHEMA, "Ignoring connection event in jsPlumb as it looks like it has been created programmatically");
-						} else {
-							_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
-						}
-					});
-					instance.bind('connectionDetached', function(info) {
-						_Schema.askDeleteRelationship(info.connection.scope);
-						_Schema.reload();
-					});
-					reload = false;
-
-					_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
-
-					$('._jsPlumb_connector').click(function(e) {
-						e.stopPropagation();
-						_Schema.selectRel($(this));
-					});
-
-					canvas.on('mousedown', function(e) {
-						if (e.which === 1) {
-							_Schema.clearSelection();
-							_Schema.selectionStart(e);
-						}
-					});
-
-					canvas.on('mousemove', function(e) {
-						if (e.which === 1) {
-							_Schema.selectionDrag(e);
-						}
-					});
-
-					canvas.on('mouseup', function(e) {
-						_Schema.selectionStop();
-					});
-
-					_Schema.resize();
-
-					Structr.unblockMenu(500);
-
-					var overlaysVisible = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
-					var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
-					_Schema.updateOverlayVisibility(showSchemaOverlays);
-
-					if (scrollPosition) {
-						window.scrollTo(scrollPosition.x, scrollPosition.y);
-					}
-
-					if (typeof callback === "function") {
-						callback();
-					}
-				});
-
-			});
-
-			_Schema.resize();
-
-			Structr.adaptUiToAvailableFeatures();
+				return false;
+			}
 
 		});
+		$('#create-type').on('click', function() {
+			_Schema.createNode($('#type-name').val());
+		});
+
+		jsPlumb.ready(function() {
+			schemaContainer.append('<div class="canvas" id="schema-graph"></div>');
+
+			canvas = $('#schema-graph');
+
+			instance = jsPlumb.getInstance({
+				//Connector: "StateMachine",
+				PaintStyle: {
+					lineWidth: 5,
+					strokeStyle: "#81ce25"
+				},
+				Endpoint: ["Dot", {radius: 6}],
+				EndpointStyle: {
+					fillStyle: "#aaa"
+				},
+				Container: "schema-graph",
+				ConnectionOverlays: [
+					["PlainArrow", {
+							location: 1,
+							width: 15,
+							length: 12
+						}
+					]
+				]
+			});
+
+			_Schema.loadSchema(function() {
+
+				$('.node').css({zIndex: ++maxZ});
+
+				instance.bind('connection', function(info, originalEvent) {
+					if (!originalEvent) {
+						_Logger.log(_LogType.SCHEMA, "Ignoring connection event in jsPlumb as it looks like it has been created programmatically");
+					} else {
+						_Schema.connect(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'));
+					}
+				});
+				instance.bind('connectionDetached', function(info) {
+					_Schema.askDeleteRelationship(info.connection.scope);
+					_Schema.reload();
+				});
+				reload = false;
+
+				_Schema.setZoom(_Schema.zoomLevel, instance, [0,0], $('#schema-graph')[0]);
+
+				$('._jsPlumb_connector').click(function(e) {
+					e.stopPropagation();
+					_Schema.selectRel($(this));
+				});
+
+				canvas.on('mousedown', function(e) {
+					if (e.which === 1) {
+						_Schema.clearSelection();
+						_Schema.selectionStart(e);
+					}
+				});
+
+				canvas.on('mousemove', function(e) {
+					if (e.which === 1) {
+						_Schema.selectionDrag(e);
+					}
+				});
+
+				canvas.on('mouseup', function(e) {
+					_Schema.selectionStop();
+				});
+
+				_Schema.resize();
+
+				Structr.unblockMenu(500);
+
+				var overlaysVisible = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
+				var showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
+				_Schema.updateOverlayVisibility(showSchemaOverlays);
+
+				if (scrollPosition) {
+					window.scrollTo(scrollPosition.x, scrollPosition.y);
+				}
+
+				if (typeof callback === "function") {
+					callback();
+				}
+			});
+
+		});
+
+		_Schema.resize();
+
+		Structr.adaptUiToAvailableFeatures();
 
 	},
 	selectRel: function(rel) {

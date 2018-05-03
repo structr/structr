@@ -231,51 +231,47 @@ var _Crud = {
 			_Crud.filterTypes($(this).val().toLowerCase());
 		});
 
-		Structr.ensureIsAdmin($('#crud-main'), function() {
+		_Crud.schemaLoading = false;
+		_Crud.schemaLoaded = false;
+		_Crud.keys = {};
 
-			_Crud.schemaLoading = false;
-			_Crud.schemaLoaded = false;
-			_Crud.keys = {};
+		_Crud.loadSchema(function() {
 
-			_Crud.loadSchema(function() {
+			if (browser) {
+				_Crud.updateTypeList();
+				_Crud.typeSelected(_Crud.type);
+				_Crud.updateRecentTypeList(_Crud.type);
+			}
+			_Crud.resize();
+			Structr.unblockMenu();
 
-				if (browser) {
-					_Crud.updateTypeList();
-					_Crud.typeSelected(_Crud.type);
-					_Crud.updateRecentTypeList(_Crud.type);
-				}
-				_Crud.resize();
-				Structr.unblockMenu();
+		});
 
-			});
+		searchField = $('.search', main);
+		searchField.focus();
 
-			searchField = $('.search', main);
-			searchField.focus();
+		searchField.keyup(function(e) {
+			var searchString = $(this).val();
+			if (searchString && searchString.length && e.keyCode === 13) {
 
-			searchField.keyup(function(e) {
-				var searchString = $(this).val();
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					$('.clearSearchIcon').show().on('click', function() {
-						_Crud.clearSearch(main);
-					});
-
-					_Crud.search(searchString, main, null, function(e, node) {
-						e.preventDefault();
-						_Crud.showDetails(node, false, node.type);
-						return false;
-					});
-
-					$('#crud-main', main).hide();
-					$('#resourceBox', main).hide();
-
-				} else if (e.keyCode === 27 || searchString === '') {
-
+				$('.clearSearchIcon').show().on('click', function() {
 					_Crud.clearSearch(main);
+				});
 
-				}
+				_Crud.search(searchString, main, null, function(e, node) {
+					e.preventDefault();
+					_Crud.showDetails(node, false, node.type);
+					return false;
+				});
 
-			});
+				$('#crud-main', main).hide();
+				$('#resourceBox', main).hide();
+
+			} else if (e.keyCode === 27 || searchString === '') {
+
+				_Crud.clearSearch(main);
+
+			}
 
 		});
 
