@@ -52,6 +52,7 @@ public interface MessageClient extends NodeInterface {
 			type.addViewProperty(PropertyView.Ui,     "subscribers");
 
 			type.addPropertyGetter("subscribers", List.class);
+			type.addPropertySetter("subscribers", List.class).addException("FrameworkException");
 
 			type.addMethod("sendMessage")
 				.setReturnType(RestMethodResult.class.getName())
@@ -82,6 +83,7 @@ public interface MessageClient extends NodeInterface {
     }
 
     List<MessageSubscriber> getSubscribers();
+    void setSubscribers(List<MessageSubscriber> subs) throws FrameworkException;
 
     static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message) throws FrameworkException {
 
