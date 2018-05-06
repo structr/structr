@@ -34,6 +34,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema0() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType0\", \"_foo\": \"String\" }");
 
 		RestAssured
@@ -63,6 +65,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema1() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType1\", \"_foo\": \"fooDb|String\" }");
 
@@ -95,6 +99,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema2() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType2\", \"_foo\": \"+String\" }");
 
 		RestAssured
@@ -125,6 +131,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema3() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType3\", \"_foo\": \"String!\" }");
 
 		RestAssured
@@ -153,6 +161,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema4() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType4\", \"_foo\": \"+String!\" }");
 
@@ -184,6 +194,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema5() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType5\", \"_foo\": \"String(bar)\" }");
 
 		RestAssured
@@ -211,6 +223,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema6() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType6\", \"_foo\": \"String!(bar)\" }");
 
@@ -242,6 +256,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema7() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType7\", \"_foo\": \"String[text/html]\" }");
 
 		RestAssured
@@ -270,6 +286,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema8() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType8\", \"_foo\": \"String[text/html]!\" }");
 
@@ -300,6 +318,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema9() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType9\", \"_foo\": \"+String[text/html]!\" }");
 
@@ -332,6 +352,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema10() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType10\", \"_foo\": \"+String[text/html]!\" }");
 
 		RestAssured
@@ -361,6 +383,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema11() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType11\", \"_foo\": \"+String[text/html]!([a-f0-9]{32}):xyz\" }");
 
@@ -394,6 +418,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema12() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType12\", \"_foo\": \"+Date!(yyyy-MM-dd)\" }");
 
 		RestAssured
@@ -424,6 +450,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema13() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType13\", \"_foo\": \"fooDb|+String[text/html]!([a-f0-9]{32}):xyz\" }");
 
@@ -458,6 +486,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema14() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType14\", \"_foo\": \"fooDb|+String[text/html]!(multi-line):xyz\" }");
 
 		RestAssured
@@ -490,6 +520,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema15() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType15\", \"_foo\": \"fooDb|+String[text/html]!(some-format with | pipe in it):xyz\" }");
 
@@ -525,6 +557,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema16() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType16\", \"_foo\": \"+String[text/html]!(some-format with no pipe in it):xyz\" }");
 
 		RestAssured
@@ -556,6 +590,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema17() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType17\", \"_foo\": \"+String[text/html]!(some-format with a | pipe in it):xyz\" }");
 
@@ -589,6 +625,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema18() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType18\", \"_foo\": \"Foo|+Date!\" }");
 
 		RestAssured
@@ -619,6 +657,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema19() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType19\", \"_foo\": \"Foo|+Date!(yyyy-MM-dd)\" }");
 
@@ -652,6 +692,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema20() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType20\", \"_foo\": \"Foo|+Boolean!\" }");
 
 		RestAssured
@@ -683,6 +725,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema21() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType21\", \"_foo\": \"Foo|+Double!\" }");
 
 		RestAssured
@@ -713,6 +757,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema22() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType22\", \"_foo\": \"+Enum(a,b,c)!\" }");
 
@@ -746,6 +792,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema23() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType23\", \"_foo\": \"Foo|+Enum(a,b,c)!\" }");
 
 		RestAssured
@@ -777,6 +825,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testCustomSchema24() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/schema_node", "{ \"name\": \"TestType24\", \"_foo\": \"Foo|+Enum!(a,b,c):b\" }");
 
@@ -811,6 +861,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema25() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType25\", \"_foo\": \"Foo|+Boolean!:true\" }");
 
 		RestAssured
@@ -843,6 +895,8 @@ public class SchemaResourceTest extends StructrRestTest {
 	@Test
 	public void testCustomSchema26() {
 
+		cleanDatabaseAndSchema();
+
 		createEntity("/schema_node", "{ \"name\": \"TestType26\", \"_foo\": \"Foo|+Double!:12.34\" }");
 
 		RestAssured
@@ -874,6 +928,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testSchemaMethodExecution() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", ___test: \"find('Test')\" }");
 		createEntity("Test", "{ name: Test }");
@@ -927,6 +983,8 @@ public class SchemaResourceTest extends StructrRestTest {
 
 	@Test
 	public void testInheritedSchemaMethodExecution() {
+
+		cleanDatabaseAndSchema();
 
 		createEntity("/SchemaNode", "{ name: TestBase, ___test: \"find('Test')\" }");
 		createEntity("/SchemaNode", "{ name: Test, __public: \"name, type\", extendsClass: \"org.structr.dynamic.TestBase\" }");

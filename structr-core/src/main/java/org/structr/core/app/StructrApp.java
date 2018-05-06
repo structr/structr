@@ -79,6 +79,7 @@ public class StructrApp implements App {
 	private static FixedSizeCache<String, Long> relUuidMap  = null;
 	private static final URI schemaBaseURI                  = URI.create("https://structr.org/v1.1/#");
 	private static final Object globalConfigLock            = new Object();
+	private Map<String, Object> appContextStore             = new LinkedHashMap<>();
 	private RelationshipFactory relFactory                  = null;
 	private NodeFactory nodeFactory                         = null;
 	private DatabaseService graphDb                         = null;
@@ -530,6 +531,24 @@ public class StructrApp implements App {
 		return null;
 	}
 
+	@Override
+	public void invalidateCache(){
+
+		if (nodeUuidMap != null) {
+			nodeUuidMap.clear();
+		}
+
+		if (relUuidMap != null) {
+			relUuidMap.clear();
+		}
+
+	}
+
+	@Override
+	public Map<String, Object> getAppContextStore() {
+		return appContextStore;
+	}
+
 	// ----- private static methods -----
 	private static void initializeSchemaIds() {
 
@@ -608,18 +627,5 @@ public class StructrApp implements App {
 
 			}
 		}
-	}
-
-	@Override
-	public void invalidateCache(){
-
-		if (nodeUuidMap != null) {
-			nodeUuidMap.clear();
-		}
-
-		if (relUuidMap != null) {
-			relUuidMap.clear();
-		}
-
 	}
 }

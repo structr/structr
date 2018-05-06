@@ -70,6 +70,8 @@ public class RenderContextTest extends StructrUiTest {
 	@Test
 	public void testVariableReplacementInDynamicTypes() {
 
+		cleanDatabaseAndSchema();
+
 		SchemaNode itemNode  = null;
 		NodeInterface parent = null;
 		NodeInterface child1 = null;
@@ -166,6 +168,8 @@ public class RenderContextTest extends StructrUiTest {
 
 	@Test
 	public void testFunctionEvaluationInDynamicTypes() {
+
+		cleanDatabaseAndSchema();
 
 		NodeInterface item  = null;
 
@@ -616,6 +620,8 @@ public class RenderContextTest extends StructrUiTest {
 
 	@Test
 	public void testScriptEvaluation() {
+
+		cleanDatabaseAndSchema();
 
 		Settings.CypherDebugLogging.setValue(true);
 

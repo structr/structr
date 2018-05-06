@@ -131,7 +131,7 @@ public class SchemaService implements Service {
 				try (final Tx tx = app.tx()) {
 
 					// collect auto-generated schema nodes
-					SchemaService.ensureBuiltinTypesExist();
+					SchemaService.ensureBuiltinTypesExist(app);
 
 					// check licenses prior to source code generation
 					for (final SchemaNode schemaInfo : app.nodeQuery(SchemaNode.class).getAsList()) {
@@ -362,9 +362,7 @@ public class SchemaService implements Service {
 		return SchemaService.blacklist;
 	}
 
-	public static void ensureBuiltinTypesExist() throws FrameworkException {
-
-		final App app = StructrApp.getInstance();
+	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
 
 		try {
 

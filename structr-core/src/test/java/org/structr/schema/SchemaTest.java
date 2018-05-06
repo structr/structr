@@ -34,7 +34,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.StructrTest;
 import org.structr.common.error.FrameworkException;
@@ -47,7 +46,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
@@ -71,6 +69,8 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void test00SimpleProperties() {
+
+		cleanDatabaseAndSchema();
 
 		try {
 
@@ -196,8 +196,7 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test01Inheritance() {
 
-		// we need to wait for the schema service to be initialized here.. :(
-		try { Thread.sleep(1000); } catch (Throwable t) {}
+		cleanDatabaseAndSchema();
 
 		try {
 
@@ -230,8 +229,7 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test02SimpleSymmetricReferences() {
 
-		// we need to wait for the schema service to be initialized here.. :(
-		try { Thread.sleep(1000); } catch (Throwable t) {}
+		cleanDatabaseAndSchema();
 
 		try {
 
@@ -283,8 +281,7 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test03SchemaBuilder() {
 
-		// we need to wait for the schema service to be initialized here.. :(
-		try { Thread.sleep(1000); } catch (Throwable t) {}
+		cleanDatabaseAndSchema();
 
 		try {
 
@@ -365,6 +362,8 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test04ManualSchemaRelatedPropertyNameCreation() {
 
+		cleanDatabaseAndSchema();
+
 		try {
 
 			try (final Tx tx = app.tx()) {
@@ -393,6 +392,8 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test05SchemaRelatedPropertyNameCreationWithPresets() {
 
+		cleanDatabaseAndSchema();
+
 		try {
 
 			// create test case
@@ -414,6 +415,8 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void test06SchemaRelatedPropertyNameCreationWithoutPresets() {
 
+		cleanDatabaseAndSchema();
+
 		try {
 
 			// create test case
@@ -433,6 +436,8 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void test00DeleteSchemaRelationshipInView() {
+
+		cleanDatabaseAndSchema();
 
 		SchemaRelationshipNode rel = null;
 
@@ -480,8 +485,9 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testJavaSchemaMethod() {
 
+		cleanDatabaseAndSchema();
+
 		final Class groupType = StructrApp.getConfiguration().getNodeEntityClass("Group");
-		NodeInterface group   = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -504,7 +510,7 @@ public class SchemaTest extends StructrTest {
 				new NodeAttribute<>(SchemaMethod.codeType,   "java")
 			);
 
-			group = app.create(groupType, "test");
+			app.create(groupType, "test");
 
 			tx.success();
 
@@ -537,6 +543,7 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testJavaSchemaMethodWithEmptySource() {
 
+		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -563,6 +570,8 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void testViewInheritedFromInterface() {
+
+		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -596,6 +605,8 @@ public class SchemaTest extends StructrTest {
 
 	@Test
 	public void testBuiltinTypeFlag() {
+
+		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -643,6 +654,8 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testNonGraphPropertyInView() {
 
+		cleanDatabaseAndSchema();
+
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
@@ -680,7 +693,7 @@ public class SchemaTest extends StructrTest {
 	@Test
 	public void testInheritedSchemaPropertyResolution() {
 
-		Settings.LogSchemaOutput.setValue(true);
+		cleanDatabaseAndSchema();
 
 		// create "invalid" schema configuration
 		try (final Tx tx = app.tx()) {
@@ -701,15 +714,15 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-		Settings.LogSchemaOutput.setValue(false);
 	}
 
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 
+		/*
 		System.out.println("########################################## checking");
 		System.out.println(source);
+		*/
 
 		final Gson gson = new GsonBuilder().create();
 
@@ -773,14 +786,14 @@ public class SchemaTest extends StructrTest {
 
 		final String source = sourceSchema.toString();
 
-		System.out.println("##################### source");
-		System.out.println(source);
+		//System.out.println("##################### source");
+		//System.out.println(source);
 
 		final JsonSchema targetSchema = StructrSchema.createFromSource(sourceSchema.toString());
 		final String target = targetSchema.toString();
 
-		System.out.println("##################### target");
-		System.out.println(target);
+		//System.out.println("##################### target");
+		//System.out.println(target);
 
 		assertEquals("Invalid schema (de)serialization roundtrip result", source, target);
 
@@ -789,8 +802,8 @@ public class SchemaTest extends StructrTest {
 		final JsonSchema replacedSchema = StructrSchema.createFromDatabase(app);
 		final String replaced = replacedSchema.toString();
 
-		System.out.println("##################### replaced");
-		System.out.println(replaced);
+		//System.out.println("##################### replaced");
+		//System.out.println(replaced);
 
 		assertEquals("Invalid schema replacement result", source, replaced);
 	}

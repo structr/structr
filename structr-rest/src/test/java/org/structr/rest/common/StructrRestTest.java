@@ -38,6 +38,7 @@ import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.fail;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -55,10 +56,12 @@ import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.rest.entity.TestOne;
+import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
 import org.structr.schema.json.JsonType;
@@ -74,6 +77,7 @@ public class StructrRestTest {
 	protected static SecurityContext securityContext = null;
 	protected static App app                         = null;
 	protected static String basePath                 = null;
+	protected static boolean needsCleanup            = false;
 
 	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
@@ -110,6 +114,103 @@ public class StructrRestTest {
 			System.out.println("######################################################################################");
 		}
 	};
+
+	@BeforeClass
+	public static void start() {
+
+		final Date now          = new Date();
+		final long timestamp    = now.getTime();
+
+		basePath = "/tmp/structr-test-" + timestamp;
+
+		Settings.Services.setValue("NodeService LogService HttpService SchemaService");
+		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+
+		// example for new configuration setup
+		Settings.BasePath.setValue(basePath);
+		Settings.DatabasePath.setValue(basePath + "/db");
+		Settings.FilesPath.setValue(basePath + "/files");
+
+		Settings.RelationshipCacheSize.setValue(1000);
+		Settings.NodeCacheSize.setValue(1000);
+
+		Settings.SuperUserName.setValue("superadmin");
+		Settings.SuperUserPassword.setValue("sehrgeheim");
+
+		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
+		Settings.ApplicationHost.setValue(host);
+		Settings.HttpPort.setValue(httpPort);
+
+		Settings.Servlets.setValue("JsonRestServlet");
+		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
+		Settings.RestServletPath.setValue(restUrl);
+		Settings.RestUserClass.setValue("");
+
+		//Settings.LogSchemaOutput.setValue(true);
+
+		final Services services = Services.getInstance();
+
+		// wait for service layer to be initialized
+		do {
+			try { Thread.sleep(100); } catch (Throwable t) {}
+
+		} while (!services.isInitialized());
+
+		securityContext = SecurityContext.getSuperUserInstance();
+		app             = StructrApp.getInstance(securityContext);
+
+		// sleep again to wait for schema initialization
+		try { Thread.sleep(2000); } catch (Throwable t) {}
+
+	}
+
+	@Before
+	public void cleanDatabase() {
+
+		if (needsCleanup) {
+
+			try (final Tx tx = app.tx()) {
+
+				// delete remaining nodes without UUIDs etc.
+				app.cypher("MATCH (n) WHERE NOT n:SchemaReloadingNode DETACH DELETE n", Collections.emptyMap());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+			FlushCachesCommand.flushAll();
+		}
+	}
+
+	public void cleanDatabaseAndSchema() {
+
+		try (final Tx tx = app.tx()) {
+
+			// delete everything
+			app.cypher("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+
+			FlushCachesCommand.flushAll();
+
+			SchemaService.ensureBuiltinTypesExist(app);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			logger.error("Exception while trying to clean database: {}", t.getMessage());
+		}
+	}
+
+	@After
+	public void enableCleanup() {
+		needsCleanup = true;
+	}
 
 	@AfterClass
 	public static void stop() throws Exception {
@@ -329,79 +430,6 @@ public class StructrRestTest {
 		return classList;
 
 	}
-
-	@After
-	public void cleanDatabase() {
-
-		try (final Tx tx = app.tx()) {
-
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
-
-				//System.out.println("Deleting node " + node.getType() + " with name " + node.getName() + " and ID " + node.getUuid());
-				app.delete(node);
-			}
-
-			// delete remaining nodes without UUIDs etc.
-			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			 logger.error("Exception while trying to clean database: {}", fex);
-		}
-	}
-
-	@BeforeClass
-	public static void start() {
-
-		final Date now          = new Date();
-		final long timestamp    = now.getTime();
-
-		basePath = "/tmp/structr-test-" + timestamp;
-
-		Settings.Services.setValue("NodeService LogService HttpService SchemaService");
-		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-
-		// example for new configuration setup
-		Settings.BasePath.setValue(basePath);
-		Settings.DatabasePath.setValue(basePath + "/db");
-		Settings.FilesPath.setValue(basePath + "/files");
-
-		Settings.RelationshipCacheSize.setValue(1000);
-		Settings.NodeCacheSize.setValue(1000);
-
-		Settings.SuperUserName.setValue("superadmin");
-		Settings.SuperUserPassword.setValue("sehrgeheim");
-
-		Settings.ApplicationTitle.setValue("structr unit test app" + timestamp);
-		Settings.ApplicationHost.setValue(host);
-		Settings.HttpPort.setValue(httpPort);
-
-		Settings.Servlets.setValue("JsonRestServlet");
-		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
-		Settings.RestServletPath.setValue(restUrl);
-		Settings.RestUserClass.setValue("");
-
-		//Settings.LogSchemaOutput.setValue(true);
-
-		final Services services = Services.getInstance();
-
-		// wait for service layer to be initialized
-		do {
-			try { Thread.sleep(100); } catch (Throwable t) {}
-
-		} while (!services.isInitialized());
-
-		securityContext = SecurityContext.getSuperUserInstance();
-		app             = StructrApp.getInstance(securityContext);
-
-		// sleep again to wait for schema initialization
-		try { Thread.sleep(2000); } catch (Throwable t) {}
-
-	}
-
 
 	protected String getUuidFromLocation(String location) {
 		return location.substring(location.lastIndexOf("/") + 1);

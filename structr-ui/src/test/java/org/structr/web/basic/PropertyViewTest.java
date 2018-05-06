@@ -39,6 +39,8 @@ public class PropertyViewTest extends StructrUiTest {
 	@Test
 	public void testResourceAccessGrants() {
 
+		cleanDatabaseAndSchema();
+
 		final String username = "tester";
 		final String password = "test";
 

@@ -1132,6 +1132,8 @@ public class DeploymentTest extends StructrUiTest {
 	@Test
 	public void test25ExtendedBuiltinTypes() {
 
+		cleanDatabaseAndSchema();
+
 		/* This method tests whether files, folders and images that are
 		 * considered part of application data (derived from built-in
 		 * types) are ignored in the deployment process.

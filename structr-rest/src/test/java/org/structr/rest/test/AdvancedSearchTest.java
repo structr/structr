@@ -694,6 +694,8 @@ public class AdvancedSearchTest extends IndexingTest {
 	@Test
 	public void testSearchDynamicNodes() {
 
+		cleanDatabaseAndSchema();
+
 		/**
 		 * This is actually a core test but has to go here because some
 		 * of the includes for dynamic types are only available in rest

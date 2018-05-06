@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -50,12 +51,14 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.SchemaService;
 
 /**
  * Base class for all structr UI tests.
@@ -67,6 +70,7 @@ public abstract class StructrUiTest {
 
 	protected static GraphDatabaseCommand graphDbCommand = null;
 	protected static SecurityContext securityContext     = null;
+	protected static boolean needsCleanup                = false;
 	protected static App app                             = null;
 	protected static String basePath                     = null;
 
@@ -113,6 +117,53 @@ public abstract class StructrUiTest {
 		}
 	};
 
+	@Before
+	public void cleanDatabase() {
+
+		if (needsCleanup) {
+
+			try (final Tx tx = app.tx()) {
+
+				// delete remaining nodes without UUIDs etc.
+				app.cypher("MATCH (n) WHERE NOT n:SchemaReloadingNode DETACH DELETE n", Collections.emptyMap());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+
+			FlushCachesCommand.flushAll();
+		}
+	}
+
+	public void cleanDatabaseAndSchema() {
+
+		try (final Tx tx = app.tx()) {
+
+			// delete everything
+			app.cypher("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+
+			FlushCachesCommand.flushAll();
+
+			SchemaService.ensureBuiltinTypesExist(app);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			logger.error("Exception while trying to clean database: {}", t.getMessage());
+		}
+	}
+
+	@After
+	public void enableCleanup() {
+		needsCleanup = true;
+	}
+
 	@BeforeClass
 	public static void start() throws Exception {
 
@@ -157,26 +208,6 @@ public abstract class StructrUiTest {
 
 		graphDbCommand = app.command(GraphDatabaseCommand.class);
 
-	}
-
-	@Before
-	public void cleanDatabase() {
-
-		try (final Tx tx = app.tx()) {
-
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
-				app.delete(node);
-			}
-
-			// delete remaining nodes without UUIDs etc.
-			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			 logger.error("Exception while trying to clean database: {}", fex);
-		}
 	}
 
 	@AfterClass

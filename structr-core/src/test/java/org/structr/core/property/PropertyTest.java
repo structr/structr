@@ -1181,6 +1181,8 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testEscapingInFunctionProperty() {
 
+		cleanDatabaseAndSchema();
+
 		// create test node with offending quote
 
 		try (final Tx tx = app.tx()) {
@@ -1196,7 +1198,8 @@ public class PropertyTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			logger.error(fex.getMessage());
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -1589,7 +1592,7 @@ public class PropertyTest extends StructrTest {
 		}
 
 	}
-	
+
 	@Test
 	public void testMultilineStringPropertyExactSubstringSearchOnNode() {
 
@@ -1620,7 +1623,7 @@ public class PropertyTest extends StructrTest {
 		}
 
 	}
-	
+
 	@Test
 	public void testMultilineStringPropertyInexactSubstringSearchOnNode() {
 
@@ -1752,7 +1755,7 @@ public class PropertyTest extends StructrTest {
 		}
 
 	}
-	
+
 	@Test
 	public void testSimpleStringPropertySearchOnRelationship() {
 
@@ -1865,6 +1868,8 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testFunctionPropertyIndexing() {
 
+		cleanDatabaseAndSchema();
+
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
@@ -1958,12 +1963,14 @@ public class PropertyTest extends StructrTest {
 
 	}
 	// ----- notion property tests -----
-	
+
 	/**
 	 * This test creates a new type "Test" with different Notion properties.
 	 */
 	@Test
 	public void testNotionProperty() {
+
+		cleanDatabaseAndSchema();
 
 		// schema setup
 		try (final Tx tx = app.tx()) {
@@ -1971,7 +1978,7 @@ public class PropertyTest extends StructrTest {
 			final SchemaNode test  = app.create(SchemaNode.class,
 				new NodeAttribute<>(SchemaNode.name, "Test")
 			);
-			
+
 			app.create(SchemaProperty.class,
 					new NodeAttribute<>(SchemaProperty.name, "ownerName"),
 					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
@@ -2000,6 +2007,6 @@ public class PropertyTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
-	}	
+	}
 
 }

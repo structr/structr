@@ -38,6 +38,8 @@ public class DocumentTest extends StructrRestTest {
 	@Test
 	public void testSchemaAutocreateNone() {
 
+		cleanDatabaseAndSchema();
+
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
 
@@ -71,6 +73,8 @@ public class DocumentTest extends StructrRestTest {
 
 	@Test
 	public void testSchemaAutocreateSourceToTarget() {
+
+		cleanDatabaseAndSchema();
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
@@ -107,6 +111,8 @@ public class DocumentTest extends StructrRestTest {
 	@Test
 	public void testSchemaAutocreateTargetToSource() {
 
+		cleanDatabaseAndSchema();
+
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
 
@@ -142,6 +148,8 @@ public class DocumentTest extends StructrRestTest {
 	@Test
 	public void testSchemaAutocreateAlways() {
 
+		cleanDatabaseAndSchema();
+
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
 
@@ -174,6 +182,8 @@ public class DocumentTest extends StructrRestTest {
 
 	@Test
 	public void testSimpleDocumentWithSchema() {
+
+		cleanDatabaseAndSchema();
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
@@ -289,6 +299,8 @@ public class DocumentTest extends StructrRestTest {
 
 	@Test
 	public void testComplexDocumentWithSchema() {
+
+		cleanDatabaseAndSchema();
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String"));
@@ -795,6 +807,8 @@ public class DocumentTest extends StructrRestTest {
 
 	@Test
 	public void testComplexDocumentUpdate() {
+
+		cleanDatabaseAndSchema();
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"),  new Pair("_description", "String"));
@@ -1362,6 +1376,8 @@ public class DocumentTest extends StructrRestTest {
 
 	@Test
 	public void testMergeOnNestedProperties() {
+
+		cleanDatabaseAndSchema();
 
 		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"));
 		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"), new Pair("_description", "String"));

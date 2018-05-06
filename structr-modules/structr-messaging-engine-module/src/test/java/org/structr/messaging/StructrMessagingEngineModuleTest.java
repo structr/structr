@@ -49,6 +49,8 @@ import java.util.*;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import org.structr.core.graph.FlushCachesCommand;
+import org.structr.schema.SchemaService;
 
 
 public class StructrMessagingEngineModuleTest {
@@ -56,6 +58,7 @@ public class StructrMessagingEngineModuleTest {
 	private static final Logger logger = LoggerFactory.getLogger(StructrMessagingEngineModuleTest.class.getName());
 
 	protected static SecurityContext securityContext = null;
+	protected static boolean needsCleanup            = false;
 	protected static String basePath                 = null;
 	protected static App app                         = null;
 
@@ -100,26 +103,48 @@ public class StructrMessagingEngineModuleTest {
 	@Before
 	public void cleanDatabase() {
 
-		try (final Tx tx = app.tx()) {
+		if (needsCleanup) {
 
-			final List<? extends NodeInterface> nodes = app.nodeQuery().getAsList();
+			try (final Tx tx = app.tx()) {
 
-			logger.info("Cleaning database: {} nodes", nodes.size());
+				// delete remaining nodes without UUIDs etc.
+				app.cypher("MATCH (n) WHERE NOT n:SchemaReloadingNode DETACH DELETE n", Collections.emptyMap());
 
+				tx.success();
 
-			for (final NodeInterface node : nodes) {
-				app.delete(node);
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
 			}
 
-			// delete remaining nodes without UUIDs etc.
-			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
+			FlushCachesCommand.flushAll();
+		}
+	}
+
+	public void cleanDatabaseAndSchema() {
+
+		try (final Tx tx = app.tx()) {
+
+			// delete everything
+			app.cypher("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+
+			FlushCachesCommand.flushAll();
+
+			SchemaService.ensureBuiltinTypesExist(app);
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			logger.error("Exception while trying to clean database: {}", fex);
+			t.printStackTrace();
+			logger.error("Exception while trying to clean database: {}", t.getMessage());
 		}
+	}
+
+	@After
+	public void enableCleanup() {
+		needsCleanup = true;
 	}
 
 	@BeforeClass

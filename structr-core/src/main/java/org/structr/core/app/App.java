@@ -99,4 +99,6 @@ public interface App extends Closeable {
 	public String getInstanceId() throws FrameworkException;
 
 	public void invalidateCache();
+
+	Map<String, Object> getAppContextStore();
 }
