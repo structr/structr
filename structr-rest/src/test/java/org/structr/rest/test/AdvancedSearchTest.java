@@ -522,7 +522,7 @@ public class AdvancedSearchTest extends IndexingTest {
 
 	}
 
-	@Test
+	//@Test
 	public void testGraphBasedIndexingSearchCombinedWithGeocoding() {
 
 		String test01 = createEntity("/test_eights", "{ name: test01, aString: string01, anInt: 1 }");
