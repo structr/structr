@@ -69,7 +69,7 @@ class IdNotionReferenceProperty extends StructrReferenceProperty {
 
 		properties.put(SchemaProperty.format, referenceName + ", " + StringUtils.join(properties, ", "));
 		properties.put(SchemaProperty.propertyType, SchemaHelper.Type.IdNotion.name());
-	
+
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
@@ -96,11 +96,6 @@ class IdNotionReferenceProperty extends StructrReferenceProperty {
 				}
 				break;
 		}
-	}
-
-	@Override
-	void deserialize(final SchemaProperty schemaProperty) {
-		super.deserialize(schemaProperty);
 	}
 
 	@Override

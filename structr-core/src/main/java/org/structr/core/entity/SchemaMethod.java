@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -82,7 +83,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		id, type, schemaNode, name, source, comment, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
 	);
 
-	public ActionEntry getActionEntry(final AbstractSchemaNode schemaEntity) throws FrameworkException {
+	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
 		final ActionEntry entry                  = new ActionEntry("___" + SchemaHelper.cleanPropertyName(getProperty(AbstractNode.name)), getProperty(SchemaMethod.source), getProperty(SchemaMethod.codeType));
 		final List<SchemaMethodParameter> params = getProperty(parameters);
@@ -108,7 +109,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 		// check for overridden methods and determine method signature etc. from superclass(es)
 		if (getProperty(overridesExisting)) {
-			determineSignature(schemaEntity, entry, getProperty(name));
+			determineSignature(schemaNodes, schemaEntity, entry, getProperty(name));
 		}
 
 		// check for overridden methods and determine method signature etc. from superclass(es)
@@ -142,7 +143,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 	}
 
-	private void determineSignature(final AbstractSchemaNode schemaEntity, final ActionEntry entry, final String methodName) throws FrameworkException {
+	private void determineSignature(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity, final ActionEntry entry, final String methodName) throws FrameworkException {
 
 		final App app                  = StructrApp.getInstance();
 		final Set<String> visitedTypes = new LinkedHashSet<>();
@@ -166,7 +167,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				}
 
 				// try to find schema node for the given type
-				final SchemaNode typeNode = app.nodeQuery(SchemaNode.class).andName(shortTypeName).getFirst();
+				final SchemaNode typeNode = schemaNodes.get(shortTypeName);
 				if (typeNode != null && !typeNode.equals(schemaEntity)) {
 
 					// try to identify overridden schema method from database
@@ -177,7 +178,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 					if (superMethod != null) {
 
-						final ActionEntry superEntry = superMethod.getActionEntry(typeNode);
+						final ActionEntry superEntry = superMethod.getActionEntry(schemaNodes, typeNode);
 
 						entry.copy(superEntry);
 

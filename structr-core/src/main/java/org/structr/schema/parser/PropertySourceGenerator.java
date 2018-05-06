@@ -19,6 +19,7 @@
 package org.structr.schema.parser;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.StringProperty;
@@ -55,7 +57,7 @@ public abstract class PropertySourceGenerator {
 	public abstract String getValueType();
 	public abstract String getUnqualifiedValueType();
 	public abstract String getPropertyParameters();
-	public abstract void parseFormatString(final Schema entity, final String expression) throws FrameworkException;
+	public abstract void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, final String expression) throws FrameworkException;
 
 	public PropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition propertyDefinition) {
 		this.errorBuffer  = errorBuffer;
@@ -63,7 +65,7 @@ public abstract class PropertySourceGenerator {
 		this.source       = propertyDefinition;
 	}
 
-	public void getPropertySource(final StringBuilder buf, final Schema entity) throws FrameworkException {
+	public void getPropertySource(final Map<String, SchemaNode> schemaNodes, final StringBuilder buf, final Schema entity) throws FrameworkException {
 
 		if (source.isNotNull()) {
 
@@ -80,7 +82,7 @@ public abstract class PropertySourceGenerator {
 			compoundIndexKeys.add(SchemaHelper.cleanPropertyName(source.getPropertyName()) + "Property");
 		}
 
-		parseFormatString(entity, source.getFormat());
+		parseFormatString(schemaNodes, entity, source.getFormat());
 
 		getPropertySource(buf);
 	}

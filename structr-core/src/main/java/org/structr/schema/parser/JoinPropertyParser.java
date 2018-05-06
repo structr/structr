@@ -21,10 +21,12 @@ package org.structr.schema.parser;
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.JoinProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
@@ -70,7 +72,7 @@ public class JoinPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, final String expression) throws FrameworkException {
 
 		final StreamTokenizer tokenizer = new StreamTokenizer(new StringReader(expression));
 		final StringBuilder buf         = new StringBuilder();

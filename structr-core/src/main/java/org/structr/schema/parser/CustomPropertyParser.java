@@ -19,8 +19,10 @@
 package org.structr.schema.parser;
 
 import java.lang.reflect.Constructor;
+import java.util.Map;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.Property;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
@@ -92,6 +94,6 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Schema entity, final String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, final String expression) throws FrameworkException {
 	}
 }
