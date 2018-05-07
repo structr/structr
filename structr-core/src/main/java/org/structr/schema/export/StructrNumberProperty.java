@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
@@ -159,11 +160,11 @@ public class StructrNumberProperty extends StructrPropertyDefinition implements 
 	}
 
 	@Override
-	void deserialize(final SchemaProperty property) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
 
-		super.deserialize(property);
+		super.deserialize(schemaNodes, property);
 
-		final DoublePropertyParser doublePropertyParser = property.getDoublePropertyParser();
+		final DoublePropertyParser doublePropertyParser = property.getDoublePropertyParser(schemaNodes);
 		if (doublePropertyParser != null) {
 
 			this.exclusiveMinimum = doublePropertyParser.isLowerExclusive();

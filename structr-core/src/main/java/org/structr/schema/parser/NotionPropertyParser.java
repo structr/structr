@@ -19,11 +19,13 @@
 package org.structr.schema.parser;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.EntityNotionProperty;
 import org.structr.schema.Schema;
@@ -75,7 +77,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, String expression) throws FrameworkException {
 
 		if (StringUtils.isBlank(expression)) {
 
@@ -90,12 +92,12 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 			boolean isBuiltinProperty = false;
 			baseProperty              = parts[0];
-			multiplicity              = entity.getMultiplicity(baseProperty);
+			multiplicity              = entity.getMultiplicity(schemaNodes, baseProperty);
 
 			if (multiplicity != null) {
 
 				// determine related type from relationship
-				relatedType  = entity.getRelatedType(baseProperty);
+				relatedType  = entity.getRelatedType(schemaNodes, baseProperty);
 
 				switch (multiplicity) {
 
@@ -163,11 +165,11 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 						fullPropertyName = relatedType + "." + fullPropertyName;
 					}
 
-					fullPropertyName = extendPropertyName(fullPropertyName, null);
+					fullPropertyName = extendPropertyName(schemaNodes, fullPropertyName, null);
 
 					properties.add(fullPropertyName);
 
-					propertyName = extendPropertyName(propertyName, relatedType);
+					propertyName = extendPropertyName(schemaNodes, propertyName, relatedType);
 
 					buf.append(propertyName);
 
@@ -192,7 +194,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 		parameters = buf.toString();
 	}
 
-	private String extendPropertyName(final String propertyName, final String relatedType) throws FrameworkException {
+	private String extendPropertyName(final Map<String, SchemaNode> schemaNodes, final String propertyName, final String relatedType) throws FrameworkException {
 		Class type;
 
 		if (propertyName.contains(".")) {
@@ -200,7 +202,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 			String[] typeAndKey = StringUtils.split(propertyName, ".");
 			type = SchemaHelper.getEntityClassForRawType(typeAndKey[0]);
 
-			if (type != null && SchemaHelper.isDynamic(type.getSimpleName(), typeAndKey[1])) {
+			if (type != null && SchemaHelper.isDynamic(schemaNodes, type.getSimpleName(), typeAndKey[1])) {
 				return propertyName + "Property";
 			}
 
@@ -208,7 +210,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 			type = SchemaHelper.getEntityClassForRawType(relatedType);
 
-			if (type != null && SchemaHelper.isDynamic(type.getSimpleName(), propertyName)) {
+			if (type != null && SchemaHelper.isDynamic(schemaNodes, type.getSimpleName(), propertyName)) {
 				return propertyName + "Property";
 			}
 		}

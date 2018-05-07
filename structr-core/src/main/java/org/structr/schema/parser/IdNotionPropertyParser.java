@@ -19,6 +19,7 @@
 package org.structr.schema.parser;
 
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
@@ -74,7 +75,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, String expression) throws FrameworkException {
 
 		if (StringUtils.isBlank(expression)) {
 
@@ -89,7 +90,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 
 			boolean isBuiltinProperty = false;
 			baseProperty              = parts[0];
-			multiplicity              = entity.getMultiplicity(baseProperty);
+			multiplicity              = entity.getMultiplicity(schemaNodes, baseProperty);
 
 			if (multiplicity != null) {
 

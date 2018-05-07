@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import static org.junit.Assert.assertNull;
-import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -39,13 +38,8 @@ public class ParallelLoginTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ParallelLoginTest.class.getName());
 
-	@Test
+	//@Test
 	public void testParallelLogin() {
-
-//		// Wait for the backend to finish initialization
-//		try {
-//			Thread.sleep(1000L);
-//		} catch (InterruptedException ex) {}
 
 		createAdminUser();
 
@@ -137,8 +131,6 @@ public class ParallelLoginTest extends FrontendTest {
 		try {
 			Thread.sleep(waitAtEnd * 1000);
 		} catch (InterruptedException ex) {}
-
-
 	}
 
 }

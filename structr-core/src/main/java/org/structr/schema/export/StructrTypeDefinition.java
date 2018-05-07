@@ -95,7 +95,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.name = name;
 	}
 
-	abstract T createSchemaNode(final App app, final PropertyMap createProperties) throws FrameworkException;
+	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final PropertyMap createProperties) throws FrameworkException;
 
 	@Override
 	public String toString() {
@@ -764,11 +764,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	void deserialize(final T schemaNode) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final T schemaNode) {
 
 		for (final SchemaProperty property : schemaNode.getProperty(AbstractSchemaNode.schemaProperties)) {
 
-			final StructrPropertyDefinition propertyDefinition = StructrPropertyDefinition.deserialize(this, property);
+			final StructrPropertyDefinition propertyDefinition = StructrPropertyDefinition.deserialize(schemaNodes, this, property);
 			if (propertyDefinition != null) {
 
 				properties.add(propertyDefinition);
@@ -869,7 +869,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	AbstractSchemaNode createDatabaseSchema(final App app) throws FrameworkException {
+	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final App app) throws FrameworkException {
 
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
 		final Map<String, SchemaMethod> schemaMethods      = new TreeMap<>();
@@ -882,7 +882,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.category, category);
 		createProperties.put(SchemaNode.isBuiltinType, isBuiltinType || SchemaService.DynamicSchemaRootURI.equals(root.getId()));
 
-		final T schemaNode = createSchemaNode(app, createProperties);
+		final T schemaNode = createSchemaNode(schemaNodes, app, createProperties);
 
 		for (final StructrPropertyDefinition property : properties) {
 
@@ -1219,24 +1219,24 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return typeDefinition;
 	}
 
-	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final SchemaNode schemaNode) {
+	static StructrTypeDefinition deserialize(final Map<String, SchemaNode> schemaNodes, final StructrSchemaDefinition root, final SchemaNode schemaNode) {
 
 		final StructrNodeTypeDefinition def = new StructrNodeTypeDefinition(root, schemaNode.getClassName());
-		def.deserialize(schemaNode);
+		def.deserialize(schemaNodes, schemaNode);
 
 		return def;
 	}
 
-	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final SchemaRelationshipNode schemaRelationship) {
+	static StructrTypeDefinition deserialize(final Map<String, SchemaNode> schemaNodes, final StructrSchemaDefinition root, final SchemaRelationshipNode schemaRelationship) {
 
 		final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, schemaRelationship.getClassName());
-		def.deserialize(schemaRelationship);
+		def.deserialize(schemaNodes, schemaRelationship);
 
 		return def;
 	}
 
 	// ----- protected methods -----
-	protected SchemaNode resolveSchemaNode(final App app, final URI uri) throws FrameworkException {
+	protected SchemaNode resolveSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final URI uri) throws FrameworkException {
 
 		// find schema nodes for the given source and target nodes
 		final Object source = root.resolveURI(uri);
@@ -1251,7 +1251,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				final Class type = StructrApp.resolveSchemaId(uri);
 				if (type != null) {
 
-					return app.nodeQuery(SchemaNode.class).andName(type.getSimpleName()).getFirst();
+					return schemaNodes.get(type.getSimpleName());
 				}
 			}
 		}

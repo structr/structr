@@ -121,25 +121,31 @@ public class SchemaService implements Service {
 		// compiling must only be done once
 		if (compiling.compareAndSet(false, true)) {
 
+			final long t0 = System.currentTimeMillis();
+
 			try {
 
 				final Map<String, Map<String, PropertyKey>> removedClasses = new HashMap<>(config.getTypeAndPropertyMapping());
 				final Map<String, GraphQLType> graphQLTypes                = new LinkedHashMap<>();
+				final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
 				final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId);
 				final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
 				try (final Tx tx = app.tx()) {
 
 					// collect auto-generated schema nodes
-					SchemaService.ensureBuiltinTypesExist();
+					SchemaService.ensureBuiltinTypesExist(app);
+
+					// collect list of schema nodes
+					app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 					// check licenses prior to source code generation
-					for (final SchemaNode schemaInfo : app.nodeQuery(SchemaNode.class).getAsList()) {
+					for (final SchemaNode schemaInfo : schemaNodes.values()) {
 						blacklist.addAll(SchemaHelper.getUnlicensedTypes(schemaInfo));
 					}
 
 					// add schema nodes from database
-					for (final SchemaNode schemaInfo : app.nodeQuery(SchemaNode.class).getAsList()) {
+					for (final SchemaNode schemaInfo : schemaNodes.values()) {
 
 						final String name = schemaInfo.getName();
 						if (blacklist.contains(name)) {
@@ -149,7 +155,7 @@ public class SchemaService implements Service {
 
 						schemaInfo.handleMigration();
 
-						final String sourceCode = SchemaHelper.getSource(schemaInfo, blacklist, errorBuffer);
+						final String sourceCode = SchemaHelper.getSource(schemaInfo, schemaNodes, blacklist, errorBuffer);
 						if (sourceCode != null) {
 
 							final String className = schemaInfo.getClassName();
@@ -160,7 +166,7 @@ public class SchemaService implements Service {
 							dynamicViews.addAll(schemaInfo.getDynamicViews());
 
 							// initialize GraphQL engine as well
-							schemaInfo.initializeGraphQL(graphQLTypes, blacklist);
+							schemaInfo.initializeGraphQL(schemaNodes, graphQLTypes, blacklist);
 						}
 					}
 
@@ -172,7 +178,7 @@ public class SchemaService implements Service {
 
 						if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
 
-							nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(errorBuffer));
+							nodeExtender.addClass(schemaRelationship.getClassName(), schemaRelationship.getSource(schemaNodes, errorBuffer));
 							dynamicViews.addAll(schemaRelationship.getDynamicViews());
 
 							// initialize GraphQL engine as well
@@ -206,7 +212,7 @@ public class SchemaService implements Service {
 					}
 
 					// create properties and views etc.
-					for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
+					for (final SchemaNode schemaNode : schemaNodes.values()) {
 						schemaNode.createBuiltInSchemaEntities(errorBuffer);
 					}
 
@@ -229,7 +235,7 @@ public class SchemaService implements Service {
 
 						if (Services.calculateHierarchy() || !Services.isTesting()) {
 
-							calculateHierarchy();
+							calculateHierarchy(schemaNodes);
 						}
 
 						if (Services.updateIndexConfiguration() || !Services.isTesting()) {
@@ -263,7 +269,7 @@ public class SchemaService implements Service {
 									.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 									.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 									.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(selectionTypes, className))
+									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, className))
 								);
 
 							} catch (Throwable t) {
@@ -327,6 +333,8 @@ public class SchemaService implements Service {
 
 			} finally {
 
+				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
+
 				// compiling done
 				compiling.set(false);
 
@@ -362,9 +370,7 @@ public class SchemaService implements Service {
 		return SchemaService.blacklist;
 	}
 
-	public static void ensureBuiltinTypesExist() throws FrameworkException {
-
-		final App app = StructrApp.getInstance();
+	public static void ensureBuiltinTypesExist(final App app) throws FrameworkException {
 
 		try {
 
@@ -403,24 +409,17 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static void calculateHierarchy() {
+	private static void calculateHierarchy(final Map<String, SchemaNode> schemaNodes) {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final List<SchemaNode> schemaNodes  = StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList();
 			final Set<String> alreadyCalculated = new HashSet<>();
-			final Map<String, SchemaNode> map   = new LinkedHashMap<>();
-
-			// populate lookup map
-			for (final SchemaNode schemaNode : schemaNodes) {
-				map.put(schemaNode.getName(), schemaNode);
-			}
 
 			// calc hierarchy
-			for (final SchemaNode schemaNode : schemaNodes) {
+			for (final SchemaNode schemaNode : schemaNodes.values()) {
 
 				final int relCount = schemaNode.getProperty(SchemaNode.relatedFrom).size() + schemaNode.getProperty(SchemaNode.relatedTo).size();
-				final int level    = recursiveGetHierarchyLevel(map, alreadyCalculated, schemaNode, 0);
+				final int level    = recursiveGetHierarchyLevel(schemaNodes, alreadyCalculated, schemaNode, 0);
 
 				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
 				schemaNode.setProperty(SchemaNode.relCount, relCount);

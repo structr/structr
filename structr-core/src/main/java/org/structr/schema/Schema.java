@@ -19,8 +19,10 @@
 package org.structr.schema;
 
 import java.util.List;
+import java.util.Map;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaView;
 
@@ -30,8 +32,8 @@ import org.structr.core.entity.SchemaView;
  */
 public interface Schema {
 
-	public String getMultiplicity(final String propertyNameToCheck);
-	public String getRelatedType(final String propertyNameToCheck);
+	public String getMultiplicity(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
+	public String getRelatedType(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck);
 	public PropertyContainer getPropertyContainer();
 	public String getClassName();
 	public String getSuperclassName();

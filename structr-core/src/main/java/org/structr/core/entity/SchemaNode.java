@@ -158,33 +158,24 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public String getMultiplicity(final String propertyNameToCheck) {
+	public String getMultiplicity(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck) {
 
 		String multiplicity = getMultiplicity(this, propertyNameToCheck);
 
 		if (multiplicity == null) {
 
-			try {
-				final String parentClass = getProperty(SchemaNode.extendsClass);
+			final String parentClass = getProperty(SchemaNode.extendsClass);
+			if (parentClass != null) {
 
-				if (parentClass != null) {
+				// check if property is defined in parent class
+				final SchemaNode parentSchemaNode = schemaNodes.get(StringUtils.substringAfterLast(parentClass, "."));
+				if (parentSchemaNode != null) {
 
-					// check if property is defined in parent class
-					final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
-
-					if (parentSchemaNode != null) {
-
-						multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
-
-					}
+					multiplicity = getMultiplicity(parentSchemaNode, propertyNameToCheck);
 
 				}
 
-
-			} catch (FrameworkException ex) {
-				logger.warn("Can't find schema node for parent class!", ex);
 			}
-
 		}
 
 		if (multiplicity != null) {
@@ -237,32 +228,22 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public String getRelatedType(final String propertyNameToCheck) {
+	public String getRelatedType(final Map<String, SchemaNode> schemaNodes, final String propertyNameToCheck) {
 
 		String relatedType = getRelatedType(this, propertyNameToCheck);
-
 		if (relatedType == null) {
 
-			try {
+			final String parentClass = getProperty(SchemaNode.extendsClass);
+			if (parentClass != null) {
 
-				final String parentClass = getProperty(SchemaNode.extendsClass);
+				// check if property is defined in parent class
+				final SchemaNode parentSchemaNode = schemaNodes.get(StringUtils.substringAfterLast(parentClass, "."));
+				if (parentSchemaNode != null) {
 
-				if (parentClass != null) {
+					relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
 
-					// check if property is defined in parent class
-					final SchemaNode parentSchemaNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
-
-					if (parentSchemaNode != null) {
-
-						relatedType = getRelatedType(parentSchemaNode, propertyNameToCheck);
-
-					}
 				}
-
-			} catch (FrameworkException ex) {
-				logger.warn("Can't find schema node for parent class!", ex);
 			}
-
 		}
 
 		if (relatedType != null) {
@@ -368,7 +349,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		}
 	}
 
-	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {
+	public void initializeGraphQL(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLType> graphQLTypes, final Set<String> blacklist) throws FrameworkException {
 
 		// check if some base class already initialized us
 		if (graphQLTypes.containsKey(getClassName())) {
@@ -392,12 +373,12 @@ public class SchemaNode extends AbstractSchemaNode {
 		final String className                           = getClassName();
 
 		// add inherited fields from superclass
-		registerParentType(getParentSchemaNode(), graphQLTypes, fields, blacklist);
+		registerParentType(schemaNodes, getParentSchemaNode(schemaNodes), graphQLTypes, fields, blacklist);
 
 		// add inherited fields from interfaces
-		for (final SchemaNode ifaceNode : getInterfaceSchemaNodes()) {
+		for (final SchemaNode ifaceNode : getInterfaceSchemaNodes(schemaNodes)) {
 
-			registerParentType(ifaceNode, graphQLTypes, fields, blacklist);
+			registerParentType(schemaNodes, ifaceNode, graphQLTypes, fields, blacklist);
 		}
 
 		// add dynamic fields
@@ -438,7 +419,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	}
 
 	// ----- private methods -----
-	private void registerParentType(final SchemaNode parentSchemaNode, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields, final Set<String> blacklist) throws FrameworkException {
+	private void registerParentType(final Map<String, SchemaNode> schemaNodes, final SchemaNode parentSchemaNode, final Map<String, GraphQLType> graphQLTypes, final Map<String, GraphQLFieldDefinition> fields, final Set<String> blacklist) throws FrameworkException {
 
 		if (parentSchemaNode != null && !parentSchemaNode.equals(this)) {
 
@@ -448,7 +429,7 @@ public class SchemaNode extends AbstractSchemaNode {
 				if (!graphQLTypes.containsKey(parentName)) {
 
 					// initialize parent type
-					parentSchemaNode.initializeGraphQL(graphQLTypes, blacklist);
+					parentSchemaNode.initializeGraphQL(schemaNodes, graphQLTypes, blacklist);
 				}
 
 				// second try: add fields from parent type
@@ -562,7 +543,14 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	@Export
 	public String getGeneratedSourceCode() throws FrameworkException, UnlicensedTypeException {
-		return SchemaHelper.getSource(this, SchemaService.getBlacklist(), new ErrorBuffer());
+
+		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
+
+		// collect list of schema nodes
+		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+
+		// return generated source code for this class
+		return SchemaHelper.getSource(this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
 	}
 
 	// ----- private methods -----
@@ -604,19 +592,19 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
-	private SchemaNode getParentSchemaNode() throws FrameworkException {
+	private SchemaNode getParentSchemaNode(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
 		final String parentClass = getProperty(SchemaNode.extendsClass);
 		if (parentClass != null) {
 
 			// check if property is defined in parent class
-			return StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(parentClass, ".")).getFirst();
+			return schemaNodes.get(StringUtils.substringAfterLast(parentClass, "."));
 		}
 
 		return null;
 	}
 
-	private List<SchemaNode> getInterfaceSchemaNodes() throws FrameworkException {
+	private List<SchemaNode> getInterfaceSchemaNodes(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
 		final List<SchemaNode> interfaces = new LinkedList<>();
 		final String inheritsFrom         = getProperty(SchemaNode.implementsInterfaces);
@@ -629,7 +617,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 				if (trimmed.length() > 0) {
 
-					final SchemaNode node = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(StringUtils.substringAfterLast(trimmed, ".")).getFirst();
+					final SchemaNode node = schemaNodes.get(StringUtils.substringAfterLast(trimmed, "."));
 					if (node != null && !node.equals(this)) {
 
 						interfaces.add(node);

@@ -18,6 +18,7 @@
  */
 package org.structr.schema.export;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -95,9 +96,15 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
+		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
+
+		// collect list of schema nodes
+		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+
+		// iterate type definitions
 		for (final StructrTypeDefinition type : typeDefinitions) {
 
-			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(app);
+			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, app);
 			if (schemaNode != null) {
 
 				type.setSchemaNode(schemaNode);
@@ -105,7 +112,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		}
 
 		for (final StructrRelationshipTypeDefinition rel : relationships) {
-			rel.resolveEndpointTypesForDatabaseSchemaCreation(app);
+			rel.resolveEndpointTypesForDatabaseSchemaCreation(schemaNodes, app);
 		}
 	}
 
@@ -175,9 +182,15 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	void deserialize(final App app) throws FrameworkException {
 
-		for (final SchemaNode schemaNode : app.nodeQuery(SchemaNode.class).getAsList()) {
+		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
-			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(root, schemaNode);
+		// collect list of schema nodes
+		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+
+		// iterate
+		for (final SchemaNode schemaNode : schemaNodes.values()) {
+
+			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, schemaNode);
 			if (type != null) {
 
 				typeDefinitions.add(type);
@@ -186,7 +199,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
 
-			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(root, schemaRelationship);
+			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, schemaRelationship);
 			if (type != null) {
 
 				typeDefinitions.add(type);

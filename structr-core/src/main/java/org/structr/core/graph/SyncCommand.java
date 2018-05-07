@@ -955,7 +955,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				deletedRels.add(outRel.getId());
 
 				// remove previous relationship
-				outRel.delete();
+				outRel.delete(true);
 
 				System.out.println("############################################ Deleting relationship " + outRel.getId());
 			}
@@ -972,7 +972,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				deletedRels.add(inRel.getId());
 
 				// remove previous relationship
-				inRel.delete();
+				inRel.delete(true);
 
 				System.out.println("############################################ Deleting relationship " + inRel.getId());
 			}
@@ -993,12 +993,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 						// delete relationships of merged node
 						for (final Relationship groupRel : groupSourceNode.getRelationships()) {
 							deletedRels.add(groupRel.getId());
-							groupRel.delete();
+							groupRel.delete(true);
 						}
 
 						// delete merged node
 						deletedNodes.add(groupSourceNode.getId());
-						groupSourceNode.delete();
+						groupSourceNode.delete(true);
 
 						System.out.println("############################################ Deleting node " + groupSourceNode.getId());
 					}
@@ -1009,7 +1009,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			deletedNodes.add(sourceNode.getId());
 
 			// delete
-			sourceNode.delete();
+			sourceNode.delete(true);
 
 			System.out.println("############################################ Deleting node " + sourceNode.getId());
 

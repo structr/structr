@@ -69,6 +69,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
 
+		cleanDatabaseAndSchema();
+
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
@@ -164,6 +166,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 	@Test
 	public void test02InheritanceOfFileAttributesToSubclass() {
 
+		cleanDatabaseAndSchema();
+
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
@@ -256,6 +260,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 	@Test
 	public void test03InheritanceOfFileAttributesToSubclassOfImage() {
 
+		cleanDatabaseAndSchema();
+
 		try (final Tx tx = app.tx()) {
 
 			createAdminUser();
@@ -346,6 +352,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void test04SchemaPropertyOrderInBuiltInViews() {
+
+		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -563,6 +571,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void test04SchemaPropertyOrderInCustomViews() {
+
+		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -782,6 +792,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void testSchemaPropertyOrderInInheritedViews() {
+
+		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -1006,6 +1018,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 	@Test
 	public void testIsValidPasswordMethodOfUser() {
 
+		cleanDatabaseAndSchema();
+
 		try (final Tx tx = app.tx()) {
 
 			app.create(User.class,
@@ -1043,6 +1057,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 	@Test
 	public void testMixedOnCreateMethods() {
 
+		cleanDatabaseAndSchema();
+
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -1061,6 +1077,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 	@Test
 	public void testCustomSchemaMethod() {
 
+		cleanDatabaseAndSchema();
+
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -1078,6 +1096,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	@Test
 	public void testViewProperties() {
+
+		cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 

@@ -93,6 +93,8 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testSetPropertyWithDynamicNodes() {
 
+		this.cleanDatabaseAndSchema();
+
 		/**
 		 * This test creates two connected SchemaNodes and tests the script-based
 		 * association of one instance with several others in the onCreate method.

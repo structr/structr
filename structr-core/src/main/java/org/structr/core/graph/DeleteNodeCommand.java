@@ -41,18 +41,26 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	public void execute(NodeInterface node) {
 
-		doDeleteNode(node);
+		if (securityContext.doCascadingDelete()) {
 
-		for (final NodeInterface deleteMe : deletedNodes) {
+			doDeleteNode(node);
 
-			// remove node from index
-			deleteMe.removeFromIndex();
+			for (final NodeInterface deleteMe : deletedNodes) {
 
-			// mark node as deleted in transaction
-			TransactionCommand.nodeDeleted(securityContext.getCachedUser(), deleteMe);
+				// remove node from index
+				deleteMe.removeFromIndex();
 
-			// delete node in database
-			deleteMe.getNode().delete();
+				// mark node as deleted in transaction
+				TransactionCommand.nodeDeleted(securityContext.getCachedUser(), deleteMe);
+
+				// delete node in database
+				deleteMe.getNode().delete(false);
+			}
+
+		} else {
+
+			node.onNodeDeletion();
+			node.getNode().delete(true);
 		}
 	}
 

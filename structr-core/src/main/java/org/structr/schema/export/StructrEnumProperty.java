@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
@@ -119,9 +120,9 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 	}
 
 	@Override
-	void deserialize(final SchemaProperty schemaProperty) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty schemaProperty) {
 
-		super.deserialize(schemaProperty);
+		super.deserialize(schemaNodes, schemaProperty);
 
 		setEnums(schemaProperty.getEnumDefinitions().toArray(new String[0]));
 	}
@@ -132,12 +133,21 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, Type.Enum.name());
 		properties.put(SchemaProperty.fqcn, this.fqcn);
-		properties.put(SchemaProperty.format, StringUtils.join(getEnums(), ", "));
-	
+
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
+	}
+
+	@Override
+	public String getFormat() {
+		return StringUtils.join(getEnums(), ", ");
+	}
+
+	// ----- protected methods -----
+	@Override
+	protected Type getTypeToSerialize() {
+		return Type.Enum;
 	}
 }

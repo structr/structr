@@ -43,6 +43,8 @@ public class CustomPermissionQueriesTest extends StructrTest {
 	@Test
 	public void test01SimplePermissionResolutionRead() {
 
+		this.cleanDatabaseAndSchema();
+
 		final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
 		Principal user1                      = null;
 		Class type1                          = null;

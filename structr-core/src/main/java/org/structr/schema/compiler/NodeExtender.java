@@ -117,7 +117,11 @@ public class NodeExtender {
 
 			logger.info("Compiling {} dynamic entities...", jfiles.size());
 
+			final long t0 = System.currentTimeMillis();
+
 			Boolean success = compiler.getTask(errorWriter, fileManager, new Listener(errorBuffer), null, null, jfiles).call();
+
+			logger.info("Compiling done in {} ms", System.currentTimeMillis() - t0);
 
 			if (success) {
 
@@ -138,32 +142,26 @@ public class NodeExtender {
 					}
 				}
 
-				if (success) {
-
-					for (final Class oldType : classes.values()) {
-						StructrApp.getConfiguration().unregisterEntityType(oldType);
-					}
-
-					// clear classes map
-					classes.clear();
-
-					// add new classes to map
-					for (final Class newType : newClasses) {
-						classes.put(newType.getName(), newType);
-					}
-
-					logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
-
-					final Map<String, Object> data = new LinkedHashMap();
-					data.put("success", true);
-					TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
-
-					Services.getInstance().setOverridingSchemaTypesAllowed(false);
-
+				for (final Class oldType : classes.values()) {
+					StructrApp.getConfiguration().unregisterEntityType(oldType);
 				}
 
-			}
+				// clear classes map
+				classes.clear();
 
+				// add new classes to map
+				for (final Class newType : newClasses) {
+					classes.put(newType.getName(), newType);
+				}
+
+				logger.info("Successfully compiled {} dynamic entities: {}", new Object[] { jfiles.size(), jfiles.stream().map(f -> f.getName().replaceFirst("/", "")).collect(Collectors.joining(", ")) });
+
+				final Map<String, Object> data = new LinkedHashMap();
+				data.put("success", true);
+				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", data, getInitiatedBySessionId());
+
+				Services.getInstance().setOverridingSchemaTypesAllowed(false);
+			}
 		}
 
 		return classes;
@@ -206,7 +204,7 @@ public class NodeExtender {
 				src = Arrays.asList(src.split("\\R")).stream()
 					.map(line -> (index.getAndIncrement()+1) + ": " + line)
 					.collect(Collectors.joining("\n"));
-				
+
 				// log also to log file
 				logger.error("Unable to compile dynamic entity {}:{}: {}\n{}", name, diagnostic.getLineNumber(), diagnostic.getMessage(Locale.ENGLISH), src);
 			}

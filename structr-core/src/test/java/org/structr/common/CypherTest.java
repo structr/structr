@@ -80,7 +80,7 @@ public class CypherTest extends StructrTest {
 
 				assertTrue(rels.hasNext());
 
-				rels.next().delete();
+				rels.next().delete(true);
 
 				tx.success();
 			}
@@ -126,7 +126,7 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				testOne.getRelationships().iterator().next().getRelationship().delete();
+				testOne.getRelationships().iterator().next().getRelationship().delete(true);
 				tx.success();
 			}
 
@@ -180,7 +180,7 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				testSix.getRelationships().iterator().next().getRelationship().delete();
+				testSix.getRelationships().iterator().next().getRelationship().delete(true);
 
 				tx.success();
 			}
@@ -230,7 +230,7 @@ public class CypherTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				// do not commit transaction
-				testOne.getRelationships().iterator().next().getRelationship().delete();
+				testOne.getRelationships().iterator().next().getRelationship().delete(true);
 			}
 
 			try (final Tx tx = app.tx()) {

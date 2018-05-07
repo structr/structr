@@ -47,8 +47,6 @@ import org.structr.schema.SchemaHelper;
  * Encapsulates the current user and access path and provides methods to query
  * permission flags for a given node. This is the place where HttpServletRequest
  * and Authenticator get together.
- *
- *
  */
 public class SecurityContext {
 
@@ -59,12 +57,12 @@ public class SecurityContext {
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = true;
+	private boolean doCascadingDelete                    = true;
 	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
 	private boolean ensureCardinality                    = true;
 	private int serializationDepth                       = -1;
 
-	//~--- fields ---------------------------------------------------------
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs      = new ConcurrentHashMap<>();
 	private AccessMode accessMode                = AccessMode.Frontend;
@@ -78,7 +76,6 @@ public class SecurityContext {
 	private String sessionId                     = null;
 	private ContextStore contextStore            = null;
 
-	//~--- constructors ---------------------------------------------------
 	private SecurityContext() {
 	}
 
@@ -117,6 +114,10 @@ public class SecurityContext {
 
 			if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
 				this.doTransactionNotifications = false;
+			}
+
+			if ("disabled".equals(request.getHeader("Structr-Cascading-Delete"))) {
+				this.doCascadingDelete = false;
 			}
 
 			if (request.getParameter("ignoreResultCount") != null) {
@@ -761,6 +762,14 @@ public class SecurityContext {
 		}
 
 		return "[No request available]";
+	}
+
+	public boolean doCascadingDelete() {
+		return doCascadingDelete;
+	}
+
+	public void setDoCascadingDelete(boolean doCascadingDelete) {
+		this.doCascadingDelete = doCascadingDelete;
 	}
 
 	public boolean doTransactionNotifications() {

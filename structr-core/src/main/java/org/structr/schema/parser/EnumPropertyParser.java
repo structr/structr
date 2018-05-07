@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -66,7 +67,7 @@ public class EnumPropertyParser extends PropertySourceGenerator {
 	}
 
 	@Override
-	public void parseFormatString(final Schema entity, String expression) throws FrameworkException {
+	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, String expression) throws FrameworkException {
 
 		final String[] enumTypes = expression.split("[, ]+");
 		if (StringUtils.isNotBlank(expression) && enumTypes.length > 0) {

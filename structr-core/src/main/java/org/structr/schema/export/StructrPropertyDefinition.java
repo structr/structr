@@ -31,6 +31,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
@@ -369,7 +370,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		}
 	}
 
-	void deserialize(final SchemaProperty property) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty property) {
 
 		setDefaultValue(property.getDefaultValue());
 		setCompound(property.isCompound());
@@ -595,7 +596,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		return newProperty;
 	}
 
-	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final SchemaProperty property) {
+	static StructrPropertyDefinition deserialize(final Map<String, SchemaNode> schemaNodes, final StructrTypeDefinition parent, final SchemaProperty property) {
 
 		final String parentName = parent.getName();
 		final Type type         = property.getPropertyType();
@@ -605,23 +606,23 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 			case Function:
 				final StructrFunctionProperty func = new StructrFunctionProperty(parent, name);
-				func.deserialize(property);
+				func.deserialize(schemaNodes, property);
 				return func;
 
 			case Cypher:
 				final StructrScriptProperty cypher = new StructrScriptProperty(parent, name);
-				cypher.deserialize(property);
+				cypher.deserialize(schemaNodes, property);
 				cypher.setContentType("application/x-cypher");
 				return cypher;
 
 			case Notion:
 			{
-				final String referenceName         = property.getNotionBaseProperty();
+				final String referenceName         = property.getNotionBaseProperty(schemaNodes);
 				final String reference             = "#/definitions/" + parentName + "/properties/" + referenceName;
-				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
+				final Set<String> notionProperties = property.getPropertiesForNotionProperty(schemaNodes);
 				final NotionReferenceProperty notionProperty;
 
-				if (property.getNotionMultiplicity().startsWith("*")) {
+				if (property.getNotionMultiplicity(schemaNodes).startsWith("*")) {
 
 					notionProperty = new NotionReferenceProperty(parent, name, reference, "array", referenceName);
 					notionProperty.setProperties(notionProperties.toArray(new String[0]));
@@ -632,19 +633,19 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					notionProperty.setProperties(notionProperties.toArray(new String[0]));
 				}
 
-				notionProperty.deserialize(property);
+				notionProperty.deserialize(schemaNodes, property);
 
 				return notionProperty;
 			}
 
 			case IdNotion:
 			{
-				final String referenceName         = property.getNotionBaseProperty();
+				final String referenceName         = property.getNotionBaseProperty(schemaNodes);
 				final String reference             = "#/definitions/" + parentName + "/properties/" + referenceName;
-				final Set<String> notionProperties = property.getPropertiesForNotionProperty();
+				final Set<String> notionProperties = property.getPropertiesForNotionProperty(schemaNodes);
 				final IdNotionReferenceProperty notionProperty;
 
-				if (property.getNotionMultiplicity().startsWith("*")) {
+				if (property.getNotionMultiplicity(schemaNodes).startsWith("*")) {
 
 					notionProperty = new IdNotionReferenceProperty(parent, name, reference, "array", referenceName);
 					notionProperty.setProperties(notionProperties.toArray(new String[0]));
@@ -655,104 +656,104 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 					notionProperty.setProperties(notionProperties.toArray(new String[0]));
 				}
 
-				notionProperty.deserialize(property);
+				notionProperty.deserialize(schemaNodes, property);
 
 				return notionProperty;
 			}
 
 			case Password:
 				final StructrPasswordProperty pwd = new StructrPasswordProperty(parent, name);
-				pwd.deserialize(property);
+				pwd.deserialize(schemaNodes, property);
 				pwd.setDefaultValue(property.getDefaultValue());
 				return pwd;
 
 			case String:
 				final StructrStringProperty str = new StructrStringProperty(parent, name);
-				str.deserialize(property);
+				str.deserialize(schemaNodes, property);
 				str.setDefaultValue(property.getDefaultValue());
 				return str;
 
 			case StringArray:
 				final StructrStringArrayProperty arr = new StructrStringArrayProperty(parent, name);
-				arr.deserialize(property);
+				arr.deserialize(schemaNodes, property);
 				arr.setDefaultValue(property.getDefaultValue());
 				return arr;
 
 			case Boolean:
 				final StructrBooleanProperty bool = new StructrBooleanProperty(parent, name);
-				bool.deserialize(property);
+				bool.deserialize(schemaNodes, property);
 				bool.setDefaultValue(property.getDefaultValue());
 				return bool;
 
 			case BooleanArray:
 				final StructrBooleanArrayProperty booleanArrayProperty = new StructrBooleanArrayProperty(parent, name);
-				booleanArrayProperty.deserialize(property);
+				booleanArrayProperty.deserialize(schemaNodes, property);
 				booleanArrayProperty.setDefaultValue(property.getDefaultValue());
 				return booleanArrayProperty;
 
 			case Count:
 				final StructrCountProperty count = new StructrCountProperty(parent, name);
-				count.deserialize(property);
+				count.deserialize(schemaNodes, property);
 				return count;
 
 			case Integer:
 				final StructrIntegerProperty intProperty = new StructrIntegerProperty(parent, name);
-				intProperty.deserialize(property);
+				intProperty.deserialize(schemaNodes, property);
 				intProperty.setDefaultValue(property.getDefaultValue());
 				return intProperty;
 
 			case IntegerArray:
 				final StructrIntegerArrayProperty intArrayProperty = new StructrIntegerArrayProperty(parent, name);
-				intArrayProperty.deserialize(property);
+				intArrayProperty.deserialize(schemaNodes, property);
 				intArrayProperty.setDefaultValue(property.getDefaultValue());
 				return intArrayProperty;
 
 			case Long:
 				final StructrLongProperty longProperty = new StructrLongProperty(parent, name);
-				longProperty.deserialize(property);
+				longProperty.deserialize(schemaNodes, property);
 				longProperty.setDefaultValue(property.getDefaultValue());
 				return longProperty;
 
 			case LongArray:
 				final StructrLongArrayProperty longArrayProperty = new StructrLongArrayProperty(parent, name);
-				longArrayProperty.deserialize(property);
+				longArrayProperty.deserialize(schemaNodes, property);
 				longArrayProperty.setDefaultValue(property.getDefaultValue());
 				return longArrayProperty;
 
 			case Double:
 				final StructrNumberProperty doubleProperty = new StructrNumberProperty(parent, name);
-				doubleProperty.deserialize(property);
+				doubleProperty.deserialize(schemaNodes, property);
 				doubleProperty.setDefaultValue(property.getDefaultValue());
 				return doubleProperty;
 
 			case DoubleArray:
 				final StructrNumberArrayProperty doubleArrayProperty = new StructrNumberArrayProperty(parent, name);
-				doubleArrayProperty.deserialize(property);
+				doubleArrayProperty.deserialize(schemaNodes, property);
 				doubleArrayProperty.setDefaultValue(property.getDefaultValue());
 				return doubleArrayProperty;
 
 			case Date:
 				final StructrDateProperty date = new StructrDateProperty(parent, name);
-				date.deserialize(property);
+				date.deserialize(schemaNodes, property);
 				date.setFormat(JsonSchema.FORMAT_DATE_TIME);
 				date.setDefaultValue(property.getDefaultValue());
 				return date;
 
 			case Enum:
 				final StructrEnumProperty enumProperty = new StructrEnumProperty(parent, name);
-				enumProperty.deserialize(property);
+				enumProperty.deserialize(schemaNodes, property);
 				enumProperty.setDefaultValue(property.getDefaultValue());
 				return enumProperty;
 
 			case Thumbnail:
 				final StructrThumbnailProperty thumb = new StructrThumbnailProperty(parent, name);
-				thumb.deserialize(property);
+				thumb.deserialize(schemaNodes, property);
 				thumb.setDefaultValue(property.getDefaultValue());
 				return thumb;
 
 			case Custom:
 				final StructrCustomProperty custom = new StructrCustomProperty(parent, name);
-				custom.deserialize(property);
+				custom.deserialize(schemaNodes, property);
 				return custom;
 		}
 

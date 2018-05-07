@@ -52,6 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -74,10 +75,12 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.schema.SchemaService;
 
 /**
  *
@@ -87,6 +90,7 @@ public class StructrDataFeedsModuleTest {
 	private static final Logger logger = LoggerFactory.getLogger(StructrDataFeedsModuleTest.class.getName());
 
 	protected static SecurityContext securityContext = null;
+	protected static boolean needsCleanup            = false;
 	protected static String basePath                 = null;
 	protected static App app                         = null;
 
@@ -131,26 +135,48 @@ public class StructrDataFeedsModuleTest {
 	@Before
 	public void cleanDatabase() {
 
-		try (final Tx tx = app.tx()) {
+		if (needsCleanup) {
 
-			final List<? extends NodeInterface> nodes = app.nodeQuery().getAsList();
+			try (final Tx tx = app.tx()) {
 
-			logger.info("Cleaning database: {} nodes", nodes.size());
+				// delete remaining nodes without UUIDs etc.
+				app.cypher("MATCH (n) WHERE NOT n:SchemaReloadingNode DETACH DELETE n", Collections.emptyMap());
 
+				tx.success();
 
-			for (final NodeInterface node : nodes) {
-				app.delete(node);
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
 			}
 
-			// delete remaining nodes without UUIDs etc.
-			app.cypher("MATCH (n)-[r]-(m) DELETE n, r, m", Collections.emptyMap());
+			FlushCachesCommand.flushAll();
+		}
+	}
+
+	public void cleanDatabaseAndSchema() {
+
+		try (final Tx tx = app.tx()) {
+
+			// delete everything
+			app.cypher("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+
+			FlushCachesCommand.flushAll();
+
+			SchemaService.ensureBuiltinTypesExist(app);
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			 logger.error("Exception while trying to clean database: {}", fex);
+			t.printStackTrace();
+			logger.error("Exception while trying to clean database: {}", t.getMessage());
 		}
+	}
+
+	@After
+	public void enableCleanup() {
+		needsCleanup = true;
 	}
 
 	@BeforeClass

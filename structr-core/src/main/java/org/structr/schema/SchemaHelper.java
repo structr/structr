@@ -522,7 +522,7 @@ public class SchemaHelper {
 
 	}
 
-	public static String getSource(final AbstractSchemaNode schemaNode, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
+	public static String getSource(final AbstractSchemaNode schemaNode, final Map<String, SchemaNode> schemaNodes, final Set<String> blacklist, final ErrorBuffer errorBuffer) throws FrameworkException, UnlicensedTypeException {
 
 		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
 		final Map<String, List<ActionEntry>> methods           = new LinkedHashMap<>();
@@ -646,10 +646,10 @@ public class SchemaHelper {
 			relationshipPropertyNames.add(propertyName);
 		}
 
-		src.append(SchemaHelper.extractProperties(schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
+		src.append(SchemaHelper.extractProperties(schemaNodes, schemaNode, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
-		SchemaHelper.extractViews(schemaNode, viewProperties, relationshipPropertyNames, errorBuffer);
-		SchemaHelper.extractMethods(schemaNode, methods);
+		SchemaHelper.extractViews(schemaNodes, schemaNode, viewProperties, relationshipPropertyNames, errorBuffer);
+		SchemaHelper.extractMethods(schemaNodes, schemaNode, methods);
 
 		// output possible enum definitions
 		for (final String enumDefition : enums) {
@@ -718,7 +718,7 @@ public class SchemaHelper {
 		return checkLicense(Services.getInstance().getLicenseManager(), superClass, implementedInterfaces);
 	}
 
-	public static String extractProperties(final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final List<String> propertyValidators, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static String extractProperties(final Map<String, SchemaNode> schemaNodes, final Schema entity, final Set<String> propertyNames, final Set<Validator> validators, final Set<String> compoundIndexKeys, final Set<String> enums, final Map<String, Set<String>> views, final List<String> propertyValidators, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final StringBuilder src                   = new StringBuilder();
@@ -791,7 +791,7 @@ public class SchemaHelper {
 						propertyNames.add(schemaProperty.getPropertyName());
 
 						// append created source from parser
-						parser.getPropertySource(src, entity);
+						parser.getPropertySource(schemaNodes, src, entity);
 
 						// register global elements created by parser
 						validators.addAll(parser.getGlobalValidators());
@@ -818,7 +818,7 @@ public class SchemaHelper {
 		return src.toString();
 	}
 
-	public static void extractViews(final Schema entity, final Map<String, Set<String>> views, final Set<String> relPropertyNames, final ErrorBuffer errorBuffer) throws FrameworkException {
+	public static void extractViews(final Map<String, SchemaNode> schemaNodes, final Schema entity, final Map<String, Set<String>> views, final Set<String> relPropertyNames, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 		final ConfigurationProvider config        = StructrApp.getConfiguration();
@@ -925,7 +925,7 @@ public class SchemaHelper {
 
 					for (final String propertyName : nonGraphProperties.split("[, ]+")) {
 
-						if (SchemaHelper.isDynamic(entity.getClassName(), propertyName)) {
+						if (SchemaHelper.isDynamic(schemaNodes, entity.getClassName(), propertyName)) {
 
 							view.add(SchemaHelper.cleanPropertyName(propertyName + "Property"));
 
@@ -940,7 +940,7 @@ public class SchemaHelper {
 						} else {
 
 							logger.warn("Unknown property {} in non-graph properties, ignoring.", propertyName);
-							SchemaHelper.isDynamic(entity.getClassName(), propertyName);
+							SchemaHelper.isDynamic(schemaNodes, entity.getClassName(), propertyName);
 						}
 					}
 				}
@@ -954,7 +954,7 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void extractMethods(final AbstractSchemaNode entity, final Map<String, List<ActionEntry>> actions) throws FrameworkException {
+	public static void extractMethods(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, final Map<String, List<ActionEntry>> actions) throws FrameworkException {
 
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 
@@ -989,7 +989,7 @@ public class SchemaHelper {
 
 			for (final SchemaMethod schemaMethod : schemaMethods) {
 
-				final ActionEntry entry      = schemaMethod.getActionEntry(entity);
+				final ActionEntry entry      = schemaMethod.getActionEntry(schemaNodes, entity);
 				final String name            = entry.getName();
 				List<ActionEntry> actionList = actions.get(name);
 
@@ -1594,7 +1594,7 @@ public class SchemaHelper {
 		view.addAll(list);
 	}
 
-	public static boolean isDynamic(final String typeName, final String propertyName) throws FrameworkException {
+	public static boolean isDynamic(final Map<String, SchemaNode> schemaNodes, final String typeName, final String propertyName) throws FrameworkException {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final Class type                   = config.getNodeEntityClass(typeName);
@@ -1607,7 +1607,7 @@ public class SchemaHelper {
 				return true;
 			}
 
-		} else if (hasSchemaProperty(typeName, propertyName)) {
+		} else if (hasSchemaProperty(schemaNodes, typeName, propertyName)) {
 
 			return true;
 		}
@@ -1721,10 +1721,10 @@ public class SchemaHelper {
 		return Scalars.GraphQLString;
 	}
 
-	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws FrameworkException {
+	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws FrameworkException {
 
 		final List<GraphQLArgument> arguments = new LinkedList<>();
-		final SchemaNode schemaNode           = StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type).getFirst();
+		final SchemaNode schemaNode           = schemaNodes.get(type);
 
 		if (schemaNode != null) {
 
@@ -1787,7 +1787,7 @@ public class SchemaHelper {
 			// manual registration for built-in relationships that are not dynamic
 			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
 				.name(type + "ownerInput")
-				.fields(getGraphQLInputFieldsForType(selectionTypes, StructrApp.getInstance().nodeQuery(SchemaNode.class).andName("Principal").getFirst()))
+				.fields(getGraphQLInputFieldsForType(selectionTypes, schemaNodes.get("Principal")))
 				.build()
 			).build());
 
@@ -1935,7 +1935,7 @@ public class SchemaHelper {
 		return false;
 	}
 
-	private static boolean hasSchemaProperty(final String typeName, final String propertyName) throws FrameworkException {
+	private static boolean hasSchemaProperty(final Map<String, SchemaNode> schemaNodes, final String typeName, final String propertyName) throws FrameworkException {
 
 		final Set<String> visited = new LinkedHashSet<>();
 		final Queue<String> types = new LinkedList<>();
@@ -1951,7 +1951,7 @@ public class SchemaHelper {
 
 				visited.add(type);
 
-				final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
+				final SchemaNode schemaNode = schemaNodes.get(type);
 				if (schemaNode != null) {
 
 					final SchemaProperty schemaProperty = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();

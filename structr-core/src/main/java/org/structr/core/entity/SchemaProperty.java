@@ -26,6 +26,7 @@ import static graphql.schema.GraphQLTypeReference.typeRef;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -371,20 +372,20 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return enums;
 	}
 
-	public boolean isPropertySetNotion() {
-		return getNotionPropertyParser().isPropertySet();
+	public boolean isPropertySetNotion(final Map<String, SchemaNode> schemaNodes) {
+		return getNotionPropertyParser(schemaNodes).isPropertySet();
 	}
 
-	public String getTypeReferenceForNotionProperty() {
-		return getNotionPropertyParser().getValueType();
+	public String getTypeReferenceForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
+		return getNotionPropertyParser(schemaNodes).getValueType();
 
 	}
 
-	public Set<String> getPropertiesForNotionProperty() {
+	public Set<String> getPropertiesForNotionProperty(final Map<String, SchemaNode> schemaNodes) {
 
 		final Set<String> properties = new LinkedHashSet<>();
 
-		for (final String property : getNotionPropertyParser().getProperties()) {
+		for (final String property : getNotionPropertyParser(schemaNodes).getProperties()) {
 
 			if (property.contains(".")) {
 
@@ -406,12 +407,12 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return properties;
 	}
 
-	public String getNotionBaseProperty() {
-		return getNotionPropertyParser().getBaseProperty();
+	public String getNotionBaseProperty(final Map<String, SchemaNode> schemaNodes) {
+		return getNotionPropertyParser(schemaNodes).getBaseProperty();
 	}
 
-	public String getNotionMultiplicity() {
-		return getNotionPropertyParser().getMultiplicity();
+	public String getNotionMultiplicity(final Map<String, SchemaNode> schemaNodes) {
+		return getNotionPropertyParser(schemaNodes).getMultiplicity();
 	}
 
 	@Override
@@ -489,13 +490,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return null;
 	}
 
-	public NotionPropertyParser getNotionPropertyParser() {
+	public NotionPropertyParser getNotionPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (notionPropertyParser == null) {
 
 			try {
 				notionPropertyParser = new NotionPropertyParser(new ErrorBuffer(), getName(), this);
-				notionPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				notionPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
 
@@ -506,13 +507,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return notionPropertyParser;
 	}
 
-	public IntPropertyParser getIntPropertyParser() {
+	public IntPropertyParser getIntPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (intPropertyParser == null) {
 
 			try {
 				intPropertyParser = new IntPropertyParser(new ErrorBuffer(), getName(), this);
-				intPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				intPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
 
@@ -523,13 +524,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return intPropertyParser;
 	}
 
-	public IntegerArrayPropertyParser getIntArrayPropertyParser() {
+	public IntegerArrayPropertyParser getIntArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (intArrayPropertyParser == null) {
 
 			try {
 				intArrayPropertyParser = new IntegerArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				intArrayPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				intArrayPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
 
@@ -540,13 +541,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return intArrayPropertyParser;
 	}
 
-	public LongPropertyParser getLongPropertyParser() {
+	public LongPropertyParser getLongPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (longPropertyParser == null) {
 
 			try {
 				longPropertyParser = new LongPropertyParser(new ErrorBuffer(), getName(), this);
-				longPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				longPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
 
@@ -557,13 +558,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return longPropertyParser;
 	}
 
-	public LongArrayPropertyParser getLongArrayPropertyParser() {
+	public LongArrayPropertyParser getLongArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (longArrayPropertyParser == null) {
 
 			try {
 				longArrayPropertyParser = new LongArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				longArrayPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				longArrayPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
 
@@ -574,13 +575,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return longArrayPropertyParser;
 	}
 
-	public DoublePropertyParser getDoublePropertyParser() {
+	public DoublePropertyParser getDoublePropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (doublePropertyParser == null) {
 
 			try {
 				doublePropertyParser = new DoublePropertyParser(new ErrorBuffer(), getName(), this);
-				doublePropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				doublePropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
 
@@ -591,13 +592,13 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		return doublePropertyParser;
 	}
 
-	public DoubleArrayPropertyParser getDoubleArrayPropertyParser() {
+	public DoubleArrayPropertyParser getDoubleArrayPropertyParser(final Map<String, SchemaNode> schemaNodes) {
 
 		if (doubleArrayPropertyParser == null) {
 
 			try {
 				doubleArrayPropertyParser = new DoubleArrayPropertyParser(new ErrorBuffer(), getName(), this);
-				doubleArrayPropertyParser.getPropertySource(new StringBuilder(), getProperty(SchemaProperty.schemaNode));
+				doubleArrayPropertyParser.getPropertySource(schemaNodes, new StringBuilder(), getProperty(SchemaProperty.schemaNode));
 
 			} catch (FrameworkException fex) {
 

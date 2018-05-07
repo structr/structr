@@ -359,9 +359,9 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	}
 
 	@Override
-	void deserialize(final SchemaRelationshipNode schemaNode) {
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaRelationshipNode schemaNode) {
 
-		super.deserialize(schemaNode);
+		super.deserialize(schemaNodes, schemaNode);
 
 		final SchemaNode sourceNode = schemaNode.getProperty(SchemaRelationshipNode.sourceNode);
 		final SchemaNode targetNode = schemaNode.getProperty(SchemaRelationshipNode.targetNode);
@@ -429,7 +429,7 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 
 
 	@Override
-	SchemaRelationshipNode createSchemaNode(final App app, final PropertyMap createProperties) throws FrameworkException {
+	SchemaRelationshipNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final PropertyMap createProperties) throws FrameworkException {
 
 		final PropertyMap properties       = new PropertyMap();
 		SchemaRelationshipNode _schemaNode = app.nodeQuery(SchemaRelationshipNode.class).andName(getName()).getFirst();
@@ -483,12 +483,12 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 		return _schemaNode;
 	}
 
-	void resolveEndpointTypesForDatabaseSchemaCreation(final App app) throws FrameworkException {
+	void resolveEndpointTypesForDatabaseSchemaCreation(final Map<String, SchemaNode> schemaNodes, final App app) throws FrameworkException {
 
 		// this method is called when the creation of type and relationship
 		// nodes is completed and all references can be resolved
-		final SchemaNode sourceSchemaNode = resolveSchemaNode(app, sourceType);
-		final SchemaNode targetSchemaNode = resolveSchemaNode(app, targetType);
+		final SchemaNode sourceSchemaNode = resolveSchemaNode(schemaNodes, app, sourceType);
+		final SchemaNode targetSchemaNode = resolveSchemaNode(schemaNodes, app, targetType);
 
 		if (sourceSchemaNode != null && targetSchemaNode != null) {
 

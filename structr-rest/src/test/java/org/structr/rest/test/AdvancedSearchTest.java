@@ -522,7 +522,7 @@ public class AdvancedSearchTest extends IndexingTest {
 
 	}
 
-	@Test
+	//@Test
 	public void testGraphBasedIndexingSearchCombinedWithGeocoding() {
 
 		String test01 = createEntity("/test_eights", "{ name: test01, aString: string01, anInt: 1 }");
@@ -693,6 +693,8 @@ public class AdvancedSearchTest extends IndexingTest {
 
 	@Test
 	public void testSearchDynamicNodes() {
+
+		cleanDatabaseAndSchema();
 
 		/**
 		 * This is actually a core test but has to go here because some

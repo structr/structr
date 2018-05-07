@@ -49,6 +49,7 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.SchemaRelationshipSourceNode;
 import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
@@ -277,12 +278,12 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public String getMultiplicity(String propertyNameToCheck) {
+	public String getMultiplicity(final Map<String, SchemaNode> schemaNodes, String propertyNameToCheck) {
 		return null;
 	}
 
 	@Override
-	public String getRelatedType(String propertyNameToCheck) {
+	public String getRelatedType(final Map<String, SchemaNode> schemaNodes, String propertyNameToCheck) {
 		return null;
 	}
 
@@ -504,7 +505,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		return propertyName;
 	}
 
-	public String getSource(final ErrorBuffer errorBuffer) throws FrameworkException {
+	public String getSource(final Map<String, SchemaNode> schemaNodes, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		final Map<String, List<ActionEntry>> actions       = new LinkedHashMap<>();
 		final Map<String, Set<String>> viewProperties      = new LinkedHashMap<>();
@@ -555,10 +556,10 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			src.append("\tstatic {\n\t\tSchemaRelationshipNode.registerPropagatingRelationshipType(").append(_className).append(".class);\n\t}\n\n");
 		}
 
-		src.append(SchemaHelper.extractProperties(this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
+		src.append(SchemaHelper.extractProperties(schemaNodes, this, propertyNames, validators, compoundIndexKeys, enums, viewProperties, propertyValidators, errorBuffer));
 
-		SchemaHelper.extractViews(this, viewProperties, Collections.EMPTY_SET, errorBuffer);
-		SchemaHelper.extractMethods(this, actions);
+		SchemaHelper.extractViews(schemaNodes, this, viewProperties, Collections.EMPTY_SET, errorBuffer);
+		SchemaHelper.extractMethods(schemaNodes, this, actions);
 
 		// source and target id properties
 		src.append("\tpublic static final Property<java.lang.String> sourceIdProperty = new SourceId(\"sourceId\").partOfBuiltInSchema();\n");
@@ -1039,27 +1040,31 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	private void checkAndRenameSourceAndTargetJsonNames() throws FrameworkException {
 
-		final String _previousSourceJsonName = getProperty(previousSourceJsonName);
-		final String _previousTargetJsonName = getProperty(previousTargetJsonName);
-		final String _currentSourceJsonName  = ((getProperty(sourceJsonName) != null) ? getProperty(sourceJsonName) : getPropertyName(getSchemaNodeTargetType(), new LinkedHashSet<>(), false));
-		final String _currentTargetJsonName  = ((getProperty(targetJsonName) != null) ? getProperty(targetJsonName) : getPropertyName(getSchemaNodeSourceType(), new LinkedHashSet<>(), true));
-		final SchemaNode _sourceNode         = getProperty(sourceNode);
-		final SchemaNode _targetNode         = getProperty(targetNode);
+		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
+		final String _previousSourceJsonName      = getProperty(previousSourceJsonName);
+		final String _previousTargetJsonName      = getProperty(previousTargetJsonName);
+		final String _currentSourceJsonName       = ((getProperty(sourceJsonName) != null) ? getProperty(sourceJsonName) : getPropertyName(getSchemaNodeTargetType(), new LinkedHashSet<>(), false));
+		final String _currentTargetJsonName       = ((getProperty(targetJsonName) != null) ? getProperty(targetJsonName) : getPropertyName(getSchemaNodeSourceType(), new LinkedHashSet<>(), true));
+		final SchemaNode _sourceNode              = getProperty(sourceNode);
+		final SchemaNode _targetNode              = getProperty(targetNode);
+
+		// build schema node map
+		StructrApp.getInstance().nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
 
 			renameNameInNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
 
-			renameNotionPropertyReferences(_sourceNode, _previousSourceJsonName, _currentSourceJsonName);
-			renameNotionPropertyReferences(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
+			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousSourceJsonName, _currentSourceJsonName);
+			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousSourceJsonName, _currentSourceJsonName);
 		}
 
 		if (_previousTargetJsonName != null && _currentTargetJsonName != null && !_currentTargetJsonName.equals(_previousTargetJsonName)) {
 
 			renameNameInNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
 
-			renameNotionPropertyReferences(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
-			renameNotionPropertyReferences(_targetNode, _previousTargetJsonName, _currentTargetJsonName);
+			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousTargetJsonName, _currentTargetJsonName);
 		}
 	}
 
@@ -1086,7 +1091,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	}
 
-	private void renameNotionPropertyReferences(final SchemaNode schemaNode, final String previousValue, final String currentValue) throws FrameworkException {
+	private void renameNotionPropertyReferences(final Map<String, SchemaNode> schemaNodes, final SchemaNode schemaNode, final String previousValue, final String currentValue) throws FrameworkException {
 
 		// examine properties of other node
 		for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
@@ -1094,7 +1099,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			if (Type.Notion.equals(property.getPropertyType()) || Type.IdNotion.equals(property.getPropertyType())) {
 
 				// try to rename
-				final String basePropertyName = property.getNotionBaseProperty();
+				final String basePropertyName = property.getNotionBaseProperty(schemaNodes);
 				if (basePropertyName.equals(previousValue)) {
 
 					property.setProperty(SchemaProperty.format, property.getFormat().replace(previousValue, currentValue));
