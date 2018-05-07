@@ -18,6 +18,7 @@
  */
 package org.structr.common;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
@@ -40,6 +41,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.SixOneManyToMany;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
@@ -1941,7 +1943,58 @@ public class SearchAndSortingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testManyToManyReverseNodeSearch() {
+
+		final Class<Group> groupType                 = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<List<Principal>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
+		final List<Group> groups                     = new LinkedList<>();
+
+		try (final Tx tx = app.tx()) {
+
+			for (int i=0; i<5; i++) {
+
+				groups.add(createTestNode(groupType, "Group" + i));
+			}
+
+			final Group group1 = groups.get(0);
+			final Group group2 = groups.get(1);
+			final Group group3 = groups.get(2);
+			final Group group4 = groups.get(3);
+			final Group group5 = groups.get(4);
+
+			group1.addMember(group2);
+			group2.addMember(group3);
+			group2.addMember(group4);
+			group3.addMember(group5);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// search for a group with empty list of parents
+			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new LinkedList<>()).getAsList();
+			assertEquals("Invalid search result for ", 1, result1.size());
+
+			// search for a group with group2 as a parent
+			final List<Group> result2 = app.nodeQuery(Group.class).and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			assertEquals("Invalid search result for ", 2, result2.size());
+
+			// search for a group with group2 as a parent and a given name
+			final List<Group> result3 = app.nodeQuery(Group.class).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
+			assertEquals("Invalid search result for ", 1, result3.size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 
 	}
 
