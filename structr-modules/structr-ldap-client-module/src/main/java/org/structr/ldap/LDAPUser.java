@@ -47,17 +47,17 @@ public interface LDAPUser extends User {
 		type.addStringProperty("distinguishedName", PropertyView.Public).setUnique(true).setIndexed(true);
 		type.addStringProperty("description",       PropertyView.Public).setIndexed(true);
 		type.addStringProperty("commonName",        PropertyView.Public).setIndexed(true);
-		type.addStringProperty("entryUuid",         PropertyView.Public).setUnique(true).setIndexed(true);
+		type.addStringProperty("uid",               PropertyView.Public).setIndexed(true);
 
 		type.addPropertyGetter("distinguishedName", String.class);
 		type.addPropertyGetter("description",       String.class);
 		type.addPropertyGetter("commonName",        String.class);
-		type.addPropertyGetter("entryUuid",         String.class);
+		type.addPropertyGetter("uid",               String.class);
 
 		type.addPropertySetter("distinguishedName", String.class);
 		type.addPropertySetter("description",       String.class);
 		type.addPropertySetter("commonName",        String.class);
-		type.addPropertySetter("entryUuid",         String.class);
+		type.addPropertySetter("uid",               String.class);
 
 		type.overrideMethod("initializeFrom",  false, LDAPUser.class.getName() + ".initializeFrom(this, arg0);");
 		type.overrideMethod("printDebug",      false, LDAPUser.class.getName() + ".printDebug(this);").setDoExport(true);
@@ -67,21 +67,18 @@ public interface LDAPUser extends User {
 	String getDistinguishedName();
 	String getDescription();
 	String getCommonName();
-	String getEntryUuid();
 
 	void initializeFrom(final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException;
 	void setDistinguishedName(final String distinguishedName) throws FrameworkException;
 	void setDescription(final String description) throws FrameworkException;
 	void setCommonName(final String commonName) throws FrameworkException;
-	void setEntryUuid(final String uuid) throws FrameworkException;
 
 	static void initializeFrom(final LDAPUser thisUser, final Entry entry) throws FrameworkException, LdapInvalidAttributeValueException {
 
 		thisUser.setProperty(StructrApp.key(LDAPUser.class, "description"), LDAPUser.getString(entry, "description"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "entryUuid"),   LDAPUser.getString(entry, "entryUUID"));
-		thisUser.setProperty(StructrApp.key(LDAPUser.class, "name"),        LDAPUser.getString(entry, "uid"));
 		thisUser.setProperty(StructrApp.key(LDAPUser.class, "commonName"),  LDAPUser.getString(entry, "cn"));
 		thisUser.setProperty(StructrApp.key(LDAPUser.class, "eMail"),       LDAPUser.getString(entry, "mail"));
+		thisUser.setProperty(StructrApp.key(LDAPUser.class, "uid"),         LDAPUser.getString(entry, "uid"));
 	}
 
 	static boolean isValidPassword(final LDAPUser thisUser, final String password) {

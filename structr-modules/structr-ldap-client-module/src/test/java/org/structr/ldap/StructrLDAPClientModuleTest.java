@@ -167,7 +167,7 @@ public class StructrLDAPClientModuleTest {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		Settings.Services.setValue("NodeService LogService SchemaService HttpService AgentService LDAPService");
+		Settings.Services.setValue("NodeService LogService SchemaService HttpService AgentService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup

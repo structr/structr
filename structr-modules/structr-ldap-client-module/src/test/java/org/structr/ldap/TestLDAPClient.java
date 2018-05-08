@@ -59,8 +59,7 @@ public class TestLDAPClient extends StructrLDAPClientModuleTest {
 				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "name"),              "test"),
 				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "distinguishedName"), "distinguishedName"),
 				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "description"),       "description"),
-				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "commonName"),        "commonName"),
-				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "entryUuid"),         "entryUuid")
+				new NodeAttribute<>(StructrApp.key(LDAPUser.class, "commonName"),        "commonName")
 			);
 
 			tx.success();
@@ -80,16 +79,7 @@ public class TestLDAPClient extends StructrLDAPClientModuleTest {
 				.get("/LDAPUser");
 
 	}
-
 }
-
-
-
-
-
-
-
-
 
 
 
