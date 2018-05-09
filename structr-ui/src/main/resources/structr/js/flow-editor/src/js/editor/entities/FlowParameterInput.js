@@ -11,6 +11,7 @@ export class FlowParameterInput extends FlowNode {
     }
 
     getComponent() {
+        let scopedDbNode = this.dbNode;
         return new D3NE.Component('FlowParameterInput', {
             template: FlowAction._nodeTemplate(),
             builder(node) {
@@ -18,9 +19,27 @@ export class FlowParameterInput extends FlowNode {
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));;
                 let call = new D3NE.Output('Call', socket.getSocket('call'));
 
+                let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
+
+                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined) {
+                        element.setAttribute("value",scopedDbNode.key);
+                    }
+
+                    control.putData('key',element.value);
+                    control.putData('dbNode', scopedDbNode);
+
+                    control.id = "key";
+                    control.name = "Key";
+
+                    element.addEventListener('change', ()=>{
+                        control.putData('key',element.value);
+                    });
+                });
+
                 return node
                     .addInput(dataSource)
-                    .addOutput(call);
+                    .addOutput(call)
+                    .addControl(key);
             },
             worker(node, inputs, outputs) {
                 outputs[0] = this;

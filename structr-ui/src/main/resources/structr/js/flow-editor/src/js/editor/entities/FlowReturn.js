@@ -1,7 +1,6 @@
 'use strict';
 
 import {FlowNode} from "./FlowNode.js";
-import {FlowAction} from "./FlowAction.js";
 import {FlowSockets} from "../FlowSockets.js";
 
 export class FlowReturn extends FlowNode {
@@ -11,16 +10,41 @@ export class FlowReturn extends FlowNode {
     }
 
     getComponent() {
+        let scopedDbNode = this.dbNode;
         return new D3NE.Component('FlowReturn', {
-            template: FlowAction._nodeTemplate(),
+            template: FlowReturn._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
                 let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
 
+                if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
+                    node.isStartNode = true;
+                } else {
+                    node.isStartNode = false;
+                }
+
+                let query = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
+
+                    if(scopedDbNode !== undefined && scopedDbNode.result !== undefined && scopedDbNode.result !== null) {
+                        element.value = scopedDbNode.result;
+                    }
+
+                    control.putData('result',element.value);
+                    control.putData('dbNode', scopedDbNode);
+
+                    control.id = "result";
+                    control.name = "Query";
+
+                    element.addEventListener('change', ()=>{
+                        control.putData('result',element.value);
+                    });
+                });
+
                 return node
                     .addInput(prev)
                     .addInput(dataSource)
+                    .addControl(query);
             },
             worker(node, inputs, outputs) {
             }
@@ -29,7 +53,7 @@ export class FlowReturn extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div class="title {{isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->
@@ -39,8 +63,6 @@ export class FlowReturn extends FlowNode {
                             <div class="input-title" al-if="!input.showControl()">{{input.title}}</div>
                             <div class="input-control" al-if="input.showControl()" al-control="input.control"></div>
                         </div>
-                        <!-- Controls-->
-                        <div class="control" al-repeat="control in node.controls" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                     </column>
                     <column>
                         <!-- Outputs-->
@@ -51,6 +73,15 @@ export class FlowReturn extends FlowNode {
                         </div>
                     </column>
                 </content>
+                    <!-- Controls-->
+                    <content al-repeat="control in node.controls" style="display:inline">
+                        <column>
+                            <label class="control-title" for="{{control.id}}">{{control.name}}</label>
+                        </column>
+                        <column>
+                            <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
+                        </column>
+                    </content>
             </div>
         `;
     }

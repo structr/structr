@@ -29,8 +29,10 @@ html, body {
     .node-editor .node:hover {
       background: rgba(73, 73, 73, 0.7); }
     .node-editor .node.selected {
-      background: rgba(22, 22, 22, 0.7);
+      background: rgba(22, 22, 22, 0.7) !important;
       border: 1px solid #ffffff; }
+    .node-editor .node .startNode {
+      background: rgba(90, 210, 90, 0.6); }
     .node-editor .node .title {
       border-top: 1px solid #ccc;
       color: white;
@@ -101,6 +103,24 @@ html, body {
       font-size: 14px;
       line-height: 16px;
       margin-left: 25px; }
+    .node-editor .node .control-textarea {
+      vertical-align: middle;
+      background: rgba(22, 22, 22, 0.7);
+      color: white;
+      font-family: sans-serif;
+      font-size: 14px;
+      line-height: 16px;
+      min-height: 50px; }
+    .node-editor .node .control-select {
+      vertical-align: middle;
+      background: rgba(22, 22, 22, 0.7);
+      color: white;
+      font-family: sans-serif;
+      font-size: 14px;
+      line-height: 16px;
+      width: 100%; }
+    .node-editor .node .control-text {
+      width: 100%; }
   .node-editor .group {
     border-radius: 16px;
     background: rgba(15, 80, 255, 0.2);

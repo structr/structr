@@ -6,6 +6,7 @@ import {FlowReturn} from "./entities/FlowReturn.js";
 import {FlowNode} from "./entities/FlowNode.js";
 import {FlowAction} from "./entities/FlowAction.js";
 import {FlowParameterInput} from "./entities/FlowParameterInput.js";
+import {FlowConnectionTypes} from "./FlowConnectionTypes.js";
 
 export class FlowEditor {
 
@@ -67,6 +68,27 @@ export class FlowEditor {
         return menu;
     }
 
+
+    connectNodes(rel) {
+        let source = this.getFlowNodeForDbId(rel.sourceId);
+        let target = this.getFlowNodeForDbId(rel.targetId);
+
+        if (source !== undefined && target !== undefined) {
+            let connectionType = FlowConnectionTypes.getInst().getConnectionType(rel.type);
+
+            let output = source.editorNode.outputs.filter(o => o.socket.id === connectionType.targetAttribute)[0];
+            let input = target.editorNode.inputs.filter(i => i.socket.id === connectionType.sourceAttribute)[0];
+
+            this._editor.connect(output, input);
+
+            let connection = output.connections.filter(c => c.input === input)[0];
+            connection.label = connectionType.name;
+            console.log(connection);
+            console.log('-------------------------------------');
+        }
+
+    }
+
     renderNode(node) {
         let fNode = undefined;
         switch (node.type) {
@@ -91,7 +113,11 @@ export class FlowEditor {
                 break;
         }
 
-        fNode.getComponent().builder(fNode.getComponent());
+        let component = fNode.getComponent();
+        let editorNode = component.builder(component.newNode());
+        fNode.editorNode = editorNode;
+
+        this._editor.addNode(editorNode);
 
         this.flowNodes.push(fNode);
 

@@ -1,8 +1,9 @@
 'use strict';
 
 import {FlowNode} from "./FlowNode.js";
-import {FlowAction} from "./FlowAction.js";
 import {FlowSockets} from "../FlowSockets.js";
+import {Persistence} from "../../persistence/Persistence.js";
+import {FlowContainer} from "./FlowContainer.js";
 
 export class FlowCall extends FlowNode {
 
@@ -11,20 +12,65 @@ export class FlowCall extends FlowNode {
     }
 
     getComponent() {
+        let scopedDbNode = this.dbNode;
         return new D3NE.Component('FlowCall', {
-            template: FlowAction._nodeTemplate(),
+            template: FlowCall._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
                 let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
-                let parameters = new D3NE.Input('parameters', socket.getSocket('parameters'), true);
+                let parameters = new D3NE.Input('Parameters', socket.getSocket('parameters'), true);
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
+
+                if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
+                    node.isStartNode = true;
+                } else {
+                    node.isStartNode = false;
+                }
+
+                // Add select box and render all FlowContainer as Call options
+                let call = new D3NE.Control('<select class="control-select">', (element, control) =>{
+
+                    let persistence = new Persistence();
+                    persistence.getNodesByClass(new FlowContainer()).then(result => {
+
+                        for (let container of result) {
+                            if (result.id !== scopedDbNode.flowContainer.id) {
+                                let option = document.createElement("option");
+                                option.text = container.name;
+                                option.value = container.id;
+
+                                if (scopedDbNode.flow !== undefined && scopedDbNode.flow.id === container.id) {
+                                    option.selected = true;
+                                }
+
+                                element.add(option);
+                            }
+                        }
+
+                    });
+
+                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
+                        element.value = scopedDbNode.script;
+                    }
+
+                    control.putData('flow',element.value);
+                    control.putData('dbNode', scopedDbNode);
+
+                    control.id = "flow";
+                    control.name = "Flow";
+
+                    element.addEventListener('change', ()=>{
+                        control.putData('flow',element.value);
+                    });
+                });
 
                 return node
                     .addInput(prev)
                     .addOutput(next)
                     .addInput(parameters)
-                    .addOutput(dataTarget);
+                    .addOutput(dataTarget)
+                    .addControl(call);
             },
             worker(node, inputs, outputs) {
             }
@@ -33,7 +79,7 @@ export class FlowCall extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div class="title {{isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->
@@ -43,8 +89,6 @@ export class FlowCall extends FlowNode {
                             <div class="input-title" al-if="!input.showControl()">{{input.title}}</div>
                             <div class="input-control" al-if="input.showControl()" al-control="input.control"></div>
                         </div>
-                        <!-- Controls-->
-                        <div class="control" al-repeat="control in node.controls" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                     </column>
                     <column>
                         <!-- Outputs-->
@@ -55,6 +99,15 @@ export class FlowCall extends FlowNode {
                         </div>
                     </column>
                 </content>
+                    <!-- Controls-->
+                    <content al-repeat="control in node.controls" style="display:inline">
+                        <column>
+                            <label class="control-title" for="{{control.id}}">{{control.name}}</label>
+                        </column>
+                        <column>
+                            <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
+                        </column>
+                    </content>
             </div>
         `;
     }

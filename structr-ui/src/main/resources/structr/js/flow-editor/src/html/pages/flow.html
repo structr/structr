@@ -19,6 +19,7 @@
         import { Persistence } from "../../js/persistence/Persistence.js";
         import { FlowContainer } from "../../js/editor/entities/FlowContainer.js";
         import {FlowEditor} from "../../js/editor/FlowEditor.js";
+        import {FlowConnectionTypes} from "../../js/editor/FlowConnectionTypes.js";
 
 
         let persistence = new Persistence();
@@ -43,6 +44,18 @@
             r[0].flowNodes.forEach(node => {
                 persistence.getNodesById(node.id).then( n => editor.renderNode(n[0]));
             });
+
+            for(let [name,con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
+
+                persistence.getNodesByClass(con).then(relNodes => {
+                    relNodes.forEach(rel => {
+                       if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
+                            editor.connectNodes(rel);
+                       }
+                    });
+                });
+
+            }
 
 
         });

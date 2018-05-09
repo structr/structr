@@ -10,6 +10,7 @@ export class FlowAction extends FlowNode {
     }
 
     getComponent() {
+        let scopedDbNode = this.dbNode;
         return new D3NE.Component('FlowAction', {
             template: FlowAction._nodeTemplate(),
             builder(node) {
@@ -19,15 +20,26 @@ export class FlowAction extends FlowNode {
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
 
-                let query = new D3NE.Control('<input class="control" type="text" value="' + this.dbNode !== undefined ? this.dbNode.query : "data" + '">', (element, control) =>{
-                    control.putData('query',element.value);
-                    control.putData('dbNode', this.dbNode);
+                if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
+                    node.isStartNode = true;
+                } else {
+                    node.isStartNode = false;
+                }
 
-                    control.id = "query";
-                    control.name = "Query";
+                let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
+
+                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
+                        element.value = scopedDbNode.script;
+                    }
+
+                    control.putData('script',element.value);
+                    control.putData('dbNode', scopedDbNode);
+
+                    control.id = "script";
+                    control.name = "Script";
 
                     element.addEventListener('change', ()=>{
-                        control.putData('query',element.value);
+                        control.putData('script',element.value);
                     });
                 });
 
@@ -36,17 +48,17 @@ export class FlowAction extends FlowNode {
                     .addOutput(next)
                     .addInput(dataSource)
                     .addOutput(dataTarget)
-                    .addControl(query);
+                    .addControl(script);
             },
             worker(node, inputs, outputs) {
-                console.log(node.data);
+
             }
         });
     }
 
     static _nodeTemplate() {
         return `
-            <div class="title">{{node.title}}</div>
+            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->
