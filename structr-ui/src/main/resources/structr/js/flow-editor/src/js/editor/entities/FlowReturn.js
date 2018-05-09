@@ -38,6 +38,7 @@ export class FlowReturn extends FlowNode {
 
                     element.addEventListener('change', ()=>{
                         control.putData('result',element.value);
+                        node.data['dbNode'].result = element.value;
                     });
                 });
 

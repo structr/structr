@@ -39,24 +39,26 @@
             document.body.innerHTML = document.body.innerHTML.concat(markup);
 
             let rootElement = document.querySelector("#nodeEditor");
-            let editor = new FlowEditor(rootElement);
+            let editor = new FlowEditor(rootElement, r[0]);
 
+
+            let promises = [];
             r[0].flowNodes.forEach(node => {
-                persistence.getNodesById(node.id).then( n => editor.renderNode(n[0]));
+                promises.push(persistence.getNodesById(node.id).then(n => editor.renderNode(n[0])));
             });
+            Promise.all(promises).then(() => {
+                for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
 
-            for(let [name,con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
-
-                persistence.getNodesByClass(con).then(relNodes => {
-                    relNodes.forEach(rel => {
-                       if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
-                            editor.connectNodes(rel);
-                       }
+                    persistence.getNodesByClass(con).then(relNodes => {
+                        relNodes.forEach(rel => {
+                            if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
+                                editor.connectNodes(rel);
+                            }
+                        });
                     });
-                });
 
-            }
-
+                }
+            });
 
         });
 

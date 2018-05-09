@@ -31,6 +31,7 @@ export class Node {
                     persistenceObj[prop] = value;
                     persistence._persistObject(persistenceObj);
                 }
+                return true;
             }
 
         }

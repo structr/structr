@@ -33,6 +33,7 @@ export class FlowParameterInput extends FlowNode {
 
                     element.addEventListener('change', ()=>{
                         control.putData('key',element.value);
+                        node.data['dbNode'].key = element.value;
                     });
                 });
 

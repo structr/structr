@@ -40,7 +40,7 @@ export class FlowCall extends FlowNode {
                                 option.text = container.name;
                                 option.value = container.id;
 
-                                if (scopedDbNode.flow !== undefined && scopedDbNode.flow.id === container.id) {
+                                if (scopedDbNode.flow !== undefined && scopedDbNode.flow !== null && scopedDbNode.flow.id === container.id) {
                                     option.selected = true;
                                 }
 
@@ -62,6 +62,7 @@ export class FlowCall extends FlowNode {
 
                     element.addEventListener('change', ()=>{
                         control.putData('flow',element.value);
+                        node.data['dbNode'].flow = element.value;
                     });
                 });
 

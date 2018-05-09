@@ -2,12 +2,15 @@
 
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
+import {Persistence} from "../../persistence/Persistence.js";
 
 export class FlowAction extends FlowNode {
 
     constructor(node) {
         super(node);
     }
+
+
 
     getComponent() {
         let scopedDbNode = this.dbNode;
@@ -40,6 +43,7 @@ export class FlowAction extends FlowNode {
 
                     element.addEventListener('change', ()=>{
                         control.putData('script',element.value);
+                        node.data['dbNode'].script = element.value;
                     });
                 });
 
@@ -51,7 +55,6 @@ export class FlowAction extends FlowNode {
                     .addControl(script);
             },
             worker(node, inputs, outputs) {
-
             }
         });
     }

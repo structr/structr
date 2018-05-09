@@ -13,7 +13,15 @@ export class Persistence {
 
 
     async createNode(object) {
-        return await this._persistObject(object);
+        let result = await this._persistObject(object);
+        return result[0];
+    }
+
+    async deleteNode(object) {
+        if(object.id !== undefined && object.type !== undefined) {
+            return await this._structrRest.delete(object.type, object.id);
+        }
+        return undefined;
     }
 
     async getNodesByClass(model) {
@@ -64,16 +72,16 @@ export class Persistence {
 
         let result = {};
 
-        if (object.id !== undefined && object.id !== null) {
+        if (object.id !== undefined && object.id !== null && object.type !== undefined && object.type !== null) {
             // Object exists in db
-            let data = object;
             result = await this._structrRest.put(object.type, object.id, Persistence._toSerializable(object));
 
-        } else {
+        } else if (object.type !== undefined && object.type !== null) {
             // Object has to be created
             result = await this._structrRest.post(object.type, Persistence._toSerializable(object));
-            object.id = result.result[0];
-            return new Proxy(object, Node.getProxyHandler(this));
+            result = await this._structrRest.getById(object.type, result.result[0]);
+        } else {
+            console.log('_persistObject called with invalid parameters!');
         }
 
         return this._extractRestResult(result, object);

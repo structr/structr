@@ -32,6 +32,7 @@ export class FlowDataSource extends FlowNode {
 
                     element.addEventListener('change', ()=>{
                         control.putData('query',element.value);
+                        node.data['dbNode'].query = element.value;
                     });
                 });
 
