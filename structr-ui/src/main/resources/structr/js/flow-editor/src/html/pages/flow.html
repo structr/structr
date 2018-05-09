@@ -5,18 +5,21 @@
     <title>Flow</title>
     <script type="module" src="../../js/persistence/Persistence.js"></script>
     <script type="module" src="../../js/editor/entities/FlowContainer.js"></script>
-    <script src="../../lib/yfiles/license.js"></script>
-    <script src="../../lib/yfiles/yfiles-typeinfo.js"></script>
     <link rel="stylesheet" type="text/css" href="../../css/FlowEditor.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/alight@0.14.0/alight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@4.10.2/build/d3.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-node-editor@0.6.6/build/d3-node-editor.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/d3-node-editor@0.6.6/build/d3-node-editor.css" rel="stylesheet">
+    <link href="../../css/FlowEditor.css" rel="stylesheet">
 </head>
 <body>
 
     <script type="module">
         import { Persistence } from "../../js/persistence/Persistence.js";
         import { FlowContainer } from "../../js/editor/entities/FlowContainer.js";
-
-        import {FlowNode} from "../../js/editor/entities/FlowNode.js";
         import {FlowEditor} from "../../js/editor/FlowEditor.js";
+
 
         let persistence = new Persistence();
         let urlParams = new URLSearchParams(window.location.search);
@@ -27,26 +30,20 @@
             document.title = "Flow - " + r[0].name;
 
             const markup = `
-                <div><p>Hier entsteht die Editor-Seite für den Flow <b>${r[0].name}</b></p></div>
-                <div><button id="btn-layout">Fix Layout</button></div>
-                <div id="graphComponent"></div>
-            `;
+                    <div><p>Hier entsteht die Editor-Seite für den Flow <b>${r[0].name}</b></p></div>
+                    <div id="nodeEditor" class="node-editor"></div>
+                `;
 
-            document.body.innerHTML = markup;
 
-            let editor = new FlowEditor(document.querySelector("#graphComponent"));
+            document.body.innerHTML = document.body.innerHTML.concat(markup);
+
+            let rootElement = document.querySelector("#nodeEditor");
+            let editor = new FlowEditor(rootElement);
 
             r[0].flowNodes.forEach(node => {
-
                 persistence.getNodesById(node.id).then( n => editor.renderNode(n[0]));
-
             });
 
-            let layoutButton = document.querySelector("#btn-layout");
-
-            layoutButton.addEventListener("click", () => {
-                editor.doLayout(this);
-            });
 
         });
 

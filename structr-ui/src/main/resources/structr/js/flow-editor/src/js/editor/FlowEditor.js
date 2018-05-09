@@ -1,11 +1,5 @@
 'use strict';
 
-import { GraphComponent, InteriorStretchLabelModel } from "../../lib/yfiles/view-component.js";
-import { OrganicLayout } from "../../lib/yfiles/layout-organic.js";
-import * as viewLayoutBridge from "../../lib/yfiles/view-layout-bridge.js";
-import { GraphEditorInputMode } from "../../lib/yfiles/view-editor.js";
-import {Font} from "../../lib/yfiles/view-component.js";
-import {FlowLabelStyle} from "../../js/editor/FlowLabelStyle.js";
 import {FlowCall} from "./entities/FlowCall.js";
 import {FlowDataSource} from "./entities/FlowDataSource.js";
 import {FlowReturn} from "./entities/FlowReturn.js";
@@ -15,80 +9,102 @@ import {FlowParameterInput} from "./entities/FlowParameterInput.js";
 
 export class FlowEditor {
 
-    constructor(rootDOMNode) {
-        this.rootDOMNode = rootDOMNode;
-        this._graphComponent = new GraphComponent("#graphComponent");
-        this._graph = this._graphComponent.graph;
-        this.setup();
-    }
+    constructor(rootElement) {
+        this._rootElement = rootElement;
+        this.flowNodes = [];
 
-    setup() {
-        this._graph.nodeDefaults.size = new yfiles.geometry.Size(200, 100);
-        this._graph.nodeDefaults.labels.layoutParameter = InteriorStretchLabelModel.CENTER;
-        const font = new Font('"Seogoe UI", Arial', 13);
-        this._graph.nodeDefaults.labels.style = new FlowLabelStyle(font);
-        this._graph.edgeDefaults.labels.style = new FlowLabelStyle(font);
-
-        this._graphComponent.fitGraphBounds();
-        this._graphComponent.inputMode = new GraphEditorInputMode();
-        this._graphComponent.inputMode.showHandleItems = yfiles.graph.GraphItemTypes.ALL & ~yfiles.graph.GraphItemTypes.NODE;
-        this._graphComponent.inputMode.moveViewportInputMode.enabled = false;
-        this._graphComponent.inputMode.moveUnselectedInputMode.enabled = false;
-        this._graphComponent.inputMode.allowCreateNode = false;
-        this._graphComponent.inputMode.allowCreateBend = false;
-        this._graphComponent.inputMode.allowEditLabel = false;
-
-        this._layout = new OrganicLayout();
-        this._layout.considerNodeSizes = true;
-        this._layout.minimumNodeDistance = 100;
+        this._setupEditor();
+        this._setupEngine();
 
     }
 
-    doLayout(button) {
-        if (button === undefined) {
-            this._graphComponent.morphLayout(this._layout).then(() => console.log("morphed layout")).catch(e => {
-                alert("Error during layout morph:" + e);
-            });
-        } else {
-            button.setAttribute("disabled","disabled");
-            this._graphComponent.morphLayout(this._layout).then(() => button.removeAttribute("disabled")).catch(e => {button.removeAttribute("disabled");alert("Error during layout morph:" + e);});
+    _setupEditor() {
+        this._editor = new D3NE.NodeEditor('demo@0.1.0', this._rootElement, this._getComponents(), this._getMenu());
+    }
+
+    _setupEngine() {
+        this._engine = new D3NE.Engine('demo@0.1.0', this._getComponents());
+
+        this._editor.eventListener.on('change', async () => {
+            await this._engine.abort();
+            let status = await this._engine.process(this._editor.toJSON());
+        });
+    }
+
+    _getFlowClasses() {
+        return [
+            new FlowAction(),
+            new FlowCall(),
+            new FlowDataSource(),
+            new FlowParameterInput(),
+            new FlowReturn()
+        ];
+    }
+
+    _getComponents() {
+
+        if(this._components === undefined) {
+            this._components = [];
+
+            for (let comp of this._getFlowClasses()) {
+               this._components.push(comp.getComponent());
+            }
         }
+        return this._components;
     }
 
-    getGraph() {
-        return this._graph;
+    _getMenu() {
+        let nodeTypes = {};
+
+        for (let comp of this._getFlowClasses()) {
+            nodeTypes[comp.getName()] = comp.getComponent();
+        }
+
+        let menu = new D3NE.ContextMenu({
+            'Nodes':nodeTypes
+        });
+
+        return menu;
     }
 
     renderNode(node) {
         let fNode = undefined;
         switch (node.type) {
             case 'FlowAction':
-                fNode = new FlowAction(node);
+                fNode = new FlowAction(node, this);
                 break;
             case 'FlowCall':
-                fNode = new FlowCall(node);
+                fNode = new FlowCall(node, this);
                 break;
             case 'FlowDataSource':
-                fNode = new FlowDataSource(node);
+                fNode = new FlowDataSource(node, this);
                 break;
             case 'FlowReturn':
-                fNode = new FlowReturn(node);
+                fNode = new FlowReturn(node, this);
                 break;
             case 'FlowParameterInput':
-                fNode = new FlowParameterInput(node);
+                fNode = new FlowParameterInput(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);
-                fNode = new FlowNode(node);
+                fNode = new FlowNode(node, this);
                 break;
         }
 
-        fNode.render(this.getGraph());
+        fNode.getComponent().builder(fNode.getComponent());
 
-        this.doLayout();
+        this.flowNodes.push(fNode);
+
     }
 
+    getFlowNodeForDbId(id) {
 
-
+        for (let node of this.flowNodes) {
+            if (node.dbNode.id == id) {
+                return node;
+            }
+        }
+        return undefined;
+    }
 
 }
