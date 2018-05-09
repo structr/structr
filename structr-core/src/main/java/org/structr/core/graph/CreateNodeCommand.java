@@ -218,7 +218,15 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
-			buf.append("MATCH (u:Principal) WHERE id(u) = {userId}");
+			buf.append("MATCH (u:Principal");
+
+			if (tenantId != null) {
+
+				buf.append(":");
+				buf.append(tenantId);
+			}
+
+			buf.append(") WHERE id(u) = {userId}");
 			buf.append(" CREATE (u)-[o:OWNS {ownsProperties}]->(n");
 
 			if (tenantId != null) {

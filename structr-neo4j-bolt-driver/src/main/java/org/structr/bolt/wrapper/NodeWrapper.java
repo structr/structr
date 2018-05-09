@@ -20,7 +20,6 @@ package org.structr.bolt.wrapper;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -195,41 +194,32 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		AssociationList list = (AssociationList)getList(Direction.OUTGOING, type);
-		if (list != null && !dontUseCache) {
+		final SessionTransaction tx      = db.getCurrentTransaction();
+		final Map<String, Object> params = new LinkedHashMap<>();
+		final String tenantIdentifier    = db.getTenantIdentifier();
 
-			return list.containsAssociation(this, type, targetNode);
+		params.put("id1", getId());
+		params.put("id2", targetNode.getId());
 
-		} else {
+		try {
 
-			list = (AssociationList)getList(Direction.INCOMING, type);
-			if (list != null && !dontUseCache) {
+			// try to fetch existing relationship by node ID(s)
+			// FIXME: this call can be very slow when lots of relationships exist
+			tx.getLong(
+				"MATCH (n" +
+				(tenantIdentifier != null ? ":" + tenantIdentifier : "") +
+				")-[r:" + type.name() +
+				"]->(m" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") +
+				") WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)",
+				params
+			);
 
-				return list.containsAssociation(targetNode, type, this);
+			// success
+			return true;
 
-			} else {
+		} catch (Throwable t) {
 
-				final SessionTransaction tx      = db.getCurrentTransaction();
-				final Map<String, Object> params = new LinkedHashMap<>();
-				final String tenantIdentifier    = db.getTenantIdentifier();
-
-				params.put("id1", getId());
-				params.put("id2", targetNode.getId());
-
-				try {
-
-					// try to fetch existing relationship by node ID(s)
-					// FIXME: this call can be very slow when lots of relationships exist
-					tx.getLong("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + type.name() + "]->(m) WHERE id(n) = {id1} AND id(m) = {id2} RETURN id(r)", params);
-
-					// success
-					return true;
-
-				} catch (Throwable t) {
-
-					return false;
-				}
-			}
+			return false;
 		}
 	}
 
@@ -356,11 +346,25 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	public void delete(final boolean deleteRelationships) {
 
 		super.delete(deleteRelationships);
-		nodeCache.remove(id);
+
+		final SessionTransaction tx = db.getCurrentTransaction();
+		tx.deleted(this);
+	}
+
+	public static void expunge(final Set<Long> toRemove) {
+
+		synchronized (nodeCache) {
+			
+			nodeCache.removeAll(toRemove);
+		}
 	}
 
 	public static void clearCache() {
-		nodeCache.clear();
+
+		synchronized (nodeCache) {
+
+			nodeCache.clear();
+		}
 	}
 
 	// ----- public static methods -----
@@ -435,47 +439,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		cache.put(key, list);
 	}
 
-	private AssociationList toList(final Iterable<Relationship> source) {
-
-		final AssociationList list = new AssociationList();
-
-		Iterables.addAll(list, source);
-
-		return list;
-	}
-
-	// ----- nested classes -----
-	private class AssociationList extends LinkedList<Relationship> {
-
-		final Set<String> associations = new HashSet<>();
-
-		@Override
-		public boolean add(final Relationship toAdd) {
-
-			associations.add(cacheKey(toAdd.getStartNode(), toAdd.getType(), toAdd.getEndNode()));
-
-			return super.add(toAdd);
-		}
-
-		public boolean containsAssociation(final Node sourceNode, final RelationshipType relType, final Node targetNode) {
-			return associations.contains(cacheKey(sourceNode, relType, targetNode));
-		}
-
-		// ----- private methods -----
-		public String cacheKey(final Node sourceNode, final RelationshipType relType, final Node targetNode) {
-
-			final StringBuilder buf = new StringBuilder();
-
-			if (sourceNode != null && targetNode != null) {
-
-				buf.append(sourceNode.getId());
-				buf.append("-");
-				buf.append(relType);
-				buf.append("-");
-				buf.append(targetNode.getId());
-			}
-
-			return buf.toString();
-		}
+	private List toList(final Iterable<Relationship> source) {
+		return Iterables.toList(source);
 	}
 }

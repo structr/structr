@@ -20,6 +20,7 @@ package org.structr.bolt.wrapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -86,6 +87,14 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		stale = true;
 	}
 
+	public static void expunge(final Set<Long> toRemove) {
+
+		synchronized (relationshipCache) {
+
+			relationshipCache.removeAll(toRemove);
+		}
+	}
+
 	@Override
 	public void clearCaches() {
 	}
@@ -137,7 +146,6 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 	public void delete(final boolean deleteRelationships) {
 
 		super.delete(deleteRelationships);
-		relationshipCache.remove(id);
 
 		final NodeWrapper startNode = (NodeWrapper)getStartNode();
 		if (startNode != null) {
@@ -150,6 +158,9 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 			endNode.clearCaches();
 		}
+
+		final SessionTransaction tx = db.getCurrentTransaction();
+		tx.deleted(this);
 	}
 
 	public static void clearCache() {
