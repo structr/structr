@@ -32,8 +32,8 @@ import org.structr.web.entity.File;
 
 public class CopyFileContentsFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_POST = "Usage: ${ copy_file_contents(file1_uuid,file2_uuid) }. Example: ${ copy_file_contents('abcdefgh123','ijklmnop456') }";
-	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{ Structr.copy_file_contentscreate_deep_file_copy(file1_uuid,file2_uuid) }}. Example: ${{ Structr.copy_file_contents('abcdefgh123','ijklmnop456') }}";
+	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS = "Usage: ${ copy_file_contents(sourceFile, targetFile) }";
+	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS_JS = "Usage: ${{ Structr.copy_file_contents(sourceFile, targetFile); }}";
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
@@ -110,12 +110,12 @@ public class CopyFileContentsFunction extends Function<Object, Object> {
 
 	@Override
 	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
+		return (inJavaScriptContext ? ERROR_MESSAGE_COPY_FILE_CONTENTS_JS : ERROR_MESSAGE_COPY_FILE_CONTENTS);
 	}
 
 	@Override
 	public String shortDescription() {
-		return "Creates a copy of the file content linked to the given FileBase entity and links it to the other FileBase entity.";
+		return "Creates a copy of the file content linked to the given File entity and links it to the other File entity.";
 	}
 
 	@Override

@@ -205,6 +205,13 @@ $(function() {
 				}
 			}
 		}
+		// Ctrl-Alt-h
+		if (k === 72 && altKey && ctrlKey) {
+			e.preventDefault();
+			if ("schema" === Structr.getActiveModuleName()) {
+				_Schema.hideSelectedSchemaTypes();
+			}
+		}
 	});
 
 	$(window).on('resize', function() {
