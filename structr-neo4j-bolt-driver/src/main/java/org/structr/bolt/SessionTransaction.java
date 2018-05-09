@@ -50,6 +50,8 @@ import org.structr.bolt.mapper.RecordLongMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
 import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.wrapper.EntityWrapper;
+import org.structr.bolt.wrapper.NodeWrapper;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.bolt.wrapper.StatementResultWrapper;
 
 /**
@@ -58,6 +60,8 @@ import org.structr.bolt.wrapper.StatementResultWrapper;
 public class SessionTransaction implements org.structr.api.Transaction {
 
 	private final Set<EntityWrapper> modifiedEntities = new HashSet<>();
+	private final Set<Long> deletedNodes              = new HashSet<>();
+	private final Set<Long> deletedRels               = new HashSet<>();
 	private BoltDatabaseService db                    = null;
 	private Session session                           = null;
 	private Transaction tx                            = null;
@@ -98,6 +102,15 @@ public class SessionTransaction implements org.structr.api.Transaction {
 			}
 
 		} else {
+
+			// Notify all nodes that are modified in this transaction
+			// so that the relationship caches are rebuilt.
+			for (final EntityWrapper entity : modifiedEntities) {
+				entity.clearCaches();
+			}
+
+			NodeWrapper.expunge(deletedNodes);
+			RelationshipWrapper.expunge(deletedRels);
 
 			// Notify all nodes that are modified in this transaction
 			// so that the relationship caches are rebuilt.
@@ -480,6 +493,14 @@ public class SessionTransaction implements org.structr.api.Transaction {
 				}
 			}
 		}
+	}
+
+	public void deleted(final NodeWrapper wrapper) {
+		deletedNodes.add(wrapper.getId());
+	}
+
+	public void deleted(final RelationshipWrapper wrapper) {
+		deletedRels.add(wrapper.getId());
 	}
 
 	public void modified(final EntityWrapper wrapper) {

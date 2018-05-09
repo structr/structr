@@ -154,6 +154,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		this.dbNode          = dbNode;
 		this.entityType      = entityType;
 		this.securityContext = securityContext;
+
+		// simple validity check
+		if (dbNode != null) {
+
+			final String typeName  = getClass().getSimpleName();
+			final Object typeValue = dbNode.getProperty("type");
+
+			if (!typeName.equals(typeValue)) {
+
+				logger.error("{} {} failed validity check: actual type in node: {}", typeName, getUuid(), typeValue);
+			}
+		}
 	}
 
 	@Override

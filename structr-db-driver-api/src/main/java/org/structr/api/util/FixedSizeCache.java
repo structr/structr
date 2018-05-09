@@ -18,6 +18,7 @@
  */
 package org.structr.api.util;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import org.apache.commons.collections4.map.LRUMap;
@@ -45,6 +46,10 @@ public class FixedSizeCache<K, V> {
 
 	public synchronized V get(final K key) {
 		return cache.get(key);
+	}
+
+	public synchronized void removeAll(final Collection<K> keys) {
+		cache.keySet().removeAll(keys);
 	}
 
 	public synchronized void remove(final K key) {

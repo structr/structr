@@ -498,7 +498,6 @@ public abstract class StreamingWriter {
 								}
 							}
 
-
 							final Object value = source.getProperty(localKey, range);
 							if (value != null) {
 
