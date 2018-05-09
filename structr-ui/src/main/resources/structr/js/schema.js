@@ -409,12 +409,12 @@ var _Schema = {
 		_Schema.selectNodesInRect(cssRect);
 	},
 	selectNodesInRect: function(selectionRect) {
-		var selectedElements = [];
+		_Schema.selectedNodes = [];
 
 		$('.node', canvas).each(function(idx, el) {
 			var $el = $(el);
 			if (_Schema.isElemInSelection($el, selectionRect)) {
-				selectedElements.push($el);
+				_Schema.selectedNodes.push($el);
 				$el.addClass('selected');
 			} else {
 				$el.removeClass('selected');
@@ -3288,8 +3288,11 @@ var _Schema = {
 	},
 	checkIsHiddenSchemaNode: function(inp) {
 		var typeName = inp.attr('data-structr-type');
+		_Schema.setSchemaTypeVisibility(typeName, inp.is(':checked'));
+	},
+	setSchemaTypeVisibility: function (typeName, visible) {
 		var position = _Schema.hiddenSchemaNodes.indexOf(typeName);
-		if (!inp.is(':checked')) {
+		if (!visible) {
 			if (position === -1) {
 				_Schema.hiddenSchemaNodes.push(typeName);
 				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
@@ -3299,6 +3302,17 @@ var _Schema = {
 				_Schema.hiddenSchemaNodes.splice(position, 1);
 				LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 			}
+		}
+	},
+	hideSelectedSchemaTypes: function () {
+
+		if (_Schema.selectedNodes.length > 0) {
+
+			_Schema.selectedNodes.forEach(function(n) {
+				_Schema.setSchemaTypeVisibility(n.name, false);
+			});
+
+			_Schema.reload();
 		}
 	},
 	getPropertyName: function(type, relationshipType, relatedType, out, callback) {
@@ -3418,7 +3432,7 @@ var _Schema = {
 		});
 
 		// move nodes to the bottom that have not been layouted
-		nonLayoutNodes.forEach(n => {
+		nonLayoutNodes.forEach(function(n) {
 
 			var top = (n.position().top + offset - canvas.offset().top) / _Schema.zoomLevel;
 			n.css('top', top);
@@ -3587,7 +3601,7 @@ var _Schema = {
 			if ($node.length > 0) {
 				$('.selected').removeClass('selected');
 				$node.addClass('selected');
-				selectedElements = [$node];
+				_Schema.selectedNodes = [$node];
 			}
 		});
 

@@ -31,7 +31,7 @@ import org.structr.schema.action.Function;
 
 public class LatLonToUTMFunction extends Function<Object, Object> {
 
-	private static final String ERROR_MESSAGE = "Usage: ${latLonToUTM(latitude, longitude)}. Example: ${latLonToUTM(41.3445, 7.35)}";
+	private static final String ERROR_MESSAGE = "Usage: ${lat_lon_to_utm(latitude, longitude)}. Example: ${lat_lon_to_utm(41.3445, 7.35)}";
 	private static final Logger logger        = LoggerFactory.getLogger(LatLonToUTMFunction.class.getName());
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
 
