@@ -25,11 +25,13 @@ import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.CollectionNotionProperty;
 import org.structr.core.property.EntityNotionProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.Schema;
-import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -195,33 +197,42 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 	}
 
 	private String extendPropertyName(final Map<String, SchemaNode> schemaNodes, final String propertyName, final String relatedType) throws FrameworkException {
-		Class type;
 
-		if (propertyName.contains(".")) {
-
-			String[] typeAndKey = StringUtils.split(propertyName, ".");
-			type = SchemaHelper.getEntityClassForRawType(typeAndKey[0]);
-
-			if (type != null && SchemaHelper.isDynamic(schemaNodes, type.getSimpleName(), typeAndKey[1])) {
-				return propertyName + "Property";
+		String extendedPropertyName = propertyName;
+		
+		// remove exactly one leading underscore if property name starts with one
+		if (StringUtils.contains(extendedPropertyName, ".")) {
+			
+			String[] parts = StringUtils.split(extendedPropertyName, ".");
+			
+			if (StringUtils.startsWith(parts[1], "_")) {
+			
+				extendedPropertyName = parts[0] + "." + parts[1].substring(1);
+			
 			}
-
-		} else if (relatedType != null) {
-
-			type = SchemaHelper.getEntityClassForRawType(relatedType);
-
-			if (type != null && SchemaHelper.isDynamic(schemaNodes, type.getSimpleName(), propertyName)) {
-				return propertyName + "Property";
+			
+		} else {
+			
+			if (StringUtils.startsWith(extendedPropertyName, "_")) {
+	
+				extendedPropertyName = extendedPropertyName.substring(1);
 			}
+			
 		}
 
-		if (propertyName.startsWith("_")) {
-			return propertyName.substring(1) + "Property";
+		final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(AbstractNode.class, StringUtils.contains(extendedPropertyName, ".") ? StringUtils.substringAfterLast(extendedPropertyName, ".") : extendedPropertyName, false);
+		
+		if (propertyKey != null) {
+			return extendedPropertyName;
 		}
-
-		return propertyName;
+		
+		return appendPropertyIfNecessary(extendedPropertyName);
 	}
 
+	private String appendPropertyIfNecessary(final String propertyName) {
+		return StringUtils.endsWith(propertyName, "Property") ? propertyName : propertyName + "Property";
+	}
+	
 	public boolean isPropertySet() {
 		return isPropertySet;
 	}

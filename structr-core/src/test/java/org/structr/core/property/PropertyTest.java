@@ -1795,7 +1795,7 @@ public class PropertyTest extends StructrTest {
 		}
 	}
 
-	// ----- type property tests -----
+	// ----- typeProperty property tests -----
 	@Test
 	public void testModifyType() {
 
@@ -1810,23 +1810,23 @@ public class PropertyTest extends StructrTest {
 		labelsAfter.add(db.forName(Label.class, AccessControllable.class.getSimpleName()));
 		labelsAfter.add(db.forName(Label.class, TestFive.class.getSimpleName()));
 
-		// create a new node, check labels, modify type, check labels again
+		// create a new node, check labels, modify typeProperty, check labels again
 
 		try (final Tx tx = app.tx()) {
 
-			// create entity of type TestFour
+			// create entity of typeProperty TestFour
 			final TestFour testEntity = createTestNode(TestFour.class);
 
 			// check if node exists
 			assertNotNull(testEntity);
 
-			// check labels before type change
+			// check labels before typeProperty change
 			assertTrue(Iterables.toSet(testEntity.getNode().getLabels()).containsAll(labelsBefore));
 
 			// save ID for later use
 			id = testEntity.getUuid();
 
-			// change type to TestFive
+			// change typeProperty to TestFive
 			// system properties have to be unlocked now, admin rights are not enough anymore
 			testEntity.unlockSystemPropertiesOnce();
 			testEntity.setProperty(GraphObject.type, TestFive.class.getSimpleName());
@@ -1847,7 +1847,7 @@ public class PropertyTest extends StructrTest {
 
 			assertNotNull(testEntity);
 
-			// check labels after type change
+			// check labels after typeProperty change
 			assertTrue(Iterables.toSet(testEntity.getNode().getLabels()).containsAll(labelsAfter));
 
 		} catch (FrameworkException fex) {
@@ -1859,11 +1859,11 @@ public class PropertyTest extends StructrTest {
 
 	// ----- function property tests -----
 
-	/** This test creates a new type "Test" and links it to
-	 * the built-in type "Group". It then creates a function
-	 * property that references the name of the related group
-	 * and assumes that a test entity is found by its related
-	 * group name.
+	/** This test creates a new typeProperty "Test" and links it to
+ the built-in typeProperty "Group". It then creates a function
+ property that references the nameProperty of the related group
+ and assumes that a test entity is found by its related
+ group nameProperty.
 	 */
 	@Test
 	public void testFunctionPropertyIndexing() {
@@ -1907,7 +1907,7 @@ public class PropertyTest extends StructrTest {
 
 			final Class testType = config.getNodeEntityClass("Test");
 
-			// create test type without link to group!
+			// create test typeProperty without link to group!
 			app.create(testType);
 
 			tx.success();
@@ -1965,10 +1965,10 @@ public class PropertyTest extends StructrTest {
 	// ----- notion property tests -----
 
 	/**
-	 * This test creates a new type "Test" with different Notion properties.
+	 * This test creates a new typeProperty "Test" with different Notion properties.
 	 */
 	@Test
-	public void testNotionProperty() {
+	public void testNotionPropertyOwner() {
 
 		cleanDatabaseAndSchema();
 
@@ -2000,6 +2000,135 @@ public class PropertyTest extends StructrTest {
 					new NodeAttribute<>(SchemaProperty.schemaNode, test)
 			);
 
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "ownerName"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "owner,name"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "ownerEmail"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "owner,  eMail"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "ownerPrincipalEmail"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "owner , Principal.eMail"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, test)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+	}
+	
+	/**
+	 * This test creates a new typeProperty "Message" with different Notion properties.
+	 */
+	@Test
+	public void testNotionPropertyMessageId() {
+
+		cleanDatabaseAndSchema();
+
+		SchemaNode message = null;
+		
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			message  = app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "Message")
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "messageId"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+			
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, message),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, message),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "children"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
+			);
+			
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+		
+		try (final Tx tx = app.tx()) {
+			
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId1"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, _messageId"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId2"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, messageId"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId3"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, _messageIdProperty"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId4"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, messageIdProperty"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId5"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, Message._messageId"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId6"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, Message.messageId"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId7"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, Message._messageIdProperty"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageId8"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, Message.messageIdProperty"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -2009,4 +2138,52 @@ public class PropertyTest extends StructrTest {
 		}
 	}
 
+	
+	/**
+	 * This test creates a new typeProperty "Message" with different Notion properties.
+	 */
+	@Test
+	public void testNotionPropertyMessageName() {
+
+		cleanDatabaseAndSchema();
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode message  = app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "Message")
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "messageId"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, message),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, message),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "children"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
+			);
+			
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageName1"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, name"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+	}
+	
 }
