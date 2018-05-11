@@ -1126,7 +1126,7 @@ var Structr = {
 
 						$('.structr-version').html(versionInfo);
 
-						_Dashboard.checkLicenseEnd(envInfo, $('.structr-version .edition-icon'), {
+						_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
 							offsetX: -300,
 							helpElementCss: {
 								color: "black",
