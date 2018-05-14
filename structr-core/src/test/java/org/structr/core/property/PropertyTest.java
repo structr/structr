@@ -2185,5 +2185,58 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
-	
+
+	/**
+	 * This test creates a new typeProperty "Message" with true|false parameter in Notion format.
+	 */
+	@Test
+	public void testNotionPropertyMessageTrueFalse() {
+
+		cleanDatabaseAndSchema();
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode message  = app.create(SchemaNode.class,
+				new NodeAttribute<>(SchemaNode.name, "Message")
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "messageId"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, message),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, message),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "children"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
+			);
+			
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageTrue"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, name, true"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.name, "parentMessageFalse"),
+					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
+					new NodeAttribute<>(SchemaProperty.format, "parent, name, false"),
+					new NodeAttribute<>(SchemaProperty.schemaNode, message)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+	}	
 }

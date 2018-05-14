@@ -139,7 +139,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 				buf.append(",");
 
-				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase())));
+				final boolean isBoolean = (parts.length == 3 && ("true".equals(parts[2].toLowerCase()) || "false".equals(parts[2].toLowerCase())));
 				isAutocreate            = isBoolean;
 
 				// use PropertyNotion when only a single element is given
@@ -159,19 +159,20 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 					String propertyName     = parts[i];
 					String fullPropertyName = propertyName;
 
-					if (!"true".equals(propertyName.toLowerCase()) && !propertyName.contains(".")) {
+					if (!isBoolean && !propertyName.contains(".")) {
 
 						buf.append(relatedType);
 						buf.append(".");
 
 						fullPropertyName = relatedType + "." + fullPropertyName;
+						
 					}
-
-					fullPropertyName = extendPropertyName(schemaNodes, fullPropertyName, null);
+					
+					fullPropertyName = extendPropertyName(fullPropertyName, isBoolean);
 
 					properties.add(fullPropertyName);
 
-					propertyName = extendPropertyName(schemaNodes, propertyName, relatedType);
+					propertyName = extendPropertyName(propertyName, isBoolean);
 
 					buf.append(propertyName);
 
@@ -196,7 +197,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 		parameters = buf.toString();
 	}
 
-	private String extendPropertyName(final Map<String, SchemaNode> schemaNodes, final String propertyName, final String relatedType) throws FrameworkException {
+	private String extendPropertyName(final String propertyName, final Boolean isBoolean) throws FrameworkException {
 
 		String extendedPropertyName = propertyName;
 		
@@ -226,11 +227,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 			return extendedPropertyName;
 		}
 		
-		return appendPropertyIfNecessary(extendedPropertyName);
-	}
-
-	private String appendPropertyIfNecessary(final String propertyName) {
-		return StringUtils.endsWith(propertyName, "Property") ? propertyName : propertyName + "Property";
+		return (isBoolean || StringUtils.endsWith(extendedPropertyName, "Property")) ? extendedPropertyName : extendedPropertyName + "Property";
 	}
 	
 	public boolean isPropertySet() {
