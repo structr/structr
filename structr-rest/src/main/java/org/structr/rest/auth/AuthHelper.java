@@ -219,7 +219,7 @@ public class AuthHelper {
 
 	public static void doLogout(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
-		final String sessionId = request.getRequestedSessionId();
+		final String sessionId = SessionHelper.getShortSessionId(request.getRequestedSessionId());
 
 		if (sessionId == null) return;
 
@@ -227,7 +227,6 @@ public class AuthHelper {
 		SessionHelper.invalidateSession(sessionId);
 
 		AuthHelper.sendLogoutNotification(user);
-
 	}
 
 	public static void sendLogoutNotification (final Principal user) throws FrameworkException {
