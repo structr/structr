@@ -486,15 +486,12 @@ public class UiAuthenticator implements Authenticator {
 
 		Principal user = null;
 
-		if (request.getAttribute(SessionHelper.SESSION_IS_NEW) != null) {
+		// First, check session (JSESSIONID cookie)
+		final HttpSession session = request.getSession(false);
 
-			// First, check session (JSESSIONID cookie)
-			final HttpSession session = request.getSession(false);
+		if (session != null) {
 
-			if (session != null) {
-
-				user = AuthHelper.getPrincipalForSessionId(session.getId());
-			}
+			user = AuthHelper.getPrincipalForSessionId(session.getId());
 		}
 
 		if (user == null) {
