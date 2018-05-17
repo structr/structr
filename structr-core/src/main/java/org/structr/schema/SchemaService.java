@@ -31,6 +31,7 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -54,6 +56,7 @@ import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InstantiationErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -204,7 +207,19 @@ public class SchemaService implements Service {
 								config.registerEntityType(newType);
 								newType.newInstance();
 
-							} catch (Throwable ignore) {}
+							} catch (final Throwable t) {
+							
+								// abstract classes and interfaces will throw errors here
+								if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
+									// ignore
+								} else {
+									
+									// everything else is a severe problem and should be not only reported but also
+									// make the schema compilation fail (otherwise bad things will happen later)
+									errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
+									logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+								}
+							}
 						}
 
 						// calculate difference between previous and new classes

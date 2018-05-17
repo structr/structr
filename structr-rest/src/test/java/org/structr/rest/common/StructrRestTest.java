@@ -359,13 +359,20 @@ public class StructrRestTest {
 		return getUuidFromLocation(
 			RestAssured
 			.given()
-			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.header("X-User", name)
-			.header("X-Password", password)
-			.body(buf.toString())
-			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.header("X-User", name)
+				.header("X-Password", password)
+				.body(buf.toString())
+			.expect()
+				.statusCode(201)
+			.when()
+				.post(resource).getHeader("Location"));
 	}
 
 	protected String createEntityAsSuperUser(String resource, String... body) {
@@ -380,12 +387,19 @@ public class StructrRestTest {
 			RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.header("X-User", Settings.SuperUserName.getValue())
-			.header("X-Password", Settings.SuperUserPassword.getValue())
-			.body(buf.toString())
-			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.header("X-User", Settings.SuperUserName.getValue())
+				.header("X-Password", Settings.SuperUserPassword.getValue())
+				.body(buf.toString())
+			.expect()
+				.statusCode(201)
+			.when()
+				.post(resource).getHeader("Location"));
 	}
 
 	protected static void sleep(final Long millis) {

@@ -136,6 +136,7 @@ public class SchemaHelper {
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
 	public static final Map<Type, GraphQLScalarType> graphQLTypeMap                   = new LinkedHashMap<>();
+	public static final Map<Type, Integer> sortIndexMap                               = new LinkedHashMap<>();
 	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "structrChangeLog",		// from GraphObject
@@ -167,6 +168,29 @@ public class SchemaHelper {
 		parserMap.put(Type.Date, DatePropertyParser.class);
 		parserMap.put(Type.Count, CountPropertyParser.class);
 		parserMap.put(Type.Join, JoinPropertyParser.class);
+
+		// IMPORTANT: parser map must be sorted by type name length
+		//            because we look up the parsers using "startsWith"!
+		sortIndexMap.put(Type.BooleanArray, 0);
+		sortIndexMap.put(Type.IntegerArray, 1);
+		sortIndexMap.put(Type.DoubleArray,  2);
+		sortIndexMap.put(Type.StringArray,  3);
+		sortIndexMap.put(Type.LongArray,    4);
+		sortIndexMap.put(Type.Password,     5);
+		sortIndexMap.put(Type.Boolean,      6);
+		sortIndexMap.put(Type.Integer,      7);
+		sortIndexMap.put(Type.String,       8);
+		sortIndexMap.put(Type.Double,       9);
+		sortIndexMap.put(Type.Long,        10);
+		sortIndexMap.put(Type.Enum,        11);
+		sortIndexMap.put(Type.Date,        12);
+		sortIndexMap.put(Type.Function,    13);
+		sortIndexMap.put(Type.Cypher,      14);
+		sortIndexMap.put(Type.Count,       15);
+		sortIndexMap.put(Type.Custom,      16);
+		sortIndexMap.put(Type.Join,        17);
+		sortIndexMap.put(Type.IdNotion,    18);
+		sortIndexMap.put(Type.Notion,      19);
 
 		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
@@ -743,6 +767,9 @@ public class SchemaHelper {
 
 		final List<SchemaProperty> schemaProperties = entity.getSchemaProperties();
 		if (schemaProperties != null) {
+
+			// sort properties to avoid initialization issues with notion properties
+			Collections.sort(schemaProperties, new PropertyTypeComparator());
 
 			for (final SchemaProperty schemaProperty : schemaProperties) {
 
@@ -2046,5 +2073,25 @@ public class SchemaHelper {
 		}
 
 		return false;
+	}
+
+	// ----- nested classes -----
+	private static class PropertyTypeComparator implements Comparator<SchemaProperty> {
+
+		@Override
+		public int compare(final SchemaProperty o1, final SchemaProperty o2) {
+
+			final Type type1     = o1.getPropertyType();
+			final Type type2     = o2.getPropertyType();
+			final Integer index1 = sortIndexMap.get(type1);
+			final Integer index2 = sortIndexMap.get(type2);
+
+			if (index1 != null && index2 != null) {
+				return index1.compareTo(index2);
+			}
+
+			return 0;
+		}
+
 	}
 }
