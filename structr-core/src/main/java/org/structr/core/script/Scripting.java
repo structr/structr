@@ -177,10 +177,15 @@ public class Scripting {
 
 		actionContext.setJavaScriptContext(isJavascript);
 
-		// disable notifications for scripted actions
+		// temporarily disable notifications for scripted actions
+		
+		boolean enableTransactionNotifactions = false;
+		
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		if (securityContext != null) {
 
+			enableTransactionNotifactions = securityContext.doTransactionNotifications();
+			
 			securityContext.setDoTransactionNotifications(false);
 		}
 
@@ -190,7 +195,13 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
-			return evaluateJavascript(actionContext, entity, new Snippet(methodName, source));
+			final Object result = evaluateJavascript(actionContext, entity, new Snippet(methodName, source));
+			
+			if (enableTransactionNotifactions && securityContext != null) {
+				securityContext.setDoTransactionNotifications(true);
+			}
+			
+			return result;
 
 		} else {
 
@@ -202,6 +213,10 @@ public class Scripting {
 				extractedValue = output;
 			}
 
+			if (enableTransactionNotifactions && securityContext != null) {
+				securityContext.setDoTransactionNotifications(true);
+			}
+			
 			return extractedValue;
 		}
 	}

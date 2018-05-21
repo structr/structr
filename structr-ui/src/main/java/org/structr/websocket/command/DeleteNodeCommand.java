@@ -29,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -55,6 +56,8 @@ public class DeleteNodeCommand extends AbstractCommand {
 		final Boolean recursive = (Boolean) webSocketData.getNodeData().get("recursive");
 		final NodeInterface obj = getNode(webSocketData.getId());
 
+		TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+		
 		if (obj != null) {
 
 			deleteNode(getWebSocket(), obj, recursive);
