@@ -23,7 +23,6 @@ package org.structr.flow.api;
  */
 public interface ForEach<T> extends FlowElement {
 
-	DataHandler<T> getDataHandler();
 	DataSource<T> getDataSource();
 	FlowElement getLoopBody();
 

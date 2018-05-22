@@ -2,26 +2,18 @@
 
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
-import {Persistence} from "../../persistence/Persistence.js";
 
-export class FlowAction extends FlowNode {
+export class FlowDecision extends FlowNode {
 
     constructor(node) {
         super(node);
     }
 
-
-
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowAction', {
-            template: FlowAction._nodeTemplate(),
+        return new D3NE.Component('FlowDecision', {
+            template: FlowDecision._nodeTemplate(),
             builder(node) {
-                let socket = FlowSockets.getInst();
-                let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
-                let next = new D3NE.Output('Next', socket.getSocket('next'));
-                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
-                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
                     node.isStartNode = true;
@@ -29,30 +21,22 @@ export class FlowAction extends FlowNode {
                     node.isStartNode = false;
                 }
 
-                let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
+                let socket = FlowSockets.getInst();
 
-                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
-                        element.value = scopedDbNode.script;
-                    }
+                let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
+                let condition = new D3NE.Input('Condition', socket.getSocket('condition_Condition'));
 
-                    control.putData('script',element.value);
-                    control.putData('dbNode', scopedDbNode);
 
-                    control.id = "script";
-                    control.name = "Script";
+                let nextTrue = new D3NE.Output('Next If True', socket.getSocket('nextIfTrue'));
+                let nextFalse = new D3NE.Output('Next If False', socket.getSocket('nextIfFalse'));
 
-                    element.addEventListener('change', ()=>{
-                        control.putData('script',element.value);
-                        node.data['dbNode'].script = element.value;
-                    });
-                });
+                node.data.dbNode = scopedDbNode;
 
                 return node
+                    .addInput(condition)
                     .addInput(prev)
-                    .addOutput(next)
-                    .addInput(dataSource)
-                    .addOutput(dataTarget)
-                    .addControl(script);
+                    .addOutput(nextTrue)
+                    .addOutput(nextFalse);
             },
             worker(node, inputs, outputs) {
             }
@@ -71,6 +55,8 @@ export class FlowAction extends FlowNode {
                             <div class="input-title" al-if="!input.showControl()">{{input.title}}</div>
                             <div class="input-control" al-if="input.showControl()" al-control="input.control"></div>
                         </div>
+                        <!-- Controls-->
+                        <div class="control" al-repeat="control in node.controls" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                     </column>
                     <column>
                         <!-- Outputs-->
@@ -79,15 +65,6 @@ export class FlowAction extends FlowNode {
                             <div class="socket output {{output.socket.id}} {{output.connections.length>0?'used':''}}" al-pick-output="al-pick-output" title="{{output.socket.name}}
                 {{output.socket.hint}}"></div>
                         </div>
-                    </column>
-                </content>
-                <!-- Controls-->
-                <content al-repeat="control in node.controls" style="display:inline">
-                    <column>
-                        <label class="control-title" for="{{control.id}}">{{control.name}}</label>
-                    </column>
-                    <column>
-                        <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                     </column>
                 </content>
             </div>

@@ -44,7 +44,4 @@ public abstract class FlowNode extends FlowBaseNode implements FlowElement {
 		return getProperty(next);
 	}
 
-	@Override
-	public void connect(FlowElement next) {
-	}
 }

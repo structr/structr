@@ -33,7 +33,7 @@ import org.structr.flow.impl.rels.FlowConditionCondition;
  */
 public abstract class FlowLogicCondition extends FlowCondition implements DataSource {
 
-	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("dataSources", FlowConditionCondition.class);
+	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
 
 	public static final View defaultView = new View(FlowAnd.class, PropertyView.Public, script, dataSources);
 	public static final View uiView      = new View(FlowAnd.class, PropertyView.Ui,     script, dataSources);

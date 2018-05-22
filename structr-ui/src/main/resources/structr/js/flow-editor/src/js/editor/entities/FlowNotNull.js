@@ -4,7 +4,7 @@ import {FlowNode} from "./FlowNode.js";
 import {FlowAction} from "./FlowAction.js";
 import {FlowSockets} from "../FlowSockets.js";
 
-export class FlowParameterInput extends FlowNode {
+export class FlowNotNull extends FlowNode {
 
     constructor(node) {
         super(node);
@@ -12,38 +12,20 @@ export class FlowParameterInput extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowParameterInput', {
-            template: FlowParameterInput._nodeTemplate(),
+        return new D3NE.Component('FlowNotNull', {
+            template: FlowNotNull._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
-                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));;
-                let call = new D3NE.Output('Call', socket.getSocket('call'));
+                let dataSources = new D3NE.Input('DataSources', socket.getSocket('condition_dataSources'), true);
+                let result = new D3NE.Output('Result', socket.getSocket('condition_Result'));
 
-                let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
-
-                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined) {
-                        element.setAttribute("value",scopedDbNode.key);
-                    }
-
-                    control.putData('key',element.value);
-                    control.putData('dbNode', scopedDbNode);
-
-                    control.id = "key";
-                    control.name = "Key";
-
-                    element.addEventListener('change', ()=>{
-                        control.putData('key',element.value);
-                        node.data['dbNode'].key = element.value;
-                    });
-                });
+                node.data.dbNode = scopedDbNode;
 
                 return node
-                    .addInput(dataSource)
-                    .addOutput(call)
-                    .addControl(key);
+                    .addInput(dataSources)
+                    .addOutput(result);
             },
             worker(node, inputs, outputs) {
-                outputs[0] = this;
             }
         });
     }

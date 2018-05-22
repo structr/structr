@@ -8,10 +8,17 @@ import {FlowAction} from "./entities/FlowAction.js";
 import {FlowParameterInput} from "./entities/FlowParameterInput.js";
 import {FlowConnectionTypes} from "./FlowConnectionTypes.js";
 import {Persistence} from "../persistence/Persistence.js";
+import {FlowParameterDataSource} from "./entities/FlowParameterDataSource.js";
+import {FlowNotNull} from "./entities/FlowNotNull.js";
+import {FlowDecision} from "./entities/FlowDecision.js";
+import {FlowKeyValue} from "./entities/FlowKeyValue.js";
+import {FlowObjectDataSource} from "./entities/FlowObjectDataSource.js";
 
 export class FlowEditor {
 
     constructor(rootElement, flowContainer) {
+        this._editorId = 'structr-flow-editor@0.1.0';
+
         this._flowContainer = flowContainer;
         this._rootElement = rootElement;
         this.flowNodes = [];
@@ -22,7 +29,9 @@ export class FlowEditor {
     }
 
     _setupEditor() {
-        this._editor = new D3NE.NodeEditor('demo@0.1.0', this._rootElement, this._getComponents(), this._getMenu());
+        this._editor = new D3NE.NodeEditor(this._editorId, this._rootElement, this._getComponents(), this._getMenu());
+
+        this._overrideContextMenu();
 
         this._editor.eventListener.on('connectioncreate', (data) =>{
             this._connectionCreationHandler(data.input, data.output);
@@ -38,31 +47,30 @@ export class FlowEditor {
     }
 
     _connectionCreationHandler(input, output) {
-        let dbNode = input.node.data.dbNode;
 
-        if (dbNode !== undefined) {
+        if(input.node.data.dbNode !== undefined && output.node.data.dbNode !== undefined) {
+            try {
+                for (let [key, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
 
-            if (!input.multipleConnections) {
-                let cur = dbNode[input.socket.id];
-                let outputNodeId = output.node.data.dbNode.id;
-                if (cur === undefined || cur === null || cur.id !== outputNodeId) {
-                    dbNode[input.socket.id] = outputNodeId;
-                }
-            } else {
-                let cur = dbNode[input.socket.id];
-                let outputNodeId = output.node.data.dbNode.id;
-                if (cur === undefined || cur === null || cur.length === 0 || !(cur.filter(n => n.id === outputNodeId).length > 0)) {
-                    if (cur === undefined || cur === null) {
-                        cur = [outputNodeId];
-                    } else {
-                        cur.push(outputNodeId);
+                    if (con.sourceAttribute === output.socket.id && con.targetAttribute === input.socket.id) {
+                        let sourceId = output.node.data.dbNode.id;
+                        let targetId = input.node.data.dbNode.id;
+                        let relType = con.type;
+
+                        let persistence = new Persistence();
+                        persistence.createNode({type: relType, sourceId: sourceId, targetId: targetId});
+
+                        break;
                     }
-                    dbNode[input.socket.id] = cur;
-                }
 
+                }
+            } catch (e) {
+                console.log("Exception during rel creation:");
+                console.log(e);
             }
 
         }
+
     }
 
     _connectionDeletionHandler(connection) {
@@ -77,7 +85,7 @@ export class FlowEditor {
 
 
     _setupEngine() {
-        this._engine = new D3NE.Engine('demo@0.1.0', this._getComponents());
+        this._engine = new D3NE.Engine(this._editorId, this._getComponents());
 
         this._editor.eventListener.on('change', async () => {
             await this._engine.abort();
@@ -91,7 +99,13 @@ export class FlowEditor {
             new FlowCall(),
             new FlowDataSource(),
             new FlowParameterInput(),
-            new FlowReturn()
+            new FlowParameterDataSource(),
+            new FlowReturn(),
+            new FlowNode(),
+            new FlowNotNull(),
+            new FlowDecision(),
+            new FlowKeyValue(),
+            new FlowObjectDataSource()
         ];
     }
 
@@ -130,11 +144,98 @@ export class FlowEditor {
                 'FlowCall' : self._getNodeCreationFunction("FlowCall"),
                 'FlowDataSource' : self._getNodeCreationFunction("FlowDataSource"),
                 'FlowParameterInput' : self._getNodeCreationFunction("FlowParameterInput"),
+                'FlowParameterDataSource' : self._getNodeCreationFunction("FlowParameterDataSource"),
+                'FlowNotNull' : self._getNodeCreationFunction("FlowNotNull"),
+                'FlowDecision' : self._getNodeCreationFunction("FlowDecision"),
+                'FlowKeyValue' : self._getNodeCreationFunction("FlowKeyValue"),
+                'FlowObjectDataSource' : self._getNodeCreationFunction("FlowObjectDataSource"),
                 'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
+            },
+            'Actions': {
+                'Save Layout' : self.saveLayout(),
+                'Apply Layout' : self.applySavedLayout()
             }
         }, false);
 
         return menu;
+    }
+
+
+    _overrideContextMenu() {
+        let view = this._editor.view;
+        let al = alight.makeInstance();
+        let self = this;
+
+        al.directives.al.node = function(scope, element, expression, env) {
+            let items = {
+                'Remove node': () => {
+                    this.editor.removeNode(node);
+                },
+                'Set as start node': () => {
+                    node.data.dbNode.isStartNodeOfContainer = self._flowContainer;
+                }
+            };
+
+            var onClick = (subitem) => {
+                subitem.call(this);
+                this.contextMenu.hide();
+            }
+
+            d3.select(element).on('contextmenu', null);
+
+            d3.select(element).on('contextmenu', () => {
+                if (this.editor.readOnly) return;
+
+                var x = d3.event.clientX;
+                var y = d3.event.clientY;
+
+                self._editor.selectNode(node);
+                view.contextMenu.show(x, y, items, false, onClick);
+                d3.event.preventDefault();
+            });
+        }
+    }
+
+    saveLayout() {
+        let self = this;
+        return function() {
+
+            var layout = {};
+            var editorConfig = self.getEditorJson();
+
+            for (let [key,node] of Object.entries(editorConfig.nodes)) {
+
+                if (node.data.dbNode !== null && node.data.dbNode !== undefined) {
+                    layout[node.data.dbNode.id] = node.position;
+                }
+
+            }
+
+            window.localStorage.setItem('flow-' + self._flowContainer.id, JSON.stringify(layout));
+        };
+    }
+
+    applySavedLayout() {
+        let self = this;
+        return function() {
+
+            var layout = JSON.parse(window.localStorage.getItem('flow-' + self._flowContainer.id));
+
+            var editorConfig = self._editor;
+
+            if (layout !== null && layout !== undefined) {
+
+                for (let [key, node] of Object.entries(editorConfig.nodes)) {
+                    if (node.data.dbNode !== undefined && layout[node.data.dbNode.id] !== undefined) {
+                        node.position = layout[node.data.dbNode.id];
+                    }
+
+                }
+
+                self._editor.view.update();
+            }
+
+        };
     }
 
 
@@ -145,15 +246,22 @@ export class FlowEditor {
         if (source !== undefined && target !== undefined) {
             let connectionType = FlowConnectionTypes.getInst().getConnectionType(rel.type);
 
-            let output = source.editorNode.outputs.filter(o => o.socket.id === connectionType.targetAttribute)[0];
-            let input = target.editorNode.inputs.filter(i => i.socket.id === connectionType.sourceAttribute)[0];
+            let output = source.editorNode.outputs.filter(o => o.socket.id === connectionType.sourceAttribute)[0];
+            let input = target.editorNode.inputs.filter(i => i.socket.id === connectionType.targetAttribute)[0];
 
-            this._editor.connect(output, input);
+            try {
+                if (output !== undefined && output !== null && input !== undefined && input !== null) {
+                    this._editor.connect(output, input);
 
-            let connection = output.connections.filter(c => c.input === input)[0];
-            connection.label = connectionType.name;
-            connection.type = connectionType.type;
-            connection.id = rel.id;
+                    let connection = output.connections.filter(c => c.input === input)[0];
+                    connection.label = connectionType.name;
+                    connection.type = connectionType.type;
+                    connection.id = rel.id;
+                }
+            } catch (e) {
+                console.log("Could not connect nodes: " + rel.sourceId + " and " + rel.targetId + " RelType: " + rel.type);
+            }
+
         }
 
     }
@@ -175,6 +283,21 @@ export class FlowEditor {
                 break;
             case 'FlowParameterInput':
                 fNode = new FlowParameterInput(node, this);
+                break;
+            case 'FlowParameterDataSource':
+                fNode = new FlowParameterDataSource(node, this);
+                break;
+            case 'FlowNotNull':
+                fNode = new FlowNotNull(node, this);
+                break;
+            case 'FlowDecision':
+                fNode = new FlowDecision(node, this);
+                break;
+            case 'FlowKeyValue':
+                fNode = new FlowKeyValue(node, this);
+                break;
+            case 'FlowObjectDataSource':
+                fNode = new FlowObjectDataSource(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);
@@ -201,6 +324,10 @@ export class FlowEditor {
             }
         }
         return undefined;
+    }
+
+    getEditorJson() {
+        return this._editor.toJSON();
     }
 
 }

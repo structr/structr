@@ -26,5 +26,4 @@ public interface FlowElement {
 	FlowType getFlowType();
 	FlowElement next();
 
-	void connect(final FlowElement next);
 }

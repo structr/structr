@@ -21,11 +21,14 @@ package org.structr.flow.impl;
 import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.impl.rels.FlowConditionCondition;
 import org.structr.flow.impl.rels.FlowConditionDataInput;
+import org.structr.flow.impl.rels.FlowDecisionCondition;
 
 /**
  *
@@ -33,9 +36,11 @@ import org.structr.flow.impl.rels.FlowConditionDataInput;
 public class FlowNotNull extends FlowCondition implements DataSource {
 
 	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowConditionDataInput.class);
+	public static final Property<FlowCondition> condition = new EndNode<>("condition", FlowConditionCondition.class);
+	public static final Property<FlowDecision> decision = new EndNode<>("decision", FlowDecisionCondition.class);
 
-	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources);
-	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources);
+	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
+	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
 
 	@Override
 	public Object get(final Context context) {

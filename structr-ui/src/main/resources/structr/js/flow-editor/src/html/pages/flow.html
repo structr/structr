@@ -30,10 +30,7 @@
         persistence.getNodesById(id, new FlowContainer()).then( r => {
             document.title = "Flow - " + r[0].name;
 
-            const markup = `
-                    <div><p>Hier entsteht die Editor-Seite für den Flow <b>${r[0].name}</b></p></div>
-                    <div id="nodeEditor" class="node-editor"></div>
-                `;
+            const markup = `<div id="nodeEditor" class="node-editor"></div>`;
 
 
             document.body.innerHTML = document.body.innerHTML.concat(markup);
@@ -58,6 +55,12 @@
                     });
 
                 }
+
+
+                //ToDo: Find a more sophisticated way of handling the layout trigger
+                var wait = ms => new Promise((r, j)=>setTimeout(r, ms))
+                wait(200).then(() => {editor.applySavedLayout().call()});
+
             });
 
         });

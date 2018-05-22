@@ -23,6 +23,32 @@ export class FlowSockets {
         this._sockets['parameters'] = parameters;
         this._sockets['call'] = call;
 
+        let condition_dataSources = new D3NE.Socket('dataSources', 'Data Source Nodes', 'The connected nodes will provide data for this node.');
+        this._sockets['dataTarget'].combineWith(condition_dataSources);
+        this._sockets['condition_dataSources'] = condition_dataSources;
+
+        let condition_Result = new D3NE.Socket('result', 'Decision Node or Logic Node', 'Connects to FlowDecision or FlowLogicNode and provides it with arguments.');
+        let condition_Condition = new D3NE.Socket('condition', 'Condition Node', 'Connected node provides arguments for this node.');
+        let condition_Conditions = new D3NE.Socket('conditions', 'Condition Nodes', 'Connected nodes will provide arguments for this node.');
+        condition_Conditions.combineWith(condition_Condition);
+        condition_Result.combineWith(condition_Condition);
+        this._sockets['condition_Result'] = condition_Result;
+        this._sockets['condition_Condition'] = condition_Condition;
+        this._sockets['condition_Conditions'] = condition_Conditions;
+
+        let nextIfTrue = new D3NE.Socket('trueElement', 'Next node, if condition is true', 'Connect to a node\'s prev port.');
+        let nextIfFalse = new D3NE.Socket('falseElement', 'Next node, if condition is false', 'Connect to a node\'s prev port.');
+        nextIfTrue.combineWith(this._sockets['prev']);
+        nextIfFalse.combineWith(this._sockets['prev']);
+        this._sockets['nextIfTrue'] = nextIfTrue;
+        this._sockets['nextIfFalse'] = nextIfFalse;
+
+        let keyValueSources = new D3NE.Socket('keyValueSources', 'KeyValue nodes', 'Connected nodes provide KeyValue pairs of data for the object created by this data source.');
+        let objectDataTarget = new D3NE.Socket('objectDataTarget', 'ObjectDataSource', 'Connects to a FlowObjectDataSource and provides it with a KeyValue pair of information.');
+        objectDataTarget.combineWith(keyValueSources);
+        this._sockets['keyValueSources'] = keyValueSources;
+        this._sockets['objectDataTarget'] = objectDataTarget;
+
     }
 
     static getInst() {

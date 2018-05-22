@@ -2,57 +2,42 @@
 
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
-import {Persistence} from "../../persistence/Persistence.js";
 
-export class FlowAction extends FlowNode {
+export class FlowParameterDataSource extends FlowNode {
 
     constructor(node) {
         super(node);
     }
 
-
-
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowAction', {
-            template: FlowAction._nodeTemplate(),
+        return new D3NE.Component('FlowParameterDataSource', {
+            template: FlowParameterDataSource._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
-                let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
-                let next = new D3NE.Output('Next', socket.getSocket('next'));
-                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
-                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
+                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'));
 
-                if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
-                    node.isStartNode = true;
-                } else {
-                    node.isStartNode = false;
-                }
+                let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
 
-                let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
-
-                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
-                        element.value = scopedDbNode.script;
+                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined) {
+                        element.setAttribute("value",scopedDbNode.key);
                     }
 
-                    control.putData('script',element.value);
+                    control.putData('key',element.value);
                     control.putData('dbNode', scopedDbNode);
 
-                    control.id = "script";
-                    control.name = "Script";
+                    control.id = "key";
+                    control.name = "Key";
 
                     element.addEventListener('change', ()=>{
-                        control.putData('script',element.value);
-                        node.data['dbNode'].script = element.value;
+                        control.putData('key',element.value);
+                        node.data['dbNode'].key = element.value;
                     });
                 });
 
                 return node
-                    .addInput(prev)
-                    .addOutput(next)
-                    .addInput(dataSource)
                     .addOutput(dataTarget)
-                    .addControl(script);
+                    .addControl(key);
             },
             worker(node, inputs, outputs) {
             }
@@ -61,7 +46,7 @@ export class FlowAction extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div class="title">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

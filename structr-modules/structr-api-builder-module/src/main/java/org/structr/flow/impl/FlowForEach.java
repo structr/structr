@@ -23,30 +23,24 @@ import org.structr.common.View;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.flow.api.DataHandler;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.ForEach;
+import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowForEachBody;
-import org.structr.flow.impl.rels.FlowForEachDataHandler;
 import org.structr.flow.impl.rels.FlowForEachDataInput;
 
 /**
  *
  */
-public class FlowForEach extends FlowNode implements ForEach {
+public class FlowForEach extends FlowNode implements ForEach, DataSource {
 
 	public static final Property<DataSource> dataSource   = new StartNode<>("dataSource", FlowForEachDataInput.class);
-	public static final Property<FlowDataHandler> dataHandler = new EndNode<>("dataHandler", FlowForEachDataHandler.class);
 	public static final Property<FlowNode> loopBody           = new EndNode<>("loopBody", FlowForEachBody.class);
 
-	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, dataHandler, loopBody, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, dataHandler, loopBody, isStartNodeOfContainer);
+	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer);
 
-	@Override
-	public DataHandler getDataHandler() {
-		return getProperty(dataHandler);
-	}
 
 	@Override
 	public DataSource getDataSource() {
@@ -57,4 +51,10 @@ public class FlowForEach extends FlowNode implements ForEach {
 	public FlowElement getLoopBody() {
 		return getProperty(loopBody);
 	}
+
+	@Override
+	public Object get(Context context) {
+		return context.getData(getUuid());
+	}
+
 }
