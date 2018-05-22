@@ -259,6 +259,10 @@ public class ActionContext {
 						case "path_info":
 							return securityContext.getRequest().getPathInfo();
 
+						case "queryString":
+						case "query_string":
+							return securityContext.getRequest().getQueryString();
+
 						case "parameterMap":
 						case "parameter_map":
 							return securityContext.getRequest().getParameterMap();
