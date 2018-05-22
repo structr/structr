@@ -163,7 +163,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 			if (!typeName.equals(typeValue)) {
 
-				logger.error("{} {} failed validity check: actual type in node: {}", typeName, getUuid(), typeValue);
+				logger.error("{} {} failed validity check: actual type in node with ID {}: {}", typeName, getUuid(), dbNode.getId(), typeValue);
 			}
 		}
 	}

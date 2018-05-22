@@ -33,21 +33,6 @@ function sortArray(arrayIn, sortBy) {
 	return arrayOut;
 }
 
-function without(s, array) {
-	if (!isIn(s, array)) {
-		return array;
-	}
-
-	var res = [];
-	$.each(array, function(i, el) {
-		if (!(el === s)) {
-			res.push(el);
-		}
-	});
-
-	return res;
-}
-
 function isIn(s, array) {
 	return (s && array && array.indexOf(s) !== -1);
 }

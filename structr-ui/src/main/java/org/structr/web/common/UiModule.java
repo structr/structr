@@ -42,6 +42,7 @@ import org.structr.web.function.HttpPutFunction;
 import org.structr.web.function.IncludeFunction;
 import org.structr.web.function.IsLocaleFunction;
 import org.structr.web.function.LogEventFunction;
+import org.structr.web.function.MaintenanceFunction;
 import org.structr.web.function.ParseFunction;
 import org.structr.web.function.RemoveSessionAttributeFunction;
 import org.structr.web.function.RenderFunction;
@@ -107,6 +108,7 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse",                    new ParseFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "create_archive",           new CreateArchiveFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "schedule",                 new ScheduleFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "maintenance",              new MaintenanceFunction());
 	}
 
 	@Override

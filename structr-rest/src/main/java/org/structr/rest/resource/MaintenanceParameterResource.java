@@ -162,4 +162,8 @@ public class MaintenanceParameterResource extends Resource {
 
 		maintenanceCommandMap.put(key, command);
 	}
+
+	public static Class getMaintenanceCommandClass(final String key) {
+		return maintenanceCommandMap.get(key);
+	}
 }
