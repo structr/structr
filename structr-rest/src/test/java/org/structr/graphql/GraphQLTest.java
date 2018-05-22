@@ -932,6 +932,77 @@ public class GraphQLTest extends StructrGraphQLTest {
 				.post("/");
 	}
 
+	@Test
+	public void testInheritedRelationshipProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project     = schema.addType("Project");
+			final JsonObjectType task        = schema.addType("Task");
+			final JsonObjectType extProject1 = schema.addType("ExtendedProject1");
+			final JsonObjectType extProject2 = schema.addType("ExtendedProject2");
+
+			extProject1.setExtends(project);
+			extProject2.setExtends(project);
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> projects = new LinkedList<>();
+		final List<NodeInterface> tasks    = new LinkedList<>();
+		final Class extProject             = StructrApp.getConfiguration().getNodeEntityClass("ExtendedProject1");
+		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(extProject, "tasks");
+
+		try (final Tx tx = app.tx()) {
+
+			tasks.add(app.create(task, "task0"));
+			tasks.add(app.create(task, "task1"));
+			tasks.add(app.create(task, "task2"));
+			tasks.add(app.create(task, "task3"));
+			tasks.add(app.create(task, "task4"));
+			tasks.add(app.create(task, "task5"));
+			tasks.add(app.create(task, "task6"));
+			tasks.add(app.create(task, "task7"));
+			tasks.add(app.create(task, "task8"));
+			tasks.add(app.create(task, "task9"));
+
+			projects.add(app.create(extProject, "project1"));
+			projects.add(app.create(extProject, "project2"));
+			projects.add(app.create(extProject, "project3"));
+			projects.add(app.create(extProject, "project4"));
+			projects.add(app.create(extProject, "project5"));
+
+
+			projects.get(0).setProperty(tasksKey, tasks.subList(0,  2));
+			projects.get(1).setProperty(tasksKey, tasks.subList(2,  4));
+			projects.get(2).setProperty(tasksKey, tasks.subList(4,  6));
+			projects.get(3).setProperty(tasksKey, tasks.subList(6,  8));
+			projects.get(4).setProperty(tasksKey, tasks.subList(8, 10));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task1\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+	}
+
 	// ----- private methods -----
 	private Map<String, Object> fetchGraphQL(final String query) {
 
