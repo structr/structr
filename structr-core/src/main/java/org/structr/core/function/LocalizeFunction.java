@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.structr.api.config.Settings;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -168,6 +169,10 @@ public class LocalizeFunction extends Function<Object, Object> {
 		if (value == null) {
 
 			value = requestedKey;
+
+			if (Settings.logMissingLocalizations.getValue()) {
+				logger.warn("Missing localization: Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, locale.toString(), requestedDomain);
+			}
 
 		} else {
 
