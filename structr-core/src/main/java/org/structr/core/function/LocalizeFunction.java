@@ -76,7 +76,12 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			if (sources.length == 1 || sources.length == 2) {
+			if (sources.length == 1 && sources[0] == null) {
+
+				// silently ignore case which can happen for localize(current.propertyThatCanBeNull)
+				return "";
+
+			} else if (sources.length <= 2) {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
