@@ -637,6 +637,129 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 	}
 
+	@Test
+	public void testAdvancedQueriesManyToOne() {
+
+		// test data setup
+		try (final Tx tx = app.tx()) {
+
+			final Principal p1 = app.create(Principal.class, "p1");
+			final Principal p2 = app.create(Principal.class, "p2");
+			final MailTemplate m1 = app.create(MailTemplate.class, "m1");
+			final MailTemplate m2 = app.create(MailTemplate.class, "m2");
+			final MailTemplate m3 = app.create(MailTemplate.class, "m3");
+			final MailTemplate m4 = app.create(MailTemplate.class, "m4");
+
+			m1.setProperty(MailTemplate.owner, p1);
+			m2.setProperty(MailTemplate.owner, p1);
+			m3.setProperty(MailTemplate.owner, p2);
+			m4.setProperty(MailTemplate.owner, p2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _equals: \"p2\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+			assertMapPathValueIs(result, "MailTemplate.0.name",            "m3");
+			assertMapPathValueIs(result, "MailTemplate.1.name",            "m4");
+		}
+
+	}
+
+	@Test
+	public void testAdvancedQueriesManyToOneWithEdgeCases() {
+
+		// test data setup
+		try (final Tx tx = app.tx()) {
+
+			final Principal p1 = app.create(Principal.class, "First Tester");
+			final Principal p2 = app.create(Principal.class, "Second Tester");
+			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
+			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
+			final MailTemplate m3 = app.create(MailTemplate.class, "Third Template");
+			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
+
+			m1.setProperty(MailTemplate.owner, p1);
+			m2.setProperty(MailTemplate.owner, p1);
+			m3.setProperty(MailTemplate.owner, p2);
+			m4.setProperty(MailTemplate.owner, p2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		{
+			// expect no results because no owner name matches the given name filter
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _equals: \"none\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 0);
+		}
+
+		{
+			// expect two results because one owner with two templates matches the given name filter
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _equals: \"First Tester\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+			assertMapPathValueIs(result, "MailTemplate.0.name",            "First Template");
+			assertMapPathValueIs(result, "MailTemplate.1.name",            "Second Template");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"f\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"fi\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"fir\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"firs\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"first\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"t\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"te\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"tes\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"test\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"tester\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+	}
 
 	@Test
 	public void testFunctionPropertyQueries() {
