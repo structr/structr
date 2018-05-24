@@ -682,6 +682,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
 			final MailTemplate m3 = app.create(MailTemplate.class, "Third Template");
 			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
+			final MailTemplate m5 = app.create(MailTemplate.class, "Fifth Template");
+			final MailTemplate m6 = app.create(MailTemplate.class, "Sixth Template");
 
 			m1.setProperty(MailTemplate.owner, p1);
 			m2.setProperty(MailTemplate.owner, p1);
