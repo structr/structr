@@ -1748,25 +1748,38 @@ public class SchemaHelper {
 		return Scalars.GraphQLString;
 	}
 
-	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws FrameworkException {
+	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final Set<String> queryTypeNames, final String type) throws FrameworkException {
 
 		final List<GraphQLArgument> arguments = new LinkedList<>();
 		final SchemaNode schemaNode           = schemaNodes.get(type);
 
 		if (schemaNode != null) {
 
+			// register parent type arguments as well!
+			final SchemaNode parentSchemaNode = schemaNode.getParentSchemaNode(schemaNodes);
+			if (parentSchemaNode != null && !parentSchemaNode.equals(schemaNode)) {
+
+				arguments.addAll(getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, queryTypeNames, parentSchemaNode.getName()));
+			}
+
 			// outgoing relationships
 			for (final SchemaRelationshipNode outNode : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
-				final SchemaNode targetNode                = outNode.getTargetNode();
-				final String targetTypeName                = targetNode.getClassName();
-				final String propertyName                  = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
+				final SchemaNode targetNode = outNode.getTargetNode();
+				final String targetTypeName = targetNode.getClassName();
+				final String propertyName   = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
+				final String queryTypeName  = type + propertyName + targetTypeName + "InInput";
 
-				arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-					.name(type + propertyName + targetTypeName + "InInput")
-					.fields(getGraphQLInputFieldsForType(selectionTypes, targetNode))
-					.build()
-				).build());
+				if (!queryTypeNames.contains(queryTypeName)) {
+
+					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
+						.name(queryTypeName)
+						.fields(getGraphQLInputFieldsForType(selectionTypes, targetNode))
+						.build()
+					).build());
+
+					queryTypeNames.add(queryTypeName);
+				}
 			}
 
 			// incoming relationships
@@ -1775,12 +1788,18 @@ public class SchemaHelper {
 				final SchemaNode sourceNode = inNode.getSourceNode();
 				final String sourceTypeName = sourceNode.getClassName();
 				final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
+				final String queryTypeName  = type + propertyName + sourceTypeName + "OutInput";
 
-				arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-					.name(type + propertyName + sourceTypeName + "OutInput")
-					.fields(getGraphQLInputFieldsForType(selectionTypes, sourceNode))
-					.build()
-				).build());
+				if (!queryTypeNames.contains(queryTypeName)) {
+
+					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
+						.name(queryTypeName)
+						.fields(getGraphQLInputFieldsForType(selectionTypes, sourceNode))
+						.build()
+					).build());
+
+					queryTypeNames.add(queryTypeName);
+				}
 			}
 
 			// properties
@@ -1811,13 +1830,19 @@ public class SchemaHelper {
 				}
 			}
 
-			// manual registration for built-in relationships that are not dynamic
-			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
-				.name(type + "ownerInput")
-				.fields(getGraphQLInputFieldsForType(selectionTypes, schemaNodes.get("Principal")))
-				.build()
-			).build());
+			final String ownerTypeName = type + "ownerInput";
 
+			if (!queryTypeNames.contains(ownerTypeName)) {
+
+				// manual registration for built-in relationships that are not dynamic
+				arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
+					.name(ownerTypeName)
+					.fields(getGraphQLInputFieldsForType(selectionTypes, schemaNodes.get("Principal")))
+					.build()
+				).build());
+
+				queryTypeNames.add(ownerTypeName);
+			}
 		}
 
 		return arguments;

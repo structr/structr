@@ -40,7 +40,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -208,12 +207,12 @@ public class SchemaService implements Service {
 								newType.newInstance();
 
 							} catch (final Throwable t) {
-							
+
 								// abstract classes and interfaces will throw errors here
 								if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
 									// ignore
 								} else {
-									
+
 									// everything else is a severe problem and should be not only reported but also
 									// make the schema compilation fail (otherwise bad things will happen later)
 									errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
@@ -261,8 +260,9 @@ public class SchemaService implements Service {
 						tx.success();
 
 
-						final GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject();
+						final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
 						final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
+						final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
 
 						// register types in "Query" type
 						for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
@@ -284,7 +284,7 @@ public class SchemaService implements Service {
 									.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 									.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 									.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, className))
+									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
 								);
 
 							} catch (Throwable t) {

@@ -592,7 +592,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		return null;
 	}
 
-	private SchemaNode getParentSchemaNode(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
+	public SchemaNode getParentSchemaNode(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
 		final String parentClass = getProperty(SchemaNode.extendsClass);
 		if (parentClass != null) {
