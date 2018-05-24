@@ -13,6 +13,13 @@ import {FlowNotNull} from "./entities/FlowNotNull.js";
 import {FlowDecision} from "./entities/FlowDecision.js";
 import {FlowKeyValue} from "./entities/FlowKeyValue.js";
 import {FlowObjectDataSource} from "./entities/FlowObjectDataSource.js";
+import {FlowStore} from "./entities/FlowStore.js";
+import {FlowScriptCondition} from "./entities/FlowScriptCondition.js";
+import {FlowNot} from "./entities/FlowNot.js";
+import {FlowOr} from "./entities/FlowOr.js";
+import {FlowAnd} from "./entities/FlowAnd.js";
+import {FlowForEach} from "./entities/FlowForEach.js";
+import {Rest} from "../rest/Rest.js";
 
 export class FlowEditor {
 
@@ -105,7 +112,13 @@ export class FlowEditor {
             new FlowNotNull(),
             new FlowDecision(),
             new FlowKeyValue(),
-            new FlowObjectDataSource()
+            new FlowObjectDataSource(),
+            new FlowStore(),
+            new FlowScriptCondition(),
+            new FlowNot(),
+            new FlowOr(),
+            new FlowAnd(),
+            new FlowForEach()
         ];
     }
 
@@ -146,20 +159,37 @@ export class FlowEditor {
                 'FlowParameterInput' : self._getNodeCreationFunction("FlowParameterInput"),
                 'FlowParameterDataSource' : self._getNodeCreationFunction("FlowParameterDataSource"),
                 'FlowNotNull' : self._getNodeCreationFunction("FlowNotNull"),
+                'FlowNot' : self._getNodeCreationFunction("FlowNot"),
+                'FlowOr' : self._getNodeCreationFunction("FlowOr"),
+                'FlowAnd' : self._getNodeCreationFunction("FlowAnd"),
                 'FlowDecision' : self._getNodeCreationFunction("FlowDecision"),
                 'FlowKeyValue' : self._getNodeCreationFunction("FlowKeyValue"),
                 'FlowObjectDataSource' : self._getNodeCreationFunction("FlowObjectDataSource"),
+                'FlowStore' : self._getNodeCreationFunction("FlowStore"),
+                'FlowScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition"),
+                'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
                 'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
             },
             'Actions': {
-                'Save Layout' : self.saveLayout(),
-                'Apply Layout' : self.applySavedLayout()
+                'Execute Flow': function() { self.executeFlow() },
+                'Save Layout' : function() { self.saveLayout() },
+                'Apply Layout' : function() { self.applySavedLayout() }
             }
         }, false);
 
         return menu;
     }
 
+
+    executeFlow() {
+
+        let rest = new Rest();
+
+        rest.post('/structr/rest/FlowContainer/' + this._flowContainer.id + '/evaluate', {}).then((res) => {
+            console.log(res);
+        });
+
+    }
 
     _overrideContextMenu() {
         let view = this._editor.view;
@@ -197,45 +227,39 @@ export class FlowEditor {
     }
 
     saveLayout() {
-        let self = this;
-        return function() {
 
-            var layout = {};
-            var editorConfig = self.getEditorJson();
+        var layout = {};
+        var editorConfig = this.getEditorJson();
 
-            for (let [key,node] of Object.entries(editorConfig.nodes)) {
+        for (let [key,node] of Object.entries(editorConfig.nodes)) {
 
-                if (node.data.dbNode !== null && node.data.dbNode !== undefined) {
-                    layout[node.data.dbNode.id] = node.position;
-                }
-
+            if (node.data.dbNode !== null && node.data.dbNode !== undefined) {
+                layout[node.data.dbNode.id] = node.position;
             }
 
-            window.localStorage.setItem('flow-' + self._flowContainer.id, JSON.stringify(layout));
-        };
+        }
+
+        window.localStorage.setItem('flow-' + this._flowContainer.id, JSON.stringify(layout));
     }
 
     applySavedLayout() {
-        let self = this;
-        return function() {
 
-            var layout = JSON.parse(window.localStorage.getItem('flow-' + self._flowContainer.id));
+        var layout = JSON.parse(window.localStorage.getItem('flow-' + this._flowContainer.id));
 
-            var editorConfig = self._editor;
+        var editorConfig = this._editor;
 
-            if (layout !== null && layout !== undefined) {
+        if (layout !== null && layout !== undefined) {
 
-                for (let [key, node] of Object.entries(editorConfig.nodes)) {
-                    if (node.data.dbNode !== undefined && layout[node.data.dbNode.id] !== undefined) {
-                        node.position = layout[node.data.dbNode.id];
-                    }
-
+            for (let [key, node] of Object.entries(editorConfig.nodes)) {
+                if (node.data.dbNode !== undefined && layout[node.data.dbNode.id] !== undefined) {
+                    node.position = layout[node.data.dbNode.id];
                 }
 
-                self._editor.view.update();
             }
 
-        };
+            this._editor.view.update();
+        }
+
     }
 
 
@@ -298,6 +322,24 @@ export class FlowEditor {
                 break;
             case 'FlowObjectDataSource':
                 fNode = new FlowObjectDataSource(node, this);
+                break;
+            case 'FlowStore':
+                fNode = new FlowStore(node, this);
+                break;
+            case 'FlowScriptCondition':
+                fNode = new FlowScriptCondition(node, this);
+                break;
+            case 'FlowNot':
+                fNode = new FlowNot(node, this);
+                break;
+            case 'FlowOr':
+                fNode = new FlowOr(node, this);
+                break;
+            case 'FlowAnd':
+                fNode = new FlowAnd(node, this);
+                break;
+            case 'FlowForEach':
+                fNode = new FlowForEach(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

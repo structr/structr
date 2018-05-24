@@ -30,7 +30,7 @@ export class FlowSockets {
         let condition_Result = new D3NE.Socket('result', 'Decision Node or Logic Node', 'Connects to FlowDecision or FlowLogicNode and provides it with arguments.');
         let condition_Condition = new D3NE.Socket('condition', 'Condition Node', 'Connected node provides arguments for this node.');
         let condition_Conditions = new D3NE.Socket('conditions', 'Condition Nodes', 'Connected nodes will provide arguments for this node.');
-        condition_Conditions.combineWith(condition_Condition);
+        condition_Result.combineWith(condition_Conditions);
         condition_Result.combineWith(condition_Condition);
         this._sockets['condition_Result'] = condition_Result;
         this._sockets['condition_Condition'] = condition_Condition;
@@ -48,6 +48,10 @@ export class FlowSockets {
         objectDataTarget.combineWith(keyValueSources);
         this._sockets['keyValueSources'] = keyValueSources;
         this._sockets['objectDataTarget'] = objectDataTarget;
+
+        let loopBody = new D3NE.Socket('loopBody', 'Start node', 'Connects to the first node of the loop that will get executed for each element of input data collection.');
+        loopBody.combineWith(this._sockets['prev']);
+        this._sockets['loopBody'] = loopBody;
 
     }
 

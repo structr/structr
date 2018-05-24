@@ -36,8 +36,8 @@ export class FlowConnectionTypes {
             },
             FlowConditionCondition: {
                 name: "CONDITION",
-                sourceAttribute: "conditions",
-                targetAttribute: "result",
+                sourceAttribute: "result",
+                targetAttribute: "conditions",
                 type: "FlowConditionCondition"
             },
             FlowDecisionTrue: {
@@ -57,6 +57,12 @@ export class FlowConnectionTypes {
                 sourceAttribute: "objectDataTarget",
                 targetAttribute: "keyValueSources",
                 type: "FlowKeyValueObjectInput"
+            },
+            FlowForEachBody: {
+                name: "LOOP_BODY",
+                sourceAttribute: "loopBody",
+                targetAttribute: "prev",
+                type: "FlowForEachBody"
             }
 
         };

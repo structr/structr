@@ -47,7 +47,13 @@
                 for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
 
                     persistence.getNodesByClass(con).then(relNodes => {
+
                         relNodes.forEach(rel => {
+
+                            if(Array.isArray(rel)) {
+                                rel = rel[0];
+                            }
+
                             if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
                                 editor.connectNodes(rel);
                             }
@@ -59,7 +65,7 @@
 
                 //ToDo: Find a more sophisticated way of handling the layout trigger
                 var wait = ms => new Promise((r, j)=>setTimeout(r, ms))
-                wait(200).then(() => {editor.applySavedLayout().call()});
+                wait(200).then(() => {editor.applySavedLayout()});
 
             });
 

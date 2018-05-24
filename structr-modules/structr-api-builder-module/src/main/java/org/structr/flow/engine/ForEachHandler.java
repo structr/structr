@@ -22,6 +22,7 @@ import java.util.Collection;
 
 import org.structr.flow.api.*;
 import org.structr.flow.impl.FlowForEach;
+import org.structr.flow.impl.FlowNode;
 
 /**
  *
@@ -31,28 +32,39 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 	@Override
 	public FlowElement handle(final Context context, final FlowForEach flowElement) {
 
-		final FlowEngine engine       = new FlowEngine(context);
 		final DataSource dataSource   = flowElement.getDataSource();
-		final FlowElement loopBody    = flowElement.getLoopBody();
-		final Object data             = dataSource.get(context);
 
-		Context loopContext = new Context(context.getThisObject());
+		if (dataSource != null) {
 
-		if (data instanceof Collection) {
+			final FlowEngine engine = new FlowEngine(context);
+			final FlowNode loopBody = flowElement.getLoopBody();
 
-			for (final Object o : ((Collection)data)) {
+			if (loopBody != null) {
 
-				loopContext.setData(flowElement.getUuid(), o);
+				final Object data = dataSource.get(context);
+
+				Context loopContext = new Context(context.getThisObject());
+
+				if (data instanceof Collection) {
+
+					for (final Object o : ((Collection) data)) {
+
+						loopContext.setData(loopBody.getUuid(), o);
+						// ignore sub result for now..
+						engine.execute(loopContext, loopBody);
+					}
+
+				} else {
+
+					loopContext.setData(loopBody.getUuid(), data);
+					// ignore sub result for now..
+					engine.execute(loopContext, loopBody);
+
+				}
+
 			}
 
-		} else {
-
-			loopContext.setData(flowElement.getUuid(), data);
-
 		}
-
-		// ignore sub result for now..
-		engine.execute(loopContext, loopBody);
 
 		return flowElement.next();
 	}

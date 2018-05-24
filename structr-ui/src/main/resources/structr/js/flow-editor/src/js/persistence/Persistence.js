@@ -103,7 +103,11 @@ export class Persistence {
         let containers = [];
 
         if(result.result_count === 1) {
-            containers.push(this._wrapObject(result.result, model))
+            if(Array.isArray(result.result)) {
+                containers.push(this._wrapObject(result.result[0], model));
+            } else {
+                containers.push(this._wrapObject(result.result, model));
+            }
         } else if (result.result_count > 1) {
             for(let i = 0; i < result.result.length; i++) {
                 containers.push(this._wrapObject(result.result[i], model));
@@ -113,10 +117,14 @@ export class Persistence {
     }
 
     _wrapObject(object, model) {
-        let curObj = new model.constructor();
-        Object.keys(object).forEach(k => curObj[k] = object[k]);
-        // Push new obj as proxy with handler for 2way data binding.
-        return new Proxy(curObj, Node.getProxyHandler(this));
+        if (object !== null && object !== undefined && model !== null && model !== undefined) {
+            let curObj = new model.constructor();
+            Object.keys(object).forEach(k => curObj[k] = object[k]);
+            // Push new obj as proxy with handler for 2way data binding.
+            return new Proxy(curObj, Node.getProxyHandler(this));
+        } else {
+            return null;
+        }
     }
 
 }

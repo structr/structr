@@ -21,6 +21,7 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
@@ -29,12 +30,15 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
 
+import java.util.List;
+
 /**
  *
  */
 public class FlowScriptCondition extends FlowCondition implements DataSource {
 
 	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> script 				= new StringProperty("script");
 
 	public static final View defaultView = new View(FlowScriptCondition.class, PropertyView.Public, script);
@@ -43,21 +47,30 @@ public class FlowScriptCondition extends FlowCondition implements DataSource {
 	@Override
 	public Object get(final Context context) {
 
-		final DataSource _ds = getProperty(dataSource);
-		final String _script = getProperty(script);
+		Object currentData = context.getData(getUuid());
 
-		if (_script != null) {
+		if (currentData == null) {
+			final DataSource _ds = getProperty(dataSource);
+			final String _script = getProperty(script);
 
-			if (_ds != null) {
-				context.setData(getUuid(), _ds.get(context));
+			if (_script != null) {
+
+				if (_ds != null) {
+					context.setData(getUuid(), _ds.get(context));
+				}
+
+				try {
+
+					Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
+					context.setData(getUuid(), result);
+					return result;
+				} catch (FrameworkException fex) {
+
+					fex.printStackTrace();
+				}
 			}
-
-			try {
-				return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-			}
+		} else {
+			return currentData;
 		}
 
 		return null;
