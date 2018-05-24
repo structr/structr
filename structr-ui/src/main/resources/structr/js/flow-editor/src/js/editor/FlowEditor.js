@@ -65,7 +65,15 @@ export class FlowEditor {
                         let relType = con.type;
 
                         let persistence = new Persistence();
-                        persistence.createNode({type: relType, sourceId: sourceId, targetId: targetId});
+
+                        persistence.getNodesByClass({type:relType}).then( result => {
+
+                            let shouldCreate = result.filter( el => el.sourceId == sourceId && el.targetId == targetId).length == 0;
+
+                            if (shouldCreate) {
+                                persistence.createNode({type: relType, sourceId: sourceId, targetId: targetId});
+                            }
+                        });
 
                         break;
                     }
@@ -172,6 +180,7 @@ export class FlowEditor {
             },
             'Actions': {
                 'Execute Flow': function() { self.executeFlow() },
+                'Reset View': function() { self.resetView() },
                 'Save Layout' : function() { self.saveLayout() },
                 'Apply Layout' : function() { self.applySavedLayout() }
             }
@@ -180,6 +189,10 @@ export class FlowEditor {
         return menu;
     }
 
+
+    resetView() {
+        this._editor.view.zoomAt(this.flowNodes.map( n => n.editorNode ));
+    }
 
     executeFlow() {
 
@@ -193,6 +206,7 @@ export class FlowEditor {
 
     _overrideContextMenu() {
         let view = this._editor.view;
+
         let al = alight.makeInstance();
         let self = this;
 
@@ -258,6 +272,7 @@ export class FlowEditor {
             }
 
             this._editor.view.update();
+            this.resetView();
         }
 
     }

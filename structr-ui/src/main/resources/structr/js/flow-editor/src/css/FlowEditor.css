@@ -63,8 +63,6 @@ html, body {
       background: transparent;
       position: relative;
       z-index: 2; }
-      .node-editor .node .socket.used {
-        background: white; }
       .node-editor .node .socket:after {
         content: "";
         position: absolute;
@@ -77,9 +75,21 @@ html, body {
         border-width: 4px 0 4px 2.66667px;
         border-color: transparent transparent transparent white; }
       .node-editor .node .socket:hover {
-        border-color: #777; }
+        border: 2px solid white; }
+      .node-editor .node .socket.input:hover {
+        background: greenyellow !important; }
+      .node-editor .node .socket.output:hover {
+        background: red !important; }
       .node-editor .node .socket.multiple {
         border-color: yellow; }
+      .node-editor .node .socket.input.used {
+        background: greenyellow; }
+      .node-editor .node .socket.input:not(.used) {
+        background: #5a9500; }
+      .node-editor .node .socket.output.used {
+        background: red; }
+      .node-editor .node .socket.output:not(.used) {
+        background: #660000; }
     .node-editor .node .input-title, .node-editor .node .output-title {
       vertical-align: middle;
       color: white;
@@ -168,6 +178,24 @@ html, body {
       pointer-events: none; }
       .node-editor .connections .connection.active {
         stroke: #aaa; }
+      .node-editor .connections .connection.output-next.input-prev {
+        stroke: #00e600; }
+      .node-editor .connections .connection.output-falseelement.input-prev {
+        stroke: #00e600; }
+      .node-editor .connections .connection.output-trueelement.input-prev {
+        stroke: #00e600; }
+      .node-editor .connections .connection.output-datatarget.input-datasource {
+        stroke: #6666ff; }
+      .node-editor .connections .connection.output-datatarget.input-datasources {
+        stroke: #6666ff; }
+      .node-editor .connections .connection.output-objectdatatarget.input-keyvaluesources {
+        stroke: #6666ff; }
+      .node-editor .connections .connection.output-result.input-condition {
+        stroke: red; }
+      .node-editor .connections .connection.output-result.input-conditions {
+        stroke: red; }
+      .node-editor .connections .connection.output-call.input-parameters {
+        stroke: #6666ff; }
   .node-editor select, .node-editor input {
     width: 60px;
     background-color: transparent;

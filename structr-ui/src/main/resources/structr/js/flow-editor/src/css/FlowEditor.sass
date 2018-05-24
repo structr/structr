@@ -22,6 +22,15 @@ $socket-size: 16px
 $socket-margin: 10px
 $context-menu-round: 7px
 
+//
+$input-color: greenyellow
+$output-color: red
+$multiple-color: yellow
+
+$execution-flow-color: lighten(green,20%)
+$condition-flow-color: red
+$data-flow-color: lighten(blue,20%)
+
 .node-editor
   background-size: $grid-size $grid-size
   background-image: linear-gradient(to right, $grid-color 1px, transparent 1px), linear-gradient(to bottom, $grid-color 1px, transparent 1px)
@@ -80,8 +89,6 @@ $context-menu-round: 7px
       background: transparent
       position: relative
       z-index: 2
-      &.used
-        background: white
       &:after
         content: ''
         position: absolute
@@ -94,9 +101,21 @@ $context-menu-round: 7px
         border-width: $socket-size/4 0 $socket-size/4 $socket-size/6
         border-color: transparent transparent transparent white
       &:hover
-        border-color: #777
+        border: 2px solid white
+      &.input:hover
+        background: $input-color !important
+      &.output:hover
+        background: $output-color !important
       &.multiple
-        border-color: yellow
+        border-color: $multiple-color
+      &.input.used
+        background: $input-color
+      &.input:not(.used)
+        background: darken($input-color, 30%)
+      &.output.used
+        background: $output-color
+      &.output:not(.used)
+        background: darken($output-color, 30%)
     .input-title,.output-title
       vertical-align: middle
       color: white
@@ -179,6 +198,24 @@ $context-menu-round: 7px
       pointer-events: none
       &.active
         stroke: #aaa
+      &.output-next.input-prev
+        stroke: $execution-flow-color
+      &.output-falseelement.input-prev
+        stroke: $execution-flow-color
+      &.output-trueelement.input-prev
+        stroke: $execution-flow-color
+      &.output-datatarget.input-datasource
+        stroke: $data-flow-color
+      &.output-datatarget.input-datasources
+        stroke: $data-flow-color
+      &.output-objectdatatarget.input-keyvaluesources
+        stroke: $data-flow-color
+      &.output-result.input-condition
+        stroke: $condition-flow-color
+      &.output-result.input-conditions
+        stroke: $condition-flow-color
+      &.output-call.input-parameters
+        stroke: $data-flow-color
 
   select, input
     width: 60px
