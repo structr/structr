@@ -199,10 +199,10 @@ export class FlowEditor {
         al.directives.al.node = function(scope, element, expression, env) {
             let items = {
                 'Remove node': () => {
-                    this.editor.removeNode(node);
+                    this.editor.removeNode(element);
                 },
                 'Set as start node': () => {
-                    node.data.dbNode.isStartNodeOfContainer = self._flowContainer;
+                    element.data.dbNode.isStartNodeOfContainer = self._flowContainer;
                 }
             };
 

@@ -24,7 +24,7 @@ export class FlowReturn extends FlowNode {
                     node.isStartNode = false;
                 }
 
-                let query = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
+                let query = new D3NE.Control('<textarea class="control-textarea" placeholder="data">', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.result !== undefined && scopedDbNode.result !== null) {
                         element.value = scopedDbNode.result;
