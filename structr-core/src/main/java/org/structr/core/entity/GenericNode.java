@@ -87,6 +87,11 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 		return Collections.EMPTY_SET;
 	}
 
+	@Override
+	protected boolean isGenericNode() {
+		return true;
+	}
+
 	// ----- nested classes -----
 	private class GenericPropertyKeyMapper implements Function<String, PropertyKey> {
 
@@ -107,35 +112,6 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 			}
 
 			throw new NullPointerException();
-		}
-	}
-
-	private class GenericRelation extends ManyToMany {
-
-		private String relType = null;
-
-		public GenericRelation(final String relType) {
-			this.relType = relType;
-		}
-
-		@Override
-		public Class getSourceType() {
-			return GenericNode.class;
-		}
-
-		@Override
-		public Class getTargetType() {
-			return GenericNode.class;
-		}
-
-		@Override
-		public String name() {
-			return relType;
-		}
-
-		@Override
-		public boolean isInternal() {
-			return false;
 		}
 	}
 }

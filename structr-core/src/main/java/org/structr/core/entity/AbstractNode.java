@@ -156,7 +156,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		this.securityContext = securityContext;
 
 		// simple validity check
-		if (dbNode != null) {
+		if (dbNode != null && !this.isGenericNode()) {
 
 			final String typeName  = getClass().getSimpleName();
 			final Object typeValue = dbNode.getProperty("type");
@@ -2047,6 +2047,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		return tmp;
+	}
+
+	protected boolean isGenericNode() {
+		return false;
 	}
 
 	// ----- nested classes -----

@@ -1301,16 +1301,21 @@ public class SchemaHelper {
 		src.append("\n\t@Override\n");
 		src.append("\tpublic void ");
 		src.append(name);
-		src.append("(final SecurityContext arg0, final PropertyMap arg1) throws FrameworkException {\n\n");
+		src.append("(final SecurityContext arg0, final PropertyMap arg1) {\n\n");
 		src.append("\t\tsuper.");
 		src.append(name);
 		src.append("(arg0, arg1);\n\n");
 
+		src.append("\t\ttry {\n\n");
+
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this")).append(";\n");
+			src.append("\t\t\t").append(action.getSource("this")).append(";\n");
 		}
 
+		src.append("\t\t} catch (FrameworkException fex) {\n");
+		src.append("\t\t\tfex.printStackTrace();\n");
+		src.append("\t\t}\n");
 		src.append("\t}\n");
 
 	}
