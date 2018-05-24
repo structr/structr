@@ -351,7 +351,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			if (existingAttribute instanceof SearchAttributeGroup) {
 
 				// attribute already set, add
-				((SearchAttributeGroup)existingAttribute).add(newAttribute);
+				final SearchAttributeGroup group = (SearchAttributeGroup)existingAttribute;
+
+				group.add(newAttribute);
+				group.setOccurrence(occurrence);
 
 			} else {
 
@@ -439,8 +442,13 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 									final List<GraphObject> list = query.getAsList();
 									if (list.isEmpty()) {
 
+										final SearchAttribute emptyAttribute = key.getSearchAttribute(securityContext, occurrence, null, exactMatch, null);
+
+										// test
+										emptyAttribute.setOccurrence(Occurrence.FORBIDDEN);
+
 										// add null search attribute for empty list of candidates
-										addAttribute(key, key.getSearchAttribute(securityContext, occurrence, null, exactMatch, null), occurrence);
+										addAttribute(key, emptyAttribute, occurrence);
 
 									} else {
 
