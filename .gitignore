@@ -24,6 +24,7 @@ structr-ui/*.key
 *.diff
 **nb-configuration.xml
 **nohup.out
+**.directory
 docs/html
 docs/screenshots
 *.DS_Store

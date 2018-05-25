@@ -260,13 +260,8 @@ var _Code = {
 		var displayFunction = function (result) {
 
 			var list = [];
-
+                        
 			result.forEach(function(d) {
-
-				// filter schema types
-				if (d && d.isPartOfBuiltInSchema && d.isPartOfBuiltInSchema === true) {
-					return;
-				}
 
 				var icon = 'fa-file-code-o gray';
 				switch (d.type) {
@@ -285,7 +280,7 @@ var _Code = {
 
 				if (d.schemaMethods) {
 					d.schemaMethods.forEach(function(m) {
-						if (!m.isPartOfBuiltInSchema) {
+						if (id === 'custom' || !m.isPartOfBuiltInSchema) {
 							hasVisibleChildren = true;
 						}
 					});
