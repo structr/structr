@@ -20,10 +20,14 @@ import {FlowOr} from "./entities/FlowOr.js";
 import {FlowAnd} from "./entities/FlowAnd.js";
 import {FlowForEach} from "./entities/FlowForEach.js";
 import {Rest} from "../rest/Rest.js";
+import {CodeModal} from "./CodeModal.js";
+
+
 
 export class FlowEditor {
 
     constructor(rootElement, flowContainer) {
+                
         this._editorId = 'structr-flow-editor@0.1.0';
 
         this._flowContainer = flowContainer;
@@ -32,6 +36,10 @@ export class FlowEditor {
 
         this._setupEditor();
         this._setupEngine();
+
+        document.addEventListener('openeditor', e => {
+            new CodeModal(e.detail.element);
+        });
 
     }
 

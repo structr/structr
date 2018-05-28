@@ -30,6 +30,10 @@ export class FlowScriptCondition extends FlowNode {
                     control.id = "script";
                     control.name = "Script";
 
+                    element.addEventListener('focus', ()=> {
+                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
+                    });
+
                     element.addEventListener('change', ()=>{
                         control.putData('script',element.value);
                         node.data['dbNode'].script = element.value;
