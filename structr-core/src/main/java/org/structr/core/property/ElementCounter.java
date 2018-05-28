@@ -36,6 +36,10 @@ public class ElementCounter extends AbstractReadOnlyProperty<Integer> {
 
 	private Property<? extends Iterable> collectionProperty = null;
 
+	public ElementCounter(String name) {
+		this(name, null);
+	}
+
 	public ElementCounter(String name, Property<? extends Iterable> collectionProperty) {
 		super(name);
 

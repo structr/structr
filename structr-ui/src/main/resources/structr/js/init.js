@@ -1432,7 +1432,7 @@ var Structr = {
 						END:   'Finished importing CSV data (Time: ' + data.duration + ')'
 					};
 
-					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().show();
+					new MessageBuilder().title(titles[data.subtype]).info(texts[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().allowConfirmAll().show();
 				}
 				break;
 
@@ -1443,6 +1443,7 @@ var Structr = {
 							.title(data.title)
 							.error(data.text)
 							.requiresConfirmation()
+							.allowConfirmAll()
 							.show();
 				}
 				break;
@@ -1457,7 +1458,7 @@ var Structr = {
 							.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
 
 					if (data.subtype !== 'QUEUED') {
-						msg.updatesText().requiresConfirmation();
+						msg.updatesText().requiresConfirmation().allowConfirmAll();
 					}
 
 					msg.show();
@@ -1481,6 +1482,7 @@ var Structr = {
 							.title("Exception while importing " + data.jobtype)
 							.error("File: " + data.filepath + "<br>" + text)
 							.requiresConfirmation()
+							.allowConfirmAll()
 							.show();
 
 					if (Structr.isModuleActive(Importer)) {
@@ -1499,7 +1501,7 @@ var Structr = {
 							.uniqueClass(data.jobtype + '-status-' + data.jobId);
 
 					if (data.subtype !== 'QUEUED') {
-						msg.updatesText().requiresConfirmation();
+						msg.updatesText().requiresConfirmation().allowConfirmAll();
 					}
 
 					msg.show();
@@ -1655,6 +1657,8 @@ function MessageBuilder () {
 		delayDuration: 3000,
 		fadeDuration: 1000,
 		confirmButtonText: 'Confirm',
+		allowConfirmAll: false,
+		confirmAllButtonText: 'Confirm all...',
 		classNames: ['message'],
 		uniqueClass: undefined,
 		uniqueCount: 1,
@@ -1669,6 +1673,16 @@ function MessageBuilder () {
 
 		if (confirmButtonText) {
 			this.params.confirmButtonText = confirmButtonText;
+		}
+
+		return this;
+	};
+
+	this.allowConfirmAll = function (confirmAllButtonText) {
+		this.params.allowConfirmAll = true;
+
+		if (confirmAllButtonText) {
+			this.params.confirmAllButtonText = confirmAllButtonText;
 		}
 
 		return this;
@@ -1731,6 +1745,7 @@ function MessageBuilder () {
 
 	this.getButtonHtml = function () {
 		return (this.params.requiresConfirmation ? '<button class="confirm">' + this.params.confirmButtonText + '</button>' : '') +
+			   (this.params.requiresConfirmation && this.params.allowConfirmAll ? '<button class="confirmAll">' + this.params.confirmAllButtonText + '</button>' : '') +
 			   (this.params.specialInteractionButton ? '<button class="special">' + this.params.specialInteractionButton.text + '</button>' : '');
 	};
 
@@ -1742,6 +1757,14 @@ function MessageBuilder () {
 				$(this).remove();
 				originalMsgBuilder.hide();
 			});
+
+			if (newMsgBuilder.params.allowConfirmAll === true) {
+
+				$('#info-area button.confirmAll').click(function () {
+					$('#info-area button.confirm').click();
+				});
+
+			}
 
 		} else {
 

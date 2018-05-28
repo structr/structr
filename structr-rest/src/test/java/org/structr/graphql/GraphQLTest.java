@@ -40,6 +40,9 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -1127,6 +1130,71 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Project.#",            1);
 		}
 	}
+
+	@Test
+	public void testCountPropertyType() {
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode projectType = app.create(SchemaNode.class, "Project");
+			final SchemaNode taskType    = app.create(SchemaNode.class, "Task");
+
+			final SchemaRelationshipNode rel = app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, projectType),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, taskType),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "TASK"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "project"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "tasks")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode,   projectType),
+				new NodeAttribute<>(SchemaProperty.name,         "taskCount"),
+				new NodeAttribute<>(SchemaProperty.propertyType, "Count"),
+				new NodeAttribute<>(SchemaProperty.format,       "tasks")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+			final PropertyKey name  = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "name");
+			final PropertyKey tasks = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "tasks");
+
+
+			final List<NodeInterface> taskList = createTestNodes(taskType, 10);
+
+			final NodeInterface project = app.create(projectType,
+				new NodeAttribute<>(name, "Test"),
+				new NodeAttribute<>(tasks, taskList)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project { id, type, name, taskCount, tasks { id, type, name }}}");
+			assertMapPathValueIs(result, "Project.#",           1);
+			assertMapPathValueIs(result, "Project.0.name",      "Test");
+			assertMapPathValueIs(result, "Project.0.tasks.#",   10);
+			assertMapPathValueIs(result, "Project.0.taskCount", 10.0);
+		}
+
+	}
+
 
 	// ----- private methods -----
 	private Map<String, Object> fetchGraphQL(final String query) {
