@@ -54,10 +54,10 @@ export class FlowStore extends FlowNode {
                     });
                 });
 
-                let key = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
+                let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.key !== undefined) {
-                        element.value = scopedDbNode.key;
+                        element.setAttribute("value",scopedDbNode.key);
                     }
 
                     control.putData('key',element.value);
@@ -67,7 +67,7 @@ export class FlowStore extends FlowNode {
 
                     element.addEventListener('change', ()=>{
                         control.putData('key',element.value);
-                        node.dbNode.key = element.value;
+                        node.data['dbNode'].key = element.value;
                     });
                 });
 
@@ -107,7 +107,7 @@ export class FlowStore extends FlowNode {
                     </column>
                 </content>
                 <!-- Controls-->
-                <content al-repeat="control in node.controls" style="display:inline">
+                <content al-repeat="control in node.controls">
                     <column>
                         <label class="control-title" for="{{control.id}}">{{control.name}}</label>
                     </column>

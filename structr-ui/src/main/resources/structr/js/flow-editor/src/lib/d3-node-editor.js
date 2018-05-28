@@ -1,6 +1,6 @@
 /*!
-* d3-node-editor v0.6.6
-* (c) 2017 Vitaliy Stoliarov
+* d3-node-editor v0.7.4
+* (c) 2018 Vitaliy Stoliarov
 * Released under the MIT License.
 */
 /**
@@ -732,26 +732,16 @@
 );
 
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.D3NE = {})));
-}(this, (function (exports) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('d3'), require('alight')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'd3', 'alight'], factory) :
+	(factory((global.D3NE = {}),global.d3,global.alight));
+}(this, (function (exports,d3,alight) { 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
   return typeof obj;
 } : function (obj) {
   return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
 };
-
-
-
-
-
-
-
-
-
-
 
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -777,14 +767,6 @@ var createClass = function () {
   };
 }();
 
-
-
-
-
-
-
-
-
 var inherits = function (subClass, superClass) {
   if (typeof superClass !== "function" && superClass !== null) {
     throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
@@ -801,16 +783,6 @@ var inherits = function (subClass, superClass) {
   if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 };
 
-
-
-
-
-
-
-
-
-
-
 var possibleConstructorReturn = function (self, call) {
   if (!self) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -818,24 +790,6 @@ var possibleConstructorReturn = function (self, call) {
 
   return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 var toConsumableArray = function (arr) {
   if (Array.isArray(arr)) {
@@ -968,6 +922,13 @@ var ModuleManager = function () {
     return ModuleManager;
 }();
 
+var ComponentWorker = function ComponentWorker(name, props) {
+    classCallCheck(this, ComponentWorker);
+
+    this.name = name;
+    this.worker = props.worker;
+};
+
 var Block = function () {
     function Block(Class) {
         classCallCheck(this, Block);
@@ -997,7 +958,7 @@ var Control = function () {
         classCallCheck(this, Control);
 
         if (!(typeof html === 'string')) {
-            throw new TypeError("Value of argument \"html\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect$1(html));
+            throw new TypeError("Value of argument \"html\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect(html));
         }
 
         this.html = html;
@@ -1026,7 +987,7 @@ var Control = function () {
     return Control;
 }();
 
-function _inspect$1(input, depth) {
+function _inspect(input, depth) {
     var maxDepth = 4;
     var maxKeys = 15;
 
@@ -1042,6 +1003,116 @@ function _inspect$1(input, depth) {
         return 'void';
     } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
         return typeof input === "undefined" ? "undefined" : _typeof(input);
+    } else if (Array.isArray(input)) {
+        if (input.length > 0) {
+            if (depth > maxDepth) return '[...]';
+
+            var first = _inspect(input[0], depth);
+
+            if (input.every(function (item) {
+                return _inspect(item, depth) === first;
+            })) {
+                return first.trim() + '[]';
+            } else {
+                return '[' + input.slice(0, maxKeys).map(function (item) {
+                    return _inspect(item, depth);
+                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
+            }
+        } else {
+            return 'Array';
+        }
+    } else {
+        var keys = Object.keys(input);
+
+        if (!keys.length) {
+            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+                return input.constructor.name;
+            } else {
+                return 'Object';
+            }
+        }
+
+        if (depth > maxDepth) return '{...}';
+        var indent = '  '.repeat(depth - 1);
+        var entries = keys.slice(0, maxKeys).map(function (key) {
+            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect(input[key], depth) + ';';
+        }).join('\n  ' + indent);
+
+        if (keys.length >= maxKeys) {
+            entries += '\n  ' + indent + '...';
+        }
+
+        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+        } else {
+            return '{\n  ' + indent + entries + '\n' + indent + '}';
+        }
+    }
+}
+
+var Connection = function () {
+    function Connection(output, input) {
+        classCallCheck(this, Connection);
+
+        this.output = output;
+        this.input = input;
+        this.style = {};
+
+        this.input.addConnection(this);
+    }
+
+    createClass(Connection, [{
+        key: "remove",
+        value: function remove() {
+            this.input.removeConnection(this);
+            this.output.removeConnection(this);
+        }
+    }]);
+    return Connection;
+}();
+
+var IO = function () {
+    function IO(title, socket, multiConns) {
+        classCallCheck(this, IO);
+
+        this.el = null;
+        this.node = null;
+        this.multipleConnections = multiConns;
+        this.connections = [];
+
+        this.title = title;
+        this.socket = socket;
+    }
+
+    createClass(IO, [{
+        key: 'removeConnection',
+        value: function removeConnection(connection) {
+            if (!(connection instanceof Connection)) {
+                throw new TypeError('Value of argument "connection" violates contract.\n\nExpected:\nConnection\n\nGot:\n' + _inspect$1(connection));
+            }
+
+            this.connections.splice(this.connections.indexOf(connection), 1);
+        }
+    }]);
+    return IO;
+}();
+
+function _inspect$1(input, depth) {
+    var maxDepth = 4;
+    var maxKeys = 15;
+
+    if (depth === undefined) {
+        depth = 0;
+    }
+
+    depth += 1;
+
+    if (input === null) {
+        return 'null';
+    } else if (input === undefined) {
+        return 'void';
+    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
     } else if (Array.isArray(input)) {
         if (input.length > 0) {
             if (depth > maxDepth) return '[...]';
@@ -1089,41 +1160,20 @@ function _inspect$1(input, depth) {
     }
 }
 
-var Connection = function () {
-    function Connection(output, input) {
-        classCallCheck(this, Connection);
-
-        this.output = output;
-        this.input = input;
-        this.style = {};
-
-        this.input.addConnection(this);
-    }
-
-    createClass(Connection, [{
-        key: "remove",
-        value: function remove() {
-            this.input.removeConnection(this);
-            this.output.removeConnection(this);
-        }
-    }]);
-    return Connection;
-}();
-
 var Socket = function () {
     function Socket(id, name, hint) {
         classCallCheck(this, Socket);
 
         if (!(typeof id === 'string')) {
-            throw new TypeError("Value of argument \"id\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect$3(id));
+            throw new TypeError("Value of argument \"id\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect$2(id));
         }
 
         if (!(typeof name === 'string')) {
-            throw new TypeError("Value of argument \"name\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect$3(name));
+            throw new TypeError("Value of argument \"name\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect$2(name));
         }
 
         if (!(typeof hint === 'string')) {
-            throw new TypeError("Value of argument \"hint\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect$3(hint));
+            throw new TypeError("Value of argument \"hint\" violates contract.\n\nExpected:\nstring\n\nGot:\n" + _inspect$2(hint));
         }
 
         this.id = id;
@@ -1136,7 +1186,7 @@ var Socket = function () {
         key: "combineWith",
         value: function combineWith(socket) {
             if (!(socket instanceof Socket)) {
-                throw new TypeError("Value of argument \"socket\" violates contract.\n\nExpected:\nSocket\n\nGot:\n" + _inspect$3(socket));
+                throw new TypeError("Value of argument \"socket\" violates contract.\n\nExpected:\nSocket\n\nGot:\n" + _inspect$2(socket));
             }
 
             this.compatible.push(socket);
@@ -1145,7 +1195,7 @@ var Socket = function () {
         key: "compatibleWith",
         value: function compatibleWith(socket) {
             if (!(socket instanceof Socket)) {
-                throw new TypeError("Value of argument \"socket\" violates contract.\n\nExpected:\nSocket\n\nGot:\n" + _inspect$3(socket));
+                throw new TypeError("Value of argument \"socket\" violates contract.\n\nExpected:\nSocket\n\nGot:\n" + _inspect$2(socket));
             }
 
             return this === socket || this.compatible.includes(socket);
@@ -1153,6 +1203,140 @@ var Socket = function () {
     }]);
     return Socket;
 }();
+
+function _inspect$2(input, depth) {
+    var maxDepth = 4;
+    var maxKeys = 15;
+
+    if (depth === undefined) {
+        depth = 0;
+    }
+
+    depth += 1;
+
+    if (input === null) {
+        return 'null';
+    } else if (input === undefined) {
+        return 'void';
+    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+        return typeof input === "undefined" ? "undefined" : _typeof(input);
+    } else if (Array.isArray(input)) {
+        if (input.length > 0) {
+            if (depth > maxDepth) return '[...]';
+
+            var first = _inspect$2(input[0], depth);
+
+            if (input.every(function (item) {
+                return _inspect$2(item, depth) === first;
+            })) {
+                return first.trim() + '[]';
+            } else {
+                return '[' + input.slice(0, maxKeys).map(function (item) {
+                    return _inspect$2(item, depth);
+                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
+            }
+        } else {
+            return 'Array';
+        }
+    } else {
+        var keys = Object.keys(input);
+
+        if (!keys.length) {
+            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+                return input.constructor.name;
+            } else {
+                return 'Object';
+            }
+        }
+
+        if (depth > maxDepth) return '{...}';
+        var indent = '  '.repeat(depth - 1);
+        var entries = keys.slice(0, maxKeys).map(function (key) {
+            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$2(input[key], depth) + ';';
+        }).join('\n  ' + indent);
+
+        if (keys.length >= maxKeys) {
+            entries += '\n  ' + indent + '...';
+        }
+
+        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+        } else {
+            return '{\n  ' + indent + entries + '\n' + indent + '}';
+        }
+    }
+}
+
+var Input = function (_IO) {
+    inherits(Input, _IO);
+
+    function Input(title, socket) {
+        var multiConns = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        classCallCheck(this, Input);
+
+        if (!(typeof title === 'string')) {
+            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$3(title));
+        }
+
+        if (!(socket instanceof Socket)) {
+            throw new TypeError('Value of argument "socket" violates contract.\n\nExpected:\nSocket\n\nGot:\n' + _inspect$3(socket));
+        }
+
+        if (!(typeof multiConns === 'boolean')) {
+            throw new TypeError('Value of argument "multiConns" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$3(multiConns));
+        }
+
+        var _this = possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, title, socket, multiConns));
+
+        _this.control = null;
+        return _this;
+    }
+
+    createClass(Input, [{
+        key: 'hasConnection',
+        value: function hasConnection() {
+            return this.connections.length > 0;
+        }
+    }, {
+        key: 'addConnection',
+        value: function addConnection(connection) {
+            if (!(connection instanceof Connection)) {
+                throw new TypeError('Value of argument "connection" violates contract.\n\nExpected:\nConnection\n\nGot:\n' + _inspect$3(connection));
+            }
+
+            if (!this.multipleConnections && this.hasConnection()) throw new Error('Multiple connections not allowed');
+            this.connections.push(connection);
+        }
+    }, {
+        key: 'addControl',
+        value: function addControl(control) {
+            if (!(control instanceof Control)) {
+                throw new TypeError('Value of argument "control" violates contract.\n\nExpected:\nControl\n\nGot:\n' + _inspect$3(control));
+            }
+
+            this.control = control;
+            control.parent = this;
+        }
+    }, {
+        key: 'showControl',
+        value: function showControl() {
+            return !this.hasConnection() && this.control !== null;
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                'connections': this.connections.map(function (c) {
+                    return {
+                        node: c.output.node.id,
+                        output: c.output.node.outputs.indexOf(c.output)
+                    };
+                })
+            };
+        }
+    }]);
+    return Input;
+}(IO);
 
 function _inspect$3(input, depth) {
     var maxDepth = 4;
@@ -1169,7 +1353,7 @@ function _inspect$3(input, depth) {
     } else if (input === undefined) {
         return 'void';
     } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
-        return typeof input === "undefined" ? "undefined" : _typeof(input);
+        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
     } else if (Array.isArray(input)) {
         if (input.length > 0) {
             if (depth > maxDepth) return '[...]';
@@ -1217,30 +1401,75 @@ function _inspect$3(input, depth) {
     }
 }
 
-var IO = function () {
-    function IO(title, socket, multiConns) {
-        classCallCheck(this, IO);
+var Output = function (_IO) {
+    inherits(Output, _IO);
 
-        this.node = null;
-        this.multipleConnections = multiConns;
-        this.connections = [];
+    function Output(title, socket) {
+        var multiConns = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+        classCallCheck(this, Output);
 
-        this.title = title;
-        this.socket = socket;
+        if (!(typeof title === 'string')) {
+            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$4(title));
+        }
+
+        if (!(socket instanceof Socket)) {
+            throw new TypeError('Value of argument "socket" violates contract.\n\nExpected:\nSocket\n\nGot:\n' + _inspect$4(socket));
+        }
+
+        if (!(typeof multiConns === 'boolean')) {
+            throw new TypeError('Value of argument "multiConns" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$4(multiConns));
+        }
+
+        return possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, title, socket, multiConns));
     }
 
-    createClass(IO, [{
-        key: 'removeConnection',
-        value: function removeConnection(connection) {
-            if (!(connection instanceof Connection)) {
-                throw new TypeError('Value of argument "connection" violates contract.\n\nExpected:\nConnection\n\nGot:\n' + _inspect$4(connection));
+    createClass(Output, [{
+        key: 'hasConnection',
+        value: function hasConnection() {
+            return this.connections.length > 0;
+        }
+    }, {
+        key: 'connectTo',
+        value: function connectTo(input) {
+            if (!(input instanceof Input)) {
+                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\nInput\n\nGot:\n' + _inspect$4(input));
             }
 
-            this.connections.splice(this.connections.indexOf(connection), 1);
+            if (!this.socket.compatibleWith(input.socket)) throw new Error('Sockets not compatible');
+            if (!input.multipleConnections && input.hasConnection()) throw new Error('Input already has one connection');
+            if (!this.multipleConnections && this.hasConnection()) throw new Error('Output already has one connection');
+
+            var connection = new Connection(this, input);
+
+            this.connections.push(connection);
+            return connection;
+        }
+    }, {
+        key: 'connectedTo',
+        value: function connectedTo(input) {
+            if (!(input instanceof Input)) {
+                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\nInput\n\nGot:\n' + _inspect$4(input));
+            }
+
+            return this.connections.some(function (item) {
+                return item.input === input;
+            });
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            return {
+                'connections': this.connections.map(function (c) {
+                    return {
+                        node: c.input.node.id,
+                        input: c.input.node.inputs.indexOf(c.input)
+                    };
+                })
+            };
         }
     }]);
-    return IO;
-}();
+    return Output;
+}(IO);
 
 function _inspect$4(input, depth) {
     var maxDepth = 4;
@@ -1305,273 +1534,6 @@ function _inspect$4(input, depth) {
     }
 }
 
-var Input = function (_IO) {
-    inherits(Input, _IO);
-
-    function Input(title, socket) {
-        var multiConns = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-        classCallCheck(this, Input);
-
-        if (!(typeof title === 'string')) {
-            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$2(title));
-        }
-
-        if (!(socket instanceof Socket)) {
-            throw new TypeError('Value of argument "socket" violates contract.\n\nExpected:\nSocket\n\nGot:\n' + _inspect$2(socket));
-        }
-
-        if (!(typeof multiConns === 'boolean')) {
-            throw new TypeError('Value of argument "multiConns" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$2(multiConns));
-        }
-
-        var _this = possibleConstructorReturn(this, (Input.__proto__ || Object.getPrototypeOf(Input)).call(this, title, socket, multiConns));
-
-        _this.control = null;
-        return _this;
-    }
-
-    createClass(Input, [{
-        key: 'hasConnection',
-        value: function hasConnection() {
-            return this.connections.length > 0;
-        }
-    }, {
-        key: 'addConnection',
-        value: function addConnection(connection) {
-            if (!(connection instanceof Connection)) {
-                throw new TypeError('Value of argument "connection" violates contract.\n\nExpected:\nConnection\n\nGot:\n' + _inspect$2(connection));
-            }
-
-            if (!this.multipleConnections && this.hasConnection()) throw new Error('Multiple connections not allowed');
-            this.connections.push(connection);
-        }
-    }, {
-        key: 'addControl',
-        value: function addControl(control) {
-            if (!(control instanceof Control)) {
-                throw new TypeError('Value of argument "control" violates contract.\n\nExpected:\nControl\n\nGot:\n' + _inspect$2(control));
-            }
-
-            this.control = control;
-            control.parent = this;
-        }
-    }, {
-        key: 'showControl',
-        value: function showControl() {
-            return !this.hasConnection() && this.control !== null;
-        }
-    }, {
-        key: 'toJSON',
-        value: function toJSON() {
-            return {
-                'connections': this.connections.map(function (c) {
-                    return {
-                        node: c.output.node.id,
-                        output: c.output.node.outputs.indexOf(c.output)
-                    };
-                })
-            };
-        }
-    }]);
-    return Input;
-}(IO);
-
-function _inspect$2(input, depth) {
-    var maxDepth = 4;
-    var maxKeys = 15;
-
-    if (depth === undefined) {
-        depth = 0;
-    }
-
-    depth += 1;
-
-    if (input === null) {
-        return 'null';
-    } else if (input === undefined) {
-        return 'void';
-    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
-        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
-    } else if (Array.isArray(input)) {
-        if (input.length > 0) {
-            if (depth > maxDepth) return '[...]';
-
-            var first = _inspect$2(input[0], depth);
-
-            if (input.every(function (item) {
-                return _inspect$2(item, depth) === first;
-            })) {
-                return first.trim() + '[]';
-            } else {
-                return '[' + input.slice(0, maxKeys).map(function (item) {
-                    return _inspect$2(item, depth);
-                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
-            }
-        } else {
-            return 'Array';
-        }
-    } else {
-        var keys = Object.keys(input);
-
-        if (!keys.length) {
-            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-                return input.constructor.name;
-            } else {
-                return 'Object';
-            }
-        }
-
-        if (depth > maxDepth) return '{...}';
-        var indent = '  '.repeat(depth - 1);
-        var entries = keys.slice(0, maxKeys).map(function (key) {
-            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$2(input[key], depth) + ';';
-        }).join('\n  ' + indent);
-
-        if (keys.length >= maxKeys) {
-            entries += '\n  ' + indent + '...';
-        }
-
-        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
-        } else {
-            return '{\n  ' + indent + entries + '\n' + indent + '}';
-        }
-    }
-}
-
-var Output = function (_IO) {
-    inherits(Output, _IO);
-
-    function Output(title, socket) {
-        var multiConns = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
-        classCallCheck(this, Output);
-
-        if (!(typeof title === 'string')) {
-            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$5(title));
-        }
-
-        if (!(socket instanceof Socket)) {
-            throw new TypeError('Value of argument "socket" violates contract.\n\nExpected:\nSocket\n\nGot:\n' + _inspect$5(socket));
-        }
-
-        if (!(typeof multiConns === 'boolean')) {
-            throw new TypeError('Value of argument "multiConns" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$5(multiConns));
-        }
-
-        return possibleConstructorReturn(this, (Output.__proto__ || Object.getPrototypeOf(Output)).call(this, title, socket, multiConns));
-    }
-
-    createClass(Output, [{
-        key: 'hasConnection',
-        value: function hasConnection() {
-            return this.connections.length > 0;
-        }
-    }, {
-        key: 'connectTo',
-        value: function connectTo(input) {
-            if (!(input instanceof Input)) {
-                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\nInput\n\nGot:\n' + _inspect$5(input));
-            }
-
-            if (!this.socket.compatibleWith(input.socket)) throw new Error('Sockets not compatible');
-            if (!input.multipleConnections && input.hasConnection()) throw new Error('Input already has one connection');
-            if (!this.multipleConnections && this.hasConnection()) throw new Error('Output already has one connection');
-
-            var connection = new Connection(this, input);
-
-            this.connections.push(connection);
-            return connection;
-        }
-    }, {
-        key: 'connectedTo',
-        value: function connectedTo(input) {
-            if (!(input instanceof Input)) {
-                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\nInput\n\nGot:\n' + _inspect$5(input));
-            }
-
-            return this.connections.some(function (item) {
-                return item.input === input;
-            });
-        }
-    }, {
-        key: 'toJSON',
-        value: function toJSON() {
-            return {
-                'connections': this.connections.map(function (c) {
-                    return {
-                        node: c.input.node.id,
-                        input: c.input.node.inputs.indexOf(c.input)
-                    };
-                })
-            };
-        }
-    }]);
-    return Output;
-}(IO);
-
-function _inspect$5(input, depth) {
-    var maxDepth = 4;
-    var maxKeys = 15;
-
-    if (depth === undefined) {
-        depth = 0;
-    }
-
-    depth += 1;
-
-    if (input === null) {
-        return 'null';
-    } else if (input === undefined) {
-        return 'void';
-    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
-        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
-    } else if (Array.isArray(input)) {
-        if (input.length > 0) {
-            if (depth > maxDepth) return '[...]';
-
-            var first = _inspect$5(input[0], depth);
-
-            if (input.every(function (item) {
-                return _inspect$5(item, depth) === first;
-            })) {
-                return first.trim() + '[]';
-            } else {
-                return '[' + input.slice(0, maxKeys).map(function (item) {
-                    return _inspect$5(item, depth);
-                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
-            }
-        } else {
-            return 'Array';
-        }
-    } else {
-        var keys = Object.keys(input);
-
-        if (!keys.length) {
-            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-                return input.constructor.name;
-            } else {
-                return 'Object';
-            }
-        }
-
-        if (depth > maxDepth) return '{...}';
-        var indent = '  '.repeat(depth - 1);
-        var entries = keys.slice(0, maxKeys).map(function (key) {
-            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$5(input[key], depth) + ';';
-        }).join('\n  ' + indent);
-
-        if (keys.length >= maxKeys) {
-            entries += '\n  ' + indent + '...';
-        }
-
-        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
-        } else {
-            return '{\n  ' + indent + entries + '\n' + indent + '}';
-        }
-    }
-}
-
 var Node = function (_Block) {
     inherits(Node, _Block);
 
@@ -1579,16 +1541,18 @@ var Node = function (_Block) {
         classCallCheck(this, Node);
 
         if (!(typeof title === 'string')) {
-            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect(title));
+            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$5(title));
         }
 
         var _this = possibleConstructorReturn(this, (Node.__proto__ || Object.getPrototypeOf(Node)).call(this, Node));
 
+        _this.el = null;
         _this.group = null;
         _this.inputs = [];
         _this.outputs = [];
         _this.controls = [];
         _this.data = {};
+        _this.readOnly = false;
 
         _this.title = title;
         var _ref = [180, 100];
@@ -1603,11 +1567,11 @@ var Node = function (_Block) {
             var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
             if (!(control instanceof Control)) {
-                throw new TypeError('Value of argument "control" violates contract.\n\nExpected:\nControl\n\nGot:\n' + _inspect(control));
+                throw new TypeError('Value of argument "control" violates contract.\n\nExpected:\nControl\n\nGot:\n' + _inspect$5(control));
             }
 
             if (!(index == null || typeof index === 'number' && !isNaN(index) && index >= 0 && index <= 255 && index === Math.floor(index))) {
-                throw new TypeError('Value of argument "index" violates contract.\n\nExpected:\n?uint8\n\nGot:\n' + _inspect(index));
+                throw new TypeError('Value of argument "index" violates contract.\n\nExpected:\n?uint8\n\nGot:\n' + _inspect$5(index));
             }
 
             control.parent = this;
@@ -1622,11 +1586,11 @@ var Node = function (_Block) {
             var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
             if (!(input instanceof Input)) {
-                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\nInput\n\nGot:\n' + _inspect(input));
+                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\nInput\n\nGot:\n' + _inspect$5(input));
             }
 
             if (!(index == null || typeof index === 'number' && !isNaN(index) && index >= 0 && index <= 255 && index === Math.floor(index))) {
-                throw new TypeError('Value of argument "index" violates contract.\n\nExpected:\n?uint8\n\nGot:\n' + _inspect(index));
+                throw new TypeError('Value of argument "index" violates contract.\n\nExpected:\n?uint8\n\nGot:\n' + _inspect$5(index));
             }
 
             if (input.node !== null) throw new Error('Input has already been added to the node');
@@ -1643,11 +1607,11 @@ var Node = function (_Block) {
             var index = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
 
             if (!(output instanceof Output)) {
-                throw new TypeError('Value of argument "output" violates contract.\n\nExpected:\nOutput\n\nGot:\n' + _inspect(output));
+                throw new TypeError('Value of argument "output" violates contract.\n\nExpected:\nOutput\n\nGot:\n' + _inspect$5(output));
             }
 
             if (!(index == null || typeof index === 'number' && !isNaN(index) && index >= 0 && index <= 255 && index === Math.floor(index))) {
-                throw new TypeError('Value of argument "index" violates contract.\n\nExpected:\n?uint8\n\nGot:\n' + _inspect(index));
+                throw new TypeError('Value of argument "index" violates contract.\n\nExpected:\n?uint8\n\nGot:\n' + _inspect$5(index));
             }
 
             if (output.node !== null) throw new Error('Output has already been added to the node');
@@ -1713,7 +1677,7 @@ var Node = function (_Block) {
                                 break;
                             }
 
-                            throw new TypeError('Value of argument "component" violates contract.\n\nExpected:\nComponent\n\nGot:\n' + _inspect(component));
+                            throw new TypeError('Value of argument "component" violates contract.\n\nExpected:\nComponent\n\nGot:\n' + _inspect$5(component));
 
                         case 2:
                             if (json instanceof Object) {
@@ -1721,7 +1685,7 @@ var Node = function (_Block) {
                                 break;
                             }
 
-                            throw new TypeError('Value of argument "json" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect(json));
+                            throw new TypeError('Value of argument "json" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$5(json));
 
                         case 4:
                             node = component.newNode();
@@ -1750,7 +1714,7 @@ var Node = function (_Block) {
     return Node;
 }(Block);
 
-function _inspect(input, depth) {
+function _inspect$5(input, depth) {
     var maxDepth = 4;
     var maxKeys = 15;
 
@@ -1770,15 +1734,15 @@ function _inspect(input, depth) {
         if (input.length > 0) {
             if (depth > maxDepth) return '[...]';
 
-            var first = _inspect(input[0], depth);
+            var first = _inspect$5(input[0], depth);
 
             if (input.every(function (item) {
-                return _inspect(item, depth) === first;
+                return _inspect$5(item, depth) === first;
             })) {
                 return first.trim() + '[]';
             } else {
                 return '[' + input.slice(0, maxKeys).map(function (item) {
-                    return _inspect(item, depth);
+                    return _inspect$5(item, depth);
                 }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
             }
         } else {
@@ -1798,7 +1762,7 @@ function _inspect(input, depth) {
         if (depth > maxDepth) return '{...}';
         var indent = '  '.repeat(depth - 1);
         var entries = keys.slice(0, maxKeys).map(function (key) {
-            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect(input[key], depth) + ';';
+            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$5(input[key], depth) + ';';
         }).join('\n  ' + indent);
 
         if (keys.length >= maxKeys) {
@@ -1814,19 +1778,20 @@ function _inspect(input, depth) {
 }
 
 function template (locals) {
-  var pug_html = "";var pug_debug_filename, pug_debug_line;try {
+  var pug_html = "";
+var pug_debug_filename, pug_debug_line;try {
     var pug_debug_sources = {};
     pug_html = pug_html + "<div class=\"title\">";
     pug_html = pug_html + "{{node.title}}</div>";
     pug_html = pug_html + "<!-- Outputs-->";
-    pug_html = pug_html + "<div al-repeat=\"output in node.outputs\" style=\"text-align: right;\">";
+    pug_html = pug_html + "<div al-repeat=\"output in node.outputs\" style=\"text-align: right\">";
     pug_html = pug_html + "<div class=\"output-title\">";
     pug_html = pug_html + "{{output.title}}</div>";
     pug_html = pug_html + "<div class=\"socket output {{output.socket.id.toLowerCase().replace(' ','-')}}\" al-pick-output title=\"{{output.socket.name}}\n{{output.socket.hint}}\"></div></div>";
     pug_html = pug_html + "<!-- Controls-->";
-    pug_html = pug_html + "<div class=\"control\" al-repeat=\"control in node.controls\" style=\"text-align: center;\" :width=\"control.parent.width - 2 * control.margin\" :height=\"control.height\" al-control=\"control\"></div>";
+    pug_html = pug_html + "<div class=\"control\" al-repeat=\"control in node.controls\" style=\"text-align: center\" :width=\"control.parent.width - 2 * control.margin\" :height=\"control.height\" al-control=\"control\"></div>";
     pug_html = pug_html + "<!-- Inputs-->";
-    pug_html = pug_html + "<div al-repeat=\"input in node.inputs\" style=\"text-align: left;\">";
+    pug_html = pug_html + "<div al-repeat=\"input in node.inputs\" style=\"text-align: left\">";
     pug_html = pug_html + "<div class=\"socket input {{input.socket.id.toLowerCase().replace(' ','-')}} {{input.multipleConnections?'multiple':''}}\" al-pick-input title=\"{{input.socket.name}}\n{{input.socket.hint}}\"></div>";
     pug_html = pug_html + "<div class=\"input-title\" al-if=\"!input.showControl()\">";
     pug_html = pug_html + "{{input.title}}</div>";
@@ -1838,14 +1803,19 @@ function template (locals) {
 
 var defaultTemplate = template();
 
-var Component = function () {
+var Component = function (_ComponentWorker) {
+    inherits(Component, _ComponentWorker);
+
     function Component(name, props) {
         classCallCheck(this, Component);
 
-        this.name = name;
-        this.template = props.template || defaultTemplate;
-        this.builder = props.builder;
-        this.worker = props.worker;
+        var _this = possibleConstructorReturn(this, (Component.__proto__ || Object.getPrototypeOf(Component)).call(this, name, props));
+
+        _this.template = props.template || defaultTemplate;
+        _this.builder = props.builder;
+        _this.created = props.created || function () {};
+        _this.destroyed = props.destroyed || function () {};
+        return _this;
     }
 
     createClass(Component, [{
@@ -1855,15 +1825,26 @@ var Component = function () {
         }
     }]);
     return Component;
-}();
+}(ComponentWorker);
 
 function Group(scope, el, expression, env) {
     var _this = this;
 
     var group = env.changeDetector.locals.group;
 
+    function setPosition(item, dx, dy) {
+        var extent = this.editor.view.translateExtent;
+        var minx = extent[0][0];
+        var miny = extent[0][1];
+        var maxx = extent[1][0];
+        var maxy = extent[1][1];
+
+        item.position[0] = Math.min(maxx, Math.max(minx, item.position[0] + dx));
+        item.position[1] = Math.min(maxy, Math.max(miny, item.position[1] + dy));
+    }
+
     group.el = el;
-    env.watch('node.style', function () {
+    env.watch('group.style', function () {
         Object.assign(el.style, group.style);
     }, { deep: true });
 
@@ -1877,8 +1858,7 @@ function Group(scope, el, expression, env) {
         var dy = d3.event.dy / k;
 
         _this.editor.selected.each(function (item) {
-            item.position[0] += dx;
-            item.position[1] += dy;
+            setPosition.call(_this, item, dx, dy);
         });
 
         _this.editor.selected.eachGroup(function (item) {
@@ -1887,8 +1867,7 @@ function Group(scope, el, expression, env) {
 
                 if (_this.editor.selected.contains(node)) continue;
 
-                node.position[0] += dx;
-                node.position[1] += dy;
+                setPosition.call(_this, node, dx, dy);
             }
         });
 
@@ -1926,6 +1905,21 @@ function GroupHandler(scope, el, arg, env) {
     var group = env.changeDetector.locals.group;
     var mousePrev = null;
 
+    function updateGroup(mouse, deltaw, deltah, deltax, deltay) {
+        if (deltaw !== 0) mousePrev[0] = mouse[0];
+        if (deltah !== 0) mousePrev[1] = mouse[1];
+
+        if (arg.match('l')) {
+            group.position[0] += Math.min(deltaw, deltax);
+            group.setWidth(group.width - deltax);
+        } else if (arg.match('r')) group.setWidth(group.width + deltax);
+
+        if (arg.match('t')) {
+            group.position[1] += Math.min(deltah, deltay);
+            group.setHeight(group.height - deltay);
+        } else if (arg.match('b')) group.setHeight(group.height + deltay);
+    }
+
     d3.select(el).call(d3.drag().on('start', function () {
         mousePrev = d3.mouse(_this2.container.node());
         _this2.editor.selectGroup(group);
@@ -1939,18 +1933,7 @@ function GroupHandler(scope, el, arg, env) {
         var deltaw = Math.max(0, group.width - group.minWidth);
         var deltah = Math.max(0, group.height - group.minHeight);
 
-        if (deltaw !== 0) mousePrev[0] = mouse[0];
-        if (deltah !== 0) mousePrev[1] = mouse[1];
-
-        if (arg.match('l')) {
-            group.position[0] += Math.min(deltaw, deltax);
-            group.setWidth(group.width - deltax);
-        } else if (arg.match('r')) group.setWidth(group.width + deltax);
-
-        if (arg.match('t')) {
-            group.position[1] += Math.min(deltah, deltay);
-            group.setHeight(group.height - deltay);
-        } else if (arg.match('b')) group.setHeight(group.height + deltay);
+        updateGroup(mouse, deltaw, deltah, deltax, deltay);
 
         _this2.update();
     }).on('end', function () {
@@ -1975,56 +1958,85 @@ function GroupTitle(scope, el, expression, env) {
 }
 
 function PickInput(scope, el, expression, env) {
-    var _this = this;
+    var _this2 = this;
 
     var input = env.changeDetector.locals.input;
 
-    input.el = el;
-
-    d3.select(el).on('mousedown', function () {
-        if (_this.editor.readOnly) return;
-
-        d3.event.preventDefault();
-        if (_this.pickedOutput === null) {
+    function interceptInput() {
+        if (this.pickedOutput === null) {
             if (input.hasConnection()) {
-                _this.pickedOutput = input.connections[0].output;
-                _this.editor.removeConnection(input.connections[0]);
+                this.pickedOutput = input.connections[0].output;
+                this.editor.removeConnection(input.connections[0]);
             }
-            _this.update();
-            return;
+            this.update();
+            return true;
         }
+    }
 
-        if (!input.multipleConnections && input.hasConnection()) _this.editor.removeConnection(input.connections[0]);
+    function prepareConnection() {
+        var _this = this;
 
-        if (!_this.pickedOutput.multipleConnections && _this.pickedOutput.hasConnection()) _this.editor.removeConnection(_this.pickedOutput.connections[0]);
+        if (!input.multipleConnections && input.hasConnection()) this.editor.removeConnection(input.connections[0]);
 
-        if (_this.pickedOutput.connectedTo(input)) {
+        if (!this.pickedOutput.multipleConnections && this.pickedOutput.hasConnection()) this.editor.removeConnection(this.pickedOutput.connections[0]);
+
+        if (this.pickedOutput.connectedTo(input)) {
             var connection = input.connections.find(function (c) {
                 return c.output === _this.pickedOutput;
             });
 
-            _this.editor.removeConnection(connection);
+            this.editor.removeConnection(connection);
         }
 
-        _this.editor.connect(_this.pickedOutput, input);
+        this.editor.connect(this.pickedOutput, input);
+    }
 
-        _this.pickedOutput = null;
-        _this.update();
+    input.el = el;
+
+    var prevent = false;
+
+    d3.select(el).on('mouseleave', function () {
+        return prevent = false;
+    });
+    d3.select(el).on('mousedown mouseup', function () {
+        if (_this2.editor.readOnly || prevent) return;
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+
+        if (interceptInput.call(_this2)) return;
+        prepareConnection.call(_this2);
+
+        _this2.pickedOutput = null;
+
+        _this2.update();
+    });
+    d3.select(el).on('mousedown.prevent', function () {
+        return prevent = true;
     });
 }
 
 function PickOutput(scope, el, expression, env) {
-    var _this2 = this;
+    var _this3 = this;
 
     var output = env.changeDetector.locals.output;
 
     output.el = el;
 
     d3.select(el).on('mousedown', function () {
-        if (_this2.editor.readOnly) return;
+        if (_this3.editor.readOnly) return;
+        d3.event.stopPropagation();
 
-        _this2.pickedOutput = output;
+        _this3.pickedOutput = output;
     });
+}
+
+function setAttributes(el, input, output) {
+    el.dataset.inputNode = input.node.id;
+    el.dataset.inputIndex = input.node.inputs.indexOf(input);
+    el.dataset.outputNode = output.node.id;
+    el.dataset.outputIndex = output.node.outputs.indexOf(output);
+    el.className.baseVal += ' output-' + output.socket.id.toLowerCase().replace(' ', '-');
+    el.className.baseVal += ' input-' + input.socket.id.toLowerCase().replace(' ', '-');
 }
 
 function Connection$1(scope, el, expression, env) {
@@ -2041,12 +2053,7 @@ function Connection$1(scope, el, expression, env) {
     var input = path.connection.input;
     var output = path.connection.output;
 
-    el.dataset.inputNode = input.node.id;
-    el.dataset.inputIndex = input.node.inputs.indexOf(input);
-    el.dataset.outputNode = output.node.id;
-    el.dataset.outputIndex = output.node.outputs.indexOf(output);
-    el.className.baseVal += ' output-' + output.socket.id.toLowerCase().replace(' ', '-');
-    el.className.baseVal += ' input-' + input.socket.id.toLowerCase().replace(' ', '-');
+    setAttributes(el, input, output);
 }
 
 function Control$1(scope, el, expression, env) {
@@ -2111,53 +2118,6 @@ var Utils = function () {
             };
         }
     }, {
-        key: 'getConnectionPath',
-        value: function getConnectionPath(a, b, produce) {
-            var _produce = produce.apply(undefined, toConsumableArray(a).concat(toConsumableArray(b))),
-                points = _produce.points,
-                curve = _produce.curve;
-
-            switch (curve) {
-                case 'linear':
-                    curve = d3.curveLinear;break;
-                case 'step':
-                    curve = d3.curveStep;break;
-                case 'basis':
-                    curve = d3.curveBasis;break;
-                default:
-                    curve = d3.curveBasis;break;
-            }
-            return this.pointsToPath(points, curve);
-        }
-    }, {
-        key: 'pointsToPath',
-        value: function pointsToPath(points, d3curve) {
-            var curve = d3curve(d3.path());
-
-            curve.lineStart();
-            for (var i = 0; i < points.length; i++) {
-                curve.point.apply(curve, toConsumableArray(points[i]));
-            }curve.lineEnd();
-
-            return curve._context.toString();
-        }
-    }, {
-        key: 'getOutputPosition',
-        value: function getOutputPosition(output) {
-            var node = output.node;
-            var el = output.el;
-
-            return [node.position[0] + el.offsetLeft + el.offsetWidth / 2, node.position[1] + el.offsetTop + el.offsetHeight / 2];
-        }
-    }, {
-        key: 'getInputPosition',
-        value: function getInputPosition(input) {
-            var node = input.node;
-            var el = input.el;
-
-            return [node.position[0] + el.offsetLeft + el.offsetWidth / 2, node.position[1] + el.offsetTop + el.offsetHeight / 2];
-        }
-    }, {
         key: 'isValidData',
         value: function isValidData(data) {
             return typeof data.id === 'string' && this.isValidId(data.id) && data.nodes instanceof Object && !(data.nodes instanceof Array) && (!data.groups || data.groups instanceof Object);
@@ -2193,11 +2153,11 @@ var Group$1 = function (_Block) {
         classCallCheck(this, Group);
 
         if (!(typeof title === 'string')) {
-            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$7(title));
+            throw new TypeError('Value of argument "title" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$6(title));
         }
 
         if (!(params instanceof Object)) {
-            throw new TypeError('Value of argument "params" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$7(params));
+            throw new TypeError('Value of argument "params" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$6(params));
         }
 
         var _this = possibleConstructorReturn(this, (Group.__proto__ || Object.getPrototypeOf(Group)).call(this, Group));
@@ -2225,7 +2185,7 @@ var Group$1 = function (_Block) {
         key: 'setWidth',
         value: function setWidth(w) {
             if (!(typeof w === 'number')) {
-                throw new TypeError('Value of argument "w" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$7(w));
+                throw new TypeError('Value of argument "w" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$6(w));
             }
 
             return this.width = Math.max(this.minWidth, w);
@@ -2234,7 +2194,7 @@ var Group$1 = function (_Block) {
         key: 'setHeight',
         value: function setHeight(h) {
             if (!(typeof h === 'number')) {
-                throw new TypeError('Value of argument "h" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$7(h));
+                throw new TypeError('Value of argument "h" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$6(h));
             }
 
             return this.height = Math.max(this.minHeight, h);
@@ -2243,7 +2203,7 @@ var Group$1 = function (_Block) {
         key: 'isCoverNode',
         value: function isCoverNode(node) {
             if (!(node instanceof Node)) {
-                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$7(node));
+                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$6(node));
             }
 
             var gp = this.position;
@@ -2257,7 +2217,7 @@ var Group$1 = function (_Block) {
             if (!(Array.isArray(nodes) && nodes.every(function (item) {
                 return item instanceof Node;
             }))) {
-                throw new TypeError('Value of argument "nodes" violates contract.\n\nExpected:\nNode[]\n\nGot:\n' + _inspect$7(nodes));
+                throw new TypeError('Value of argument "nodes" violates contract.\n\nExpected:\nNode[]\n\nGot:\n' + _inspect$6(nodes));
             }
 
             var self = this;
@@ -2265,8 +2225,10 @@ var Group$1 = function (_Block) {
             var bbox = Utils.nodesBBox(nodes);
 
             nodes.forEach(function (node) {
-                if (node.group !== null) node.group.removeNode(node.group);
-                self.addNode(node);
+                if (!node.readOnly) {
+                    if (node.group !== null) node.group.removeNode(node.group);
+                    self.addNode(node);
+                }
             });
             this.position = [bbox.left - margin, bbox.top - 2 * margin];
             this.setWidth(bbox.right - bbox.left + 2 * margin);
@@ -2276,7 +2238,7 @@ var Group$1 = function (_Block) {
         key: 'containNode',
         value: function containNode(node) {
             if (!(node instanceof Node)) {
-                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$7(node));
+                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$6(node));
             }
 
             return this.nodes.indexOf(node) !== -1;
@@ -2285,7 +2247,7 @@ var Group$1 = function (_Block) {
         key: 'addNode',
         value: function addNode(node) {
             if (!(node instanceof Node)) {
-                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$7(node));
+                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$6(node));
             }
 
             if (this.containNode(node)) return false;
@@ -2298,7 +2260,7 @@ var Group$1 = function (_Block) {
         key: 'removeNode',
         value: function removeNode(node) {
             if (!(node instanceof Node)) {
-                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$7(node));
+                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$6(node));
             }
 
             if (!this.containNode(node)) return;
@@ -2332,7 +2294,7 @@ var Group$1 = function (_Block) {
         key: 'fromJSON',
         value: function fromJSON(json) {
             if (!(json instanceof Object)) {
-                throw new TypeError('Value of argument "json" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$7(json));
+                throw new TypeError('Value of argument "json" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$6(json));
             }
 
             var group = new Group(json.title, {
@@ -2350,309 +2312,6 @@ var Group$1 = function (_Block) {
     }]);
     return Group;
 }(Block);
-
-function _inspect$7(input, depth) {
-    var maxDepth = 4;
-    var maxKeys = 15;
-
-    if (depth === undefined) {
-        depth = 0;
-    }
-
-    depth += 1;
-
-    if (input === null) {
-        return 'null';
-    } else if (input === undefined) {
-        return 'void';
-    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
-        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
-    } else if (Array.isArray(input)) {
-        if (input.length > 0) {
-            if (depth > maxDepth) return '[...]';
-
-            var first = _inspect$7(input[0], depth);
-
-            if (input.every(function (item) {
-                return _inspect$7(item, depth) === first;
-            })) {
-                return first.trim() + '[]';
-            } else {
-                return '[' + input.slice(0, maxKeys).map(function (item) {
-                    return _inspect$7(item, depth);
-                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
-            }
-        } else {
-            return 'Array';
-        }
-    } else {
-        var keys = Object.keys(input);
-
-        if (!keys.length) {
-            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-                return input.constructor.name;
-            } else {
-                return 'Object';
-            }
-        }
-
-        if (depth > maxDepth) return '{...}';
-        var indent = '  '.repeat(depth - 1);
-        var entries = keys.slice(0, maxKeys).map(function (key) {
-            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$7(input[key], depth) + ';';
-        }).join('\n  ' + indent);
-
-        if (keys.length >= maxKeys) {
-            entries += '\n  ' + indent + '...';
-        }
-
-        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
-        } else {
-            return '{\n  ' + indent + entries + '\n' + indent + '}';
-        }
-    }
-}
-
-function Node$1(scope, el, expression, env) {
-    var _this = this;
-
-    var node = env.changeDetector.locals.node;
-
-    node.el = el;
-    env.watch('node.style', function () {
-        Object.assign(el.style, node.style);
-    }, { deep: true });
-
-    d3.select(el).call(d3.drag().on('start', function () {
-        d3.select(el).raise();
-        if (!d3.event.sourceEvent.shiftKey) _this.editor.selectNode(node, d3.event.sourceEvent.ctrlKey);
-    }).on('drag', function () {
-        if (_this.editor.readOnly) return;
-
-        var k = _this.transform.k;
-        var dx = d3.event.dx / k;
-        var dy = d3.event.dy / k;
-
-        _this.editor.selected.each(function (item) {
-            item.position[0] += dx;
-            item.position[1] += dy;
-        });
-
-        _this.editor.selected.eachGroup(function (item) {
-            for (var i in item.nodes) {
-                var _node = item.nodes[i];
-
-                if (_this.editor.selected.contains(_node)) continue;
-
-                _node.position[0] += dx;
-                _node.position[1] += dy;
-            }
-        });
-
-        _this.update();
-    }).on('end', function () {
-        _this.editor.groups.forEach(function (group) {
-            _this.editor.selected.eachNode(function (_node) {
-                var contain = group.containNode(_node);
-                var cover = group.isCoverNode(_node);
-
-                if (contain && !cover) group.removeNode(_node);else if (!contain && cover) group.addNode(_node);
-            });
-        });
-
-        _this.editor.eventListener.trigger('change');
-        _this.update();
-    }));
-
-    window.addEventListener('load', function () {
-        node.width = el.offsetWidth;
-        node.height = el.offsetHeight;
-    });
-
-    var items = {
-        'Remove node': function RemoveNode() {
-            _this.editor.removeNode(node);
-        },
-        'Add to group': function AddToGroup() {
-            var group = new Group$1('Group', { nodes: [node] });
-
-            _this.editor.addGroup(group);
-        }
-    };
-
-    var onClick = function onClick(subitem) {
-        subitem.call(_this);
-        _this.contextMenu.hide();
-    };
-
-    d3.select(el).on('contextmenu', function () {
-        if (_this.editor.readOnly) return;
-
-        var x = d3.event.clientX;
-        var y = d3.event.clientY;
-
-        _this.editor.selectNode(node);
-        _this.contextMenu.show(x, y, items, false, onClick);
-        d3.event.preventDefault();
-    });
-}
-
-function declareViewDirectives(view, alight) {
-
-    alight.directives.al.node = Node$1.bind(view);
-
-    alight.directives.al.group = Group.bind(view);
-    alight.directives.al.groupHandler = GroupHandler.bind(view);
-    alight.directives.al.groupTitle = GroupTitle.bind(view);
-
-    alight.directives.al.pickInput = PickInput.bind(view);
-    alight.directives.al.pickOutput = PickOutput.bind(view);
-
-    alight.directives.al.control = Control$1.bind(view);
-
-    alight.directives.al.connection = Connection$1.bind(view);
-}
-
-function declareMenuDirectives(menu, alight) {
-
-    alight.directives.al.item = Item.bind(menu);
-}
-
-function template$1 (locals) {
-  var pug_html = "";var pug_debug_filename, pug_debug_line;try {
-    var pug_debug_sources = {};
-    pug_html = pug_html + "<div class=\"context-menu\" :style.left=\"contextMenu.x+&quot;px&quot;\" :style.top=\"contextMenu.y+&quot;px&quot;\" @mouseleave=\"contextMenu.hide()\" al-if=\"contextMenu.visible\">";
-    pug_html = pug_html + "<div class=\"search item\" al-if=\"contextMenu.searchBar\">";
-    pug_html = pug_html + "<input al-value=\"filter\"></div>";
-    pug_html = pug_html + "<div class=\"item\" al-repeat=\"(name,item) in contextMenu.searchItems(filter)\" al-item>";
-    pug_html = pug_html + "{{name}}";
-    pug_html = pug_html + "<div class=\"subitems\" al-if=\"contextMenu.haveSubitems(item)\">";
-    pug_html = pug_html + "<div class=\"item\" al-repeat=\"(name,subitem) in item\" al-item>";
-    pug_html = pug_html + "{{name}}</div></div></div></div>";
-  } catch (err) {
-    pug.rethrow(err, pug_debug_filename, pug_debug_line, pug_debug_sources[pug_debug_filename]);
-  }return pug_html;
-}
-
-var ContextMenu = function () {
-    function ContextMenu(items) {
-        var searchBar = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-        classCallCheck(this, ContextMenu);
-
-        if (!(items instanceof Object)) {
-            throw new TypeError('Value of argument "items" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$6(items));
-        }
-
-        if (!(typeof searchBar === 'boolean')) {
-            throw new TypeError('Value of argument "searchBar" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$6(searchBar));
-        }
-
-        this.visible = false;
-        this.x = 0;
-        this.y = 0;
-        this.default = {
-            items: items,
-            searchBar: searchBar,
-            onClick: function onClick() {
-                throw new TypeError('onClick should be overrided');
-            }
-        };
-
-        this.bindTemplate(template$1());
-    }
-
-    createClass(ContextMenu, [{
-        key: 'bindTemplate',
-        value: function bindTemplate(t) {
-            this.dom = d3.select('body').append('div');
-            this.dom.node().setAttribute('tabindex', 1);
-            this.dom.html(t);
-
-            declareMenuDirectives(this, alight);
-            this.$cd = alight(this.dom.node(), { contextMenu: this });
-        }
-    }, {
-        key: 'searchItems',
-        value: function searchItems(filter) {
-            var _this = this;
-
-            if (!(filter == null || typeof filter === 'string')) {
-                throw new TypeError('Value of argument "filter" violates contract.\n\nExpected:\n?string\n\nGot:\n' + _inspect$6(filter));
-            }
-
-            var regex = new RegExp(filter, 'i');
-            var items = {};
-
-            Object.keys(this.items).forEach(function (key) {
-                var item = _this.items[key];
-
-                if (item.constructor === Object) {
-                    var subitems = Object.keys(item).filter(function (subitem) {
-                        return regex.test(subitem);
-                    });
-
-                    if (subitems.length > 0) {
-                        items[key] = {};
-                        subitems.forEach(function (sumitem) {
-                            items[key][sumitem] = item[sumitem];
-                        });
-                    }
-                } else if (regex.test(key)) items[key] = item;
-            });
-
-            return items;
-        }
-    }, {
-        key: 'haveSubitems',
-        value: function haveSubitems(item) {
-            return item.constructor === Object;
-        }
-    }, {
-        key: 'isVisible',
-        value: function isVisible() {
-            return this.visible;
-        }
-    }, {
-        key: 'show',
-        value: function show(x, y) {
-            var items = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-            var searchBar = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-            var onClick = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
-
-            if (!(typeof x === 'number')) {
-                throw new TypeError('Value of argument "x" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$6(x));
-            }
-
-            if (!(typeof y === 'number')) {
-                throw new TypeError('Value of argument "y" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$6(y));
-            }
-
-            if (!(items == null || items instanceof Object)) {
-                throw new TypeError('Value of argument "items" violates contract.\n\nExpected:\n?Object\n\nGot:\n' + _inspect$6(items));
-            }
-
-            if (!(searchBar == null || typeof searchBar === 'boolean')) {
-                throw new TypeError('Value of argument "searchBar" violates contract.\n\nExpected:\n?boolean\n\nGot:\n' + _inspect$6(searchBar));
-            }
-
-            this.visible = true;
-            this.items = items || this.default.items;
-            this.searchBar = searchBar || this.default.searchBar;
-            this.onClick = onClick || this.default.onClick;
-            this.x = x;
-            this.y = y;
-            this.$cd.scan();
-        }
-    }, {
-        key: 'hide',
-        value: function hide() {
-            this.visible = false;
-            this.$cd.scan();
-        }
-    }]);
-    return ContextMenu;
-}();
 
 function _inspect$6(input, depth) {
     var maxDepth = 4;
@@ -2717,6 +2376,327 @@ function _inspect$6(input, depth) {
     }
 }
 
+function Node$1(scope, el, expression, env) {
+    var _this = this;
+
+    var node = env.changeDetector.locals.node;
+
+    function setPosition(item, dx, dy) {
+        var extent = this.editor.view.translateExtent;
+        var minx = extent[0][0];
+        var miny = extent[0][1];
+        var maxx = extent[1][0];
+        var maxy = extent[1][1];
+
+        item.position[0] = Math.min(maxx, Math.max(minx, item.position[0] + dx));
+        item.position[1] = Math.min(maxy, Math.max(miny, item.position[1] + dy));
+    }
+
+    node.el = el;
+    env.watch('node.style', function () {
+        Object.assign(el.style, node.style);
+    }, { deep: true });
+
+    d3.select(el).call(d3.drag().on('start', function () {
+        d3.select(el).raise();
+        if (!d3.event.sourceEvent.shiftKey) _this.editor.selectNode(node, d3.event.sourceEvent.ctrlKey);
+    }).on('drag', function () {
+        if (_this.editor.readOnly || node.readOnly) return;
+
+        var k = _this.transform.k;
+        var dx = d3.event.dx / k;
+        var dy = d3.event.dy / k;
+
+        _this.editor.selected.each(function (item) {
+            setPosition.call(_this, item, dx, dy);
+        });
+
+        _this.editor.selected.eachGroup(function (item) {
+            for (var i in item.nodes) {
+                var _node = item.nodes[i];
+
+                if (_this.editor.selected.contains(_node)) continue;
+
+                setPosition.call(_this, _node, dx, dy);
+            }
+        });
+
+        _this.update();
+    }).on('end', function () {
+        _this.editor.groups.forEach(function (group) {
+            _this.editor.selected.eachNode(function (_node) {
+                var contain = group.containNode(_node);
+                var cover = group.isCoverNode(_node);
+
+                if (contain && !cover) group.removeNode(_node);else if (!contain && cover) group.addNode(_node);
+            });
+        });
+
+        _this.editor.eventListener.trigger('change');
+        _this.update();
+    }));
+
+    window.addEventListener('load', function () {
+        node.width = el.offsetWidth;
+        node.height = el.offsetHeight;
+    });
+
+    var items = {
+        'Remove node': function RemoveNode() {
+            _this.editor.removeNode(node);
+        },
+        'Add to group': function AddToGroup() {
+            var group = new Group$1('Group', { nodes: [node] });
+
+            _this.editor.addGroup(group);
+        }
+    };
+
+    var onClick = function onClick(subitem) {
+        subitem.call(_this);
+        _this.contextMenu.hide();
+    };
+
+    d3.select(el).on('contextmenu', function () {
+        if (_this.editor.readOnly || node.readOnly) return;
+
+        var x = d3.event.clientX;
+        var y = d3.event.clientY;
+
+        _this.editor.selectNode(node);
+        _this.contextMenu.show(x, y, items, false, onClick);
+        d3.event.preventDefault();
+    });
+}
+
+function declareViewDirectives(view, alight$$1) {
+
+    alight$$1.directives.al.node = Node$1.bind(view);
+
+    alight$$1.directives.al.group = Group.bind(view);
+    alight$$1.directives.al.groupHandler = GroupHandler.bind(view);
+    alight$$1.directives.al.groupTitle = GroupTitle.bind(view);
+
+    alight$$1.directives.al.pickInput = PickInput.bind(view);
+    alight$$1.directives.al.pickOutput = PickOutput.bind(view);
+
+    alight$$1.directives.al.control = Control$1.bind(view);
+
+    alight$$1.directives.al.connection = Connection$1.bind(view);
+}
+
+function declareMenuDirectives(menu, alight$$1) {
+
+    alight$$1.directives.al.item = Item.bind(menu);
+}
+
+function template$1 (locals) {
+  var pug_html = "";
+var pug_debug_filename, pug_debug_line;try {
+    var pug_debug_sources = {};
+    pug_html = pug_html + "<div class=\"context-menu\" :style.left=\"contextMenu.x+&quot;px&quot;\" :style.top=\"contextMenu.y+&quot;px&quot;\" @mouseleave=\"contextMenu.hide()\" al-if=\"contextMenu.visible\">";
+    pug_html = pug_html + "<div class=\"search item\" al-if=\"contextMenu.searchBar\">";
+    pug_html = pug_html + "<input al-value=\"filter\"></div>";
+    pug_html = pug_html + "<div class=\"item\" al-repeat=\"(name,item) in contextMenu.searchItems(filter)\" al-item>";
+    pug_html = pug_html + "{{name}}";
+    pug_html = pug_html + "<div class=\"subitems\" al-if=\"contextMenu.haveSubitems(item)\">";
+    pug_html = pug_html + "<div class=\"item\" al-repeat=\"(name,subitem) in item\" al-item>";
+    pug_html = pug_html + "{{name}}</div></div></div></div>";
+  } catch (err) {
+    pug.rethrow(err, pug_debug_filename, pug_debug_line, pug_debug_sources[pug_debug_filename]);
+  }return pug_html;
+}
+
+var ContextMenu = function () {
+    function ContextMenu(items) {
+        var searchBar = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+        var disabled = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        classCallCheck(this, ContextMenu);
+
+        if (!(items instanceof Object)) {
+            throw new TypeError('Value of argument "items" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$7(items));
+        }
+
+        if (!(typeof searchBar === 'boolean')) {
+            throw new TypeError('Value of argument "searchBar" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$7(searchBar));
+        }
+
+        this.visible = false;
+        this.disabled = disabled;
+        this.x = 0;
+        this.y = 0;
+        this.default = {
+            items: items,
+            searchBar: searchBar,
+            onClick: function onClick() {
+                throw new TypeError('onClick should be overrided');
+            }
+        };
+
+        this.bindTemplate(template$1());
+    }
+
+    createClass(ContextMenu, [{
+        key: 'bindTemplate',
+        value: function bindTemplate(t) {
+            this.dom = d3.select('body').append('div');
+            this.dom.node().setAttribute('tabindex', 1);
+            this.dom.html(t);
+
+            var alightInstance = alight.makeInstance();
+
+            declareMenuDirectives(this, alightInstance);
+            this.$cd = alightInstance(this.dom.node(), { contextMenu: this });
+        }
+    }, {
+        key: 'searchItems',
+        value: function searchItems(filter) {
+            var _this = this;
+
+            if (!(filter == null || typeof filter === 'string')) {
+                throw new TypeError('Value of argument "filter" violates contract.\n\nExpected:\n?string\n\nGot:\n' + _inspect$7(filter));
+            }
+
+            var regex = new RegExp(filter, 'i');
+            var items = {};
+
+            Object.keys(this.items).forEach(function (key) {
+                var item = _this.items[key];
+
+                if (item.constructor === Object) {
+                    var subitems = Object.keys(item).filter(function (subitem) {
+                        return regex.test(subitem);
+                    });
+
+                    if (subitems.length > 0) {
+                        items[key] = {};
+                        subitems.forEach(function (sumitem) {
+                            items[key][sumitem] = item[sumitem];
+                        });
+                    }
+                }
+
+                if (regex.test(key)) items[key] = item;
+            });
+
+            return items;
+        }
+    }, {
+        key: 'haveSubitems',
+        value: function haveSubitems(item) {
+            return item.constructor === Object;
+        }
+    }, {
+        key: 'isVisible',
+        value: function isVisible() {
+            return this.visible;
+        }
+    }, {
+        key: 'show',
+        value: function show(x, y) {
+            var items = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+            var searchBar = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+            var onClick = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+
+            if (!(typeof x === 'number')) {
+                throw new TypeError('Value of argument "x" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$7(x));
+            }
+
+            if (!(typeof y === 'number')) {
+                throw new TypeError('Value of argument "y" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$7(y));
+            }
+
+            if (!(items == null || items instanceof Object)) {
+                throw new TypeError('Value of argument "items" violates contract.\n\nExpected:\n?Object\n\nGot:\n' + _inspect$7(items));
+            }
+
+            if (!(searchBar == null || typeof searchBar === 'boolean')) {
+                throw new TypeError('Value of argument "searchBar" violates contract.\n\nExpected:\n?boolean\n\nGot:\n' + _inspect$7(searchBar));
+            }
+
+            if (this.disabled) return;
+
+            this.visible = true;
+            this.items = items || this.default.items;
+            this.searchBar = searchBar || this.default.searchBar;
+            this.onClick = onClick || this.default.onClick;
+            this.x = x;
+            this.y = y;
+            this.$cd.scan();
+        }
+    }, {
+        key: 'hide',
+        value: function hide() {
+            this.visible = false;
+            this.$cd.scan();
+        }
+    }]);
+    return ContextMenu;
+}();
+
+function _inspect$7(input, depth) {
+    var maxDepth = 4;
+    var maxKeys = 15;
+
+    if (depth === undefined) {
+        depth = 0;
+    }
+
+    depth += 1;
+
+    if (input === null) {
+        return 'null';
+    } else if (input === undefined) {
+        return 'void';
+    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
+    } else if (Array.isArray(input)) {
+        if (input.length > 0) {
+            if (depth > maxDepth) return '[...]';
+
+            var first = _inspect$7(input[0], depth);
+
+            if (input.every(function (item) {
+                return _inspect$7(item, depth) === first;
+            })) {
+                return first.trim() + '[]';
+            } else {
+                return '[' + input.slice(0, maxKeys).map(function (item) {
+                    return _inspect$7(item, depth);
+                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
+            }
+        } else {
+            return 'Array';
+        }
+    } else {
+        var keys = Object.keys(input);
+
+        if (!keys.length) {
+            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+                return input.constructor.name;
+            } else {
+                return 'Object';
+            }
+        }
+
+        if (depth > maxDepth) return '{...}';
+        var indent = '  '.repeat(depth - 1);
+        var entries = keys.slice(0, maxKeys).map(function (key) {
+            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$7(input[key], depth) + ';';
+        }).join('\n  ' + indent);
+
+        if (keys.length >= maxKeys) {
+            entries += '\n  ' + indent + '...';
+        }
+
+        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+        } else {
+            return '{\n  ' + indent + entries + '\n' + indent + '}';
+        }
+    }
+}
+
 var p = function p(v) {
     return parseInt(v);
 };
@@ -2756,13 +2736,10 @@ var Diff = function () {
     }
 
     createClass(Diff, [{
-        key: 'compare',
-        value: function compare() {
-            var a = this.a;
-            var b = this.b;
-
-            var k1 = Object.keys(a.nodes);
-            var k2 = Object.keys(b.nodes);
+        key: 'basicDiffs',
+        value: function basicDiffs() {
+            var k1 = Object.keys(this.a.nodes);
+            var k2 = Object.keys(this.b.nodes);
 
             var removed = k1.filter(function (k) {
                 return !k2.includes(k);
@@ -2774,23 +2751,35 @@ var Diff = function () {
                 return k2.includes(k);
             }).map(p);
 
+            return { removed: removed, added: added, stayed: stayed };
+        }
+    }, {
+        key: 'compare',
+        value: function compare() {
+            var _this = this;
+
+            var _basicDiffs = this.basicDiffs(),
+                removed = _basicDiffs.removed,
+                added = _basicDiffs.added,
+                stayed = _basicDiffs.stayed;
+
             var moved = stayed.filter(function (id) {
-                var p1 = a.nodes[id].position;
-                var p2 = b.nodes[id].position;
+                var p1 = _this.a.nodes[id].position;
+                var p2 = _this.b.nodes[id].position;
 
                 return !eqArr(p1, p2);
             });
 
             var datachanged = stayed.filter(function (id) {
-                var d1 = a.nodes[id].data;
-                var d2 = b.nodes[id].data;
+                var d1 = _this.a.nodes[id].data;
+                var d2 = _this.b.nodes[id].data;
 
                 return !eqObj(d1, d2);
             });
 
             var connects = stayed.reduce(function (arr, id) {
-                var o1 = a.nodes[id].outputs;
-                var o2 = b.nodes[id].outputs;
+                var o1 = _this.a.nodes[id].outputs;
+                var o2 = _this.b.nodes[id].outputs;
 
                 var output = o1.map(function (out, i) {
                     return Object.assign({ output: i }, diffCons(out.connections, o2[i].connections));
@@ -2820,9 +2809,9 @@ var Engine = function () {
         }
 
         if (!(Array.isArray(components) && components.every(function (item) {
-            return item instanceof Component;
+            return item instanceof ComponentWorker;
         }))) {
-            throw new TypeError('Value of argument "components" violates contract.\n\nExpected:\nComponent[]\n\nGot:\n' + _inspect$8(components));
+            throw new TypeError('Value of argument "components" violates contract.\n\nExpected:\nComponentWorker[]\n\nGot:\n' + _inspect$8(components));
         }
 
         if (!Utils.isValidId(id)) throw new Error('ID should be valid to name@0.1.0 format');
@@ -2833,12 +2822,74 @@ var Engine = function () {
         this.data = null;
         this.state = State.AVALIABLE;
         this.onAbort = function () {};
+        this.onError = function (message, data) {
+            console.error(message, data);
+        };
     }
 
     createClass(Engine, [{
         key: 'clone',
         value: function clone() {
             return new Engine(this.id, this.components);
+        }
+    }, {
+        key: 'throwError',
+        value: function throwError(message) {
+            var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+            return regeneratorRuntime.async(function throwError$(_context) {
+                while (1) {
+                    switch (_context.prev = _context.next) {
+                        case 0:
+                            _context.next = 2;
+                            return regeneratorRuntime.awrap(this.abort());
+
+                        case 2:
+                            this.onError(message, data);
+                            this.processDone();
+
+                            return _context.abrupt('return', 'error');
+
+                        case 5:
+                        case 'end':
+                            return _context.stop();
+                    }
+                }
+            }, null, this);
+        }
+    }, {
+        key: 'extractInputNodes',
+        value: function extractInputNodes(node, nodes) {
+            return node.inputs.reduce(function (a, inp) {
+                return [].concat(toConsumableArray(a), toConsumableArray((inp.connections || []).reduce(function (b, c) {
+                    return [].concat(toConsumableArray(b), [nodes[c.node]]);
+                }, [])));
+            }, []);
+        }
+    }, {
+        key: 'detectRecursions',
+        value: function detectRecursions(nodes) {
+            var _this = this;
+
+            var nodesArr = Object.keys(nodes).map(function (id) {
+                return nodes[id];
+            });
+            var findSelf = function findSelf(node, inputNodes) {
+                if (inputNodes.some(function (n) {
+                    return n === node;
+                })) return node;
+
+                for (var i = 0; i < inputNodes.length; i++) {
+                    if (findSelf(node, _this.extractInputNodes(inputNodes[i], nodes))) return node;
+                }
+
+                return null;
+            };
+
+            return nodesArr.map(function (node) {
+                return findSelf(node, _this.extractInputNodes(node, nodes));
+            }).filter(function (r) {
+                return r !== null;
+            });
         }
     }, {
         key: 'processStart',
@@ -2852,7 +2903,7 @@ var Engine = function () {
                 return false;
             }
 
-            console.warn('The process is busy and has not been restarted. Use abort() to force it to complete');
+            console.warn('The process is busy and has not been restarted.\n                Use abort() to force it to complete');
             return false;
         }
     }, {
@@ -2872,25 +2923,25 @@ var Engine = function () {
     }, {
         key: 'abort',
         value: function abort() {
-            var _this = this;
+            var _this2 = this;
 
-            return regeneratorRuntime.async(function abort$(_context) {
+            return regeneratorRuntime.async(function abort$(_context2) {
                 while (1) {
-                    switch (_context.prev = _context.next) {
+                    switch (_context2.prev = _context2.next) {
                         case 0:
-                            return _context.abrupt('return', new Promise(function (ret) {
-                                if (_this.state === State.PROCESSED) {
-                                    _this.state = State.ABORT;
-                                    _this.onAbort = ret;
-                                } else if (_this.state === State.ABORT) {
-                                    _this.onAbort();
-                                    _this.onAbort = ret;
+                            return _context2.abrupt('return', new Promise(function (ret) {
+                                if (_this2.state === State.PROCESSED) {
+                                    _this2.state = State.ABORT;
+                                    _this2.onAbort = ret;
+                                } else if (_this2.state === State.ABORT) {
+                                    _this2.onAbort();
+                                    _this2.onAbort = ret;
                                 } else ret();
                             }));
 
                         case 1:
                         case 'end':
-                            return _context.stop();
+                            return _context2.stop();
                     }
                 }
             }, null, this);
@@ -2898,11 +2949,11 @@ var Engine = function () {
     }, {
         key: 'lock',
         value: function lock(node) {
-            return regeneratorRuntime.async(function lock$(_context2) {
+            return regeneratorRuntime.async(function lock$(_context3) {
                 while (1) {
-                    switch (_context2.prev = _context2.next) {
+                    switch (_context3.prev = _context3.next) {
                         case 0:
-                            return _context2.abrupt('return', new Promise(function (res) {
+                            return _context3.abrupt('return', new Promise(function (res) {
                                 node.unlockPool = node.unlockPool || [];
                                 if (node.busy && !node.outputData) node.unlockPool.push(res);else res();
 
@@ -2911,7 +2962,7 @@ var Engine = function () {
 
                         case 1:
                         case 'end':
-                            return _context2.stop();
+                            return _context3.stop();
                     }
                 }
             }, null, this);
@@ -2928,211 +2979,217 @@ var Engine = function () {
     }, {
         key: 'extractInputData',
         value: function extractInputData(node) {
-            var _this2 = this;
+            var _this3 = this;
 
-            return regeneratorRuntime.async(function extractInputData$(_context5) {
-                while (1) {
-                    switch (_context5.prev = _context5.next) {
-                        case 0:
-                            _context5.next = 2;
-                            return regeneratorRuntime.awrap(Promise.all(node.inputs.map(function _callee2(input) {
-                                var conns, connData;
-                                return regeneratorRuntime.async(function _callee2$(_context4) {
-                                    while (1) {
-                                        switch (_context4.prev = _context4.next) {
-                                            case 0:
-                                                conns = input.connections;
-                                                _context4.next = 3;
-                                                return regeneratorRuntime.awrap(Promise.all(conns.map(function _callee(c) {
-                                                    var outputs;
-                                                    return regeneratorRuntime.async(function _callee$(_context3) {
-                                                        while (1) {
-                                                            switch (_context3.prev = _context3.next) {
-                                                                case 0:
-                                                                    _context3.next = 2;
-                                                                    return regeneratorRuntime.awrap(_this2.processNode(_this2.data.nodes[c.node]));
-
-                                                                case 2:
-                                                                    outputs = _context3.sent;
-
-                                                                    if (outputs) {
-                                                                        _context3.next = 7;
-                                                                        break;
-                                                                    }
-
-                                                                    _this2.abort();
-                                                                    _context3.next = 8;
-                                                                    break;
-
-                                                                case 7:
-                                                                    return _context3.abrupt('return', outputs[c.output]);
-
-                                                                case 8:
-                                                                case 'end':
-                                                                    return _context3.stop();
-                                                            }
-                                                        }
-                                                    }, null, _this2);
-                                                })));
-
-                                            case 3:
-                                                connData = _context4.sent;
-                                                return _context4.abrupt('return', connData);
-
-                                            case 5:
-                                            case 'end':
-                                                return _context4.stop();
-                                        }
-                                    }
-                                }, null, _this2);
-                            })));
-
-                        case 2:
-                            return _context5.abrupt('return', _context5.sent);
-
-                        case 3:
-                        case 'end':
-                            return _context5.stop();
-                    }
-                }
-            }, null, this);
-        }
-    }, {
-        key: 'processNode',
-        value: function processNode(node) {
-            var inputData, key, component;
-            return regeneratorRuntime.async(function processNode$(_context6) {
+            return regeneratorRuntime.async(function extractInputData$(_context6) {
                 while (1) {
                     switch (_context6.prev = _context6.next) {
                         case 0:
-                            if (!(this.state === State.ABORT || !node)) {
-                                _context6.next = 2;
-                                break;
-                            }
-
-                            return _context6.abrupt('return', null);
-
-                        case 2:
-                            _context6.next = 4;
-                            return regeneratorRuntime.awrap(this.lock(node));
-
-                        case 4:
-                            if (node.outputData) {
-                                _context6.next = 22;
-                                break;
-                            }
-
-                            _context6.next = 7;
-                            return regeneratorRuntime.awrap(this.extractInputData(node));
-
-                        case 7:
-                            inputData = _context6.sent;
-
-
-                            node.outputData = node.outputs.map(function () {
-                                return null;
-                            });
-
-                            key = node.title;
-                            component = this.components.find(function (c) {
-                                return c.name === key;
-                            });
-                            _context6.prev = 11;
-                            _context6.next = 14;
-                            return regeneratorRuntime.awrap(component.worker.apply(component, [node, inputData, node.outputData].concat(toConsumableArray(this.args))));
-
-                        case 14:
-                            _context6.next = 20;
-                            break;
-
-                        case 16:
-                            _context6.prev = 16;
-                            _context6.t0 = _context6['catch'](11);
-
-                            this.abort();
-                            console.warn(_context6.t0);
-
-                        case 20:
-                            if (!(node.outputData.length !== node.outputs.length)) {
-                                _context6.next = 22;
-                                break;
-                            }
-
-                            throw new Error('Output data does not correspond to number of outputs');
-
-                        case 22:
-
-                            this.unlock(node);
-                            return _context6.abrupt('return', node.outputData);
-
-                        case 24:
-                        case 'end':
-                            return _context6.stop();
-                    }
-                }
-            }, null, this, [[11, 16]]);
-        }
-    }, {
-        key: 'forwardProcess',
-        value: function forwardProcess(node) {
-            var _this3 = this;
-
-            return regeneratorRuntime.async(function forwardProcess$(_context9) {
-                while (1) {
-                    switch (_context9.prev = _context9.next) {
-                        case 0:
-                            if (!(this.state === State.ABORT)) {
-                                _context9.next = 2;
-                                break;
-                            }
-
-                            return _context9.abrupt('return', null);
-
-                        case 2:
-                            _context9.next = 4;
-                            return regeneratorRuntime.awrap(Promise.all(node.outputs.map(function _callee4(output) {
-                                return regeneratorRuntime.async(function _callee4$(_context8) {
+                            _context6.next = 2;
+                            return regeneratorRuntime.awrap(Promise.all(node.inputs.map(function _callee2(input) {
+                                var conns, connData;
+                                return regeneratorRuntime.async(function _callee2$(_context5) {
                                     while (1) {
-                                        switch (_context8.prev = _context8.next) {
+                                        switch (_context5.prev = _context5.next) {
                                             case 0:
-                                                _context8.next = 2;
-                                                return regeneratorRuntime.awrap(Promise.all(output.connections.map(function _callee3(c) {
-                                                    return regeneratorRuntime.async(function _callee3$(_context7) {
+                                                conns = input.connections;
+                                                _context5.next = 3;
+                                                return regeneratorRuntime.awrap(Promise.all(conns.map(function _callee(c) {
+                                                    var prevNode, outputs;
+                                                    return regeneratorRuntime.async(function _callee$(_context4) {
                                                         while (1) {
-                                                            switch (_context7.prev = _context7.next) {
+                                                            switch (_context4.prev = _context4.next) {
                                                                 case 0:
-                                                                    _context7.next = 2;
-                                                                    return regeneratorRuntime.awrap(_this3.processNode(_this3.data.nodes[c.node]));
+                                                                    prevNode = _this3.data.nodes[c.node];
+                                                                    _context4.next = 3;
+                                                                    return regeneratorRuntime.awrap(_this3.processNode(prevNode));
 
-                                                                case 2:
-                                                                    _context7.next = 4;
-                                                                    return regeneratorRuntime.awrap(_this3.forwardProcess(_this3.data.nodes[c.node]));
+                                                                case 3:
+                                                                    outputs = _context4.sent;
 
-                                                                case 4:
+                                                                    if (outputs) {
+                                                                        _context4.next = 8;
+                                                                        break;
+                                                                    }
+
+                                                                    _this3.abort();
+                                                                    _context4.next = 9;
+                                                                    break;
+
+                                                                case 8:
+                                                                    return _context4.abrupt('return', outputs[c.output]);
+
+                                                                case 9:
                                                                 case 'end':
-                                                                    return _context7.stop();
+                                                                    return _context4.stop();
                                                             }
                                                         }
                                                     }, null, _this3);
                                                 })));
 
-                                            case 2:
-                                                return _context8.abrupt('return', _context8.sent);
-
                                             case 3:
+                                                connData = _context5.sent;
+                                                return _context5.abrupt('return', connData);
+
+                                            case 5:
                                             case 'end':
-                                                return _context8.stop();
+                                                return _context5.stop();
                                         }
                                     }
                                 }, null, _this3);
                             })));
 
+                        case 2:
+                            return _context6.abrupt('return', _context6.sent);
+
+                        case 3:
+                        case 'end':
+                            return _context6.stop();
+                    }
+                }
+            }, null, this);
+        }
+    }, {
+        key: 'processWorker',
+        value: function processWorker(node) {
+            var inputData, component, outputData;
+            return regeneratorRuntime.async(function processWorker$(_context7) {
+                while (1) {
+                    switch (_context7.prev = _context7.next) {
+                        case 0:
+                            _context7.next = 2;
+                            return regeneratorRuntime.awrap(this.extractInputData(node));
+
+                        case 2:
+                            inputData = _context7.sent;
+                            component = this.components.find(function (c) {
+                                return c.name === node.title;
+                            });
+                            outputData = node.outputs.map(function () {
+                                return null;
+                            });
+                            _context7.prev = 5;
+                            _context7.next = 8;
+                            return regeneratorRuntime.awrap(component.worker.apply(component, [node, inputData, outputData].concat(toConsumableArray(this.args))));
+
+                        case 8:
+                            _context7.next = 14;
+                            break;
+
+                        case 10:
+                            _context7.prev = 10;
+                            _context7.t0 = _context7['catch'](5);
+
+                            this.abort();
+                            console.warn(_context7.t0);
+
+                        case 14:
+                            return _context7.abrupt('return', outputData);
+
+                        case 15:
+                        case 'end':
+                            return _context7.stop();
+                    }
+                }
+            }, null, this, [[5, 10]]);
+        }
+    }, {
+        key: 'processNode',
+        value: function processNode(node) {
+            return regeneratorRuntime.async(function processNode$(_context8) {
+                while (1) {
+                    switch (_context8.prev = _context8.next) {
+                        case 0:
+                            if (!(this.state === State.ABORT || !node)) {
+                                _context8.next = 2;
+                                break;
+                            }
+
+                            return _context8.abrupt('return', null);
+
+                        case 2:
+                            _context8.next = 4;
+                            return regeneratorRuntime.awrap(this.lock(node));
+
                         case 4:
-                            return _context9.abrupt('return', _context9.sent);
+
+                            if (!node.outputData) {
+                                node.outputData = this.processWorker(node);
+                            }
+
+                            this.unlock(node);
+                            return _context8.abrupt('return', node.outputData);
+
+                        case 7:
+                        case 'end':
+                            return _context8.stop();
+                    }
+                }
+            }, null, this);
+        }
+    }, {
+        key: 'forwardProcess',
+        value: function forwardProcess(node) {
+            var _this4 = this;
+
+            return regeneratorRuntime.async(function forwardProcess$(_context11) {
+                while (1) {
+                    switch (_context11.prev = _context11.next) {
+                        case 0:
+                            if (!(this.state === State.ABORT)) {
+                                _context11.next = 2;
+                                break;
+                            }
+
+                            return _context11.abrupt('return', null);
+
+                        case 2:
+                            _context11.next = 4;
+                            return regeneratorRuntime.awrap(Promise.all(node.outputs.map(function _callee4(output) {
+                                return regeneratorRuntime.async(function _callee4$(_context10) {
+                                    while (1) {
+                                        switch (_context10.prev = _context10.next) {
+                                            case 0:
+                                                _context10.next = 2;
+                                                return regeneratorRuntime.awrap(Promise.all(output.connections.map(function _callee3(c) {
+                                                    var nextNode;
+                                                    return regeneratorRuntime.async(function _callee3$(_context9) {
+                                                        while (1) {
+                                                            switch (_context9.prev = _context9.next) {
+                                                                case 0:
+                                                                    nextNode = _this4.data.nodes[c.node];
+                                                                    _context9.next = 3;
+                                                                    return regeneratorRuntime.awrap(_this4.processNode(nextNode));
+
+                                                                case 3:
+                                                                    _context9.next = 5;
+                                                                    return regeneratorRuntime.awrap(_this4.forwardProcess(nextNode));
+
+                                                                case 5:
+                                                                case 'end':
+                                                                    return _context9.stop();
+                                                            }
+                                                        }
+                                                    }, null, _this4);
+                                                })));
+
+                                            case 2:
+                                                return _context10.abrupt('return', _context10.sent);
+
+                                            case 3:
+                                            case 'end':
+                                                return _context10.stop();
+                                        }
+                                    }
+                                }, null, _this4);
+                            })));
+
+                        case 4:
+                            return _context11.abrupt('return', _context11.sent);
 
                         case 5:
                         case 'end':
-                            return _context9.stop();
+                            return _context11.stop();
                     }
                 }
             }, null, this);
@@ -3149,6 +3206,134 @@ var Engine = function () {
             return data;
         }
     }, {
+        key: 'validate',
+        value: function validate(data) {
+            var checking, recurentNodes;
+            return regeneratorRuntime.async(function validate$(_context12) {
+                while (1) {
+                    switch (_context12.prev = _context12.next) {
+                        case 0:
+                            checking = Utils.validate(this.id, data);
+
+                            if (checking.success) {
+                                _context12.next = 5;
+                                break;
+                            }
+
+                            _context12.next = 4;
+                            return regeneratorRuntime.awrap(this.throwError(checking.msg));
+
+                        case 4:
+                            return _context12.abrupt('return', _context12.sent);
+
+                        case 5:
+                            recurentNodes = this.detectRecursions(data.nodes);
+
+                            if (!(recurentNodes.length > 0)) {
+                                _context12.next = 10;
+                                break;
+                            }
+
+                            _context12.next = 9;
+                            return regeneratorRuntime.awrap(this.throwError('Recursion detected', recurentNodes));
+
+                        case 9:
+                            return _context12.abrupt('return', _context12.sent);
+
+                        case 10:
+                            return _context12.abrupt('return', true);
+
+                        case 11:
+                        case 'end':
+                            return _context12.stop();
+                    }
+                }
+            }, null, this);
+        }
+    }, {
+        key: 'processStartNode',
+        value: function processStartNode(id) {
+            var startNode;
+            return regeneratorRuntime.async(function processStartNode$(_context13) {
+                while (1) {
+                    switch (_context13.prev = _context13.next) {
+                        case 0:
+                            if (!id) {
+                                _context13.next = 10;
+                                break;
+                            }
+
+                            startNode = this.data.nodes[id];
+
+                            if (startNode) {
+                                _context13.next = 6;
+                                break;
+                            }
+
+                            _context13.next = 5;
+                            return regeneratorRuntime.awrap(this.throwError('Node with such id not found'));
+
+                        case 5:
+                            return _context13.abrupt('return', _context13.sent);
+
+                        case 6:
+                            _context13.next = 8;
+                            return regeneratorRuntime.awrap(this.processNode(startNode));
+
+                        case 8:
+                            _context13.next = 10;
+                            return regeneratorRuntime.awrap(this.forwardProcess(startNode));
+
+                        case 10:
+                        case 'end':
+                            return _context13.stop();
+                    }
+                }
+            }, null, this);
+        }
+    }, {
+        key: 'processUnreachable',
+        value: function processUnreachable() {
+            var i, node;
+            return regeneratorRuntime.async(function processUnreachable$(_context14) {
+                while (1) {
+                    switch (_context14.prev = _context14.next) {
+                        case 0:
+                            _context14.t0 = regeneratorRuntime.keys(this.data.nodes);
+
+                        case 1:
+                            if ((_context14.t1 = _context14.t0()).done) {
+                                _context14.next = 11;
+                                break;
+                            }
+
+                            i = _context14.t1.value;
+
+                            if (!(typeof this.data.nodes[i].outputData === 'undefined')) {
+                                _context14.next = 9;
+                                break;
+                            }
+
+                            node = this.data.nodes[i];
+                            _context14.next = 7;
+                            return regeneratorRuntime.awrap(this.processNode(node));
+
+                        case 7:
+                            _context14.next = 9;
+                            return regeneratorRuntime.awrap(this.forwardProcess(node));
+
+                        case 9:
+                            _context14.next = 1;
+                            break;
+
+                        case 11:
+                        case 'end':
+                            return _context14.stop();
+                    }
+                }
+            }, null, this);
+        }
+    }, {
         key: 'process',
         value: function process(data) {
             var startId = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
@@ -3157,13 +3342,12 @@ var Engine = function () {
                 args[_key - 2] = arguments[_key];
             }
 
-            var checking, startNode, i, node;
-            return regeneratorRuntime.async(function process$(_context10) {
+            return regeneratorRuntime.async(function process$(_context15) {
                 while (1) {
-                    switch (_context10.prev = _context10.next) {
+                    switch (_context15.prev = _context15.next) {
                         case 0:
                             if (data instanceof Object) {
-                                _context10.next = 2;
+                                _context15.next = 2;
                                 break;
                             }
 
@@ -3171,7 +3355,7 @@ var Engine = function () {
 
                         case 2:
                             if (startId == null || typeof startId === 'number') {
-                                _context10.next = 4;
+                                _context15.next = 4;
                                 break;
                             }
 
@@ -3179,83 +3363,38 @@ var Engine = function () {
 
                         case 4:
                             if (this.processStart()) {
-                                _context10.next = 6;
+                                _context15.next = 6;
                                 break;
                             }
 
-                            return _context10.abrupt('return');
+                            return _context15.abrupt('return');
 
                         case 6:
-                            checking = Utils.validate(this.id, data);
-
-                            if (checking.success) {
-                                _context10.next = 9;
+                            if (this.validate(data)) {
+                                _context15.next = 8;
                                 break;
                             }
 
-                            throw new Error(checking.msg);
+                            return _context15.abrupt('return');
 
-                        case 9:
+                        case 8:
 
                             this.data = this.copy(data);
                             this.args = args;
 
-                            if (!startId) {
-                                _context10.next = 19;
-                                break;
-                            }
+                            _context15.next = 12;
+                            return regeneratorRuntime.awrap(this.processStartNode(startId));
 
-                            startNode = this.data.nodes[startId];
+                        case 12:
+                            _context15.next = 14;
+                            return regeneratorRuntime.awrap(this.processUnreachable());
 
-                            if (startNode) {
-                                _context10.next = 15;
-                                break;
-                            }
-
-                            throw new Error('Node with such id not found');
+                        case 14:
+                            return _context15.abrupt('return', this.processDone() ? 'success' : 'aborted');
 
                         case 15:
-                            _context10.next = 17;
-                            return regeneratorRuntime.awrap(this.processNode(startNode));
-
-                        case 17:
-                            _context10.next = 19;
-                            return regeneratorRuntime.awrap(this.forwardProcess(startNode));
-
-                        case 19:
-                            _context10.t0 = regeneratorRuntime.keys(this.data.nodes);
-
-                        case 20:
-                            if ((_context10.t1 = _context10.t0()).done) {
-                                _context10.next = 30;
-                                break;
-                            }
-
-                            i = _context10.t1.value;
-
-                            if (!(typeof this.data.nodes[i].outputData === 'undefined')) {
-                                _context10.next = 28;
-                                break;
-                            }
-
-                            node = this.data.nodes[i];
-                            _context10.next = 26;
-                            return regeneratorRuntime.awrap(this.processNode(node));
-
-                        case 26:
-                            _context10.next = 28;
-                            return regeneratorRuntime.awrap(this.forwardProcess(node));
-
-                        case 28:
-                            _context10.next = 20;
-                            break;
-
-                        case 30:
-                            return _context10.abrupt('return', this.processDone() ? 'success' : 'aborted');
-
-                        case 31:
                         case 'end':
-                            return _context10.stop();
+                            return _context15.stop();
                     }
                 }
             }, null, this);
@@ -3327,8 +3466,65 @@ function _inspect$8(input, depth) {
     }
 }
 
+var ViewUtils = function () {
+    function ViewUtils() {
+        classCallCheck(this, ViewUtils);
+    }
+
+    createClass(ViewUtils, null, [{
+        key: 'getInputPosition',
+        value: function getInputPosition(input) {
+            var node = input.node;
+            var el = input.el;
+
+            return [node.position[0] + el.offsetLeft + el.offsetWidth / 2, node.position[1] + el.offsetTop + el.offsetHeight / 2];
+        }
+    }, {
+        key: 'getOutputPosition',
+        value: function getOutputPosition(output) {
+            var node = output.node;
+            var el = output.el;
+
+            return [node.position[0] + el.offsetLeft + el.offsetWidth / 2, node.position[1] + el.offsetTop + el.offsetHeight / 2];
+        }
+    }, {
+        key: 'getConnectionPath',
+        value: function getConnectionPath(a, b, produce, pathInfo) {
+            var _produce = produce.apply(undefined, toConsumableArray(a).concat(toConsumableArray(b), [pathInfo])),
+                points = _produce.points,
+                curve = _produce.curve;
+
+            switch (curve) {
+                case 'linear':
+                    curve = d3.curveLinear;break;
+                case 'step':
+                    curve = d3.curveStep;break;
+                case 'basis':
+                    curve = d3.curveBasis;break;
+                default:
+                    curve = d3.curveBasis;break;
+            }
+            return this.pointsToPath(points, curve);
+        }
+    }, {
+        key: 'pointsToPath',
+        value: function pointsToPath(points, d3curve) {
+            var curve = d3curve(d3.path());
+
+            curve.lineStart();
+            for (var i = 0; i < points.length; i++) {
+                curve.point.apply(curve, toConsumableArray(points[i]));
+            }curve.lineEnd();
+
+            return curve._context.toString();
+        }
+    }]);
+    return ViewUtils;
+}();
+
 function template$2 (locals) {
-  var pug_html = "";var pug_debug_filename, pug_debug_line;try {
+  var pug_html = "";
+var pug_debug_filename, pug_debug_line;try {
     var pug_debug_sources = {};
     pug_html = pug_html + "<!-- Groups-->";
     pug_html = pug_html + "<div class=\"group\" al-repeat=\"group in editor.groups\" :style.transform=\"&quot;translate(&quot;+group.position[0]+&quot;px,&quot;+group.position[1]+&quot;px)&quot;\" :style.width=\"group.width+&quot;px&quot;\" :style.height=\"group.height+&quot;px&quot;\" al-group :class.selected=\"editor.selected.contains(group)\">";
@@ -3351,22 +3547,28 @@ function template$2 (locals) {
 
 var zoomMargin = 0.9;
 
+var PathInfo = function PathInfo(output, input) {
+    classCallCheck(this, PathInfo);
+
+    this.connection = null;
+    this.input = input;
+    this.output = output;
+};
+
 var EditorView = function () {
     function EditorView(editor, container, menu) {
-        var _this = this;
-
         classCallCheck(this, EditorView);
 
         if (!(editor instanceof NodeEditor)) {
-            throw new TypeError('Value of argument "editor" violates contract.\n\nExpected:\nNodeEditor\n\nGot:\n' + _inspect$10(editor));
+            throw new TypeError('Value of argument "editor" violates contract.\n\nExpected:\nNodeEditor\n\nGot:\n' + _inspect$9(editor));
         }
 
         if (!(container instanceof HTMLElement)) {
-            throw new TypeError('Value of argument "container" violates contract.\n\nExpected:\nHTMLElement\n\nGot:\n' + _inspect$10(container));
+            throw new TypeError('Value of argument "container" violates contract.\n\nExpected:\nHTMLElement\n\nGot:\n' + _inspect$9(container));
         }
 
-        if (!(menu instanceof ContextMenu)) {
-            throw new TypeError('Value of argument "menu" violates contract.\n\nExpected:\nContextMenu\n\nGot:\n' + _inspect$10(menu));
+        if (!(menu == null || menu instanceof ContextMenu)) {
+            throw new TypeError('Value of argument "menu" violates contract.\n\nExpected:\n?ContextMenu\n\nGot:\n' + _inspect$9(menu));
         }
 
         this.editor = editor;
@@ -3375,52 +3577,69 @@ var EditorView = function () {
         this.mouse = [0, 0];
         this.transform = d3.zoomIdentity;
 
-        this.contextMenu = menu;
+        this.contextMenu = menu || new ContextMenu({}, true, true);
 
-        this.container.on('click', function () {
-            if (_this.container.node() === d3.event.target) _this.areaClick();
-        });
-
-        this.view = this.container.append('div').style('transform-origin', '0 0').style('width', 1).style('height', 1);
-
-        this.zoom = d3.zoom().on('zoom', function () {
-            _this.transform = d3.event.transform;
-            _this.update();
-            _this.editor.eventListener.trigger('transform', _this.transform);
-        });
-
-        this.container.call(this.zoom);
-
-        this.setScaleExtent(0.1, 1);
-        var size = Math.pow(2, 12);
-
-        this.setTranslateExtent(-size, -size, size, size);
-
-        d3.select(window).on('mousemove.d3ne' + editor._id, function () {
-
-            var k = _this.transform.k;
-            var position = d3.mouse(_this.view.node());
-
-            _this.mouse = [position[0] / k, position[1] / k];
-            _this.update();
-        }).on('keydown.d3ne' + editor._id, function (e) {
-            if (_this.container.node() === document.activeElement) editor.keyDown(e);
-        }).on('resize.d3ne' + editor._id, this.resize.bind(this));
-
-        this.view.html(template$2());
-
-        var al = alight.makeInstance();
-
-        declareViewDirectives(this, al);
-        this.$cd = al(this.view.node(), { editor: editor });
+        this.initView();
+        this.initial();
     }
 
     createClass(EditorView, [{
+        key: 'initial',
+        value: function initial() {
+            this.setScaleExtent(0.1, 1);
+            var size = Math.pow(2, 12);
+
+            this.setTranslateExtent(-size, -size, size, size);
+        }
+    }, {
+        key: 'initView',
+        value: function initView() {
+            var _this = this;
+
+            this.container.on('click', function () {
+                if (_this.container.node() === d3.event.target) _this.areaClick();
+            });
+
+            this.view = this.container.append('div').style('transform-origin', '0 0').style('width', 1).style('height', 1);
+
+            this.zoom = d3.zoom().on('zoom', function () {
+                _this.transform = d3.event.transform;
+                _this.update();
+                _this.editor.eventListener.trigger('transform', _this.transform);
+            });
+
+            this.container.call(this.zoom);
+
+            d3.select(window).on('mousemove.d3ne' + this.editor._id, function () {
+
+                var k = _this.transform.k;
+                var position = d3.mouse(_this.view.node());
+
+                _this.mouse = [position[0] / k, position[1] / k];
+                _this.update();
+            }).on('keydown.d3ne' + this.editor._id, function (e) {
+                if (_this.container.node() === document.activeElement) _this.editor.keyDown(e);
+            }).on('resize.d3ne' + this.editor._id, this.resize.bind(this));
+
+            this.view.html(template$2());
+            this.initAlight();
+        }
+    }, {
+        key: 'initAlight',
+        value: function initAlight() {
+            var al = alight.makeInstance();
+
+            declareViewDirectives(this, al);
+            this.$cd = al(this.view.node(), { editor: this.editor });
+        }
+    }, {
         key: 'getTemplate',
         value: function getTemplate(node) {
             var component = this.editor.components.find(function (c) {
                 return c.name === node.title;
             });
+
+            if (!component) throw new Error('Component not found. Make sure you have defined \n                            the component with the "' + node.title + '" name');
 
             return component.template;
         }
@@ -3463,9 +3682,13 @@ var EditorView = function () {
                     var input = con.input;
 
                     if (input.el) {
+                        var pathInfo = new PathInfo(output, input);
+
+                        pathInfo.connection = con;
+
                         pathData.push({
                             connection: con,
-                            d: Utils.getConnectionPath(Utils.getOutputPosition(output), Utils.getInputPosition(input), _this2.connectionProducer)
+                            d: ViewUtils.getConnectionPath(ViewUtils.getOutputPosition(output), ViewUtils.getInputPosition(input), _this2.connectionProducer, pathInfo)
                         });
                     }
                 });
@@ -3474,10 +3697,11 @@ var EditorView = function () {
             if (this.pickedOutput !== null && this.pickedOutput.el) {
                 var output = this.pickedOutput;
                 var input = this.mouse;
+                var pathInfo = new PathInfo(output, input);
 
                 pathData.push({
                     selected: true,
-                    d: Utils.getConnectionPath(Utils.getOutputPosition(output), input, this.connectionProducer)
+                    d: ViewUtils.getConnectionPath(ViewUtils.getOutputPosition(output), input, this.connectionProducer, pathInfo)
                 });
             }
 
@@ -3549,24 +3773,24 @@ var EditorView = function () {
             if (!(Array.isArray(nodes) && nodes.every(function (item) {
                 return item instanceof Node;
             }))) {
-                throw new TypeError('Value of argument "nodes" violates contract.\n\nExpected:\nNode[]\n\nGot:\n' + _inspect$10(nodes));
+                throw new TypeError('Value of argument "nodes" violates contract.\n\nExpected:\nNode[]\n\nGot:\n' + _inspect$9(nodes));
             }
 
             if (nodes.length === 0) return;
 
-            var w = this.container.node().clientWidth;
-            var h = this.container.node().clientHeight;
+            var _ref = [this.container.node().clientWidth, this.container.node().clientHeight],
+                w = _ref[0],
+                h = _ref[1];
+
             var bbox = Utils.nodesBBox(nodes);
-            var kw = w / bbox.width;
-            var kh = h / bbox.height;
-            var k = Math.min(kh, kw, 1);
+            var kw = w / bbox.width,
+                kh = h / bbox.height;
+
+            var k = Math.min(kh, kw, 1) * zoomMargin;
 
             var center = bbox.getCenter();
-            var win = [w / 2, h / 2];
 
-            k *= zoomMargin;
-
-            this.translate(win[0] - center[0] * k, win[1] - center[1] * k);
+            this.translate(w / 2 - center[0] * k, h / 2 - center[1] * k);
             this.scale(k);
         }
     }, {
@@ -3586,38 +3810,167 @@ var EditorView = function () {
         key: 'setScaleExtent',
         value: function setScaleExtent(scaleMin, scaleMax) {
             if (!(typeof scaleMin === 'number')) {
-                throw new TypeError('Value of argument "scaleMin" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$10(scaleMin));
+                throw new TypeError('Value of argument "scaleMin" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$9(scaleMin));
             }
 
             if (!(typeof scaleMax === 'number')) {
-                throw new TypeError('Value of argument "scaleMax" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$10(scaleMax));
+                throw new TypeError('Value of argument "scaleMax" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$9(scaleMax));
             }
 
-            this.zoom.scaleExtent([scaleMin, scaleMax]);
+            this.scaleExtent = [scaleMin, scaleMax];
+            this.zoom.scaleExtent(this.scaleExtent);
         }
     }, {
         key: 'setTranslateExtent',
         value: function setTranslateExtent(left, top, right, bottom) {
             if (!(typeof left === 'number')) {
-                throw new TypeError('Value of argument "left" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$10(left));
+                throw new TypeError('Value of argument "left" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$9(left));
             }
 
             if (!(typeof top === 'number')) {
-                throw new TypeError('Value of argument "top" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$10(top));
+                throw new TypeError('Value of argument "top" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$9(top));
             }
 
             if (!(typeof right === 'number')) {
-                throw new TypeError('Value of argument "right" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$10(right));
+                throw new TypeError('Value of argument "right" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$9(right));
             }
 
             if (!(typeof bottom === 'number')) {
-                throw new TypeError('Value of argument "bottom" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$10(bottom));
+                throw new TypeError('Value of argument "bottom" violates contract.\n\nExpected:\nnumber\n\nGot:\n' + _inspect$9(bottom));
             }
 
-            this.zoom.translateExtent([[left, top], [right, bottom]]);
+            this.translateExtent = [[left, top], [right, bottom]];
+            this.zoom.translateExtent(this.translateExtent);
+        }
+    }, {
+        key: 'destroy',
+        value: function destroy() {
+            d3.select(window).on('mousemove.d3ne' + this.editor._id, null).on('keydown.d3ne' + this.editor._id, null).on('resize.d3ne' + this.editor._id, null);
         }
     }]);
     return EditorView;
+}();
+
+function _inspect$9(input, depth) {
+    var maxDepth = 4;
+    var maxKeys = 15;
+
+    if (depth === undefined) {
+        depth = 0;
+    }
+
+    depth += 1;
+
+    if (input === null) {
+        return 'null';
+    } else if (input === undefined) {
+        return 'void';
+    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
+    } else if (Array.isArray(input)) {
+        if (input.length > 0) {
+            if (depth > maxDepth) return '[...]';
+
+            var first = _inspect$9(input[0], depth);
+
+            if (input.every(function (item) {
+                return _inspect$9(item, depth) === first;
+            })) {
+                return first.trim() + '[]';
+            } else {
+                return '[' + input.slice(0, maxKeys).map(function (item) {
+                    return _inspect$9(item, depth);
+                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
+            }
+        } else {
+            return 'Array';
+        }
+    } else {
+        var keys = Object.keys(input);
+
+        if (!keys.length) {
+            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+                return input.constructor.name;
+            } else {
+                return 'Object';
+            }
+        }
+
+        if (depth > maxDepth) return '{...}';
+        var indent = '  '.repeat(depth - 1);
+        var entries = keys.slice(0, maxKeys).map(function (key) {
+            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$9(input[key], depth) + ';';
+        }).join('\n  ' + indent);
+
+        if (keys.length >= maxKeys) {
+            entries += '\n  ' + indent + '...';
+        }
+
+        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+        } else {
+            return '{\n  ' + indent + entries + '\n' + indent + '}';
+        }
+    }
+}
+
+var EventListener = function () {
+    function EventListener() {
+        classCallCheck(this, EventListener);
+
+        this.events = {
+            nodecreate: [],
+            groupcreate: [],
+            connectioncreate: [],
+            noderemove: [],
+            groupremove: [],
+            connectionremove: [],
+            nodeselect: [],
+            groupselect: [],
+            error: [console.warn],
+            change: [],
+            transform: []
+        };
+        this.persistent = true;
+    }
+
+    createClass(EventListener, [{
+        key: 'on',
+        value: function on(names, handler) {
+            var _this = this;
+
+            if (!(typeof names === 'string')) {
+                throw new TypeError('Value of argument "names" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$10(names));
+            }
+
+            if (!(typeof handler === 'function')) {
+                throw new TypeError('Value of argument "handler" violates contract.\n\nExpected:\n() => {}\n\nGot:\n' + _inspect$10(handler));
+            }
+
+            names.split(' ').forEach(function (name) {
+                if (!_this.events[name]) throw new Error('The event ' + name + ' does not exist');
+                _this.events[name].push(handler);
+            });
+
+            return this;
+        }
+    }, {
+        key: 'trigger',
+        value: function trigger(name, param) {
+            var _this2 = this;
+
+            if (!(typeof name === 'string')) {
+                throw new TypeError('Value of argument "name" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$10(name));
+            }
+
+            if (!(name in this.events)) throw new Error('The event ' + name + ' cannot be triggered');
+
+            return this.events[name].reduce(function (r, e) {
+                return e(param, _this2.persistent) !== false && r;
+            }, true); // return false if at least one event is false        
+        }
+    }]);
+    return EventListener;
 }();
 
 function _inspect$10(input, depth) {
@@ -3669,128 +4022,6 @@ function _inspect$10(input, depth) {
         var indent = '  '.repeat(depth - 1);
         var entries = keys.slice(0, maxKeys).map(function (key) {
             return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$10(input[key], depth) + ';';
-        }).join('\n  ' + indent);
-
-        if (keys.length >= maxKeys) {
-            entries += '\n  ' + indent + '...';
-        }
-
-        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
-        } else {
-            return '{\n  ' + indent + entries + '\n' + indent + '}';
-        }
-    }
-}
-
-var EventListener = function () {
-    function EventListener() {
-        classCallCheck(this, EventListener);
-
-        this.events = {
-            nodecreate: [],
-            groupcreate: [],
-            connectioncreate: [],
-            noderemove: [],
-            groupremove: [],
-            connectionremove: [],
-            nodeselect: [],
-            groupselect: [],
-            error: [],
-            change: [],
-            transform: []
-        };
-        this.persistent = true;
-    }
-
-    createClass(EventListener, [{
-        key: 'on',
-        value: function on(names, handler) {
-            var _this = this;
-
-            if (!(typeof names === 'string')) {
-                throw new TypeError('Value of argument "names" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$11(names));
-            }
-
-            if (!(typeof handler === 'function')) {
-                throw new TypeError('Value of argument "handler" violates contract.\n\nExpected:\n() => {}\n\nGot:\n' + _inspect$11(handler));
-            }
-
-            names.split(' ').forEach(function (name) {
-                if (!_this.events[name]) throw new Error('The event ' + name + ' does not exist');
-                _this.events[name].push(handler);
-            });
-
-            return this;
-        }
-    }, {
-        key: 'trigger',
-        value: function trigger(name, param) {
-            var _this2 = this;
-
-            if (!(typeof name === 'string')) {
-                throw new TypeError('Value of argument "name" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$11(name));
-            }
-
-            if (!(name in this.events)) throw new Error('The event ' + name + ' cannot be triggered');
-
-            return this.events[name].reduce(function (r, e) {
-                return e(param, _this2.persistent) !== false && r;
-            }, true); // return false if at least one event is false        
-        }
-    }]);
-    return EventListener;
-}();
-
-function _inspect$11(input, depth) {
-    var maxDepth = 4;
-    var maxKeys = 15;
-
-    if (depth === undefined) {
-        depth = 0;
-    }
-
-    depth += 1;
-
-    if (input === null) {
-        return 'null';
-    } else if (input === undefined) {
-        return 'void';
-    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
-        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
-    } else if (Array.isArray(input)) {
-        if (input.length > 0) {
-            if (depth > maxDepth) return '[...]';
-
-            var first = _inspect$11(input[0], depth);
-
-            if (input.every(function (item) {
-                return _inspect$11(item, depth) === first;
-            })) {
-                return first.trim() + '[]';
-            } else {
-                return '[' + input.slice(0, maxKeys).map(function (item) {
-                    return _inspect$11(item, depth);
-                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
-            }
-        } else {
-            return 'Array';
-        }
-    } else {
-        var keys = Object.keys(input);
-
-        if (!keys.length) {
-            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-                return input.constructor.name;
-            } else {
-                return 'Object';
-            }
-        }
-
-        if (depth > maxDepth) return '{...}';
-        var indent = '  '.repeat(depth - 1);
-        var entries = keys.slice(0, maxKeys).map(function (key) {
-            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$11(input[key], depth) + ';';
         }).join('\n  ' + indent);
 
         if (keys.length >= maxKeys) {
@@ -3871,7 +4102,7 @@ var Selected = function () {
             var accumulate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
             if (!(item instanceof Node || item instanceof Group$1)) {
-                throw new TypeError('Value of argument "item" violates contract.\n\nExpected:\nNode | Group\n\nGot:\n' + _inspect$12(item));
+                throw new TypeError('Value of argument "item" violates contract.\n\nExpected:\nNode | Group\n\nGot:\n' + _inspect$11(item));
             }
 
             if (accumulate) {
@@ -3932,6 +4163,459 @@ var Selected = function () {
         }
     }]);
     return Selected;
+}();
+
+function _inspect$11(input, depth) {
+    var maxDepth = 4;
+    var maxKeys = 15;
+
+    if (depth === undefined) {
+        depth = 0;
+    }
+
+    depth += 1;
+
+    if (input === null) {
+        return 'null';
+    } else if (input === undefined) {
+        return 'void';
+    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
+        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
+    } else if (Array.isArray(input)) {
+        if (input.length > 0) {
+            if (depth > maxDepth) return '[...]';
+
+            var first = _inspect$11(input[0], depth);
+
+            if (input.every(function (item) {
+                return _inspect$11(item, depth) === first;
+            })) {
+                return first.trim() + '[]';
+            } else {
+                return '[' + input.slice(0, maxKeys).map(function (item) {
+                    return _inspect$11(item, depth);
+                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
+            }
+        } else {
+            return 'Array';
+        }
+    } else {
+        var keys = Object.keys(input);
+
+        if (!keys.length) {
+            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+                return input.constructor.name;
+            } else {
+                return 'Object';
+            }
+        }
+
+        if (depth > maxDepth) return '{...}';
+        var indent = '  '.repeat(depth - 1);
+        var entries = keys.slice(0, maxKeys).map(function (key) {
+            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$11(input[key], depth) + ';';
+        }).join('\n  ' + indent);
+
+        if (keys.length >= maxKeys) {
+            entries += '\n  ' + indent + '...';
+        }
+
+        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
+            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
+        } else {
+            return '{\n  ' + indent + entries + '\n' + indent + '}';
+        }
+    }
+}
+
+var NodeEditor = function () {
+    function NodeEditor(id, container, components, menu) {
+        classCallCheck(this, NodeEditor);
+
+        if (!(typeof id === 'string')) {
+            throw new TypeError('Value of argument "id" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$12(id));
+        }
+
+        if (!(container instanceof HTMLElement)) {
+            throw new TypeError('Value of argument "container" violates contract.\n\nExpected:\nHTMLElement\n\nGot:\n' + _inspect$12(container));
+        }
+
+        if (!(Array.isArray(components) && components.every(function (item) {
+            return item instanceof Component;
+        }))) {
+            throw new TypeError('Value of argument "components" violates contract.\n\nExpected:\nComponent[]\n\nGot:\n' + _inspect$12(components));
+        }
+
+        if (!(menu == null || menu instanceof ContextMenu)) {
+            throw new TypeError('Value of argument "menu" violates contract.\n\nExpected:\n?ContextMenu\n\nGot:\n' + _inspect$12(menu));
+        }
+
+        if (!Utils.isValidId(id)) throw new Error('ID should be valid to name@0.1.0 format');
+
+        this.id = id;
+        this.components = components;
+
+        this.init();
+
+        this.view = new EditorView(this, container, menu);
+        this.view.resize();
+    }
+
+    createClass(NodeEditor, [{
+        key: 'init',
+        value: function init() {
+            this._id = Math.random().toString(36).substr(2, 9);
+            this.eventListener = new EventListener();
+            this.selected = new Selected();
+            this.history = new History(this);
+
+            this.nodes = [];
+            this.groups = [];
+            this.readOnly = false;
+        }
+    }, {
+        key: 'addNode',
+        value: function addNode(node) {
+            var mousePlaced = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            if (!(node instanceof Node)) {
+                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$12(node));
+            }
+
+            if (this.eventListener.trigger('nodecreate', node)) {
+                if (mousePlaced) node.position = this.view.mouse;
+                this.nodes.push(node);
+                this.findComponent(node).created(node);
+                this.eventListener.trigger('change');
+
+                this.history.add(this.addNode.bind(this), this.removeNode.bind(this), [node]);
+            }
+        }
+    }, {
+        key: 'addGroup',
+        value: function addGroup(group) {
+            if (!(group instanceof Group$1)) {
+                throw new TypeError('Value of argument "group" violates contract.\n\nExpected:\nGroup\n\nGot:\n' + _inspect$12(group));
+            }
+
+            if (this.eventListener.trigger('groupcreate', group)) {
+                this.groups.push(group);
+                this.eventListener.trigger('change');
+            }
+
+            this.view.update();
+        }
+    }, {
+        key: 'removeNode',
+        value: function removeNode(node) {
+            var _this = this;
+
+            if (!(node instanceof Node)) {
+                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$12(node));
+            }
+
+            if (node.readOnly) return;
+            var index = this.nodes.indexOf(node);
+
+            if (this.eventListener.trigger('noderemove', node)) {
+                node.getConnections().forEach(function (c) {
+                    return _this.removeConnection(c);
+                });
+
+                this.nodes.splice(index, 1);
+                this.findComponent(node).destroyed(node);
+                this.eventListener.trigger('change');
+
+                this.history.add(this.removeNode.bind(this), this.addNode.bind(this), [node]);
+            }
+
+            this.view.update();
+        }
+    }, {
+        key: 'removeGroup',
+        value: function removeGroup(group) {
+            if (!(group instanceof Group$1)) {
+                throw new TypeError('Value of argument "group" violates contract.\n\nExpected:\nGroup\n\nGot:\n' + _inspect$12(group));
+            }
+
+            if (this.eventListener.trigger('groupremove', group)) {
+                group.remove();
+                this.groups.splice(this.groups.indexOf(group), 1);
+                this.eventListener.trigger('change');
+            }
+
+            this.view.update();
+        }
+    }, {
+        key: 'connect',
+        value: function connect(output, input) {
+            if (!(output instanceof Output || output instanceof Connection)) {
+                throw new TypeError('Value of argument "output" violates contract.\n\nExpected:\nOutput | Connection\n\nGot:\n' + _inspect$12(output));
+            }
+
+            if (!(input == null || input instanceof Input)) {
+                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\n?Input\n\nGot:\n' + _inspect$12(input));
+            }
+
+            if (output instanceof Connection) {
+                input = output.input;
+                output = output.output;
+            }
+
+            if (this.eventListener.trigger('connectioncreate', { output: output, input: input })) {
+                try {
+                    var connection = output.connectTo(input);
+
+                    this.eventListener.trigger('change');
+                    this.history.add(this.connect.bind(this), this.removeConnection.bind(this), [connection]);
+                } catch (e) {
+                    this.eventListener.trigger('error', e);
+                }
+            }
+            this.view.update();
+        }
+    }, {
+        key: 'removeConnection',
+        value: function removeConnection(connection) {
+            if (!(connection instanceof Connection)) {
+                throw new TypeError('Value of argument "connection" violates contract.\n\nExpected:\nConnection\n\nGot:\n' + _inspect$12(connection));
+            }
+
+            if (this.eventListener.trigger('connectionremove', connection)) {
+                connection.remove();
+                this.eventListener.trigger('change');
+
+                this.history.add(this.removeConnection.bind(this), this.connect.bind(this), [connection]);
+            }
+            this.view.update();
+        }
+    }, {
+        key: 'selectNode',
+        value: function selectNode(node) {
+            var accumulate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            if (!(node instanceof Node)) {
+                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$12(node));
+            }
+
+            if (!(typeof accumulate === 'boolean')) {
+                throw new TypeError('Value of argument "accumulate" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$12(accumulate));
+            }
+
+            if (this.nodes.indexOf(node) === -1) throw new Error('Node not exist in list');
+
+            if (this.eventListener.trigger('nodeselect', node)) this.selected.add(node, accumulate);
+
+            this.view.update();
+        }
+    }, {
+        key: 'selectGroup',
+        value: function selectGroup(group) {
+            var accumulate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+            if (!(group instanceof Group$1)) {
+                throw new TypeError('Value of argument "group" violates contract.\n\nExpected:\nGroup\n\nGot:\n' + _inspect$12(group));
+            }
+
+            if (!(typeof accumulate === 'boolean')) {
+                throw new TypeError('Value of argument "accumulate" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$12(accumulate));
+            }
+
+            if (this.groups.indexOf(group) === -1) throw new Error('Group not exist in list');
+
+            if (this.eventListener.trigger('groupselect', group)) this.selected.add(group, accumulate);
+
+            this.view.update();
+        }
+    }, {
+        key: 'keyDown',
+        value: function keyDown() {
+            if (this.readOnly) return;
+
+            switch (d3.event.keyCode) {
+                case 46:
+                    this.selected.eachNode(this.removeNode.bind(this));
+                    this.selected.eachGroup(this.removeGroup.bind(this));
+                    this.view.update();
+                    break;
+                case 71:
+                    var nodes = this.selected.getNodes();
+
+                    if (nodes.length > 0) this.addGroup(new Group$1('Group', { nodes: nodes }));
+
+                    break;
+                case 90:
+                    if (d3.event.ctrlKey && d3.event.shiftKey) this.history.redo();else if (d3.event.ctrlKey) this.history.undo();
+
+                    break;
+                default:
+                    break;
+
+            }
+        }
+    }, {
+        key: 'findComponent',
+        value: function findComponent(node) {
+            var component = this.components.find(function (c) {
+                return c.name === node.title;
+            });
+
+            if (!component) throw 'Component ' + node.title + ' was not found';
+
+            return component;
+        }
+    }, {
+        key: 'clear',
+        value: function clear() {
+            this.nodes.splice(0, this.nodes.length);
+            this.groups.splice(0, this.groups.length);
+        }
+    }, {
+        key: 'toJSON',
+        value: function toJSON() {
+            var nodes = {};
+            var groups = {};
+
+            this.nodes.forEach(function (node) {
+                return nodes[node.id] = node.toJSON();
+            });
+            this.groups.forEach(function (group) {
+                return groups[group.id] = group.toJSON();
+            });
+
+            return {
+                'id': this.id,
+                'nodes': nodes,
+                'groups': groups
+            };
+        }
+    }, {
+        key: 'beforeImport',
+        value: function beforeImport(json) {
+            if (!(json instanceof Object)) {
+                throw new TypeError('Value of argument "json" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$12(json));
+            }
+
+            var checking = Utils.validate(this.id, json);
+
+            if (!checking.success) {
+                this.eventListener.trigger('error', checking.msg);
+                return false;
+            }
+
+            this.eventListener.persistent = false;
+            this.clear();
+            return true;
+        }
+    }, {
+        key: 'afterImport',
+        value: function afterImport() {
+            this.view.update();
+            this.eventListener.persistent = true;
+            return true;
+        }
+    }, {
+        key: 'fromJSON',
+        value: function fromJSON(json) {
+            var _this2 = this;
+
+            var nodes;
+            return regeneratorRuntime.async(function fromJSON$(_context2) {
+                while (1) {
+                    switch (_context2.prev = _context2.next) {
+                        case 0:
+                            if (json instanceof Object) {
+                                _context2.next = 2;
+                                break;
+                            }
+
+                            throw new TypeError('Value of argument "json" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$12(json));
+
+                        case 2:
+                            if (this.beforeImport(json)) {
+                                _context2.next = 4;
+                                break;
+                            }
+
+                            return _context2.abrupt('return', false);
+
+                        case 4:
+                            nodes = {};
+                            _context2.prev = 5;
+                            _context2.next = 8;
+                            return regeneratorRuntime.awrap(Promise.all(Object.keys(json.nodes).map(function _callee(id) {
+                                var node, component;
+                                return regeneratorRuntime.async(function _callee$(_context) {
+                                    while (1) {
+                                        switch (_context.prev = _context.next) {
+                                            case 0:
+                                                node = json.nodes[id];
+                                                component = _this2.findComponent(node);
+                                                _context.next = 4;
+                                                return regeneratorRuntime.awrap(Node.fromJSON(component, node));
+
+                                            case 4:
+                                                nodes[id] = _context.sent;
+
+                                                _this2.addNode(nodes[id]);
+
+                                            case 6:
+                                            case 'end':
+                                                return _context.stop();
+                                        }
+                                    }
+                                }, null, _this2);
+                            })));
+
+                        case 8:
+
+                            Object.keys(json.nodes).forEach(function (id) {
+                                var jsonNode = json.nodes[id];
+                                var node = nodes[id];
+
+                                jsonNode.outputs.forEach(function (outputJson, i) {
+                                    outputJson.connections.forEach(function (jsonConnection) {
+                                        var nodeId = jsonConnection.node;
+                                        var inputIndex = jsonConnection.input;
+                                        var targetInput = nodes[nodeId].inputs[inputIndex];
+
+                                        _this2.connect(node.outputs[i], targetInput);
+                                    });
+                                });
+                            });
+
+                            if (_typeof(json.groups) === 'object') Object.keys(json.groups).forEach(function (id) {
+                                var group = Group$1.fromJSON(json.groups[id]);
+
+                                json.groups[id].nodes.forEach(function (nodeId) {
+                                    var node = nodes[nodeId];
+
+                                    group.addNode(node);
+                                });
+                                _this2.addGroup(group);
+                            });
+                            _context2.next = 16;
+                            break;
+
+                        case 12:
+                            _context2.prev = 12;
+                            _context2.t0 = _context2['catch'](5);
+
+                            this.eventListener.trigger('error', _context2.t0);
+                            return _context2.abrupt('return', false);
+
+                        case 16:
+                            return _context2.abrupt('return', this.afterImport());
+
+                        case 17:
+                        case 'end':
+                            return _context2.stop();
+                    }
+                }
+            }, null, this, [[5, 12]]);
+        }
+    }]);
+    return NodeEditor;
 }();
 
 function _inspect$12(input, depth) {
@@ -3997,433 +4681,6 @@ function _inspect$12(input, depth) {
     }
 }
 
-var NodeEditor = function () {
-    function NodeEditor(id, container, components, menu) {
-        classCallCheck(this, NodeEditor);
-
-        if (!(typeof id === 'string')) {
-            throw new TypeError('Value of argument "id" violates contract.\n\nExpected:\nstring\n\nGot:\n' + _inspect$9(id));
-        }
-
-        if (!(container instanceof HTMLElement)) {
-            throw new TypeError('Value of argument "container" violates contract.\n\nExpected:\nHTMLElement\n\nGot:\n' + _inspect$9(container));
-        }
-
-        if (!(Array.isArray(components) && components.every(function (item) {
-            return item instanceof Component;
-        }))) {
-            throw new TypeError('Value of argument "components" violates contract.\n\nExpected:\nComponent[]\n\nGot:\n' + _inspect$9(components));
-        }
-
-        if (!(menu instanceof ContextMenu)) {
-            throw new TypeError('Value of argument "menu" violates contract.\n\nExpected:\nContextMenu\n\nGot:\n' + _inspect$9(menu));
-        }
-
-        if (!Utils.isValidId(id)) throw new Error('ID should be valid to name@0.1.0 format');
-
-        this.id = id;
-        this._id = Math.random().toString(36).substr(2, 9);
-        this.components = components;
-        this.view = new EditorView(this, container, menu);
-        this.eventListener = new EventListener();
-        this.selected = new Selected();
-        this.history = new History(this);
-        this.nodes = [];
-        this.groups = [];
-        this.readOnly = false;
-
-        this.view.resize();
-    }
-
-    createClass(NodeEditor, [{
-        key: 'addNode',
-        value: function addNode(node) {
-            var mousePlaced = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-            if (!(node instanceof Node)) {
-                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$9(node));
-            }
-
-            if (this.eventListener.trigger('nodecreate', node)) {
-                if (mousePlaced) node.position = this.view.mouse;
-                this.nodes.push(node);
-                this.eventListener.trigger('change');
-
-                this.history.add(this.addNode.bind(this), this.removeNode.bind(this), [node]);
-            }
-        }
-    }, {
-        key: 'addGroup',
-        value: function addGroup(group) {
-            if (!(group instanceof Group$1)) {
-                throw new TypeError('Value of argument "group" violates contract.\n\nExpected:\nGroup\n\nGot:\n' + _inspect$9(group));
-            }
-
-            if (this.eventListener.trigger('groupcreate', group)) {
-                this.groups.push(group);
-                this.eventListener.trigger('change');
-            }
-
-            this.view.update();
-        }
-    }, {
-        key: 'removeNode',
-        value: function removeNode(node) {
-            var _this = this;
-
-            if (!(node instanceof Node)) {
-                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$9(node));
-            }
-
-            var index = this.nodes.indexOf(node);
-
-            if (this.eventListener.trigger('noderemove', node)) {
-                node.getConnections().forEach(function (c) {
-                    return _this.removeConnection(c);
-                });
-
-                this.nodes.splice(index, 1);
-                this.eventListener.trigger('change');
-
-                this.history.add(this.removeNode.bind(this), this.addNode.bind(this), [node]);
-            }
-
-            this.view.update();
-        }
-    }, {
-        key: 'removeGroup',
-        value: function removeGroup(group) {
-            if (!(group instanceof Group$1)) {
-                throw new TypeError('Value of argument "group" violates contract.\n\nExpected:\nGroup\n\nGot:\n' + _inspect$9(group));
-            }
-
-            if (this.eventListener.trigger('groupremove', group)) {
-                group.remove();
-                this.groups.splice(this.groups.indexOf(group), 1);
-                this.eventListener.trigger('change');
-            }
-
-            this.view.update();
-        }
-    }, {
-        key: 'connect',
-        value: function connect(output, input) {
-            if (!(output instanceof Output || output instanceof Connection)) {
-                throw new TypeError('Value of argument "output" violates contract.\n\nExpected:\nOutput | Connection\n\nGot:\n' + _inspect$9(output));
-            }
-
-            if (!(input == null || input instanceof Input)) {
-                throw new TypeError('Value of argument "input" violates contract.\n\nExpected:\n?Input\n\nGot:\n' + _inspect$9(input));
-            }
-
-            if (output instanceof Connection) {
-                input = output.input;
-                output = output.output;
-            }
-
-            if (this.eventListener.trigger('connectioncreate', { output: output, input: input })) {
-                try {
-                    var connection = output.connectTo(input);
-
-                    this.eventListener.trigger('change');
-                    this.history.add(this.connect.bind(this), this.removeConnection.bind(this), [connection]);
-                } catch (e) {
-                    console.warn(e);
-                    this.eventListener.trigger('error', e);
-                }
-            }
-            this.view.update();
-        }
-    }, {
-        key: 'removeConnection',
-        value: function removeConnection(connection) {
-            if (!(connection instanceof Connection)) {
-                throw new TypeError('Value of argument "connection" violates contract.\n\nExpected:\nConnection\n\nGot:\n' + _inspect$9(connection));
-            }
-
-            if (this.eventListener.trigger('connectionremove', connection)) {
-                connection.remove();
-                this.eventListener.trigger('change');
-
-                this.history.add(this.removeConnection.bind(this), this.connect.bind(this), [connection]);
-            }
-            this.view.update();
-        }
-    }, {
-        key: 'selectNode',
-        value: function selectNode(node) {
-            var accumulate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-            if (!(node instanceof Node)) {
-                throw new TypeError('Value of argument "node" violates contract.\n\nExpected:\nNode\n\nGot:\n' + _inspect$9(node));
-            }
-
-            if (!(typeof accumulate === 'boolean')) {
-                throw new TypeError('Value of argument "accumulate" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$9(accumulate));
-            }
-
-            if (this.nodes.indexOf(node) === -1) throw new Error('Node not exist in list');
-
-            if (this.eventListener.trigger('nodeselect', node)) this.selected.add(node, accumulate);
-
-            this.view.update();
-        }
-    }, {
-        key: 'selectGroup',
-        value: function selectGroup(group) {
-            var accumulate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-
-            if (!(group instanceof Group$1)) {
-                throw new TypeError('Value of argument "group" violates contract.\n\nExpected:\nGroup\n\nGot:\n' + _inspect$9(group));
-            }
-
-            if (!(typeof accumulate === 'boolean')) {
-                throw new TypeError('Value of argument "accumulate" violates contract.\n\nExpected:\nboolean\n\nGot:\n' + _inspect$9(accumulate));
-            }
-
-            if (this.groups.indexOf(group) === -1) throw new Error('Group not exist in list');
-
-            if (this.eventListener.trigger('groupselect', group)) this.selected.add(group, accumulate);
-
-            this.view.update();
-        }
-    }, {
-        key: 'keyDown',
-        value: function keyDown() {
-            if (this.readOnly) return;
-
-            switch (d3.event.keyCode) {
-                case 46:
-                    this.selected.eachNode(this.removeNode.bind(this));
-                    this.selected.eachGroup(this.removeGroup.bind(this));
-                    this.view.update();
-                    break;
-                case 71:
-                    var nodes = this.selected.getNodes();
-
-                    if (nodes.length > 0) this.addGroup(new Group$1('Group', { nodes: nodes }));
-
-                    break;
-                case 90:
-                    if (d3.event.ctrlKey && d3.event.shiftKey) this.history.redo();else if (d3.event.ctrlKey) this.history.undo();
-
-                    break;
-            }
-        }
-    }, {
-        key: 'clear',
-        value: function clear() {
-            this.nodes.splice(0, this.nodes.length);
-            this.groups.splice(0, this.groups.length);
-        }
-    }, {
-        key: 'toJSON',
-        value: function toJSON() {
-            var nodes = {};
-            var groups = {};
-
-            this.nodes.forEach(function (node) {
-                return nodes[node.id] = node.toJSON();
-            });
-            this.groups.forEach(function (group) {
-                return groups[group.id] = group.toJSON();
-            });
-
-            return {
-                'id': this.id,
-                'nodes': nodes,
-                'groups': groups
-            };
-        }
-    }, {
-        key: 'fromJSON',
-        value: function fromJSON(json) {
-            var _this2 = this;
-
-            var checking, nodes;
-            return regeneratorRuntime.async(function fromJSON$(_context2) {
-                while (1) {
-                    switch (_context2.prev = _context2.next) {
-                        case 0:
-                            if (json instanceof Object) {
-                                _context2.next = 2;
-                                break;
-                            }
-
-                            throw new TypeError('Value of argument "json" violates contract.\n\nExpected:\nObject\n\nGot:\n' + _inspect$9(json));
-
-                        case 2:
-                            checking = Utils.validate(this.id, json);
-
-                            if (checking.success) {
-                                _context2.next = 7;
-                                break;
-                            }
-
-                            this.eventListener.trigger('error', checking.msg);
-                            console.warn(checking.msg);
-                            return _context2.abrupt('return', false);
-
-                        case 7:
-
-                            this.eventListener.persistent = false;
-
-                            this.clear();
-                            nodes = {};
-                            _context2.prev = 10;
-                            _context2.next = 13;
-                            return regeneratorRuntime.awrap(Promise.all(Object.keys(json.nodes).map(function _callee(id) {
-                                var node, component;
-                                return regeneratorRuntime.async(function _callee$(_context) {
-                                    while (1) {
-                                        switch (_context.prev = _context.next) {
-                                            case 0:
-                                                node = json.nodes[id];
-                                                component = _this2.components.find(function (c) {
-                                                    return c.name === node.title;
-                                                });
-
-                                                if (component) {
-                                                    _context.next = 4;
-                                                    break;
-                                                }
-
-                                                throw 'Component ' + node.title + ' was not found';
-
-                                            case 4:
-                                                _context.next = 6;
-                                                return regeneratorRuntime.awrap(Node.fromJSON(component, node));
-
-                                            case 6:
-                                                nodes[id] = _context.sent;
-
-                                                _this2.addNode(nodes[id]);
-
-                                            case 8:
-                                            case 'end':
-                                                return _context.stop();
-                                        }
-                                    }
-                                }, null, _this2);
-                            })));
-
-                        case 13:
-
-                            Object.keys(json.nodes).forEach(function (id) {
-                                var jsonNode = json.nodes[id];
-                                var node = nodes[id];
-
-                                jsonNode.outputs.forEach(function (outputJson, i) {
-                                    outputJson.connections.forEach(function (jsonConnection) {
-                                        var nodeId = jsonConnection.node;
-                                        var inputIndex = jsonConnection.input;
-                                        var targetInput = nodes[nodeId].inputs[inputIndex];
-
-                                        _this2.connect(node.outputs[i], targetInput);
-                                    });
-                                });
-                            });
-
-                            if (_typeof(json.groups) === 'object') Object.keys(json.groups).forEach(function (id) {
-                                var group = Group$1.fromJSON(json.groups[id]);
-
-                                json.groups[id].nodes.forEach(function (nodeId) {
-                                    var node = nodes[nodeId];
-
-                                    group.addNode(node);
-                                });
-                                _this2.addGroup(group);
-                            });
-                            _context2.next = 22;
-                            break;
-
-                        case 17:
-                            _context2.prev = 17;
-                            _context2.t0 = _context2['catch'](10);
-
-                            console.warn(_context2.t0);
-                            this.eventListener.trigger('error', _context2.t0);
-                            return _context2.abrupt('return', false);
-
-                        case 22:
-                            this.view.update();
-                            this.eventListener.persistent = true;
-                            return _context2.abrupt('return', true);
-
-                        case 25:
-                        case 'end':
-                            return _context2.stop();
-                    }
-                }
-            }, null, this, [[10, 17]]);
-        }
-    }]);
-    return NodeEditor;
-}();
-
-function _inspect$9(input, depth) {
-    var maxDepth = 4;
-    var maxKeys = 15;
-
-    if (depth === undefined) {
-        depth = 0;
-    }
-
-    depth += 1;
-
-    if (input === null) {
-        return 'null';
-    } else if (input === undefined) {
-        return 'void';
-    } else if (typeof input === 'string' || typeof input === 'number' || typeof input === 'boolean') {
-        return typeof input === 'undefined' ? 'undefined' : _typeof(input);
-    } else if (Array.isArray(input)) {
-        if (input.length > 0) {
-            if (depth > maxDepth) return '[...]';
-
-            var first = _inspect$9(input[0], depth);
-
-            if (input.every(function (item) {
-                return _inspect$9(item, depth) === first;
-            })) {
-                return first.trim() + '[]';
-            } else {
-                return '[' + input.slice(0, maxKeys).map(function (item) {
-                    return _inspect$9(item, depth);
-                }).join(', ') + (input.length >= maxKeys ? ', ...' : '') + ']';
-            }
-        } else {
-            return 'Array';
-        }
-    } else {
-        var keys = Object.keys(input);
-
-        if (!keys.length) {
-            if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-                return input.constructor.name;
-            } else {
-                return 'Object';
-            }
-        }
-
-        if (depth > maxDepth) return '{...}';
-        var indent = '  '.repeat(depth - 1);
-        var entries = keys.slice(0, maxKeys).map(function (key) {
-            return (/^([A-Z_$][A-Z0-9_$]*)$/i.test(key) ? key : JSON.stringify(key)) + ': ' + _inspect$9(input[key], depth) + ';';
-        }).join('\n  ' + indent);
-
-        if (keys.length >= maxKeys) {
-            entries += '\n  ' + indent + '...';
-        }
-
-        if (input.constructor && input.constructor.name && input.constructor.name !== 'Object') {
-            return input.constructor.name + ' {\n  ' + indent + entries + '\n' + indent + '}';
-        } else {
-            return '{\n  ' + indent + entries + '\n' + indent + '}';
-        }
-    }
-}
-
 var Task = function () {
     function Task(inputs, action) {
         var _this = this;
@@ -4467,24 +4724,104 @@ var Task = function () {
         value: function run(data) {
             var _this2 = this;
 
-            var inputs = this.getOutputs().map(function (input) {
-                return input.map(function (con) {
-                    if (con) {
-                        con.run();
-                        return con.get();
+            var needReset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+            var garbage = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+            var inputs;
+            return regeneratorRuntime.async(function run$(_context4) {
+                while (1) {
+                    switch (_context4.prev = _context4.next) {
+                        case 0:
+                            garbage.push(this);
+
+                            _context4.next = 3;
+                            return regeneratorRuntime.awrap(Promise.all(this.getOutputs().map(function _callee2(input) {
+                                return regeneratorRuntime.async(function _callee2$(_context2) {
+                                    while (1) {
+                                        switch (_context2.prev = _context2.next) {
+                                            case 0:
+                                                _context2.next = 2;
+                                                return regeneratorRuntime.awrap(Promise.all(input.map(function _callee(con) {
+                                                    return regeneratorRuntime.async(function _callee$(_context) {
+                                                        while (1) {
+                                                            switch (_context.prev = _context.next) {
+                                                                case 0:
+                                                                    if (!con) {
+                                                                        _context.next = 4;
+                                                                        break;
+                                                                    }
+
+                                                                    _context.next = 3;
+                                                                    return regeneratorRuntime.awrap(con.run(data, false, garbage));
+
+                                                                case 3:
+                                                                    return _context.abrupt("return", con.get());
+
+                                                                case 4:
+                                                                case "end":
+                                                                    return _context.stop();
+                                                            }
+                                                        }
+                                                    }, null, _this2);
+                                                })));
+
+                                            case 2:
+                                                return _context2.abrupt("return", _context2.sent);
+
+                                            case 3:
+                                            case "end":
+                                                return _context2.stop();
+                                        }
+                                    }
+                                }, null, _this2);
+                            })));
+
+                        case 3:
+                            inputs = _context4.sent;
+
+                            if (this.outputData) {
+                                _context4.next = 10;
+                                break;
+                            }
+
+                            _context4.next = 7;
+                            return regeneratorRuntime.awrap(this.action(inputs, data));
+
+                        case 7:
+                            this.outputData = _context4.sent;
+                            _context4.next = 10;
+                            return regeneratorRuntime.awrap(Promise.all(this.next.filter(function (f) {
+                                return !_this2.closed.includes(f.index);
+                            }).map(function _callee3(f) {
+                                return regeneratorRuntime.async(function _callee3$(_context3) {
+                                    while (1) {
+                                        switch (_context3.prev = _context3.next) {
+                                            case 0:
+                                                _context3.next = 2;
+                                                return regeneratorRuntime.awrap(f.task.run(data, false, garbage));
+
+                                            case 2:
+                                                return _context3.abrupt("return", _context3.sent);
+
+                                            case 3:
+                                            case "end":
+                                                return _context3.stop();
+                                        }
+                                    }
+                                }, null, _this2);
+                            })));
+
+                        case 10:
+
+                            if (needReset) garbage.map(function (t) {
+                                return t.reset();
+                            });
+
+                        case 11:
+                        case "end":
+                            return _context4.stop();
                     }
-                });
-            });
-
-            if (!this.outputData) {
-                this.outputData = this.action(inputs, data);
-
-                this.next.filter(function (f) {
-                    return !_this2.closed.includes(f.index);
-                }).forEach(function (f) {
-                    return f.task.run();
-                });
-            }
+                }
+            }, null, this);
         }
     }, {
         key: "option",
