@@ -45,6 +45,7 @@ import org.structr.core.entity.TestFive;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -713,6 +714,31 @@ public class SystemTest extends StructrTest {
 			logger.warn("", fex);
 		}
 	}
+
+	@Test
+	public void testDeletionCallback() {
+
+		/**
+		 * This test concurrently creates 1000 nodes in
+		 * batches of 10, with 10 threads simultaneously.
+		 */
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode deleteTestNode = app.create(SchemaNode.class, "DeleteTest");
+			final SchemaMethod onDelete     = app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name, "onDelete"),
+				new NodeAttribute<>(SchemaMethod.schemaNode, deleteTestNode),
+				new NodeAttribute<>(SchemaMethod.source, "log('deleted')")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail("Error creating schema node");
+		}
+	}
+
 
 	private static class TestRunner implements Runnable {
 
