@@ -33,34 +33,40 @@ export class FlowStore extends FlowNode {
 
                 let operation = new D3NE.Control('<select class="control-select"><option value="store">Store</option><option value="retrieve">Retrieve</option></select>', (element, control) =>{
 
-                    if(scopedDbNode !== undefined && scopedDbNode.operation !== undefined) {
+                    if(scopedDbNode !== undefined && scopedDbNode.operation !== undefined && scopedDbNode.operation !== null) {
 
                         for (let option of element.getElementsByTagName("option")) {
                             if (option.getAttribute("value") === scopedDbNode.operation) {
                                 option.setAttribute("selected", "selected");
                             }
                         }
-                        element.value = scopedDbNode.operation;
-                    }
 
-                    control.putData('operation',element.value);
+                        if (scopedDbNode.operation !== null && scopedDbNode.operation !== undefined) {
+                            element.value = scopedDbNode.operation;
+                            control.putData('operation',element.value);
+                        }
+
+                    } else {
+                        // Otherwise set 'store' as default operation
+                        scopedDbNode.operation = 'store';
+                        control.putData('operation','store');
+                    }
 
                     control.id = "operation";
                     control.name = "Operation";
 
                     element.addEventListener('change', ()=>{
                         control.putData('operation',element.value);
-                        node.dbNode.operation = element.value;
+                        node.data.dbNode.operation = element.value;
                     });
                 });
 
                 let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
 
-                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined) {
+                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined && scopedDbNode.key !== null) {
                         element.setAttribute("value",scopedDbNode.key);
+                        control.putData('key',element.value);
                     }
-
-                    control.putData('key',element.value);
 
                     control.id = "key";
                     control.name = "Key";

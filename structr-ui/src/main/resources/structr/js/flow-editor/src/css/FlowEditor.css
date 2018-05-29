@@ -242,7 +242,7 @@ html, body {
     .context-menu .item:last-child {
       border-radius: 0 0 7px 7px; }
     .context-menu .item:hover {
-      background-color: rgba(45, 45, 45, 0.7); }
+      background-color: rgba(73, 73, 73, 0.7); }
 
 .modal {
   display: none;
@@ -265,8 +265,9 @@ html, body {
   .modal .close {
     color: #aaa;
     float: right;
-    font-size: 28px;
-    font-weight: bold; }
+    font-size: 40px;
+    font-weight: bold;
+    margin-left: 10px; }
     .modal .close:hover {
       text-decoration: none;
       cursor: pointer; }

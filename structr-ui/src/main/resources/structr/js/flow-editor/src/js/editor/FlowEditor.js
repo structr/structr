@@ -27,7 +27,7 @@ import {CodeModal} from "./CodeModal.js";
 export class FlowEditor {
 
     constructor(rootElement, flowContainer) {
-                
+
         this._editorId = 'structr-flow-editor@0.1.0';
 
         this._flowContainer = flowContainer;
@@ -35,7 +35,6 @@ export class FlowEditor {
         this.flowNodes = [];
 
         this._setupEditor();
-        this._setupEngine();
 
         document.addEventListener('openeditor', e => {
             new CodeModal(e.detail.element);
@@ -45,8 +44,6 @@ export class FlowEditor {
 
     _setupEditor() {
         this._editor = new D3NE.NodeEditor(this._editorId, this._rootElement, this._getComponents(), this._getMenu());
-
-        this._overrideContextMenu();
 
         this._editor.eventListener.on('connectioncreate', (data) =>{
             this._connectionCreationHandler(data.input, data.output);
@@ -104,16 +101,6 @@ export class FlowEditor {
     _nodeDeletionHandler(node) {
         let persistence = new Persistence();
         persistence.deleteNode(node.data.dbNode);
-    }
-
-
-    _setupEngine() {
-        this._engine = new D3NE.Engine(this._editorId, this._getComponents());
-
-        this._editor.eventListener.on('change', async () => {
-            await this._engine.abort();
-            let status = await this._engine.process(this._editor.toJSON());
-        });
     }
 
     _getFlowClasses() {
@@ -212,40 +199,55 @@ export class FlowEditor {
 
     }
 
-    _overrideContextMenu() {
-        let view = this._editor.view;
 
-        let al = alight.makeInstance();
+    // Hack to replace the default D3NE context menu for nodes
+    _overrideContextMenu(element) {
         let self = this;
 
-        al.directives.al.node = function(scope, element, expression, env) {
-            let items = {
-                'Remove node': () => {
-                    this.editor.removeNode(element);
-                },
-                'Set as start node': () => {
-                    element.data.dbNode.isStartNodeOfContainer = self._flowContainer;
-                }
-            };
+        window.setTimeout( ()=> {
+            d3.select(element.editorNode.el).on('contextmenu', null);
 
-            var onClick = (subitem) => {
-                subitem.call(this);
-                this.contextMenu.hide();
+            var items = {};
+
+            const viableStartNodeTypes = [
+                'FlowAction',
+                'FlowCall',
+                'FlowDecision',
+                'FlowForEach',
+                'FlowReturn',
+                'FlowStore'
+            ];
+
+            if ( viableStartNodeTypes.filter( t => t === element.type).map( r => r > 0 ? true : false) ) {
+                items['Set as start node'] = function SetAsStartNode() {
+                    element.dbNode.isStartNodeOfContainer = self._flowContainer.id;
+
+                };
             }
 
-            d3.select(element).on('contextmenu', null);
+            items['Remove node'] = function RemoveNode() {
+                self._editor.removeNode(element.editorNode);
+            };
 
-            d3.select(element).on('contextmenu', () => {
-                if (this.editor.readOnly) return;
+
+            var onClick = function onClick(subitem) {
+                subitem.call(self);
+                self._editor.view.contextMenu.hide();
+            };
+
+            d3.select(element.editorNode.el).on('contextmenu', () => {
+                if (self._editor.readOnly) return;
 
                 var x = d3.event.clientX;
                 var y = d3.event.clientY;
 
-                self._editor.selectNode(node);
-                view.contextMenu.show(x, y, items, false, onClick);
+                self._editor.selectNode(element.editorNode);
+                self._editor.view.contextMenu.show(x, y, items, false, onClick);
                 d3.event.preventDefault();
             });
-        }
+
+        }, 100);
+
     }
 
     saveLayout() {
@@ -373,6 +375,8 @@ export class FlowEditor {
         let component = fNode.getComponent();
         let editorNode = component.builder(component.newNode());
         fNode.editorNode = editorNode;
+
+        this._overrideContextMenu(fNode);
 
         this._editor.addNode(editorNode);
 

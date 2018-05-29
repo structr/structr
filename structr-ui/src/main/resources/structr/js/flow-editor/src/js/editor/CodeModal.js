@@ -48,7 +48,12 @@ export class CodeModal {
 
         editor.setOption("theme", "darcula");
 
+        // Write changes on blur/exit
         editor.on('blur', ()=>{element.value = editor.getValue();element.dispatchEvent(new Event('change'))});
+
+        // Focus editor and move cursor to end of last line
+        editor.focus();
+        editor.setCursor(editor.lineCount(), 0);
 
     }
 

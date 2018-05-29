@@ -58,7 +58,7 @@ export class FlowReturn extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->

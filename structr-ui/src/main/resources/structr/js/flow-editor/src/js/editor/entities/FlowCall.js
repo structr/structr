@@ -33,9 +33,9 @@ export class FlowCall extends FlowNode {
 
                     let persistence = new Persistence();
                     persistence.getNodesByClass(new FlowContainer()).then(result => {
-
+                        
                         for (let container of result) {
-                            if (result.id !== scopedDbNode.flowContainer.id) {
+                            if (container.id !== scopedDbNode.flowContainer.id) {
                                 let option = document.createElement("option");
                                 option.text = container.name;
                                 option.value = container.id;
@@ -49,10 +49,6 @@ export class FlowCall extends FlowNode {
                         }
 
                     });
-
-                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
-                        element.value = scopedDbNode.script;
-                    }
 
                     control.putData('flow',element.value);
                     control.putData('dbNode', scopedDbNode);
@@ -80,7 +76,7 @@ export class FlowCall extends FlowNode {
 
     static _nodeTemplate() {
         return `
-            <div class="title {{isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
+            <div class="title {{node.isStartNode ? 'startNode' : ''}}">{{node.title}}</div>
                 <content>
                     <column al-if="node.controls.length&gt;0 || node.inputs.length&gt;0">
                         <!-- Inputs-->
