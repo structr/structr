@@ -304,6 +304,7 @@ html, body {
   padding: 10px;
   margin-top: -20px; }
   .context-menu > .item {
+    border: 1px solid white;
     margin-left: -80%; }
     .context-menu > .item .subitems {
       position: absolute;
@@ -324,7 +325,7 @@ html, body {
         top: 5px; }
   .context-menu .item {
     padding: 4px;
-    border-bottom: 1px solid rgba(15, 15, 15, 0.7);
+    border: 1px solid #363636;
     color: #fff;
     background-color: rgba(35, 35, 35, 0.7);
     cursor: pointer;
