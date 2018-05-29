@@ -33,7 +33,7 @@ export class FlowCall extends FlowNode {
 
                     let persistence = new Persistence();
                     persistence.getNodesByClass(new FlowContainer()).then(result => {
-                        
+
                         for (let container of result) {
                             if (container.id !== scopedDbNode.flowContainer.id) {
                                 let option = document.createElement("option");
