@@ -136,6 +136,7 @@ import org.structr.core.function.RoundFunction;
 import org.structr.core.function.SearchFunction;
 import org.structr.core.function.ServerLogFunction;
 import org.structr.core.function.SetFunction;
+import org.structr.core.function.SetLocaleFunction;
 import org.structr.core.function.SetPrivilegedFunction;
 import org.structr.core.function.SizeFunction;
 import org.structr.core.function.SortFunction;
@@ -278,6 +279,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "round", new RoundFunction());
 		Functions.put(true, LicenseManager.Community, "max", new MaxFunction());
 		Functions.put(true, LicenseManager.Community, "min", new MinFunction());
+		Functions.put(true, LicenseManager.Community, "set_locale", new SetLocaleFunction());
 		Functions.put(true, LicenseManager.Community, "date_format", new DateFormatFunction());
 		Functions.put(true, LicenseManager.Community, "parse_date", new ParseDateFunction());
 		Functions.put(true, LicenseManager.Community, "to_date", new ToDateFunction());
