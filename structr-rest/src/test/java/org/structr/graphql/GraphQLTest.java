@@ -46,9 +46,11 @@ import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.StructrGraphQLTest;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -1195,6 +1197,185 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 	}
 
+	@Test
+	public void testCompositeQueries() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project     = schema.addType("Project");
+			final JsonObjectType task        = schema.addType("Task");
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+
+			final JsonFunctionProperty p1 = task.addFunctionProperty("projectId");
+			p1.setIndexed(true);
+			p1.setTypeHint("String");
+			p1.setFormat("this.project.id");
+
+			final JsonFunctionProperty p2 = project.addFunctionProperty("taskCount");
+			p2.setIndexed(true);
+			p2.setTypeHint("Int");
+			p2.setFormat("size(this.tasks)");
+
+			final JsonEnumProperty p3 = task.addEnumProperty("status");
+			p3.setIndexed(true);
+			p3.setEnums("open", "closed", "cancelled");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> projects = new LinkedList<>();
+		final List<NodeInterface> tasks    = new LinkedList<>();
+		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+		final EnumProperty statusKey       = (EnumProperty)StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "status");
+		final PropertyKey nameKey          = StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "name");
+
+		;
+
+		try (final Tx tx = app.tx()) {
+
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task0"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task1"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "closed"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task2"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task3"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task4"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "closed"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task5"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task6"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task7"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "closed"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task8"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task9"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+
+			projects.add(app.create(project, "project1"));
+			projects.add(app.create(project, "project2"));
+			projects.add(app.create(project, "project3"));
+			projects.add(app.create(project, "project4"));
+			projects.add(app.create(project, "project5"));
+
+			projects.get(0).setProperty(tasksKey, tasks.subList(0,  2));
+			projects.get(1).setProperty(tasksKey, tasks.subList(2,  4));
+			projects.get(2).setProperty(tasksKey, tasks.subList(4,  6));
+			projects.get(3).setProperty(tasksKey, tasks.subList(6,  8));
+			projects.get(4).setProperty(tasksKey, tasks.subList(8, 10));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project { id, type, name, taskCount, tasks { id, type, name, projectId, status }}}");
+			assertMapPathValueIs(result, "Project.#",                   5);
+			assertMapPathValueIs(result, "Project.0.name",              "project1");
+			assertMapPathValueIs(result, "Project.0.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.0.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.0.tasks.0.name",      "task0");
+			assertMapPathValueIs(result, "Project.0.tasks.0.status",    "open");
+			assertMapPathValueIs(result, "Project.0.tasks.0.projectId", projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Project.0.tasks.1.name",      "task1");
+			assertMapPathValueIs(result, "Project.0.tasks.1.status",    "closed");
+			assertMapPathValueIs(result, "Project.0.tasks.1.projectId", projects.get(0).getUuid());
+
+			assertMapPathValueIs(result, "Project.1.name",              "project2");
+			assertMapPathValueIs(result, "Project.1.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.1.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.1.tasks.0.name",      "task2");
+			assertMapPathValueIs(result, "Project.1.tasks.0.status",    "cancelled");
+			assertMapPathValueIs(result, "Project.1.tasks.0.projectId", projects.get(1).getUuid());
+			assertMapPathValueIs(result, "Project.1.tasks.1.name",      "task3");
+			assertMapPathValueIs(result, "Project.1.tasks.1.status",    "open");
+			assertMapPathValueIs(result, "Project.1.tasks.1.projectId", projects.get(1).getUuid());
+
+			assertMapPathValueIs(result, "Project.2.name",              "project3");
+			assertMapPathValueIs(result, "Project.2.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.2.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.2.tasks.0.name",      "task4");
+			assertMapPathValueIs(result, "Project.2.tasks.0.status",    "closed");
+			assertMapPathValueIs(result, "Project.2.tasks.0.projectId", projects.get(2).getUuid());
+			assertMapPathValueIs(result, "Project.2.tasks.1.name",      "task5");
+			assertMapPathValueIs(result, "Project.2.tasks.1.status",    "cancelled");
+			assertMapPathValueIs(result, "Project.2.tasks.1.projectId", projects.get(2).getUuid());
+
+			assertMapPathValueIs(result, "Project.3.name",              "project4");
+			assertMapPathValueIs(result, "Project.3.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.3.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.3.tasks.0.name",      "task6");
+			assertMapPathValueIs(result, "Project.3.tasks.0.status",    "open");
+			assertMapPathValueIs(result, "Project.3.tasks.0.projectId", projects.get(3).getUuid());
+			assertMapPathValueIs(result, "Project.3.tasks.1.name",      "task7");
+			assertMapPathValueIs(result, "Project.3.tasks.1.status",    "closed");
+			assertMapPathValueIs(result, "Project.3.tasks.1.projectId", projects.get(3).getUuid());
+
+			assertMapPathValueIs(result, "Project.4.name",              "project5");
+			assertMapPathValueIs(result, "Project.4.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.4.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.4.tasks.0.name",      "task8");
+			assertMapPathValueIs(result, "Project.4.tasks.0.status",    "cancelled");
+			assertMapPathValueIs(result, "Project.4.tasks.0.projectId", projects.get(4).getUuid());
+			assertMapPathValueIs(result, "Project.4.tasks.1.name",      "task9");
+			assertMapPathValueIs(result, "Project.4.tasks.1.status",    "open");
+			assertMapPathValueIs(result, "Project.4.tasks.1.projectId", projects.get(4).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\") { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task { id(_equals: \"" + tasks.get(0).getUuid() + "\"), name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", status: { _equals: \"open\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", status: { _equals: \"closed\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", projectId: { _equals: \"" + projects.get(0).getUuid() + "\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", projectId: { _equals: \"" + projects.get(1).getUuid() + "\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              0);
+		}
+	}
 
 	// ----- private methods -----
 	private Map<String, Object> fetchGraphQL(final String query) {

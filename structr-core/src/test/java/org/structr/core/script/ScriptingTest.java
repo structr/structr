@@ -1330,9 +1330,9 @@ public class ScriptingTest extends StructrTest {
 
 			// date_format with locale
 			Locale locale = ctx.getLocale();
-			ctx.setLocale(Locale.US);
+			assertEquals("Invalid set_locale() result", "", Scripting.replaceVariables(ctx, testOne, "${set_locale('us')}"));
 			assertEquals("Invalid date_format() result", "01. Oct 2017", Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
-			ctx.setLocale(Locale.GERMANY);
+			assertEquals("Invalid set_locale() result", "", Scripting.replaceVariables(ctx, testOne, "${set_locale('de')}"));
 			assertEquals("Invalid date_format() result", "01. Okt 2017", Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
 			ctx.setLocale(locale);
 
@@ -1382,7 +1382,7 @@ public class ScriptingTest extends StructrTest {
 
 			// parse_number
 			final Locale oldLocale = ctx.getLocale();
-			ctx.setLocale(Locale.ENGLISH);
+			assertEquals("Invalid set_locale() result", "", Scripting.replaceVariables(ctx, testOne, "${set_locale('en')}"));
 			assertEquals("Invalid parse_number() result", "123.456", Scripting.replaceVariables(ctx, testOne, "${parse_number('123.456')}"));
 			ctx.setLocale(oldLocale);
 
