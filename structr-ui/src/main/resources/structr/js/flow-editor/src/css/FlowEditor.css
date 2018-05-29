@@ -74,22 +74,112 @@ html, body {
         border-style: solid;
         border-width: 4px 0 4px 2.66667px;
         border-color: transparent transparent transparent white; }
-      .node-editor .node .socket:hover {
-        border: 2px solid white; }
-      .node-editor .node .socket.input:hover {
-        background: greenyellow !important; }
-      .node-editor .node .socket.output:hover {
-        background: red !important; }
       .node-editor .node .socket.multiple {
         border-color: yellow; }
+      .node-editor .node .socket:hover {
+        border: 2px solid white; }
       .node-editor .node .socket.input.used {
-        background: greenyellow; }
+        background-color: white; }
       .node-editor .node .socket.input:not(.used) {
-        background: #5a9500; }
+        background-color: #b3b3b3; }
+      .node-editor .node .socket.input:hover {
+        background-color: white; }
+      .node-editor .node .socket.input.dataSource.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.dataSource:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.input.dataSource:hover {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.dataSources.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.dataSources:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.input.dataSources:hover {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.prev.used {
+        background-color: #00e600; }
+      .node-editor .node .socket.input.prev:not(.used) {
+        background-color: #004d00; }
+      .node-editor .node .socket.input.prev:hover {
+        background-color: #00e600; }
+      .node-editor .node .socket.input.condition.used {
+        background-color: red; }
+      .node-editor .node .socket.input.condition:not(.used) {
+        background-color: #660000; }
+      .node-editor .node .socket.input.condition:hover {
+        background-color: red; }
+      .node-editor .node .socket.input.conditions.used {
+        background-color: red; }
+      .node-editor .node .socket.input.conditions:not(.used) {
+        background-color: #660000; }
+      .node-editor .node .socket.input.conditions:hover {
+        background-color: red; }
+      .node-editor .node .socket.input.keyValueSources.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.keyValueSources:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.input.keyValueSources:hover {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.parameters.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.parameters:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.input.parameters:hover {
+        background-color: #6666ff; }
       .node-editor .node .socket.output.used {
-        background: red; }
+        background-color: white; }
       .node-editor .node .socket.output:not(.used) {
-        background: #660000; }
+        background-color: #b3b3b3; }
+      .node-editor .node .socket.output:hover {
+        background-color: white; }
+      .node-editor .node .socket.output.next.used {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.next:not(.used) {
+        background-color: #004d00; }
+      .node-editor .node .socket.output.next:hover {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.trueElement.used {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.trueElement:not(.used) {
+        background-color: #004d00; }
+      .node-editor .node .socket.output.trueElement:hover {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.falseElement.used {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.falseElement:not(.used) {
+        background-color: #004d00; }
+      .node-editor .node .socket.output.falseElement:hover {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.dataTarget.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.output.dataTarget:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.output.dataTarget:hover {
+        background-color: #6666ff; }
+      .node-editor .node .socket.output.result.used {
+        background-color: red; }
+      .node-editor .node .socket.output.result:not(.used) {
+        background-color: #660000; }
+      .node-editor .node .socket.output.result:hover {
+        background-color: red; }
+      .node-editor .node .socket.output.objectDataTarget.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.output.objectDataTarget:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.output.objectDataTarget:hover {
+        background-color: #6666ff; }
+      .node-editor .node .socket.output.loopBody.used {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.loopBody:not(.used) {
+        background-color: #004d00; }
+      .node-editor .node .socket.output.loopBody:hover {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.call.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.output.call:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.output.call:hover {
+        background-color: #6666ff; }
     .node-editor .node .input-title, .node-editor .node .output-title {
       vertical-align: middle;
       color: white;
@@ -120,7 +210,8 @@ html, body {
       font-family: sans-serif;
       font-size: 14px;
       line-height: 16px;
-      min-height: 50px; }
+      min-height: 50px;
+      overflow: hidden; }
     .node-editor .node .control-select {
       vertical-align: middle;
       background: rgba(22, 22, 22, 0.7);
@@ -196,6 +287,8 @@ html, body {
         stroke: red; }
       .node-editor .connections .connection.output-call.input-parameters {
         stroke: #6666ff; }
+      .node-editor .connections .connection.output-loopbody.input-prev {
+        stroke: #00e600; }
   .node-editor select, .node-editor input {
     width: 60px;
     background-color: transparent;
@@ -256,12 +349,17 @@ html, body {
   background-color: rgba(0, 0, 0, 0.4); }
   .modal .modal-content {
     background-color: #363636;
-    margin: 15% auto;
+    margin: 20% auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 80%; }
+    width: 60%;
+    height: 40%; }
     .modal .modal-content .CodeMirror {
-      border: 1px solid #888; }
+      border: 1px solid #888;
+      height: 100%; }
+    .modal .modal-content .cm-tab {
+      border-right: 1px solid rgba(200, 200, 200, 0.2);
+      margin-left: -1px; }
   .modal .close {
     color: #aaa;
     float: right;

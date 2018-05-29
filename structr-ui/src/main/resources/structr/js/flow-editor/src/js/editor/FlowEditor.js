@@ -20,7 +20,7 @@ import {FlowOr} from "./entities/FlowOr.js";
 import {FlowAnd} from "./entities/FlowAnd.js";
 import {FlowForEach} from "./entities/FlowForEach.js";
 import {Rest} from "../rest/Rest.js";
-import {CodeModal} from "./CodeModal.js";
+import {CodeModal} from "./utility/CodeModal.js";
 
 
 
@@ -48,9 +48,20 @@ export class FlowEditor {
         this._editor = new D3NE.NodeEditor(this._editorId, this._rootElement, this._getComponents(), this._getMenu());
 
 
-        // Override default D3NE event bindings
-        d3.select(this._rootElement).on('click', null);
+        window._editor = this._editor;
 
+        // Override default D3NE event bindings
+        /*
+        d3.select(this._rootElement).on('click', () => {
+            console.log(d3.event.target);
+            if (d3.event.target === this._rootElement && !this._editor.view.contextMenu.isVisible()) {
+                d3.event.preventDefault();
+            }
+        });
+        */
+
+
+        /*
         // Bind context menu to right click instead of left click
         this._rootElement.oncontextmenu = event => {
             if (event.target === this._rootElement) {
@@ -58,6 +69,7 @@ export class FlowEditor {
             }
             return false;
         };
+        */
 
 
         this._editor.eventListener.on('connectioncreate', (data) =>{
@@ -73,14 +85,14 @@ export class FlowEditor {
         });
     }
 
-    // Hack to replace the default D3NE context menu for nodes
+    // HACK: replace the default D3NE context menu for nodes
     _overrideContextMenu(element) {
         let self = this;
 
         window.setTimeout( ()=> {
             d3.select(element.editorNode.el).on('contextmenu', null);
 
-            var items = {};
+            let items = {};
 
             const viableStartNodeTypes = [
                 'FlowAction',
@@ -91,10 +103,11 @@ export class FlowEditor {
                 'FlowStore'
             ];
 
-            if ( viableStartNodeTypes.filter( t => t === element.type).map( r => r > 0 ? true : false) ) {
+            if ( viableStartNodeTypes.filter( t => (t===element.dbNode.type) ).length > 0 ) {
                 items['Set as start node'] = function SetAsStartNode() {
                     element.dbNode.isStartNodeOfContainer = self._flowContainer.id;
-
+                    document.querySelector("div.title.startNode").classList.remove("startNode");
+                    element.editorNode.el.querySelector("div.title").classList.add("startNode");
                 };
             }
 
@@ -103,7 +116,7 @@ export class FlowEditor {
             };
 
 
-            var onClick = function onClick(subitem) {
+            let onClick = function onClick(subitem) {
                 subitem.call(self);
                 self._editor.view.contextMenu.hide();
             };
@@ -111,8 +124,8 @@ export class FlowEditor {
             d3.select(element.editorNode.el).on('contextmenu', () => {
                 if (self._editor.readOnly) return;
 
-                var x = d3.event.clientX;
-                var y = d3.event.clientY;
+                let x = d3.event.clientX;
+                let y = d3.event.clientY;
 
                 self._editor.selectNode(element.editorNode);
                 self._editor.view.contextMenu.show(x, y, items, false, onClick);
@@ -212,6 +225,7 @@ export class FlowEditor {
                 let fNode = self.renderNode(node);
                 node.flowContainer = self._flowContainer.id;
                 fNode.editorNode.position = self._editor.view.mouse;
+                self._editor.view.update();
             });
         }
     }

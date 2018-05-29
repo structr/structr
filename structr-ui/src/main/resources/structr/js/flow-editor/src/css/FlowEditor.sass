@@ -23,14 +23,24 @@ $socket-margin: 10px
 $context-menu-round: 7px
 
 //
-$input-color: greenyellow
-$output-color: red
+$socket-base-color: white
 $multiple-color: yellow
 
 $execution-flow-color: lighten(green,20%)
 $condition-flow-color: red
 $data-flow-color: lighten(blue,20%)
 
+// mixins
+@mixin setSocketColor($baseColor)
+  &.used
+    background-color: $baseColor
+  &:not(.used)
+    background-color: darken($baseColor, 30%)
+  &:hover
+    background-color: $baseColor
+
+
+// style
 .node-editor
   background-size: $grid-size $grid-size
   background-image: linear-gradient(to right, $grid-color 1px, transparent 1px), linear-gradient(to bottom, $grid-color 1px, transparent 1px)
@@ -100,22 +110,44 @@ $data-flow-color: lighten(blue,20%)
         border-style: solid
         border-width: $socket-size/4 0 $socket-size/4 $socket-size/6
         border-color: transparent transparent transparent white
-      &:hover
-        border: 2px solid white
-      &.input:hover
-        background: $input-color !important
-      &.output:hover
-        background: $output-color !important
       &.multiple
         border-color: $multiple-color
-      &.input.used
-        background: $input-color
-      &.input:not(.used)
-        background: darken($input-color, 30%)
-      &.output.used
-        background: $output-color
-      &.output:not(.used)
-        background: darken($output-color, 30%)
+      &:hover
+        border: 2px solid white
+      &.input
+        +setSocketColor($socket-base-color)
+        &.dataSource
+          +setSocketColor($data-flow-color)
+        &.dataSources
+          +setSocketColor($data-flow-color)
+        &.prev
+          +setSocketColor($execution-flow-color)
+        &.condition
+          +setSocketColor($condition-flow-color)
+        &.conditions
+          +setSocketColor($condition-flow-color)
+        &.keyValueSources
+          +setSocketColor($data-flow-color)
+        &.parameters
+          +setSocketColor($data-flow-color)
+      &.output
+        +setSocketColor($socket-base-color)
+        &.next
+          +setSocketColor($execution-flow-color)
+        &.trueElement
+          +setSocketColor($execution-flow-color)
+        &.falseElement
+          +setSocketColor($execution-flow-color)
+        &.dataTarget
+          +setSocketColor($data-flow-color)
+        &.result
+          +setSocketColor($condition-flow-color)
+        &.objectDataTarget
+          +setSocketColor($data-flow-color)
+        &.loopBody
+          +setSocketColor($execution-flow-color)
+        &.call
+          +setSocketColor($data-flow-color)
     .input-title,.output-title
       vertical-align: middle
       color: white
@@ -147,6 +179,7 @@ $data-flow-color: lighten(blue,20%)
       font-size: 14px
       line-height: $socket-size
       min-height: 50px
+      overflow: hidden
     .control-select
       vertical-align: middle
       background: $color-active
@@ -216,6 +249,8 @@ $data-flow-color: lighten(blue,20%)
         stroke: $condition-flow-color
       &.output-call.input-parameters
         stroke: $data-flow-color
+      &.output-loopbody.input-prev
+        stroke: $execution-flow-color
 
   select, input
     width: 60px
@@ -279,12 +314,18 @@ $data-flow-color: lighten(blue,20%)
   background-color: rgba(0,0,0,0.4)
   .modal-content
     background-color: $grid-color
-    margin: 15% auto
+    margin: 20% auto
     padding: 20px
     border: 1px solid #888
-    width: 80%
+    width: 60%
+    height: 40%
     .CodeMirror
       border: 1px solid #888
+      height: 100%
+    .cm-tab
+      border-right: 1px solid rgba(200,200,200,0.2)
+      margin-left: -1px
+
   .close
     color: #aaa
     float: right

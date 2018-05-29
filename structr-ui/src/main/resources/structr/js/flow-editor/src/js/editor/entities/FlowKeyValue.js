@@ -20,11 +20,11 @@ export class FlowKeyValue extends FlowNode {
 
                 let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
 
-                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined) {
+                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined && scopedDbNode.key !== null) {
                         element.setAttribute("value",scopedDbNode.key);
+                        control.putData('key',element.value);
                     }
 
-                    control.putData('key',element.value);
                     control.putData('dbNode', scopedDbNode);
 
                     control.id = "key";

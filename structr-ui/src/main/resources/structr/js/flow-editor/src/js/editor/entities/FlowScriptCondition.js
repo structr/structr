@@ -20,11 +20,11 @@ export class FlowScriptCondition extends FlowNode {
 
                 let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
-                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
+                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined && scopedDbNode !== null) {
                         element.value = scopedDbNode.script;
+                        control.putData('script',element.value);
                     }
 
-                    control.putData('script',element.value);
                     control.putData('dbNode', scopedDbNode);
 
                     control.id = "script";

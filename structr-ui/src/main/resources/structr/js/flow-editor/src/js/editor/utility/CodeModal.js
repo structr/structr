@@ -43,7 +43,15 @@ export class CodeModal {
             lineNumbers: true,
             styleActiveLine: true,
             matchBrackets: true,
-            value: element.value
+            indentUnit: 4,
+            indentWithTabs: true,
+            scrollbarStyle: "overlay",
+            value: element.value,
+            extraKeys: {
+                "F11": function(cm) {
+                    cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                }
+            }
         });
 
         editor.setOption("theme", "darcula");
@@ -71,9 +79,20 @@ export class CodeModal {
                 ]
             };
 
-            dep._injectDependencies(depObject).then( () => {
+            dep.injectDependencies(depObject).then( () => {
                 // Inject missing lib that depends on CodeMirror
-               return dep._injectScript("lib/codemirror/javascript/javascript.js");
+                let depObject = {
+                    scripts: [
+                        "lib/codemirror/javascript/javascript.js",
+                        "lib/codemirror/simplescrollbars.js",
+                        "lib/codemirror/fullscreen.js"
+                    ],
+                    stylesheets: [
+                        "lib/codemirror/simplescrollbars.css",
+                        "lib/codemirror/fullscreen.css"
+                    ]
+                };
+               return dep.injectDependencies(depObject);
             }).then( () => {
                 resolve(true);
             });
