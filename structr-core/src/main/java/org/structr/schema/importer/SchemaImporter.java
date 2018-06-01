@@ -383,7 +383,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					// check if there is an existing Structr entity with the same type
 					// and make the dynamic class extend the existing class if yes.
 					final Class existingType = configuration.getNodeEntityClass(type);
-					if (existingType != null) {
+					if (existingType != null && !existingType.getName().equals("org.structr.dynamic." + type)) {
 
 						propertyMap.put(SchemaNode.extendsClass, existingType.getName());
 
