@@ -34,6 +34,8 @@ export class DependencyLoader {
                     script.onload = () => resolve();
                     script.onerror = () => reject('Error while loading script.');
                     document.head.appendChild(script);
+            } else {
+                resolve();
             }
 
         });
@@ -51,6 +53,8 @@ export class DependencyLoader {
                 link.onload = () => resolve();
                 link.onerror = () => reject('Error while loading css.');
                 document.head.appendChild(link);
+            } else {
+                resolve();
             }
 
         });

@@ -8,7 +8,7 @@ export class CodeModal {
                 this._createEditorModal(rootElement);
             });
         } else {
-            console.error("CodeModa: Given rootElement was undefined!");
+            console.error("CodeModal: Given rootElement was undefined!");
         }
     }
 
