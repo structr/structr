@@ -80,7 +80,9 @@ export class FlowEditor {
     _setupEditor() {
         this._editor = new D3NE.NodeEditor(this._editorId, this._rootElement, this._getComponents(), this._getMenu());
 
-        window._editor = this._editor;
+        // Extend the maximum viewport to feature a much larger workspace
+        this._editor.view.setTranslateExtent(-65536, -65536, 65536, 65536);
+        this._editor.view.setScaleExtent(0.01, 1);
 
         // Override default D3NE event bindings
         /*
