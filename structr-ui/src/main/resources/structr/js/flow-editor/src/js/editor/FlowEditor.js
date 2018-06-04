@@ -85,26 +85,20 @@ export class FlowEditor {
         this._editor.view.setScaleExtent(0.01, 1);
 
         // Override default D3NE event bindings
-        /*
         d3.select(this._rootElement).on('click', () => {
-            console.log(d3.event.target);
-            if (d3.event.target === this._rootElement && !this._editor.view.contextMenu.isVisible()) {
+            if (d3.event.target === this._rootElement) {
                 d3.event.preventDefault();
             }
         });
-        */
 
-
-        /*
         // Bind context menu to right click instead of left click
         this._rootElement.oncontextmenu = event => {
             if (event.target === this._rootElement) {
+                this._editor.view.assignContextMenuHandler();
                 this._editor.view.contextMenu.show(event.clientX, event.clientY);
             }
             return false;
         };
-        */
-
 
         this._editor.eventListener.on('connectioncreate', (data) =>{
             this._connectionCreationHandler(data.input, data.output);
