@@ -21,6 +21,7 @@ import {FlowAnd} from "./entities/FlowAnd.js";
 import {FlowForEach} from "./entities/FlowForEach.js";
 import {Rest} from "../rest/Rest.js";
 import {CodeModal} from "./utility/CodeModal.js";
+import {DependencyLoader} from "./utility/DependencyLoader.js";
 
 
 
@@ -28,25 +29,56 @@ export class FlowEditor {
 
     constructor(rootElement, flowContainer) {
 
-        this._editorId = 'structr-flow-editor@0.1.0';
+        this._initializationPromise = new Promise(resolve => {
 
-        this._flowContainer = flowContainer;
-        this._rootElement = rootElement;
-        this.flowNodes = [];
+            this._injectDependencies().then(() => {
 
-        window._rootElement = rootElement;
 
-        this._setupEditor();
+                this._editorId = 'structr-flow-editor@0.1.0';
 
-        document.addEventListener('openeditor', e => {
-            new CodeModal(e.detail.element);
+                this._flowContainer = flowContainer;
+                this._rootElement = rootElement;
+                this.flowNodes = [];
+
+                window._rootElement = rootElement;
+
+                this._setupEditor();
+
+                document.addEventListener('openeditor', e => {
+                    new CodeModal(e.detail.element);
+                });
+
+                resolve();
+
+            });
+
         });
 
     }
 
+
+    doInitialization() {
+        return this._initializationPromise;
+    }
+
+    _injectDependencies() {
+        let dep = new DependencyLoader();
+        let depObject = {
+            scripts: [
+                "lib/d3-node-editor/d3.min.js",
+                "lib/d3-node-editor/alight.min.js"
+            ],
+            stylesheets: [
+                "lib/d3-node-editor/d3-node-editor.css",
+                "css/FlowEditor.css"
+            ]
+        };
+
+        return dep.injectDependencies(depObject).then( () => {return dep.injectScript("lib/d3-node-editor/d3-node-editor.js");})
+    }
+
     _setupEditor() {
         this._editor = new D3NE.NodeEditor(this._editorId, this._rootElement, this._getComponents(), this._getMenu());
-
 
         window._editor = this._editor;
 

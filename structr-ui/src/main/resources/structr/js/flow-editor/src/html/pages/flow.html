@@ -6,21 +6,14 @@
     <script type="module" src="../../js/persistence/Persistence.js"></script>
     <script type="module" src="../../js/editor/entities/FlowContainer.js"></script>
 
-    <script src="./../../lib/d3-node-editor/alight.min.js"></script>
-    <script src="./../../lib/d3-node-editor/d3.min.js"></script>
-    <script src="./../../lib/d3-node-editor/d3-node-editor.js"></script>
-
-    <link href="./../../lib/d3-node-editor/d3-node-editor.css" rel="stylesheet">
-    <link href="./../../css/FlowEditor.css" rel="stylesheet">
 </head>
 <body>
 
     <script type="module">
         import { Persistence } from "../../js/persistence/Persistence.js";
         import { FlowContainer } from "../../js/editor/entities/FlowContainer.js";
-        import {FlowEditor} from "../../js/editor/FlowEditor.js";
-        import {FlowConnectionTypes} from "../../js/editor/FlowConnectionTypes.js";
-
+        import { FlowEditor } from "../../js/editor/FlowEditor.js";
+        import { FlowConnectionTypes } from "../../js/editor/FlowConnectionTypes.js";
 
         let persistence = new Persistence();
         let urlParams = new URLSearchParams(window.location.search);
@@ -32,42 +25,50 @@
 
             const markup = `<div id="nodeEditor" class="node-editor"></div>`;
 
-
             document.body.innerHTML = document.body.innerHTML.concat(markup);
 
             let rootElement = document.querySelector("#nodeEditor");
             let editor = new FlowEditor(rootElement, r[0]);
 
+            editor.doInitialization().then( () => {
 
-            let promises = [];
-            r[0].flowNodes.forEach(node => {
-                promises.push(persistence.getNodesById(node.id).then(n => editor.renderNode(n[0])));
-            });
-            Promise.all(promises).then(() => {
-                for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
+                let promises = [];
+                r[0].flowNodes.forEach(node => {
+                    promises.push(persistence.getNodesById(node.id).then(n => editor.renderNode(n[0])));
+                });
+                Promise.all(promises).then(() => {
+                    for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
 
-                    persistence.getNodesByClass(con).then(relNodes => {
+                        persistence.getNodesByClass(con).then(relNodes => {
 
-                        relNodes.forEach(rel => {
+                            relNodes.forEach(rel => {
 
-                            if(Array.isArray(rel)) {
-                                rel = rel[0];
-                            }
+                                if(Array.isArray(rel)) {
+                                    rel = rel[0];
+                                }
 
-                            if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
-                                editor.connectNodes(rel);
-                            }
+                                if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
+                                    editor.connectNodes(rel);
+                                }
+                            });
                         });
-                    });
 
-                }
+                    }
 
 
-                //ToDo: Find a more sophisticated way of handling the layout trigger
-                var wait = ms => new Promise((r, j)=>setTimeout(r, ms))
-                wait(200).then(() => {editor.applySavedLayout()});
+                    //ToDo: Find a more sophisticated way of handling the layout trigger
+                    var wait = ms => new Promise((r, j)=>setTimeout(r, ms))
+                    wait(200).then(() => {editor.applySavedLayout()});
+
+                });
+
 
             });
+
+
+
+
+
 
         });
 

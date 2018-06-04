@@ -28,24 +28,12 @@ export class DependencyLoader {
         return new Promise((resolve, reject) => {
             let scripts = document.head.querySelectorAll("script");
 
-            let didInject = false;
-
-            for (let script of scripts) {
-                if (script.hasAttribute("src") && script.getAttribute("src").indexOf(src) == -1) {
+            if (Array.prototype.slice.call(scripts).filter(s => s.hasAttribute("src") && s.getAttribute("src").indexOf(src) !== -1).length <= 0) {
                     const script = document.createElement('script');
-                    script.async = true;
                     script.src = this._getBasePath() + src;
-                    script.addEventListener('load', resolve);
-                    script.addEventListener('error', () => reject('Error loading script.'));
-                    script.addEventListener('abort', () => reject('Script loading aborted.'));
+                    script.onload = () => resolve();
+                    script.onerror = () => reject('Error while loading script.');
                     document.head.appendChild(script);
-                    didInject = true;
-                    break;
-                }
-            }
-
-            if (!didInject) {
-                resolve(true);
             }
 
         });
@@ -55,24 +43,14 @@ export class DependencyLoader {
         return new Promise((resolve, reject) => {
             let stylesheets = document.head.querySelectorAll("link");
 
-            let didInject = false;
-
-            for (let style of stylesheets) {
-                if (style.hasAttribute("href") && style.getAttribute("href").indexOf(href) == -1) {
-                    const link = document.createElement('link');
-                    link.rel = "stylesheet";
-                    link.href = this._getBasePath() + href;
-                    link.addEventListener('load', resolve);
-                    link.addEventListener('error', () => reject('Error loading script.'));
-                    link.addEventListener('abort', () => reject('Script loading aborted.'));
-                    document.head.appendChild(link);
-                    didInject = true;
-                    break;
-                }
-            }
-
-            if (!didInject) {
-                resolve(true);
+            if (Array.prototype.slice.call(stylesheets).filter(s => s.hasAttribute("href") && s.getAttribute("href").indexOf(href) !== -1).length <= 0) {
+                const link = document.createElement('link');
+                link.rel = "stylesheet";
+                link.type = "text/css";
+                link.href = this._getBasePath() + href;
+                link.onload = () => resolve();
+                link.onerror = () => reject('Error while loading css.');
+                document.head.appendChild(link);
             }
 
         });
