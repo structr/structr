@@ -32,13 +32,16 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowKeySource;
 import org.structr.flow.impl.rels.FlowValueSource;
+import org.structr.module.api.DeployableEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
-public class FlowKeyValue extends FlowBaseNode implements DataSource {
+public class FlowKeyValue extends FlowBaseNode implements DataSource, DeployableEntity {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
@@ -73,5 +76,16 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("key", this.getProperty(key));
+
+		return result;
 	}
 }

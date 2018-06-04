@@ -18,7 +18,10 @@
  */
 package org.structr.flow.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNode;
@@ -29,11 +32,12 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowConditionCondition;
 import org.structr.flow.impl.rels.FlowConditionDataInput;
 import org.structr.flow.impl.rels.FlowDecisionCondition;
+import org.structr.module.api.DeployableEntity;
 
 /**
  *
  */
-public class FlowNotNull extends FlowCondition implements DataSource {
+public class FlowNotNull extends FlowCondition implements DataSource, DeployableEntity {
 
 	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowConditionDataInput.class);
 	public static final Property<FlowCondition> condition = new EndNode<>("condition", FlowConditionCondition.class);
@@ -59,5 +63,15 @@ public class FlowNotNull extends FlowCondition implements DataSource {
 		}
 
 		return true;
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
 	}
 }

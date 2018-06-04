@@ -33,10 +33,13 @@ import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowCallContainer;
 import org.structr.flow.impl.rels.FlowCallParameter;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.module.api.DeployableEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class FlowCall extends FlowActionNode implements DataSource {
+public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity {
 
 	private static final Logger logger 									= LoggerFactory.getLogger(FlowCall.class);
 
@@ -91,5 +94,15 @@ public class FlowCall extends FlowActionNode implements DataSource {
 			this.execute(context);
 		}
 		return context.getData(getUuid());
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
 	}
 }

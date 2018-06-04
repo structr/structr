@@ -29,13 +29,17 @@ import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.module.api.DeployableEntity;
+import scala.reflect.internal.util.DeprecatedPosition;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
-public class FlowScriptCondition extends FlowCondition implements DataSource {
+public class FlowScriptCondition extends FlowCondition implements DataSource, DeployableEntity {
 
 	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -74,5 +78,16 @@ public class FlowScriptCondition extends FlowCondition implements DataSource {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("script", this.getProperty(script));
+
+		return result;
 	}
 }

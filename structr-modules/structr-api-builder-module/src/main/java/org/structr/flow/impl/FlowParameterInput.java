@@ -28,8 +28,12 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowCallParameter;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.module.api.DeployableEntity;
 
-public class FlowParameterInput extends FlowBaseNode {
+import java.util.HashMap;
+import java.util.Map;
+
+public class FlowParameterInput extends FlowBaseNode implements DeployableEntity {
 
 	public static final Property<FlowCall> call 				= new EndNode<>("call", FlowCallParameter.class);
 	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
@@ -49,5 +53,16 @@ public class FlowParameterInput extends FlowBaseNode {
 			functionContext.setParameter(_key, data);
 		}
 
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("key", this.getProperty(key));
+
+		return result;
 	}
 }

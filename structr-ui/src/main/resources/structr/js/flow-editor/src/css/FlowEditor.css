@@ -302,7 +302,8 @@ html, body {
   top: 0;
   position: absolute;
   padding: 10px;
-  margin-top: -20px; }
+  margin-top: -20px;
+  font-family: sans-serif; }
   .context-menu > .item {
     border: 1px solid white;
     margin-left: -80%; }
@@ -311,7 +312,7 @@ html, body {
       display: none;
       left: 100%;
       top: 0;
-      border-radius: 7px;
+      border-radius: 10px;
       overflow: overlay; }
     .context-menu > .item:hover .subitems {
       display: block; }
@@ -329,12 +330,12 @@ html, body {
     color: #fff;
     background-color: rgba(35, 35, 35, 0.7);
     cursor: pointer;
-    width: 200px;
+    width: 250px;
     position: relative; }
     .context-menu .item:first-child {
-      border-radius: 7px 7px 0 0; }
+      border-radius: 10px 10px 0 0; }
     .context-menu .item:last-child {
-      border-radius: 0 0 7px 7px; }
+      border-radius: 0 0 10px 10px; }
     .context-menu .item:hover {
       background-color: rgba(73, 73, 73, 0.7); }
 

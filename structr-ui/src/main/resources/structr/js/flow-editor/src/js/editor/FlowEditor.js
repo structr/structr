@@ -106,7 +106,10 @@ export class FlowEditor {
             if ( viableStartNodeTypes.filter( t => (t===element.dbNode.type) ).length > 0 ) {
                 items['Set as start node'] = function SetAsStartNode() {
                     element.dbNode.isStartNodeOfContainer = self._flowContainer.id;
-                    document.querySelector("div.title.startNode").classList.remove("startNode");
+                    let oldStartNode = document.querySelector("div.title.startNode");
+                    if (oldStartNode !== undefined && oldStartNode !== null) {
+                        oldStartNode.classList.remove("startNode");
+                    }
                     element.editorNode.el.querySelector("div.title").classList.add("startNode");
                 };
             }

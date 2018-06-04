@@ -19,20 +19,22 @@
 package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.app.App;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.module.api.DeployableEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class FlowAction extends FlowActionNode implements DataSource {
+public class FlowAction extends FlowActionNode implements DataSource, DeployableEntity {
 
 	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -73,4 +75,16 @@ public class FlowAction extends FlowActionNode implements DataSource {
 		}
 		return context.getData(getUuid());
 	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("script", this.getProperty(script));
+
+		return result;
+	}
+
 }

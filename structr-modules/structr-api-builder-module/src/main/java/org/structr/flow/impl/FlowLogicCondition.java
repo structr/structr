@@ -18,7 +18,10 @@
  */
 package org.structr.flow.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.Property;
@@ -27,11 +30,12 @@ import static org.structr.flow.impl.FlowAction.script;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowConditionCondition;
+import org.structr.module.api.DeployableEntity;
 
 /**
  *
  */
-public abstract class FlowLogicCondition extends FlowCondition implements DataSource {
+public abstract class FlowLogicCondition extends FlowCondition implements DataSource, DeployableEntity {
 
 	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
 
@@ -55,6 +59,16 @@ public abstract class FlowLogicCondition extends FlowCondition implements DataSo
 
 			result = combine(result, getBoolean(context, _dataSource));
 		}
+
+		return result;
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
 
 		return result;
 	}

@@ -31,13 +31,16 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowForEachBody;
 import org.structr.flow.impl.rels.FlowForEachDataInput;
+import org.structr.module.api.DeployableEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
-public class FlowForEach extends FlowNode implements ForEach, DataSource {
+public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity {
 
 	public static final Property<DataSource> dataSource   	= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<FlowNode> loopBody         = new EndNode<>("loopBody", FlowForEachBody.class);
@@ -61,4 +64,13 @@ public class FlowForEach extends FlowNode implements ForEach, DataSource {
 		return context.getData(getUuid());
 	}
 
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
+	}
 }
