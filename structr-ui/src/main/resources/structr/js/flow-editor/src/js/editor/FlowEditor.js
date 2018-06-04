@@ -87,7 +87,8 @@ export class FlowEditor {
         // Override default D3NE event bindings
         d3.select(this._rootElement).on('click', () => {
             if (d3.event.target === this._rootElement) {
-                d3.event.preventDefault();
+                this._editor.view.pickedOutput = null;
+                this._editor.view.update();
             }
         });
 
