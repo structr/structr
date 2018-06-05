@@ -22,9 +22,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.flow.api.FlowResult;
+import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FlowFunction extends Function<Object, Object> {
 
@@ -36,19 +40,47 @@ public class FlowFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			if (sources[0] instanceof String) {
 
-				final String name             = (String)sources[0];
-				final FlowContainer container = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.name, name).getFirst();
+				final String name                = (String)sources[0];
+				final FlowContainer container    = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.name, name).getFirst();
+				Map<String, Object> parameters   = null;
+
+				if (sources[1] instanceof Map) {
+					parameters = (Map)sources[1];
+				}
+
 
 				if (container != null) {
 
 					final FlowNode node = container.getProperty(FlowContainer.startNode);
 					if (node != null) {
 
-						final FlowEngine engine = new FlowEngine(caller instanceof GraphObject ? (GraphObject)caller : null);
+						final Context context = new Context(caller instanceof GraphObject ? (GraphObject)caller : null);
+
+						// Inject given parameter object into context
+						if (parameters != null) {
+
+							for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+								context.setParameter(entry.getKey(), entry.getValue());
+							}
+
+						} else {
+
+							// If parameters are given in key,value format e.g. from StructrScript
+							if (sources.length % 2 != 0) {
+
+								for (int c = 1; c < sources.length; c += 2) {
+									context.setParameter(sources[c].toString(), sources[c + 1]);
+								}
+
+							}
+
+						}
+
+						final FlowEngine engine = new FlowEngine(context);
 						final FlowResult result = engine.execute(node);
 
 						return result.getResult();
