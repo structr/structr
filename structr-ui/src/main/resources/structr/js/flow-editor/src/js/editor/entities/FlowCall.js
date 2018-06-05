@@ -29,7 +29,7 @@ export class FlowCall extends FlowNode {
                 }
 
                 // Add select box and render all FlowContainer as Call options
-                let call = new D3NE.Control('<select class="control-select">', (element, control) =>{
+                let call = new D3NE.Control('<select class="control-select"><option disabled selected>None</option></select>', (element, control) =>{
 
                     let persistence = new Persistence();
                     persistence.getNodesByClass(new FlowContainer()).then(result => {

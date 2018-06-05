@@ -28,7 +28,7 @@
             document.body.innerHTML = document.body.innerHTML.concat(markup);
 
             let rootElement = document.querySelector("#nodeEditor");
-            
+
             let editor = new FlowEditor(rootElement, r[0]);
 
             editor.waitForInitialization().then( () => {
