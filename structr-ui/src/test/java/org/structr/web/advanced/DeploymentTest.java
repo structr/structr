@@ -1939,6 +1939,33 @@ public class DeploymentTest extends StructrUiTest {
 		compare(calculateHash(), true);
 	}
 
+	@Test
+	public void test41CustomAttributes() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test41");
+			final Html html = createElement(page, page, "html");
+			final Head head = createElement(page, html, "head");
+			createElement(page, head, "title", "test41");
+
+			final Body body       = createElement(page, html, "body");
+			final Div div1        = createElement(page, body, "div");
+
+			div1.setProperty(new StringProperty("_custom_html_aria-expanded"), "true");
+			div1.setProperty(new StringProperty("_custom_html_aria-controls"), "#test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
 	// ----- private methods -----
 	private void compare(final String sourceHash, final boolean deleteTestDirectory) {
 		compare(sourceHash, deleteTestDirectory, true);

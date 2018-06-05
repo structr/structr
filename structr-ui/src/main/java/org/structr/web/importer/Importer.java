@@ -93,6 +93,7 @@ import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Input;
 import org.structr.web.maintenance.DeployCommand;
+import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 
 /**
@@ -920,15 +921,29 @@ public class Importer {
 
 							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive && !isDeployment) {
 
-								newNodeProperties.put(new StringProperty(PropertyView.Html.concat(key)), "${link.path}?${link.version}");
+								newNodeProperties.put(new StringProperty(PropertyView.Html + key), "${link.path}?${link.version}");
 
 							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib && !isDeployment) {
 
-								newNodeProperties.put(new StringProperty(PropertyView.Html.concat(key)), "${link.path}");
+								newNodeProperties.put(new StringProperty(PropertyView.Html + key), "${link.path}");
 
 							} else {
 
-								newNodeProperties.put(new StringProperty(PropertyView.Html.concat(key)), value);
+								// try to find property key for attribute and use custom prefix if none exists
+								final String htmlName         = PropertyView.Html + key;
+								final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, htmlName, false);
+
+								if (propertyKey != null) {
+
+									// use existing key
+									newNodeProperties.put(propertyKey, value);
+
+								} else if (!("src".equals(key) && isDeployment)) {
+
+									// use custom key
+									newNodeProperties.put(new StringProperty(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX + key), value);
+								}
+
 							}
 
 						}

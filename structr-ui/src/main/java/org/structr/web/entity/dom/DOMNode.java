@@ -1394,7 +1394,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (key.startsWith("data-")) {
 
-				if (propertyKey != null && propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
+				if (propertyKey instanceof BooleanProperty && dbNode.hasProperty(key)) {
 
 					final Object defaultValue = propertyKey.defaultValue();
 					final Object nodeValue    = dbNode.getProperty(key);
