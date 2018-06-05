@@ -103,7 +103,12 @@ export class FlowEditor {
         };
 
         this._editor.eventListener.on('connectioncreate', (data) =>{
-            this._connectionCreationHandler(data.input, data.output);
+            try {
+                this._connectionCreationHandler(data.input, data.output);
+            } catch (e) {
+                this._editor.eventListener.trigger('error',e);
+                return false;
+            }
         });
 
         this._editor.eventListener.on('connectionremove', (data) =>{
@@ -171,6 +176,11 @@ export class FlowEditor {
     }
 
     _connectionCreationHandler(input, output) {
+
+        if (input.node.id === output.node.id) {
+            this._editor.view.pickedOutput = null;
+            throw new TypeError("Cannot connect a node to itself. Cancelling connection creation.");
+        }
 
         if(input.node.data.dbNode !== undefined && output.node.data.dbNode !== undefined) {
             try {

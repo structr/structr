@@ -26,13 +26,9 @@ import java.util.Map;
 import org.structr.core.GraphObject;
 import org.structr.flow.api.FlowResult;
 
-/**
- *
- */
 public class FlowEngine {
-
-	private final Map<FlowType, FlowHandler> handlers = new EnumMap<>(FlowType.class);
-	private Context context                           = null;
+	private final Map<FlowType, FlowHandler> handlers 	= new EnumMap<>(FlowType.class);
+	private Context context                           	= null;
 
 	public FlowEngine() {
 		this((GraphObject)null);
@@ -62,7 +58,19 @@ public class FlowEngine {
 			final FlowHandler handler = handlers.get(current.getFlowType());
 			if (handler != null) {
 
-				current = handler.handle(context, current);
+				FlowElement next = handler.handle(context, current);
+
+				if (next != null) {
+
+					if (next.equals(current)) {
+
+						context.error(new FlowError("FlowElement is connected to itself. Cancelling execution to prevent unlimited recursion."));
+						
+					}
+
+				}
+
+				current = next;
 
 			} else {
 
