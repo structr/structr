@@ -16,17 +16,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.impl.rels;
 
-/**
- *
- */
-public enum FlowType {
+import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.Relation;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.impl.FlowAggregate;
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation
+public class FlowAggregateStartValue extends OneToMany<DataSource, FlowAggregate> {
+
+	@Override
+	public Class<DataSource> getSourceType() {
+		return DataSource.class;
+	}
+
+	@Override
+	public Class<FlowAggregate> getTargetType() {
+		return FlowAggregate.class;
+	}
+
+	@Override
+	public String name() {
+		return "START_VALUE";
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
+	}
 }

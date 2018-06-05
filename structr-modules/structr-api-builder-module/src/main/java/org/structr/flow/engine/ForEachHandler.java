@@ -45,6 +45,8 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 				Context loopContext = new Context(context.getThisObject());
 
+				copyStoreContent(context,loopContext);
+
 				if (data instanceof Collection) {
 
 					for (final Object o : ((Collection) data)) {
@@ -62,10 +64,23 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 				}
 
+				copyStoreContent(loopContext,context);
+
 			}
 
 		}
 
 		return flowElement.next();
 	}
+
+	private void copyStoreContent(Context from, Context to) {
+
+		for (String key : from.getStoreKeySet()) {
+
+			to.putIntoStore(key, from.retrieveFromStore(key));
+
+		}
+
+	}
+
 }

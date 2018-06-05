@@ -18,15 +18,14 @@
  */
 package org.structr.flow.api;
 
-/**
- *
- */
-public enum FlowType {
+import org.structr.flow.engine.Context;
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation
+public interface Aggregation extends FlowElement {
+
+	void aggregate(final Context context);
+
+	@Override
+	default FlowType getFlowType() {
+		return FlowType.Aggregation;
+	}
 }

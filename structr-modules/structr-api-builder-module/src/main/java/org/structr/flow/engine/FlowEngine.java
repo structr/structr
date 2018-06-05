@@ -81,10 +81,11 @@ public class FlowEngine {
 	// ----- private methods -----
 	private void init() {
 
-		handlers.put(FlowType.Action,   new ActionHandler());
-		handlers.put(FlowType.Decision, new DecisionHandler());
-		handlers.put(FlowType.Return,   new ReturnHandler());
-		handlers.put(FlowType.ForEach,  new ForEachHandler());
-		handlers.put(FlowType.Store, 	new StoreHandler());
+		handlers.put(FlowType.Action,   	new ActionHandler());
+		handlers.put(FlowType.Decision, 	new DecisionHandler());
+		handlers.put(FlowType.Return,   	new ReturnHandler());
+		handlers.put(FlowType.ForEach,  	new ForEachHandler());
+		handlers.put(FlowType.Store, 		new StoreHandler());
+		handlers.put(FlowType.Aggregation,  new AggregationHandler());
 	}
 }

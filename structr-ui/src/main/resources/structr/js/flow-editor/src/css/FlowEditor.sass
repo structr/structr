@@ -27,7 +27,7 @@ $socket-base-color: white
 $multiple-color: yellow
 
 $execution-flow-color: lighten(green,20%)
-$condition-flow-color: red
+$condition-flow-color: orange
 $data-flow-color: lighten(blue,20%)
 
 // mixins
@@ -129,6 +129,8 @@ $data-flow-color: lighten(blue,20%)
         &.keyValueSources
           +setSocketColor($data-flow-color)
         &.parameters
+          +setSocketColor($data-flow-color)
+        &.startValue
           +setSocketColor($data-flow-color)
       &.output
         +setSocketColor($socket-base-color)

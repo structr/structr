@@ -22,6 +22,7 @@ import {FlowForEach} from "./entities/FlowForEach.js";
 import {Rest} from "../rest/Rest.js";
 import {CodeModal} from "./utility/CodeModal.js";
 import {DependencyLoader} from "./utility/DependencyLoader.js";
+import {FlowAggregate} from "./entities/FlowAggregate.js";
 
 
 
@@ -129,7 +130,8 @@ export class FlowEditor {
                 'FlowDecision',
                 'FlowForEach',
                 'FlowReturn',
-                'FlowStore'
+                'FlowStore',
+                'FlowAggregate'
             ];
 
             if ( viableStartNodeTypes.filter( t => (t===element.dbNode.type) ).length > 0 ) {
@@ -231,7 +233,8 @@ export class FlowEditor {
             new FlowNot(),
             new FlowOr(),
             new FlowAnd(),
-            new FlowForEach()
+            new FlowForEach(),
+            new FlowAggregate()
         ];
     }
 
@@ -282,6 +285,7 @@ export class FlowEditor {
                 'FlowStore' : self._getNodeCreationFunction("FlowStore"),
                 'FlowScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition"),
                 'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
+                'FlowAggregate' : self._getNodeCreationFunction("FlowAggregate"),
                 'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
             },
             'Actions': {
@@ -425,6 +429,9 @@ export class FlowEditor {
                 break;
             case 'FlowForEach':
                 fNode = new FlowForEach(node, this);
+                break;
+            case 'FlowAggregate':
+                fNode = new FlowAggregate(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

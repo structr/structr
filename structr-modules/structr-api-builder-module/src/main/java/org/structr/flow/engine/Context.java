@@ -21,6 +21,7 @@ package org.structr.flow.engine;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -36,6 +37,7 @@ public class Context {
 	private Map<String,Object> data  		= new HashMap<>();
 	private Map<String,Object> store 		= new HashMap<>();
 	private Map<String,Object> parameters 	= new HashMap<>();
+	private Map<String,Object> aggregations = new HashMap<>();
 	private GraphObject thisObject   		= null;
 	private Object result            		= null;
 	private FlowError error          		= null;
@@ -103,8 +105,14 @@ public class Context {
 		return store.get(key);
 	}
 
-	public void putIntoStore(final String key, final Object value) {
-		store.put(key,value);
+	public void setAggregation(final String key, final Object value) { this.aggregations.put(key, value); }
+
+	public Object getAggregation(final String key) { return this.aggregations.get(key); }
+
+	public void putIntoStore(final String key, final Object value) { store.put(key,value); }
+
+	public Set<String> getStoreKeySet() {
+		return this.store.keySet();
 	}
 
 	public ActionContext getActionContext(final SecurityContext securityContext, final FlowBaseNode node) {
@@ -112,6 +120,10 @@ public class Context {
 		if(this.data.get(node.getUuid()) != null) {
 			ctx.setConstant("data", this.data.get(node.getUuid()));
 		}
+		if(this.aggregations.get(node.getUuid()) != null) {
+			ctx.setConstant("aggregation", this.aggregations.get(node.getUuid()));
+		}
 		return ctx;
 	}
+
 }

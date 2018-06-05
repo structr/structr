@@ -63,6 +63,12 @@ export class FlowConnectionTypes {
                 sourceAttribute: "loopBody",
                 targetAttribute: "prev",
                 type: "FlowForEachBody"
+            },
+            FlowAggregateStartValue: {
+                name: "START_VALUE",
+                sourceAttribute: "dataTarget",
+                targetAttribute: "startValue",
+                type: "FlowAggregateStartValue"
             }
 
         };

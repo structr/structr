@@ -16,17 +16,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.engine;
 
-/**
- *
- */
-public enum FlowType {
+import org.structr.flow.api.Aggregation;
+import org.structr.flow.api.FlowHandler;
+import org.structr.flow.api.FlowElement;
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation
+public class AggregationHandler implements FlowHandler<Aggregation> {
+
+	@Override
+	public FlowElement handle(Context context, Aggregation flowElement) {
+
+		flowElement.aggregate(context);
+		return flowElement.next();
+
+	}
 }

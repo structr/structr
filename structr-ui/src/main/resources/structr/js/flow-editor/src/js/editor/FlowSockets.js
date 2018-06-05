@@ -53,6 +53,10 @@ export class FlowSockets {
         loopBody.combineWith(this._sockets['prev']);
         this._sockets['loopBody'] = loopBody;
 
+        let startValue = new D3NE.Socket('startValue', 'Start value', 'Connected data source provides a start value for the element to work with.');
+        this._sockets['dataTarget'].combineWith(startValue);
+        this._sockets['startValue'] = startValue;
+
     }
 
     static getInst() {
