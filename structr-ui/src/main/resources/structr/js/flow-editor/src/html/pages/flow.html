@@ -30,7 +30,7 @@
             let rootElement = document.querySelector("#nodeEditor");
             let editor = new FlowEditor(rootElement, r[0]);
 
-            editor.doInitialization().then( () => {
+            editor.waitForInitialization().then( () => {
 
                 let promises = [];
 
@@ -54,13 +54,13 @@
                                 }
 
                             });
-                            
+
                         });
 
                     }
 
                     //ToDo: Find a more sophisticated way of handling the layout trigger
-                    var wait = ms => new Promise((r, j)=>setTimeout(r, ms));
+                    let wait = ms => new Promise((r, j)=>setTimeout(r, ms));
                     wait(200).then(() => {editor.applySavedLayout()});
 
                 });

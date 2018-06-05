@@ -42,8 +42,9 @@ import java.util.Map;
  */
 public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity {
 
-	public static final Property<DataSource> dataSource   	= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<FlowNode> loopBody         = new EndNode<>("loopBody", FlowForEachBody.class);
+	public static final Property<DataSource> dataSource   	    = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowNode> loopBody         	= new EndNode<>("loopBody", FlowForEachBody.class);
 
 	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer);
 	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer);

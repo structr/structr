@@ -57,7 +57,7 @@ export class FlowEditor {
     }
 
 
-    doInitialization() {
+    waitForInitialization() {
         return this._initializationPromise;
     }
 

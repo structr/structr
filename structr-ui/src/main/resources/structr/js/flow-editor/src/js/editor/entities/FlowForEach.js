@@ -18,6 +18,7 @@ export class FlowForEach extends FlowNode {
                 let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
+                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'));
                 let forEachBody = new D3NE.Output('ForEachBody', socket.getSocket('loopBody'));
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
@@ -32,7 +33,8 @@ export class FlowForEach extends FlowNode {
                     .addInput(dataSource)
                     .addInput(prev)
                     .addOutput(next)
-                    .addOutput(forEachBody);
+                    .addOutput(forEachBody)
+                    .addOutput(dataTarget);
             },
             worker(node, inputs, outputs) {
             }

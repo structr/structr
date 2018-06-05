@@ -49,16 +49,16 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 					for (final Object o : ((Collection) data)) {
 
-						loopContext.setData(loopBody.getUuid(), o);
-						// ignore sub result for now..
-						engine.execute(loopContext, loopBody);
+						// Provide current element data for loop context and write evaluation result into main context data for this loop element
+						loopContext.setData(flowElement.getUuid(), o);
+						context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
 					}
 
 				} else {
 
-					loopContext.setData(loopBody.getUuid(), data);
-					// ignore sub result for now..
-					engine.execute(loopContext, loopBody);
+					// Provide current element data for loop context and write evaluation result into main context data for this loop element
+					loopContext.setData(flowElement.getUuid(), data);
+					context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
 
 				}
 
