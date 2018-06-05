@@ -929,26 +929,18 @@ public class Importer {
 
 							} else {
 
-								// try to find property key for attribute and use custom prefix if none exists
-								final String htmlName         = PropertyView.Html + key;
-								final PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(newNodeType, htmlName, false);
-
-								if (propertyKey != null) {
-
-									// use existing key
-									newNodeProperties.put(propertyKey, value);
-
-								} else if (!("src".equals(key) && isDeployment)) {
+								if (key.startsWith("aria-")) {
 
 									// use custom key
 									newNodeProperties.put(new StringProperty(CustomHtmlAttributeProperty.CUSTOM_HTML_ATTRIBUTE_PREFIX + key), value);
+
+								} else {
+
+									newNodeProperties.put(new StringProperty(PropertyView.Html + key), value);
 								}
-
 							}
-
 						}
 					}
-
 				}
 
 				// bulk set properties on new node
