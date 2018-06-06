@@ -295,6 +295,8 @@ html, body {
         stroke: #6666ff; }
       .node-editor .connections .connection.output-loopbody.input-prev {
         stroke: #00e600; }
+      .node-editor .connections .connection.output-datatarget.input-startvalue {
+        stroke: #6666ff; }
   .node-editor select, .node-editor input {
     width: 60px;
     background-color: transparent;
