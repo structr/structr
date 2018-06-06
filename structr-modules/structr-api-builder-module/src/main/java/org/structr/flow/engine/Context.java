@@ -19,14 +19,12 @@
 package org.structr.flow.engine;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.flow.impl.FlowBaseNode;
-import org.structr.flow.impl.FlowNode;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -34,16 +32,21 @@ import org.structr.schema.action.ActionContext;
  */
 public class Context {
 
-	private Map<String,Object> data  		= new HashMap<>();
-	private Map<String,Object> store 		= new HashMap<>();
-	private Map<String,Object> parameters 	= new HashMap<>();
-	private Map<String,Object> aggregations = new HashMap<>();
-	private GraphObject thisObject   		= null;
-	private Object result            		= null;
-	private FlowError error          		= null;
+	private Map<String,Object> data  			= new HashMap<>();
+	private Map<String,Object> store 			= new HashMap<>();
+	private Map<String,Object> parameters 		= new HashMap<>();
+	private Map<String,Object> loopData 		= new HashMap<>();
+	private GraphObject thisObject   			= null;
+	private Object result            			= null;
+	private FlowError error          			= null;
 
-	public Context() {
-		this(null);
+	public Context() {}
+
+	public Context(final Context context) {
+		this.data = deepCopyMap(context.data);
+		this.store = deepCopyMap(context.store);
+		this.parameters = deepCopyMap(context.parameters);
+		this.loopData = deepCopyMap(context.loopData);
 	}
 
 	public Context(final GraphObject thisObject) {
@@ -105,9 +108,9 @@ public class Context {
 		return store.get(key);
 	}
 
-	public void setAggregation(final String key, final Object value) { this.aggregations.put(key, value); }
+	public void setAggregation(final String key, final Object value) { this.loopData.put(key, value); }
 
-	public Object getAggregation(final String key) { return this.aggregations.get(key); }
+	public Object getAggregation(final String key) { return this.loopData.get(key); }
 
 	public void putIntoStore(final String key, final Object value) { store.put(key,value); }
 
@@ -120,10 +123,25 @@ public class Context {
 		if(this.data.get(node.getUuid()) != null) {
 			ctx.setConstant("data", this.data.get(node.getUuid()));
 		}
-		if(this.aggregations.get(node.getUuid()) != null) {
-			ctx.setConstant("aggregation", this.aggregations.get(node.getUuid()));
+		if(this.loopData.get(node.getUuid()) != null) {
+			ctx.setConstant("loopData", this.loopData.get(node.getUuid()));
 		}
 		return ctx;
+	}
+
+	public void deepCopy(Context context) {
+		this.data = deepCopyMap(context.data);
+		this.store = deepCopyMap(context.store);
+		this.parameters = deepCopyMap(context.store);
+		this.loopData = deepCopyMap(context.loopData);
+	}
+
+	private Map<String, Object> deepCopyMap(Map<String,Object> map) {
+		Map<String,Object> result = new HashMap<>();
+		for(Map.Entry<String, Object> entry : map.entrySet()) {
+			result.put(entry.getKey(),entry.getValue());
+		}
+		return result;
 	}
 
 }

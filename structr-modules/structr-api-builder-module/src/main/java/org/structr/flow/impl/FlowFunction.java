@@ -48,7 +48,7 @@ public class FlowFunction extends Function<Object, Object> {
 				final FlowContainer container    = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.name, name).getFirst();
 				Map<String, Object> parameters   = null;
 
-				if (sources[1] instanceof Map) {
+				if (sources.length > 1 && sources[1] instanceof Map) {
 					parameters = (Map)sources[1];
 				}
 
@@ -70,7 +70,7 @@ public class FlowFunction extends Function<Object, Object> {
 						} else {
 
 							// If parameters are given in key,value format e.g. from StructrScript
-							if (sources.length % 2 != 0) {
+							if (sources.length >= 3 && sources.length % 2 != 0) {
 
 								for (int c = 1; c < sources.length; c += 2) {
 									context.setParameter(sources[c].toString(), sources[c + 1]);

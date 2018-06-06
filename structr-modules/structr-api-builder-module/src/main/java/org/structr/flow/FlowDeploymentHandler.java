@@ -66,7 +66,8 @@ public abstract class FlowDeploymentHandler {
 			FlowReturn.class,
 			FlowScriptCondition.class,
 			FlowStore.class,
-			FlowAggregate.class
+			FlowAggregate.class,
+			FlowConstant.class
 	};
 
 	private static final Class[] relsToExport = {
@@ -88,7 +89,8 @@ public abstract class FlowDeploymentHandler {
 			FlowNodeDataSource.class,
 			FlowNodes.class,
 			FlowValueSource.class,
-			FlowAggregateStartValue.class
+			FlowAggregateStartValue.class,
+			FlowScriptConditionSource.class
 	};
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {

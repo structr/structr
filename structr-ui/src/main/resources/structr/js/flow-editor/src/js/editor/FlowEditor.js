@@ -23,6 +23,7 @@ import {Rest} from "../rest/Rest.js";
 import {CodeModal} from "./utility/CodeModal.js";
 import {DependencyLoader} from "./utility/DependencyLoader.js";
 import {FlowAggregate} from "./entities/FlowAggregate.js";
+import {FlowConstant} from "./entities/FlowConstant.js";
 
 
 
@@ -121,7 +122,7 @@ export class FlowEditor {
 
     }
 
-    _getContextMenuItemsForElement(element) {
+    _getContextMenuItemsForElement(editor, element) {
         let items = {};
 
         const viableStartNodeTypes = [
@@ -136,7 +137,7 @@ export class FlowEditor {
 
         if ( viableStartNodeTypes.filter( t => (t===element.dbNode.type) ).length > 0 ) {
             items['Set as start node'] = function setAsStartNode() {
-                element.dbNode.isStartNodeOfContainer = self._flowContainer.id;
+                element.dbNode.isStartNodeOfContainer = editor._flowContainer.id;
                 let oldStartNode = document.querySelector("div.title.startNode");
                 if (oldStartNode !== undefined && oldStartNode !== null) {
                     oldStartNode.classList.remove("startNode");
@@ -191,7 +192,7 @@ export class FlowEditor {
             let y = d3.event.clientY;
 
             self._editor.selectNode(element.editorNode);
-            self._editor.view.contextMenu.show(x, y, this._getContextMenuItemsForElement(element), false, onClick);
+            self._editor.view.contextMenu.show(x, y, this._getContextMenuItemsForElement(self, element), false, onClick);
             d3.event.preventDefault();
         });
 
@@ -266,7 +267,8 @@ export class FlowEditor {
             new FlowOr(),
             new FlowAnd(),
             new FlowForEach(),
-            new FlowAggregate()
+            new FlowAggregate(),
+            new FlowConstant()
         ];
     }
 
@@ -318,6 +320,7 @@ export class FlowEditor {
                 'FlowScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition"),
                 'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
                 'FlowAggregate' : self._getNodeCreationFunction("FlowAggregate"),
+                'FlowConstant' : self._getNodeCreationFunction("FlowConstant"),
                 'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
             },
             'Actions': {
@@ -464,6 +467,9 @@ export class FlowEditor {
                 break;
             case 'FlowAggregate':
                 fNode = new FlowAggregate(node, this);
+                break;
+            case 'FlowConstant':
+                fNode = new FlowConstant(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

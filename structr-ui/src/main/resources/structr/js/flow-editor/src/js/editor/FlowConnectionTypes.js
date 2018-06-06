@@ -69,6 +69,12 @@ export class FlowConnectionTypes {
                 sourceAttribute: "dataTarget",
                 targetAttribute: "startValue",
                 type: "FlowAggregateStartValue"
+            },
+            FlowScriptConditionSource: {
+                name: "SCRIPT_SOURCE",
+                sourceAttribute: "dataTarget",
+                targetAttribute: "scriptSource",
+                type: "FlowScriptConditionSource"
             }
 
         };

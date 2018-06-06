@@ -132,6 +132,8 @@ $data-flow-color: lighten(blue,20%)
           +setSocketColor($data-flow-color)
         &.startValue
           +setSocketColor($data-flow-color)
+        &.scriptSource
+          +setSocketColor($data-flow-color)
       &.output
         +setSocketColor($socket-base-color)
         &.next
@@ -255,6 +257,9 @@ $data-flow-color: lighten(blue,20%)
         stroke: $execution-flow-color
       &.output-datatarget.input-startvalue
         stroke: $data-flow-color
+      &.output-datatarget.input-scriptsource
+        stroke: $data-flow-color
+
 
   select, input
     width: 60px

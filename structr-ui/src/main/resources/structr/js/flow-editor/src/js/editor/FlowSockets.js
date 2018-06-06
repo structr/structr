@@ -57,6 +57,10 @@ export class FlowSockets {
         this._sockets['dataTarget'].combineWith(startValue);
         this._sockets['startValue'] = startValue;
 
+        let scriptSource = new D3NE.Socket('scriptSource', 'Script Source', 'Connected data source provides this node with a script to evaluate.');
+        this._sockets['dataTarget'].combineWith(scriptSource);
+        this._sockets['scriptSource'] = scriptSource;
+
     }
 
     static getInst() {

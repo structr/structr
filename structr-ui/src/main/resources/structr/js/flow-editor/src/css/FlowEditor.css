@@ -132,6 +132,12 @@ html, body {
         background-color: #0000cc; }
       .node-editor .node .socket.input.startValue:hover {
         background-color: #6666ff; }
+      .node-editor .node .socket.input.scriptSource.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.scriptSource:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.input.scriptSource:hover {
+        background-color: #6666ff; }
       .node-editor .node .socket.output.used {
         background-color: white; }
       .node-editor .node .socket.output:not(.used) {
@@ -296,6 +302,8 @@ html, body {
       .node-editor .connections .connection.output-loopbody.input-prev {
         stroke: #00e600; }
       .node-editor .connections .connection.output-datatarget.input-startvalue {
+        stroke: #6666ff; }
+      .node-editor .connections .connection.output-datatarget.input-scriptsource {
         stroke: #6666ff; }
   .node-editor select, .node-editor input {
     width: 60px;

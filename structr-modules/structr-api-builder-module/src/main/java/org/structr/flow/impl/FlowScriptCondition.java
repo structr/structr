@@ -29,6 +29,7 @@ import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowScriptConditionSource;
 import org.structr.module.api.DeployableEntity;
 import scala.reflect.internal.util.DeprecatedPosition;
 
@@ -36,45 +37,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- */
 public class FlowScriptCondition extends FlowCondition implements DataSource, DeployableEntity {
 
+	public static final Property<DataSource> scriptSource 		= new StartNode<>("scriptSource", FlowScriptConditionSource.class);
 	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> script 				= new StringProperty("script");
 
-	public static final View defaultView = new View(FlowScriptCondition.class, PropertyView.Public, script);
-	public static final View uiView      = new View(FlowScriptCondition.class, PropertyView.Ui,     script);
+	public static final View defaultView = new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget);
+	public static final View uiView      = new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget);
 
 	@Override
 	public Object get(final Context context) {
 
-		Object currentData = context.getData(getUuid());
+		final DataSource _ds = getProperty(dataSource);
+		final DataSource _sc = getProperty(scriptSource);
+		final String _script = getProperty(script);
+		final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
 
-		if (currentData == null) {
-			final DataSource _ds = getProperty(dataSource);
-			final String _script = getProperty(script);
 
-			if (_script != null) {
+		if (_script != null || _dynamicScript != null) {
 
-				if (_ds != null) {
-					context.setData(getUuid(), _ds.get(context));
-				}
-
-				try {
-
-					Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
-					context.setData(getUuid(), result);
-					return result;
-				} catch (FrameworkException fex) {
-
-					fex.printStackTrace();
-				}
+			if (_ds != null) {
+				context.setData(getUuid(), _ds.get(context));
 			}
-		} else {
-			return currentData;
+
+			final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
+
+			try {
+
+				Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript + "}", "FlowDataSource(" + getUuid() + ")");
+				context.setData(getUuid(), result);
+				return result;
+			} catch (FrameworkException fex) {
+
+				fex.printStackTrace();
+			}
 		}
 
 		return null;

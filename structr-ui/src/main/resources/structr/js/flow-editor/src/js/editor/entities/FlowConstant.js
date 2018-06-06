@@ -3,7 +3,7 @@
 import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
 
-export class FlowScriptCondition extends FlowNode {
+export class FlowConstant extends FlowNode {
 
     constructor(node) {
         super(node);
@@ -11,41 +11,37 @@ export class FlowScriptCondition extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowScriptCondition', {
-            template: FlowScriptCondition._nodeTemplate(),
+        return new D3NE.Component('FlowConstant', {
+            template: FlowConstant._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
-                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
-                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('condition_Result'), true);
-                let scriptSource = new D3NE.Input('ScriptSource', socket.getSocket('scriptSource'));
+                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
 
-                let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
+                let value = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
-                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined && scopedDbNode !== null) {
-                        element.value = scopedDbNode.script;
-                        control.putData('script',element.value);
+                    if(scopedDbNode !== undefined && scopedDbNode.value !== undefined) {
+                        element.value = scopedDbNode.value;
                     }
 
+                    control.putData('value',element.value);
                     control.putData('dbNode', scopedDbNode);
 
-                    control.id = "script";
-                    control.name = "Script";
+                    control.id = "value";
+                    control.name = "Value";
 
                     element.addEventListener('focus', ()=> {
                         document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
                     });
 
                     element.addEventListener('change', ()=>{
-                        control.putData('script',element.value);
-                        node.data['dbNode'].script = element.value;
+                        control.putData('value',element.value);
+                        node.data['dbNode'].value = element.value;
                     });
                 });
 
                 return node
-                    .addInput(dataSource)
-                    .addInput(scriptSource)
                     .addOutput(dataTarget)
-                    .addControl(script);
+                    .addControl(value);
             },
             worker(node, inputs, outputs) {
             }
@@ -74,7 +70,6 @@ export class FlowScriptCondition extends FlowNode {
                         </div>
                     </column>
                 </content>
-                <div al-if="node.inputs[1].connections.length==0">
                     <!-- Controls-->
                     <content al-repeat="control in node.controls" style="display:inline">
                         <column>
@@ -84,7 +79,6 @@ export class FlowScriptCondition extends FlowNode {
                             <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                         </column>
                     </content>
-                </div>
             </div>
         `;
     }
