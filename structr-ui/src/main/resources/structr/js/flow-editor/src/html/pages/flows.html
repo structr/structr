@@ -49,9 +49,11 @@
 
         });
 
-        document.getElementById("create-new-flow").onclick = () => createFlow(document.getElementById("name-input").value);
+        document.getElementById("create-new-flow").onclick = () => createFlow(document.getElementById("name-input"));
 
-        function createFlow(name) {
+        function createFlow(inputElement) {
+            let name = inputElement.value;
+            inputElement.value = "";
             persistence.createNode({type:"FlowContainer", name:name}).then( (r) => {
                 tableDOM.insertAdjacentHTML("beforeend",createTableRowForContainer(r));
                 let tr = tableDOM.querySelector('tr[data-id="' + r.id + '"]');

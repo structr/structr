@@ -24,6 +24,7 @@ import {CodeModal} from "./utility/CodeModal.js";
 import {DependencyLoader} from "./utility/DependencyLoader.js";
 import {FlowAggregate} from "./entities/FlowAggregate.js";
 import {FlowConstant} from "./entities/FlowConstant.js";
+import {FlowGetProperty} from "./entities/FlowGetProperty.js";
 
 
 
@@ -268,7 +269,8 @@ export class FlowEditor {
             new FlowAnd(),
             new FlowForEach(),
             new FlowAggregate(),
-            new FlowConstant()
+            new FlowConstant(),
+            new FlowGetProperty()
         ];
     }
 
@@ -321,6 +323,7 @@ export class FlowEditor {
                 'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
                 'FlowAggregate' : self._getNodeCreationFunction("FlowAggregate"),
                 'FlowConstant' : self._getNodeCreationFunction("FlowConstant"),
+                'FlowGetProperty': self._getNodeCreationFunction("FlowGetProperty"),
                 'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
             },
             'Actions': {
@@ -470,6 +473,9 @@ export class FlowEditor {
                 break;
             case 'FlowConstant':
                 fNode = new FlowConstant(node, this);
+                break;
+            case 'FlowGetProperty':
+                fNode = new FlowGetProperty(node,this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

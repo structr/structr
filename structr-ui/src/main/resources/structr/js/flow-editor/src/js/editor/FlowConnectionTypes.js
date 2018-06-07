@@ -75,6 +75,18 @@ export class FlowConnectionTypes {
                 sourceAttribute: "dataTarget",
                 targetAttribute: "scriptSource",
                 type: "FlowScriptConditionSource"
+            },
+            FlowNodeDataSource: {
+                name: "NODE_SOURCE",
+                sourceAttribute: "dataTarget",
+                targetAttribute: "nodeSource",
+                type: "FlowNodeDataSource"
+            },
+            FlowNameDataSource: {
+                name: "NAME_SOURCE",
+                sourceAttribute: "dataTarget",
+                targetAttribute: "propertyNameSource",
+                type: "FlowNameDataSource"
             }
 
         };

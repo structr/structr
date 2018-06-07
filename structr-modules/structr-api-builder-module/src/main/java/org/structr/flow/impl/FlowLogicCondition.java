@@ -42,7 +42,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements DataSo
 	public static final View defaultView = new View(FlowAnd.class, PropertyView.Public, script, dataSources);
 	public static final View uiView      = new View(FlowAnd.class, PropertyView.Ui,     script, dataSources);
 
-	protected abstract boolean combine(final boolean result, final boolean value);
+	protected abstract Boolean combine(final Boolean result, final Boolean value);
 
 	@Override
 	public Object get(final Context context) {
@@ -53,7 +53,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements DataSo
 			return false;
 		}
 
-		boolean result = true;
+		Boolean result = null;
 
 		for (final FlowCondition _dataSource : getProperty(dataSources)) {
 

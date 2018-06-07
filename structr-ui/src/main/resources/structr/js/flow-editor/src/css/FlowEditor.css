@@ -138,6 +138,18 @@ html, body {
         background-color: #0000cc; }
       .node-editor .node .socket.input.scriptSource:hover {
         background-color: #6666ff; }
+      .node-editor .node .socket.input.nodeSource.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.nodeSource:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.input.nodeSource:hover {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.propertyNameSource.used {
+        background-color: #6666ff; }
+      .node-editor .node .socket.input.propertyNameSource:not(.used) {
+        background-color: #0000cc; }
+      .node-editor .node .socket.input.propertyNameSource:hover {
+        background-color: #6666ff; }
       .node-editor .node .socket.output.used {
         background-color: white; }
       .node-editor .node .socket.output:not(.used) {
@@ -304,6 +316,10 @@ html, body {
       .node-editor .connections .connection.output-datatarget.input-startvalue {
         stroke: #6666ff; }
       .node-editor .connections .connection.output-datatarget.input-scriptsource {
+        stroke: #6666ff; }
+      .node-editor .connections .connection.output-datatarget.input-nodesource {
+        stroke: #6666ff; }
+      .node-editor .connections .connection.output-datatarget.input-propertynamesource {
         stroke: #6666ff; }
   .node-editor select, .node-editor input {
     width: 60px;

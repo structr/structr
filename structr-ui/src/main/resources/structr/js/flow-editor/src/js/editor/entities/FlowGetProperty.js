@@ -1,10 +1,9 @@
 'use strict';
 
 import {FlowNode} from "./FlowNode.js";
-import {FlowAction} from "./FlowAction.js";
 import {FlowSockets} from "../FlowSockets.js";
 
-export class FlowParameterInput extends FlowNode {
+export class FlowGetProperty extends FlowNode {
 
     constructor(node) {
         super(node);
@@ -12,38 +11,22 @@ export class FlowParameterInput extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowParameterInput', {
-            template: FlowParameterInput._nodeTemplate(),
+        return new D3NE.Component('FlowGetProperty', {
+            template: FlowGetProperty._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
-                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
-                let call = new D3NE.Output('Call', socket.getSocket('call'), true);
+                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
+                let nodeSource = new D3NE.Input('NodeSource', socket.getSocket('nodeSource'));
+                let propertyNameSource = new D3NE.Input('PropertyNameSource', socket.getSocket('propertyNameSource'));
 
-                let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
-
-                    if(scopedDbNode !== undefined && scopedDbNode.key !== undefined && scopedDbNode.key !== null) {
-                        element.setAttribute("value",scopedDbNode.key);
-                        control.putData('key',element.value);
-                    }
-
-                    control.putData('dbNode', scopedDbNode);
-
-                    control.id = "key";
-                    control.name = "Key";
-
-                    element.addEventListener('change', ()=>{
-                        control.putData('key',element.value);
-                        node.data['dbNode'].key = element.value;
-                    });
-                });
+                node.data.dbNode = scopedDbNode;
 
                 return node
-                    .addInput(dataSource)
-                    .addOutput(call)
-                    .addControl(key);
+                    .addInput(nodeSource)
+                    .addInput(propertyNameSource)
+                    .addOutput(dataTarget);
             },
             worker(node, inputs, outputs) {
-                outputs[0] = this;
             }
         });
     }
@@ -60,8 +43,6 @@ export class FlowParameterInput extends FlowNode {
                             <div class="input-title" al-if="!input.showControl()">{{input.title}}</div>
                             <div class="input-control" al-if="input.showControl()" al-control="input.control"></div>
                         </div>
-                        <!-- Controls-->
-                        <div class="control" al-repeat="control in node.controls" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                     </column>
                     <column>
                         <!-- Outputs-->
@@ -72,8 +53,18 @@ export class FlowParameterInput extends FlowNode {
                         </div>
                     </column>
                 </content>
+                    <!-- Controls-->
+                    <content al-repeat="control in node.controls" style="display:inline">
+                        <column>
+                            <label class="control-title" for="{{control.id}}">{{control.name}}</label>
+                        </column>
+                        <column>
+                            <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
+                        </column>
+                    </content>
             </div>
         `;
     }
+
 
 }

@@ -28,6 +28,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.ForEach;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowForEachBody;
 import org.structr.flow.impl.rels.FlowForEachDataInput;

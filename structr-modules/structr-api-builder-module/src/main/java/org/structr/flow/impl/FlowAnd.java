@@ -24,7 +24,10 @@ package org.structr.flow.impl;
 public class FlowAnd extends FlowLogicCondition {
 
 	@Override
-	protected boolean combine(boolean result, boolean value) {
+	protected Boolean combine(Boolean result, Boolean value) {
+		if (result == null) {
+			return value;
+		}
 		return result && value;
 	}
 }

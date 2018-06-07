@@ -61,6 +61,13 @@ export class FlowSockets {
         this._sockets['dataTarget'].combineWith(scriptSource);
         this._sockets['scriptSource'] = scriptSource;
 
+        let nodeSource = new D3NE.Socket('nodeSource', 'Node source', 'Connected data source provides a node entity to extract a property from.');
+        let propertyNameSource = new D3NE.Socket('propertyNameSource', 'Property name source', 'Connected node provides a name for the property to get from the node');
+        this._sockets['dataTarget'].combineWith(nodeSource);
+        this._sockets['dataTarget'].combineWith(propertyNameSource);
+        this._sockets['nodeSource'] = nodeSource;
+        this._sockets['propertyNameSource'] = propertyNameSource;
+
     }
 
     static getInst() {
