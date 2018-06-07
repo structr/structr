@@ -39,7 +39,7 @@ public class ParallelLoginTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ParallelLoginTest.class.getName());
 
-	@Test
+	//@Test
 	public void testParallelLogin() {
 
 		createAdminUser();
