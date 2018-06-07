@@ -34,6 +34,18 @@ public class ContextStore {
 	protected Map<Integer, Integer> counters       = new HashMap<>();
 	protected AdvancedMailContainer amc            = new AdvancedMailContainer();
 
+	public ContextStore () {
+	}
+
+	public ContextStore (final ContextStore other) {
+
+		this.headers     = other.headers;
+		this.constants   = other.constants;
+		this.tmpStore    = other.tmpStore;
+		this.timerStore  = other.timerStore;
+		this.counters    = other.counters;
+		this.amc         = other.amc;
+	}
 
 	// --- Headers ---
 	public void addHeader(final String key, final String value) {

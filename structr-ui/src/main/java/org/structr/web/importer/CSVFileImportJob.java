@@ -29,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
+import org.structr.common.ContextStore;
 import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -47,8 +48,8 @@ public class CSVFileImportJob extends FileImportJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(CSVFileImportJob.class.getName());
 
-	public CSVFileImportJob(File file, Principal user, Map<String, Object> configuration) throws FrameworkException {
-		super(file, user, configuration);
+	public CSVFileImportJob(File file, Principal user, Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
+		super(file, user, configuration, ctxStore);
 	}
 
 	@Override
@@ -96,6 +97,7 @@ public class CSVFileImportJob extends FileImportJob {
 			final String importTypeName    = "ImportFromCsv" + df.format(System.currentTimeMillis());
 
 			final SecurityContext threadContext = SecurityContext.getInstance(user, AccessMode.Backend);
+			threadContext.setContextStore(ctxStore);
 			final App app                       = StructrApp.getInstance(threadContext);
 
 			// disable transaction notifications

@@ -28,6 +28,7 @@ import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -48,8 +49,8 @@ public class XMLFileImportJob extends FileImportJob {
 
 	private String contentType;
 
-	public XMLFileImportJob(File file, Principal user, Map<String, Object> configuration) throws FrameworkException {
-		super(file, user, configuration);
+	public XMLFileImportJob(final File file, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
+		super(file, user, configuration, ctxStore);
 
 		contentType = file.getContentType();
 	}
@@ -84,6 +85,7 @@ public class XMLFileImportJob extends FileImportJob {
 			logger.info("Importing XML from {} ({})..", filePath, fileUuid);
 
 			final SecurityContext threadContext = SecurityContext.getInstance(user, AccessMode.Backend);
+			threadContext.setContextStore(ctxStore);
 			final App app                       = StructrApp.getInstance(threadContext);
 			int overallCount                    = 0;
 
