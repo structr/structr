@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.core.property.StartNodes;
 import org.structr.flow.impl.rels.FlowForEachBody;
 import org.structr.flow.impl.rels.FlowNodes;
 import org.structr.common.PropertyView;
@@ -28,13 +29,15 @@ import org.structr.core.property.StartNode;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
 
+import java.util.List;
+
 /**
  *
  */
 public abstract class FlowNode extends FlowBaseNode implements FlowElement {
 
 	public static final Property<FlowContainer> isStartNodeOfContainer = new StartNode<>("isStartNodeOfContainer", FlowContainerFlowNode.class);
-	public static final Property<FlowNode> prev                        = new StartNode<>("prev", FlowNodes.class);
+	public static final Property<List<FlowNode>> prev                        = new StartNodes<>("prev", FlowNodes.class);
 	public static final Property<FlowNode> next                        = new EndNode<>("next", FlowNodes.class);
 	public static final Property<FlowForEach> prevForEach			   = new StartNode<>("prevForEach", FlowForEachBody.class);
 

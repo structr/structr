@@ -25,6 +25,7 @@ import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
@@ -41,7 +42,7 @@ public class FlowNotNull extends FlowCondition implements DataSource, Deployable
 
 	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowConditionDataInput.class);
 	public static final Property<FlowCondition> condition = new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<FlowDecision> decision = new EndNode<>("decision", FlowDecisionCondition.class);
+	public static final Property<List<FlowDecision>> decision = new EndNodes<>("decision", FlowDecisionCondition.class);
 
 	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
 	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);

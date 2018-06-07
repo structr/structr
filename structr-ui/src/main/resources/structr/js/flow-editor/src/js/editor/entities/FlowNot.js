@@ -16,7 +16,7 @@ export class FlowNot extends FlowNode {
             builder(node) {
                 let socket = FlowSockets.getInst();
                 let dataSources = new D3NE.Input('DataSources', socket.getSocket('condition_Conditions'), true);
-                let result = new D3NE.Output('Result', socket.getSocket('condition_Result'));
+                let result = new D3NE.Output('Result', socket.getSocket('condition_Result'), true);
 
                 node.data.dbNode = scopedDbNode;
 

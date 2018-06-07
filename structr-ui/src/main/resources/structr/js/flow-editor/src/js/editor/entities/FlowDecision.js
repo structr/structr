@@ -23,7 +23,7 @@ export class FlowDecision extends FlowNode {
 
                 let socket = FlowSockets.getInst();
 
-                let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
+                let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
                 let condition = new D3NE.Input('Condition', socket.getSocket('condition_Condition'));
 
 

@@ -19,26 +19,34 @@
 package org.structr.flow.impl.rels;
 
 import org.structr.core.entity.ManyToOne;
-import org.structr.core.entity.OneToOne;
-import org.structr.flow.impl.FlowNode;
+import org.structr.core.entity.Relation;
+import org.structr.flow.impl.FlowContainer;
+import org.structr.flow.impl.FlowContainerConfiguration;
 
-/**
- *
- */
-public class FlowNodes extends ManyToOne<FlowNode, FlowNode> {
+public class FlowContainerConfigurationFlow extends ManyToOne<FlowContainerConfiguration, FlowContainer> {
 
 	@Override
-	public Class<FlowNode> getSourceType() {
-		return FlowNode.class;
+	public Class<FlowContainerConfiguration> getSourceType() {
+		return FlowContainerConfiguration.class;
 	}
 
 	@Override
-	public Class<FlowNode> getTargetType() {
-		return FlowNode.class;
+	public Class<FlowContainer> getTargetType() {
+		return FlowContainer.class;
 	}
 
 	@Override
 	public String name() {
-		return "NEXT_FLOW_NODE";
+		return "CONTAINS_CONFIGURATION_FOR";
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.TARGET_TO_SOURCE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
 	}
 }

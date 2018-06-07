@@ -15,7 +15,7 @@ export class FlowReturn extends FlowNode {
             template: FlowReturn._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
-                let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
+                let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {

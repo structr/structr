@@ -365,27 +365,71 @@ export class FlowEditor {
 
         }
 
-        window.localStorage.setItem('flow-' + this._flowContainer.id, JSON.stringify(layout));
+        let persistence = new Persistence();
+        let rest = new Rest();
+        persistence.getNodesByClass({type:"me"}).then( (r) => {
+
+            let id = r[0].id;
+
+            if (id !== null && id !== undefined) {
+                rest.get('/structr/rest/FlowContainerConfiguration?principal=' + id + '&flow=' + this._flowContainer.id + '&validForEditor=' + this._editorId).then( (r2) => {
+                    if (r2 != null && r2 !== undefined && r2.result_count > 0) {
+                        let config = persistence._wrapObject(r2.result[0], new Object());
+                        config.configJson = JSON.stringify(layout);
+                    } else {
+                        persistence._persistObject({
+                            type: "FlowContainerConfiguration",
+                            flow: this._flowContainer.id,
+                            principal: id,
+                            validForEditor: this._editorId,
+                            configJson: JSON.stringify(layout)
+                        });
+                    }
+                })
+            }
+
+        });
+
     }
 
     applySavedLayout() {
 
-        var layout = JSON.parse(window.localStorage.getItem('flow-' + this._flowContainer.id));
+        let persistence = new Persistence();
+        let rest = new Rest();
 
-        var editorConfig = this._editor;
+        let layout = null;
 
-        if (layout !== null && layout !== undefined) {
+        persistence.getNodesByClass({type: "me"}).then( (me) => {
 
-            for (let [key, node] of Object.entries(editorConfig.nodes)) {
-                if (node.data.dbNode !== undefined && layout[node.data.dbNode.id] !== undefined) {
-                    node.position = layout[node.data.dbNode.id];
+            rest.get('/structr/rest/FlowContainerConfiguration?principal=' + me[0].id + '&flow=' + this._flowContainer.id + '&validForEditor=' + this._editorId).then( (r) => {
+                if (r !== null && r !== undefined && r.result_count > 0) {
+                    layout = JSON.parse(r.result[0].configJson);
                 }
 
-            }
+                var editorConfig = this._editor;
 
-            this._editor.view.update();
-            this.resetView();
-        }
+                if (layout === null || layout === undefined) {
+                    // Deprecated: Fallback to former local storage persistence.
+                    console.log('Deprecation warning: Layout restored from local storage.');
+                    layout = JSON.parse(window.localStorage.getItem('flow-' + this._flowContainer.id));
+                }
+
+                if (layout !== null && layout !== undefined) {
+
+                    for (let [key, node] of Object.entries(editorConfig.nodes)) {
+                        if (node.data.dbNode !== undefined && layout[node.data.dbNode.id] !== undefined) {
+                            node.position = layout[node.data.dbNode.id];
+                        }
+
+                    }
+
+                    this._editor.view.update();
+                    this.resetView();
+                }
+
+            });
+
+        });
 
     }
 

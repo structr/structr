@@ -17,7 +17,7 @@ export class FlowCall extends FlowNode {
             template: FlowCall._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
-                let prev = new D3NE.Input('Prev', socket.getSocket('prev'));
+                let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
                 let parameters = new D3NE.Input('Parameters', socket.getSocket('parameters'), true);
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
