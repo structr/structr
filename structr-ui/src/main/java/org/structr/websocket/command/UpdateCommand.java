@@ -60,6 +60,8 @@ public class UpdateCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
+		setDoTransactionNotifications(true);
+
 		final App app          = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final Boolean recValue = (Boolean) webSocketData.getNodeData().get("recursive");
 		final String nodeId    = (String) webSocketData.getNodeData().get("nodeId");

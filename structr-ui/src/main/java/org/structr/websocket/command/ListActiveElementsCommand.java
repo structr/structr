@@ -67,11 +67,13 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
 		final String id                       = webSocketData.getId();
 
-		try (final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx(true, true, true)) {
 
 			final Page page                = app.get(Page.class, id);
 			final List<GraphObject> result = new LinkedList<>();

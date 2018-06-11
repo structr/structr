@@ -115,7 +115,7 @@ public abstract class AbstractCommand {
 
 	/**
 	 * Returns the graph object with the given id.
-	 * 
+	 *
 	 * If no node with the given id is found and nodeId is not null,
 	 * this method will search for a relationship in the list of relationships
 	 * of the node with the given nodeId.
@@ -178,9 +178,9 @@ public abstract class AbstractCommand {
 	 * with the given nodeId and filtering the relationships.
 	 *
 	 * This avoids the performance issues of getRelationshipById due to missing index support.
-	 * 
+	 *
 	 * If nodeId is null, the method falls back to {@link getRelationship(id)}.
-	 * 
+	 *
 	 *
 	 * @param id
 	 * @param nodeId
@@ -191,20 +191,20 @@ public abstract class AbstractCommand {
 		if (id == null) {
 			return null;
 		}
-		
+
 		if (nodeId == null) {
 			return getRelationship(id);
 		}
-		
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
 			final AbstractNode node = (AbstractNode) app.getNodeById(nodeId);
-			
+
 			for (final AbstractRelationship rel : node.getRelationships()) {
-				
+
 				if (rel.getUuid().equals(id)) {
 					return rel;
 				}
@@ -217,9 +217,9 @@ public abstract class AbstractCommand {
 		}
 
 		return null;
-		
+
 	}
-	
+
 	/**
 	 * Returns the relationship to which the uuid parameter
 	 * of this command refers to.
@@ -322,5 +322,15 @@ public abstract class AbstractCommand {
 
 	public void setCallback(final String callback) {
 		this.callback = callback;
+	}
+
+	public void setDoTransactionNotifications(final boolean notify) {
+
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+
+		if (securityContext != null) {
+			securityContext.setDoTransactionNotifications(true);
+		}
+
 	}
 }

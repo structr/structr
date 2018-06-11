@@ -50,6 +50,8 @@ public class ListComponentsCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final int pageSize       = webSocketData.getPageSize();
 		final int page           = webSocketData.getPage();
 

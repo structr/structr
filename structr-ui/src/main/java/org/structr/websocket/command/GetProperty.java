@@ -43,6 +43,8 @@ public class GetProperty extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final GraphObject obj = getGraphObject(webSocketData.getId());
 		String key = (String) webSocketData.getNodeData().get("key");
 
@@ -58,7 +60,7 @@ public class GetProperty extends AbstractCommand {
 					value = converter.revert(value);
 
 				} catch (FrameworkException ex) {
-					
+
 					getWebSocket().send(MessageBuilder.status().code(400).message(ex.getMessage()).build(), true);
 
 				}

@@ -47,6 +47,8 @@ public class CreateRelationshipCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final Map<String, Object> properties = webSocketData.getRelData();
 		final String sourceId                = (String) properties.get("sourceId");
 		final String targetId                = (String) properties.get("targetId");

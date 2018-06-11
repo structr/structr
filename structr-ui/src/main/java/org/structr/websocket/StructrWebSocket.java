@@ -238,7 +238,7 @@ public class StructrWebSocket implements WebSocketListener {
 				// transactions in case of bulk processing commands etc.
 				if (abstractCommand.requiresEnclosingTransaction()) {
 
-					try (final Tx tx = app.tx()) {
+					try (final Tx tx = app.tx(true, true, true)) {
 
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
@@ -252,7 +252,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 				} else {
 
-					try (final Tx tx = app.tx()) {
+					try (final Tx tx = app.tx(true, true, true)) {
 
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
@@ -269,7 +269,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} catch (FrameworkException | InstantiationException | IllegalAccessException t) {
 
-				try (final Tx tx = app.tx()) {
+				try (final Tx tx = app.tx(true, true, true)) {
 
 					// send 400 Bad Request
 					if (t instanceof FrameworkException) {
@@ -311,7 +311,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		boolean isAuthenticated = false;
 
-		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, true)) {
 
 			isAuthenticated = isAuthenticated();
 
@@ -338,7 +338,7 @@ public class StructrWebSocket implements WebSocketListener {
 			//logger.warn("NOT sending message to unauthenticated client.");
 		}
 
-		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, true)) {
 
 			if (message.getCode() == 0) {
 				// default is: 200 OK
