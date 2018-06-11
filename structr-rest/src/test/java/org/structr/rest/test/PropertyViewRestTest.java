@@ -72,11 +72,7 @@ import org.structr.rest.entity.TestTwo;
 //~--- classes ----------------------------------------------------------------
 
 /**
- * Base class for all structr tests
- *
- * All tests are executed in superuser context
- *
- *
+ * Test for property views
  */
 public class PropertyViewRestTest {
 
