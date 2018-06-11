@@ -19,7 +19,6 @@
 package org.structr.rest.auth;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,19 +192,19 @@ public class AuthHelper {
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
-		HttpSession session = request.getSession(false);
-
-		if (session == null) {
-			session = SessionHelper.newSession(request);
+		if (request.getSession(false) == null) {
+			SessionHelper.newSession(request);
 		}
 
 		SessionHelper.clearInvalidSessions(user);
 
 		// We need a session to login a user
-		if (session != null) {
+		if (request.getSession(false) != null) {
 
-			SessionHelper.clearSession(session.getId());
-			user.addSessionId(session.getId());
+			final String sessionId = request.getSession(false).getId();
+
+			SessionHelper.clearSession(sessionId);
+			user.addSessionId(sessionId);
 
 			try {
 

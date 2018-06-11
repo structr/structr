@@ -41,6 +41,8 @@ public class ImageConverterCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final String originalImageId          = webSocketData.getId();
 		final Map<String, Object> properties  = webSocketData.getNodeData();
 		final Image originalImage             = (Image) getNode(originalImageId);

@@ -612,7 +612,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void doCSVImport(final File thisFile, final Map<String, Object> parameters) throws FrameworkException {
 
-		CSVFileImportJob job = new CSVFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), parameters);
+		CSVFileImportJob job = new CSVFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), parameters, thisFile.getSecurityContext().getContextStore());
 		JobQueueManager.getInstance().addJob(job);
 
 	}
@@ -640,7 +640,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void doXMLImport(final File thisFile, final Map<String, Object> config) throws FrameworkException {
 
-		XMLFileImportJob job = new XMLFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), config);
+		XMLFileImportJob job = new XMLFileImportJob(thisFile, thisFile.getSecurityContext().getUser(false), config, thisFile.getSecurityContext().getContextStore());
 		JobQueueManager.getInstance().addJob(job);
 
 	}

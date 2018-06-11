@@ -55,7 +55,8 @@ public class FileImportCommand extends AbstractCommand {
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
 
-//		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		setDoTransactionNotifications(true);
+
 		final Map<String, Object> properties  = webSocketData.getNodeData();
 		final String mode                     = (String) properties.get("mode");		// default: list    start | pause | resume | cancel | abort
 		final Long jobId                      = (Long) properties.get("jobId");

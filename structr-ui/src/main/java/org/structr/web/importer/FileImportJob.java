@@ -26,6 +26,7 @@ import java.util.Locale;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -46,9 +47,9 @@ abstract class FileImportJob extends ScheduledJob {
 	protected Long fileSize;
 	protected Integer processedChunks = 0;
 
-	public FileImportJob (final File file, final Principal user, final Map<String, Object> configuration) {
+	public FileImportJob (final File file, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) {
 
-		super(file.getUuid(), user, configuration);
+		super(file.getUuid(), user, configuration, ctxStore);
 
 		this.fileUuid = file.getUuid();
 		this.filePath = file.getPath();

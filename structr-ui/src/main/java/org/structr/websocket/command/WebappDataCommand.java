@@ -65,6 +65,8 @@ public class WebappDataCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final Map<String, Object> data        = webSocketData.getNodeData();
 		final String category                 = (String)data.get("category");
 		final String mode                     = (String)data.get("mode");

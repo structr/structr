@@ -78,7 +78,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
 			if (nodes.size() == 0) {
-				logger.warn("to_csv(): Can not create Excel if no nodes are given!");
+				logger.warn("to_excel(): Can not create Excel if no nodes are given!");
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 				return "";
 			}

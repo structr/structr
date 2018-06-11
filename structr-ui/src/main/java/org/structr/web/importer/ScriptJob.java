@@ -24,6 +24,7 @@ import org.mozilla.javascript.Script;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
+import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
@@ -40,9 +41,9 @@ public class ScriptJob extends ScheduledJob {
 	private static final Logger logger = LoggerFactory.getLogger(ScriptJob.class);
 	private Object script              = null;
 
-	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script) {
+	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore) {
 
-		super(null, user, configuration);
+		super(null, user, configuration, ctxStore);
 
 		this.script  = script;
 	}
@@ -60,6 +61,7 @@ public class ScriptJob extends ScheduledJob {
 			try {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+				securityContext.setContextStore(ctxStore);
 				final ActionContext actionContext     = new ActionContext(securityContext);
 				final long startTime                  = System.currentTimeMillis();
 

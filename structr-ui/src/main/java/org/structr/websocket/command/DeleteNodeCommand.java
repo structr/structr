@@ -53,6 +53,8 @@ public class DeleteNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final Boolean recursive = (Boolean) webSocketData.getNodeData().get("recursive");
 		final NodeInterface obj = getNode(webSocketData.getId());
 

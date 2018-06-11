@@ -41,7 +41,7 @@ public class TypeInfo {
 
 	public TypeInfo(final String primaryType, final Set<String> otherTypes, final Collection<Long> nodeIds) {
 
-		this.nodeIds     = new LazyFileBasedLongCollection(userHome + File.separator + ".structrSchemaAnalyzer" + File.separator + primaryType + ".lfc");
+		this.nodeIds     = new LazyFileBasedLongCollection(userHome + File.separator + ".structrSchemaAnalyzer" + File.separator + primaryType + ".lfc", false);
 		this.primaryType = primaryType;
 
 		this.otherTypes.addAll(otherTypes);

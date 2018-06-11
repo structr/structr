@@ -48,16 +48,18 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		try {
 
 			final String type = (String) webSocketData.getNodeData().get("type");
 
 			if (type != null) {
-				
+
 				final Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
-				
+
 				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), typeClass, PropertyView.Ui).getResults());
-				
+
 			} else {
 
 				webSocketData.setResult(SchemaResource.getSchemaOverviewResult().getResults());

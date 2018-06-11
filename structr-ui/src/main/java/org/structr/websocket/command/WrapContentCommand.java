@@ -28,7 +28,7 @@ import org.w3c.dom.Document;
 
 /**
  * Wrap a content node in a new DOM element
- * 
+ *
  *
  */
 public class WrapContentCommand extends AbstractCommand {
@@ -36,45 +36,47 @@ public class WrapContentCommand extends AbstractCommand {
 	//private static final Logger logger = LoggerFactory.getLogger(WrapContentCommand.class.getName());
 
 	static {
-		
+
 		StructrWebSocket.addCommand(WrapContentCommand.class);
 	}
-	
+
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
+
+		setDoTransactionNotifications(true);
 
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String parentId              = (String) nodeData.get("parentId");
 		final String pageId                = webSocketData.getPageId();
-		
+
 		nodeData.remove("parentId");
 
 		if (pageId != null) {
 
 			// check for parent ID before creating any nodes
 			if (parentId == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
 				return;
 			}
 
 			// check if content node with given ID exists
 			final DOMNode contentNode = getDOMNode(parentId);
 			if (contentNode == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
 				return;
 			}
-			
+
 			final Document document = getPage(pageId);
 			if (document != null) {
 
 				final String tagName  = (String) nodeData.get("tagName");
 				nodeData.remove("tagName");
-				
+
 				final DOMNode parentNode = (DOMNode) contentNode.getParentNode();
 
-				
+
 				try {
 
 					DOMNode elementNode = null;
@@ -90,7 +92,7 @@ public class WrapContentCommand extends AbstractCommand {
 						parentNode.appendChild(elementNode);
 
 					}
-					
+
 					// append new node to parent parent node
 					if (elementNode != null) {
 
@@ -100,20 +102,20 @@ public class WrapContentCommand extends AbstractCommand {
 					}
 
 				} catch (DOMException dex) {
-						
+
 					// send DOM exception
-					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
-					
+					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+
 				}
-				
+
 			} else {
-		
-				getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(404).message("Page not found").build(), true);
 			}
-			
+
 		} else {
-		
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot create node without pageId").build(), true);		
+
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot create node without pageId").build(), true);
 		}
 	}
 

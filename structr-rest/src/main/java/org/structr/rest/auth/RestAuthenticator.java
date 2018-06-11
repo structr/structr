@@ -381,12 +381,9 @@ public class RestAuthenticator implements Authenticator {
 		Principal user = null;
 
 		// First, check session (JSESSIONID cookie)
-		final HttpSession session = request.getSession(false);
+		if (request.getSession(false) != null) {
 
-		if (session != null) {
-
-			user = AuthHelper.getPrincipalForSessionId(session.getId());
-
+			user = AuthHelper.getPrincipalForSessionId(request.getSession(false).getId());
 		}
 
 		if (user == null) {

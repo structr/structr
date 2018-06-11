@@ -18,12 +18,16 @@
  */
 package org.structr.web.frontend.selenium;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -128,8 +132,17 @@ public class SeleniumTest extends FrontendTest {
 
 			wait.until(ExpectedConditions.titleIs("Structr " + menuEntry));
 
+		} catch (WebDriverException wex) {
+			
+			try {
+				Runtime.getRuntime().exec("/usr/bin/jstack -l $(ps xa|grep structr|grep java|tail -n1|awk '{print $1}') > /tmp/jstack.out." + new Date().getTime());
+			
+			} catch (IOException ex1) {
+				throw new RuntimeException(ex1);
+			}
+			
 		} catch (RuntimeException ex) {
-			Thread.dumpStack();
+			
 			throw ex;
 		}
 
