@@ -56,6 +56,8 @@ public class CreateCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 

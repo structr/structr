@@ -53,6 +53,7 @@ public class ListFilesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		final String rawType                   = (String) webSocketData.getNodeData().get("type");

@@ -48,6 +48,8 @@ public class FavoritesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final Map<String, Object> data        = webSocketData.getNodeData();
 		final String mode                     = (String)data.get("mode");
 		final String favoritableId            = (String)data.get("id");
@@ -65,7 +67,7 @@ public class FavoritesCommand extends AbstractCommand {
 
 			final App app = StructrApp.getInstance(webSocket.getSecurityContext());
 
-			try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx(true, true, true)) {
 
 				final Favoritable file = app.get(Favoritable.class, favoritableId);
 				if (file != null) {

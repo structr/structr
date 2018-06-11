@@ -49,6 +49,8 @@ public class GetTypeInfoCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final String type = (String) webSocketData.getNodeData().get("type");
 
 		if (type == null) {

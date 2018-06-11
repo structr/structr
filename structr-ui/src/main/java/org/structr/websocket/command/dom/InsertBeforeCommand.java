@@ -40,6 +40,8 @@ public class InsertBeforeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final String id                    = webSocketData.getId();
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String refId                 = (String) nodeData.get("refId");
@@ -84,7 +86,7 @@ public class InsertBeforeCommand extends AbstractCommand {
 			if (node != null) {
 
 				parentNode.insertBefore(node, refNode);
-				
+
 			}
 		} catch (DOMException dex) {
 
