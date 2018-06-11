@@ -37,7 +37,7 @@ public class FlowContainerConfiguration extends AbstractNode implements Deployab
 
 	public static final Property<Principal> principal 				= new EndNode<>("principal", FlowContainerConfigurationPrincipal.class);
 	public static final Property<FlowContainer> flow				= new EndNode<>("flow", FlowContainerConfigurationFlow.class);
-	public static final Property<String> validForEditor				= new StringProperty("validForEditor");
+	public static final Property<String> validForEditor				= new StringProperty("validForEditor").indexed();
 	public static final Property<String> configJson            		= new StringProperty("configJson");
 
 	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, principal, flow, validForEditor, configJson);
