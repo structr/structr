@@ -41,7 +41,10 @@ public class SyncModeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final Class<Relation> relType         = StructrApp.getConfiguration().getRelationshipEntityClass("DOMNodeSYNCDOMNode");
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String sourceId                 = webSocketData.getId();
 		final Map<String, Object> properties  = webSocketData.getNodeData();

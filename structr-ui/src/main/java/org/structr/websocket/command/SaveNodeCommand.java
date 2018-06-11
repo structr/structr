@@ -50,6 +50,8 @@ public class SaveNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final String nodeId = webSocketData.getId();
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String modifiedHtml = (String) nodeData.get("source");

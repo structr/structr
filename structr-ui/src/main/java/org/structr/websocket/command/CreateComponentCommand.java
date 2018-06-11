@@ -47,6 +47,8 @@ public class CreateComponentCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		String id = webSocketData.getId();
 
 		if (id != null) {

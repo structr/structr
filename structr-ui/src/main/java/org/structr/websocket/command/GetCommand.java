@@ -48,8 +48,10 @@ public class GetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-				
+
 		final String nodeId                    = (String) webSocketData.getNodeData().get("nodeId");
 		final String properties                = (String) webSocketData.getNodeData().get("properties");
 

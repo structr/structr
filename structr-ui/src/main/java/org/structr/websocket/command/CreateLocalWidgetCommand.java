@@ -48,6 +48,8 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final String id	                   = webSocketData.getId();
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
