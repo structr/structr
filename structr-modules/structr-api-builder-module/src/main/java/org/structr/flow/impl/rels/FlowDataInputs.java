@@ -18,13 +18,12 @@
  */
 package org.structr.flow.impl.rels;
 
-import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.impl.FlowBaseNode;
-import org.structr.flow.impl.FlowNode;
 
-public class FlowDataInput extends OneToMany<DataSource, FlowBaseNode> {
+public class FlowDataInputs extends ManyToMany<DataSource, FlowBaseNode> {
 
 	@Override
 	public Class<DataSource> getSourceType() {
@@ -38,7 +37,7 @@ public class FlowDataInput extends OneToMany<DataSource, FlowBaseNode> {
 
 	@Override
 	public String name() {
-		return "DATA";
+		return "DATA_INPUTS";
 	}
 
 	@Override

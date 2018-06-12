@@ -10,6 +10,12 @@ export class FlowConnectionTypes {
                 targetAttribute: "dataSource",
                 type: "FlowDataInput"
             },
+            FlowDataInputs: {
+                name: "DATA_INPUTS",
+                sourceAttribute: "dataTarget",
+                targetAttribute: "dataSources",
+                type: "FlowDataInputs"
+            },
             FlowNodes: {
                 name: "NEXT_FLOW_NODE",
                 sourceAttribute: "next",

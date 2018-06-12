@@ -68,7 +68,8 @@ public abstract class FlowDeploymentHandler {
 			FlowStore.class,
 			FlowAggregate.class,
 			FlowConstant.class,
-			FlowContainerConfiguration.class
+			FlowContainerConfiguration.class,
+			FlowCollectionDataSource.class
 	};
 
 	private static final Class[] relsToExport = {
@@ -79,6 +80,7 @@ public abstract class FlowDeploymentHandler {
 			FlowContainerBaseNode.class,
 			FlowContainerFlowNode.class,
 			FlowDataInput.class,
+			FlowDataInputs.class,
 			FlowDataSourceForEach.class,
 			FlowDecisionCondition.class,
 			FlowDecisionFalse.class,

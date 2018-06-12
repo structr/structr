@@ -25,6 +25,7 @@ import {DependencyLoader} from "./utility/DependencyLoader.js";
 import {FlowAggregate} from "./entities/FlowAggregate.js";
 import {FlowConstant} from "./entities/FlowConstant.js";
 import {FlowGetProperty} from "./entities/FlowGetProperty.js";
+import {FlowCollectionDataSource} from "./entities/FlowCollectionDataSource.js";
 
 
 
@@ -270,7 +271,8 @@ export class FlowEditor {
             new FlowForEach(),
             new FlowAggregate(),
             new FlowConstant(),
-            new FlowGetProperty()
+            new FlowGetProperty(),
+            new FlowCollectionDataSource()
         ];
     }
 
@@ -322,6 +324,7 @@ export class FlowEditor {
                 'FlowScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition"),
                 'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
                 'FlowAggregate' : self._getNodeCreationFunction("FlowAggregate"),
+                'FlowCollectionDataSource' : self._getNodeCreationFunction("FlowCollectionDataSource"),
                 'FlowConstant' : self._getNodeCreationFunction("FlowConstant"),
                 'FlowGetProperty': self._getNodeCreationFunction("FlowGetProperty"),
                 'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
@@ -407,12 +410,6 @@ export class FlowEditor {
                 }
 
                 var editorConfig = this._editor;
-
-                if (layout === null || layout === undefined) {
-                    // Deprecated: Fallback to former local storage persistence.
-                    console.log('Deprecation warning: Layout restored from local storage.');
-                    layout = JSON.parse(window.localStorage.getItem('flow-' + this._flowContainer.id));
-                }
 
                 if (layout !== null && layout !== undefined) {
 
@@ -519,7 +516,10 @@ export class FlowEditor {
                 fNode = new FlowConstant(node, this);
                 break;
             case 'FlowGetProperty':
-                fNode = new FlowGetProperty(node,this);
+                fNode = new FlowGetProperty(node, this);
+                break;
+            case 'FlowCollectionDataSource':
+                fNode = new FlowCollectionDataSource(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

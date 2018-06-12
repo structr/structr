@@ -35,7 +35,7 @@ public class Context {
 	private Map<String,Object> data  			= new HashMap<>();
 	private Map<String,Object> store 			= new HashMap<>();
 	private Map<String,Object> parameters 		= new HashMap<>();
-	private Map<String,Object> loopData 		= new HashMap<>();
+	private Map<String,Object> currentData = new HashMap<>();
 	private GraphObject thisObject   			= null;
 	private Object result            			= null;
 	private FlowError error          			= null;
@@ -46,7 +46,7 @@ public class Context {
 		this.data = deepCopyMap(context.data);
 		this.store = deepCopyMap(context.store);
 		this.parameters = deepCopyMap(context.parameters);
-		this.loopData = deepCopyMap(context.loopData);
+		this.currentData = deepCopyMap(context.currentData);
 	}
 
 	public Context(final GraphObject thisObject) {
@@ -108,9 +108,9 @@ public class Context {
 		return store.get(key);
 	}
 
-	public void setAggregation(final String key, final Object value) { this.loopData.put(key, value); }
+	public void setAggregation(final String key, final Object value) { this.currentData.put(key, value); }
 
-	public Object getAggregation(final String key) { return this.loopData.get(key); }
+	public Object getAggregation(final String key) { return this.currentData.get(key); }
 
 	public void putIntoStore(final String key, final Object value) { store.put(key,value); }
 
@@ -123,8 +123,8 @@ public class Context {
 		if(this.data.get(node.getUuid()) != null) {
 			ctx.setConstant("data", this.data.get(node.getUuid()));
 		}
-		if(this.loopData.get(node.getUuid()) != null) {
-			ctx.setConstant("loopData", this.loopData.get(node.getUuid()));
+		if(this.currentData.get(node.getUuid()) != null) {
+			ctx.setConstant("currentData", this.currentData.get(node.getUuid()));
 		}
 		return ctx;
 	}
@@ -133,7 +133,7 @@ public class Context {
 		this.data = deepCopyMap(context.data);
 		this.store = deepCopyMap(context.store);
 		this.parameters = deepCopyMap(context.store);
-		this.loopData = deepCopyMap(context.loopData);
+		this.currentData = deepCopyMap(context.currentData);
 	}
 
 	private Map<String, Object> deepCopyMap(Map<String,Object> map) {

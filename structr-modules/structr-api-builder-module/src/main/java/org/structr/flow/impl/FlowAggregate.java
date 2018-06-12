@@ -80,23 +80,12 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 	@Override
 	public Object get(Context context) {
-		Object currentData = context.getData(getUuid());
 
-		if (currentData != null) {
-			return context.getData(getUuid());
-		} else {
-
-			DataSource startValue = getProperty(startValueSource);
-
-			if (startValue != null) {
-
-				context.setData(getUuid(), startValue.get(context));
-				return startValue.get(context);
-
-			}
-
-			return null;
+		if (context.getData(getUuid()) == null) {
+			aggregate(context);
 		}
+
+		return context.getData(getUuid());
 	}
 
 	@Override

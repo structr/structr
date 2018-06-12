@@ -12,9 +12,12 @@ export class FlowSockets {
         this._sockets['next'] = nextSocket;
 
         let dataSource = new D3NE.Socket('dataSource', 'Data Source Node', 'The connected node will provide data for this node.');
+        let dataSources = new D3NE.Socket('dataSources', 'Data Source Nodes', 'The connected nodes will provide data for this node.');
         let dataTarget = new D3NE.Socket('dataTarget', 'Data Target Node', 'Connect to a node\'s prev port.');
         dataTarget.combineWith(dataSource);
+        dataTarget.combineWith(dataSources);
         this._sockets['dataSource'] = dataSource;
+        this._sockets['dataSources'] = dataSources;
         this._sockets['dataTarget'] = dataTarget;
 
         let parameters = new D3NE.Socket('parameters', 'Parameter Data Nodes', 'Multiple parameter nodes can be connected to this input.');
@@ -53,7 +56,7 @@ export class FlowSockets {
         loopBody.combineWith(this._sockets['prev']);
         this._sockets['loopBody'] = loopBody;
 
-        let startValue = new D3NE.Socket('startValue', 'Start value', 'Connected data source provides a start value for the element to work with.');
+        let startValue = new D3NE.Socket('startValue', 'Initial Data', 'Connected data source provides a start value for the element to work with.');
         this._sockets['dataTarget'].combineWith(startValue);
         this._sockets['startValue'] = startValue;
 

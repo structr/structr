@@ -19,9 +19,9 @@ export class FlowAggregate extends FlowNode {
                 let socket = FlowSockets.getInst();
                 let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
-                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
+                let dataSource = new D3NE.Input('CurrentData', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
-                let startValue = new D3NE.Input('StartValue', socket.getSocket('startValue'));
+                let startValue = new D3NE.Input('Data', socket.getSocket('startValue'));
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
                     node.isStartNode = true;
