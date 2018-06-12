@@ -116,6 +116,10 @@ public class SecurityContext {
 				this.doTransactionNotifications = false;
 			}
 
+			if ("enabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+				this.doTransactionNotifications = true;
+			}
+
 			if ("disabled".equals(request.getHeader("Structr-Cascading-Delete"))) {
 				this.doCascadingDelete = false;
 			}
