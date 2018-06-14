@@ -26,6 +26,8 @@ import {FlowAggregate} from "./entities/FlowAggregate.js";
 import {FlowConstant} from "./entities/FlowConstant.js";
 import {FlowGetProperty} from "./entities/FlowGetProperty.js";
 import {FlowCollectionDataSource} from "./entities/FlowCollectionDataSource.js";
+import {LayoutManager} from "./utility/LayoutManager.js";
+import {LayoutModal} from "./utility/LayoutModal.js";
 
 
 
@@ -332,8 +334,7 @@ export class FlowEditor {
             'Actions': {
                 'Execute Flow': function() { self.executeFlow() },
                 'Reset View': function() { self.resetView() },
-                'Save Layout' : function() { self.saveLayout() },
-                'Apply Layout' : function() { self.applySavedLayout() }
+                'Select & Apply Layout' : function() { new LayoutModal(self) }
             }
         }, false);
 
@@ -355,78 +356,28 @@ export class FlowEditor {
 
     }
 
-    saveLayout() {
+    async saveLayout() {
 
-        var layout = {};
-        var editorConfig = this.getEditorJson();
-
-        for (let [key,node] of Object.entries(editorConfig.nodes)) {
-
-            if (node.data.dbNode !== null && node.data.dbNode !== undefined) {
-                layout[node.data.dbNode.id] = node.position;
-            }
-
-        }
-
-        let persistence = new Persistence();
-        let rest = new Rest();
-        persistence.getNodesByClass({type:"me"}).then( (r) => {
-
-            let id = r[0].id;
-
-            if (id !== null && id !== undefined) {
-                rest.get('/structr/rest/FlowContainerConfiguration?principal=' + id + '&flow=' + this._flowContainer.id + '&validForEditor=' + this._editorId).then( (r2) => {
-                    if (r2 != null && r2 !== undefined && r2.result_count > 0) {
-                        let config = persistence._wrapObject(r2.result[0], new Object());
-                        config.configJson = JSON.stringify(layout);
-                    } else {
-                        persistence._persistObject({
-                            type: "FlowContainerConfiguration",
-                            flow: this._flowContainer.id,
-                            principal: id,
-                            validForEditor: this._editorId,
-                            configJson: JSON.stringify(layout)
-                        });
-                    }
-                })
-            }
-
-        });
+        let layoutManager = new LayoutManager(this);
+        await layoutManager.saveLayout();
 
     }
 
-    applySavedLayout() {
+    async applySavedLayout() {
 
-        let persistence = new Persistence();
-        let rest = new Rest();
+        let layoutManager = new LayoutManager(this);
+        let layout = await layoutManager.getOwnSavedLayout();
 
-        let layout = null;
+        if (layout === null) {
+            let layouts = await layoutManager.getSavedLayouts();
 
-        persistence.getNodesByClass({type: "me"}).then( (me) => {
+            if (layouts !== null && layouts.length > 0) {
 
-            rest.get('/structr/rest/FlowContainerConfiguration?principal=' + me[0].id + '&flow=' + this._flowContainer.id + '&validForEditor=' + this._editorId).then( (r) => {
-                if (r !== null && r !== undefined && r.result_count > 0) {
-                    layout = JSON.parse(r.result[0].configJson);
-                }
+                layoutManager.applySavedLayout(layouts[0]);
+            }
+        }
 
-                var editorConfig = this._editor;
-
-                if (layout !== null && layout !== undefined) {
-
-                    for (let [key, node] of Object.entries(editorConfig.nodes)) {
-                        if (node.data.dbNode !== undefined && layout[node.data.dbNode.id] !== undefined) {
-                            node.position = layout[node.data.dbNode.id];
-                        }
-
-                    }
-
-                    this._editor.view.update();
-                    this.resetView();
-                }
-
-            });
-
-        });
+        layoutManager.applySavedLayout(layout);
 
     }
 

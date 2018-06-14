@@ -39,6 +39,12 @@ $data-flow-color: lighten(blue,20%)
   &:hover
     background-color: $baseColor
 
+@mixin centerElement
+  position: absolute
+  top: 50%
+  left: 50%
+  transform: translate(-50%, -50%)
+
 
 // style
 .node-editor
@@ -330,19 +336,41 @@ $data-flow-color: lighten(blue,20%)
   overflow: auto
   background-color: rgb(0,0,0)
   background-color: rgba(0,0,0,0.4)
-  .modal-content
-    background-color: $grid-color
-    margin: 20% auto
-    padding: 20px
-    border: 1px solid #888
-    width: 60%
-    height: 40%
-    .CodeMirror
+  &#editorModal
+    .modal-content
+      background-color: $grid-color
+      margin: 20% auto
+      padding: 20px
       border: 1px solid #888
-      height: 100%
-    .cm-tab
-      border-right: 1px solid rgba(200,200,200,0.2)
-      margin-left: -1px
+      width: 60%
+      height: 40%
+      .CodeMirror
+        border: 1px solid #888
+        height: 100%
+      .cm-tab
+        border-right: 1px solid rgba(200,200,200,0.2)
+        margin-left: -1px
+  &#layoutModal
+    .modal-content
+      @include centerElement
+      background-color: $grid-color
+      padding: 20px
+      border: 1px solid #888
+      .layout-controls
+        h2
+          font-family: sans-serif
+          color: white
+        .inline
+          display: inline-block
+        select, button
+          vertical-align: middle
+          background: $color-active
+          color: white
+          font-family: sans-serif
+          font-size: 18px
+          line-height: $socket-size
+          border: 1px solid #888888
+
 
   .close
     color: #aaa

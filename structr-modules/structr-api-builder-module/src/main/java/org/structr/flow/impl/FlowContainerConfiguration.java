@@ -51,6 +51,8 @@ public class FlowContainerConfiguration extends AbstractNode implements Deployab
 		result.put("type", this.getClass().getSimpleName());
 		result.put("validForEditor", this.getProperty(validForEditor));
 		result.put("configJson", this.getProperty(configJson));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

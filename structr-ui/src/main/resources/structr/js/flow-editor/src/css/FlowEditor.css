@@ -380,19 +380,40 @@ html, body {
   overflow: auto;
   background-color: black;
   background-color: rgba(0, 0, 0, 0.4); }
-  .modal .modal-content {
+  .modal#editorModal .modal-content {
     background-color: #363636;
     margin: 20% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 60%;
     height: 40%; }
-    .modal .modal-content .CodeMirror {
+    .modal#editorModal .modal-content .CodeMirror {
       border: 1px solid #888;
       height: 100%; }
-    .modal .modal-content .cm-tab {
+    .modal#editorModal .modal-content .cm-tab {
       border-right: 1px solid rgba(200, 200, 200, 0.2);
       margin-left: -1px; }
+  .modal#layoutModal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #363636;
+    padding: 20px;
+    border: 1px solid #888; }
+    .modal#layoutModal .modal-content .layout-controls h2 {
+      font-family: sans-serif;
+      color: white; }
+    .modal#layoutModal .modal-content .layout-controls .inline {
+      display: inline-block; }
+    .modal#layoutModal .modal-content .layout-controls select, .modal#layoutModal .modal-content .layout-controls button {
+      vertical-align: middle;
+      background: rgba(22, 22, 22, 0.7);
+      color: white;
+      font-family: sans-serif;
+      font-size: 18px;
+      line-height: 16px;
+      border: 1px solid #888888; }
   .modal .close {
     color: #aaa;
     float: right;
