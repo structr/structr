@@ -18,7 +18,6 @@
  */
 package org.structr.web.resource;
 
-
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -27,8 +26,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
@@ -42,97 +43,157 @@ import org.structr.web.entity.User;
  */
 public class LoginResource extends Resource {
 
-	private static final Logger logger       = LoggerFactory.getLogger(LoginResource.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
 
-	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+    @Override
+    public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
 
-		this.securityContext = securityContext;
+        this.securityContext = securityContext;
 
-		if (getUriPart().equals(part)) {
+        if (getUriPart().equals(part)) {
 
-			return true;
-		}
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+    @Override
+    public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final PropertyMap properties       = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
-		final PropertyKey<String> nameKey  = StructrApp.key(User.class, "name");
-		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-		final PropertyKey<String> pwdKey   = StructrApp.key(User.class, "password");
+        final ConfigurationProvider config = StructrApp.getConfiguration();
+        final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
+        final PropertyKey<String> nameKey = StructrApp.key(User.class, "name");
+        final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
+        final PropertyKey<String> pwdKey = StructrApp.key(User.class, "password");
+        final PropertyKey<String> twoFactorTokenKey = StructrApp.key(User.class, "twoFactorToken");
+        final PropertyKey<String> twoFactorCodeKey = StructrApp.key(User.class, "twoFactorCode");
+        final boolean isTwoFactor = true; //todo config
 
-		final String name                  = properties.get(nameKey);
-		final String email                 = properties.get(eMailKey);
-		final String password              = properties.get(pwdKey);
+        final String name = properties.get(nameKey);
+        final String email = properties.get(eMailKey);
+        final String password = properties.get(pwdKey);
+        
+        final String twoFactorToken = properties.get(twoFactorTokenKey);
+        final String twoFactorCode = properties.get(twoFactorCodeKey);
+        
 
-		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
+        String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
+        
 
-		if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 
-			Principal user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+        if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 
-			if (user != null) {
+            Principal user = null;
 
-				logger.info("Login successful: {}", new Object[]{ user });
+            // If there is no token get user by username/ pw, else get user by token
+            if (twoFactorToken == null) {
+                user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+            } else {
+                final App app = StructrApp.getInstance();
 
-				// make logged in user available to caller
-				securityContext.setCachedUser(user);
+                Result<Principal> results;
+                try (final Tx tx = app.tx()) {
 
-				RestMethodResult methodResult = new RestMethodResult(200);
-				methodResult.addContent(user);
+                    results = app.nodeQuery(Principal.class).and(StructrApp.key(User.class, "twoFactorToken"), twoFactorToken).getResult();
 
-				return methodResult;
-			}
+                    tx.success();
+                }
 
-		}
+                if (!results.isEmpty()) {
 
-		logger.info("Invalid credentials (name, email, password): {}, {}, {}", new Object[]{ name, email, password });
+                    user = results.get(0);
 
-		return new RestMethodResult(401);
-	}
+                    try (final Tx tx = app.tx()) {
 
-	@Override
-	public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
-		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
-	}
+                        // Clear token
+                        user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
+                        tx.success();
+                    }
+                }
+            }
 
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
-	}
+            if (user != null) {
+                if (isTwoFactor) {
+                    if (twoFactorToken == null) {
+                        user.setProperty(StructrApp.key(User.class, "twoFactorToken"), "test");
+                        String url = "/structr/html/twofactor";
+                        RestMethodResult methodResult = new RestMethodResult(302);
+                        methodResult.addHeader("Location", url);
+                        return methodResult;
 
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
-		throw new NotAllowedException("DELETE not allowed on " + getResourceSignature());
-	}
+                    } else {
+                        user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
+                        user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "test");
+                        String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));
+                        
+                        // check 2fa
+                        
+                        // 2fa not successful
+                        if (false) {
+                           logger.info("Two factor authentication failed");
+                           return new RestMethodResult(401);
+                        }
+                    }
 
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		return null;
-	}
+                }
 
-	@Override
-	public Class getEntityClass() {
-		return null;
-	}
+                logger.info("Login successful: {}", new Object[]{user});
 
-	@Override
-	public String getUriPart() {
-		return "login";
-	}
+                // make logged in user available to caller
+                securityContext.setCachedUser(user);
 
-	@Override
-	public String getResourceSignature() {
-		return "_login";
-	}
+                RestMethodResult methodResult = new RestMethodResult(200);
 
-	@Override
-	public boolean isCollectionResource() {
-		return false;
-	}
+                methodResult.addContent(user);
+
+                return methodResult;
+            }
+
+        }
+
+        logger.info("Invalid credentials (name, email, password): {}, {}, {}", new Object[]{name, email, password});
+
+        return new RestMethodResult(401);
+    }
+
+    @Override
+    public Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException {
+        throw new NotAllowedException("GET not allowed on " + getResourceSignature());
+    }
+
+    @Override
+    public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
+        throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
+    }
+
+    @Override
+    public RestMethodResult doDelete() throws FrameworkException {
+        throw new NotAllowedException("DELETE not allowed on " + getResourceSignature());
+    }
+
+    @Override
+    public Resource tryCombineWith(Resource next) throws FrameworkException {
+        return null;
+    }
+
+    @Override
+    public Class getEntityClass() {
+        return null;
+    }
+
+    @Override
+    public String getUriPart() {
+        return "login";
+    }
+
+    @Override
+    public String getResourceSignature() {
+        return "_login";
+    }
+
+    @Override
+    public boolean isCollectionResource() {
+        return false;
+    }
 }

@@ -67,6 +67,15 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.addTransformer(LowercaseTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
+                
+                // Two Factor Authentication Attributes
+                principal.addStringProperty("twoFactorCode");
+                principal.addStringProperty("twoFactorSecret");
+                principal.addStringProperty("twoFactorToken");
+                
+                principal.addPropertyGetter("twoFactorCode", String.class);
+                principal.addPropertySetter("twoFactorSecret", String.class);
+                principal.addPropertyGetter("twoFactorToken", String.class);
 
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");

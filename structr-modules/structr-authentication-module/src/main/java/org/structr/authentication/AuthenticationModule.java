@@ -36,8 +36,12 @@ public class AuthenticationModule implements StructrModule {
 //		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
+<<<<<<< HEAD
+  //              Functions.put(enterpriseEdition, LicenseManager.Enterprise, "twoFactorAuthentication",        new TwoFactorAuthentication());
+=======
 
 //		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "to_excel",        new ToExcelFunction());
+>>>>>>> authentication
 	}
 
 	@Override
@@ -47,8 +51,11 @@ public class AuthenticationModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
+<<<<<<< HEAD
+=======
 //		// Excel import depends on the API builder now
 //		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
+>>>>>>> authentication
 		return null;
 	}
 

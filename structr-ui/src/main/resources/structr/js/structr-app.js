@@ -527,9 +527,18 @@ function StructrApp(baseUrl, locale) {
 		var data = {};
 
 		if (attrs && attrs.length === 2) {
-			data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
-			data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+                    
+                        // checking if the data is user/pw or 2fa
+                        if (!attrs[0].includes("twoFactor"))
+                        {
+                            data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+                            data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+                        } else {
+                            data['twoFactorToken'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+                            data['twoFactorCode'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+                        }
 		}
+
 
 		var msgBox = $('#msg');
 		if (msgBox && msgBox.length) {
