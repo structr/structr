@@ -27,8 +27,10 @@ import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
@@ -58,7 +60,7 @@ public class ScriptJob extends ScheduledJob {
 
 		return () -> {
 
-			try {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 				securityContext.setContextStore(ctxStore);
@@ -82,6 +84,8 @@ public class ScriptJob extends ScheduledJob {
 				}
 
 				reportFinished();
+
+				tx.success();
 
 			} catch (Exception e) {
 
