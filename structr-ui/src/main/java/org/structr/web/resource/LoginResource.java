@@ -19,6 +19,7 @@
 package org.structr.web.resource;
 
 import java.util.Map;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -74,7 +75,7 @@ public class LoginResource extends Resource {
         final String email = properties.get(eMailKey);
         final String password = properties.get(pwdKey);
         
-        final String twoFactorToken = properties.get(twoFactorTokenKey);
+        String twoFactorToken = properties.get(twoFactorTokenKey);
         final String twoFactorCode = properties.get(twoFactorCodeKey);
         
 
@@ -116,13 +117,16 @@ public class LoginResource extends Resource {
             if (user != null) {
                 if (isTwoFactor) {
                     if (twoFactorToken == null) {
-                        user.setProperty(StructrApp.key(User.class, "twoFactorToken"), "test");
+                        //set token to identify user by it
+                        twoFactorToken = UUID.randomUUID().toString();
+                        user.setProperty(StructrApp.key(User.class, "twoFactorToken"), twoFactorToken);
                         String url = "/structr/html/twofactor";
                         RestMethodResult methodResult = new RestMethodResult(302);
                         methodResult.addHeader("Location", url);
                         return methodResult;
 
                     } else {
+                        // reset token
                         user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
                         user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "test");
                         String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));

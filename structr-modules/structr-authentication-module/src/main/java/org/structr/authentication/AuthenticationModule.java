@@ -21,7 +21,6 @@ package org.structr.authentication;
 import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
 
@@ -36,12 +35,9 @@ public class AuthenticationModule implements StructrModule {
 //		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-<<<<<<< HEAD
-  //              Functions.put(enterpriseEdition, LicenseManager.Enterprise, "twoFactorAuthentication",        new TwoFactorAuthentication());
-=======
 
-//		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "to_excel",        new ToExcelFunction());
->>>>>>> authentication
+  //              Functions.put(enterpriseEdition, LicenseManager.Enterprise, "twoFactorAuthentication",        new TwoFactorAuthentication());
+
 	}
 
 	@Override
@@ -51,11 +47,6 @@ public class AuthenticationModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-<<<<<<< HEAD
-=======
-//		// Excel import depends on the API builder now
-//		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
->>>>>>> authentication
 		return null;
 	}
 
