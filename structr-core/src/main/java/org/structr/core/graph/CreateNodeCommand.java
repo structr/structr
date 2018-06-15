@@ -251,7 +251,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			ownsProperties.put(AbstractRelationship.targetId.dbName(), newUuid);
 
 			// configure SECURITY relationship
-			securityProperties.put(Security.allowed.dbName(),              new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
+			securityProperties.put(Security.allowed.dbName(),              new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.link.name(), Permission.accessControl.name() } );
 			securityProperties.put(GraphObject.id.dbName(),                getNextUuid());
 			securityProperties.put(GraphObject.type.dbName(),              Security.class.getSimpleName());
 			securityProperties.put(AbstractRelationship.sourceId.dbName(), user.getUuid());

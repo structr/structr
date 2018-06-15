@@ -153,6 +153,10 @@ public class DeploymentCommentHandler implements CommentHandler {
 								node.grant(Permission.delete, grantee);
 								break;
 
+							case 'l':
+								node.grant(Permission.link, grantee);
+								break;
+
 							default:
 								logger.warn("Invalid @grant permission {}, must be one of [a, r, w, d].", c);
 						}

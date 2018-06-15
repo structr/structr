@@ -29,6 +29,7 @@ import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.api.util.Iterables;
 import org.structr.common.NotNullPredicate;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.TruePredicate;
 import org.structr.common.error.FrameworkException;
@@ -308,6 +309,24 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		}
 
 		return attr;
+	}
+
+	@Override
+	public void checkLinkPermissions(final SecurityContext securityContext, final NodeInterface obj, final Object value) throws FrameworkException {
+
+		if (!obj.isGranted(Permission.write, securityContext) && !obj.isGranted(Permission.link, securityContext)) {
+			throw new FrameworkException(403, "Linking not permitted.");
+		}
+
+		if (value instanceof Iterable) {
+
+			for (final NodeInterface otherNode : ((Iterable<NodeInterface>)value)) {
+
+				if (!(otherNode.isGranted(Permission.write, securityContext) || otherNode.isGranted(Permission.link, securityContext))) {
+					throw new FrameworkException(403, "Linking not permitted.");
+				}
+			}
+		}
 	}
 
 	// ----- overridden methods from super class -----
