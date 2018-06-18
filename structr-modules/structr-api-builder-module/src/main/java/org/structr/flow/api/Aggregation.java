@@ -19,10 +19,11 @@
 package org.structr.flow.api;
 
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 
 public interface Aggregation extends FlowElement {
 
-	void aggregate(final Context context);
+	void aggregate(final Context context) throws FlowException;
 
 	@Override
 	default FlowType getFlowType() {

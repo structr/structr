@@ -17,6 +17,7 @@ export class FlowReturn extends FlowNode {
                 let socket = FlowSockets.getInst();
                 let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
+                let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
                     node.isStartNode = true;
@@ -49,6 +50,7 @@ export class FlowReturn extends FlowNode {
                 return node
                     .addInput(prev)
                     .addInput(dataSource)
+                    .addOutput(exceptionHandler)
                     .addControl(query);
             },
             worker(node, inputs, outputs) {

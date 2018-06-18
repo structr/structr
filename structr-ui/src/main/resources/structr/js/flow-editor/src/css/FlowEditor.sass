@@ -29,6 +29,7 @@ $multiple-color: yellow
 $execution-flow-color: lighten(green,20%)
 $condition-flow-color: orange
 $data-flow-color: lighten(blue,20%)
+$exception-flow-color: red
 
 // mixins
 @mixin setSocketColor($baseColor)
@@ -144,6 +145,8 @@ $data-flow-color: lighten(blue,20%)
           +setSocketColor($data-flow-color)
         &.propertyNameSource
           +setSocketColor($data-flow-color)
+        &.handledNodes
+          +setSocketColor($exception-flow-color)
       &.output
         +setSocketColor($socket-base-color)
         &.next
@@ -162,6 +165,8 @@ $data-flow-color: lighten(blue,20%)
           +setSocketColor($execution-flow-color)
         &.call
           +setSocketColor($data-flow-color)
+        &.exceptionHandler
+          +setSocketColor($exception-flow-color)
     .input-title,.output-title
       vertical-align: middle
       color: white
@@ -273,6 +278,8 @@ $data-flow-color: lighten(blue,20%)
         stroke: $data-flow-color
       &.output-datatarget.input-propertynamesource
         stroke: $data-flow-color
+      &.output-exceptionhandler.input-handlednodes
+        stroke: $exception-flow-color
 
 
   select, input

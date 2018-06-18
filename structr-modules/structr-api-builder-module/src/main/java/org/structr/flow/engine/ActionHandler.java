@@ -28,7 +28,7 @@ import org.structr.flow.api.Action;
 public class ActionHandler implements FlowHandler<Action> {
 
 	@Override
-	public FlowElement handle(final Context context, final Action flowElement) {
+	public FlowElement handle(final Context context, final Action flowElement) throws FlowException {
 
 		flowElement.execute(context);
 

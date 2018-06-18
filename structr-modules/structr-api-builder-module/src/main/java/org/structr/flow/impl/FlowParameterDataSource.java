@@ -25,6 +25,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
@@ -41,7 +42,7 @@ public class FlowParameterDataSource extends FlowBaseNode implements DataSource,
     public static final View uiView      						    = new View(FlowDataSource.class, PropertyView.Ui, key, dataTarget);
 
     @Override
-    public Object get(Context context) {
+    public Object get(Context context) throws FlowException {
         String _key = getProperty(key);
         if (_key != null) {
            return context.getParameter(_key);

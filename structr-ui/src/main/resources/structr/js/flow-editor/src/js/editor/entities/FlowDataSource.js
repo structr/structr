@@ -17,6 +17,7 @@ export class FlowDataSource extends FlowNode {
                 let socket = FlowSockets.getInst();
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
+                let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
                 let query = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
@@ -43,6 +44,7 @@ export class FlowDataSource extends FlowNode {
                 return node
                     .addInput(dataSource)
                     .addOutput(dataTarget)
+                    .addOutput(exceptionHandler)
                     .addControl(query);
             },
             worker(node, inputs, outputs) {

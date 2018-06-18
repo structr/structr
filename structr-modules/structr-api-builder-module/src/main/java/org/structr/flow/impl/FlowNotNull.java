@@ -30,6 +30,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowConditionCondition;
 import org.structr.flow.impl.rels.FlowConditionDataInput;
 import org.structr.flow.impl.rels.FlowDecisionCondition;
@@ -48,7 +49,7 @@ public class FlowNotNull extends FlowCondition implements DataSource, Deployable
 	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
 		final List<DataSource> _dataSources = getProperty(dataSources);
 		if (_dataSources.isEmpty()) {

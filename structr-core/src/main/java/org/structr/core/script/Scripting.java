@@ -281,14 +281,18 @@ public class Scripting {
 
 		} catch (final FrameworkException fex) {
 
-			fex.printStackTrace();
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				fex.printStackTrace();
+			}
 
 			// just throw the FrameworkException so we dont lose the information contained
 			throw fex;
 
 		} catch (final Throwable t) {
 
-			t.printStackTrace();
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				t.printStackTrace();
+			}
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
 			throw new FrameworkException(422, t.getMessage());

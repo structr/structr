@@ -120,6 +120,9 @@ public class Context {
 
 	public ActionContext getActionContext(final SecurityContext securityContext, final FlowBaseNode node) {
 		ActionContext ctx = new ActionContext(securityContext);
+
+		ctx.setDisableVerboseExceptionLogging(true);
+
 		if(this.data.get(node.getUuid()) != null) {
 			ctx.setConstant("data", this.data.get(node.getUuid()));
 		}

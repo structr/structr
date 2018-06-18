@@ -28,5 +28,6 @@ public enum FlowType {
 	Return,
 	ForEach,
 	Store,
-	Aggregation
+	Aggregation,
+	Exception
 }

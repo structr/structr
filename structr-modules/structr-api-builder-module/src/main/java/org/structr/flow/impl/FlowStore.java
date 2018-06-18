@@ -26,6 +26,7 @@ import org.structr.core.property.*;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
@@ -51,7 +52,7 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget, isStartNodeOfContainer);
 
 	@Override
-	public void handleStorage(Context context) {
+	public void handleStorage(Context context) throws FlowException {
 
 		Operation op = getProperty(operation);
 		String _key = getProperty(key);

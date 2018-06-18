@@ -19,6 +19,7 @@
 package org.structr.flow.api;
 
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 
 /**
  *
@@ -34,5 +35,5 @@ public interface FlowHandler<T extends FlowElement> {
 	 *
 	 * @return the next element or null
 	 */
-	FlowElement handle(final Context context, final T flowElement);
+	FlowElement handle(final Context context, final T flowElement) throws FlowException;
 }

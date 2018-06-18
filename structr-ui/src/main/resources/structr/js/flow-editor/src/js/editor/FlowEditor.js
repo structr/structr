@@ -28,6 +28,7 @@ import {FlowGetProperty} from "./entities/FlowGetProperty.js";
 import {FlowCollectionDataSource} from "./entities/FlowCollectionDataSource.js";
 import {LayoutManager} from "./utility/LayoutManager.js";
 import {LayoutModal} from "./utility/LayoutModal.js";
+import {FlowExceptionHandler} from "./entities/FlowExceptionHandler.js";
 
 
 
@@ -274,7 +275,8 @@ export class FlowEditor {
             new FlowAggregate(),
             new FlowConstant(),
             new FlowGetProperty(),
-            new FlowCollectionDataSource()
+            new FlowCollectionDataSource(),
+            new FlowExceptionHandler()
         ];
     }
 
@@ -329,6 +331,7 @@ export class FlowEditor {
                 'FlowCollectionDataSource' : self._getNodeCreationFunction("FlowCollectionDataSource"),
                 'FlowConstant' : self._getNodeCreationFunction("FlowConstant"),
                 'FlowGetProperty': self._getNodeCreationFunction("FlowGetProperty"),
+                'FlowExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
                 'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
             },
             'Actions': {
@@ -471,6 +474,9 @@ export class FlowEditor {
                 break;
             case 'FlowCollectionDataSource':
                 fNode = new FlowCollectionDataSource(node, this);
+                break;
+            case 'FlowExceptionHandler':
+                fNode = new FlowExceptionHandler(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

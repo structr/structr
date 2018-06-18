@@ -29,6 +29,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowKeySource;
 import org.structr.flow.impl.rels.FlowValueSource;
@@ -54,7 +55,7 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource, Deployable
 	public static final View uiView      = new View(FlowKeyValue.class, PropertyView.Ui, key, dataSource, dataTarget);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
 		final String _key   = getProperty(key);
 		final DataSource _ds = getProperty(dataSource);

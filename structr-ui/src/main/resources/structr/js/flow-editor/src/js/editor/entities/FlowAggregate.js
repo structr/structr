@@ -22,6 +22,7 @@ export class FlowAggregate extends FlowNode {
                 let dataSource = new D3NE.Input('CurrentData', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
                 let startValue = new D3NE.Input('Data', socket.getSocket('startValue'));
+                let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
                     node.isStartNode = true;
@@ -57,6 +58,7 @@ export class FlowAggregate extends FlowNode {
                     .addInput(dataSource)
                     .addInput(startValue)
                     .addOutput(dataTarget)
+                    .addOutput(exceptionHandler)
                     .addControl(script);
             },
             worker(node, inputs, outputs) {

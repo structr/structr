@@ -20,6 +20,7 @@ package org.structr.flow.api;
 
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowError;
+import org.structr.flow.engine.FlowException;
 
 /**
  *

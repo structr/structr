@@ -45,6 +45,11 @@ public abstract class FlowNode extends FlowBaseNode implements FlowElement {
 	public static final View uiView      = new View(FlowNode.class, PropertyView.Ui,     prev, next, isStartNodeOfContainer);
 
 	@Override
+	public FlowContainer getFlowContainer() {
+		return getProperty(flowContainer);
+	}
+
+	@Override
 	public FlowElement next() {
 		return getProperty(next);
 	}

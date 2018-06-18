@@ -18,6 +18,7 @@ export class FlowScriptCondition extends FlowNode {
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('condition_Result'), true);
                 let scriptSource = new D3NE.Input('ScriptSource', socket.getSocket('scriptSource'));
+                let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
                 let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
@@ -45,6 +46,7 @@ export class FlowScriptCondition extends FlowNode {
                     .addInput(dataSource)
                     .addInput(scriptSource)
                     .addOutput(dataTarget)
+                    .addOutput(exceptionHandler)
                     .addControl(script);
             },
             worker(node, inputs, outputs) {

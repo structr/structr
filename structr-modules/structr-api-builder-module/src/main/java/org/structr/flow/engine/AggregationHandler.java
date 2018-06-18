@@ -25,7 +25,7 @@ import org.structr.flow.api.FlowElement;
 public class AggregationHandler implements FlowHandler<Aggregation> {
 
 	@Override
-	public FlowElement handle(Context context, Aggregation flowElement) {
+	public FlowElement handle(Context context, Aggregation flowElement) throws FlowException {
 
 		flowElement.aggregate(context);
 		return flowElement.next();

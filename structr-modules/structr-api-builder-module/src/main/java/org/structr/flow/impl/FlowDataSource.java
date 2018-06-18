@@ -21,14 +21,14 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
@@ -38,17 +38,18 @@ import java.util.Map;
 /**
  *
  */
-public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity {
+public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<String> query             		= new StringProperty("query");
+	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> query             					= new StringProperty("query");
 
-	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, dataSource);
-	public static final View uiView      						= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, dataSource);
+	public static final View defaultView 									= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource);
+	public static final View uiView      									= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
 		final DataSource _ds = getProperty(dataSource);
 		if (_ds != null) {
@@ -66,12 +67,17 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 				return result;
 			} catch (FrameworkException fex) {
 
-				fex.printStackTrace();
+				throw new FlowException(fex);
 			}
 		}
 
 		return null;
 
+	}
+
+	@Override
+	public FlowExceptionHandler getExceptionHandler(Context context) {
+		return getProperty(exceptionHandler);
 	}
 
 	@Override

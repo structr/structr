@@ -16,16 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.engine;
 
-import org.structr.core.graph.NodeInterface;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
+public class FlowException extends Exception {
 
-/**
- *
- */
-public interface DataSource<T> extends NodeInterface {
+	private final Exception rootCause;
 
-	T get(final Context context) throws FlowException;
+	public FlowException(final Exception rootCause) {
+		this.rootCause = rootCause;
+	}
+
+	public Exception getRootCause() {
+		return this.getRootCause();
+	}
 }

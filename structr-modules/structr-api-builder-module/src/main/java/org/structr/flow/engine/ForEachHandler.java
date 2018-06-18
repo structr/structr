@@ -30,7 +30,7 @@ import org.structr.flow.impl.FlowNode;
 public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 	@Override
-	public FlowElement handle(final Context context, final FlowForEach flowElement) {
+	public FlowElement handle(final Context context, final FlowForEach flowElement) throws FlowException {
 
 		final DataSource dataSource   = flowElement.getDataSource();
 

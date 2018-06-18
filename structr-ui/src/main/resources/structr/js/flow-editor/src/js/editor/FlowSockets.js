@@ -71,6 +71,12 @@ export class FlowSockets {
         this._sockets['nodeSource'] = nodeSource;
         this._sockets['propertyNameSource'] = propertyNameSource;
 
+        let exceptionHandler = new D3NE.Socket('exceptionHandler', 'Exception Handler', 'Connects to an exception handler node.');
+        let handledNodes = new D3NE.Socket('handledNodes', 'Handled Nodes', 'The exceptions of connected nodes will be handled by this element.');
+        exceptionHandler.combineWith(handledNodes);
+        this._sockets['exceptionHandler'] = exceptionHandler;
+        this._sockets['handledNodes'] = handledNodes;
+
     }
 
     static getInst() {

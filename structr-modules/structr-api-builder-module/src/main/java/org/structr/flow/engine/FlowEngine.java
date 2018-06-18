@@ -18,13 +18,15 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.api.FlowType;
+import org.structr.flow.api.*;
+
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import org.structr.core.GraphObject;
-import org.structr.flow.api.FlowResult;
+import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.impl.FlowContainer;
+import org.structr.flow.impl.FlowExceptionHandler;
 
 public class FlowEngine {
 	private final Map<FlowType, FlowHandler> handlers 	= new EnumMap<>(FlowType.class);
@@ -58,7 +60,17 @@ public class FlowEngine {
 			final FlowHandler handler = handlers.get(current.getFlowType());
 			if (handler != null) {
 
-				FlowElement next = handler.handle(context, current);
+				FlowElement next = null;
+
+				try {
+
+					next = handler.handle(context, current);
+
+				} catch (FlowException ex) {
+
+					return handleException(context, ex, current);
+
+				}
 
 				if (next != null) {
 
@@ -95,5 +107,54 @@ public class FlowEngine {
 		handlers.put(FlowType.ForEach,  	new ForEachHandler());
 		handlers.put(FlowType.Store, 		new StoreHandler());
 		handlers.put(FlowType.Aggregation,  new AggregationHandler());
+		handlers.put(FlowType.Exception, 	new ExceptionHandler());
+	}
+
+	private FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) {
+		// Check if current element has a linked FlowExceptionHandler or if there is a global one
+		if (current instanceof ThrowingElement) {
+
+			FlowExceptionHandler exceptionHandler = ((ThrowingElement)current).getExceptionHandler(context);
+
+			if (exceptionHandler != null) {
+
+				context.setData(exceptionHandler.getUuid(), exception);
+				return this.execute(context, exceptionHandler);
+
+			}
+
+		}
+
+		// No linked FlowExceptionHandler was found, try to find an eligible global one
+		FlowContainer container = current.getFlowContainer();
+
+		List<FlowBaseNode> flowNodes = container.getProperty(FlowContainer.flowNodes);
+
+		if (flowNodes != null && flowNodes.size() > 0) {
+
+			for (FlowBaseNode node : flowNodes) {
+
+				if (node instanceof FlowExceptionHandler) {
+
+					FlowExceptionHandler exceptionHandler = (FlowExceptionHandler)node;
+
+					List<FlowBaseNode> handledNodes = exceptionHandler.getProperty(FlowExceptionHandler.handledNodes);
+
+					if (handledNodes == null || handledNodes.size() == 0) {
+
+						context.setData(exceptionHandler.getUuid(), exception);
+						return this.execute(context, exceptionHandler);
+
+					}
+
+				}
+
+			}
+
+		}
+
+		// In case no handler is present at all, print the stack trace and return the intermediate result
+		exception.printStackTrace();
+		return new FlowResult(context);
 	}
 }

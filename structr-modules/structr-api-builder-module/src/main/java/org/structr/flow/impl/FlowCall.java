@@ -30,6 +30,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowCallContainer;
 import org.structr.flow.impl.rels.FlowCallParameter;
 import org.structr.flow.impl.rels.FlowDataInput;
@@ -51,7 +52,7 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer);
 
 	@Override
-	public void execute(Context context) {
+	public void execute(Context context) throws FlowException {
 		FlowContainer flow = getProperty(FlowCall.flow);
 		List<FlowParameterInput> params = getProperty(parameters);
 
@@ -89,7 +90,7 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 	}
 
 	@Override
-	public Object get(Context context) {
+	public Object get(Context context) throws FlowException {
 		if (!context.hasData(getUuid())) {
 			this.execute(context);
 		}

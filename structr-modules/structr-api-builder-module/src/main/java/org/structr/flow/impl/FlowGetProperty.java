@@ -29,6 +29,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowNodeDataSource;
 import org.structr.flow.impl.rels.FlowNameDataSource;
 
@@ -46,7 +47,7 @@ public class FlowGetProperty extends FlowDataSource {
 	public static final View uiView      = new View(FlowGetProperty.class, PropertyView.Ui,     nodeSource, propertyNameSource);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
 		final DataSource _nodeSource = getProperty(nodeSource);
 		final DataSource _nameSource = getProperty(propertyNameSource);

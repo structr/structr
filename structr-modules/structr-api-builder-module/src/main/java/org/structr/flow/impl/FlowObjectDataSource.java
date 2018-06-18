@@ -29,6 +29,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
 import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowKeyValueObjectInput;
 
 /**
@@ -44,7 +45,7 @@ public class FlowObjectDataSource extends FlowDataSource {
 	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui,     keyValueSources);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
 		final Map<String, Object> result = new LinkedHashMap<>();
 

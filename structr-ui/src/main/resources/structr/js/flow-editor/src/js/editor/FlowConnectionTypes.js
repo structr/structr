@@ -93,6 +93,12 @@ export class FlowConnectionTypes {
                 sourceAttribute: "dataTarget",
                 targetAttribute: "propertyNameSource",
                 type: "FlowNameDataSource"
+            },
+            FlowExceptionHandlerNodes: {
+                name: "EXCEPTIONS_HANDLED_BY",
+                sourceAttribute: "exceptionHandler",
+                targetAttribute: "handledNodes",
+                type: "FlowExceptionHandlerNodes"
             }
 
         };
