@@ -356,12 +356,22 @@ $data-flow-color: lighten(blue,20%)
       background-color: $grid-color
       padding: 20px
       border: 1px solid #888
+      min-width: 20%
       .layout-controls
         h2
           font-family: sans-serif
           color: white
         .inline
           display: inline-block
+        .input-group
+          vertical-align: middle
+          background: $color-active
+          color: white
+          font-family: sans-serif
+          font-size: 18px
+          line-height: $socket-size
+          border: 1px solid #888888
+          padding: 10px
         select, button
           vertical-align: middle
           background: $color-active
@@ -370,7 +380,7 @@ $data-flow-color: lighten(blue,20%)
           font-size: 18px
           line-height: $socket-size
           border: 1px solid #888888
-
+          padding: 12px
 
   .close
     color: #aaa

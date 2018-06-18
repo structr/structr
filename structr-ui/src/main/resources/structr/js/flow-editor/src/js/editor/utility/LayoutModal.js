@@ -25,7 +25,7 @@ export class LayoutModal {
             `;
         }
 
-        const markup = `
+        container.innerHTML = `
               <div class="modal-content">
                 <span class="close">&times;</span>
                 <div class="layout-controls">
@@ -37,12 +37,15 @@ export class LayoutModal {
                     <hr>
                     <div class="inline">
                         <button id="layout-save-btn">Save current layout</button>
+                        <div class="inline input-group">
+                            <input id="layout-visibility-checkbox" type="checkbox" checked="true">
+                            <label for="layout-visibility-checkbox">Visible for all Users</label>
+                        </div>
                     </div>
                 </div>
               </div>
         `;
 
-        container.innerHTML = markup;
         container.style.display = "block";
 
         container.querySelector("span.close").addEventListener('click', () => {
@@ -59,10 +62,18 @@ export class LayoutModal {
 
         container.querySelector("button#layout-save-btn").addEventListener('click', ()=> {
             let layoutManager = new LayoutManager(this._editor);
-            if (confirm('Overwrite currently saved layout?')) {
-                layoutManager.saveLayout();
+            const select = container.querySelector("select#layout-select");
+            const checkbox = container.querySelector("input#layout-visibility-checkbox");
+            if(select.selectedIndex !== -1) {
+                if (confirm('Overwrite currently saved layout?')) {
+                    layoutManager.saveLayout(checkbox.checked);
+                    container.remove();
+                }
+            } else {
+                layoutManager.saveLayout(checkbox.checked);
                 container.remove();
             }
+
         });
 
         container.querySelector("button#layout-select-btn").addEventListener('click', () => {
@@ -74,7 +85,7 @@ export class LayoutModal {
 
         });
 
-        container.querySelector("div.modal-content");
+        container.querySelector("button#layout-save-btn").focus();
 
     }
 

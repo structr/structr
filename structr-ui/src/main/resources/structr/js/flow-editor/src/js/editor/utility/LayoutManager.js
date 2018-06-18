@@ -54,7 +54,7 @@ export class LayoutManager {
 
     }
 
-    async saveLayout() {
+    async saveLayout(visibleForAll) {
 
         var layout = {};
         var editorConfig = this._flowEditor.getEditorJson();
@@ -82,6 +82,8 @@ export class LayoutManager {
             if (r != null && r !== undefined && r.result_count > 0) {
                 let config = persistence._wrapObject(r.result[0], new Object());
                 config.configJson = JSON.stringify(layout);
+                config.visibleToAuthenticatedUsers =  visibleForAll !== undefined ? visibleForAll : false;
+                config.visibleToPublicUsers =  visibleForAll !== undefined ? visibleForAll : false;
             } else {
                 await persistence._persistObject({
                     type: "FlowContainerConfiguration",
@@ -89,8 +91,8 @@ export class LayoutManager {
                     principal: me.id,
                     validForEditor: this._flowEditor._editorId,
                     configJson: JSON.stringify(layout),
-                    visibleToPublicUsers: true,
-                    visibleToAuthenticatedUsers: true
+                    visibleToPublicUsers: visibleForAll !== undefined ? visibleForAll : false,
+                    visibleToAuthenticatedUsers: visibleForAll !== undefined ? visibleForAll : false
                 });
             }
         }

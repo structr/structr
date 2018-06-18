@@ -400,12 +400,22 @@ html, body {
     transform: translate(-50%, -50%);
     background-color: #363636;
     padding: 20px;
-    border: 1px solid #888; }
+    border: 1px solid #888;
+    min-width: 20%; }
     .modal#layoutModal .modal-content .layout-controls h2 {
       font-family: sans-serif;
       color: white; }
     .modal#layoutModal .modal-content .layout-controls .inline {
       display: inline-block; }
+    .modal#layoutModal .modal-content .layout-controls .input-group {
+      vertical-align: middle;
+      background: rgba(22, 22, 22, 0.7);
+      color: white;
+      font-family: sans-serif;
+      font-size: 18px;
+      line-height: 16px;
+      border: 1px solid #888888;
+      padding: 10px; }
     .modal#layoutModal .modal-content .layout-controls select, .modal#layoutModal .modal-content .layout-controls button {
       vertical-align: middle;
       background: rgba(22, 22, 22, 0.7);
@@ -413,7 +423,8 @@ html, body {
       font-family: sans-serif;
       font-size: 18px;
       line-height: 16px;
-      border: 1px solid #888888; }
+      border: 1px solid #888888;
+      padding: 12px; }
   .modal .close {
     color: #aaa;
     float: right;
