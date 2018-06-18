@@ -325,13 +325,15 @@ function getComments(el) {
 	while (f) {
 		if (f.nodeType === 8) {
 			var id = f.nodeValue.extractVal('data-structr-id');
-			var raw = f.nodeValue.extractVal('data-structr-raw-value');
 			if (id) {
-				var comment = {};
-				comment.id = id;
-				comment.node = f;
-				comment.rawContent = raw;
-				comments.push(comment);
+				var raw = f.nodeValue.extractVal('data-structr-raw-value');
+				if (raw !== undefined) {
+					var comment = {};
+					comment.id = id;
+					comment.node = f;
+					comment.rawContent = raw;
+					comments.push(comment);
+				}
 			}
 		}
 		f = f ? f.nextSibling : f;

@@ -34,6 +34,7 @@ public class Permissions {
  		permissionMap.put(Permission.read.name(),          Permission.read);
  		permissionMap.put(Permission.write.name(),         Permission.write);
 		permissionMap.put(Permission.delete.name(),        Permission.delete);
+		permissionMap.put(Permission.link.name(),          Permission.link);
 		permissionMap.put(Permission.accessControl.name(), Permission.accessControl);
 	}
 

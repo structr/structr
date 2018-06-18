@@ -1143,10 +1143,10 @@ var _Entities = {
 			_Entities.appendBooleanSwitch(dialogText, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
 			dialogText.append('<h3>Access Rights</h3>');
-			dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
+			dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Link</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
 			var tb = $('#principals tbody', dialogText);
-			tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
+			tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newLink" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
 
 			$.ajax({
 				url: rootUrl + '/' + entity.id + '/in',
@@ -1160,6 +1160,7 @@ var _Entities = {
 							'read': isIn('read', result.allowed),
 							'write': isIn('write', result.allowed),
 							'delete': isIn('delete', result.allowed),
+							'link': isIn('link', result.allowed),
 							'accessControl': isIn('accessControl', result.allowed)
 						};
 
@@ -1220,7 +1221,7 @@ var _Entities = {
 
 		var row = $('._' + principal.id, dialogText);
 
-		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
+		['read', 'write', 'delete', 'link', 'accessControl'].forEach(function(perm) {
 
 			row.append('<td><input class="' + perm + '" type="checkbox"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
 

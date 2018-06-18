@@ -96,6 +96,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -1185,6 +1186,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				return result.delete;
 			}
 
+			if (permission.equals(Permission.link)) {
+				return result.link;
+			}
+
 			if (permission.equals(Permission.accessControl)) {
 				return result.accessControl;
 			}
@@ -1219,6 +1224,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		if (permission.equals(Permission.delete) && (result.delete == null || result.delete == false)) {
 			result.delete = value;
+		}
+
+		if (permission.equals(Permission.link) && (result.link == null || result.link == false)) {
+			result.link = value;
 		}
 
 		if (permission.equals(Permission.accessControl) && (result.accessControl == null || result.accessControl == false)) {
@@ -1426,7 +1435,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		// allow setting of ID without permissions
 		if (!key.equals(GraphObject.id)) {
 
-			if (!isGranted(Permission.write, securityContext)) {
+			// check if linking is allowed
+			if (key instanceof RelationProperty) {
+
+				((RelationProperty)key).checkLinkPermissions(securityContext, this, value);
+
+			} else if (!isGranted(Permission.write, securityContext)) {
 
 				internalSystemPropertiesUnlocked = false;
 				readOnlyPropertiesUnlocked       = false;
@@ -1481,6 +1495,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 					if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
 						throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
+					}
+
+					// check if linking is allowed
+					if (key instanceof RelationProperty) {
+
+						((RelationProperty)key).checkLinkPermissions(securityContext, this, value);
 					}
 				}
 			}
@@ -2153,6 +2173,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		Boolean read          = false;
 		Boolean write         = false;
 		Boolean delete        = false;
+		Boolean link          = false;
 		Boolean accessControl = false;
 	}
 }

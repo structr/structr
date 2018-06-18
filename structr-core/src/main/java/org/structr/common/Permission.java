@@ -28,9 +28,10 @@ public interface Permission {
 	public static final Permission read             = new PermissionImpl("read");
 	public static final Permission write            = new PermissionImpl("write");
 	public static final Permission delete           = new PermissionImpl("delete");
+	public static final Permission link             = new PermissionImpl("link");
 	public static final Permission accessControl    = new PermissionImpl("accessControl");
 
-	public static final Permission[] allPermissions = { read, write, delete, accessControl };
+	public static final Permission[] allPermissions = { read, write, delete, link, accessControl };
 
 	public String name();
 
