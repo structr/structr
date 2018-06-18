@@ -539,7 +539,6 @@ function StructrApp(baseUrl, locale) {
                         }
 		}
 
-
 		var msgBox = $('#msg');
 		if (msgBox && msgBox.length) {
 			$('span', msgBox).remove();
@@ -549,7 +548,7 @@ function StructrApp(baseUrl, locale) {
 
 		var app = this;
 
-		$.ajax({
+		var ajaxRequest = $.ajax({
 			type: 'POST',
 			method: 'POST',
 			contentType: 'application/json',
@@ -557,6 +556,12 @@ function StructrApp(baseUrl, locale) {
 			data: JSON.stringify(data),
 			statusCode: {
 				200: function(data) {
+					btn.text(s.labels[s.lang].success);
+					redirectOrReload(reload, returnUrl);
+				},
+				202: function(data) { //redirect 2fa and attach token
+                                        returnUrl = ajaxRequest.getResponseHeader("twofactorurl");
+                                        returnUrl = returnUrl+"?token="+ajaxRequest.getResponseHeader("token");
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},
