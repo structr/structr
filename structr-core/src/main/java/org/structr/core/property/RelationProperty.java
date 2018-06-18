@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 
 /**
@@ -45,6 +44,4 @@ public interface RelationProperty<T> {
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final T t) throws FrameworkException;
 
 	public String getDirectionKey();
-
-	public void checkLinkPermissions(final SecurityContext securityContext, final NodeInterface obj, final Object value) throws FrameworkException;
 }

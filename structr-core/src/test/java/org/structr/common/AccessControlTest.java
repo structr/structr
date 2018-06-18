@@ -583,8 +583,6 @@ public class AccessControlTest extends StructrTest {
 			user1 = createTestNode(Principal.class, "user1");
 			user2 = createTestNode(Principal.class, "user2");
 
-			// new: allow user1 to link user2 to things
-			user2.grant(Permission.link, user1);
 			tx.success();
 
 		} catch (FrameworkException t) {
@@ -757,9 +755,6 @@ public class AccessControlTest extends StructrTest {
 
 			user1 = createTestNode(Principal.class, "user1");
 			user2 = createTestNode(Principal.class, "user2");
-
-			// new: allow user1 to link user2 to things
-			user2.grant(Permission.link, user1);
 
 			tx.success();
 
@@ -1082,6 +1077,7 @@ public class AccessControlTest extends StructrTest {
 		} catch (FrameworkException ex) {
 			logger.error(ex.toString());
 		}
+
 	}
 
 	// ----- private methods -----

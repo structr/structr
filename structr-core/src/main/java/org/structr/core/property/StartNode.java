@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -253,25 +252,6 @@ public class StartNode<S extends NodeInterface, T extends NodeInterface> extends
 		}
 
 		return attr;
-	}
-
-	@Override
-	public void checkLinkPermissions(final SecurityContext securityContext, final NodeInterface obj, final Object value) throws FrameworkException {
-
-		if (value instanceof NodeInterface) {
-
-			final NodeInterface otherNode = (NodeInterface)value;
-
-			if (obj.isGranted(Permission.write, securityContext) && otherNode.isGranted(Permission.link, securityContext)) {
-				return;
-			}
-
-			if (obj.isGranted(Permission.link, securityContext) && otherNode.isGranted(Permission.write, securityContext)) {
-				return;
-			}
-
-			throw new FrameworkException(403, "Linking not permitted.");
-		}
 	}
 
 	// ----- overridden methods from super class -----

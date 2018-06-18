@@ -35,7 +35,6 @@ public class PermissionResolutionMask {
 	private final int WRITE                           = 0x00000002;
 	private final int DELETE                          = 0x00000004;
 	private final int ACCESS_CONTROL                  = 0x00000008;
-	private final int LINK                            = 0x00000010;
 	private int checked                               = 0;	// bitmask, encodes the permissions for which this mask was checked
 	private int value                                 = 0;  // bitmask, encodes the permissions of this mask
 
@@ -67,10 +66,6 @@ public class PermissionResolutionMask {
 			return (checked & DELETE) != 0;
 		}
 
-		if (Permission.link.equals(permission)) {
-			return (checked & LINK) != 0;
-		}
-
 		if (Permission.accessControl.equals(permission)) {
 			return (checked & ACCESS_CONTROL) != 0;
 		}
@@ -90,10 +85,6 @@ public class PermissionResolutionMask {
 
 		if (Permission.delete.equals(permission)) {
 			checked |= DELETE;
-		}
-
-		if (Permission.link.equals(permission)) {
-			checked |= LINK;
 		}
 
 		if (Permission.accessControl.equals(permission)) {
@@ -141,18 +132,6 @@ public class PermissionResolutionMask {
 			}
 		}
 
-		if (Permission.link.equals(permission)) {
-
-			if (isAllowed) {
-
-				value |= LINK;
-
-			} else {
-
-				value &= ~LINK;
-			}
-		}
-
 		if (Permission.accessControl.equals(permission)) {
 
 			if (isAllowed) {
@@ -180,10 +159,6 @@ public class PermissionResolutionMask {
 
 		if (Permission.delete.equals(permission)) {
 			return (value & DELETE) != 0;
-		}
-
-		if (Permission.link.equals(permission)) {
-			return (value & LINK) != 0;
 		}
 
 		if (Permission.accessControl.equals(permission)) {
@@ -222,6 +197,7 @@ public class PermissionResolutionMask {
 
 	public void addRead() {
 		value |= READ;
+
 	}
 
 	public void removeRead() {
@@ -242,14 +218,6 @@ public class PermissionResolutionMask {
 
 	public void removeDelete() {
 		value &= ~DELETE;
-	}
-
-	public void addLink() {
-		value |= LINK;
-	}
-
-	public void removeLink() {
-		value &= ~LINK;
 	}
 
 	public void addAccessControl() {
