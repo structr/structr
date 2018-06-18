@@ -85,7 +85,7 @@ public class LoginResource extends Resource {
 
         String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
         
-        String base32Secret = "OHNGH2JWDLI4WNJW"; //twoFactorAuthUtil.generateBase32Secret();
+  //      String base32Secret = "OHNGH2JWDLI4WNJW"; //twoFactorAuthUtil.generateBase32Secret();
         
 
         if ((StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) || StringUtils.isNotEmpty(twoFactorToken)) {
@@ -107,7 +107,6 @@ public class LoginResource extends Resource {
                 if (!results.isEmpty()) {
 
                     user = results.get(0);
-                    logger.info("Two factor token verified 1");
                     try (final Tx tx = app.tx()) {
 
                         // Clear token
@@ -133,15 +132,13 @@ public class LoginResource extends Resource {
 
                     } else {
                         // reset token
-                        logger.info("Two factor token verified 2");
                         user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
-                        user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "test");
-                        String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));
-                        
+                        //user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "test");
+                        String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));//OHNGH2JWDLI4WNJW todo
                         
                         String currentKey="";
                         try {
-                            currentKey = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(base32Secret);
+                            currentKey = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(twoFactorSecret);
                         } catch (GeneralSecurityException ex) {
                             java.util.logging.Logger.getLogger(LoginResource.class.getName()).log(Level.SEVERE, null, ex);
                         }

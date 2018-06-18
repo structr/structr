@@ -100,7 +100,8 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "sessionIds");
 		user.addViewProperty(PropertyView.Ui, "workingDirectory");
                 user.addViewProperty(PropertyView.Ui, "twoFactorToken");
-		user.addViewProperty(PropertyView.Ui, "twoFactorCode");
+		user.addViewProperty(PropertyView.Ui, "twoFactorSecret");
+                user.addViewProperty(PropertyView.Ui, "isTwoFactor");
 
 	}}
 
