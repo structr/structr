@@ -18,8 +18,6 @@
  */
 package org.structr.common;
 
-import java.util.Arrays;
-import java.util.Collections;
 import org.junit.Assert;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -29,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -39,9 +36,6 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.export.StructrSchema;
-import org.structr.schema.json.JsonObjectType;
-import org.structr.schema.json.JsonSchema;
 
 /**
  * Test access control with different permission levels.
@@ -231,140 +225,6 @@ public class PermissionResolutionTest extends StructrTest {
 
 			Assert.assertNotNull("User1 should be able to find instance of type Type1", userApp.nodeQuery(type1).getFirst());
 			Assert.assertNull("User1 should NOT be able to find instance of type Type2", userApp.nodeQuery(type2).getFirst());
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-	}
-
-	@Test
-	public void testLinkPermission() {
-
-		PropertyKey organizationKey = null;
-		PropertyKey personsKey      = null;
-		Principal tester            = null;
-		Class personType            = null;
-		Class orgType               = null;
-
-		// test setup
-		try (final Tx tx = app.tx()) {
-
-			tester = app.create(Principal.class, "tester");
-
-			JsonSchema schema = StructrSchema.createFromDatabase(app);
-
-			final JsonObjectType person       = schema.addType("TestPerson");
-			final JsonObjectType organization = schema.addType("TestOrganization");
-
-			organization.relate(person, "PERSONS", Relation.Cardinality.OneToMany, "organization", "persons");
-
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (Throwable fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			personType      = StructrApp.getConfiguration().getNodeEntityClass("TestPerson");
-			orgType         = StructrApp.getConfiguration().getNodeEntityClass("TestOrganization");
-			organizationKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(personType, "organization");
-			personsKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(orgType, "persons");
-
-			final NodeInterface testPerson    = app.create(personType, "person");
-			final NodeInterface linkableOrg   = app.create(orgType,    "linkable");
-			final NodeInterface unlinkableOrg = app.create(orgType,    "unlinkable");
-
-			testPerson.grant(Permission.read, tester);
-			testPerson.grant(Permission.write, tester);
-
-			linkableOrg.grant(Permission.read, tester);
-			linkableOrg.grant(Permission.link, tester);
-
-			unlinkableOrg.grant(Permission.read, tester);
-
-			tx.success();
-
-		} catch (Throwable fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		final SecurityContext ctx = SecurityContext.getInstance(tester, AccessMode.Backend);
-		final App userApp         = StructrApp.getInstance(ctx);
-
-		try (final Tx tx = userApp.tx()) {
-
-			final NodeInterface testPerson    = (NodeInterface)userApp.nodeQuery(personType).getFirst();
-			final NodeInterface linkableOrg   = (NodeInterface)userApp.nodeQuery(orgType).andName("linkable").getFirst();
-			final NodeInterface unlinkableOrg = (NodeInterface)userApp.nodeQuery(orgType).andName("unlinkable").getFirst();
-
-			Assert.assertNotNull("TestPerson should be visible to test user", testPerson);
-			Assert.assertNotNull("TestOrganization should be visible to test user", linkableOrg);
-			Assert.assertNotNull("TestOrganization should be visible to test user", unlinkableOrg);
-
-			// try to create relationships
-			try {
-
-				testPerson.setProperty(organizationKey, linkableOrg);
-
-			} catch (FrameworkException fex) {
-				fail("Linking should be allowed.");
-			}
-
-			try {
-				testPerson.setProperty(organizationKey, unlinkableOrg);
-				fail("Linking should NOT be allowed.");
-
-			} catch (FrameworkException fex) {
-				System.out.println(fex.getMessage());
-			}
-
-			try {
-				linkableOrg.setProperty(personsKey, Arrays.asList(testPerson));
-
-			} catch (FrameworkException fex) {
-				fail("Linking should be allowed.");
-			}
-
-			try {
-				unlinkableOrg.setProperty(personsKey, Arrays.asList(testPerson));
-				fail("Linking should NOT be allowed.");
-
-			} catch (FrameworkException fex) {
-				System.out.println(fex.getMessage());
-			}
-
-			// test unlinking
-			try {
-				linkableOrg.setProperty(personsKey, Collections.emptyList());
-
-			} catch (FrameworkException fex) {
-				fail("Unlinking should be allowed.");
-			}
-
-			// re-create relationship to test unlinking in the other direction
-			try {
-
-				testPerson.setProperty(organizationKey, linkableOrg);
-
-			} catch (FrameworkException fex) {
-				fail("Linking should be allowed.");
-			}
-
-			// test unlinking
-			try {
-				testPerson.setProperty(organizationKey, null);
-
-			} catch (FrameworkException fex) {
-				fail("Unlinking should be allowed.");
-			}
 
 			tx.success();
 

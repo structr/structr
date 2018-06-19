@@ -41,7 +41,6 @@ import org.structr.common.Permission;
 import org.structr.core.entity.Principal;
 import org.structr.files.cmis.repository.StructrAccessControlPermissionMapping;
 import org.structr.files.cmis.repository.StructrDeletePermissionMapping;
-import org.structr.files.cmis.repository.StructrLinkPermissionMapping;
 import org.structr.files.cmis.repository.StructrPermissionDefinition;
 import org.structr.files.cmis.repository.StructrReadPermissionMapping;
 import org.structr.files.cmis.repository.StructrWritePermissionMapping;
@@ -162,8 +161,7 @@ public class StructrRepositoryInfo extends CMISExtensionsData implements Reposit
 
 		permissions.add(new StructrPermissionDefinition(Permission.read,          "Read access"));
 		permissions.add(new StructrPermissionDefinition(Permission.write,         "Write access"));
-		permissions.add(new StructrPermissionDefinition(Permission.delete,        "Delete permission"));
-		permissions.add(new StructrPermissionDefinition(Permission.delete,        "Link permission"));
+		permissions.add(new StructrPermissionDefinition(Permission.delete,        "Write access"));
 		permissions.add(new StructrPermissionDefinition(Permission.accessControl, "Access control"));
 
 		return permissions;
@@ -177,7 +175,6 @@ public class StructrRepositoryInfo extends CMISExtensionsData implements Reposit
 		mapping.put(Permission.read.name(),          new StructrReadPermissionMapping());
 		mapping.put(Permission.write.name(),         new StructrWritePermissionMapping());
 		mapping.put(Permission.delete.name(),        new StructrDeletePermissionMapping());
-		mapping.put(Permission.link.name(),          new StructrLinkPermissionMapping());
 		mapping.put(Permission.accessControl.name(), new StructrAccessControlPermissionMapping());
 
 		return mapping;
