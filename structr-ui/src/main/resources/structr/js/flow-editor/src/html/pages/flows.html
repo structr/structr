@@ -5,26 +5,29 @@
     <title>Flows</title>
     <script type="module" src="../../js/persistence/Persistence.js"></script>
     <script type="module" src="../../js/editor/entities/FlowContainer.js"></script>
+    <link rel="stylesheet" href="../../css/Flows.css">
 </head>
 <body>
 
-    <div>
-        <h4>Create new Flow</h4>
-        <div>
+    <div class="flows-container">
+        <h3>Create new Flow</h3>
+        <div class="flows-title-container">
             <label for="name-input">Name</label>
             <input id="name-input" type="text">
-            <button id="create-new-flow">Create</button>
+            <button class="flow-btn-lg" id="create-new-flow">Create</button>
         </div>
         <hr>
-        <table>
-            <thead>
-                <th>ID</th>
-                <th>Name</th>
-                <th></th>
-            </thead>
-            <tbody id="flow-table-body">
-            </tbody>
-        </table>
+        <div class="flows-table">
+            <table>
+                <thead>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th></th>
+                </thead>
+                <tbody id="flow-table-body">
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script type="module">
@@ -76,7 +79,7 @@
                 <tr data-id="${flowContainer.id}">
                     <td>${flowContainer.id}</td>
                     <td><a href="/structr/js/flow-editor/src/html/pages/flow.html?id=${flowContainer.id}">${flowContainer.name}</a></td>
-                    <td><button data-id="${flowContainer.id}" class="delete-flow">X</button></td>
+                    <td class="delete-button-td"><button data-id="${flowContainer.id}" class="flow-btn-md delete-flow">X</button></td>
                 </tr>
              `;
         }

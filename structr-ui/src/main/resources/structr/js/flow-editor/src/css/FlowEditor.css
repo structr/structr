@@ -430,6 +430,8 @@ html, body {
       line-height: 16px;
       border: 1px solid #888888;
       padding: 10px; }
+      .modal#layoutModal .modal-content .layout-controls .input-group:hover {
+        background: rgba(48, 48, 48, 0.7); }
     .modal#layoutModal .modal-content .layout-controls select, .modal#layoutModal .modal-content .layout-controls button {
       vertical-align: middle;
       background: rgba(22, 22, 22, 0.7);
@@ -439,6 +441,10 @@ html, body {
       line-height: 16px;
       border: 1px solid #888888;
       padding: 12px; }
+      .modal#layoutModal .modal-content .layout-controls select:focus, .modal#layoutModal .modal-content .layout-controls button:focus {
+        outline: none; }
+      .modal#layoutModal .modal-content .layout-controls select:hover, .modal#layoutModal .modal-content .layout-controls button:hover {
+        background: rgba(48, 48, 48, 0.7); }
   .modal .close {
     color: #aaa;
     float: right;

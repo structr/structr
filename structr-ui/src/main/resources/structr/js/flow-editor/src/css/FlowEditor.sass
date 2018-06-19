@@ -1,35 +1,20 @@
+@import 'FlowStyleConfig'
+
+// variables
+$socket-size: 16px
+$socket-margin: 10px
+$group-handler-size: 40px
+$group-handler-offset: -10px
+$context-menu-round: 10px
+$grid-size: 20px
+$grid-color: $main-background-color
+
 html, body
   height: 100%
   margin: 0
 
 #nodeEditor
   height: 100%
-
-/// begin custom styles
-
-$grid-size: 20px
-$grid-color: #363636
-$node-color: rgba(35,35,35,0.7)
-$color-active: darken($node-color,5%)
-$color-hover: lighten($node-color,15%)
-$color-startNode: rgba(90,210,90,0.6)
-$title-light: rgba(0, 255, 0,0.5)
-$title-light-transparent: rgba(0, 255, 0,0.0)
-$group-color: rgba(15,80,255,0.2)
-$group-handler-size: 40px
-$group-handler-offset: -10px
-$socket-size: 16px
-$socket-margin: 10px
-$context-menu-round: 10px
-
-//
-$socket-base-color: white
-$multiple-color: yellow
-
-$execution-flow-color: lighten(green,20%)
-$condition-flow-color: orange
-$data-flow-color: lighten(blue,20%)
-$exception-flow-color: red
 
 // mixins
 @mixin setSocketColor($baseColor)
@@ -77,10 +62,10 @@ $exception-flow-color: red
       background: $color-startNode
     .title
       border-top: 1px solid #ccc
-      color: white
+      color: $main-font-color
       text-align: center
       font-weight: bold
-      font-family: sans-serif
+      font-family: $main-font
       font-size: 18px
       border-radius: 10px 10px 0 0
       padding: 8px
@@ -116,7 +101,7 @@ $exception-flow-color: red
         display: inline-block
         border-style: solid
         border-width: $socket-size/4 0 $socket-size/4 $socket-size/6
-        border-color: transparent transparent transparent white
+        border-color: transparent transparent transparent $socket-border-color
       &.multiple
         border-color: $multiple-color
       &:hover
@@ -169,9 +154,9 @@ $exception-flow-color: red
           +setSocketColor($exception-flow-color)
     .input-title,.output-title
       vertical-align: middle
-      color: white
+      color: $main-font-color
       display: inline-block
-      font-family: sans-serif
+      font-family: $main-font
       font-size: 14px
       margin: $socket-margin 0
       line-height: $socket-size
@@ -184,17 +169,17 @@ $exception-flow-color: red
       padding: $socket-margin $socket-size/2 + $socket-margin
     .control-title
       vertical-align: middle
-      color: white
+      color: $main-font-color
       display: inline-block
-      font-family: sans-serif
+      font-family: $main-font
       font-size: 14px
       line-height: $socket-size
       margin-left: 25px
     .control-textarea
       vertical-align: middle
       background: $color-active
-      color: white
-      font-family: sans-serif
+      color: $main-font-color
+      font-family: $main-font
       font-size: 14px
       line-height: $socket-size
       min-height: 50px
@@ -202,8 +187,8 @@ $exception-flow-color: red
     .control-select
       vertical-align: middle
       background: $color-active
-      color: white
-      font-family: sans-serif
+      color: $main-font-color
+      font-family: $main-font
       font-size: 14px
       line-height: $socket-size
       width: 100%
@@ -221,8 +206,8 @@ $exception-flow-color: red
     &.active
       border-color: #ffd92c
     .group-title
-      color: white
-      font-family: sans-serif
+      color: $main-font-color
+      font-family: $main-font
       font-size: 18px
       padding: 12px
     .group-handler
@@ -288,7 +273,7 @@ $exception-flow-color: red
     padding: 2px 6px
     border: 1px solid white
     font-size: 14px
-    color: white
+    color: $main-font-color
 
 
 .context-menu
@@ -297,7 +282,7 @@ $exception-flow-color: red
   position: absolute
   padding: 10px
   margin-top: -20px
-  font-family: sans-serif
+  font-family: $main-font
   & > .item
     border: 1px solid white
     margin-left: -80%
@@ -366,28 +351,34 @@ $exception-flow-color: red
       min-width: 20%
       .layout-controls
         h2
-          font-family: sans-serif
-          color: white
+          font-family: $main-font
+          color: $main-font-color
         .inline
           display: inline-block
         .input-group
           vertical-align: middle
           background: $color-active
-          color: white
-          font-family: sans-serif
+          color: $main-font-color
+          font-family: $main-font
           font-size: 18px
           line-height: $socket-size
           border: 1px solid #888888
           padding: 10px
+          &:hover
+            background: lighten($color-active, 10%)
         select, button
           vertical-align: middle
           background: $color-active
-          color: white
-          font-family: sans-serif
+          color: $main-font-color
+          font-family: $main-font
           font-size: 18px
           line-height: $socket-size
           border: 1px solid #888888
           padding: 12px
+          &:focus
+            outline: none
+          &:hover
+            background: lighten($color-active, 10%)
 
   .close
     color: #aaa
