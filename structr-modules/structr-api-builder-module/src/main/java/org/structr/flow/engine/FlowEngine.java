@@ -87,9 +87,10 @@ public class FlowEngine {
 			} else {
 
 				System.out.println("No handler registered for type " + current.getFlowType() + ", aborting.");
+
 			}
 
-			// check for error or return values and break early
+			// check for return or error values and break early
 			if (context.hasResult() || context.hasError()) {
 				return new FlowResult(context);
 			}
@@ -155,6 +156,7 @@ public class FlowEngine {
 
 		// In case no handler is present at all, print the stack trace and return the intermediate result
 		exception.printStackTrace();
+		context.error(new FlowError(exception.getMessage()));
 		return new FlowResult(context);
 	}
 }

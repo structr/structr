@@ -311,28 +311,32 @@ export class FlowEditor {
         let self = this;
 
         let menu = new D3NE.ContextMenu({
-            'Create Node': {
+            'Action Nodes': {
                 'FlowAction' : self._getNodeCreationFunction("FlowAction"),
                 'FlowCall' : self._getNodeCreationFunction("FlowCall"),
+                'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
+                'FlowAggregate' : self._getNodeCreationFunction("FlowAggregate"),
+                'FlowExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
+                'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
+            },
+            'Data Nodes': {
                 'FlowDataSource' : self._getNodeCreationFunction("FlowDataSource"),
+                'FlowConstant' : self._getNodeCreationFunction("FlowConstant"),
+                'FlowCollectionDataSource' : self._getNodeCreationFunction("FlowCollectionDataSource"),
+                'FlowObjectDataSource' : self._getNodeCreationFunction("FlowObjectDataSource"),
+                'FlowKeyValue' : self._getNodeCreationFunction("FlowKeyValue"),
                 'FlowParameterInput' : self._getNodeCreationFunction("FlowParameterInput"),
                 'FlowParameterDataSource' : self._getNodeCreationFunction("FlowParameterDataSource"),
+                'FlowStore' : self._getNodeCreationFunction("FlowStore"),
+                'FlowGetProperty': self._getNodeCreationFunction("FlowGetProperty")
+            },
+            'Logic Nodes': {
+                'FlowDecision' : self._getNodeCreationFunction("FlowDecision"),
                 'FlowNotNull' : self._getNodeCreationFunction("FlowNotNull"),
                 'FlowNot' : self._getNodeCreationFunction("FlowNot"),
                 'FlowOr' : self._getNodeCreationFunction("FlowOr"),
                 'FlowAnd' : self._getNodeCreationFunction("FlowAnd"),
-                'FlowDecision' : self._getNodeCreationFunction("FlowDecision"),
-                'FlowKeyValue' : self._getNodeCreationFunction("FlowKeyValue"),
-                'FlowObjectDataSource' : self._getNodeCreationFunction("FlowObjectDataSource"),
-                'FlowStore' : self._getNodeCreationFunction("FlowStore"),
-                'FlowScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition"),
-                'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
-                'FlowAggregate' : self._getNodeCreationFunction("FlowAggregate"),
-                'FlowCollectionDataSource' : self._getNodeCreationFunction("FlowCollectionDataSource"),
-                'FlowConstant' : self._getNodeCreationFunction("FlowConstant"),
-                'FlowGetProperty': self._getNodeCreationFunction("FlowGetProperty"),
-                'FlowExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
-                'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
+                'FlowScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition")
             },
             'Actions': {
                 'Execute Flow': function() { self.executeFlow() },

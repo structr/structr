@@ -23,6 +23,7 @@ public class FlowException extends Exception {
 	private final Exception rootCause;
 
 	public FlowException(final Exception rootCause) {
+		super(rootCause.getMessage());
 		this.rootCause = rootCause;
 	}
 

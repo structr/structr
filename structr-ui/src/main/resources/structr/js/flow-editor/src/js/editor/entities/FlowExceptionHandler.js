@@ -17,13 +17,15 @@ export class FlowExceptionHandler extends FlowNode {
             builder(node) {
                 let socket = FlowSockets.getInst();
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
+                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
                 let handledNodes = new D3NE.Input('HandledNodes', socket.getSocket('handledNodes'), true);
 
                 node.data.dbNode = scopedDbNode;
 
                 return node
                     .addInput(handledNodes)
-                    .addOutput(next);
+                    .addOutput(next)
+                    .addOutput(dataTarget);
             }
         });
     }
