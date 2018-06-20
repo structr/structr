@@ -15,8 +15,6 @@
         import { FlowEditor } from "../../js/editor/FlowEditor.js";
         import { FlowConnectionTypes } from "../../js/editor/FlowConnectionTypes.js";
 
-        const customStyle = "css/flow-themes/default.css";
-
         let persistence = new Persistence();
         let urlParams = new URLSearchParams(window.location.search);
 
@@ -31,7 +29,7 @@
 
             let rootElement = document.querySelector("#nodeEditor");
 
-            let editor = new FlowEditor(rootElement, r[0], customStyle);
+            let editor = new FlowEditor(rootElement, r[0]);
 
             editor.waitForInitialization().then( () => {
 
