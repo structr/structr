@@ -395,8 +395,11 @@ html, body {
   background-color: black;
   background-color: rgba(0, 0, 0, 0.4); }
   .modal#editorModal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background-color: #363636;
-    margin: 20% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 60%;
@@ -414,7 +417,7 @@ html, body {
     transform: translate(-50%, -50%);
     background-color: #363636;
     padding: 20px;
-    border: 1px solid #888;
+    border: 1px solid white;
     min-width: 20%; }
     .modal#layoutModal .modal-content .layout-controls h2 {
       font-family: sans-serif;
@@ -428,7 +431,7 @@ html, body {
       font-family: sans-serif;
       font-size: 18px;
       line-height: 16px;
-      border: 1px solid #888888;
+      border: 1px solid white;
       padding: 10px; }
       .modal#layoutModal .modal-content .layout-controls .input-group:hover {
         background: rgba(48, 48, 48, 0.7); }
@@ -439,23 +442,43 @@ html, body {
       font-family: sans-serif;
       font-size: 18px;
       line-height: 16px;
-      border: 1px solid #888888;
+      border: 1px solid white;
       padding: 12px; }
       .modal#layoutModal .modal-content .layout-controls select:focus, .modal#layoutModal .modal-content .layout-controls button:focus {
         outline: none; }
       .modal#layoutModal .modal-content .layout-controls select:hover, .modal#layoutModal .modal-content .layout-controls button:hover {
         background: rgba(48, 48, 48, 0.7); }
-  .modal .close {
-    color: #aaa;
-    float: right;
-    font-size: 40px;
-    font-weight: bold;
-    margin-left: 10px; }
-    .modal .close:hover {
-      text-decoration: none;
-      cursor: pointer; }
-    .modal .close:focus {
-      text-decoration: none;
-      cursor: pointer; }
+
+span.close {
+  color: white;
+  float: right;
+  font-size: 40px;
+  font-weight: bold;
+  margin-left: 10px;
+  margin-top: -10px; }
+  span.close:hover {
+    text-decoration: none;
+    cursor: pointer; }
+  span.close:focus {
+    text-decoration: none;
+    cursor: pointer; }
+
+#executionResult {
+  position: absolute;
+  background-color: rgba(54, 54, 54, 0.3);
+  top: 0;
+  left: calc(80% - 20px);
+  height: calc(100% - 20px);
+  width: 20%;
+  z-index: 2;
+  padding: 10px; }
+  #executionResult h4 {
+    font-family: sans-serif;
+    color: white; }
+  #executionResult pre {
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    color: black;
+    background-color: white; }
 
 /*# sourceMappingURL=FlowEditor.css.map */

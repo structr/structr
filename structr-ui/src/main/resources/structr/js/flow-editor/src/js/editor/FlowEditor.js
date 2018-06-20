@@ -29,6 +29,7 @@ import {FlowCollectionDataSource} from "./entities/FlowCollectionDataSource.js";
 import {LayoutManager} from "./utility/LayoutManager.js";
 import {LayoutModal} from "./utility/LayoutModal.js";
 import {FlowExceptionHandler} from "./entities/FlowExceptionHandler.js";
+import {ResultPanel} from "./utility/ResultPanel.js";
 
 
 
@@ -357,8 +358,8 @@ export class FlowEditor {
 
         let rest = new Rest();
 
-        rest.post('/structr/rest/FlowContainer/' + this._flowContainer.id + '/evaluate', {}).then((res) => {
-            console.log(res);
+        rest.post('/structr/rest/FlowContainer/' + this._flowContainer.id + '/evaluate', {}, true).then((res) => {
+            new ResultPanel(res);
         });
 
     }

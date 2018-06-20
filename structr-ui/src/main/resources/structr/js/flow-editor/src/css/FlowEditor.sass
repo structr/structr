@@ -330,8 +330,8 @@ html, body
   background-color: rgba(0,0,0,0.4)
   &#editorModal
     .modal-content
+      @include centerElement
       background-color: $grid-color
-      margin: 20% auto
       padding: 20px
       border: 1px solid #888
       width: 60%
@@ -379,16 +379,35 @@ html, body
             outline: none
           &:hover
             background: lighten($color-active, 10%)
+span.close
+  color: $main-font-color
+  float: right
+  font-size: 40px
+  font-weight: bold
+  margin-left: 10px
+  margin-top: -10px
+  &:hover
+    text-decoration: none
+    cursor: pointer
+  &:focus
+    text-decoration: none
+    cursor: pointer
 
-  .close
+// result panel
+#executionResult
+  position: absolute
+  background-color: rgba($main-background-color, 0.3  )
+  top: 0
+  left: calc(80% - 20px)
+  height: calc(100% - 20px)
+  width: 20%
+  z-index: 2
+  padding: 10px
+  h4
+    font-family: $main-font
     color: $main-font-color
-    float: right
-    font-size: 40px
-    font-weight: bold
-    margin-left: 10px
-    &:hover
-      text-decoration: none
-      cursor: pointer
-    &:focus
-      text-decoration: none
-      cursor: pointer
+  pre
+    border-radius: 5px
+    border: 1px solid darken($base-border-color, 20%)
+    color: black
+    background-color: white
