@@ -313,6 +313,9 @@ public class Settings {
 	public static final Setting<String> PaymentPaypalSignature = new StringSetting(miscGroup,  "Payment Options", "paypal.signature",    "");
 	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
+        
+        public static final Setting<String> TwoFactorId             = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.id",       "Structr");
+        public static final Setting<Integer> TwoFactorLevel         = new IntegerSetting(servletsGroup, "Two Factor Options", "TwoFactor.level",0);
 	
 
 	public static Collection<SettingsGroup> getGroups() {

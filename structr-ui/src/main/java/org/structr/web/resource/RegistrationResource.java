@@ -407,7 +407,7 @@ public class RegistrationResource extends Resource {
 				changedProperties.put(confirmationKeyKey, confKey);
 				user.setProperties(securityContext, changedProperties);
 
-			} else if (!autoCreate) {
+			} else if (autoCreate) {
 
 				final App app = StructrApp.getInstance(securityContext);
 
@@ -437,9 +437,8 @@ public class RegistrationResource extends Resource {
 				props.put(confirmationKeyKey, confKey);
                                 
                                 // generate and set 2fa properties
-                                String keyId ="Structr";
-                                TimeBasedOneTimePasswordUtil twoFactorAuthUtil= new TimeBasedOneTimePasswordUtil(); 
-                                String base32Secret = twoFactorAuthUtil.generateBase32Secret();
+                                final String keyId = Settings.TwoFactorId.getValue();
+                                String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
                                 props.put(twoFactorUserKey, true);
                                 props.put(twoFactorSecretKey, base32Secret);
                                 props.put(twoFactorUrl, TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
