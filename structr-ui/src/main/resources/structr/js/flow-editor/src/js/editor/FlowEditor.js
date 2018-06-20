@@ -30,6 +30,7 @@ import {LayoutManager} from "./utility/LayoutManager.js";
 import {LayoutModal} from "./utility/LayoutModal.js";
 import {FlowExceptionHandler} from "./entities/FlowExceptionHandler.js";
 import {ResultPanel} from "./utility/ResultPanel.js";
+import {AreaSelector} from "./utility/AreaSelector.js";
 
 
 
@@ -96,6 +97,7 @@ export class FlowEditor {
         d3.select(this._rootElement).on('click', () => {
             if (d3.event.target === this._rootElement) {
                 this._editor.view.pickedOutput = null;
+                this._editor.selected.list = [];
                 this._editor.view.update();
             }
         });
@@ -126,6 +128,50 @@ export class FlowEditor {
             this._nodeDeletionHandler(data);
         });
 
+        //Initialize area selector
+        new AreaSelector(this);
+
+        this._registerKeybinds();
+
+    }
+
+    _registerKeybinds() {
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'x' && event.altKey === true) {
+                // Execute flow on alt+x
+                this.executeFlow();
+            } else if (event.key === 'l' && event.altKey === true) {
+                // Open layout modal on alt+l
+                new LayoutModal(this);
+            } else if (event.key === 's' && event.altKey === true) {
+                // Save layout on alt+s
+                if (confirm('Save layout?')) {
+                    if (confirm('Save as public layout?')) {
+                        this.saveLayout(true);
+                    } else {
+                        this.saveLayout(false);
+                    }
+                }
+            } else if (event.key === 'Escape') {
+                // Close panel on ESC and clear selection
+                ResultPanel.removePanel();
+                this._editor.selected.list = [];
+                this._editor.view.update();
+            } else if (event.shiftKey === true && event.ctrlKey === true) {
+                // Enable area selection on shift+ctrl
+                new AreaSelector(this).enable();
+            } else if (event.key === "a" && event.ctrlKey === true) {
+                this.selectAllNodes();
+                event.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.key === "Shift" || event.key === "Ctrl") {
+                // Stop area selection on shift or ctrl keyup
+                new AreaSelector(this).disable();
+            }
+        });
     }
 
     _getContextMenuItemsForElement(editor, element) {
@@ -364,10 +410,12 @@ export class FlowEditor {
 
     }
 
-    async saveLayout() {
+    async saveLayout(visibleForPublic) {
+
+        let pub = visibleForPublic !== undefined ? visibleForPublic : false;
 
         let layoutManager = new LayoutManager(this);
-        await layoutManager.saveLayout();
+        await layoutManager.saveLayout(pub);
 
     }
 
@@ -526,6 +574,48 @@ export class FlowEditor {
 
     getEditorJson() {
         return this._editor.toJSON();
+    }
+
+    selectAllNodes() {
+        this._editor.selected.list = this.flowNodes.map( n => n.editorNode);
+        this._editor.view.update();
+    }
+
+
+    static _rectContainsRect(r1,r2) {
+        return (r2.x + r2.w) < (r1.x + r1.w)
+            && (r2.x) > (r1.x)
+            && (r2.y) > (r1.y)
+            && (r2.y + r2.h) < (r1.y + r1.h);
+    }
+
+    selectAllNodesInRectangle(p1,p2) {
+        this._editor.selected.list = [];
+
+        let view = this._editor.view;
+
+        for (let node of this.flowNodes) {
+
+            let nodePos = node.editorNode.position;
+
+            if (
+                FlowEditor._rectContainsRect({
+                    x: p1[0] - view.transform.x,
+                    y: p1[1] - view.transform.y,
+                    h: (p2[1]-p1[1]) * (1 / view.transform.k),
+                    w: (p2[0]-p1[0]) * (1 / view.transform.k)
+                },{
+                    x: nodePos[0],
+                    y: nodePos[1],
+                    h: node.editorNode.height,
+                    w: node.editorNode.width
+                })
+            ) {
+                this._editor.selected.list.push(node.editorNode);
+            }
+        }
+
+        this._editor.view.update();
     }
 
 }

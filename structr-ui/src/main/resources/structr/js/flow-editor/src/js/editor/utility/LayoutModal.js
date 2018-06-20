@@ -4,7 +4,14 @@ export class LayoutModal {
 
     constructor( editor) {
         this._editor = editor;
-        this._createLayoutModal();
+
+        let modal = document.querySelector("div#layoutModal");
+
+        if (modal === undefined || modal === null) {
+
+            this._createLayoutModal();
+
+        }
     }
 
     async _createLayoutModal() {

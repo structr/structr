@@ -2,15 +2,28 @@ export class ResultPanel {
 
     constructor(result) {
         this._result = result;
-        this._createLayoutModal();
+        const formattedResult = JSON.stringify(this._result, null, 2);
+        // Check for existing layout modal to hijack before creating a new one
+        let container = document.body.querySelector("div#executionResult");
+
+        if (container !== null && container !== undefined) {
+            container.querySelector("pre").innerHTML = formattedResult;
+        } else {
+            this._createResultPanel(formattedResult);
+        }
     }
 
-    async _createLayoutModal() {
+    static removePanel() {
+        let panel = document.body.querySelector("div#executionResult");
+        if (panel !== undefined && panel !== null) {
+            document.body.removeChild(panel);
+        }
+    }
+
+    _createResultPanel(result) {
 
         let container = document.createElement("div");
         container.setAttribute("id", "executionResult");
-
-        const result = JSON.stringify(this._result, null, 2);
 
         container.innerHTML = `
               <div class="modal-content">
@@ -29,13 +42,6 @@ export class ResultPanel {
         });
 
         document.body.append(container);
-
-        // Make modal closable via ESC key
-        container.addEventListener('keyup', (ev) => {
-            if(ev.key === "Escape") {
-                container.remove();
-            }
-        });
 
     }
 
