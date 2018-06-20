@@ -72,22 +72,19 @@ public class LoginResource extends Resource {
         final PropertyKey<String> pwdKey = StructrApp.key(User.class, "password");
         final PropertyKey<String> twoFactorTokenKey = StructrApp.key(User.class, "twoFactorToken");
         final PropertyKey<String> twoFactorCodeKey = StructrApp.key(User.class, "twoFactorCode");
-        final boolean isTwoFactor = true; //too config
+        final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
+        boolean isTwoFactor = true; //todo config
 
         final String name = properties.get(nameKey);
         final String email = properties.get(eMailKey);
         final String password = properties.get(pwdKey);
         
-        TimeBasedOneTimePasswordUtil twoFactorAuthUtil= new TimeBasedOneTimePasswordUtil(); 
         String twoFactorToken = properties.get(twoFactorTokenKey);
         final String twoFactorCode = properties.get(twoFactorCodeKey);
         
 
         String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
-        
-  //      String base32Secret = "OHNGH2JWDLI4WNJW"; //twoFactorAuthUtil.generateBase32Secret();
-        
-
+       
         if ((StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) || StringUtils.isNotEmpty(twoFactorToken)) {
 
             Principal user = null;
@@ -119,6 +116,14 @@ public class LoginResource extends Resource {
             }
 
             if (user != null) {
+                //todo user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "OHNGH2JWDLI4WNJW");
+                //disabling 2fa if user is not registered for it
+                if (user.getProperty(twoFactorUserKey) == false)
+                {
+                   isTwoFactor = false; 
+                }
+                
+                
                 if (isTwoFactor) {
                     if (twoFactorToken == null) {
                         //set token to identify user by it
@@ -133,7 +138,7 @@ public class LoginResource extends Resource {
                     } else {
                         // reset token
                         user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
-                        //user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "test");
+                        //todp user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "test");
                         String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));//OHNGH2JWDLI4WNJW todo
                         
                         String currentKey="";
