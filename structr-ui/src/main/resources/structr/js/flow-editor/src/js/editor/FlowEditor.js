@@ -34,11 +34,11 @@ import {FlowExceptionHandler} from "./entities/FlowExceptionHandler.js";
 
 export class FlowEditor {
 
-    constructor(rootElement, flowContainer) {
+    constructor(rootElement, flowContainer, optionalStyle) {
 
         this._initializationPromise = new Promise(resolve => {
 
-            this._injectDependencies().then(() => {
+            this._injectDependencies(optionalStyle).then(() => {
 
 
                 this._editorId = 'structr-flow-editor@0.1.0';
@@ -68,7 +68,7 @@ export class FlowEditor {
         return this._initializationPromise;
     }
 
-    _injectDependencies() {
+    _injectDependencies(optionalStyle) {
         let dep = new DependencyLoader();
         let depObject = {
             scripts: [
@@ -80,6 +80,10 @@ export class FlowEditor {
                 "css/FlowEditor.css"
             ]
         };
+
+        if (optionalStyle !== undefined) {
+            depObject.stylesheets.push(optionalStyle);
+        }
 
         return dep.injectDependencies(depObject).then( () => {return dep.injectScript("lib/d3-node-editor/d3-node-editor.js");})
     }

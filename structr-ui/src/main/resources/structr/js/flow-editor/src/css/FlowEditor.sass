@@ -82,7 +82,7 @@ html, body
     .socket
       display: inline-block
       cursor: pointer
-      border: 2px solid white
+      border: 2px solid $socket-border-color
       border-radius: $socket-size/2.0
       width: $socket-size
       height: $socket-size
@@ -105,7 +105,7 @@ html, body
       &.multiple
         border-color: $multiple-color
       &:hover
-        border: 2px solid white
+        border: 2px solid $socket-border-color
       &.input
         +setSocketColor($socket-base-color)
         &.dataSource
@@ -230,7 +230,7 @@ html, body
     pointer-events: none
     .connection
       fill: none
-      stroke: #eee
+      stroke: $connection-base-stroke-color
       stroke-width: 2px
       pointer-events: none
       &.active
@@ -271,7 +271,7 @@ html, body
     width: 60px
     background-color: transparent
     padding: 2px 6px
-    border: 1px solid white
+    border: 1px solid $base-border-color
     font-size: 14px
     color: $main-font-color
 
@@ -284,7 +284,7 @@ html, body
   margin-top: -20px
   font-family: $main-font
   & > .item
-    border: 1px solid white
+    border: 1px solid $base-border-color
     margin-left: -80%
     .subitems
       position: absolute
@@ -347,7 +347,7 @@ html, body
       @include centerElement
       background-color: $grid-color
       padding: 20px
-      border: 1px solid #888
+      border: 1px solid $base-border-color
       min-width: 20%
       .layout-controls
         h2
@@ -362,7 +362,7 @@ html, body
           font-family: $main-font
           font-size: 18px
           line-height: $socket-size
-          border: 1px solid #888888
+          border: 1px solid $base-border-color
           padding: 10px
           &:hover
             background: lighten($color-active, 10%)
@@ -373,7 +373,7 @@ html, body
           font-family: $main-font
           font-size: 18px
           line-height: $socket-size
-          border: 1px solid #888888
+          border: 1px solid $base-border-color
           padding: 12px
           &:focus
             outline: none
@@ -381,7 +381,7 @@ html, body
             background: lighten($color-active, 10%)
 
   .close
-    color: #aaa
+    color: $main-font-color
     float: right
     font-size: 40px
     font-weight: bold
