@@ -46,8 +46,8 @@ public interface Group extends Principal {
 		group.addBooleanProperty("isGroup", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		group.addPropertyGetter("members", List.class);
 
-		group.addMethod("addMember").setSource(Group.class.getName() + ".addMember(this, member);").addParameter("member", Principal.class.getName());
-		group.addMethod("removeMember").setSource(Group.class.getName() + ".removeMember(this, member);").addParameter("member", Principal.class.getName());
+		group.addMethod("addMember").setSource(Group.class.getName() + ".addMember(this, member);").addParameter("member", Principal.class.getName()).addException("FrameworkException");
+		group.addMethod("removeMember").setSource(Group.class.getName() + ".removeMember(this, member);").addParameter("member", Principal.class.getName()).addException("FrameworkException");
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
@@ -64,39 +64,28 @@ public interface Group extends Principal {
 		group.addViewProperty(PropertyView.Public, "name");
 	}}
 
-	void addMember(final Principal member);
-	void removeMember(final Principal member);
+	void addMember(final Principal member) throws FrameworkException;
+	void removeMember(final Principal member) throws FrameworkException;
 	List<Principal> getMembers();
 
 
-	public static void addMember(final Group group, final Principal user) {
+	public static void addMember(final Group group, final Principal user) throws FrameworkException {
 
-		try {
-			final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
-			final List<Principal> _users           = group.getProperty(key);
+		final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
+		final List<Principal> _users           = group.getProperty(key);
 
-			_users.add(user);
+		_users.add(user);
 
-			group.setProperty(key, _users);
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
+		group.setProperty(key, _users);
 	}
 
-	public static void removeMember(final Group group, final Principal member) {
+	public static void removeMember(final Group group, final Principal member) throws FrameworkException {
 
-		try {
+		final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
+		final List<Principal> _users           = group.getProperty(key);
 
-			final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
-			final List<Principal> _users           = group.getProperty(key);
+		_users.remove(member);
 
-			_users.remove(member);
-
-			group.setProperty(key, _users);
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
+		group.setProperty(key, _users);
 	}
 }
