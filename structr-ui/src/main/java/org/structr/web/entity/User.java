@@ -101,7 +101,7 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "workingDirectory");
                 user.addViewProperty(PropertyView.Ui, "twoFactorToken");
 		user.addViewProperty(PropertyView.Ui, "twoFactorSecret");
-                user.addViewProperty(PropertyView.Ui, "twoFactorUrl");
+                user.addViewProperty(PropertyView.Ui, "twoFactorImageUrl");
 
 
 	}}

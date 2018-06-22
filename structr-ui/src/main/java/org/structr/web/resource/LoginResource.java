@@ -66,7 +66,6 @@ public class LoginResource extends Resource {
     @Override
     public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-        final ConfigurationProvider config = StructrApp.getConfiguration();
         final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
         final PropertyKey<String> nameKey = StructrApp.key(User.class, "name");
         final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
@@ -74,8 +73,7 @@ public class LoginResource extends Resource {
         final PropertyKey<String> twoFactorTokenKey = StructrApp.key(User.class, "twoFactorToken");
         final PropertyKey<String> twoFactorCodeKey = StructrApp.key(User.class, "twoFactorCode");
         final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
-        boolean isTwoFactor = true; //todo config
-
+        
         final String name = properties.get(nameKey);
         final String email = properties.get(eMailKey);
         final String password = properties.get(pwdKey);
@@ -83,7 +81,7 @@ public class LoginResource extends Resource {
         String twoFactorToken = properties.get(twoFactorTokenKey);
         final String twoFactorCode = properties.get(twoFactorCodeKey);
         final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
-        
+        boolean isTwoFactor = false;
 
         String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
        
@@ -115,23 +113,34 @@ public class LoginResource extends Resource {
                 }              
             } else {
                 user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+                // if there is an old token delete it
+                if (user.getProperty(twoFactorTokenKey) != null)
+                {
+                    user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
+                }
             }
 
             if (user != null) {
-                //todo user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "OHNGH2JWDLI4WNJW");
-                //disabling 2fa if user is not registered for it
-                if (user.getProperty(twoFactorUserKey) == false)
+                boolean userIsTwoFactor = user.getProperty(twoFactorUserKey);
+                              
+                // If System and user are 2fa
+                isTwoFactor = (userIsTwoFactor==true && twoFactorLevel > 0);
+                
+                // If user is not 2fa, but system expects him to be
+                if (userIsTwoFactor==false && twoFactorLevel == 2)
                 {
-                   isTwoFactor = false; 
+                    logger.info("User needs to use two factor authentication to login");
+                    return new RestMethodResult(401);
                 }
                 
                 
+                isTwoFactor = true; // for testing remove
                 if (isTwoFactor) {
                     if (twoFactorToken == null) {
                         //set token to identify user by it
                         twoFactorToken = UUID.randomUUID().toString();
                         user.setProperty(StructrApp.key(User.class, "twoFactorToken"), twoFactorToken);
-                        String url = "/twofactor";
+                        String url = Settings.TwoFactorUrl.getValue();
                         RestMethodResult methodResult = new RestMethodResult(202);
                         methodResult.addHeader("token", twoFactorToken);
                         methodResult.addHeader("twofactorurl", url);
@@ -140,14 +149,13 @@ public class LoginResource extends Resource {
                     } else {
                         // reset token
                         user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
-                        //todp user.setProperty(StructrApp.key(User.class, "twoFactorSecret"), "test");
-                        String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));//OHNGH2JWDLI4WNJW todo
+                        String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));
                         
                         String currentKey="";
                         try {
                             currentKey = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(twoFactorSecret);
                         } catch (GeneralSecurityException ex) {
-                            java.util.logging.Logger.getLogger(LoginResource.class.getName()).log(Level.SEVERE, null, ex);
+                            logger.info("2fa key could not be generated");
                         }
                         
                         // check 2fa
