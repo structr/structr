@@ -594,26 +594,36 @@ export class FlowEditor {
 
         let view = this._editor.view;
 
+        console.log(p1);
+        console.log(p2);
+
+        console.log(view.transform);
+        console.log(view);
+
+        console.log('////////////////////////////////');
         for (let node of this.flowNodes) {
 
             let nodePos = node.editorNode.position;
+            console.log(nodePos);
 
             if (
                 FlowEditor._rectContainsRect({
-                    x: p1[0] - view.transform.x,
-                    y: p1[1] - view.transform.y,
-                    h: (p2[1]-p1[1]) * (1 / view.transform.k),
-                    w: (p2[0]-p1[0]) * (1 / view.transform.k)
+                    x: (view.transform.x * -1) + p1[0],
+                    y: (view.transform.y * -1) + p1[1],
+                    h: (p2[1]-p1[1]),
+                    w: (p2[0]-p1[0])
                 },{
-                    x: nodePos[0],
-                    y: nodePos[1],
-                    h: node.editorNode.height,
-                    w: node.editorNode.width
+                    x: nodePos[0] * view.transform.k,
+                    y: nodePos[1] * view.transform.k,
+                    h: node.editorNode.height * view.transform.k,
+                    w: node.editorNode.width * view.transform.k
                 })
             ) {
                 this._editor.selected.list.push(node.editorNode);
             }
         }
+
+        console.log('////////////////////////////////');
 
         this._editor.view.update();
     }
