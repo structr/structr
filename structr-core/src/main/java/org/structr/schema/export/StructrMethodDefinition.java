@@ -266,7 +266,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
-		
+
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
 		// create database schema for method parameters

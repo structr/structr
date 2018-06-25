@@ -72,6 +72,7 @@ import org.structr.schema.compiler.BlacklistUnlicensedTypes;
 import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
 import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
+import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
 
@@ -93,6 +94,7 @@ public class SchemaService implements Service {
 	static {
 
 		migrationHandlers.add(new BlacklistSchemaNodeWhenMissingPackage());
+		migrationHandlers.add(new RemoveMethodsWithUnusedSignature());
 		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
 		migrationHandlers.add(new BlacklistUnlicensedTypes());
 	}
