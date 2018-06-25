@@ -594,13 +594,6 @@ export class FlowEditor {
 
         let view = this._editor.view;
 
-        console.log(p1);
-        console.log(p2);
-
-        console.log(view.transform);
-        console.log(view);
-
-        console.log('////////////////////////////////');
         for (let node of this.flowNodes) {
 
             let nodePos = node.editorNode.position;
@@ -622,8 +615,6 @@ export class FlowEditor {
                 this._editor.selected.list.push(node.editorNode);
             }
         }
-
-        console.log('////////////////////////////////');
 
         this._editor.view.update();
     }
