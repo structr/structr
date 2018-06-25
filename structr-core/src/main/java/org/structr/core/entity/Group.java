@@ -46,8 +46,8 @@ public interface Group extends Principal {
 		group.addBooleanProperty("isGroup", PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
 		group.addPropertyGetter("members", List.class);
 
-		group.addMethod("addMember").setSource(Group.class.getName() + ".addMember(this, member);").addParameter("member", Principal.class.getName()).addException("FrameworkException");
-		group.addMethod("removeMember").setSource(Group.class.getName() + ".removeMember(this, member);").addParameter("member", Principal.class.getName()).addException("FrameworkException");
+		group.addMethod("addMember").setSource(Group.class.getName() + ".addMember(this, member);").addParameter("member", Principal.class.getName()).addException(FrameworkException.class.getName());
+		group.addMethod("removeMember").setSource(Group.class.getName() + ".removeMember(this, member);").addParameter("member", Principal.class.getName()).addException(FrameworkException.class.getName());
 
 		// create relationship
 		group.relate(principal, "CONTAINS", Relation.Cardinality.ManyToMany, "groups", "members");
