@@ -396,7 +396,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				map.put("id", id);
 
-				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} RETURN n", map));
+				//wrapper = new NodeWrapper(db, tx.getNode("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} RETURN n", map));
+				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n) WHERE ID(n) = {id} RETURN n", map));
+				
 				nodeCache.put(id, wrapper);
 			}
 
