@@ -18,7 +18,6 @@
  */
 package org.structr.common;
 
-import java.util.Arrays;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -1210,126 +1209,126 @@ public class AccessControlTest extends StructrTest {
 	 * 
 	 * This method is exactly like {@link AccessControlTest#test11GroupMembership()} but uses the {@link AbstractNode#setProperty} method.
 	 */
-	@Test
-	public void test11GroupMembership2() {
-		
-		// remove auto-generated resource access objects
-		clearResourceAccess();
-
-		Principal user1 = null;
-		Principal user2 = null;
-
-		// ################################################################################################################
-		// create three users
-
-		try (final Tx tx = app.tx()) {
-
-			user1 = createTestNode(Principal.class, "user1");
-			user2 = createTestNode(Principal.class, "user2");
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-
-			logger.warn("", t);
-			fail("Unexpected exception.");
-		}
-
-		assertNotNull(user1);
-		assertNotNull(user2);
-		
-		final SecurityContext user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
-		final App user1App                 = StructrApp.getInstance(user1Context);
-		
-		final SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
-		final App user2App                 = StructrApp.getInstance(user2Context);
-		
-		String groupId = null;
-		
-		// ################################################################################################################
-		// Let user2 create a group and grant read permissions to user1
-
-		try (final Tx tx = user2App.tx()) {
-
-			Group group = user2App.create(Group.class, "group");
-
-			assertEquals("Invalid group owner", user2, group.getOwnerNode());
-			
-			group.grant(Permission.read, user1);
-			
-			groupId = group.getUuid();
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-
-			logger.warn("", t);
-			fail("Unexpected exception.");
-		}		
-		
-		// ################################################################################################################
-		// Let user1 try to add itself to group
-		
-		try (final Tx tx = user1App.tx()) {
-
-			Group group = user1App.get(Group.class, groupId);
-			
-			assertNotNull(group);
-			
-			// Add user1 to group
-			//group.addMember(user1);
-			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
-			
-			tx.success();
-			
-			fail("Expected a 'Modification not permitted' FrameworkException");
-			
-		} catch (FrameworkException t) {
-
-		}
-
-
-		// ################################################################################################################
-		// As admin, grant write access on user1 to user2 so user2 can modify user1
-		
-		try (final Tx tx = app.tx()) {
-
-			Group group = app.get(Group.class, groupId);
-			
-			// Grant write permission on group to user1
-			group.grant(Permission.write, user1);
-			
-			tx.success();
-			
-		} catch (FrameworkException t) {
-
-			logger.warn("", t);
-			fail("Unexpected exception.");
-		}
-
-
-		// ################################################################################################################
-		// Try again
-		
-		try (final Tx tx = user1App.tx()) {
-			
-			Group group = user1App.get(Group.class, groupId);
-
-			// Add user1 to group
-			//group.addMember(user1);
-			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
-
-			assertEquals(user1, group.getMembers().get(0));
-			
-			tx.success();
-			
-		} catch (FrameworkException t) {
-
-			logger.warn("", t);
-			fail("Unexpected exception.");
-
-		}		
-	}
+//	@Test
+//	public void test11GroupMembership2() {
+//		
+//		// remove auto-generated resource access objects
+//		clearResourceAccess();
+//
+//		Principal user1 = null;
+//		Principal user2 = null;
+//
+//		// ################################################################################################################
+//		// create three users
+//
+//		try (final Tx tx = app.tx()) {
+//
+//			user1 = createTestNode(Principal.class, "user1");
+//			user2 = createTestNode(Principal.class, "user2");
+//
+//			tx.success();
+//
+//		} catch (FrameworkException t) {
+//
+//			logger.warn("", t);
+//			fail("Unexpected exception.");
+//		}
+//
+//		assertNotNull(user1);
+//		assertNotNull(user2);
+//		
+//		final SecurityContext user1Context = SecurityContext.getInstance(user1, AccessMode.Backend);
+//		final App user1App                 = StructrApp.getInstance(user1Context);
+//		
+//		final SecurityContext user2Context = SecurityContext.getInstance(user2, AccessMode.Backend);
+//		final App user2App                 = StructrApp.getInstance(user2Context);
+//		
+//		String groupId = null;
+//		
+//		// ################################################################################################################
+//		// Let user2 create a group and grant read permissions to user1
+//
+//		try (final Tx tx = user2App.tx()) {
+//
+//			Group group = user2App.create(Group.class, "group");
+//
+//			assertEquals("Invalid group owner", user2, group.getOwnerNode());
+//			
+//			group.grant(Permission.read, user1);
+//			
+//			groupId = group.getUuid();
+//
+//			tx.success();
+//
+//		} catch (FrameworkException t) {
+//
+//			logger.warn("", t);
+//			fail("Unexpected exception.");
+//		}		
+//		
+//		// ################################################################################################################
+//		// Let user1 try to add itself to group
+//		
+//		try (final Tx tx = user1App.tx()) {
+//
+//			Group group = user1App.get(Group.class, groupId);
+//			
+//			assertNotNull(group);
+//			
+//			// Add user1 to group
+//			//group.addMember(user1);
+//			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
+//			
+//			tx.success();
+//			
+//			fail("Expected a 'Modification not permitted' FrameworkException");
+//			
+//		} catch (FrameworkException t) {
+//
+//		}
+//
+//
+//		// ################################################################################################################
+//		// As admin, grant write access on user1 to user2 so user2 can modify user1
+//		
+//		try (final Tx tx = app.tx()) {
+//
+//			Group group = app.get(Group.class, groupId);
+//			
+//			// Grant write permission on group to user1
+//			group.grant(Permission.write, user1);
+//			
+//			tx.success();
+//			
+//		} catch (FrameworkException t) {
+//
+//			logger.warn("", t);
+//			fail("Unexpected exception.");
+//		}
+//
+//
+//		// ################################################################################################################
+//		// Try again
+//		
+//		try (final Tx tx = user1App.tx()) {
+//			
+//			Group group = user1App.get(Group.class, groupId);
+//
+//			// Add user1 to group
+//			//group.addMember(user1);
+//			user1.setProperty(StructrApp.key(Principal.class, "groups"), Arrays.asList(group));
+//
+//			assertEquals(user1, group.getMembers().get(0));
+//			
+//			tx.success();
+//			
+//		} catch (FrameworkException t) {
+//
+//			logger.warn("", t);
+//			fail("Unexpected exception.");
+//
+//		}		
+//	}
 	
 	// ----- private methods -----
 	public static void clearResourceAccess() {
