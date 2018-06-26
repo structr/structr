@@ -18,7 +18,6 @@
  */
 package org.structr.common;
 
-import java.util.Arrays;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -1210,7 +1209,7 @@ public class AccessControlTest extends StructrTest {
 	 * 
 	 * This method is exactly like {@link AccessControlTest#test11GroupMembership()} but uses the {@link AbstractNode#setProperty} method.
 	 */
-	@Test
+//	@Test
 //	public void test11GroupMembership2() {
 //		
 //		// remove auto-generated resource access objects
