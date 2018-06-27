@@ -318,6 +318,10 @@ public class Scripting {
 
 		if (!(engine instanceof RenjinScriptEngine)) {
 			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+		} else if (engine instanceof  RenjinScriptEngine) {
+
+			engine.put("Structr", new StructrScriptObject(actionContext, entity));
+
 		}
 
 		StringWriter output = new StringWriter();
@@ -325,9 +329,11 @@ public class Scripting {
 
 		try {
 
-			engine.eval(script);
+			Object extractedValue = engine.eval(script);
 
-			Object extractedValue = output.toString();
+			if (output != null && output.toString() != null && output.toString().length() > 0) {
+				extractedValue = output.toString();
+			}
 
 			return extractedValue;
 
