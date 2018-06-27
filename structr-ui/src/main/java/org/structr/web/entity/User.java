@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.net.URI;
 import org.structr.api.config.Settings;
 import org.structr.common.ConstantBooleanTrue;
@@ -119,11 +120,27 @@ public interface User extends Principal {
 	public static void onCreateAndModify(final User user, final SecurityContext securityContext) throws FrameworkException {
 
 		final PropertyKey skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
-
-		if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
+                final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
+                final PropertyKey<String> twoFactorSecretKey = StructrApp.key(User.class, "twoFactorSecret");
+                final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");		
+                
+                if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
 			throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
 		}
+                
+                // generate and set 2fa properties
+                if (user.getProperty(twoFactorSecretKey)==null)
+                {
+                    
+                    final String keyId = Settings.TwoFactorId.getValue();
+                    String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+                    boolean autoTwoFactorUser = false; //Settings.TwoFactorLevel.getValue()==2;
+                    user.setProperty(twoFactorUserKey, autoTwoFactorUser);
+                    user.setProperty(twoFactorImageUrl, TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
+                    user.setProperty (twoFactorSecretKey, base32Secret);
+                }
+                
 
 		if (Settings.FilesystemEnabled.getValue()) {
 

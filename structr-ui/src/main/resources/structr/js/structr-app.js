@@ -565,6 +565,12 @@ function StructrApp(baseUrl, locale) {
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},
+                                204: function(data) {
+                                        returnUrl = ajaxRequest.getResponseHeader("imgurl");
+                                        //returnUrl = returnUrl+"?token="+ajaxRequest.getResponseHeader("token");
+					btn.text(s.labels[s.lang].success);
+					redirectOrReload(reload, returnUrl);
+                                },
 				401: function() {
 					app.feedbackAction(msgBox, s.labels[s.lang].wrongUsernameOrPassword, 1000, btn, true, function () {
 						btn.text(oldBtnText);

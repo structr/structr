@@ -18,7 +18,6 @@
  */
 package org.structr.web.resource;
 
-import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -386,9 +385,6 @@ public class RegistrationResource extends Resource {
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) {
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-                final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
-                final PropertyKey<String> twoFactorSecretKey = StructrApp.key(User.class, "twoFactorSecret");
-                final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
 		Principal user = null;
 
 		try {
@@ -435,13 +431,6 @@ public class RegistrationResource extends Resource {
 
 				props.put(credentialKey, credentialValue);
 				props.put(confirmationKeyKey, confKey);
-                                
-                                // generate and set 2fa properties
-                                final String keyId = Settings.TwoFactorId.getValue();
-                                String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-                                props.put(twoFactorUserKey, true);
-                                props.put(twoFactorSecretKey, base32Secret);
-                                props.put(twoFactorImageUrl, TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
 
 				user = (Principal) app.create(userClass, props);
 

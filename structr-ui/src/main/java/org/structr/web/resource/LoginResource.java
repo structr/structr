@@ -22,7 +22,6 @@ import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -40,7 +39,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.web.entity.User;
 
 /**
@@ -73,6 +71,7 @@ public class LoginResource extends Resource {
         final PropertyKey<String> twoFactorTokenKey = StructrApp.key(User.class, "twoFactorToken");
         final PropertyKey<String> twoFactorCodeKey = StructrApp.key(User.class, "twoFactorCode");
         final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
+        final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
         
         final String name = properties.get(nameKey);
         final String email = properties.get(eMailKey);
@@ -130,11 +129,13 @@ public class LoginResource extends Resource {
                 if (userIsTwoFactor==false && twoFactorLevel == 2)
                 {
                     logger.info("User needs to use two factor authentication to login");
-                    return new RestMethodResult(401);
+                    user.setProperty(twoFactorUserKey, true);
+                    RestMethodResult methodResult = new RestMethodResult(204);
+                    methodResult.addHeader("imgurl", user.getProperty(twoFactorImageUrl));                    
+                    return methodResult;
                 }
                 
                 
-                isTwoFactor = true; // for testing remove
                 if (isTwoFactor) {
                     if (twoFactorToken == null) {
                         //set token to identify user by it
