@@ -161,6 +161,7 @@ export class FlowEditor {
                 // Enable area selection on shift+ctrl
                 new AreaSelector(this).enable();
             } else if (event.key === "a" && event.ctrlKey === true) {
+                // Select all nodes and prevent default selection
                 this.selectAllNodes();
                 event.preventDefault();
             }
@@ -345,7 +346,7 @@ export class FlowEditor {
         let entType = type;
         return function() {
             let persistence = new Persistence();
-            let dbNode = persistence.createNode({type: entType}).then(node => {
+            persistence.createNode({type: entType}).then(node => {
                 let fNode = self.renderNode(node);
                 node.flowContainer = self._flowContainer.id;
                 fNode.editorNode.position = self._editor.view.mouse;

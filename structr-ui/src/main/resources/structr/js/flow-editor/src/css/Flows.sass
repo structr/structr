@@ -1,6 +1,8 @@
 @import "FlowStyleConfig"
 
 $background-color: darken($main-background-color, 6%)
+$link-visited-color: $main-font-color
+$link-unvisited-color: $main-font-color
 
 // mixins
 @mixin text-contrast($n)
@@ -33,9 +35,9 @@ hr
     color: $main-font-color
     text-decoration: none
     &:visited
-      color: darken($main-font-color, 30%)
+      color: $link-visited-color
     &:link
-      color: lighten($main-font-color, 10%)
+      color: $link-unvisited-color
   button, input
     background-color: $background-color
     +text-contrast($background-color)

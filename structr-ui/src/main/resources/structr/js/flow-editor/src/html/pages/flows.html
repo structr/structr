@@ -64,7 +64,7 @@
                 let el = tr.querySelector("button.delete-flow");
                 el.onclick = () => deleteFlow(el.getAttribute("data-id"));
             });
-        };
+        }
 
         function deleteFlow(id) {
             if (confirm('Confirm flow deletion?')) {
@@ -73,12 +73,12 @@
                     tableDOM.removeChild(child);
                 });
             }
-        };
+        }
 
         function createTableRowForContainer(flowContainer) {
             return `
                 <tr data-id="${flowContainer.id}">
-                    <td>${flowContainer.id}</td>
+                    <td><a href="/structr/js/flow-editor/src/html/pages/flow.html?id=${flowContainer.id}">${flowContainer.id}</a></td>
                     <td><a href="/structr/js/flow-editor/src/html/pages/flow.html?id=${flowContainer.id}">${flowContainer.name}</a></td>
                     <td class="delete-button-td"><button data-id="${flowContainer.id}" class="flow-btn-md delete-flow">X</button></td>
                 </tr>
