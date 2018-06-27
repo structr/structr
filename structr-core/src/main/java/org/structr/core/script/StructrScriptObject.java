@@ -26,13 +26,11 @@ public class StructrScriptObject {
 
 	private GraphObject entity          = null;
 	private ActionContext actionContext = null;
-	private Object[] parameters         = null;
 	
-	public StructrScriptObject(final ActionContext actionContext, final GraphObject entity, final Object[] parameters) {
+	public StructrScriptObject(final ActionContext actionContext, final GraphObject entity) {
 
 		this.actionContext = actionContext;
 		this.entity        = entity;
-		this.parameters    = parameters;
 	}
 
 	public void clear() {
@@ -49,13 +47,14 @@ public class StructrScriptObject {
 			return actionContext.getSecurityContext().getUser(false);
 		}
 
-//		final Function<Object, Object> function = Functions.functions.get(name);
-//		
-//		if (function != null) {
-//			
-//				return function.apply(actionContext, entity, parameters);
-//		}
-		
+		if (actionContext.getConstant(name) != null) {
+			return actionContext.getConstant(name);
+		}
+
+		if (actionContext.getAllVariables().containsKey(name)) {
+			return actionContext.getAllVariables().get(name);
+		}
+
 		return null;
 	}
 }
