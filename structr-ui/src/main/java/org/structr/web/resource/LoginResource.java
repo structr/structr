@@ -130,7 +130,9 @@ public class LoginResource extends Resource {
                 {
                     logger.info("User needs to use two factor authentication to login");
                     user.setProperty(twoFactorUserKey, true);
+                    String url = Settings.TwoFactorForceRegistrationUrl.getValue();
                     RestMethodResult methodResult = new RestMethodResult(204);
+                    methodResult.addHeader("forceRegUrl", url);
                     methodResult.addHeader("imgurl", user.getProperty(twoFactorImageUrl));                    
                     return methodResult;
                 }

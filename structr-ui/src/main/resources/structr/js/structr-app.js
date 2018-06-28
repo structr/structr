@@ -565,9 +565,9 @@ function StructrApp(baseUrl, locale) {
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},
-                                204: function(data) {
-                                        returnUrl = ajaxRequest.getResponseHeader("imgurl");
-                                        //returnUrl = returnUrl+"?token="+ajaxRequest.getResponseHeader("token");
+                                204: function(data) { //redirect if 2fa is required, but user hasn't scanned barcode yet
+                                        returnUrl = ajaxRequest.getResponseHeader("forceRegUrl");
+                                        returnUrl = returnUrl+"?imgurl="+ajaxRequest.getResponseHeader("imgurl");
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
                                 },

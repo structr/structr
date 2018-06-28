@@ -104,7 +104,7 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
 
-		Principal user = SessionHelper.checkSessionAuthentication(request);
+o		Principal user = SessionHelper.checkSessionAuthentication(request);
 		SecurityContext securityContext;
 
 		if (user == null) {
