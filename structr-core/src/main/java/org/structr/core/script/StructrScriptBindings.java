@@ -32,6 +32,6 @@ public class StructrScriptBindings extends HashMap<String, Object> implements Bi
 
 	public StructrScriptBindings(final ActionContext actionContext, final GraphObject entity) {
 
-		put("Structr", new StructrScriptObject(actionContext, entity, null));
+		put("Structr", new StructrScriptObject(actionContext, entity));
 	}
 }
