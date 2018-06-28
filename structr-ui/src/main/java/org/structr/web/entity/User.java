@@ -135,8 +135,7 @@ public interface User extends Principal {
                     
                     final String keyId = Settings.TwoFactorId.getValue();
                     String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-                    boolean autoTwoFactorUser = false; //Settings.TwoFactorLevel.getValue()==2;
-                    user.setProperty(twoFactorUserKey, autoTwoFactorUser);
+                    user.setProperty(twoFactorUserKey, false);
                     user.setProperty(twoFactorImageUrl, TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
                     user.setProperty (twoFactorSecretKey, base32Secret);
                 }
