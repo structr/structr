@@ -177,10 +177,15 @@ public class Scripting {
 
 		actionContext.setJavaScriptContext(isJavascript);
 
-		// disable notifications for scripted actions
+		// temporarily disable notifications for scripted actions
+		
+		boolean enableTransactionNotifactions = false;
+		
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		if (securityContext != null) {
 
+			enableTransactionNotifactions = securityContext.doTransactionNotifications();
+			
 			securityContext.setDoTransactionNotifications(false);
 		}
 
@@ -190,7 +195,13 @@ public class Scripting {
 
 		} else if (isJavascript) {
 
-			return evaluateJavascript(actionContext, entity, new Snippet(methodName, source));
+			final Object result = evaluateJavascript(actionContext, entity, new Snippet(methodName, source));
+			
+			if (enableTransactionNotifactions && securityContext != null) {
+				securityContext.setDoTransactionNotifications(true);
+			}
+			
+			return result;
 
 		} else {
 
@@ -202,6 +213,10 @@ public class Scripting {
 				extractedValue = output;
 			}
 
+			if (enableTransactionNotifactions && securityContext != null) {
+				securityContext.setDoTransactionNotifications(true);
+			}
+			
 			return extractedValue;
 		}
 	}
@@ -215,7 +230,7 @@ public class Scripting {
 		try {
 
 			// enable some optimizations..
-			scriptingContext.setLanguageVersion(Context.VERSION_1_2);
+			scriptingContext.setLanguageVersion(Context.VERSION_ES6);
 			scriptingContext.setOptimizationLevel(9);
 			scriptingContext.setInstructionObserverThreshold(0);
 			scriptingContext.setGenerateObserverCount(false);
@@ -266,14 +281,18 @@ public class Scripting {
 
 		} catch (final FrameworkException fex) {
 
-			fex.printStackTrace();
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				fex.printStackTrace();
+			}
 
 			// just throw the FrameworkException so we dont lose the information contained
 			throw fex;
 
 		} catch (final Throwable t) {
 
-			t.printStackTrace();
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				t.printStackTrace();
+			}
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
 			throw new FrameworkException(422, t.getMessage());
@@ -299,6 +318,10 @@ public class Scripting {
 
 		if (!(engine instanceof RenjinScriptEngine)) {
 			scriptContext.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
+		} else if (engine instanceof  RenjinScriptEngine) {
+
+			engine.put("Structr", new StructrScriptObject(actionContext, entity));
+
 		}
 
 		StringWriter output = new StringWriter();
@@ -306,9 +329,11 @@ public class Scripting {
 
 		try {
 
-			engine.eval(script);
+			Object extractedValue = engine.eval(script);
 
-			Object extractedValue = output.toString();
+			if (output != null && output.toString() != null && output.toString().length() > 0) {
+				extractedValue = output.toString();
+			}
 
 			return extractedValue;
 

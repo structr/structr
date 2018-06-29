@@ -18,13 +18,14 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.OneToOne;
 import org.structr.flow.impl.FlowNode;
 
 /**
  *
  */
-public class FlowNodes extends OneToOne<FlowNode, FlowNode> {
+public class FlowNodes extends ManyToOne<FlowNode, FlowNode> {
 
 	@Override
 	public Class<FlowNode> getSourceType() {

@@ -50,6 +50,8 @@ public class WrapDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
 		final String pageId                  = webSocketData.getPageId();
 		final String nodeId                  = (String) nodeData.get("nodeId");

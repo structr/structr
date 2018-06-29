@@ -57,6 +57,22 @@
 					<groupId>com.google.guava</groupId>
 					<artifactId>guava</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.apache.sis.core</groupId>
+					<artifactId>sis-utility</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.sis.storage</groupId>
+					<artifactId>sis-netcdf</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.sis.core</groupId>
+					<artifactId>sis-metadata</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.opengis</groupId>
+					<artifactId>geoapi</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -286,6 +302,7 @@
 						<exclude>src/test/**/*.html</exclude>
 						<exclude>src/test/resources</exclude>
 						<exclude>src/main/deb/**</exclude>
+						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
 					</excludes>
 					<properties>
 						<year>2018</year>

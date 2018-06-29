@@ -19,13 +19,12 @@
 package org.structr.flow.engine;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.flow.impl.FlowBaseNode;
-import org.structr.flow.impl.FlowNode;
 import org.structr.schema.action.ActionContext;
 
 /**
@@ -33,15 +32,21 @@ import org.structr.schema.action.ActionContext;
  */
 public class Context {
 
-	private Map<String,Object> data  		= new HashMap<>();
-	private Map<String,Object> store 		= new HashMap<>();
-	private Map<String,Object> parameters 	= new HashMap<>();
-	private GraphObject thisObject   		= null;
-	private Object result            		= null;
-	private FlowError error          		= null;
+	private Map<String,Object> data  			= new HashMap<>();
+	private Map<String,Object> store 			= new HashMap<>();
+	private Map<String,Object> parameters 		= new HashMap<>();
+	private Map<String,Object> currentData = new HashMap<>();
+	private GraphObject thisObject   			= null;
+	private Object result            			= null;
+	private FlowError error          			= null;
 
-	public Context() {
-		this(null);
+	public Context() {}
+
+	public Context(final Context context) {
+		this.data = deepCopyMap(context.data);
+		this.store = deepCopyMap(context.store);
+		this.parameters = deepCopyMap(context.parameters);
+		this.currentData = deepCopyMap(context.currentData);
 	}
 
 	public Context(final GraphObject thisObject) {
@@ -89,6 +94,10 @@ public class Context {
 		return this.data.get(key);
 	}
 
+	public boolean hasData(final String key) {
+		return this.data.containsKey(key);
+	}
+
 	public void setParameter(final String key, final Object value) { this.parameters.put(key,value); }
 
 	public Object getParameter(final String key) {
@@ -99,15 +108,43 @@ public class Context {
 		return store.get(key);
 	}
 
-	public void putIntoStore(final String key, final Object value) {
-		store.put(key,value);
+	public void setAggregation(final String key, final Object value) { this.currentData.put(key, value); }
+
+	public Object getAggregation(final String key) { return this.currentData.get(key); }
+
+	public void putIntoStore(final String key, final Object value) { store.put(key,value); }
+
+	public Set<String> getStoreKeySet() {
+		return this.store.keySet();
 	}
 
 	public ActionContext getActionContext(final SecurityContext securityContext, final FlowBaseNode node) {
 		ActionContext ctx = new ActionContext(securityContext);
+
+		ctx.setDisableVerboseExceptionLogging(true);
+
 		if(this.data.get(node.getUuid()) != null) {
 			ctx.setConstant("data", this.data.get(node.getUuid()));
 		}
+		if(this.currentData.get(node.getUuid()) != null) {
+			ctx.setConstant("currentData", this.currentData.get(node.getUuid()));
+		}
 		return ctx;
 	}
+
+	public void deepCopy(Context context) {
+		this.data = deepCopyMap(context.data);
+		this.store = deepCopyMap(context.store);
+		this.parameters = deepCopyMap(context.store);
+		this.currentData = deepCopyMap(context.currentData);
+	}
+
+	private Map<String, Object> deepCopyMap(Map<String,Object> map) {
+		Map<String,Object> result = new HashMap<>();
+		for(Map.Entry<String, Object> entry : map.entrySet()) {
+			result.put(entry.getKey(),entry.getValue());
+		}
+		return result;
+	}
+
 }

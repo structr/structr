@@ -163,19 +163,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	String getLocale();
 
 	public static List<Principal> getParents(final Principal principal) {
-
-		final List<Principal> parents          = new LinkedList<>();
-		final PropertyKey<List<Principal>> key = StructrApp.key(Principal.class, "groups");
-		final List<Principal> list             = principal.getProperty(key);
-
-		for (final Principal parent : list) {
-
-			if (parent != null) {
-				parents.add(parent);
-			}
-		}
-
-		return parents;
+		return principal.getProperty(StructrApp.key(Principal.class, "groups"));
 	}
 
 	public static void addSessionId(final Principal principal, final String sessionId) {

@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
@@ -43,6 +44,8 @@ public class AppendUserCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
+
+		setDoTransactionNotifications(true);
 
 		String id                    = webSocketData.getId();
 		Map<String, Object> nodeData = webSocketData.getNodeData();
@@ -83,8 +86,16 @@ public class AppendUserCommand extends AbstractCommand {
 
 			Principal user = (Principal) getNode(id);
 			if (user != null) {
-
-				group.addMember(user);
+				
+				try {
+					group.addMember(user);
+				} catch (final FrameworkException ex) {
+					
+					if (ex.getStatus() == 403) {
+						getWebSocket().send(MessageBuilder.status().code(403).message("Client is not allowed to add user " + user.getName() + " to group " + group.getName()).build(), true);
+					}
+					
+				}
 			}
 
 		} else {

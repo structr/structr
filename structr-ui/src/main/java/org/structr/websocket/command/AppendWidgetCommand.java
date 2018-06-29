@@ -43,6 +43,8 @@ public class AppendWidgetCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final String pageId                   = webSocketData.getPageId();
 		final Map<String, Object> nodeData    = webSocketData.getNodeData();
 		final String parentId                 = (String) nodeData.get("parentId");

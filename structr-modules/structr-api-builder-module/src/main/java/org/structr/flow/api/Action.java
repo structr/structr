@@ -19,13 +19,14 @@
 package org.structr.flow.api;
 
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 
 /**
  *
  */
 public interface Action extends FlowElement {
 
-	void execute(final Context context);
+	void execute(final Context context) throws FlowException;
 
 	@Override
 	default FlowType getFlowType() {

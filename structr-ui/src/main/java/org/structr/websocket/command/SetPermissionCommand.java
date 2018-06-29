@@ -59,6 +59,8 @@ public class SetPermissionCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		AbstractNode obj = getNode(webSocketData.getId());
 		boolean rec = (Boolean) webSocketData.getNodeData().get("recursive");
 		String principalId = (String) webSocketData.getNodeData().get("principalId");

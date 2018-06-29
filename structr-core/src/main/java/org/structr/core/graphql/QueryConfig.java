@@ -351,7 +351,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			if (existingAttribute instanceof SearchAttributeGroup) {
 
 				// attribute already set, add
-				((SearchAttributeGroup)existingAttribute).add(newAttribute);
+				final SearchAttributeGroup group = (SearchAttributeGroup)existingAttribute;
+
+				group.add(newAttribute);
+				group.setOccurrence(occurrence);
 
 			} else {
 
@@ -414,6 +417,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 							if (searchPropertyKey != null) {
 
 								final Query<GraphObject> query = StructrApp.getInstance(securityContext).nodeQuery(relatedType);
+								Occurrence occurrence          = Occurrence.REQUIRED;
 								boolean exactMatch             = true;
 
 								if (equals != null) {
@@ -424,19 +428,34 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 								} else if (contains != null) {
 
 									query.and(searchPropertyKey, contains, false);
+									occurrence = Occurrence.OPTIONAL;
 									exactMatch = false;
 								}
 
 								// add sources that will be merge later on
 								if (key.isCollection()) {
 
-									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, query.getAsList(), exactMatch, null), Occurrence.REQUIRED);
+									addAttribute(key, key.getSearchAttribute(securityContext, occurrence, query.getAsList(), exactMatch, null), occurrence);
 
 								} else {
 
-									for (final GraphObject candidate : query.getAsList()) {
+									final List<GraphObject> list = query.getAsList();
+									if (list.isEmpty()) {
 
-										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, exactMatch, null), Occurrence.REQUIRED);
+										final SearchAttribute emptyAttribute = key.getSearchAttribute(securityContext, occurrence, null, exactMatch, null);
+
+										// test
+										emptyAttribute.setOccurrence(Occurrence.FORBIDDEN);
+
+										// add null search attribute for empty list of candidates
+										addAttribute(key, emptyAttribute, occurrence);
+
+									} else {
+
+										for (final GraphObject candidate : query.getAsList()) {
+
+											addAttribute(key, key.getSearchAttribute(securityContext, occurrence, candidate, exactMatch, null), occurrence);
+										}
 									}
 								}
 							}

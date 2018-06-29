@@ -59,6 +59,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
 		final String parentId                = (String) nodeData.get("parentId");
 		final String childContent            = (String) nodeData.get("childContent");

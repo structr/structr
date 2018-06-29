@@ -136,6 +136,7 @@ public class SchemaHelper {
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
 	public static final Map<Type, GraphQLScalarType> graphQLTypeMap                   = new LinkedHashMap<>();
+	public static final Map<Type, Integer> sortIndexMap                               = new LinkedHashMap<>();
 	private static final Map<String, String> normalizedEntityNameCache                = new LinkedHashMap<>();
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "structrChangeLog",		// from GraphObject
@@ -168,11 +169,35 @@ public class SchemaHelper {
 		parserMap.put(Type.Count, CountPropertyParser.class);
 		parserMap.put(Type.Join, JoinPropertyParser.class);
 
+		// IMPORTANT: parser map must be sorted by type name length
+		//            because we look up the parsers using "startsWith"!
+		sortIndexMap.put(Type.BooleanArray, 0);
+		sortIndexMap.put(Type.IntegerArray, 1);
+		sortIndexMap.put(Type.DoubleArray,  2);
+		sortIndexMap.put(Type.StringArray,  3);
+		sortIndexMap.put(Type.LongArray,    4);
+		sortIndexMap.put(Type.Password,     5);
+		sortIndexMap.put(Type.Boolean,      6);
+		sortIndexMap.put(Type.Integer,      7);
+		sortIndexMap.put(Type.String,       8);
+		sortIndexMap.put(Type.Double,       9);
+		sortIndexMap.put(Type.Long,        10);
+		sortIndexMap.put(Type.Enum,        11);
+		sortIndexMap.put(Type.Date,        12);
+		sortIndexMap.put(Type.Function,    13);
+		sortIndexMap.put(Type.Cypher,      14);
+		sortIndexMap.put(Type.Count,       15);
+		sortIndexMap.put(Type.Custom,      16);
+		sortIndexMap.put(Type.Join,        17);
+		sortIndexMap.put(Type.IdNotion,    18);
+		sortIndexMap.put(Type.Notion,      19);
+
 		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
 		graphQLTypeMap.put(Type.Integer, Scalars.GraphQLInt);
 		graphQLTypeMap.put(Type.String, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Double, Scalars.GraphQLFloat);
+		graphQLTypeMap.put(Type.Count, Scalars.GraphQLInt);
 		graphQLTypeMap.put(Type.Long, Scalars.GraphQLLong);
 		graphQLTypeMap.put(Type.Enum, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Date, Scalars.GraphQLString);
@@ -744,6 +769,9 @@ public class SchemaHelper {
 		final List<SchemaProperty> schemaProperties = entity.getSchemaProperties();
 		if (schemaProperties != null) {
 
+			// sort properties to avoid initialization issues with notion properties
+			Collections.sort(schemaProperties, new PropertyTypeComparator());
+
 			for (final SchemaProperty schemaProperty : schemaProperties) {
 
 				String propertyName = schemaProperty.getPropertyName();
@@ -1274,16 +1302,21 @@ public class SchemaHelper {
 		src.append("\n\t@Override\n");
 		src.append("\tpublic void ");
 		src.append(name);
-		src.append("(final SecurityContext arg0, final PropertyMap arg1) throws FrameworkException {\n\n");
+		src.append("(final SecurityContext arg0, final PropertyMap arg1) {\n\n");
 		src.append("\t\tsuper.");
 		src.append(name);
 		src.append("(arg0, arg1);\n\n");
 
+		src.append("\t\ttry {\n\n");
+
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this")).append(";\n");
+			src.append("\t\t\t").append(action.getSource("this")).append(";\n");
 		}
 
+		src.append("\t\t} catch (FrameworkException fex) {\n");
+		src.append("\t\t\tfex.printStackTrace();\n");
+		src.append("\t\t}\n");
 		src.append("\t}\n");
 
 	}
@@ -1721,25 +1754,38 @@ public class SchemaHelper {
 		return Scalars.GraphQLString;
 	}
 
-	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final String type) throws FrameworkException {
+	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final Set<String> queryTypeNames, final String type) throws FrameworkException {
 
 		final List<GraphQLArgument> arguments = new LinkedList<>();
 		final SchemaNode schemaNode           = schemaNodes.get(type);
 
 		if (schemaNode != null) {
 
+			// register parent type arguments as well!
+			final SchemaNode parentSchemaNode = schemaNode.getParentSchemaNode(schemaNodes);
+			if (parentSchemaNode != null && !parentSchemaNode.equals(schemaNode)) {
+
+				arguments.addAll(getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, queryTypeNames, parentSchemaNode.getName()));
+			}
+
 			// outgoing relationships
 			for (final SchemaRelationshipNode outNode : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
-				final SchemaNode targetNode                = outNode.getTargetNode();
-				final String targetTypeName                = targetNode.getClassName();
-				final String propertyName                  = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
+				final SchemaNode targetNode = outNode.getTargetNode();
+				final String targetTypeName = targetNode.getClassName();
+				final String propertyName   = outNode.getPropertyName(targetTypeName, new LinkedHashSet<>(), true);
+				final String queryTypeName  = type + propertyName + targetTypeName + "InInput";
 
-				arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-					.name(type + propertyName + targetTypeName + "InInput")
-					.fields(getGraphQLInputFieldsForType(selectionTypes, targetNode))
-					.build()
-				).build());
+				if (!queryTypeNames.contains(queryTypeName)) {
+
+					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
+						.name(queryTypeName)
+						.fields(getGraphQLInputFieldsForType(selectionTypes, targetNode))
+						.build()
+					).build());
+
+					queryTypeNames.add(queryTypeName);
+				}
 			}
 
 			// incoming relationships
@@ -1748,12 +1794,18 @@ public class SchemaHelper {
 				final SchemaNode sourceNode = inNode.getSourceNode();
 				final String sourceTypeName = sourceNode.getClassName();
 				final String propertyName   = inNode.getPropertyName(sourceTypeName, new LinkedHashSet<>(), false);
+				final String queryTypeName  = type + propertyName + sourceTypeName + "OutInput";
 
-				arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-					.name(type + propertyName + sourceTypeName + "OutInput")
-					.fields(getGraphQLInputFieldsForType(selectionTypes, sourceNode))
-					.build()
-				).build());
+				if (!queryTypeNames.contains(queryTypeName)) {
+
+					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
+						.name(queryTypeName)
+						.fields(getGraphQLInputFieldsForType(selectionTypes, sourceNode))
+						.build()
+					).build());
+
+					queryTypeNames.add(queryTypeName);
+				}
 			}
 
 			// properties
@@ -1784,13 +1836,19 @@ public class SchemaHelper {
 				}
 			}
 
-			// manual registration for built-in relationships that are not dynamic
-			arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
-				.name(type + "ownerInput")
-				.fields(getGraphQLInputFieldsForType(selectionTypes, schemaNodes.get("Principal")))
-				.build()
-			).build());
+			final String ownerTypeName = type + "ownerInput";
 
+			if (!queryTypeNames.contains(ownerTypeName)) {
+
+				// manual registration for built-in relationships that are not dynamic
+				arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
+					.name(ownerTypeName)
+					.fields(getGraphQLInputFieldsForType(selectionTypes, schemaNodes.get("Principal")))
+					.build()
+				).build());
+
+				queryTypeNames.add(ownerTypeName);
+			}
 		}
 
 		return arguments;
@@ -2046,5 +2104,25 @@ public class SchemaHelper {
 		}
 
 		return false;
+	}
+
+	// ----- nested classes -----
+	private static class PropertyTypeComparator implements Comparator<SchemaProperty> {
+
+		@Override
+		public int compare(final SchemaProperty o1, final SchemaProperty o2) {
+
+			final Type type1     = o1.getPropertyType();
+			final Type type2     = o2.getPropertyType();
+			final Integer index1 = sortIndexMap.get(type1);
+			final Integer index2 = sortIndexMap.get(type2);
+
+			if (index1 != null && index2 != null) {
+				return index1.compareTo(index2);
+			}
+
+			return 0;
+		}
+
 	}
 }

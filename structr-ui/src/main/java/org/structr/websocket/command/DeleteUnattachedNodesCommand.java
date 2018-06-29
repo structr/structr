@@ -49,6 +49,8 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
+		setDoTransactionNotifications(true);
+
 		final SecurityContext securityContext     = getWebSocket().getSecurityContext();
 		final App app                             = StructrApp.getInstance(securityContext);
 		final List<NodeInterface> filteredResults = new LinkedList<>();

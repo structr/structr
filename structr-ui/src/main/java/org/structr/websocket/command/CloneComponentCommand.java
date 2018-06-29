@@ -48,6 +48,8 @@ public class CloneComponentCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		String id				= webSocketData.getId();
 		Map<String, Object> nodeData		= webSocketData.getNodeData();
 		String parentId				= (String) nodeData.get("parentId");

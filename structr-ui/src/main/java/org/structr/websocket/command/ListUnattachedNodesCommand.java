@@ -57,6 +57,8 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final int pageSize = webSocketData.getPageSize();
 		final int page = webSocketData.getPage();

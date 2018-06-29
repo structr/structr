@@ -156,14 +156,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		this.securityContext = securityContext;
 
 		// simple validity check
-		if (dbNode != null) {
+		if (dbNode != null && !this.isGenericNode()) {
 
 			final String typeName  = getClass().getSimpleName();
 			final Object typeValue = dbNode.getProperty("type");
 
 			if (!typeName.equals(typeValue)) {
 
-				logger.error("{} {} failed validity check: actual type in node: {}", typeName, getUuid(), typeValue);
+				logger.error("{} {} failed validity check: actual type in node with ID {}: {}", typeName, getUuid(), dbNode.getId(), typeValue);
 			}
 		}
 	}
@@ -806,7 +806,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog) {
+		return isGranted(permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null);
+	}
+	
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final List<Security> incomingSecurityRelationships) {
 
+		final List<Security> localIncomingSecurityRelationships = (List<Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));
+		
 		if (level > 100) {
 			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
 			return false;
@@ -856,7 +862,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				return true;
 			}
 
-			final Security security = getSecurityRelationship(accessingUser);
+			final Security security = getSecurityRelationship(accessingUser, localIncomingSecurityRelationships);
 			if (security != null && security.isAllowed(permission)) {
 				return true;
 			}
@@ -941,7 +947,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			// Last: recursively check possible parent principals
 			for (Principal parent : accessingUser.getParents()) {
 
-				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog)) {
+				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships)) {
 					return true;
 				}
 			}
@@ -1226,15 +1232,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
-	/**
-	 * Return the (cached) incoming relationship between this node and the
-	 * given principal which holds the security information.
-	 *
-	 * @param p
-	 * @return incoming security relationship
-	 */
-	@Override
-	public final Security getSecurityRelationship(final Principal p) {
+	private Security getSecurityRelationship(final Principal p, final Iterable<Security> incomingSecurityRelationships) {
 
 		if (p == null) {
 
@@ -1243,7 +1241,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		final long t0 = System.currentTimeMillis();
 
-		for (final Security r : getIncomingRelationshipsAsSuperUser(Security.class)) {
+		for (final Security r : incomingSecurityRelationships) {
 
 			if (r != null) {
 
@@ -1276,7 +1274,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return null;
 
 	}
-
+	
+	/**
+	 * Return the (cached) incoming relationship between this node and the
+	 * given principal which holds the security information.
+	 *
+	 * @param p
+	 * @return incoming security relationship
+	 */
+	@Override
+	public final Security getSecurityRelationship(final Principal p) {
+		return getSecurityRelationship(p, getIncomingRelationshipsAsSuperUser(Security.class));
+	}
+	
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 	}
@@ -2047,6 +2057,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 
 		return tmp;
+	}
+
+	protected boolean isGenericNode() {
+		return false;
 	}
 
 	// ----- nested classes -----

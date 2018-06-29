@@ -181,7 +181,7 @@ public class NodeExtender {
 
 		public Listener(final ErrorBuffer errorBuffer) {
 			this.errorBuffer = errorBuffer;
-}
+		}
 
 		@Override
 		public void report(Diagnostic<? extends JavaFileObject> diagnostic) {

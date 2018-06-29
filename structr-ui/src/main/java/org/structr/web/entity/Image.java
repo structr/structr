@@ -57,77 +57,79 @@ public interface Image extends File {
 
 	static class Impl { static {
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Image");
+		final JsonSchema schema    = SchemaService.getDynamicSchema();
+		final JsonObjectType user  = schema.addType("User");
+		final JsonObjectType image = schema.addType("Image");
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Image"));
-		type.setExtends(URI.create("#/definitions/File"));
-		type.setCategory("core");
+		image.setImplements(URI.create("https://structr.org/v1.1/definitions/Image"));
+		image.setExtends(URI.create("#/definitions/File"));
+		image.setCategory("core");
 
-		type.addIntegerProperty("width",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("height",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("orientation",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("exifIFD0Data",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("exifSubIFDData",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("gpsData",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty("isImage",         PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addBooleanProperty("isThumbnail",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addBooleanProperty("isCreatingThumb").setIndexed(true);
+		image.addIntegerProperty("width",           PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addIntegerProperty("height",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addIntegerProperty("orientation",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addStringProperty("exifIFD0Data",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addStringProperty("exifSubIFDData",   PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addStringProperty("gpsData",          PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addBooleanProperty("isImage",         PropertyView.Public, PropertyView.Ui).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
+		image.addBooleanProperty("isThumbnail",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
+		image.addBooleanProperty("isCreatingThumb").setIndexed(true);
 
-		type.addCustomProperty("imageData", ImageDataProperty.class.getName()).setTypeHint("String");
-		type.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Image").setFormat("100, 100, false");
-		type.addCustomProperty("tnMid",     ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Image").setFormat("300, 300, false");
+		image.addCustomProperty("imageData", ImageDataProperty.class.getName()).setTypeHint("String");
+		image.addCustomProperty("tnSmall",   ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Image").setFormat("100, 100, false");
+		image.addCustomProperty("tnMid",     ThumbnailProperty.class.getName(), PropertyView.Public, PropertyView.Ui).setTypeHint("Image").setFormat("300, 300, false");
 
-		type.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
-		type.addPropertySetter("isCreatingThumb", Boolean.TYPE);
-		type.addPropertyGetter("originalImage",   Image.class);
-		type.addPropertyGetter("thumbnails",      List.class);
+		image.addPropertyGetter("isCreatingThumb", Boolean.TYPE);
+		image.addPropertySetter("isCreatingThumb", Boolean.TYPE);
+		image.addPropertyGetter("originalImage",   Image.class);
+		image.addPropertyGetter("thumbnails",      List.class);
 
-		type.addPropertyGetter("width",       Integer.class);
-		type.addPropertySetter("width",       Integer.class);
-		type.addPropertyGetter("height",      Integer.class);
-		type.addPropertySetter("height",      Integer.class);
+		image.addPropertyGetter("width",       Integer.class);
+		image.addPropertySetter("width",       Integer.class);
+		image.addPropertyGetter("height",      Integer.class);
+		image.addPropertySetter("height",      Integer.class);
 
 		// TODO: sysinternal and unvalidated properties are not possible right now
-		type.overrideMethod("isImage",              false, "return getProperty(isImageProperty);");
-		type.overrideMethod("isThumbnail",          false, "return getProperty(isThumbnailProperty);");
-		type.overrideMethod("getOriginalImageName", false, "return " + Image.class.getName() + ".getOriginalImageName(this);");
-		type.overrideMethod("setProperty",          true,  "return " + Image.class.getName() + ".setProperty(this, arg0, arg1);");
-		type.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-		type.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
-		type.overrideMethod("isGranted",            false, "if (this.isThumbnail()) { final org.structr.web.entity.Image originalImage = getOriginalImage(); if (originalImage != null) { return originalImage.isGranted(arg0, arg1); } } return super.isGranted(arg0, arg1);");
-		type.overrideMethod("getThumbnailParentFolder", false, "final StringBuilder pathBuffer = new StringBuilder(" + Image.class.getName() + ".STRUCTR_THUMBNAIL_FOLDER); if (arg0 != null) { pathBuffer.append(arg0.getPath()); } return " + FileHelper.class.getName() + ".createFolderPath(arg1, pathBuffer.toString());");
+		image.overrideMethod("isImage",              false, "return getProperty(isImageProperty);");
+		image.overrideMethod("isThumbnail",          false, "return getProperty(isThumbnailProperty);");
+		image.overrideMethod("getOriginalImageName", false, "return " + Image.class.getName() + ".getOriginalImageName(this);");
+		image.overrideMethod("setProperty",          true,  "return " + Image.class.getName() + ".setProperty(this, arg0, arg1);");
+		image.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+		image.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
+		image.overrideMethod("isGranted",            false, "if (this.isThumbnail()) { final org.structr.web.entity.Image originalImage = getOriginalImage(); if (originalImage != null) { return originalImage.isGranted(arg0, arg1); } } return super.isGranted(arg0, arg1);");
+		image.overrideMethod("getThumbnailParentFolder", false, "final StringBuilder pathBuffer = new StringBuilder(" + Image.class.getName() + ".STRUCTR_THUMBNAIL_FOLDER); if (arg0 != null) { pathBuffer.append(arg0.getPath()); } return " + FileHelper.class.getName() + ".createFolderPath(arg1, pathBuffer.toString());");
 
-		final JsonMethod getScaledImage1 = type.addMethod("getScaledImage");
+		final JsonMethod getScaledImage1 = image.addMethod("getScaledImage");
 		getScaledImage1.setReturnType(Image.class.getName());
 		getScaledImage1.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1);");
 		getScaledImage1.addParameter("arg0", "String");
 		getScaledImage1.addParameter("arg1", "String");
 
-		final JsonMethod getScaledImage2 = type.addMethod("getScaledImage");
+		final JsonMethod getScaledImage2 = image.addMethod("getScaledImage");
 		getScaledImage2.setReturnType(Image.class.getName());
 		getScaledImage2.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1, arg2);");
 		getScaledImage2.addParameter("arg0", "String");
 		getScaledImage2.addParameter("arg1", "String");
 		getScaledImage2.addParameter("arg2", "boolean");
 
-		final JsonMethod getScaledImage3 = type.addMethod("getScaledImage");
+		final JsonMethod getScaledImage3 = image.addMethod("getScaledImage");
 		getScaledImage3.setReturnType(Image.class.getName());
 		getScaledImage3.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1);");
 		getScaledImage3.addParameter("arg0", "int");
 		getScaledImage3.addParameter("arg1", "int");
 
-		final JsonMethod getScaledImage4 = type.addMethod("getScaledImage");
+		final JsonMethod getScaledImage4 = image.addMethod("getScaledImage");
 		getScaledImage4.setReturnType(Image.class.getName());
 		getScaledImage4.setSource("return "+ Image.class.getName() + ".getScaledImage(this, arg0, arg1, arg2);");
 		getScaledImage4.addParameter("arg0", "int");
 		getScaledImage4.addParameter("arg1", "int");
 		getScaledImage4.addParameter("arg2", "boolean");
 
-		type.relate(type, "THUMBNAIL", Cardinality.OneToMany, "originalImage", "thumbnails").setCascadingDelete(Cascade.sourceToTarget);
+		image.relate(image, "THUMBNAIL",  Cardinality.OneToMany, "originalImage", "thumbnails").setCascadingDelete(Cascade.sourceToTarget);
+		image.relate(user,  "PICTURE_OF", Cardinality.OneToOne,  "img", "user");
 
 		// view configuration
-		type.addViewProperty(PropertyView.Public, "parent");
+		image.addViewProperty(PropertyView.Public, "parent");
 	}}
 
 	void setIsCreatingThumb(final boolean isCreatingThumb) throws FrameworkException;

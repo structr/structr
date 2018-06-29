@@ -1911,15 +1911,20 @@ var _Schema = {
 				width: canvasSize.w + 'px',
 				height: (canvasSize.h - 1) + 'px'
 			});
+
+			$('body').css({
+				position: 'relative'
+			});
+
+			$('html').css({
+				background: '#fff'
+			});
 		}
 
 		$('body').css({
 			position: 'relative'
 		});
 
-		$('html').css({
-			background: '#fff'
-		});
 	},
 	appendLocalProperty: function(el, property) {
 

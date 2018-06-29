@@ -29,7 +29,7 @@ import org.structr.flow.api.Decision;
 public class DecisionHandler implements FlowHandler<Decision> {
 
 	@Override
-	public FlowElement handle(final Context context, final Decision flowElement) {
+	public FlowElement handle(final Context context, final Decision flowElement) throws FlowException {
 
 		final DataSource condition = flowElement.getCondition();
 		final Object value         = condition.get(context);

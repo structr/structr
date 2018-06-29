@@ -21,45 +21,77 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.flow.impl.rels.FlowScriptConditionSource;
+import org.structr.module.api.DeployableEntity;
+import scala.reflect.internal.util.DeprecatedPosition;
 
-/**
- *
- */
-public class FlowScriptCondition extends FlowCondition implements DataSource {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<String> script 				= new StringProperty("script");
+public class FlowScriptCondition extends FlowCondition implements DataSource, DeployableEntity, ThrowingElement {
 
-	public static final View defaultView = new View(FlowScriptCondition.class, PropertyView.Public, script);
-	public static final View uiView      = new View(FlowScriptCondition.class, PropertyView.Ui,     script);
+	public static final Property<DataSource> scriptSource 					= new StartNode<>("scriptSource", FlowScriptConditionSource.class);
+	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> script 							= new StringProperty("script");
+
+	public static final View defaultView 									= new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget, exceptionHandler);
+	public static final View uiView     									= new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget, exceptionHandler);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
 		final DataSource _ds = getProperty(dataSource);
+		final DataSource _sc = getProperty(scriptSource);
 		final String _script = getProperty(script);
+		final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
 
-		if (_script != null) {
+
+		if (_script != null || _dynamicScript != null) {
 
 			if (_ds != null) {
 				context.setData(getUuid(), _ds.get(context));
 			}
 
-			try {
-				return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + _script + "}", "FlowDataSource(" + getUuid() + ")");
+			final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
 
+			try {
+
+				Object result =  Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + finalScript + "}", "FlowDataSource(" + getUuid() + ")");
+				context.setData(getUuid(), result);
+				return result;
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+
+				throw new FlowException(fex);
 			}
 		}
 
 		return null;
+	}
+
+	@Override
+	public FlowExceptionHandler getExceptionHandler(Context context) {
+		return getProperty(exceptionHandler);
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("script", this.getProperty(script));
+
+		return result;
 	}
 }

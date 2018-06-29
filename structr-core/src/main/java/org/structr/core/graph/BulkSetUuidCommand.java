@@ -123,13 +123,13 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 				relIterator = Iterables.map(relFactory, graphDb.getAllRelationships()).iterator();
 
-				info("Start setting UUID on all rels", new Object[] { relType });
+				info("Start setting UUID on all rels");
 
 			} else {
 
 				relIterator = Iterables.map(relFactory, graphDb.getRelationshipsByType(relType)).iterator();
 
-				info("Start setting UUID on rels of type {}", new Object[] { relType });
+				info("Start setting UUID on rels of type {}", relType);
 			}
 
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {

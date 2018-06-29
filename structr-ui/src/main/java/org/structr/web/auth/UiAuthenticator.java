@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -486,15 +485,10 @@ public class UiAuthenticator implements Authenticator {
 
 		Principal user = null;
 
-		if (request.getAttribute(SessionHelper.SESSION_IS_NEW) != null) {
+		// First, check session (JSESSIONID cookie)
+		if (request.getSession(false) != null) {
 
-			// First, check session (JSESSIONID cookie)
-			final HttpSession session = request.getSession(false);
-
-			if (session != null) {
-
-				user = AuthHelper.getPrincipalForSessionId(session.getId());
-			}
+			user = AuthHelper.getPrincipalForSessionId(request.getSession(false).getId());
 		}
 
 		if (user == null) {
@@ -520,7 +514,6 @@ public class UiAuthenticator implements Authenticator {
 		}
 
 		return user;
-
 	}
 
 	@Override

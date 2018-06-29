@@ -29,18 +29,22 @@ import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Decision;
 import org.structr.flow.api.FlowElement;
+import org.structr.module.api.DeployableEntity;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  */
-public class FlowDecision extends FlowNode implements Decision {
+public class FlowDecision extends FlowNode implements Decision, DeployableEntity {
 
 	public static final Property<FlowCondition> condition = new StartNode<>("condition", FlowDecisionCondition.class);
 	public static final Property<FlowNode> trueElement    = new EndNode<>("trueElement", FlowDecisionTrue.class);
 	public static final Property<FlowNode> falseElement   = new EndNode<>("falseElement", FlowDecisionFalse.class);
 
-	public static final View defaultView = new View(FlowDecision.class, PropertyView.Public, condition, trueElement, falseElement);
-	public static final View uiView      = new View(FlowDecision.class, PropertyView.Ui,     condition, trueElement, falseElement);
+	public static final View defaultView = new View(FlowDecision.class, PropertyView.Public, condition, trueElement, falseElement, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowDecision.class, PropertyView.Ui,     condition, trueElement, falseElement, isStartNodeOfContainer);
 
 	@Override
 	public DataSource getCondition() {
@@ -55,5 +59,15 @@ public class FlowDecision extends FlowNode implements Decision {
 	@Override
 	public FlowElement getFalseElement() {
 		return getProperty(falseElement);
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
 	}
 }

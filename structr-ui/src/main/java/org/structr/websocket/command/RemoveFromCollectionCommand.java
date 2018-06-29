@@ -54,6 +54,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
 
 		final String keyString  = (String) webSocketData.getNodeData().get("key");
 		if (keyString == null) {

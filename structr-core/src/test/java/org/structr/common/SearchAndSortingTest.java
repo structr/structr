@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -55,6 +56,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 
 /**
  */
@@ -1995,7 +1998,45 @@ public class SearchAndSortingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
+	}
 
+	@Test
+	public void testSortFunctionForGraphObjectMaps() {
+
+		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(groupType, "zzz");
+			createTestNode(groupType, "aaa");
+			createTestNode(groupType, "ttt");
+			createTestNode(groupType, "xxx");
+			createTestNode(groupType, "bbb");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> list = (List<GraphObject>)Scripting.evaluate(new ActionContext(securityContext), null, "${sort(cypher('MATCH (n:Group) RETURN { id: n.id, type: n.type, name: n.name }'), 'name')}", "test");
+
+			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "zzz", list.get(4).getProperty(nameKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----

@@ -60,6 +60,8 @@ public class WrappedRestCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
+		setDoTransactionNotifications(true);
+
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
 		final String method                  = (String) nodeData.get("method");
 

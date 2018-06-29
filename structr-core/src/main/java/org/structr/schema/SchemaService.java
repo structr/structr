@@ -31,6 +31,7 @@ import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -54,6 +55,7 @@ import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.InstantiationErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -70,6 +72,7 @@ import org.structr.schema.compiler.BlacklistUnlicensedTypes;
 import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
 import org.structr.schema.compiler.MigrationHandler;
 import org.structr.schema.compiler.NodeExtender;
+import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
 
@@ -91,6 +94,7 @@ public class SchemaService implements Service {
 	static {
 
 		migrationHandlers.add(new BlacklistSchemaNodeWhenMissingPackage());
+		migrationHandlers.add(new RemoveMethodsWithUnusedSignature());
 		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
 		migrationHandlers.add(new BlacklistUnlicensedTypes());
 	}
@@ -204,7 +208,19 @@ public class SchemaService implements Service {
 								config.registerEntityType(newType);
 								newType.newInstance();
 
-							} catch (Throwable ignore) {}
+							} catch (final Throwable t) {
+
+								// abstract classes and interfaces will throw errors here
+								if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
+									// ignore
+								} else {
+
+									// everything else is a severe problem and should be not only reported but also
+									// make the schema compilation fail (otherwise bad things will happen later)
+									errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
+									logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
+								}
+							}
 						}
 
 						// calculate difference between previous and new classes
@@ -246,8 +262,9 @@ public class SchemaService implements Service {
 						tx.success();
 
 
-						final GraphQLObjectType.Builder queryTypeBuilder = GraphQLObjectType.newObject();
+						final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
 						final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
+						final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
 
 						// register types in "Query" type
 						for (final Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
@@ -269,7 +286,7 @@ public class SchemaService implements Service {
 									.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 									.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 									.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, className))
+									.argument(SchemaHelper.getGraphQLQueryArgumentsForType(schemaNodes, selectionTypes, existingQueryTypeNames, className))
 								);
 
 							} catch (Throwable t) {

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flows</title>
+    <script type="module" src="../../js/persistence/Persistence.js"></script>
+    <script type="module" src="../../js/editor/entities/FlowContainer.js"></script>
+    <link rel="stylesheet" href="../../css/Flows.css">
+    <link rel="stylesheet" href="../../css/flow-themes/default.css">
+</head>
+<body>
+
+    <div class="flows-container">
+        <h3>Create new Flow</h3>
+        <div class="flows-title-container">
+            <label for="name-input">Name</label>
+            <input id="name-input" type="text">
+            <button class="flow-btn-lg" id="create-new-flow">Create</button>
+        </div>
+        <hr>
+        <div class="flows-table">
+            <table>
+                <thead>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th></th>
+                </thead>
+                <tbody id="flow-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { Persistence } from "../../js/persistence/Persistence.js";
+        import { FlowContainer } from "../../js/editor/entities/FlowContainer.js";
+
+        let persistence = new Persistence();
+
+        let tableDOM = document.getElementById("flow-table-body");
+
+        persistence.getNodesByClass(new FlowContainer()).then( r => {
+
+            const markup = `
+                ${r.map(flowContainer => createTableRowForContainer(flowContainer)).join('')}
+            `;
+
+            tableDOM.insertAdjacentHTML("beforeend", markup);
+
+            for (let el of document.getElementsByClassName("delete-flow")) {
+                el.onclick = () => deleteFlow(el.getAttribute("data-id"));
+            }
+
+        });
+
+        document.getElementById("create-new-flow").onclick = () => createFlow(document.getElementById("name-input"));
+
+        function createFlow(inputElement) {
+            let name = inputElement.value;
+            inputElement.value = "";
+            persistence.createNode({type:"FlowContainer", name:name}).then( (r) => {
+                tableDOM.insertAdjacentHTML("beforeend",createTableRowForContainer(r));
+                let tr = tableDOM.querySelector('tr[data-id="' + r.id + '"]');
+                let el = tr.querySelector("button.delete-flow");
+                el.onclick = () => deleteFlow(el.getAttribute("data-id"));
+            });
+        }
+
+        function deleteFlow(id) {
+            if (confirm('Confirm flow deletion?')) {
+                persistence.deleteNode({type:"FlowContainer", id: id}).then(() => {
+                    let child = tableDOM.querySelector('tr[data-id="' + id + '"]');
+                    tableDOM.removeChild(child);
+                });
+            }
+        }
+
+        function createTableRowForContainer(flowContainer) {
+            return `
+                <tr data-id="${flowContainer.id}">
+                    <td><a href="/structr/js/flow-editor/src/html/pages/flow.html?id=${flowContainer.id}">${flowContainer.id}</a></td>
+                    <td><a href="/structr/js/flow-editor/src/html/pages/flow.html?id=${flowContainer.id}">${flowContainer.name}</a></td>
+                    <td class="delete-button-td"><button data-id="${flowContainer.id}" class="flow-btn-md delete-flow">X</button></td>
+                </tr>
+             `;
+        }
+
+    </script>
+
+</body>
+</html>

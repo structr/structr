@@ -33,39 +33,41 @@ import org.w3c.dom.DOMException;
 public class ReplaceDOMNodeCommand extends AbstractCommand {
 
 	static {
-		
+
 		StructrWebSocket.addCommand(ReplaceDOMNodeCommand.class);
 	}
-	
+
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
+
+		setDoTransactionNotifications(true);
 
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String parentId              = (String) nodeData.get("parentId");
 		final String newId                 = (String) nodeData.get("newId");
 		final String oldId                 = (String) nodeData.get("oldId");
 		final String pageId                = webSocketData.getPageId();
-		
+
 		if (pageId != null) {
 
 			// check for parent ID before creating any nodes
 			if (parentId == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without parentId").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without parentId").build(), true);
 				return;
 			}
 
 			// check if parent node with given ID exists
 			final DOMNode parentNode = getDOMNode(parentId);
 			if (parentNode == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
 				return;
 			}
 
 			// check for old ID before creating any nodes
 			if (oldId == null) {
-		
+
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without oldId").build(), true);
 				return;
 			}
@@ -73,14 +75,14 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			// check if old node with given ID exists
 			final DOMNode oldNode = getDOMNode(oldId);
 			if (oldNode == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(404).message("Old node not found").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(404).message("Old node not found").build(), true);
 				return;
 			}
 
 			// check for new ID before creating any nodes
 			if (newId == null) {
-		
+
 				getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without newId").build(), true);
 				return;
 			}
@@ -88,11 +90,11 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			// check if new node with given ID exists
 			final DOMNode newNode = getDOMNode(newId);
 			if (newNode == null) {
-		
-				getWebSocket().send(MessageBuilder.status().code(404).message("New node not found").build(), true);		
+
+				getWebSocket().send(MessageBuilder.status().code(404).message("New node not found").build(), true);
 				return;
 			}
-			
+
 
 			try {
 				parentNode.replaceChild(newNode, oldNode);
@@ -100,12 +102,12 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			} catch (DOMException dex) {
 
 				// send DOM exception
-				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);		
+				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
 			}
-			
+
 		} else {
-		
-			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without pageId").build(), true);		
+
+			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot replace node without pageId").build(), true);
 		}
 	}
 

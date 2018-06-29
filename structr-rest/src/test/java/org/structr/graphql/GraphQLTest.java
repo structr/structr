@@ -40,12 +40,17 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.StructrGraphQLTest;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonEnumProperty;
 import org.structr.schema.json.JsonFunctionProperty;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
@@ -637,6 +642,131 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 	}
 
+	@Test
+	public void testAdvancedQueriesManyToOne() {
+
+		// test data setup
+		try (final Tx tx = app.tx()) {
+
+			final Principal p1 = app.create(Principal.class, "p1");
+			final Principal p2 = app.create(Principal.class, "p2");
+			final MailTemplate m1 = app.create(MailTemplate.class, "m1");
+			final MailTemplate m2 = app.create(MailTemplate.class, "m2");
+			final MailTemplate m3 = app.create(MailTemplate.class, "m3");
+			final MailTemplate m4 = app.create(MailTemplate.class, "m4");
+
+			m1.setProperty(MailTemplate.owner, p1);
+			m2.setProperty(MailTemplate.owner, p1);
+			m3.setProperty(MailTemplate.owner, p2);
+			m4.setProperty(MailTemplate.owner, p2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _equals: \"p2\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+			assertMapPathValueIs(result, "MailTemplate.0.name",            "m3");
+			assertMapPathValueIs(result, "MailTemplate.1.name",            "m4");
+		}
+
+	}
+
+	@Test
+	public void testAdvancedQueriesManyToOneWithEdgeCases() {
+
+		// test data setup
+		try (final Tx tx = app.tx()) {
+
+			final Principal p1 = app.create(Principal.class, "First Tester");
+			final Principal p2 = app.create(Principal.class, "Second Tester");
+			final MailTemplate m1 = app.create(MailTemplate.class, "First Template");
+			final MailTemplate m2 = app.create(MailTemplate.class, "Second Template");
+			final MailTemplate m3 = app.create(MailTemplate.class, "Third Template");
+			final MailTemplate m4 = app.create(MailTemplate.class, "Fourth Template");
+			final MailTemplate m5 = app.create(MailTemplate.class, "Fifth Template");
+			final MailTemplate m6 = app.create(MailTemplate.class, "Sixth Template");
+
+			m1.setProperty(MailTemplate.owner, p1);
+			m2.setProperty(MailTemplate.owner, p1);
+			m3.setProperty(MailTemplate.owner, p2);
+			m4.setProperty(MailTemplate.owner, p2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		{
+			// expect no results because no owner name matches the given name filter
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _equals: \"none\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 0);
+		}
+
+		{
+			// expect two results because one owner with two templates matches the given name filter
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _equals: \"First Tester\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+			assertMapPathValueIs(result, "MailTemplate.0.name",            "First Template");
+			assertMapPathValueIs(result, "MailTemplate.1.name",            "Second Template");
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"f\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"fi\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"fir\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"firs\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"first\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 2);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"t\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"te\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"tes\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"test\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(owner: { name: { _contains: \"tester\"}}) { name }}");
+			assertMapPathValueIs(result, "MailTemplate.#",                 4);
+		}
+
+	}
 
 	@Test
 	public void testFunctionPropertyQueries() {
@@ -930,6 +1060,321 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			.when()
 				.post("/");
+	}
+
+	@Test
+	public void testInheritedRelationshipProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project     = schema.addType("Project");
+			final JsonObjectType task        = schema.addType("Task");
+			final JsonObjectType extProject1 = schema.addType("ExtendedProject1");
+			final JsonObjectType extProject2 = schema.addType("ExtendedProject2");
+
+			extProject1.setExtends(project);
+			extProject2.setExtends(project);
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> projects = new LinkedList<>();
+		final List<NodeInterface> tasks    = new LinkedList<>();
+		final Class extProject             = StructrApp.getConfiguration().getNodeEntityClass("ExtendedProject1");
+		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(extProject, "tasks");
+
+		try (final Tx tx = app.tx()) {
+
+			tasks.add(app.create(task, "task0"));
+			tasks.add(app.create(task, "task1"));
+			tasks.add(app.create(task, "task2"));
+			tasks.add(app.create(task, "task3"));
+			tasks.add(app.create(task, "task4"));
+			tasks.add(app.create(task, "task5"));
+			tasks.add(app.create(task, "task6"));
+			tasks.add(app.create(task, "task7"));
+			tasks.add(app.create(task, "task8"));
+			tasks.add(app.create(task, "task9"));
+
+			projects.add(app.create(extProject, "project1"));
+			projects.add(app.create(extProject, "project2"));
+			projects.add(app.create(extProject, "project3"));
+			projects.add(app.create(extProject, "project4"));
+			projects.add(app.create(extProject, "project5"));
+
+
+			projects.get(0).setProperty(tasksKey, tasks.subList(0,  2));
+			projects.get(1).setProperty(tasksKey, tasks.subList(2,  4));
+			projects.get(2).setProperty(tasksKey, tasks.subList(4,  6));
+			projects.get(3).setProperty(tasksKey, tasks.subList(6,  8));
+			projects.get(4).setProperty(tasksKey, tasks.subList(8, 10));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { name: { _equals: \"task1\"}}) { name, tasks { name }}}");
+			assertMapPathValueIs(result, "Project.#",            1);
+		}
+	}
+
+	@Test
+	public void testCountPropertyType() {
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode projectType = app.create(SchemaNode.class, "Project");
+			final SchemaNode taskType    = app.create(SchemaNode.class, "Task");
+
+			final SchemaRelationshipNode rel = app.create(SchemaRelationshipNode.class,
+				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, projectType),
+				new NodeAttribute<>(SchemaRelationshipNode.targetNode, taskType),
+				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "TASK"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetMultiplicity, "*"),
+				new NodeAttribute<>(SchemaRelationshipNode.sourceJsonName, "project"),
+				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "tasks")
+			);
+
+			app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode,   projectType),
+				new NodeAttribute<>(SchemaProperty.name,         "taskCount"),
+				new NodeAttribute<>(SchemaProperty.propertyType, "Count"),
+				new NodeAttribute<>(SchemaProperty.format,       "tasks")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+			final PropertyKey name  = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "name");
+			final PropertyKey tasks = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "tasks");
+
+
+			final List<NodeInterface> taskList = createTestNodes(taskType, 10);
+
+			final NodeInterface project = app.create(projectType,
+				new NodeAttribute<>(name, "Test"),
+				new NodeAttribute<>(tasks, taskList)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project { id, type, name, taskCount, tasks { id, type, name }}}");
+			assertMapPathValueIs(result, "Project.#",           1);
+			assertMapPathValueIs(result, "Project.0.name",      "Test");
+			assertMapPathValueIs(result, "Project.0.tasks.#",   10);
+			assertMapPathValueIs(result, "Project.0.taskCount", 10.0);
+		}
+
+	}
+
+	@Test
+	public void testCompositeQueries() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project     = schema.addType("Project");
+			final JsonObjectType task        = schema.addType("Task");
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+
+			final JsonFunctionProperty p1 = task.addFunctionProperty("projectId");
+			p1.setIndexed(true);
+			p1.setTypeHint("String");
+			p1.setFormat("this.project.id");
+
+			final JsonFunctionProperty p2 = project.addFunctionProperty("taskCount");
+			p2.setIndexed(true);
+			p2.setTypeHint("Int");
+			p2.setFormat("size(this.tasks)");
+
+			final JsonEnumProperty p3 = task.addEnumProperty("status");
+			p3.setIndexed(true);
+			p3.setEnums("open", "closed", "cancelled");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> projects = new LinkedList<>();
+		final List<NodeInterface> tasks    = new LinkedList<>();
+		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+		final EnumProperty statusKey       = (EnumProperty)StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "status");
+		final PropertyKey nameKey          = StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "name");
+
+		;
+
+		try (final Tx tx = app.tx()) {
+
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task0"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task1"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "closed"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task2"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task3"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task4"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "closed"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task5"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task6"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task7"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "closed"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task8"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "cancelled"))));
+			tasks.add(app.create(task, new NodeAttribute<>(nameKey, "task9"), new NodeAttribute<>(statusKey, Enum.valueOf(statusKey.getEnumType(), "open"))));
+
+			projects.add(app.create(project, "project1"));
+			projects.add(app.create(project, "project2"));
+			projects.add(app.create(project, "project3"));
+			projects.add(app.create(project, "project4"));
+			projects.add(app.create(project, "project5"));
+
+			projects.get(0).setProperty(tasksKey, tasks.subList(0,  2));
+			projects.get(1).setProperty(tasksKey, tasks.subList(2,  4));
+			projects.get(2).setProperty(tasksKey, tasks.subList(4,  6));
+			projects.get(3).setProperty(tasksKey, tasks.subList(6,  8));
+			projects.get(4).setProperty(tasksKey, tasks.subList(8, 10));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project { id, type, name, taskCount, tasks { id, type, name, projectId, status }}}");
+			assertMapPathValueIs(result, "Project.#",                   5);
+			assertMapPathValueIs(result, "Project.0.name",              "project1");
+			assertMapPathValueIs(result, "Project.0.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.0.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.0.tasks.0.name",      "task0");
+			assertMapPathValueIs(result, "Project.0.tasks.0.status",    "open");
+			assertMapPathValueIs(result, "Project.0.tasks.0.projectId", projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Project.0.tasks.1.name",      "task1");
+			assertMapPathValueIs(result, "Project.0.tasks.1.status",    "closed");
+			assertMapPathValueIs(result, "Project.0.tasks.1.projectId", projects.get(0).getUuid());
+
+			assertMapPathValueIs(result, "Project.1.name",              "project2");
+			assertMapPathValueIs(result, "Project.1.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.1.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.1.tasks.0.name",      "task2");
+			assertMapPathValueIs(result, "Project.1.tasks.0.status",    "cancelled");
+			assertMapPathValueIs(result, "Project.1.tasks.0.projectId", projects.get(1).getUuid());
+			assertMapPathValueIs(result, "Project.1.tasks.1.name",      "task3");
+			assertMapPathValueIs(result, "Project.1.tasks.1.status",    "open");
+			assertMapPathValueIs(result, "Project.1.tasks.1.projectId", projects.get(1).getUuid());
+
+			assertMapPathValueIs(result, "Project.2.name",              "project3");
+			assertMapPathValueIs(result, "Project.2.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.2.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.2.tasks.0.name",      "task4");
+			assertMapPathValueIs(result, "Project.2.tasks.0.status",    "closed");
+			assertMapPathValueIs(result, "Project.2.tasks.0.projectId", projects.get(2).getUuid());
+			assertMapPathValueIs(result, "Project.2.tasks.1.name",      "task5");
+			assertMapPathValueIs(result, "Project.2.tasks.1.status",    "cancelled");
+			assertMapPathValueIs(result, "Project.2.tasks.1.projectId", projects.get(2).getUuid());
+
+			assertMapPathValueIs(result, "Project.3.name",              "project4");
+			assertMapPathValueIs(result, "Project.3.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.3.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.3.tasks.0.name",      "task6");
+			assertMapPathValueIs(result, "Project.3.tasks.0.status",    "open");
+			assertMapPathValueIs(result, "Project.3.tasks.0.projectId", projects.get(3).getUuid());
+			assertMapPathValueIs(result, "Project.3.tasks.1.name",      "task7");
+			assertMapPathValueIs(result, "Project.3.tasks.1.status",    "closed");
+			assertMapPathValueIs(result, "Project.3.tasks.1.projectId", projects.get(3).getUuid());
+
+			assertMapPathValueIs(result, "Project.4.name",              "project5");
+			assertMapPathValueIs(result, "Project.4.taskCount",         2.0);
+			assertMapPathValueIs(result, "Project.4.tasks.#",           2);
+			assertMapPathValueIs(result, "Project.4.tasks.0.name",      "task8");
+			assertMapPathValueIs(result, "Project.4.tasks.0.status",    "cancelled");
+			assertMapPathValueIs(result, "Project.4.tasks.0.projectId", projects.get(4).getUuid());
+			assertMapPathValueIs(result, "Project.4.tasks.1.name",      "task9");
+			assertMapPathValueIs(result, "Project.4.tasks.1.status",    "open");
+			assertMapPathValueIs(result, "Project.4.tasks.1.projectId", projects.get(4).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\") { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task { id(_equals: \"" + tasks.get(0).getUuid() + "\"), name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", status: { _equals: \"open\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", status: { _equals: \"closed\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", projectId: { _equals: \"" + projects.get(0).getUuid() + "\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              1);
+			assertMapPathValueIs(result, "Task.0.name",         "task0");
+			assertMapPathValueIs(result, "Task.0.status",       "open");
+			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", projectId: { _equals: \"" + projects.get(1).getUuid() + "\" }) { name, status, projectId }}");
+
+			assertMapPathValueIs(result, "Task.#",              0);
+		}
 	}
 
 	// ----- private methods -----

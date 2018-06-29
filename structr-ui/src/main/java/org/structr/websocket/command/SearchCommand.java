@@ -57,6 +57,8 @@ public class SearchCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String searchString = (String)  webSocketData.getNodeData().get("searchString");
 		final Boolean exactSearch = (Boolean) webSocketData.getNodeData().get("exact");
@@ -132,7 +134,7 @@ public class SearchCommand extends AbstractCommand {
 		}
 
 		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey = webSocketData.getSortKey();
+		final String sortKey = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
 		final PropertyKey sortProperty = StructrApp.key(AbstractNode.class, sortKey);
 		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
 

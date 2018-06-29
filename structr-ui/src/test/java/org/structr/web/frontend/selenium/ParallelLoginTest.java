@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import static org.junit.Assert.assertNull;
+import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -43,13 +44,9 @@ public class ParallelLoginTest extends FrontendTest {
 
 		createAdminUser();
 
-		final int numberOfRequests        = 1000;
-		final int numberOfParallelThreads = 2;
-		final int waitForSec              = 30 * 8;
-
-		// Typically, one login is done in under about 2 seconds on faster machines so let's wait double the time plus once the timeout
-//		final long waitAtEnd = ((numberOfRequests / numberOfParallelThreads * 2) * 2) + waitForSec;
-		final long waitAtEnd = waitForSec * 2;
+		final int numberOfRequests        = 10000;
+		final int numberOfParallelThreads = 8;
+		final int waitForSec              = 30;
 
 		final ExecutorService service = Executors.newFixedThreadPool(numberOfParallelThreads);
 		final List<Future<Exception>> results = new ArrayList<>();
@@ -126,10 +123,10 @@ public class ParallelLoginTest extends FrontendTest {
 
 		service.shutdown();
 
-		logger.info("Waiting " + waitAtEnd + " s to allow login processes to finish before stopping the instance");
+		logger.info("Waiting " + waitForSec + " s to allow login processes to finish before stopping the instance");
 
 		try {
-			Thread.sleep(waitAtEnd * 1000);
+			Thread.sleep(waitForSec * 1000);
 		} catch (InterruptedException ex) {}
 	}
 

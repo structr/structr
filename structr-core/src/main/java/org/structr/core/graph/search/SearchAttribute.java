@@ -95,6 +95,10 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		this.comparator = comparator;
 	}
 
+	public void setOccurrence(final Occurrence occurrence) {
+		this.occur = occurrence;
+	}
+
 	// ----- interface Predicate<GraphObject> -----
 	@Override
 	public boolean accept(final GraphObject obj) {

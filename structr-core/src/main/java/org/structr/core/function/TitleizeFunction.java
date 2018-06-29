@@ -23,12 +23,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-/**
- *
- */
+
 public class TitleizeFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
+	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator)}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 
 	@Override
 	public String getName() {
@@ -41,7 +39,7 @@ public class TitleizeFunction extends Function<Object, Object> {
 		if (sources == null || sources.length == 0 || (sources.length > 0 && sources[0] == null) || (sources.length > 0 && sources[0] != null && StringUtils.isBlank(sources[0].toString()))) {
 			return "";
 		}
-		
+
 		if (sources.length > 2) {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());

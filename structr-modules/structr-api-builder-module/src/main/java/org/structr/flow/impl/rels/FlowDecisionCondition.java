@@ -18,7 +18,7 @@
  */
 package org.structr.flow.impl.rels;
 
-import org.structr.core.entity.OneToOne;
+import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
 import org.structr.flow.impl.FlowCondition;
 import org.structr.flow.impl.FlowDecision;
@@ -26,7 +26,7 @@ import org.structr.flow.impl.FlowDecision;
 /**
  *
  */
-public class FlowDecisionCondition extends OneToOne<FlowCondition, FlowDecision> {
+public class FlowDecisionCondition extends OneToMany<FlowCondition, FlowDecision> {
 
 	@Override
 	public Class<FlowCondition> getSourceType() {

@@ -39,6 +39,8 @@ public class LinkCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final String sourceId                 = webSocketData.getId();
 		final Map<String, Object> properties  = webSocketData.getNodeData();
 		final String targetId                 = (String) properties.get("targetId");

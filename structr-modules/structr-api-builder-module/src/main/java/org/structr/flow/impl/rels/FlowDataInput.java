@@ -24,9 +24,6 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
 public class FlowDataInput extends OneToMany<DataSource, FlowBaseNode> {
 
 	@Override

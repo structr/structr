@@ -33,21 +33,6 @@ function sortArray(arrayIn, sortBy) {
 	return arrayOut;
 }
 
-function without(s, array) {
-	if (!isIn(s, array)) {
-		return array;
-	}
-
-	var res = [];
-	$.each(array, function(i, el) {
-		if (!(el === s)) {
-			res.push(el);
-		}
-	});
-
-	return res;
-}
-
 function isIn(s, array) {
 	return (s && array && array.indexOf(s) !== -1);
 }
@@ -340,13 +325,15 @@ function getComments(el) {
 	while (f) {
 		if (f.nodeType === 8) {
 			var id = f.nodeValue.extractVal('data-structr-id');
-			var raw = f.nodeValue.extractVal('data-structr-raw-value');
 			if (id) {
-				var comment = {};
-				comment.id = id;
-				comment.node = f;
-				comment.rawContent = raw;
-				comments.push(comment);
+				var raw = f.nodeValue.extractVal('data-structr-raw-value');
+				if (raw !== undefined) {
+					var comment = {};
+					comment.id = id;
+					comment.node = f;
+					comment.rawContent = raw;
+					comments.push(comment);
+				}
 			}
 		}
 		f = f ? f.nextSibling : f;
@@ -495,7 +482,6 @@ var _LogType = {
 		CREATE:                     "WS.CREATE",
 		CREATE_AND_APPEND_DOM_NODE: "WS.CREATE_AND_APPEND_DOM_NODE",
 		CREATE_COMPONENT:           "WS.CREATE_COMPONENT",
-		CREATE_DOM_NODE:            "WS.CREATE_DOM_NODE",
 		CREATE_LOCAL_WIDGET:        "WS.CREATE_LOCAL_WIDGET",
 		CREATE_RELATIONSHIP:        "WS.CREATE_RELATIONSHIP",
 		CREATE_SIMPLE_PAGE:         "WS.CREATE_SIMPLE_PAGE",

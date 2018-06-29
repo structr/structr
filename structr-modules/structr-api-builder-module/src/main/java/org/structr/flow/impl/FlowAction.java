@@ -21,28 +21,32 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.module.api.DeployableEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class FlowAction extends FlowActionNode implements DataSource {
+public class FlowAction extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<String> script             		= new StringProperty("script");
+	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget				= new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> script             				= new StringProperty("script");
 
-	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget);
-	public static final View uiView      							= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget);
+	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
 
 	@Override
-	public void execute(final Context context) {
+	public void execute(final Context context) throws FlowException {
 		final String _script = getProperty(script);
 		if (_script != null) {
 
@@ -60,14 +64,35 @@ public class FlowAction extends FlowActionNode implements DataSource {
 				context.setData(getUuid(), result);
 
 			} catch (FrameworkException fex) {
-				fex.printStackTrace();
+
+				throw new FlowException(fex);
 			}
 		}
 
 	}
 
 	@Override
-	public Object get(Context context) {
+	public Object get(Context context) throws FlowException {
+		if (!context.hasData(getUuid())) {
+			this.execute(context);
+		}
 		return context.getData(getUuid());
 	}
+
+	@Override
+	public FlowExceptionHandler getExceptionHandler(Context context) {
+		return getProperty(exceptionHandler);
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("script", this.getProperty(script));
+
+		return result;
+	}
+
 }

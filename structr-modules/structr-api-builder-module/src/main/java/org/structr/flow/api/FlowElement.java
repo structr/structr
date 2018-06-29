@@ -18,13 +18,15 @@
  */
 package org.structr.flow.api;
 
+import org.structr.flow.impl.FlowContainer;
+
 /**
  *
  */
 public interface FlowElement {
 
 	FlowType getFlowType();
+	FlowContainer getFlowContainer();
 	FlowElement next();
 
-	void connect(final FlowElement next);
 }

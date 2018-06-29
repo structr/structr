@@ -36,6 +36,28 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers</artifactId>
 			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.sis.core</groupId>
+					<artifactId>sis-utility</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.sis.storage</groupId>
+					<artifactId>sis-netcdf</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.sis.core</groupId>
+					<artifactId>sis-metadata</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.opengis</groupId>
+					<artifactId>geoapi</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>

@@ -54,6 +54,8 @@ public class UploadCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(true);
+
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {
@@ -69,9 +71,7 @@ public class UploadCommand extends AbstractCommand {
 			String msg = t.toString();
 
 			// return error message
-			getWebSocket().send(MessageBuilder.status().code(400).message("Could not upload file: ".concat((msg != null)
-				? msg
-				: "")).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(400).message("Could not upload file: ".concat((msg != null) ? msg : "")).build(), true);
 
 		}
 	}

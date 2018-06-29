@@ -21,6 +21,9 @@ package org.structr.core.function;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import jdk.nashorn.internal.objects.NativeDate;
+import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.ScriptableObject;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -60,8 +63,11 @@ public class DateFormatFunction extends Function<Object, Object> {
 
 				date = new Date(((Number)sources[0]).longValue());
 
-			} else if (sources[0] instanceof ScriptableObject) {
-				// FIXME: This was empty - what is it here for?
+			} else if (sources[0].getClass().getName().equals("org.mozilla.javascript.NativeDate")) {
+
+				final Double value = ScriptRuntime.toNumber(sources[0]);
+				date = new Date(value.longValue());
+
 			} else {
 
 				try {
