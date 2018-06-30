@@ -1072,7 +1072,7 @@ var _Crud = {
 		}, 200);
 
 		$('#startImport', dialogBtn).remove();
-		dialogBtn.append('<button id="startImport">Start Import</button>');
+		dialogBtn.append('<button class="action" id="startImport">Start Import</button>');
 
 		$('#startImport', dialogBtn).on('click', function() {
 

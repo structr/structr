@@ -157,7 +157,7 @@ var Importer = {
 		}
 
 		if (start) {
-			dialogBtn.prepend('<button id="start-import">Start import</button>');
+			dialogBtn.prepend('<button class="action" id="start-import">Start import</button>');
 		}
 
 		if (!close) {

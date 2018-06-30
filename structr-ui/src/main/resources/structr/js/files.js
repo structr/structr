@@ -93,13 +93,13 @@ var _Files = {
 
 		if (fileTree) {
 			fileTree.css({
-				height: windowHeight - headerOffsetHeight + 'px'
+				height: windowHeight - headerOffsetHeight + 7 + 'px'
 			});
 		}
 
 		if (folderContents) {
 			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 55 + 'px'
+				height: windowHeight - headerOffsetHeight - 50 + 'px'
 			});
 		}
 
@@ -152,7 +152,7 @@ var _Files = {
 		$('.column-resizer', filesMain).css({ left: left });
 
 		$('#file-tree').css({width: left - 14 + 'px'});
-		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
+		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
 	},
 	onload: function() {
 

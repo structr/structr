@@ -310,7 +310,7 @@ var _Pages = {
 				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
-			dialog.append('<button id="startImport">Start Import</button>');
+			dialog.append('<button class="action" id="startImport">Start Import</button>');
 
 			$('#startImport').on('click', function(e) {
 				e.stopPropagation();

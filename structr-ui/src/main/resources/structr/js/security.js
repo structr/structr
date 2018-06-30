@@ -92,7 +92,7 @@ var _UsersAndGroups = {
 
 	refreshUsers: function() {
 		_Security.users.empty();
-		_Security.users.append('<button class="add_user_icon button"><i title="Add User" class="' + _Icons.getFullSpriteClass(_Icons.user_add_icon) + '" /> Add User</button>');
+		_Security.users.append('<button class="action add_user_icon button"><i title="Add User" class="' + _Icons.getFullSpriteClass(_Icons.user_add_icon) + '" /> Add User</button>');
 		$('.add_user_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({type: 'User'});
@@ -224,7 +224,7 @@ var _UsersAndGroups = {
 	},
 	refreshGroups: function() {
 		_Security.groups.empty();
-		_Security.groups.append('<button class="add_group_icon button"><i title="Add Group" class="' + _Icons.getFullSpriteClass(_Icons.group_add_icon) + '" /> Add Group</button>');
+		_Security.groups.append('<button class="action add_group_icon button"><i title="Add Group" class="' + _Icons.getFullSpriteClass(_Icons.group_add_icon) + '" /> Add Group</button>');
 		$('.add_group_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({type: 'Group'});
