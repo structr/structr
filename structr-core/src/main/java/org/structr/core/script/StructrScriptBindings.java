@@ -18,6 +18,7 @@
  */
 package org.structr.core.script;
 
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import javax.script.Bindings;
 import org.structr.core.GraphObject;
