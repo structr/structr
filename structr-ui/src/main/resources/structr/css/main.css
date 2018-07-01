@@ -17,7 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 @charset "UTF-8";
-@import url('https://fonts.googleapis.com/css?family=Exo+2');
 
 /** Defaults */
 
@@ -26,11 +25,10 @@
 @font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Semibold.ttf') format('truetype'); font-weight: 600;}
 @font-face { font-family: 'Open Sans'; src: url('../fonts/OpenSans-Bold.ttf') format('truetype'); font-weight: 700;}
 
-@font-face { font-family: 'DejaVuSans'; src: url('../fonts/DejaVuSans-ExtraLight.ttf') format('truetype'); font-weight: 300;}
-/*@font-face { font-family: 'DejaVuSans'; src: url('../fonts/DejaVuSansCondensed.ttf') format('truetype'); font-weight: 400;}*/
-/*@font-face { font-family: 'DejaVuSans'; src: url('../fonts/DejaVuSansCondensed-Bold.ttf') format('truetype'); font-weight: 700;}*/
-@font-face { font-family: 'DejaVuSans'; src: url('../fonts/DejaVuSans.ttf') format('truetype'); font-weight: 400;}
-@font-face { font-family: 'DejaVuSans'; src: url('../fonts/DejaVuSans-Bold.ttf') format('truetype'); font-weight: 700;}
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Light.ttf') format('truetype'); font-weight: 300;}
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Regular.ttf') format('truetype'); font-weight: 400;}
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Medium.ttf') format('truetype'); font-weight: 600;}
+@font-face { font-family: 'Roboto'; src: url('../fonts/Roboto-Bold.ttf') format('truetype'); font-weight: 700;}
 
 * {
 	outline: none;
@@ -49,8 +47,8 @@ body {
 	width: 100%;
 	margin: 0;
 	padding: 0;
-	font-family: 'DejaVuSans', Arial, Helvetica, Sans-serif;
-	font-size: 7.5pt;
+	font-family: Roboto, Arial, Helvetica, Sans-serif;
+	font-size: 8pt;
 	color: #222;
 	background: #f1f1f1;
 	position: relative;
@@ -77,11 +75,11 @@ a:hover, a:active {
 
 textarea {
 	font-size: 1em;
-	border: 1px solid #b5b5b5;
+	border: 1px solid transparent;
 }
 
 button, textarea, input, select {
-	font-family: 'DejaVuSans', Arial, Helvetica, Sans-serif ! important;
+	font-family: Roboto, Arial, Helvetica, Sans-serif ! important;
 	font-size: 9pt;
 }
 
@@ -210,6 +208,7 @@ input[type="checkbox"] {
 }
 
 .menu > ul > li {
+	padding: 2px 6px 3px 6px;
 	display: inline-block !important;
 	margin: 0 10px;
 }
@@ -220,11 +219,20 @@ input[type="checkbox"] {
 	color: #fff;
 }
 
-.menu > ul > li.active a {
-	color: #333 ! important;
-	padding: 3px 6px 4px 6px;
+.menu > ul > li.active, .menu > ul > li.active:hover {
 	background-color: #81ce25;
 	cursor: default;
+}
+.menu > ul > li.active a {
+	color: #333 ! important;
+}
+
+.menu > ul > li:hover {
+	background-color: #444;
+}
+
+.menu > ul > li.submenu-trigger:hover {
+	background-color: transparent;
 }
 
 .menu ul li a.disabled {
@@ -252,11 +260,11 @@ ul#submenu.visible {
 }
 
 #submenu li {
-	background: #363636;
+	background-color: #363636;
 }
 
 #submenu li:not(.active):hover {
-	background: #444;
+	background-color: #444;
 }
 
 #submenu li a {
@@ -477,7 +485,7 @@ img.disabled {
 }
 
 .slideOut.open {
-	box-shadow: 0 0 36px rgba(127,127,127,.1);
+	box-shadow: 0 0 12px rgba(127,127,127,.1);
 }
 
 #inheritance-tree.slideOut {
@@ -687,7 +695,7 @@ ul#previewTabs {
 	vertical-align: middle;
 	line-height: 1.5em;
 	border: 1px solid transparent;
-	background-color: #fff;
+	background-color: #f6f6f6;;
 	cursor: pointer ! important;
 	list-style-type: none;
 	display: inline;
@@ -695,12 +703,12 @@ ul#previewTabs {
 	border-bottom: none ! important;
 	border-bottom-left-radius: 0 ! important;
 	border-bottom-right-radius: 0 ! important;
-	margin: 0 4px 0 0 ! important;
+	margin: 0 8px 0 0 ! important;
 	padding: 3px 6px 0 6px ! important;
-	color: #333;
+	color: #888;
 	font-size: 1.2em;
 	height: 22px;
-	box-shadow: 0 5px 0px #fff, 0px 0px 36px rgba(127,127,127,.1);
+	/*box-shadow: 0 5px 0px #fff, 0px 0px 12px rgba(127,127,127,.1);*/
 }
 
 #previewTabs > li.page {
@@ -774,13 +782,13 @@ ul#previewTabs {
 
 #previewTabs li:hover, #tabs li:hover, .compTabs:hover, .data-tabs li:hover {
 	color: #333 ! important;
-	background-color: #e3e3e3;
+	background-color: #fff;
 	background-image: none;
 }
 
 #previewTabs li.active, #tabs li.active, .compTab.active, .data-tabs li.active, .files-tabs li.active, .code-tabs li.active, .favs-tabs li.active, .dialogHeaderWrapper li.active {
-	color: #fff ! important;
-	background-color: #81ce25;
+	color: #222 ! important;
+	background-color: #fff;
 	background-image: none;
 }
 
@@ -973,7 +981,6 @@ span.id {
 
 .readonly {
 	color: #999;
-	background-color: #ccc;
 }
 
 .typeIcon, .expand_icon {
@@ -1138,7 +1145,8 @@ i.button {
 
 .nodeSelected {
 	background-color: #fffcdd ! important;
-	border: 1px solid #ca0;
+	/*border: 1px solid #ca0;*/
+	box-shadow: 0 0 36px rgba(127,127,127,.2);
 }
 
 #folder-contents .nodeActive {
@@ -1394,6 +1402,10 @@ button.action:hover {
 	color: #333 ! important;
 	border: 1px solid transparent ! important;
 	background-color: #81ce25 ! important;
+}
+
+#code-button-container {
+	min-height: 27px;
 }
 
 .node-helper {
@@ -1699,7 +1711,7 @@ button.add_property {
 }
 
 #schema-graph .node.selected {
-	border-color: #ca0;
+	border-color: #f1cd2e;
 	background-color: #f1cd2e !important;
 }
 
@@ -1785,7 +1797,6 @@ button.add_property {
 }
 
 .schema-props th, .schema-props td {
-	border: 1px solid #ccc;
 }
 
 .actions.schema-props th:first-of-type {
@@ -1883,8 +1894,7 @@ button.add_property {
 
 .schema-props td {
 	white-space: nowrap;
-	border: 1px solid #ccc;
-	padding: 2px 4px;
+	padding: 4px;
 }
 
 .schema-props tr:nth-child(even) {
@@ -1893,11 +1903,11 @@ button.add_property {
 
 #schema-graph .label {
 	font-size: 1.25em;
-	background: rgba(224,224,224, .8);
+	background: rgba(244,244,244, .8);
 	min-width: 1em;
 	text-align: center;
 	padding: .6em;
-	box-shadow: 0 0 36px rgba(127,127,127,.1);
+	box-shadow: 0 0 12px rgba(127,127,127,.1);
 }
 
 #schema-graph .label .icon {
@@ -1907,7 +1917,7 @@ button.add_property {
 }
 
 #schema-graph .node {
-	box-shadow: 0 0 36px rgba(127,127,127,.1);
+	box-shadow: 0 0 12px rgba(127,127,127,.1);
 	padding: 6px;
 	margin: 0 ! important;
 	opacity: .9;
@@ -2535,13 +2545,13 @@ table.push {
 	margin: 12px 24px 0 12px;
 	width: calc(100vw - 36px);
 	min-width: calc(570px + 4em);
-	height: calc(100vh - 74px);
+	height: calc(100vh - 78px);
 	border: none;
 	background: none;
 }
 
 #securityTabsMenu li, #configTabsMenu li {
-	font-size: 1.2em;
+	font-size: 1.1em;
 	height: 22px;
 	margin: 0 4px 0 0;
 	padding: 3px 6px 0 6px;
@@ -2551,14 +2561,14 @@ table.push {
 
 li.ui-corner-top {
 	border: none ! important;
-	background-color: #fff ! important;
+	background-color: #f6f6f6 ! important;
 	background-image: none;
 	border-radius: 0;
 }
 
 .ui-state-default a,
 .ui-state-default a:visited {
-	color: #505050 ! important;
+	color: #888 ! important;
 	/*font-weight: bold;*/
 }
 
@@ -2567,17 +2577,14 @@ li.ui-state-default, li.ui-state-default a {
 }
 
 li.ui-state-active {
-	border-top: 1px solid #81ce25 ! important;
-	border-left: 1px solid #81ce25 ! important;
-	border-right: 1px solid #81ce25 ! important;
 	color: #333 ! important;
-	background-color: #81ce25 ! important;
+	background-color: #fff ! important;
 	background-image: none;
 }
 
 li.ui-state-active a,
 li.ui-state-active a:visited {
-	color: #fff ! important;
+	color: #222 ! important;
 }
 
 #securityTabsMenu, #configTabsMenu {
@@ -2595,7 +2602,6 @@ input.bitmask {
 }
 
 #resource-signature {
-	border: 1px solid #a5a5a5;
 	height: 19px;
 	padding: 2px 4px;
 	margin: 0 4px;
@@ -2619,7 +2625,6 @@ input.bitmask {
 }
 
 .dashboard-header {
-	font-family: 'Exo 2';
 	display: inline-block;
 	position: absolute;
 	height: 12px;
@@ -2636,8 +2641,7 @@ input.bitmask {
 }
 
 .dashboard-header h2 {
-	font-weight: lighter;
-	font-size: 1.8em;
+	font-weight: normal;
 }
 
 .dashboard-info {
@@ -2900,8 +2904,6 @@ td#cascading-options, td#propagation-options {
 }
 
 #graph-info {
-	background-color: #f1f1f1;
-	border-bottom: 1px solid #a5a5a5;
 	top: 0;
 	text-align: center;
 	height: 24px;
@@ -3448,7 +3450,6 @@ i.fa.ps {
 
 .search-result {
 	position: relative;
-	border: 1px solid #a5a5a5;
 	padding: 0 12px 12px 12px;
 	margin-top: 12px;
 	margin-bottom: 12px;
@@ -3669,7 +3670,7 @@ i.fa.ps {
 	overflow: hidden;
 	border: 1px solid #999 ! important;
 	background: #fff ! important;
-	font-family: 'DejaVuSans', Arial, Helvetica, Sans-serif ! important;
+	font-family: Roboto, Arial, Helvetica, Sans-serif ! important;
 	font-size: 9pt;
 }
 
@@ -3705,7 +3706,6 @@ i.fa.ps {
 
 .pager input.filter.w100[type="text"] {
 	width: 100px;
-	border: 1px solid #a5a5a5;
 	font-size: 9pt;
 }
 
@@ -3721,18 +3721,18 @@ i.fa.ps {
 	display: inline-block;
 	vertical-align: top;
 	padding: 10px;
-	height: calc(100vh - 120px);
+	height: calc(100vh - 106px);
 	overflow: auto;
 }
 
 #localizations-list {
 	width: 310px;
-	margin: 10px 5px 10px 10px;
+	margin: 12px;
 }
 
 #localization-detail {
-	width: calc(100vw - 400px);
-	margin: 10px 10px 10px 5px;
+	width: calc(100vw - 410px);
+	margin: 12px 12px 12px 0;
 }
 
 #localization-detail input.invalid {
@@ -3766,12 +3766,12 @@ i.fa.ps {
 
 #virtual-types-list, #mail-templates-list {
 	width: 310px;
-	margin: 10px 5px 10px 10px;
+	margin: 12px;
 }
 
 #virtual-type-detail, #mail-template-detail {
-	width: calc(100vw - 400px);
-	margin: 10px 10px 10px 5px;
+	width: calc(100vw - 410px);
+	margin: 12px 12px 12px 0;
 }
 
 #mail-templates-table {
@@ -4906,8 +4906,8 @@ div#xml-configurations button {
  */
 
 #importer-main {
-	width: calc(100vw - 60px);
-	margin: 10px 5px 10px 10px;
+	width: calc(100vw - 64px);
+	margin: 12px;
 }
 
 #log-output {
