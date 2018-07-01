@@ -156,4 +156,42 @@ public class DOMElementTest extends DOMTest {
 		}
 	}
 
+	@Test
+	public void testCustomTag() {
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			Document doc = getDocument();
+
+			Element elem = doc.createElement("svg");
+			
+			assertNotNull(elem);
+
+			String name1 = "width";
+			String name2 = "height";
+			String name3 = "xmlns";
+
+			String value1 = "100";
+			String value2 = "200";
+			String value3 = "http://www.w3.org/2000/svg";
+
+			elem.setAttribute(name1, value1);
+			elem.setAttribute(name2, value2);
+			elem.setAttribute(name3, value3);
+
+			assertEquals(true, elem.hasAttributes());
+			assertEquals(3, elem.getAttributes().getLength());
+
+			assertEquals(value1, elem.getAttribute(name1));
+			assertEquals(value2, elem.getAttribute(name2));
+			assertEquals(value3, elem.getAttribute(name3));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("unexpected exception");
+		}
+	}
+	
 }

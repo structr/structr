@@ -794,9 +794,11 @@ public class Importer {
 					final PropertyKey<Boolean> hideOnDetailKey = StructrApp.key(DOMNode.class,    "hideOnDetail");
 					final PropertyKey<Boolean> hideOnIndexKey  = StructrApp.key(DOMNode.class,    "hideOnIndex");
 					final PropertyKey<String> tagKey           = StructrApp.key(DOMElement.class, "tag");
-
+					
+					final Class entityClass = StructrApp.getConfiguration().getNodeEntityClass("DOMElement");
+								
 					// experimental: create DOM element with literal tag
-					newNode = (DOMElement) app.create(DOMElement.class,
+					newNode = (DOMElement) app.create(entityClass,
 
 						new NodeAttribute(tagKey,          node.nodeName()),
 						new NodeAttribute(hideOnDetailKey, false),
