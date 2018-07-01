@@ -103,7 +103,6 @@ input[type="checkbox"] {
 #header {
 	height: 60px;
 	font-size: 1.25em;
-	line-height: 2em;
 	background: #363636;
 }
 
@@ -253,6 +252,7 @@ ul#submenu {
 	padding: 0;
 	padding-top: 20px;
 	margin-left: -16px;
+	line-height: 2em;
 }
 
 ul#submenu.visible {
@@ -836,11 +836,14 @@ ul#previewTabs {
 	cursor: text;
 }
 
+.page b.name_ {
+	font-weight: normal;
+}
+
 .new-name, .new-relationshipType {
 	border: 1px solid #a5a5a5;
 	margin: -1px 0;
 	font-size: 0.95em;
-	font-weight: bold;
 	display: inline;
 }
 
