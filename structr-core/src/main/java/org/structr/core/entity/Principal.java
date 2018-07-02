@@ -73,6 +73,7 @@ public interface Principal extends NodeInterface, AccessControllable {
                 principal.addStringProperty("twoFactorToken");
                 principal.addStringProperty("twoFactorImageUrl");
                 principal.addBooleanProperty("twoFactorUser", PropertyView.Ui);
+                principal.addStringProperty("twoFactorCode");
                 
                 principal.addPropertySetter("twoFactorUser", Boolean.TYPE);
                 principal.addPropertyGetter("twoFactorUser", Boolean.TYPE);
@@ -82,6 +83,8 @@ public interface Principal extends NodeInterface, AccessControllable {
                 principal.addPropertyGetter("twoFactorToken", String.class);
                 principal.addPropertySetter("twoFactorImageUrl", String.class);
                 principal.addPropertyGetter("twoFactorImageUrl", String.class);
+                principal.addPropertySetter("twoFactorCode", String.class);
+                principal.addPropertyGetter("twoFactorCode", String.class);
                 
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");
