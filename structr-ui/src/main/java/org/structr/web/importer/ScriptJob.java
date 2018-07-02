@@ -43,9 +43,9 @@ public class ScriptJob extends ScheduledJob {
 	private static final Logger logger = LoggerFactory.getLogger(ScriptJob.class);
 	private Object script              = null;
 
-	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore) {
+	public ScriptJob(final Principal user, final Map<String, Object> configuration, final Object script, final ContextStore ctxStore, final String jobTitle) {
 
-		super(null, user, configuration, ctxStore);
+		super(jobTitle, user, configuration, ctxStore);
 
 		this.script  = script;
 	}
@@ -123,6 +123,7 @@ public class ScriptJob extends ScheduledJob {
 		data.put("jobtype",    getJobType());
 		data.put("subtype",    subtype);
 		data.put("username",   getUsername());
+		data.put("jobName",    jobName);
 
 		return data;
 	}
@@ -136,6 +137,7 @@ public class ScriptJob extends ScheduledJob {
 		jobInfo.put("jobtype",         getJobType());
 		jobInfo.put("username",        getUsername());
 		jobInfo.put("status",          getCurrentStatus());
+		jobInfo.put("jobName",         jobName);
 
 		return jobInfo;
 	}

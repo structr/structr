@@ -21,6 +21,7 @@ package org.structr.core.graphql;
 import graphql.language.Argument;
 import graphql.language.BooleanValue;
 import graphql.language.Field;
+import graphql.language.FloatValue;
 import graphql.language.IntValue;
 import graphql.language.ObjectField;
 import graphql.language.ObjectValue;
@@ -248,6 +249,16 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		return defaultValue;
 	}
 
+	private double getDoubleValue(final Value value, final double defaultValue) {
+
+		if (value != null && value instanceof FloatValue) {
+
+			return ((FloatValue)value).getValue().doubleValue();
+		}
+
+		return defaultValue;
+	}
+
 	private int getIntegerValue(final Value value, final int defaultValue) {
 
 		if (value != null && value instanceof IntValue) {
@@ -311,6 +322,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		if (value instanceof StringValue) {
 			return getStringValue(value, null);
+		}
+
+		if (value instanceof FloatValue) {
+			return getDoubleValue(value, -1);
 		}
 
 		if (value instanceof IntValue) {
@@ -388,7 +403,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, name, false);
 		if (key != null) {
 
-			if (value instanceof StringValue || value instanceof IntValue || value instanceof BooleanValue) {
+			if (value instanceof StringValue || value instanceof IntValue || value instanceof FloatValue || value instanceof BooleanValue) {
 
 				// handle simple selections like an _equals on the field
 				addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, castValue(securityContext, type, key, value), true, null), Occurrence.REQUIRED);
@@ -407,8 +422,8 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 					if (searchValue instanceof Map) {
 
 						final Map<String, Object> searchMap = (Map)searchValue;
-						final String contains               = (String)searchMap.get("_contains");
-						final String equals                 = (String)searchMap.get("_equals");
+						final Object contains               = searchMap.get("_contains");
+						final Object equals                 = searchMap.get("_equals");
 
 						if (relatedType != null) {
 
@@ -435,7 +450,8 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 								// add sources that will be merge later on
 								if (key.isCollection()) {
 
-									addAttribute(key, key.getSearchAttribute(securityContext, occurrence, query.getAsList(), exactMatch, null), occurrence);
+									//addAttribute(key, key.getSearchAttribute(securityContext, occurrence, query.getAsList(), exactMatch, null), occurrence);
+									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, query.getAsList(), exactMatch, null), occurrence);
 
 								} else {
 
@@ -511,7 +527,11 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 			} else if (child instanceof IntValue) {
 
-				map.put(name, ((IntValue)child).getValue());
+				map.put(name, ((IntValue)child).getValue().intValue());
+
+			} else if (child instanceof FloatValue) {
+
+				map.put(name, ((FloatValue)child).getValue().doubleValue());
 
 			} else if (child instanceof BooleanValue) {
 
