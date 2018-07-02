@@ -1409,9 +1409,9 @@ var Structr = {
 			END: 'Script finished'
 		};
 		var scriptJobTexts = {
-			QUEUED: 'Script job # ' + data.jobId + ' will begin after currently running/queued job(s)',
-			BEGIN: 'Started script job #' + data.jobId,
-			END: 'Finished script job #' + data.jobId
+			QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
+			BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName),
+			END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName)
 		};
 
 		switch (data.type) {

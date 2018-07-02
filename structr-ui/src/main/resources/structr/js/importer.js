@@ -106,6 +106,9 @@ var Importer = {
 			case 'CSV':
 				return '<td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.processedChunks + '</td>';
 
+			case 'SCRIPT':
+				return '<td colspan=4 class="' + (job.jobName.length === 0 ? 'placeholderText' : '') + '">' + job.jobName + '</td>';
+
 			default:
 				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';
 		}
