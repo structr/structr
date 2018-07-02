@@ -1514,7 +1514,7 @@ button.switch {
 	color: #444;
 	font-weight: normal;
 	border: 1px solid transparent;
-	background-color: transparent;
+	background-color: #fff;
 }
 
 button.switch i {
@@ -1523,7 +1523,7 @@ button.switch i {
 }
 
 button.switch:hover {
-	background-color: #eee;
+	border: 1px solid #eee;
 }
 
 button.enabled, button.active {
@@ -1740,7 +1740,8 @@ button.add_property {
 }
 
 .schema-input-container {
-	margin: 8px 12px 4px 12px;
+	background-color: transparent;
+	padding: 8px 12px 4px 12px;
 }
 
 #connector-style, #node-type-selector, #rel-type-selector, #saved-layout-selector, #layout-style {
@@ -1762,9 +1763,13 @@ button.add_property {
 }
 
 #zoom-slider {
-	display:inline-block;
-	width:100px;
-	margin-left:10px;
+	display: inline-block;
+	width: 100px;
+	margin-left: 10px;
+}
+
+#zoom-slider, #zoom-slider span {
+	border: 1px solid #ccc;
 }
 
 #schema-show-overlays {
@@ -1924,6 +1929,7 @@ button.add_property {
 	padding: 6px;
 	margin: 0 ! important;
 	opacity: .9;
+	border-radius: 16px;
 }
 
 #schema-graph .node h2 {

@@ -295,10 +295,11 @@ input.readonly {
 	color: #333;
 	line-height: 1.7em;
 	border: 1px solid transparent;
-	padding: 2px 4px;
+	padding: 2px 4px 2px 6px;
 	margin: 2px 2px 3px 1px;
 	background-color: #eee;
-	/*float: left;*/
+	border-radius: 12px;
+	min-width: 60px;
 }
 
 .resourceBox div.node.stringarray {
