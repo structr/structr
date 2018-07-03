@@ -347,7 +347,7 @@ var _Pages = {
 
 	},
 	addTab: function(entity) {
-		previewTabs.children().last().before('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
+		previewTabs.append('<li id="show_' + entity.id + '" class="page ' + entity.id + '_"></li>');
 
 		var tab = $('#show_' + entity.id, previews);
 
