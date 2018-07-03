@@ -580,6 +580,9 @@ var _Crud = {
 	isCollection: function(key, type) {
 		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
 	},
+	isFunctionProperty: function(key, type) {
+		return ("org.structr.core.property.FunctionProperty" === _Crud.keys[type][key].className);
+	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is an Enum
@@ -1712,7 +1715,8 @@ var _Crud = {
 			} else if (propertyType === 'Date') {
 				cell.html(nvl(formatValue(value), '<i title="Show calendar" class="' + _Icons.getFullSpriteClass(_Icons.calendar_icon) + '" />'));
 				if (!readOnly) {
-					var dateTimePickerFormat = getDateTimePickerFormat(_Crud.getFormat(key, type));
+					var format = _Crud.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.getFormat(key, type);
+					var dateTimePickerFormat = getDateTimePickerFormat(format);
 					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);
