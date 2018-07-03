@@ -1611,6 +1611,75 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 	}
 
+	@Test
+	public void testRemotePropertiesWithMultipleInstances() {
+
+		try (final Tx tx = app.tx()) {
+
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToOne, "project", "task");
+
+			task.addBooleanProperty("testBoolean").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+			final PropertyKey projectKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "project");
+			final PropertyKey testBoolean = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "testBoolean");
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project1"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project2"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project3"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project4"))
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(task: { testBoolean: { _equals: true }}) { name, task { testBoolean } } }");
+			assertMapPathValueIs(result, "Project.#",                     2);
+			assertMapPathValueIs(result, "Project.0.name",             "Project1");
+			assertMapPathValueIs(result, "Project.0.task.testBoolean", true);
+			assertMapPathValueIs(result, "Project.1.name",             "Project3");
+			assertMapPathValueIs(result, "Project.1.task.testBoolean", true);
+		}
+	}
+
 	// ----- private methods -----
 	private Map<String, Object> fetchGraphQL(final String query) {
 

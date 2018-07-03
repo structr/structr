@@ -470,7 +470,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 										for (final GraphObject candidate : query.getAsList()) {
 
-											addAttribute(key, key.getSearchAttribute(securityContext, occurrence, candidate, exactMatch, null), occurrence);
+											addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, candidate, exactMatch, null), occurrence);
 										}
 									}
 								}
