@@ -375,7 +375,7 @@ var _Crud = {
 			crudRight.data('url', '/' + type);
 
 			crudRight.append('<div id="crud-buttons">'
-					+ '<button id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
+					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
 					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
 					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
 					+ '</div>');

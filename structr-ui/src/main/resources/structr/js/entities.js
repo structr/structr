@@ -205,7 +205,7 @@ var _Entities = {
 		_Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
 		el.append('<div id="data-tabs" class="data-tabs"><ul><li id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li><li id="tab-function">Function Query</li></ul>'
-			+ '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div><div id="content-tab-function"></div></div>');
+			+ '<div class="content-tab" id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div><div id="content-tab-function"></div></div>');
 
 		_Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
 		_Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
@@ -828,10 +828,16 @@ var _Entities = {
 
 			tabView.append('<button class="show-all">Show all attributes</button>');
 			$('.show-all', tabView).on('click', function() {
-				$('tr.hidden').toggle();
+				$('tr.hidden').toggle(0, function() {
+					$('tr:visible:odd').css({'background-color': '#f6f6f6'});
+					$('tr:visible:even').css({'background-color': '#fff'});
+				});
 				$(this).remove();
 			});
 		}
+		
+		$('tr:visible:odd').css({'background-color': '#f6f6f6'});
+		$('tr:visible:even').css({'background-color': '#fff'});
 
 	},
 	displaySearch: function(id, key, type, el, isCollection) {

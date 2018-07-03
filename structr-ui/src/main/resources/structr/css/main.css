@@ -75,7 +75,7 @@ a:hover, a:active {
 
 textarea {
 	font-size: 1em;
-	border: 1px solid transparent;
+	border: 1px solid #eee;
 }
 
 button, textarea, input, select {
@@ -84,7 +84,7 @@ button, textarea, input, select {
 }
 
 input {
-	border: 1px solid #f6f6f6;
+	border: 1px solid #eee;
 	padding: 4px 4px;
 }
 
@@ -597,7 +597,6 @@ img.disabled {
 	width: 100%;
 	border-collapse: collapse;
 	margin-bottom: 12px;
-	border: 1px solid transparent;
 	font-size: 8pt;
 }
 
@@ -606,7 +605,7 @@ img.disabled {
 }
 
 .props tr:nth-child(odd) {
-	background-color: #f7f7f7;
+	background-color: #f6f6f6;
 }
 
 .props tr:nth-child(even) {
@@ -642,7 +641,7 @@ img.disabled {
 .props tr td.value input {
 	margin: -3px;
 	background: #fff;
-	border: 1px solid transparent;
+	border: 1px solid #eee;
 	width: 99%;
 }
 
@@ -656,6 +655,7 @@ img.disabled {
 .props tr td.value input.readonly {
 	margin: -3px;
 	border: 1px solid transparent;
+	background-color: #f6f6f6;
 	color: #a0a0a0;
 }
 
@@ -748,6 +748,11 @@ ul#previewTabs {
 
 .data-tabs > ul > li, #tabs > ul > li, .files-tabs > ul > li, .code-tabs > ul > li, .dialogHeaderWrapper > ul > li {
 	font-size: 1em;
+}
+
+.data-tabs > div {
+	background-color: #fff;
+	padding: 2px 8px 12px 12px ! important;
 }
 
 .propTabContent {
@@ -1214,7 +1219,7 @@ button.action:hover {
 	font-size: 11pt;
 	padding: 4px 12px 6px 12px;
 	border: 1px solid #999;
-	background-color: #f3f3f3;
+	background-color: #eee;
 }
 
 #dialogBox #minimizeDialog {
@@ -1307,7 +1312,6 @@ button.action:hover {
 .dialogText textarea {
 	width: 98%;
 	margin-top: 0;
-	border: 1px solid transparent;
 }
 
 .dialogText .node {
@@ -1367,7 +1371,7 @@ button.action:hover {
 
 #login input {
 	width: 150px;
-	border: 1px solid #bbb;
+	border: 1px solid #ccc;
 	margin: 0;
 	padding: 2px 4px;
 }
@@ -1629,7 +1633,7 @@ button.disabled {
 	border-left: none;
 	margin: 0;
 	margin-top: -5px;
-	height: 23px;
+	height: 24px;
 	vertical-align: middle;
 	padding: 0 5px 0 4px;
 }
@@ -2253,6 +2257,10 @@ input.property-name:disabled {
 	float: none ! important;
 	width: 160px;
 	text-align: center;
+}
+
+input.dataKey_ {
+	border: 1px solid #ccc;
 }
 
 .save_dataKey {
@@ -3710,7 +3718,7 @@ i.fa.ps {
  */
 
 .resourceBox th.narrow {
-	min-width: initial;
+	min-width: 300px;
 }
 
 #localizations-pager {
@@ -3830,7 +3838,7 @@ i.fa.ps {
 
 .crawler-inputs input {
 	background: #fff;
-	border: 1px solid #c0c0c0;
+	border: 1px solid #ccc;
 	margin: 3px 0;
 }
 
