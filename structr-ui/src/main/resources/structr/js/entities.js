@@ -205,7 +205,7 @@ var _Entities = {
 		_Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
 		el.append('<div id="data-tabs" class="data-tabs"><ul><li id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li><li id="tab-function">Function Query</li></ul>'
-			+ '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div><div id="content-tab-function"></div></div>');
+			+ '<div class="content-tab" id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div><div id="content-tab-function"></div></div>');
 
 		_Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
 		_Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
@@ -828,10 +828,16 @@ var _Entities = {
 
 			tabView.append('<button class="show-all">Show all attributes</button>');
 			$('.show-all', tabView).on('click', function() {
-				$('tr.hidden').toggle();
+				$('tr.hidden').toggle(0, function() {
+					$('tr:visible:odd').css({'background-color': '#f6f6f6'});
+					$('tr:visible:even').css({'background-color': '#fff'});
+				});
 				$(this).remove();
 			});
 		}
+		
+		$('tr:visible:odd').css({'background-color': '#f6f6f6'});
+		$('tr:visible:even').css({'background-color': '#fff'});
 
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
@@ -1258,7 +1264,7 @@ var _Entities = {
 			return false;
 		}
 		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text ' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
-		el.append('<div><button class="apply_' + key + '">Save</button></div>');
+		el.append('<div><button class="action apply_' + key + '">Save</button></div>');
 		var btn = $('.apply_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
@@ -1272,7 +1278,7 @@ var _Entities = {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
+		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="action save_' + key + '">Save</button></div></div>');
 		var btn = $('.save_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {

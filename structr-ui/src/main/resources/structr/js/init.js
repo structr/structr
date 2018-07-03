@@ -622,7 +622,7 @@ var Structr = {
 		}
 
 		$('.fit-to-height').css({
-			height: h - 74 + 'px'
+			height: h - 84 + 'px'
 		});
 
 	},
@@ -996,6 +996,7 @@ var Structr = {
 	},
 	openSlideOut: function(slideout, tab, activeTabKey, callback) {
 		var s = $(slideout);
+		s.addClass('open');
 		var t = $(tab);
 		t.addClass('active');
 		s.animate({right: '+=' + rsw + 'px'}, {duration: 100}).zIndex(1);
@@ -1008,6 +1009,7 @@ var Structr = {
 	closeSlideOuts: function(slideouts, activeTabKey) {
 		var wasOpen = false;
 		slideouts.forEach(function(slideout) {
+			slideout.removeClass('open');
 			var l = slideout.position().left;
 			if (Math.abs(l - $(window).width()) >= 3) {
 				wasOpen = true;
@@ -1040,6 +1042,7 @@ var Structr = {
 				callback({sw: slideoutWidth});
 			}
 		}).zIndex(1);
+		slideoutElement.addClass('open');
 		t.draggable({
 			axis: 'x',
 			start: function(e, ui) {
@@ -1075,6 +1078,7 @@ var Structr = {
 		var osw;
 		slideouts.forEach(function(w) {
 			var s = $(w);
+			s.removeClass('open');
 			var l = s.position().left;
 			var sw = s.width() + 12;
 			if (Math.abs(l) <= 3) {

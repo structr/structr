@@ -51,7 +51,7 @@ var _Dashboard = {
 		});
 		_Dashboard.checkAdmin();
 
-		_Dashboard.aboutMe.append('<button id="clear-local-storage-on-server">Reset stored UI settings</button>');
+		_Dashboard.aboutMe.append('<button class="action" id="clear-local-storage-on-server">Reset stored UI settings</button>');
 		$('#clear-local-storage-on-server').on('click', function() {
 			_Dashboard.clearLocalStorageOnServer();
 		});

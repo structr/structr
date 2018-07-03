@@ -47,7 +47,7 @@ var Importer = {
 	onload: function() {
 		Importer.init();
 
-		Structr.fetchHtmlTemplate('importer/main', {}, function(html) {
+		Structr.fetchHtmlTemplate('importer/main', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
 
 			main.append(html);
 
@@ -160,7 +160,7 @@ var Importer = {
 		}
 
 		if (start) {
-			dialogBtn.prepend('<button id="start-import">Start import</button>');
+			dialogBtn.prepend('<button class="action" id="start-import">Start import</button>');
 		}
 
 		if (!close) {
