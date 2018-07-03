@@ -374,6 +374,12 @@ var _Crud = {
 
 			crudRight.data('url', '/' + type);
 
+			crudRight.append('<div id="crud-buttons">'
+					+ '<button id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
+					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
+					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
+					+ '</div>');
+
 			_Crud.determinePagerData(type);
 			var pagerNode = _Crud.addPager(type, crudRight);
 
@@ -387,12 +393,6 @@ var _Crud = {
 				tableHeaderRow.append('<th class="___' + prop.jsonName + '">' + prop.jsonName + '</th>');
 			});
 			tableHeaderRow.append('<th class="___action_header">Actions</th>');
-
-			crudRight.append('<div id="crud-buttons">'
-					+ '<button id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
-					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
-					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
-					+ '</div>');
 
 			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 

@@ -350,13 +350,13 @@ var _ResourceAccessGrants = {
 
 		Structr.fetchHtmlTemplate('security/resource-access', {}, function (html) {
 
-			var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
+			_Security.resourceAccesses.append(html);
+
+			var raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
 
 			raPager.cleanupFunction = function () {
 				$('#resourceAccesses table tbody tr').remove();
 			};
-
-			_Security.resourceAccesses.append(html);
 
 			raPager.activateFilterElements(_Security.resourceAccesses);
 

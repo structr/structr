@@ -178,7 +178,7 @@
 }
 
 .crud-table {
-	height: calc(100% - 80px);
+	height: calc(100% - 86px);
 }
 
 .resourceBox table {
@@ -270,15 +270,15 @@ input.readonly {
 }
 
 #crud-buttons {
-	position: absolute;
-	bottom: 10px;
+	margin-bottom: 5px;
 }
 
 #query-info {
 	position: absolute;
-	bottom: 10px;
+	bottom: 4px;
 	right: 10px;
 	text-align: right;
+	color: #666;
 }
 
 .exportArea, .importArea {
@@ -581,7 +581,8 @@ img.loader {
 
 .resource-link {
 	height: 24px;
-	padding-top: 3px;
+	top: 7px;
 	display: block;
-	float: right;
+	position: absolute;
+	right: 10px;
 }

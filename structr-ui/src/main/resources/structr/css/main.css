@@ -2565,7 +2565,7 @@ table.push {
 	margin: 0 4px 0 0;
 	padding: 3px 6px 0 6px;
 	line-height: 1.5em;
-	box-shadow: 0 12px 0px #fff, 0px 0px 36px rgba(127,127,127,.1);	
+	box-shadow: 0 12px 0px #fff, 0px 0px 36px rgba(127,127,127,.1);
 }
 
 li.ui-corner-top {
@@ -2614,6 +2614,10 @@ input.bitmask {
 	height: 19px;
 	padding: 2px 4px;
 	margin: 0 4px;
+}
+
+#add-resource-access-grant {
+	margin-bottom: 6px;
 }
 
 /*
