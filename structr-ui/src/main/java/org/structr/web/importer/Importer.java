@@ -529,7 +529,7 @@ public class Importer {
 
 			// clean tag, remove non-word characters except : and #
 			if (tag != null) {
-				tag = tag.replaceAll("[^a-zA-Z0-9#:.-_]+", "");
+				tag = tag.replaceAll("[^a-zA-Z0-9#:.\\-_]+", "");
 			}
 
 			final StringBuilder classString  = new StringBuilder();
@@ -794,9 +794,9 @@ public class Importer {
 					final PropertyKey<Boolean> hideOnDetailKey = StructrApp.key(DOMNode.class,    "hideOnDetail");
 					final PropertyKey<Boolean> hideOnIndexKey  = StructrApp.key(DOMNode.class,    "hideOnIndex");
 					final PropertyKey<String> tagKey           = StructrApp.key(DOMElement.class, "tag");
-					
+
 					final Class entityClass = StructrApp.getConfiguration().getNodeEntityClass("DOMElement");
-								
+
 					// experimental: create DOM element with literal tag
 					newNode = (DOMElement) app.create(entityClass,
 
