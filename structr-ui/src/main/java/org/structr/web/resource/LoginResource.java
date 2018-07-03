@@ -20,8 +20,11 @@ package org.structr.web.resource;
 
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.util.Map;
 import java.util.UUID;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,6 +40,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 import org.structr.web.entity.User;
@@ -122,10 +126,10 @@ public class LoginResource extends Resource {
             if (user != null) {
                 boolean userIsTwoFactor = user.getProperty(twoFactorUserKey);
                               
-                // If System and user are 2fa
+                // If System and user are two factor authentication
                 isTwoFactor = (userIsTwoFactor==true && twoFactorLevel > 0);
                 
-                // If user is not 2fa, but system expects him to be
+                // If user is not two factor authentication, but system expects him to be
                 if (userIsTwoFactor==false && twoFactorLevel == 2)
                 {
                     logger.info("User needs to use two factor authentication to login");
@@ -133,7 +137,8 @@ public class LoginResource extends Resource {
                     String url = Settings.TwoFactorForceRegistrationUrl.getValue();
                     RestMethodResult methodResult = new RestMethodResult(204);
                     methodResult.addHeader("forceRegUrl", url);
-                    methodResult.addHeader("imgurl", user.getProperty(twoFactorImageUrl));                    
+                    methodResult.addHeader("imgurl", user.getProperty(twoFactorImageUrl));  
+                    securityContext.getAuthenticator().doLogout(securityContext.getRequest());
                     return methodResult;
                 }
                 
@@ -141,15 +146,16 @@ public class LoginResource extends Resource {
                 if (isTwoFactor) {
                     if (twoFactorToken == null) {
                         //set token to identify user by it
-                        twoFactorToken = UUID.randomUUID().toString();
+                        twoFactorToken = UUID.randomUUID().toString();                      
                         user.setProperty(StructrApp.key(User.class, "twoFactorToken"), twoFactorToken);
-                        String url = Settings.TwoFactorUrl.getValue();
+                        String url = Settings.TwoFactorUrl.getValue();             
                         RestMethodResult methodResult = new RestMethodResult(202);
                         methodResult.addHeader("token", twoFactorToken);
                         methodResult.addHeader("twofactorurl", url);
+                        securityContext.getAuthenticator().doLogout(securityContext.getRequest());
                         return methodResult;
 
-                    } else {
+                    } else {                        
                         // reset token
                         user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
                         String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));
@@ -158,15 +164,16 @@ public class LoginResource extends Resource {
                         try {
                             currentKey = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(twoFactorSecret);
                         } catch (GeneralSecurityException ex) {
-                            logger.info("2fa key could not be generated");
+                            logger.info("Two factor authentication key could not be generated");
                         }
                         
-                        // check 2fa
+                        // check two factor authentication
                         if (currentKey.equals(twoFactorCode))
-                        {
-                            logger.info ("Succesful 2fa");
+                        {       
+                            AuthHelper.doLogin(securityContext.getRequest(), user);
+                            logger.info ("Succesful two factor authentication");
                         }
-                        // 2fa not successful
+                        // two factor authentication not successful
                         else {
                            logger.info("Two factor authentication failed");
                            return new RestMethodResult(401);

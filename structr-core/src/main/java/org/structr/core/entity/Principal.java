@@ -70,9 +70,9 @@ public interface Principal extends NodeInterface, AccessControllable {
                 
                 // Two Factor Authentication Attributes
                 principal.addStringProperty("twoFactorSecret");
-                principal.addStringProperty("twoFactorToken");
+                principal.addStringProperty("twoFactorToken").setIndexed(true);;
                 principal.addStringProperty("twoFactorImageUrl");
-                principal.addBooleanProperty("twoFactorUser", PropertyView.Ui);
+                principal.addBooleanProperty("twoFactorUser");
                 principal.addStringProperty("twoFactorCode");
                 
                 principal.addPropertySetter("twoFactorUser", Boolean.TYPE);
