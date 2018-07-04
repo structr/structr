@@ -286,6 +286,7 @@ public class RegistrationResource extends Resource {
 	 * @param securityContext
 	 * @param credentialKey
 	 * @param credentialValue
+	 * @param confKey
 	 * @return user
 	 */
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final String confKey) {
@@ -304,6 +305,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param propertySet
+	 * @param confKey
 	 * @return user
 	 */
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final String confKey) {
@@ -322,6 +324,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialKey
 	 * @param credentialValue
 	 * @param autoCreate
+	 * @param confKey
 	 * @return user
 	 */
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final String confKey) {
@@ -341,6 +344,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialValue
 	 * @param autoCreate
 	 * @param userClass
+	 * @param confKey
 	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final boolean autoCreate, final Class userClass, final String confKey) {
@@ -360,6 +364,7 @@ public class RegistrationResource extends Resource {
 	 * @param credentialValue
 	 * @param propertySet
 	 * @param autoCreate
+	 * @param confKey
 	 * @return user
 	 */
 	public Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final String confKey) {
@@ -380,6 +385,7 @@ public class RegistrationResource extends Resource {
 	 * @param propertySet
 	 * @param autoCreate
 	 * @param userClass
+	 * @param confKey
 	 * @return user
 	 */
 	public static Principal createUser(final SecurityContext securityContext, final PropertyKey credentialKey, final String credentialValue, final Map<String, Object> propertySet, final boolean autoCreate, final Class userClass, final String confKey) {

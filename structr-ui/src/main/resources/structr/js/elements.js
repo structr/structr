@@ -370,7 +370,7 @@ var _Elements = {
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
-		elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
+		elements.append('<button class="btn action" id="delete-all-unattached-nodes">Delete all</button>');
 
 		var btn = $('#delete-all-unattached-nodes');
 		btn.on('click', function() {

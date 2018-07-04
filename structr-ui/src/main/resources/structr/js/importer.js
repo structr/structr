@@ -47,7 +47,7 @@ var Importer = {
 	onload: function() {
 		Importer.init();
 
-		Structr.fetchHtmlTemplate('importer/main', {}, function(html) {
+		Structr.fetchHtmlTemplate('importer/main', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
 
 			main.append(html);
 
@@ -106,6 +106,9 @@ var Importer = {
 			case 'CSV':
 				return '<td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.processedChunks + '</td>';
 
+			case 'SCRIPT':
+				return '<td colspan=4 class="' + (job.jobName.length === 0 ? 'placeholderText' : '') + '">' + job.jobName + '</td>';
+
 			default:
 				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';
 		}
@@ -157,7 +160,7 @@ var Importer = {
 		}
 
 		if (start) {
-			dialogBtn.prepend('<button id="start-import">Start import</button>');
+			dialogBtn.prepend('<button class="action" id="start-import">Start import</button>');
 		}
 
 		if (!close) {

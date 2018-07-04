@@ -26,8 +26,8 @@ import org.structr.web.importer.ScriptJob;
 
 public class ScheduleFunction extends UiFunction {
 
-	public static final String ERROR_MESSAGE_SCHEDULE    = "Usage: ${schedule(script)}. Example: ${schedule('delete(find('User'))')}";
-	public static final String ERROR_MESSAGE_SCHEDULE_JS = "Usage: ${{Structr.schedule(script)}}. Example: ${{Structr.schedule(function() {} )}}";
+	public static final String ERROR_MESSAGE_SCHEDULE    = "Usage: ${schedule(script[, title])}. Example: ${schedule(\"delete(find('User'))\", \"Delete all users!\")}";
+	public static final String ERROR_MESSAGE_SCHEDULE_JS = "Usage: ${{Structr.schedule(script[, title])}}. Example: ${{Structr.schedule(function() {}, 'This is a no-op!')}}";
 
 	@Override
 	public String getName() {
@@ -38,9 +38,11 @@ public class ScheduleFunction extends UiFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
-			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0], ctx.getSecurityContext().getContextStore());
+			final String jobName = (sources.length == 2) ? sources[1].toString() : "Untitled script job";
+
+			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0], ctx.getSecurityContext().getContextStore(), jobName);
 
 			try {
 

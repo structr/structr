@@ -1750,6 +1750,12 @@ public class SchemaHelper {
 				break;
 		}
 
+		final GraphQLScalarType type = graphQLTypeMap.get(propertyType);
+		if (type != null) {
+
+			return type;
+		}
+
 		// default / fallback
 		return Scalars.GraphQLString;
 	}
