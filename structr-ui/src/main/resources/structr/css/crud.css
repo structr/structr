@@ -22,12 +22,12 @@
 	border: none;
 	background: none;
 	padding: 0;
-	font-family: 'Open Sans', Arial, Helvetica, Sans-serif;
+	font-family: Roboto, Arial, Helvetica, Sans-serif;
 }
 
 #crud-left {
 	width: 210px;
-	margin: 10px 5px 10px 10px;
+	margin: 12px 4px 12px 12px;
 	display: inline-block;
 }
 
@@ -35,12 +35,15 @@
 	width: 210px;
 	display: inline-block;
 	vertical-align: top;
-	height: calc(50vh - 55px);
-	border-radius: 3px;
+	height: calc(50vh - 46px);
 }
 
 #crud-left h2 {
-	margin: 6px 0 6px 10px;
+	margin: 6px 0 6px 12px;
+}
+
+.resourceBox h2 {
+	margin: 2px 0 12px 0;
 }
 
 #crud-types {
@@ -61,7 +64,6 @@
 	left: calc(100% + 5px);
 	top: 0;
 	z-index: 100;
-	border-radius: 3px;
 	background-color: #fff ! important;
 	margin-top: -1px;
 	padding: 8px 20px 6px 10px;
@@ -118,8 +120,8 @@
 }
 
 #crud-left li {
-	border-bottom: 1px solid #e4e5e7;
-	border-top: 1px solid #e4e5e7;
+	border-bottom: 1px solid #f6f6f6;
+	border-top: 1px solid #f6f6f6;
 	margin-top: -1px;
 	list-style: none;
 	padding: 2px 5px 2px 10px;
@@ -132,28 +134,28 @@
 
 #crud-left li.active {
 	background-color: #81ce25;
-	border-bottom: 1px solid #61ae15;
-	border-top: 1px solid #61ae15;
+	border-bottom: 1px solid #f6f6f6;
+	border-top: 1px solid #f6f6f6;
 }
 
 #crud-left li:hover {
 	background-color: #81ce25;
-	border-bottom: 1px solid #61ae15;
-	border-top: 1px solid #61ae15;
+	border-bottom: 1px solid #f6f6f6;
+	border-top: 1px solid #f6f6f6;
 	z-index: 1000;
 }
 
 #crud-right {
 	width: calc(100% - 280px);
-	margin: 10px 10px 10px 5px;
+	margin: 12px 0 12px 4px;
 }
 
 .resourceBox {
-	border: 1px solid #999 ! important;
 	background: #fff ! important;
 	font-family: 'Open Sans', Arial, Helvetica, Sans-serif ! important;
 	font-size: 9pt;
 	position: relative;
+	box-shadow: 0 0 12px rgba(127,127,127,.1);
 }
 
 #crud-right .crud-loading {
@@ -176,7 +178,7 @@
 }
 
 .crud-table {
-	height: calc(100% - 80px);
+	height: calc(100% - 86px);
 }
 
 .resourceBox table {
@@ -197,7 +199,6 @@
 
 .resourceBox td {
 	padding: 4px;
-	border: 1px solid #b5b5b5;
 	text-align: left;
 	vertical-align: top;
 	height: 1em;
@@ -212,7 +213,6 @@
 }
 
 .resourceBox th {
-	border: 1px solid #b5b5b5;
 	background: #f0f0f0;
 	color: #333;
 	vertical-align: top;
@@ -228,11 +228,12 @@
 	position: sticky;
 	top: 0;
 	z-index: 9;
+	white-space: nowrap;
+	vertical-align: middle;
 }
 
 /* adds an outline to the table head elements because when using position:sticky the regular border is not rendered */
 .crud-table th {
-	outline: 1px solid #b5b5b5;
 	outline-offset: -1px;
 	border-top: none;
 	border-bottom: none;
@@ -245,7 +246,9 @@
 .resourceBox th i {
 	cursor: pointer;
 	display: inline-block;
-	float: right;
+	vertical-align: middle;
+	margin-right: 4px;
+	opacity: .6;
 }
 
 .resourceBox td.save {
@@ -262,20 +265,20 @@
 }
 
 input.readonly {
-	background: #f0f0f0;
+	background-color: #f0f0f0 ! important;
 	color: #333;
 }
 
 #crud-buttons {
-	position: absolute;
-	bottom: 10px;
+	margin-bottom: 5px;
 }
 
 #query-info {
 	position: absolute;
-	bottom: 10px;
+	bottom: 4px;
 	right: 10px;
 	text-align: right;
+	color: #666;
 }
 
 .exportArea, .importArea {
@@ -291,12 +294,12 @@ input.readonly {
 .props .node {
 	color: #333;
 	line-height: 1.7em;
-	border-radius: 3px;
-	border: 1px solid #a5a5a5;
-	padding: 2px 4px;
+	border: 1px solid transparent;
+	padding: 2px 4px 2px 6px;
 	margin: 2px 2px 3px 1px;
 	background-color: #eee;
-	/*float: left;*/
+	border-radius: 12px;
+	min-width: 60px;
 }
 
 .resourceBox div.node.stringarray {
@@ -307,7 +310,7 @@ input.readonly {
 #relatedNodesList .node:hover,
 .props .node:hover {
 	color: #555;
-	border: 1px solid #bbb;
+	border: 1px solid transparent;
 	background-color: #f5f5f5;
 	cursor: pointer;
 }
@@ -466,7 +469,6 @@ table.props td.__value {
 
 .searchBox input.search {
 	border: 1px solid #a5a5a5;
-	border-radius: 3px;
 	width: 260px;
 	height: 22px;
 	padding: 2px 4px;
@@ -491,7 +493,6 @@ h2.searchResultsTitle {
 }
 
 .searchResultGroup {
-	border-radius: 3px;
 	margin: 12px;
 	padding: 8px 12px;
 	clear: both;
@@ -580,7 +581,8 @@ img.loader {
 
 .resource-link {
 	height: 24px;
-	padding-top: 3px;
+	top: 7px;
 	display: block;
-	float: right;
+	position: absolute;
+	right: 10px;
 }

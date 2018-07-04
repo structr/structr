@@ -336,24 +336,27 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 		}
 
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+
+		Class entityClass = config.getNodeEntityClass(elementType); // Class.forName("org.structr.web.entity.html." + elementType);
+
+		if (entityClass == null) {
+
+			// No HTML type element found so lets try the dynamic DOMElement class
+			entityClass = config.getNodeEntityClass("DOMElement");
+		}
+
 		try {
 
-			//final Class entityClass = Class.forName("org.structr.web.entity.html." + elementType);
-			final Class entityClass = Class.forName("org.structr.web.entity.html." + elementType);
-			if (entityClass != null) {
+			final DOMElement element = (DOMElement) app.create(entityClass,
+				new NodeAttribute(StructrApp.key(entityClass, "tag"),          tag),
+				new NodeAttribute(StructrApp.key(entityClass, "hideOnDetail"), false),
+				new NodeAttribute(StructrApp.key(entityClass, "hideOnIndex"),  false)
+			);
 
-				final ConfigurationProvider config = StructrApp.getConfiguration();
+			element.doAdopt(page);
 
-				final DOMElement element = (DOMElement) app.create(entityClass,
-					new NodeAttribute(StructrApp.key(entityClass, "tag"),          tag),
-					new NodeAttribute(StructrApp.key(entityClass, "hideOnDetail"), false),
-					new NodeAttribute(StructrApp.key(entityClass, "hideOnIndex"),  false)
-				);
-
-				element.doAdopt(page);
-
-				return element;
-			}
+			return element;
 
 		} catch (Throwable t) {
 

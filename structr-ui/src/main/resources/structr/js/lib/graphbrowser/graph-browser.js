@@ -1977,7 +1977,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			var preResult = result;
 			result = _callbacks.filterNodes(result, 'out');
 			$.each(result, function(i, result){
-				if (!_s.graph.nodes(result.targetNode.id) && result.targetNode &&!_hoverMapPreventDuplicates[result.targetNode.id]) {
+				if (result.targetNode && !_s.graph.nodes(result.targetNode.id) && !_hoverMapPreventDuplicates[result.targetNode.id]) {
 					_hoverMapPreventDuplicates[result.targetNode.id] = true;
 					if (_hoverMap[result.targetNode.type]) {
 						_hoverMap[result.targetNode.type]++;
@@ -2355,13 +2355,13 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 		//expands node. Delay is for waiting for the loading of the nodes... This has to be done with promises soon!
 		function expandNode(id, delay){
-			var self = this;
+//			var self = this;
 			delay = delay || 20;
 			var node = _s.graph.nodes(id);
 			_showHoverInfo = false;
 
-			var inNodes = _callbacks.conn.getNodes(node, 'in', onNewInNodesLoaded, _view);
-			var outNodes = _callbacks.conn.getNodes(node, 'out', onNewOutNodesLoaded, _view);
+//			var inNodes = _callbacks.conn.getNodes(node, 'in', onNewInNodesLoaded, _view);
+//			var outNodes = _callbacks.conn.getNodes(node, 'out', onNewOutNodesLoaded, _view);
 			window.setTimeout(function(){
 				onExpandNode(node);
 			}, delay);

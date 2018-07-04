@@ -180,7 +180,7 @@ var _Schema = {
 		_Schema.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
 		_Schema.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 
-		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
+		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
 
 		schemaInputContainer.append('<select id="connector-style"></select>');
 		['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
