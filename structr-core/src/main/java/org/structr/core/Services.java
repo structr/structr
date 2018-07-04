@@ -81,7 +81,6 @@ public class Services implements StructrServices {
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean overridingSchemaTypesAllowed               = true;
-	private boolean shuttingDown                               = false;
 	private boolean shutdownDone                               = false;
 	private String configuredServiceNames                      = null;
 	private String configurationClass                          = null;
@@ -217,7 +216,7 @@ public class Services implements StructrServices {
 			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
 		}
 
-		logger.info("Starting services..");
+		logger.info("Starting services: {}", configuredServiceClasses);
 
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
@@ -330,8 +329,6 @@ public class Services implements StructrServices {
 
 
 	public void shutdown() {
-
-		shuttingDown = true;
 
 		if (!shutdownDone) {
 

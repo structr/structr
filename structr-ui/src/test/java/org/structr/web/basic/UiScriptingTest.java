@@ -475,14 +475,15 @@ public class UiScriptingTest extends StructrUiTest {
 			final Page page       = Page.createSimplePage(securityContext, "test");
 			final Div div         = (Div) page.getElementsByTagName("div").item(0);
 			final Content content = (Content) div.getFirstChild();
+			final Group group     = app.create(Group.class, "TestGroup");
 
 			// setup scripting repeater
-			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Page/${current.id}");
+			content.setProperty(StructrApp.key(Content.class, "restQuery"), "/Group/${current.id}");
 			content.setProperty(StructrApp.key(Content.class, "dataKey"), "test");
 			content.setProperty(StructrApp.key(Content.class, "content"), "${test.id}");
 
 			// store UUID for later use
-			uuid = page.getUuid();
+			uuid = group.getUuid();
 
 			// create admin user
 			createTestNode(User.class,
@@ -518,7 +519,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.body.h1",    Matchers.equalTo("Test"))
 				.body("html.body.div",   Matchers.equalTo(uuid))
 			.when()
-			.get("/html/test/" + uuid);
+			.get("/test/" + uuid);
 	}
 
 
