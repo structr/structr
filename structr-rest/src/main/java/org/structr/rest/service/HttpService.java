@@ -54,6 +54,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
+import org.eclipse.jetty.server.session.FileSessionDataStore;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -278,10 +279,10 @@ public class HttpService implements RunnableService {
 		}
 
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
-		//sessionDataStore.setSavePeriodSec(60);
+		//final FileSessionDataStore store = new FileSessionDataStore();
+		//store.setStoreDir(baseDir.toPath().resolve("sessions").toFile());
 
 		sessionCache.setSessionDataStore(sessionDataStore);
-		//sessionCache.setSaveOnCreate(true);
 		sessionCache.setSaveOnInactiveEviction(false);
 		sessionCache.setRemoveUnloadableSessions(true);
 

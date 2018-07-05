@@ -81,6 +81,7 @@ public class Services implements StructrServices {
 	private ConfigurationProvider configuration                = null;
 	private boolean initializationDone                         = false;
 	private boolean overridingSchemaTypesAllowed               = true;
+	private boolean shuttingDown                               = false;
 	private boolean shutdownDone                               = false;
 	private String configuredServiceNames                      = null;
 	private String configurationClass                          = null;
@@ -315,6 +316,14 @@ public class Services implements StructrServices {
 		return licenseManager;
 	}
 
+	public boolean isShutdownDone() {
+		return shutdownDone;
+	}
+
+	public boolean isShuttingDown() {
+		return shuttingDown;
+	}
+
 	public boolean isInitialized() {
 		return initializationDone;
 	}
@@ -329,6 +338,8 @@ public class Services implements StructrServices {
 
 
 	public void shutdown() {
+
+		shuttingDown = true;
 
 		if (!shutdownDone) {
 
