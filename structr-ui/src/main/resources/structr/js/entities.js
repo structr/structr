@@ -785,7 +785,7 @@ var _Entities = {
 
 						if (key === 'name') {
 							var entity = StructrModel.objects[id];
-							if (entity.type !== 'Template' && entity.type !== 'Content') {
+							if (!_Entites.isContentElement(entity)) {
 								entity.name = entity.tag ? entity.tag : '[' + entity.type + ']';
 							}
 							StructrModel.refresh(id);
@@ -1861,6 +1861,9 @@ var _Entities = {
 				}
 			}
 		}
+	},
+	isContentElement: function (entity) {
+		return (entity.type === 'Template' || entity.type === 'Content');
 	}
 };
 

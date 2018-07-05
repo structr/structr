@@ -295,7 +295,7 @@ img.disabled {
 
 #pages,
 #dataBinding,
-#templates,
+#localizations,
 #widgets,
 #remoteWidgets,
 #propertyDefinitions,
@@ -419,9 +419,9 @@ img.disabled {
 	top: 297px;
 }
 
-#templatesTab {
-	right: -54px;
-	width: 64px;
+#localizationsTab {
+	right: -62px;
+	width: 77px;
 	top: 394px;
 }
 
@@ -2312,6 +2312,45 @@ input.dataKey_ {
 
 #data-binding-inputs {
 	margin-top: 48px ! important;
+}
+
+/**
+ * Localozations slideout
+ */
+#localizations .inner {
+	margin-left: 12px;
+	margin-right: 12px;
+}
+
+#localizations .inner input.locale {
+	margin-left: 14px;
+}
+
+.localization-element .edit_props_icon {
+	right: 4px ! important;
+	top: 0px;
+}
+
+.localization-element .edit_icon {
+	right: 24px ! important;
+	top: 0px;
+}
+
+.localization-element table {
+	width: calc(100% - 22px);
+	margin-left: 22px;
+}
+
+.localization-element table th {
+	text-align: left;
+}
+
+.localization-element table td.input {
+	width: 40%;
+}
+
+.localization-element table td.input input {
+	width: calc(100% - 8px);
 }
 
 /* Special highlighting for data-structr-hash attribute in internal editor */

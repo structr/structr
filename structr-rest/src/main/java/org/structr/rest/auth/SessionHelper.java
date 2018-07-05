@@ -125,14 +125,17 @@ public class SessionHelper {
 		final Query<Principal> query             = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
-			List<Principal> principals = query.getAsList();
+			final SessionCache sessionCache  = Services.getInstance().getService(HttpService.class).getSessionCache();
+			final List<Principal> principals = query.getAsList();
 
 			for (final Principal p : principals) {
 
 				p.removeSessionId(sessionId);
 			}
 
-		} catch (FrameworkException fex) {
+			sessionCache.delete(sessionId);
+
+		} catch (Exception fex) {
 
 			logger.warn("Error while removing sessionId " + sessionId + " from all principals", fex);
 		}
@@ -155,23 +158,19 @@ public class SessionHelper {
 
 			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
 			
-			synchronized (sessionCache) {
-			
-				for (final String sessionId : sessionIds) {
+			for (final String sessionId : sessionIds) {
 
-					HttpSession session = null;
-					try {
-						session = sessionCache.get(sessionId);
+				HttpSession session = null;
+				try {
+					session = sessionCache.get(sessionId);
 
-					} catch (Exception ex) {
-						logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
-					}
-
-					if (session == null || SessionHelper.isSessionTimedOut(session)) {
-						SessionHelper.clearSession(sessionId);
-					}
+				} catch (Exception ex) {
+					logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
 				}
-				
+
+				if (session == null || SessionHelper.isSessionTimedOut(session)) {
+					SessionHelper.clearSession(sessionId);
+				}
 			}
 		}
 	}
@@ -192,8 +191,6 @@ public class SessionHelper {
 
 	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
-		synchronized (request) {
-			
 			String requestedSessionId = request.getRequestedSessionId();
 			String sessionId          = null;
 
@@ -309,9 +306,6 @@ public class SessionHelper {
 
 				return null;
 			}
-		
-		}
-
 	}
 
 	public static String getShortSessionId(final String sessionId) {

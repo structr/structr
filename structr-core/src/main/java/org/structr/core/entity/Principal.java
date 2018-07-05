@@ -19,9 +19,10 @@
 package org.structr.core.entity;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
@@ -182,20 +183,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] ids              = principal.getProperty(key);
-			List<String> newSessionIds      = new ArrayList<>();
+			Set<String> sessionIds          = new HashSet<>(Arrays.asList(ids));
 
-			if (ids != null) {
+			sessionIds.remove(sessionId);
 
-				for (final String id : ids) {
-
-					if (!id.equals(sessionId)) {
-
-						newSessionIds.add(id);
-					}
-				}
-			}
-
-			principal.setProperty(key, (String[]) newSessionIds.toArray(new String[0]));
+			principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
 
 		} catch (FrameworkException ex) {
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
