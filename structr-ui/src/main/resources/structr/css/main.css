@@ -769,10 +769,6 @@ ul#previewTabs {
 	padding: 8px 0;
 }
 
-#previewTabs {
-	overflow-y: hidden;
-}
-
 #previewTabs i {
 	position: relative;
 	z-index: 2;
