@@ -131,7 +131,7 @@ var _Pages = {
 				'<div id="pages" class="slideOut slideOutLeft"><div class="compTab" id="pagesTab">Pages Tree View</div></div>'
 				+ '<div id="activeElements" class="slideOut slideOutLeft"><div class="compTab" id="activeElementsTab">Active Elements</div><div class="page inner"></div></div>'
 				+ '<div id="dataBinding" class="slideOut slideOutLeft"><div class="compTab" id="dataBindingTab">Data Binding</div></div>'
-				+ '<div id="templates" class="slideOut slideOutLeft"><div class="compTab" id="templatesTab">Templates</div></div>'
+				+ '<div id="localizations" class="slideOut slideOutLeft"><div class="compTab" id="localizationsTab">Localizations</div><div class="page inner"><input class="locale" placeholder="Locale"><button class="refresh action button">' + _Icons.getHtmlForIcon(_Icons.refresh_icon) + ' Refresh</button><div class="results"></div></div></div>'
 				+ '<div id="previews"></div>'
 				+ '<div id="widgetsSlideout" class="slideOut slideOutRight"><div class="compTab" id="widgetsTab">Widgets</div></div>'
 				+ '<div id="palette" class="slideOut slideOutRight"><div class="compTab" id="paletteTab">HTML Palette</div></div>'
@@ -141,7 +141,7 @@ var _Pages = {
 		pagesSlideout = $('#pages');
 		activeElementsSlideout = $('#activeElements');
 		dataBindingSlideout = $('#dataBinding');
-		templatesSlideout = $('#templates');
+		localizationsSlideout = $('#localizations');
 
 		previews = $('#previews');
 
@@ -154,7 +154,7 @@ var _Pages = {
 		rsw = widgetsSlideout.width() + 12;
 
 		var pagesTabSlideoutAction = function() {
-			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, templatesSlideout], _Pages.activeTabLeftKey, function (params) {
+			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {
 				_Pages.resize(params.sw, 0);
 				_Pages.pagesTabResizeContent();
 			}, _Pages.leftSlideoutClosedCallback);
@@ -165,23 +165,38 @@ var _Pages = {
 		});
 
 		$('#activeElementsTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, templatesSlideout], _Pages.activeTabLeftKey, function(params) {
+			_Pages.leftSlideoutTrigger(this, activeElementsSlideout, [pagesSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
 				_Pages.refreshActiveElements();
 				_Pages.resize(params.sw, 0);
 			}, _Pages.leftSlideoutClosedCallback);
 		});
 
 		$('#dataBindingTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, templatesSlideout], _Pages.activeTabLeftKey, function(params) {
+			_Pages.leftSlideoutTrigger(this, dataBindingSlideout, [pagesSlideout, activeElementsSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function(params) {
 				_Pages.reloadDataBindingWizard();
 				_Pages.resize(params.sw, 0);
 			}, _Pages.leftSlideoutClosedCallback);
 		});
 
-		$('#templatesTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, templatesSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
+		$('#localizationsTab').on('click', function() {
+			_Pages.leftSlideoutTrigger(this, localizationsSlideout, [pagesSlideout, activeElementsSlideout, dataBindingSlideout], _Pages.activeTabLeftKey, function(params) {
 				_Pages.resize(params.sw, 0);
 			}, _Pages.leftSlideoutClosedCallback);
+		});
+
+		$('#localizations button.refresh').on('click', function () {
+			_Pages.refreshLocalizations();
+		});
+
+		Structr.appendInfoTextToElement({
+			element: $('#localizations button.refresh'),
+			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page.<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+			insertAfter: true,
+			css: {
+				right: "2px",
+				top: "2px",
+				position: "absolute"
+			}
 		});
 
 		$('#widgetsTab').on('click', function() {
@@ -1045,6 +1060,117 @@ var _Pages = {
 			_Pages.showTypeData(id);
 		});
 
+	},
+	refreshLocalizations: function() {
+		var id = activeTab;
+
+		if (_Pages.isPageTabPresent(id)) {
+
+			var localeInput = $('#localizations input.locale');
+			var locale = localeInput.val();
+
+			if (!locale) {
+				blinkRed(localeInput);
+				return;
+			}
+
+			Command.listLocalizations(id, locale, function(result) {
+
+				var localizationsContainer = $('#localizations div.inner div.results');
+				localizationsContainer.empty().attr('id', 'id_' + id);
+
+				console.log(result);
+
+				if (result.length > 0) {
+
+					result.forEach(function(res) {
+
+						var div = _Pages.getNodeForLocalization(localizationsContainer, res.node);
+
+						var tbody = $('tbody', div);
+
+						var row = $('<tr><td>' + res.key + '</td><td>' + res.domain + '</td><td>' + ((res.localization !== null) ? res.localization.locale : res.locale) + '</td><td class="input"><input class="localized-value" placeholder="..."></td></tr>');
+
+						var input = $('input.localized-value', row);
+
+						if (res.localization !== null) {
+							input.val(res.localization.localizedName).data('localizationId', res.localization.id);
+						}
+
+						input.on('blur', function() {
+							var el = $(this);
+
+							var value = el.val();
+							var localizationId = el.data('localizationId');
+							if (localizationId) {
+								Command.setProperties(localizationId, {
+									localizedName: value
+								}, function() {
+									blinkGreen(el);
+								});
+
+							} else {
+								Command.create({
+									type: 'Localization',
+									name: res.key,
+									domain: res.domain,
+									locale: res.locale,
+									localizedName: value
+								},
+								function(createdLocalization) {
+									el.data('localizationId', createdLocalization.id);
+									blinkGreen(el);
+								});
+							}
+						});
+
+						tbody.append(row);
+					});
+
+				} else {
+
+					localizationsContainer.append("<br><center>No localizations found in page</center>");
+
+				}
+			});
+
+		} else {
+			localizationsContainer.append('<br><center>Cannot show localizations - no preview loaded<br><br></center>');
+		}
+	},
+	getNodeForLocalization: function (container, entity) {
+
+		var idString = 'locNode_' + entity.id;
+
+		var existing = $('#' + idString, container);
+
+		if (existing.length) {
+			return existing;
+		}
+
+		var div = $('<div id="' + idString + '" class="node localization-element ' + (entity.tag === 'html' ? ' html_element' : '') + ' "></div>');
+		var displayName = getElementDisplayName(entity);
+		var iconClass = _Icons.getFullSpriteClass(_Elements.getElementIcon(entity));
+
+		div.append('<i class="typeIcon ' + iconClass + '" />'
+			+ (!_Entities.isContentElement(entity) ? ('<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b>') : ('<div class="content_">' + escapeTags(entity.content) + '</div>'))
+			+ _Elements.classIdString(entity._html_id, entity._html_class));
+
+		if (_Entities.isContentElement(entity)) {
+
+			_Elements.appendEditContentIcon(div, entity);
+
+		}
+
+		_Entities.appendEditPropertiesIcon(div, entity, false);
+
+		div.append('<table><thead><tr><th>Key</th><th>Domain</th><th>Locale</th><th>Localization</th></tr></thead><tbody></tbody></table>');
+
+		container.append(div);
+
+		_Entities.setMouseOver(div);
+
+		return div;
 	},
 	showTypeData: function(id) {
 		if (!id) {
