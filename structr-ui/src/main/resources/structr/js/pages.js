@@ -351,7 +351,7 @@ var _Pages = {
 
 		var tab = $('#show_' + entity.id, previews);
 
-		tab.append('<b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
+		tab.append('<div class="fill-pixel"></div><b title="' + entity.name + '" class="name_">' + fitStringToWidth(entity.name, 200) + '</b>');
 		tab.append('<i title="Edit page settings of ' + entity.name + '" class="edit_ui_properties_icon button ' + _Icons.getFullSpriteClass(_Icons.wrench_icon) + '" />');
 		tab.append('<i title="View ' + entity.name + ' in new window" class="view_icon button ' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" />');
 

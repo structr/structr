@@ -70,13 +70,13 @@ var _Crawler = {
 
 		if (crawlerTree) {
 			crawlerTree.css({
-				height: windowHeight - headerOffsetHeight + 'px'
+				height: windowHeight - headerOffsetHeight + 7 + 'px'
 			});
 		}
 
 		if (crawlerList) {
 			crawlerList.css({
-				height: windowHeight - headerOffsetHeight - 55 + 'px'
+				height: windowHeight - headerOffsetHeight - 48 + 'px'
 			});
 
 			var pagerHeight         = $('.pager').height();

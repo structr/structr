@@ -257,7 +257,7 @@ public class ConfigServlet extends HttpServlet {
 		final Tag form     = body.block("form").css("config-form");
 		final Tag main     = form.block("div").id("main");
 		final Tag tabs     = main.block("div").id("configTabs");
-		final Tag menu     = tabs.block("ul").id("configTabsMenu");
+		final Tag menu     = tabs.block("ul").css("tabs-menu");
 
 		// configure form
 		form.attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
@@ -382,7 +382,6 @@ public class ConfigServlet extends HttpServlet {
 		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
 		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
 		head.block("script").attr(new Src("/structr/js/lib/jquery-1.11.1.min.js"));
-		head.block("script").attr(new Src("/structr/js/lib/jquery-ui-1.11.0.custom.min.js"));
 		head.block("script").attr(new Src("/structr/js/icons.js"));
 		head.block("script").attr(new Src("/structr/js/config.js"));
 

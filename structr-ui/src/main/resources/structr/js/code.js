@@ -55,7 +55,7 @@ var _Code = {
 
 		if (codeContents) {
 			codeContents.css({
-				height: windowHeight - headerOffsetHeight - 50 + 'px'
+				height: windowHeight - headerOffsetHeight - 48 + 'px'
 			});
 		}
 

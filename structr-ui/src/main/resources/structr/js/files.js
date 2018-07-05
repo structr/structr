@@ -99,7 +99,7 @@ var _Files = {
 
 		if (folderContents) {
 			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 50 + 'px'
+				height: windowHeight - headerOffsetHeight - 48 + 'px'
 			});
 		}
 
