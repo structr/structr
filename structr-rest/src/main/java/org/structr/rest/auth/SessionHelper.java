@@ -20,7 +20,6 @@ package org.structr.rest.auth;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
@@ -115,7 +114,7 @@ public class SessionHelper {
 	 * @param sessionId
 	 */
 	public static void clearSession(final String sessionId) {
-		
+
 		if (StringUtils.isBlank(sessionId)) {
 			return;
 		}
@@ -125,15 +124,10 @@ public class SessionHelper {
 		final Query<Principal> query             = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
-			final SessionCache sessionCache  = Services.getInstance().getService(HttpService.class).getSessionCache();
-			final List<Principal> principals = query.getAsList();
-
-			for (final Principal p : principals) {
+			for (final Principal p : query.getAsList()) {
 
 				p.removeSessionId(sessionId);
 			}
-
-			sessionCache.delete(sessionId);
 
 		} catch (Exception fex) {
 
@@ -157,7 +151,7 @@ public class SessionHelper {
 		if (sessionIds != null && sessionIds.length > 0) {
 
 			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class).getSessionCache();
-			
+
 			for (final String sessionId : sessionIds) {
 
 				HttpSession session = null;
