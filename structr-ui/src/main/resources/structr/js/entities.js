@@ -466,7 +466,7 @@ var _Entities = {
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback) {
 
 		var ul = tabsEl.children('ul');
-		ul.append('<li id="tab-' + name + '">' + label + '</li>');
+		ul.append('<li id="tab-' + name + '"><div class="fill-pixel"></div>' + label + '</li>');
 
 		var tab = $('#tab-' + name + '');
 		if (active) {

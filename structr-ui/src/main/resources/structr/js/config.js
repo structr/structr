@@ -18,7 +18,7 @@
  */
 function createNewEntry(e) {
 
-	var currentTab = $('div.tab-content[aria-hidden=false]');
+	var currentTab = $('div.tab-content:visible');
 	if (currentTab) {
 
 		var name = window.prompt("Please enter a key for the new configuration entry.");
@@ -78,21 +78,24 @@ function appendInfoTextToElement (text, el, css) {
 	return el.append(toggleElement).append(helpElement);
 }
 
+function getAnchorFromUrl(url) {
+	if (url) {
+		var pos = url.lastIndexOf('#');
+		if (pos > 0) {
+			return url.substring(pos + 1, url.length);
+		}
+	}
+	return null;
+}
+
 $(function () {
 
-	$('#configTabs').tabs({
-
-		activate: function (event, ui) {
-			$('#active_section').val(ui.newPanel.attr('id'));
-			window.location.hash = ui.newPanel.attr('id');
-		},
-
-		create: function (event, ui) {
-
-			if (ui && ui.panel)  {
-				$('#active_section').val(ui.panel.attr('id'));
-			}
-		}
+	$('#configTabs a').on('click', function() {
+		$('#configTabs li').removeClass('active');
+		$('.tab-content').hide();
+		let el = $(this);
+		el.parent().addClass('active');
+		$(el.attr('href')).show();
 	});
 
 	$(window).resize(function() {
@@ -106,6 +109,9 @@ $(function () {
 			margin: '0 4px'
 		});
 	});
+
+	let anchor = getAnchorFromUrl(window.location.href) || 'general';
+	$('a[href=#' + anchor + ']').click();
 
 });
 
