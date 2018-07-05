@@ -1079,8 +1079,6 @@ var _Pages = {
 				var localizationsContainer = $('#localizations div.inner div.results');
 				localizationsContainer.empty().attr('id', 'id_' + id);
 
-				console.log(result);
-
 				if (result.length > 0) {
 
 					result.forEach(function(res) {
