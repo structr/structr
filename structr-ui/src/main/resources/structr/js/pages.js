@@ -1022,20 +1022,9 @@ var _Pages = {
 		dataBindingSlideout.append('<div class="inner" id="data-binding-inputs"></div>');
 
 		var el = $('#data-binding-inputs');
-
 		var entity = StructrModel.obj(id);
 
-		el.append('<div id="data-binding-tabs" class="data-tabs"><ul><li class="active" id="tab-binding-rest">REST Query</li><li id="tab-binding-cypher">Cypher Query</li><li id="tab-binding-xpath">XPath Query</li><li id="tab-binding-function">Function Query</li></ul>'
-				+ '<div id="content-tab-binding-rest"></div><div id="content-tab-binding-cypher"></div><div id="content-tab-binding-xpath"></div><div id="content-tab-binding-function"></div></div>');
-
-		_Entities.appendTextarea($('#content-tab-binding-rest'), entity, 'restQuery', 'REST Query', '');
-		_Entities.appendTextarea($('#content-tab-binding-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
-		_Entities.appendTextarea($('#content-tab-binding-xpath'), entity, 'xpathQuery', 'XPath Query', '');
-		_Entities.appendTextarea($('#content-tab-binding-function'), entity, 'functionQuery', 'Function Query', '');
-
-		_Entities.activateTabs(id, '#data-binding-tabs', '#content-tab-binding-rest');
-
-		_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'Query results are mapped to this key and can be accessed by ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+		_Entities.repeaterConfig(entity, el);
 
 	},
 	reloadDataBindingWizard: function() {

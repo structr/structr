@@ -793,7 +793,7 @@ ul#previewTabs {
 }
 
 #previewTabs li:active {
-	
+
 }
 
 #previewTabs i {
@@ -1560,6 +1560,11 @@ button.enabled, button.active {
 	font-weight: bold;
 	border: 1px solid transparent;
 	background-color: transparent;
+}
+
+.query-type-buttons button.active {
+	border: 1px solid rgba(0,0,0,.125);
+	background: #fff;
 }
 
 .node ._html_id_,
