@@ -118,6 +118,7 @@ function StructrApp(baseUrl, locale) {
 			couldNotCreate                   : 'Could not create',
 			checking                         : 'Checking...',
 			wrongUsernameOrPassword          : 'Wrong username or password!',
+                        wrongTwoFactorCode               : 'Wrong two factor code!',
 			pleaseEnterEMail                 : 'Please enter your e-mail address!',
 			processing                       : 'Processing...',
 			checkYourInbox                   : 'Thanks! Please check your inbox.',
@@ -141,6 +142,7 @@ function StructrApp(baseUrl, locale) {
 			couldNotCreate                   : 'Konnte nicht erstellen:',
 			checking                         : 'Prüfe ...',
 			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
+                        wrongTwoFactorCode               : 'Falscher Two Factor Code!',
 			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
 			processing                       : 'In Bearbeitung ...',
 			checkYourInbox                   : 'Danke! Bitte E-Mail-Eingang prüfen.',
@@ -572,7 +574,8 @@ function StructrApp(baseUrl, locale) {
 					redirectOrReload(reload, returnUrl);
                                 },
 				401: function() {
-					app.feedbackAction(msgBox, s.labels[s.lang].wrongUsernameOrPassword, 1000, btn, true, function () {
+                                        var buttonLabel = ajaxRequest.getResponseHeader("twofactor") ? s.labels[s.lang].wrongTwoFactorCode : s.labels[s.lang].wrongUsernameOrPassword;
+					app.feedbackAction(msgBox, buttonLabel, 1000, btn, true, function () {
 						btn.text(oldBtnText);
 					});
 				}

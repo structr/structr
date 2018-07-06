@@ -81,9 +81,9 @@ public class LoginResource extends Resource {
         final String email = properties.get(eMailKey);
         final String password = properties.get(pwdKey);
         
-        String twoFactorToken = properties.get(twoFactorTokenKey);
-        final String twoFactorCode = properties.get(twoFactorCodeKey);
+        final String twoFactorCode = properties.get(twoFactorCodeKey)==null ? null : properties.get(twoFactorCodeKey).replaceAll("\\s+","");
         final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
+        String twoFactorToken = properties.get(twoFactorTokenKey);
         boolean isTwoFactor = false;
 
         String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
@@ -108,9 +108,6 @@ public class LoginResource extends Resource {
 
                     user = results.get(0);
                     try (final Tx tx = app.tx()) {
-
-                        // Clear token
-                        user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
                         tx.success();
                     }
                 }              
@@ -156,10 +153,7 @@ public class LoginResource extends Resource {
                         return methodResult;
 
                     } else {                        
-                        // reset token
-                        user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
-                        String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));
-                        
+                        String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));                    
                         String currentKey="";
                         try {
                             currentKey = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(twoFactorSecret);
@@ -170,13 +164,16 @@ public class LoginResource extends Resource {
                         // check two factor authentication
                         if (currentKey.equals(twoFactorCode))
                         {       
+                            user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null); // reset token
                             AuthHelper.doLogin(securityContext.getRequest(), user);
                             logger.info ("Succesful two factor authentication");
                         }
                         // two factor authentication not successful
                         else {
                            logger.info("Two factor authentication failed");
-                           return new RestMethodResult(401);
+                           RestMethodResult methodResult = new RestMethodResult(401);
+                           methodResult.addHeader("twofactor", "true");
+                           return methodResult;
                         }
                     }
 
