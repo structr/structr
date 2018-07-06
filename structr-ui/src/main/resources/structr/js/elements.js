@@ -370,7 +370,7 @@ var _Elements = {
 		elementsSlideout.append('<div class="ver-scrollable" id="elementsArea"></div>');
 		elements = $('#elementsArea', elementsSlideout);
 
-		elements.append('<button class="btn" id="delete-all-unattached-nodes">Delete all</button>');
+		elements.append('<button class="btn action" id="delete-all-unattached-nodes">Delete all</button>');
 
 		var btn = $('#delete-all-unattached-nodes');
 		btn.on('click', function() {
@@ -464,8 +464,7 @@ var _Elements = {
 
 		div.append('<i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '" />'
 			+ '<b title="' + displayName + '" class="tag_ name_">' + fitStringToWidth(displayName, 200) + '</b><span class="id">' + entity.id + '</span>'
-			+ _Elements.classIdString(entity._html_id, entity._html_class)
-			+ '</div>');
+			+ _Elements.classIdString(entity._html_id, entity._html_class));
 
 		div.append('<i title="Clone ' + displayName + ' element ' + entity.id + '\" class="clone_icon button ' + _Icons.getFullSpriteClass(_Icons.clone_icon) + '" />');
 		$('.clone_icon', div).on('click', function(e) {
@@ -512,9 +511,9 @@ var _Elements = {
 			if (entity.linkableId) {
 
 				if (entity.linkable.isFile) {
-					
+
 					div.append('<span class="linkable">' + entity.linkable.name + '</span>');
-					
+
 					$('.linkable', div).on('click', function(e) {
 						e.stopPropagation();
 
@@ -660,7 +659,7 @@ var _Elements = {
 	},
 	getElementIcon:function(element) {
 		var isComponent = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
-		var isActiveNode = element.isActiveNode();
+		var isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
 
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
@@ -1363,12 +1362,7 @@ var _Elements = {
 			_Entities.deleteNode(this, entity);
 		});
 
-		div.append('<i title="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-		$('.edit_icon', div).on('click', function(e) {
-			e.stopPropagation();
-			_Elements.openEditContentDialog(this, entity);
-			return false;
-		});
+		_Elements.appendEditContentIcon(div, entity);
 
 		$('.content_', div).on('click', function(e) {
 			e.stopPropagation();
@@ -1389,6 +1383,16 @@ var _Elements = {
 		var isActiveNode = content.isActiveNode();
 
 		return isComment ? _Icons.comment_icon : ((isTemplate && isComponent) ? _Icons.comp_templ_icon : (isTemplate ? (isActiveNode ? _Icons.active_template_icon : _Icons.template_icon) : (isComponent ? _Icons.active_content_icon : (isActiveNode ? _Icons.active_content_icon : _Icons.content_icon))));
+	},
+	appendEditContentIcon: function(div, entity) {
+
+		div.append('<i title="Edit Content of ' + (entity.name ? entity.name : entity.id) + '" class="edit_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
+		$('.edit_icon', div).on('click', function(e) {
+			e.stopPropagation();
+			_Elements.openEditContentDialog(this, entity);
+			return false;
+		});
+
 	},
 	openEditContentDialog: function(btn, entity) {
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {

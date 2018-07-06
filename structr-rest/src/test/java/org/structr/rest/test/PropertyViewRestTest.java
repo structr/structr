@@ -642,7 +642,7 @@ public class PropertyViewRestTest {
 		// modify default date format
 		Settings.DefaultDateFormat.setValue("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
-		Settings.Services.setValue("NodeService LogService HttpService SchemaService");
+		Settings.Services.setValue("NodeService SchemaService HttpService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup

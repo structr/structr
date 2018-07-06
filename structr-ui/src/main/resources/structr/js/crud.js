@@ -374,6 +374,12 @@ var _Crud = {
 
 			crudRight.data('url', '/' + type);
 
+			crudRight.append('<div id="crud-buttons">'
+					+ '<button class="action" id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
+					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
+					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
+					+ '</div>');
+
 			_Crud.determinePagerData(type);
 			var pagerNode = _Crud.addPager(type, crudRight);
 
@@ -387,12 +393,6 @@ var _Crud = {
 				tableHeaderRow.append('<th class="___' + prop.jsonName + '">' + prop.jsonName + '</th>');
 			});
 			tableHeaderRow.append('<th class="___action_header">Actions</th>');
-
-			crudRight.append('<div id="crud-buttons">'
-					+ '<button id="create' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Create new ' + type + '</button>'
-					+ '<button id="export' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_table_icon) + '" /> Export as CSV</button>'
-					+ '<button id="import' + type + '"><i class="' + _Icons.getFullSpriteClass(_Icons.database_add_icon) + '" /> Import CSV</button>'
-					+ '</div>');
 
 			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
@@ -579,6 +579,9 @@ var _Crud = {
 	 */
 	isCollection: function(key, type) {
 		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
+	},
+	isFunctionProperty: function(key, type) {
+		return ("org.structr.core.property.FunctionProperty" === _Crud.keys[type][key].className);
 	},
 	/**
 	 * Return true if the combination of the given property key
@@ -1072,7 +1075,7 @@ var _Crud = {
 		}, 200);
 
 		$('#startImport', dialogBtn).remove();
-		dialogBtn.append('<button id="startImport">Start Import</button>');
+		dialogBtn.append('<button class="action" id="startImport">Start Import</button>');
 
 		$('#startImport', dialogBtn).on('click', function() {
 
@@ -1712,7 +1715,8 @@ var _Crud = {
 			} else if (propertyType === 'Date') {
 				cell.html(nvl(formatValue(value), '<i title="Show calendar" class="' + _Icons.getFullSpriteClass(_Icons.calendar_icon) + '" />'));
 				if (!readOnly) {
-					var dateTimePickerFormat = getDateTimePickerFormat(_Crud.getFormat(key, type));
+					var format = _Crud.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.getFormat(key, type);
+					var dateTimePickerFormat = getDateTimePickerFormat(format);
 					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);

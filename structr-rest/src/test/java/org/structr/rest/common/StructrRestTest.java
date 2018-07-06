@@ -123,7 +123,7 @@ public class StructrRestTest {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		Settings.Services.setValue("NodeService LogService HttpService SchemaService");
+		Settings.Services.setValue("NodeService SchemaService HttpService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup

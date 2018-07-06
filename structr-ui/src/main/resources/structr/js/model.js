@@ -492,7 +492,7 @@ var StructrModel = {
 				try {
 					StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
 				} catch (e) {
-					//console.log('Exception catched: ', e, ', callback:', StructrModel.callbacks[callback], entity);
+					console.log('Exception caught: ', e, ', callback:', StructrModel.callbacks[callback], entity);
 				}
 			}
 			StructrModel.clearCallback(callback);

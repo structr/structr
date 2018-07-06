@@ -49,13 +49,13 @@ var _Code = {
 
 		if (codeTree) {
 			codeTree.css({
-				height: windowHeight - headerOffsetHeight + 'px'
+				height: windowHeight - headerOffsetHeight + 7 + 'px'
 			});
 		}
 
 		if (codeContents) {
 			codeContents.css({
-				height: windowHeight - headerOffsetHeight - 55 + 'px'
+				height: windowHeight - headerOffsetHeight - 48 + 'px'
 			});
 		}
 
@@ -100,7 +100,7 @@ var _Code = {
 		$('.column-resizer', codeMain).css({ left: left });
 
 		$('#code-tree').css({width: left - 14 + 'px'});
-		$('#code-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
+		$('#code-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
 	},
 	onload: function() {
 

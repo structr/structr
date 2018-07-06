@@ -95,6 +95,7 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.File;
+import org.structr.websocket.command.AbstractCommand;
 
 /**
  * Main servlet for content rendering.
@@ -156,6 +157,19 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	@Override
 	public String getModuleName() {
 		return "ui";
+	}
+
+	@Override
+	public void init() {
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			AbstractCommand.getOrCreateHiddenDocument();
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to create shadow page: {}", fex.getMessage());
+		}
 	}
 
 	@Override

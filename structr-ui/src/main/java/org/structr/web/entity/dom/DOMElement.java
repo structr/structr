@@ -69,7 +69,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("DOMElement");
 
-		type.setIsAbstract();
+		//type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
 		type.setExtends(URI.create("#/definitions/DOMNode"));
 

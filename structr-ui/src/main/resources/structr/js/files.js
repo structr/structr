@@ -93,13 +93,13 @@ var _Files = {
 
 		if (fileTree) {
 			fileTree.css({
-				height: windowHeight - headerOffsetHeight + 'px'
+				height: windowHeight - headerOffsetHeight + 7 + 'px'
 			});
 		}
 
 		if (folderContents) {
 			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 55 + 'px'
+				height: windowHeight - headerOffsetHeight - 48 + 'px'
 			});
 		}
 
@@ -152,7 +152,7 @@ var _Files = {
 		$('.column-resizer', filesMain).css({ left: left });
 
 		$('#file-tree').css({width: left - 14 + 'px'});
-		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
+		$('#folder-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
 	},
 	onload: function() {
 
@@ -1211,7 +1211,7 @@ var _Files = {
 
 					} else {
 
-						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
+						container.append('<h1>' + data.result.length + ' result' + (data.result.length > 1 ? 's' : '') + ':</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
 						data.result.forEach(function(d) {
 
 							$('tbody', container).append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><td>' + d.size + '</td></tr>');

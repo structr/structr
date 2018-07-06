@@ -217,7 +217,7 @@ public class Services implements StructrServices {
 			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
 		}
 
-		logger.info("Starting services..");
+		logger.info("Starting services: {}", configuredServiceClasses);
 
 		// initialize other services
 		for (final String serviceClassName : configuredServiceClasses) {
@@ -314,6 +314,14 @@ public class Services implements StructrServices {
 	@Override
 	public LicenseManager getLicenseManager() {
 		return licenseManager;
+	}
+
+	public boolean isShutdownDone() {
+		return shutdownDone;
+	}
+
+	public boolean isShuttingDown() {
+		return shuttingDown;
 	}
 
 	public boolean isInitialized() {
