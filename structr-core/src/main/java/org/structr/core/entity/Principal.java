@@ -20,7 +20,6 @@ package org.structr.core.entity;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.Predicate;

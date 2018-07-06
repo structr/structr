@@ -20,11 +20,8 @@ package org.structr.web.resource;
 
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.security.GeneralSecurityException;
-import java.security.Key;
 import java.util.Map;
 import java.util.UUID;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
