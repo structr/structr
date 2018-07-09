@@ -1092,6 +1092,16 @@ var Command = {
 		_Logger.log(_LogType.WS[obj.command], 'list_active_elements()', obj);
 		return sendObj(obj, callback);
 	},
+	listLocalizations: function(pageId, locale, callback) {
+		var obj = {
+			command: 'LIST_LOCALIZATIONS',
+			id: pageId,
+			data: {
+				locale: locale
+			}
+		};
+		return sendObj(obj, callback);
+	},
 	/**
 	 * Send a LIST_COMPONENTS command to the server.
 	 *

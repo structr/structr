@@ -18,45 +18,49 @@
  */
 package org.structr.rest.service;
 
+import java.util.Date;
 import java.util.Set;
-import org.apache.commons.lang3.SerializationUtils;
-import org.apache.xerces.impl.dv.util.Base64;
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.entity.SessionDataNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.rest.auth.AuthHelper;
-import org.structr.rest.auth.SessionHelper;
+import org.structr.core.property.PropertyMap;
 
 /**
- *
- *
  */
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
-
-	public StructrSessionDataStore() {
-	}
 
 	@Override
 	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
 
 		assertInitialized();
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+		final App app             = StructrApp.getInstance(ctx);
 
-			final Principal user = AuthHelper.getPrincipalForSessionId(id);
+		try (final Tx tx = app.tx(true, false, false)) {
 
-			// store sessions only for authenticated users
-			if (user != null) {
+			final SessionDataNode node = getOrCreateSessionDataNode(app, id);
+			if (node != null) {
 
-				user.setSessionData(Base64.encode(SerializationUtils.serialize(data)));
+				final PropertyMap properties = new PropertyMap();
+
+				properties.put(SessionDataNode.lastAccessed, new Date(data.getLastAccessed()));
+				properties.put(SessionDataNode.contextPath,  data.getContextPath());
+				properties.put(SessionDataNode.vhost,        data.getVhost());
+
+				node.setProperties(ctx, properties);
 			}
 
 			tx.success();
@@ -69,6 +73,28 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public Set<String> doGetExpired(final Set<String> candidates) {
+
+		assertInitialized();
+
+		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+		final App app             = StructrApp.getInstance(ctx);
+		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
+
+		try (final Tx tx = app.tx(true, false, false)) {
+
+			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).andRange(SessionDataNode.lastAccessed, new Date(0), timeoutDate).getAsList()) {
+
+				candidates.add(node.getProperty(SessionDataNode.sessionId));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.info("Unable to determine list of expired session candidates.");
+		}
+
 		return candidates;
 	}
 
@@ -82,17 +108,20 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+		final App app             = StructrApp.getInstance(ctx);
 
-			final boolean exists = AuthHelper.getPrincipalForSessionId(id) != null;
+		try (final Tx tx = app.tx(true, false, false)) {
+
+			final SessionDataNode node = app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getFirst();
 
 			tx.success();
 
-			return exists;
+			return node != null;
 
 		} catch (FrameworkException ex) {
 
-			logger.info("Unable to determine if session " + id + " exists.", ex);
+			logger.info("Unable to determine if session data for " + id + " exists.", ex);
 		}
 
 		return false;
@@ -103,21 +132,24 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		SessionData sessionData = null;
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+		final App app             = StructrApp.getInstance(ctx);
+		SessionData result        = null;
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try (final Tx tx = app.tx(true, false, false)) {
 
-			final Principal user = AuthHelper.getPrincipalForSessionId(id);
+			final SessionDataNode node = app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getFirst();
+			if (node != null) {
 
-
-			// store sessions only for authenticated users
-			if (user != null) {
-
-				final String sessionDataString = user.getSessionData();
-				if (sessionDataString != null) {
-
-					sessionData = SerializationUtils.deserialize(Base64.decode(sessionDataString));
-				}
+				result = new SessionData(
+					id,
+					node.getProperty(SessionDataNode.contextPath),
+					node.getProperty(SessionDataNode.vhost),
+					node.getCreatedDate().getTime(),
+					node.getLastModifiedDate().getTime(),
+					node.getLastModifiedDate().getTime(),
+					-1
+				);
 			}
 
 			tx.success();
@@ -127,7 +159,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			logger.info("Unable to load session data for session id " + id + ".", ex);
 		}
 
-		return sessionData;
+		return result;
 	}
 
 	@Override
@@ -135,9 +167,16 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		assertInitialized();
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+		final App app             = StructrApp.getInstance(ctx);
 
-			SessionHelper.clearSession(id);
+		try (final Tx tx = app.tx(true, false, false)) {
+
+			// delete nodes
+			for (final SessionDataNode node : app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getAsList()) {
+
+				app.delete(node);
+			}
 
 			tx.success();
 
@@ -155,8 +194,25 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	// ----- private methods -----
 	private void assertInitialized() {
 
-		while (!Services.getInstance().isInitialized()) {
-			try { Thread.sleep(1000); } catch (Throwable t) {}
+		final Services services = Services.getInstance();
+		if (!services.isShuttingDown() && !services.isShutdownDone()) {
+
+			// wait for service layer to be initialized
+			while (!services.isInitialized()) {
+
+				try { Thread.sleep(1000); } catch (Throwable t) {}
+			}
 		}
+	}
+
+	private SessionDataNode getOrCreateSessionDataNode(final App app, final String id) throws FrameworkException {
+
+		SessionDataNode node = app.nodeQuery(SessionDataNode.class).and(SessionDataNode.sessionId, id).getFirst();
+		if (node == null) {
+
+			node= app.create(SessionDataNode.class, new NodeAttribute<>(SessionDataNode.sessionId, id));
+		}
+
+		return node;
 	}
 }

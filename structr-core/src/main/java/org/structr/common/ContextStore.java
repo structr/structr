@@ -18,9 +18,14 @@
  */
 package org.structr.common;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
+import org.structr.core.entity.Localization;
+import org.structr.core.property.GenericProperty;
 
 /**
  * Encapsulates all information stored for Action-/SecurityContexts which are available via scripting
@@ -33,6 +38,7 @@ public class ContextStore {
 	protected Map<String, Date> timerStore         = new HashMap<>();
 	protected Map<Integer, Integer> counters       = new HashMap<>();
 	protected AdvancedMailContainer amc            = new AdvancedMailContainer();
+	protected ArrayList<GraphObjectMap> localizations   = new ArrayList<>();
 
 	public ContextStore () {
 	}
@@ -124,5 +130,51 @@ public class ContextStore {
 
 	public AdvancedMailContainer getAdvancedMailContainer () {
 		return amc;
+	}
+
+	// --- Localizations ---
+	public void addRequestedLocalization(final Object node, final String key, final String domain, final String locale, final Localization localization) {
+
+		final GenericProperty keyKey    = new GenericProperty("key");
+		final GenericProperty domainKey = new GenericProperty("domain");
+		final GenericProperty localeKey = new GenericProperty("locale");
+		final GenericProperty nodeKey   = new GenericProperty("node");
+
+		boolean notContained = true;
+		for (GraphObject gom : localizations) {
+			if (notContained) {
+
+				if (gom.getProperty(keyKey).equals(key) && gom.getProperty(domainKey).equals(domain) && gom.getProperty(localeKey).equals(locale)) {
+
+					final GraphObject prevNode = (GraphObject)gom.getProperty(nodeKey);
+					if (prevNode != null && node != null && prevNode.getUuid().equals(((GraphObject)node).getUuid())) {
+						notContained = false;
+					}
+				}
+			}
+		}
+
+		if (notContained) {
+
+			final Map<String, Object> data = new HashMap();
+			data.put("node", node);
+			data.put("key", key);
+			data.put("domain", domain);
+			data.put("locale", locale);
+			data.put("localization", localization);
+
+			GraphObjectMap converted = GraphObjectMap.fromMap(data);
+
+			if (!localizations.contains(converted)) {
+				localizations.add(converted);
+			}
+		}
+
+	}
+
+	public ArrayList<GraphObjectMap> getRequestedLocalizations () {
+
+		return localizations;
+
 	}
 }

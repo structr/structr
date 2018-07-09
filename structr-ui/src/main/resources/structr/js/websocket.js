@@ -362,6 +362,12 @@ function wsConnect() {
 
 				StructrModel.callCallback(data.callback, result);
 
+			} else if (command.startsWith('LIST_LOCALIZATIONS')) {
+
+				_Logger.log(_LogType.WS[command], result, data);
+
+				StructrModel.callCallback(data.callback, result);
+
 			} else if (command.startsWith('SNAPSHOTS')) {
 
 				_Logger.log(_LogType.WS[command], result, data);

@@ -156,6 +156,7 @@
 	font-size: 9pt;
 	position: relative;
 	box-shadow: 0 0 12px rgba(127,127,127,.1);
+	border: 1px solid rgba(0,0,0,.125);
 }
 
 #crud-right .crud-loading {
