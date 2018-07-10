@@ -217,8 +217,9 @@ var _Entities = {
 		];
 
 		var queryTypeButtonsContainer = $('<div class="query-type-buttons"></div>');
-		el.append('<h3>Repeater Query</h3>').append(queryTypeButtonsContainer);
+		el.append('<h3>Repeater Configuration</h3>').append(queryTypeButtonsContainer);
 
+		var queryHeading = $('<h4 class="query-type-heading"></h4>').appendTo(el);
 		var textArea = $('<textarea class="query-text"></textarea>').appendTo(el);
 
 		queryTypes.forEach(function(queryType) {
@@ -230,13 +231,16 @@ var _Entities = {
 			if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
 				btn.addClass('active');
 				textArea.text(textArea.text() + entity[queryType.propertyName]);
+				queryHeading.text(btn.text());
 			}
 		});
 
 		var allButtons = $('.query-type-buttons button');
 		allButtons.on('click', function () {
 			allButtons.removeClass('active');
-			$(this).addClass('active');
+			var btn = $(this);
+			btn.addClass('active');
+			queryHeading.text(btn.text());
 		});
 
 		if ($('button.active', queryTypeButtonsContainer).length === 0) {
