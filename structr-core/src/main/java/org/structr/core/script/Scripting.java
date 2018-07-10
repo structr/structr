@@ -157,6 +157,10 @@ public class Scripting {
 		final int prefixOffset  = isJavascript ? 1 : 0;
 		String source           = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
 
+		if (source.length() <= 0) {
+			return null;
+		}
+
 		String engine = "";
 		boolean isScriptEngine = false;
 
@@ -228,13 +232,6 @@ public class Scripting {
 		final Context scriptingContext = Scripting.setupJavascriptContext();
 
 		try {
-
-			// enable some optimizations..
-			scriptingContext.setLanguageVersion(Context.VERSION_ES6);
-			scriptingContext.setOptimizationLevel(9);
-			scriptingContext.setInstructionObserverThreshold(0);
-			scriptingContext.setGenerateObserverCount(false);
-			scriptingContext.setGeneratingDebug(true);
 
 			final Scriptable scope = scriptingContext.initStandardObjects();
 			final StructrScriptable scriptable = new StructrScriptable(actionContext, entity, scriptingContext);
@@ -347,10 +344,11 @@ public class Scripting {
 		final Context scriptingContext = new ContextFactory().enterContext();
 
 		// enable some optimizations..
-		scriptingContext.setLanguageVersion(Context.VERSION_1_2);
+		scriptingContext.setLanguageVersion(Context.VERSION_ES6);
 		scriptingContext.setOptimizationLevel(9);
 		scriptingContext.setInstructionObserverThreshold(0);
 		scriptingContext.setGenerateObserverCount(false);
+		scriptingContext.setGeneratingDebug(false);
 
 		return scriptingContext;
 	}
