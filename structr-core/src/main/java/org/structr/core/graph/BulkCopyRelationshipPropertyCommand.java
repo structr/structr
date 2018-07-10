@@ -59,7 +59,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "CopyRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only "our" rels
 					if(rel.getProperty(GraphObject.id) != null) {
@@ -77,6 +77,8 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 							logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
 						}
 					}
+
+					return true;
 				}
 
 				@Override
