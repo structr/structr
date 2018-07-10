@@ -345,10 +345,9 @@ public class Scripting {
 
 		// enable some optimizations..
 		scriptingContext.setLanguageVersion(Context.VERSION_ES6);
-		scriptingContext.setOptimizationLevel(9);
 		scriptingContext.setInstructionObserverThreshold(0);
 		scriptingContext.setGenerateObserverCount(false);
-		scriptingContext.setGeneratingDebug(false);
+		scriptingContext.setGeneratingDebug(true);
 
 		return scriptingContext;
 	}
