@@ -58,9 +58,11 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 		final long count = bulkGraphOperation(securityContext, nodeIterator, 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
-			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 				TypeProperty.updateLabels(graphDb, node, node.getClass(), removeUnused);
+
+				return true;
 			}
 
 			@Override

@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 
 
 //~--- classes ----------------------------------------------------------------
@@ -46,21 +45,24 @@ public class BulkDeleteCommand extends NodeServiceCommand {
 		final long count = bulkGraphOperation(securityContext, iterator, 1000, "DeleteObjects", new BulkGraphOperation<GraphObject>() {
 
 			@Override
-			public void handleGraphObject(final SecurityContext securityContext, final GraphObject obj) {
+			public boolean handleGraphObject(final SecurityContext securityContext, final GraphObject obj) {
+
+				boolean success = true;
 
 				try {
 
 					if (obj.isNode()) {
 
-						final AbstractNode node = (AbstractNode)obj;
+						final NodeInterface node = (NodeInterface)obj;
 
 						if (!node.isGranted(Permission.delete, securityContext)) {
 
 							logger.warn("Could not delete {} because {} has no delete permission", obj.getUuid(), securityContext.getUser(false));
+							success = false;
 
 						} else {
 
-							app.delete((NodeInterface)obj);
+							app.delete(node);
 						}
 
 					} else {
@@ -69,8 +71,12 @@ public class BulkDeleteCommand extends NodeServiceCommand {
 					}
 
 				} catch (FrameworkException fex) {
+
 					logger.warn("Unable to delete node {}: {}", obj.getUuid(), fex.toString());
+					success = false;
 				}
+
+				return success;
 			}
 
 			@Override

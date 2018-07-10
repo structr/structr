@@ -64,7 +64,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 			bulkGraphOperation(securityContext, nodeIterator, 1000, "DeleteSoftDeletedNodes", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					if (node.isDeleted()) {
 						logger.info("Found deleted node: {}", node);
@@ -80,6 +80,7 @@ public class BulkDeleteSoftDeletedNodesCommand extends NodeServiceCommand implem
 						}
 					}
 
+					return true;
 				}
 
 				@Override

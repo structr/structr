@@ -101,8 +101,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
 
 			@Override
-			public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+
 				node.updateInIndex();
+
+				return true;
 			}
 
 			@Override
@@ -138,8 +141,11 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		long count = bulkGraphOperation(securityContext, relIterator, 1000, "RebuildRelIndex", new BulkGraphOperation<AbstractRelationship>() {
 
 			@Override
-			public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+
 				rel.updateInIndex();
+
+				return true;
 			}
 
 			@Override

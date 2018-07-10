@@ -2552,6 +2552,10 @@ table.push {
  * Resource Access editor
  */
 
+#usersAndGroups, #resourceAccess {
+	height: 100%;
+}
+
 #usersAndGroups #users, #usersAndGroups #groups {
 	padding: 12px;
 	overflow-y: auto;
