@@ -1567,6 +1567,11 @@ button.enabled, button.active {
 	background: #fff;
 }
 
+.query-type-heading {
+    margin-top: 6px;
+    margin-bottom: 5px;
+}
+
 .node ._html_id_,
 .node ._html_class_,
 .node .linkable {
