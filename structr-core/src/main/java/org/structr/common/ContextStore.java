@@ -18,10 +18,9 @@
  */
 package org.structr.common;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import javafx.util.Pair;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
@@ -32,13 +31,14 @@ import org.structr.core.property.GenericProperty;
  */
 public class ContextStore {
 
-	protected Map<String, String> headers          = new HashMap<>();
-	protected Map<String, Object> constants        = new HashMap<>();
-	protected Map<String, Object> tmpStore         = new HashMap<>();
-	protected Map<String, Date> timerStore         = new HashMap<>();
-	protected Map<Integer, Integer> counters       = new HashMap<>();
-	protected AdvancedMailContainer amc            = new AdvancedMailContainer();
-	protected ArrayList<GraphObjectMap> localizations   = new ArrayList<>();
+	protected Map<String, String> headers          						= new HashMap<>();
+	protected Map<String, Object> constants        						= new HashMap<>();
+	protected Map<String, Object> tmpStore         						= new HashMap<>();
+	protected Map<String, Date> timerStore         						= new HashMap<>();
+	protected Map<Integer, Integer> counters       						= new HashMap<>();
+	protected AdvancedMailContainer amc            						= new AdvancedMailContainer();
+	protected ArrayList<GraphObjectMap> localizations   				= new ArrayList<>();
+	protected Map<Pair<String,String>, Object> functionPropertyCache 	= new HashMap<>();
 
 	public ContextStore () {
 	}
@@ -93,6 +93,18 @@ public class ContextStore {
 		return tmpStore;
 	}
 
+	// --- Function Properties ---
+	public void storeFunctionPropertyResult(final String uuid, final String propertyName, final Object value) {
+		this.functionPropertyCache.put(new Pair<>(uuid,propertyName), value);
+	}
+
+	public Object retrieveFunctionPropertyResult(final String uuid, final String propertyName) {
+		return this.functionPropertyCache.get(new Pair<>(uuid,propertyName));
+	}
+
+	public void clearFunctionPropertyCache() {
+		this.functionPropertyCache.clear();
+	}
 
 	// --- Counters ---
 	public void incrementCounter(final int level) {

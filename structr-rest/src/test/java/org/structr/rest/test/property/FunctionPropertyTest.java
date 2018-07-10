@@ -20,9 +20,19 @@ package org.structr.rest.test.property;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+
+import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.vividsolutions.jts.util.Assert;
+import org.apache.commons.lang.UnhandledException;
 import org.junit.Test;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.rest.common.StructrRestTest;
+import org.structr.rest.entity.TestTen;
 
 /**
  *
@@ -50,6 +60,35 @@ public class FunctionPropertyTest extends StructrRestTest {
 			.body("result[0].functionTest.me.functionTest.value", equalTo(123))
 		.when()
 			.get("/TestTen");
+
+	}
+
+	@Test
+	public void testFunctionPropertyCaching() {
+
+		App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+			TestTen testObj = app.create(TestTen.class, "testObject");
+
+			Object firstState = testObj.getProperty(TestTen.getNameProperty);
+			Object secondState = testObj.getProperty(TestTen.getNameProperty);
+
+			Assert.equals(firstState, secondState);
+
+			testObj.setProperty(TestTen.name, "testObject2");
+
+			secondState = testObj.getProperty(TestTen.getNameProperty);
+
+			Assert.isTrue(!firstState.equals(secondState));
+
+			firstState = testObj.getProperty(TestTen.getNameProperty);
+
+			Assert.equals(secondState, firstState);
+
+		} catch (FrameworkException ex) {
+			fail("Exception during test: " + ex.getMessage());
+		}
 
 	}
 }

@@ -74,6 +74,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean dynamic                              = false;
 	protected boolean isCMISProperty                       = false;
 	protected boolean isPartOfBuiltInSchema                = false;
+	protected boolean cachingEnabled					   = false;
 	protected String dbName                                = null;
 	protected String jsonName                              = null;
 	protected String format                                = null;
@@ -468,6 +469,13 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public boolean isDynamic() {
 		return dynamic;
 	}
+
+	public boolean cachingEnabled() { return cachingEnabled; }
+
+	public void cachingEnabled(final boolean enable) {
+		this.cachingEnabled = cachingEnabled;
+	}
+
 
 	/**
 	 * Default implementation of the existing index() method.

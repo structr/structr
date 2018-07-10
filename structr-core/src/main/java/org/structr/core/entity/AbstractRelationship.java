@@ -557,6 +557,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
+		// clear function property cache in security context since we are about to invalidate past results
+		if (securityContext != null) {
+			securityContext.getContextStore().clearFunctionPropertyCache();
+		}
+
 		if (key == null) {
 
 			logger.error("Tried to set property with null key (action was denied)");

@@ -314,6 +314,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 		return null;
 	}
 
+
 	public void index(final GraphObject entity);
 	public void index(final GraphObject entity, final Object value);
 	public boolean indexable(final Object value);
