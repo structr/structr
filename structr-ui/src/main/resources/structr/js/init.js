@@ -1383,41 +1383,6 @@ var Structr = {
 	},
 	handleGenericMessage: function (data) {
 
-		var fileImportTitles = {
-			QUEUED: 'Import added to queue',
-			BEGIN: 'Import started',
-			CHUNK: 'Import status',
-			END: 'Import finished',
-			WAIT_ABORT: 'Import waiting to abort',
-			ABORTED: 'Import aborted',
-			WAIT_PAUSE: 'Import waiting to pause',
-			PAUSED: 'Import paused',
-			RESUMED: 'Import resumed'
-		};
-
-		var fileImportTexts = {
-			QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running/queued job(s)',
-			BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
-			CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
-			END: 'Finished importing data from <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
-			WAIT_ABORT: 'The import of <b>' + data.filename + '</b> will be aborted after finishing the current chunk',
-			ABORTED: 'The import of <b>' + data.filename + '</b> has been aborted',
-			WAIT_PAUSE: 'The import of <b>' + data.filename + '</b> will be paused after finishing the current chunk',
-			PAUSED: 'The import of <b>' + data.filename + '</b> has been paused',
-			RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
-		};
-
-		var scriptJobTitles = {
-			QUEUED: 'Script added to queue',
-			BEGIN: 'Script started',
-			END: 'Script finished'
-		};
-		var scriptJobTexts = {
-			QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
-			BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName),
-			END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName)
-		};
-
 		switch (data.type) {
 
 			case "CSV_IMPORT_STATUS":
@@ -1453,6 +1418,30 @@ var Structr = {
 				break;
 
 			case "FILE_IMPORT_STATUS":
+
+				var fileImportTitles = {
+					QUEUED: 'Import added to queue',
+					BEGIN: 'Import started',
+					CHUNK: 'Import status',
+					END: 'Import finished',
+					WAIT_ABORT: 'Import waiting to abort',
+					ABORTED: 'Import aborted',
+					WAIT_PAUSE: 'Import waiting to pause',
+					PAUSED: 'Import paused',
+					RESUMED: 'Import resumed'
+				};
+
+				var fileImportTexts = {
+					QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running/queued job(s)',
+					BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
+					CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
+					END: 'Finished importing data from <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
+					WAIT_ABORT: 'The import of <b>' + data.filename + '</b> will be aborted after finishing the current chunk',
+					ABORTED: 'The import of <b>' + data.filename + '</b> has been aborted',
+					WAIT_PAUSE: 'The import of <b>' + data.filename + '</b> will be paused after finishing the current chunk',
+					PAUSED: 'The import of <b>' + data.filename + '</b> has been paused',
+					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
+				};
 
 				if (me.username === data.username) {
 
@@ -1496,6 +1485,17 @@ var Structr = {
 				break;
 
 			case "SCRIPT_JOB_STATUS":
+
+				var scriptJobTitles = {
+					QUEUED: 'Script added to queue',
+					BEGIN: 'Script started',
+					END: 'Script finished'
+				};
+				var scriptJobTexts = {
+					QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
+					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName),
+					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : '<br>' + data.jobName)
+				};
 
 				if (me.username === data.username) {
 
