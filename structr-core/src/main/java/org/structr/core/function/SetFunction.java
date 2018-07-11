@@ -21,6 +21,7 @@ package org.structr.core.function;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.Map;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ArgumentCountException;
@@ -52,8 +53,9 @@ public class SetFunction extends Function<Object, Object> {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final SecurityContext securityContext          = ctx.getSecurityContext();
+			final ConfigurationProvider config             = StructrApp.getConfiguration();
 
 			Class type = null;
 			PropertyMap propertyMap = null;
@@ -102,7 +104,8 @@ public class SetFunction extends Function<Object, Object> {
 
 				for (int c = 1; c < parameter_count; c += 2) {
 
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, sources[c].toString());
+					final String keyName  = sources[c].toString();
+					final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, useGenericPropertyForUnknownKeys);
 
 					if (key != null) {
 
@@ -115,6 +118,11 @@ public class SetFunction extends Function<Object, Object> {
 						}
 
 						propertyMap.put(key, value);
+
+					} else {
+
+						// key does not exist and generic property is not desired => log warning
+						logger.warn("Unknown property {}.{}, value will not be set.", type.getSimpleName(), keyName);
 					}
 				}
 
