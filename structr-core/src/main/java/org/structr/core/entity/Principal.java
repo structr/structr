@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.Predicate;
@@ -66,10 +67,17 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.addTransformer(LowercaseTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
+                principal.addDateProperty("passwordChangeDate");
+                principal.addIntegerProperty("passwordAttempts");
+                
+                principal.addPropertySetter("passwordChangeDate", Date.class);
+                principal.addPropertyGetter("passwordChangeDate", Date.class);
+                principal.addPropertySetter("passwordAttempts", Integer.class);
+                principal.addPropertyGetter("passwordAttempts", Integer.class);
                 
                 // Two Factor Authentication Attributes
                 principal.addStringProperty("twoFactorSecret");
-                principal.addStringProperty("twoFactorToken").setIndexed(true);;
+                principal.addStringProperty("twoFactorToken").setIndexed(true);
                 principal.addStringProperty("twoFactorImageUrl");
                 principal.addBooleanProperty("twoFactorUser");
                 principal.addStringProperty("twoFactorCode");

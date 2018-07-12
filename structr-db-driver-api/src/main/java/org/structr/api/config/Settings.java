@@ -319,6 +319,11 @@ public class Settings {
         public static final Setting<String> TwoFactorId                     = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.id",                       "Structr");
         public static final Setting<String> TwoFactorUrl                    = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.url",                      "/twofactor");
         public static final Setting<String> TwoFactorForceRegistrationUrl   = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.forceRegistrationUrl",     "/scanqrcode");
+       
+        public static final Setting<Boolean> PasswordForceChange        = new BooleanSetting(miscGroup, "Password Options", "ForcePassword.change",    false);    
+        public static final Setting<Integer> PasswordForceChangeDays     = new IntegerSetting(miscGroup, "Password Options", "ForcePassword.days",     90);
+        public static final Setting<Integer> PasswordForceChangeReminder = new IntegerSetting(miscGroup, "Password Options", "ForcePassword.reminder", 14);
+        public static final Setting<Integer> PasswordAttempts              = new IntegerSetting(miscGroup, "Password Options", "Password.attempts", 4);
 
 
 	public static Collection<SettingsGroup> getGroups() {

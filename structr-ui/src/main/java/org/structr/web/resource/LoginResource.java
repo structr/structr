@@ -20,6 +20,7 @@ package org.structr.web.resource;
 
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.security.GeneralSecurityException;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
@@ -74,6 +75,9 @@ public class LoginResource extends Resource {
         final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
         final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
         
+        final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(User.class, "passwordAttempts");
+        final PropertyKey<Date> passwordChangeDateKey = StructrApp.key(User.class, "passwordChangeDate");
+        
         final String name = properties.get(nameKey);
         final String email = properties.get(eMailKey);
         final String password = properties.get(pwdKey);
@@ -83,6 +87,12 @@ public class LoginResource extends Resource {
         String twoFactorToken = properties.get(twoFactorTokenKey);
         boolean isTwoFactor = false;
 
+        final int maximumAttempts = Settings.PasswordAttempts.getValue();
+        final int passwordDays = Settings.PasswordForceChangeDays.getValue();
+//      final int passwordDaysReminder = Settings.PasswordForceChangeReminder.getValue();
+        final boolean forcePasswordChange = Settings.PasswordForceChange.getValue();
+        final App app = StructrApp.getInstance();
+        
         String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
        
         if ((StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) || StringUtils.isNotEmpty(twoFactorToken)) {
@@ -91,35 +101,61 @@ public class LoginResource extends Resource {
 
             // If there is no token get user by username/ pw, else get user by token
             if (twoFactorToken!=null) {
-                final App app = StructrApp.getInstance();
+
 
                 Result<Principal> results;
                 try (final Tx tx = app.tx()) {
-
                     results = app.nodeQuery(Principal.class).and(StructrApp.key(User.class, "twoFactorToken"), twoFactorToken).getResult();
-
                     tx.success();
                 }
 
                 if (!results.isEmpty()) {
-
                     user = results.get(0);
                     try (final Tx tx = app.tx()) {
                         tx.success();
                     }
                 }              
             } else {
-                user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+                try {
+                    user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
+                } catch (Exception e) {
+                    user = null;
+                }
+            }
+
+            if (user != null) {
                 // if there is an old token delete it
                 if (user.getProperty(twoFactorTokenKey) != null)
                 {
                     user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
                 }
-            }
+                
+                int attempts = user.getProperty(passwordAttemptsKey) == null ? 0 : user.getProperty(passwordAttemptsKey);
+                if (attempts > maximumAttempts && maximumAttempts > 0) {
+                    securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+                    logger.info("Too many login-attempts for user: "+emailOrUsername);
+                    RestMethodResult methodResult = new RestMethodResult(401);
+                    methodResult.addHeader("reason", "attempts");
+                    return methodResult;
+                }
+                user.setProperty(passwordAttemptsKey, 0); // reset password attempts
+                
+                if (forcePasswordChange)
+                {              
+                    Date now = new Date();
+                    Date passwordChangeDate = user.getProperty(passwordChangeDateKey) != null ? user.getProperty(passwordChangeDateKey) : new Date (0); // setting date in past if not yet set
+                    int daysApart = (int) ((now.getTime() - passwordChangeDate.getTime()) / (1000 * 60 * 60 * 24l));
 
-            if (user != null) {
-                boolean userIsTwoFactor = user.getProperty(twoFactorUserKey);
-                              
+                    if (daysApart > passwordDays) { // User has not changed password for too long
+                            securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+                            logger.info("The password has not been changed by user: "+emailOrUsername);
+                            RestMethodResult methodResult = new RestMethodResult(401);
+                            methodResult.addHeader("reason", "changed");
+                            return methodResult;
+                    }
+                }
+                    
+                boolean userIsTwoFactor = user.getProperty(twoFactorUserKey);                          
                 // If System and user are two factor authentication
                 isTwoFactor = (userIsTwoFactor==true && twoFactorLevel > 0);
                 
@@ -169,23 +205,64 @@ public class LoginResource extends Resource {
                         else {
                            logger.info("Two factor authentication failed");
                            RestMethodResult methodResult = new RestMethodResult(401);
-                           methodResult.addHeader("twofactor", "true");
+                           methodResult.addHeader("reason", "twofactor");
                            return methodResult;
                         }
                     }
 
                 }
+                    
 
                 logger.info("Login successful: {}", new Object[]{user});
 
                 // make logged in user available to caller
                 securityContext.setCachedUser(user);
-
                 RestMethodResult methodResult = new RestMethodResult(200);
-
                 methodResult.addContent(user);
-
                 return methodResult;
+                
+            } else {
+                if (maximumAttempts > 0) {
+
+                    Result<Principal> results;
+                    try (final Tx tx = app.tx()) {
+                        results = app.nodeQuery(Principal.class).and(StructrApp.key(User.class, "name"), emailOrUsername).getResult();
+                        tx.success();
+                    }
+
+                    if (!results.isEmpty()) {
+                        user = results.get(0);
+                        try (final Tx tx = app.tx()) {
+                            tx.success();
+                        }
+                    } else {
+                        try (final Tx tx = app.tx()) {
+                            results = app.nodeQuery(Principal.class).and(StructrApp.key(User.class, "eMail"), emailOrUsername).getResult();
+                            tx.success();
+                        }
+
+                        if (!results.isEmpty()) {
+                            user = results.get(0);
+                            try (final Tx tx = app.tx()) {
+                                tx.success();
+                            }
+                        }
+                    }
+
+                    if (user != null)
+                    {
+                        int attempts = user.getProperty(passwordAttemptsKey) == null ? 0 : user.getProperty(passwordAttemptsKey);
+                        if (attempts <= maximumAttempts) {
+                            user.setProperty(passwordAttemptsKey, ++attempts);
+                        } else {
+                            //user.setProperty(StructrApp.key(User.class, "blocked"), true);
+                            logger.info("Too many login-attempts for user: "+emailOrUsername);
+                            RestMethodResult methodResult = new RestMethodResult(401);
+                            methodResult.addHeader("reason", "attempts");
+                            return methodResult;
+                        }
+                    }
+                }
             }
 
         }

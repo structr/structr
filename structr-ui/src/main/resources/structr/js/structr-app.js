@@ -119,6 +119,8 @@ function StructrApp(baseUrl, locale) {
 			checking                         : 'Checking...',
 			wrongUsernameOrPassword          : 'Wrong username or password!',
                         wrongTwoFactorCode               : 'Wrong two factor code!',
+                        passwordAttempts                 : 'Too many wrong password attempts!',
+                        passwordNotChanged               : 'Your password has not been changed for too long!',
 			pleaseEnterEMail                 : 'Please enter your e-mail address!',
 			processing                       : 'Processing...',
 			checkYourInbox                   : 'Thanks! Please check your inbox.',
@@ -143,6 +145,8 @@ function StructrApp(baseUrl, locale) {
 			checking                         : 'Prüfe ...',
 			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
                         wrongTwoFactorCode               : 'Falscher Two Factor Code!',
+                        passwordAttempts                 : 'Zu viele falsche Passwort-Eingaben!',
+                        passwordNotChanged               : 'Sie haben Ihr Passwort zu lange nicht geändert!',
 			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
 			processing                       : 'In Bearbeitung ...',
 			checkYourInbox                   : 'Danke! Bitte E-Mail-Eingang prüfen.',
@@ -573,8 +577,19 @@ function StructrApp(baseUrl, locale) {
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
                                 },
-				401: function() {
-                                        var buttonLabel = ajaxRequest.getResponseHeader("twofactor") ? s.labels[s.lang].wrongTwoFactorCode : s.labels[s.lang].wrongUsernameOrPassword;
+				401: function() { //change message on button depending on reason for 401
+                                        var buttonLabel = s.labels[s.lang].wrongUsernameOrPassword;
+                                        if (ajaxRequest.getResponseHeader("reason")=="attempts")
+                                        {
+                                            buttonLabel = s.labels[s.lang].passwordAttempts;
+                                        } else if (ajaxRequest.getResponseHeader("reason")=="twofactor")
+                                        {
+                                            buttonLabel = s.labels[s.lang].wrongTwoFactorCode;
+                                        } else if (ajaxRequest.getResponseHeader("reason")=="changed")
+                                        {
+                                            buttonLabel = s.labels[s.lang].passwordNotChanged;
+                                        }
+                                    
 					app.feedbackAction(msgBox, buttonLabel, 1000, btn, true, function () {
 						btn.text(oldBtnText);
 					});

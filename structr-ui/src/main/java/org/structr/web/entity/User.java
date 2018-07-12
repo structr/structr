@@ -103,6 +103,8 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "twoFactorSecret");
                 user.addViewProperty(PropertyView.Ui, "twoFactorImageUrl");
                 user.addViewProperty(PropertyView.Ui, "twoFactorUser");
+                user.addViewProperty(PropertyView.Ui, "passwordAttempts");
+                user.addViewProperty(PropertyView.Ui, "passwordChangeDate");
 	}}
 
 	String getLocalStorage();
