@@ -293,28 +293,6 @@ img.disabled {
 	cursor: default ! important;
 }
 
-/** Style definitions moved here from the removed jquery-ui CSS */
-.ui-slider{position:relative;text-align:left}.ui-slider .ui-slider-handle{position:absolute;z-index:2;width:1.2em;height:1.2em;cursor:default;-ms-touch-action:none;touch-action:none}.ui-slider .ui-slider-range{position:absolute;z-index:1;font-size:.7em;display:block;border:0;background-position:0 0}.ui-slider.ui-state-disabled .ui-slider-handle,.ui-slider.ui-state-disabled .ui-slider-range{filter:inherit}.ui-slider-horizontal{height:.8em}.ui-slider-horizontal .ui-slider-handle{top:-.3em;margin-left:-.6em}.ui-slider-horizontal .ui-slider-range{top:0;height:100%}.ui-slider-horizontal .ui-slider-range-min{left:0}.ui-slider-horizontal .ui-slider-range-max{right:0}.ui-slider-vertical{width:.8em;height:100px}.ui-slider-vertical .ui-slider-handle{left:-.3em;margin-left:0;margin-bottom:-.6em}.ui-slider-vertical .ui-slider-range{left:0;width:100%}.ui-slider-vertical .ui-slider-range-min{bottom:0}.ui-slider-vertical .ui-slider-range-max{top:0}
-.ui-state-default,
-.ui-widget-content .ui-state-default,
-.ui-widget-header .ui-state-default {
-	border: 1px solid #d3d3d3;
-	background-color: #f6f6f6;
-	font-weight: normal;
-	color: #555555;
-}
-
-.ui-state-hover,
-.ui-widget-content .ui-state-hover,
-.ui-widget-header .ui-state-hover,
-.ui-state-focus,
-.ui-widget-content .ui-state-focus,
-.ui-widget-header .ui-state-focus {
-	border: 1px solid #999999;
-	background-color: #fff;
-	font-weight: normal;
-	color: #212121;
-}
 #pages,
 #dataBinding,
 #localizations,
@@ -1472,14 +1450,54 @@ button.action:hover {
 	color: #333;
 }
 
+/** Override some jquery-ui styles to match new theme */
 .ui-draggable, .ui-sortable {
 	cursor: move;
 }
 
+.ui-widget-header {
+	background: none;
+	border: none;
+	background-color: #fff;
+}
+
+.ui-widget-content {
+	border: 1px solid rgba(0,0,0,.125);
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+	border: 1px solid transparent;
+	background: none;
+	background-color: #f6f6f6;
+	font-weight: 400;
+	color: #555;
+}
+
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight {
+	border: 1px solid #81ce25;
+	background: #81ce25 50% 50% repeat-x;
+	color: #363636;
+}
+
+.ui-corner-all, .ui-corner-bottom, .ui-corner-right, .ui-corner-br {
+	border-bottom-right-radius: 0;
+}
+.ui-corner-all, .ui-corner-bottom, .ui-corner-left, .ui-corner-bl {
+	border-bottom-left-radius: 0;
+}
+.ui-corner-all, .ui-corner-top, .ui-corner-right, .ui-corner-tr {
+	border-top-right-radius: 0;
+}
+.ui-corner-all, .ui-corner-top, .ui-corner-left, .ui-corner-tl {
+	border-top-left-radius: 0;
+}
+
+.ui-slider .ui-slider-handle {
+	border: 1px solid rgba(0,0,0,.125);
+}
+
 .pages-sortable-placeholder {
-    /*background: #c2ed92;*/
-    height: 20px ! important;
-    /*margin: 0 0 0 11px;*/
+	height: 20px ! important;
 }
 
 #offset-tester {
