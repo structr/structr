@@ -21,6 +21,8 @@ package org.structr.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotSame;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -71,20 +73,35 @@ public class FunctionPropertyTest extends StructrRestTest {
 		try (final Tx tx = app.tx()) {
 			TestTen testObj = app.create(TestTen.class, "testObject");
 
-			Object firstState = testObj.getProperty(TestTen.getNameProperty);
-			Object secondState = testObj.getProperty(TestTen.getNameProperty);
+			// Test cache invalidation
+			String firstState = (String)testObj.getProperty(TestTen.getNameProperty);
+			String secondState = (String)testObj.getProperty(TestTen.getNameProperty);
 
-			Assert.equals(firstState, secondState);
+			assertEquals(firstState, secondState);
 
 			testObj.setProperty(TestTen.name, "testObject2");
 
-			secondState = testObj.getProperty(TestTen.getNameProperty);
+			secondState = (String)testObj.getProperty(TestTen.getNameProperty);
 
-			Assert.isTrue(!firstState.equals(secondState));
+			assertNotSame(firstState, secondState);
 
-			firstState = testObj.getProperty(TestTen.getNameProperty);
+			firstState = (String)testObj.getProperty(TestTen.getNameProperty);
 
-			Assert.equals(secondState, firstState);
+			assertEquals(firstState, secondState);
+
+			// Test caching for random numbers
+			Object firstNum  = testObj.getProperty(TestTen.getRandomNumProp);
+			Object secondNum = testObj.getProperty(TestTen.getRandomNumProp);
+
+			assertEquals(firstNum, secondNum);
+
+			// Invalidate cache to test random caching
+			testObj.setProperty(TestTen.name, "testObject3");
+
+			firstNum  = testObj.getProperty(TestTen.getRandomNumProp);
+			secondNum = testObj.getProperty(TestTen.getRandomNumProp);
+
+			assertEquals(firstNum, secondNum);
 
 		} catch (FrameworkException ex) {
 			fail("Exception during test: " + ex.getMessage());

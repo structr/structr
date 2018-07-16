@@ -159,6 +159,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 */
 	public String writeFunction();
 
+	/**
+	 * Returns the cachingEnabled value for this property.
+	 *
+	 * @return cachingEnabled
+	 */
+	public boolean cachingEnabled();
+
 
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
@@ -339,6 +346,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	public PropertyKey<T> dynamic();
 	public PropertyKey<T> readFunction(final String readFunction);
 	public PropertyKey<T> writeFunction(final String writeFunction);
+	public PropertyKey<T> cachingEnabled(final boolean enabled);
 	public PropertyKey<T> transformators(final String... transformators);
 
 	// ----- CMIS support -----

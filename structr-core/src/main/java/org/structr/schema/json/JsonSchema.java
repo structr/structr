@@ -107,6 +107,7 @@ public interface JsonSchema {
 	public static final String KEY_ACL_DELETE_MASK         = "aclDeleteMask";
 	public static final String KEY_ACL_ACCESS_CONTROL_MASK = "aclAccessControlMask";
 	public static final String KEY_ACL_HIDDEN_PROPERTIES   = "aclHiddenProperties";
+	public static final String KEY_IS_CACHING_ENABLED      = "cachingEnabled";
 
 
 	public static final String KEY_MINIMUM                 = "minimum";

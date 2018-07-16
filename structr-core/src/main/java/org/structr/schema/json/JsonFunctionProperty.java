@@ -30,6 +30,9 @@ public interface JsonFunctionProperty extends JsonDynamicProperty {
 	public JsonFunctionProperty setWriteFunction(final String writeFunction);
 	public String getWriteFunction();
 
+	public JsonFunctionProperty setIsCachingEnabled(final boolean enabled);
+	public Boolean getIsCachingEnabled();
+
 	@Override
 	public JsonFunctionProperty setContentType(final String contentType);
 

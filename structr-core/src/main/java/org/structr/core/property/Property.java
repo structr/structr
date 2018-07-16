@@ -368,6 +368,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> cachingEnabled(final boolean enabled) {
+		this.cachingEnabled = enabled;
+		return this;
+	}
+
+	@Override
 	public String typeHint() {
 		return typeHint;
 	}
@@ -470,12 +476,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return dynamic;
 	}
 
+	@Override
 	public boolean cachingEnabled() { return cachingEnabled; }
-
-	public void cachingEnabled(final boolean enable) {
-		this.cachingEnabled = cachingEnabled;
-	}
-
 
 	/**
 	 * Default implementation of the existing index() method.
