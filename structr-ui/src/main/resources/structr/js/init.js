@@ -1018,7 +1018,6 @@ var Structr = {
 	},
 	closeSlideOuts: function(slideouts, activeTabKey) {
 		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
-		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
 
 		var wasOpen = false;
 		slideouts.forEach(function(slideout) {
@@ -1026,6 +1025,7 @@ var Structr = {
 			var l = slideout.position().left;
 			if (Math.abs(l - $(window).width()) >= 3) {
 				wasOpen = true;
+				var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
 				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active');
 
