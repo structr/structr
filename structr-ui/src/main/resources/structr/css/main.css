@@ -443,6 +443,11 @@ img.disabled {
 	top: 271px;
 }
 
+#componentsArea .node {
+	width: calc(100% - 30px);
+}
+
+
 #elementsTab {
 	left: -74px;
 	width: 108px;
