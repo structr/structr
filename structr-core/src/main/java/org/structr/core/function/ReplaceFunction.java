@@ -46,13 +46,15 @@ public class ReplaceFunction extends Function<Object, Object> {
 			final String template = sources[0].toString();
 			GraphObject node = null;
 
-			if (sources[1] instanceof GraphObject) {
-				node = (GraphObject)sources[1];
+			Object convertedInputNode = Function.toGraphObject(sources[1], 3);
+
+			if (convertedInputNode instanceof GraphObject) {
+				node = (GraphObject) convertedInputNode;
 			}
 
-			if (sources[1] instanceof List) {
+			if (convertedInputNode instanceof List) {
 
-				final List list = (List)sources[1];
+				final List list = (List)convertedInputNode;
 				if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
 					node = (GraphObject)list.get(0);

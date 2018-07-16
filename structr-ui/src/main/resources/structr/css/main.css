@@ -1450,14 +1450,54 @@ button.action:hover {
 	color: #333;
 }
 
+/** Override some jquery-ui styles to match new theme */
 .ui-draggable, .ui-sortable {
 	cursor: move;
 }
 
+.ui-widget-header {
+	background: none;
+	border: none;
+	background-color: #fff;
+}
+
+.ui-widget-content {
+	border: 1px solid rgba(0,0,0,.125);
+}
+
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default {
+	border: 1px solid transparent;
+	background: none;
+	background-color: #f6f6f6;
+	font-weight: 400;
+	color: #555;
+}
+
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight {
+	border: 1px solid #81ce25;
+	background: #81ce25 50% 50% repeat-x;
+	color: #363636;
+}
+
+.ui-corner-all, .ui-corner-bottom, .ui-corner-right, .ui-corner-br {
+	border-bottom-right-radius: 0;
+}
+.ui-corner-all, .ui-corner-bottom, .ui-corner-left, .ui-corner-bl {
+	border-bottom-left-radius: 0;
+}
+.ui-corner-all, .ui-corner-top, .ui-corner-right, .ui-corner-tr {
+	border-top-right-radius: 0;
+}
+.ui-corner-all, .ui-corner-top, .ui-corner-left, .ui-corner-tl {
+	border-top-left-radius: 0;
+}
+
+.ui-slider .ui-slider-handle {
+	border: 1px solid rgba(0,0,0,.125);
+}
+
 .pages-sortable-placeholder {
-    /*background: #c2ed92;*/
-    height: 20px ! important;
-    /*margin: 0 0 0 11px;*/
+	height: 20px ! important;
 }
 
 #offset-tester {

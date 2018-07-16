@@ -1072,7 +1072,9 @@ var _Elements = {
 					}
 				});
 
-			} else if ( !isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template')) ) {
+			}
+
+			if ( !isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template')) ) {
 				elements.push({
 					name: 'Clone selected element here',
 					clickHandler: function() {

@@ -62,7 +62,7 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 			} else {
 
-				final String toLocalize = (String)sources[0];
+				final String toLocalize = sources[0].toString();
 
 				return getLocalization(ctx, caller, toLocalize, domain);
 
