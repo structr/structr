@@ -45,6 +45,7 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private boolean indexed               = true;
 	private boolean readOnly              = false;
 	private boolean isPartOfBuiltInSchema = false;
+	private boolean isCachingEnabled	  = false;
 	private String readFunction           = null;
 	private String writeFunction          = null;
 	private String[] transformators       = null;
@@ -223,6 +224,11 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	@Override
 	public boolean isPartOfBuiltInSchema() {
 		return isPartOfBuiltInSchema;
+	}
+
+	@Override
+	public boolean isCachingEnabled() {
+		return isCachingEnabled;
 	}
 
 	public static String substringBetween(final String source, final String prefix, final String suffix) {

@@ -42,6 +42,7 @@ public interface PropertyDefinition {
 	boolean isIndexed();
 	boolean isReadOnly();
 	boolean isPartOfBuiltInSchema();
+	boolean isCachingEnabled();
 	String getDefaultValue();
 	String getContentType();
 	String getReadFunction();

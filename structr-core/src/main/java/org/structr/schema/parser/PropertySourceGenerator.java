@@ -155,6 +155,7 @@ public abstract class PropertySourceGenerator {
 				new NodeAttribute<>(SchemaProperty.indexed,               source.isIndexed()),
 				new NodeAttribute<>(SchemaProperty.notNull,               source.isNotNull()),
 				new NodeAttribute<>(SchemaProperty.isPartOfBuiltInSchema, source.isPartOfBuiltInSchema()),
+				new NodeAttribute<>(SchemaProperty.isCachingEnabled,	  source.isCachingEnabled()),
 				new NodeAttribute<>(SchemaProperty.readFunction,          source.getReadFunction()),
 				new NodeAttribute<>(SchemaProperty.writeFunction,         source.getWriteFunction()),
 				new NodeAttribute<>(SchemaProperty.transformers,          source.getTransformators()),
@@ -215,6 +216,10 @@ public abstract class PropertySourceGenerator {
 
 		if (source.isNotNull()) {
 			buf.append(".notNull()");
+		}
+
+		if (source.isCachingEnabled()) {
+			buf.append(".cachingEnabled(true)");
 		}
 
 		if (source.isIndexed()) {

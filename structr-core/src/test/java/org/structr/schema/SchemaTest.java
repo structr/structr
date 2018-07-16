@@ -804,7 +804,6 @@ public class SchemaTest extends StructrTest {
 
 		//System.out.println("##################### replaced");
 		//System.out.println(replaced);
-
 		assertEquals("Invalid schema replacement result", source, replaced);
 	}
 }
