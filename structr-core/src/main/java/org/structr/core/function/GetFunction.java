@@ -21,6 +21,7 @@ package org.structr.core.function;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -46,14 +47,15 @@ public class GetFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final SecurityContext securityContext = ctx.getSecurityContext();
+		final SecurityContext securityContext    = ctx.getSecurityContext();
 
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			final String keyName = sources[1].toString();
-			GraphObject dataObject = null;
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final String keyName                           = sources[1].toString();
+			GraphObject dataObject                         = null;
 
 			// handle GraphObject
 			if (sources[0] instanceof GraphObject) {
@@ -103,7 +105,9 @@ public class GetFunction extends Function<Object, Object> {
 
 			if (dataObject != null) {
 
-				final PropertyKey key = StructrApp.key(dataObject.getClass(), keyName);
+				final Class type = dataObject.getClass();
+
+				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, keyName, useGenericPropertyForUnknownKeys);
 				if (key != null) {
 
 					final PropertyConverter inputConverter = key.inputConverter(securityContext);
@@ -114,6 +118,11 @@ public class GetFunction extends Function<Object, Object> {
 					}
 
 					return dataObject.getProperty(key);
+
+				} else {
+
+					// key does not exist and generic property is not desired => log warning
+					logger.warn("Unknown property {}.{}, value will not be returned.", type.getSimpleName(), keyName);
 				}
 
 				return "";
