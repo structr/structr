@@ -19,6 +19,15 @@
 package org.structr.flow;
 
 import com.google.gson.Gson;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -33,15 +42,6 @@ import org.structr.flow.impl.*;
 import org.structr.flow.impl.rels.*;
 import org.structr.module.api.DeployableEntity;
 import org.structr.schema.SchemaHelper;
-
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public abstract class FlowDeploymentHandler {
 
@@ -104,43 +104,44 @@ public abstract class FlowDeploymentHandler {
 
 		final App app                                = StructrApp.getInstance();
 		final Path flowEngineFile					 = target.resolve("flow-engine.json");
-		final List<Map<String, Object>> flowElements = new LinkedList<>();
-
+		final List<Map<String, ?>> flowElements = new LinkedList<>();
 
 
 		try (final Tx tx = app.tx()) {
 
 			for (Class c : classesToExport) {
 
-				for (final Object current : app.nodeQuery(c).getAsList()) {
+				for (final Object current : app.nodeQuery(c).sort(StructrApp.key(NodeInterface.class, "id")).getAsList()) {
 
 					if (current instanceof DeployableEntity && ((NodeInterface)current).getType().equals(c.getSimpleName()) ) {
 
 						flowElements.add( ((DeployableEntity)current).exportData() );
-
 					}
-
 				}
-
 			}
+
+			final List<Map<String, String>> flowRelationships = new LinkedList<>();
 
 			for (Class c : relsToExport) {
 
 				for (final Object current : app.relationshipQuery(c).getAsList()) {
 
-					Map<String, Object> attrs = new HashMap<>();
+					Map<String, String> attrs = new HashMap<>();
 					attrs.put("type", c.getSimpleName());
 					attrs.put("relType", ((RelationshipInterface)current).getRelType().name());
 					attrs.put("sourceId", ((RelationshipInterface)current).getSourceNodeId());
 					attrs.put("targetId", ((RelationshipInterface)current).getTargetNodeId());
-					flowElements.add(attrs);
-
+					flowRelationships.add(attrs);
 				}
-
 			}
+
+			flowRelationships.sort(new FlowRelationshipComparator());
+
+			flowElements.addAll(flowRelationships);
 
 			tx.success();
 		}
+
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(flowEngineFile.toFile()))) {
 
@@ -149,11 +150,7 @@ public abstract class FlowDeploymentHandler {
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
 		}
-
 	}
-
-
-
 
 
 	public static void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
@@ -181,10 +178,7 @@ public abstract class FlowDeploymentHandler {
 							if (toDelete instanceof NodeInterface) {
 								app.delete((NodeInterface) toDelete);
 							}
-
 						}
-
-
 					}
 
 					for (Class c : relsToExport) {
@@ -194,9 +188,7 @@ public abstract class FlowDeploymentHandler {
 							if (toDelete instanceof RelationshipInterface) {
 								app.delete((RelationshipInterface) toDelete);
 							}
-
 						}
-
 					}
 
 					for (final Map<String, Object> entry : flowElements) {
@@ -221,20 +213,27 @@ public abstract class FlowDeploymentHandler {
 									app.create(sourceNode, targetNode, SchemaHelper.getEntityClassForRawType((String)entry.get("type")));
 
 								}
-
 							}
-
 						}
 					}
 
 					tx.success();
-
 				}
 
 			} catch (IOException ioex) {
 				logger.warn("", ioex);
 			}
 		}
+	}
 
+	private static class FlowRelationshipComparator implements Comparator<Map<String, String>> {
+
+		@Override
+		public int compare(Map<String, String> o1, Map<String, String> o2) {
+			String k1 = o1.get("sourceId").concat(o1.get("targetId"));
+			String k2 = o2.get("sourceId").concat(o2.get("targetId"));
+
+			return k1.compareTo(k2);
+		}
 	}
 }
