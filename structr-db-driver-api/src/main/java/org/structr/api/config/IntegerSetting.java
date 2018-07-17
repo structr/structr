@@ -80,7 +80,12 @@ public class IntegerSetting extends Setting<Integer> {
 
 		final Tag group = parent.block("div").css("form-group");
 
-		group.block("label").text(getKey());
+		final Tag label = group.block("label").text(getKey());
+
+		if (getComment() != null) {
+			label.attr(new Attr("class", "has-comment"));
+			label.attr(new Attr("data-comment", getComment()));
+		}
 
 		final Tag input     = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final Integer value = getValue();

@@ -317,7 +317,7 @@ public class Settings {
 	public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
 	public static final Setting<Integer> TwoFactorLevel                 = new IntegerSetting(miscGroup, "Two Factor Options", "TwoFactor.level",                    1, "0 = off, 1 = optional, 2 = forced");
-	public static final Setting<String> TwoFactorId                     = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.id",                       "Structr");
+	public static final Setting<String> TwoFactorId                     = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.id",                       "Structr", "Must be URL-compliant in order to scan the created QR code");
 	public static final Setting<String> TwoFactorUrl                    = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.url",                      "/twofactor");
 	public static final Setting<String> TwoFactorForceRegistrationUrl   = new StringSetting(miscGroup,  "Two Factor Options", "TwoFactor.forceRegistrationUrl",     "/scanqrcode");
 
