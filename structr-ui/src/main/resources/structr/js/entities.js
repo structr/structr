@@ -193,24 +193,83 @@ var _Entities = {
 	},
 	queryDialog: function(entity, el) {
 
-		el.append('<table class="props"></table>');
-		var t = $('.props', el);
+//		el.append('<table class="props"></table>');
+//		var t = $('.props', el);
 
-		t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
-		t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
-		t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
+//		t.append('<tr><td class="key">Query auto-limit</td><td class="value" id="queryAutoLimit"></td></tr>');
+//		t.append('<tr><td class="key">Hide in index mode</td><td  class="value" id="hideIndexMode"></td></tr>');
+//		t.append('<tr><td class="key">Hide in details mode</td><td  class="value" id="hideDetailsMode"></td></tr>');
 
-		_Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
-		_Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
-		_Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
+//		_Entities.appendBooleanSwitch($('#queryAutoLimit', t), entity, 'renderDetails', ['Query is limited', 'Query is not limited'], 'Limit result to the object with the ID the URL ends with.');
+//		_Entities.appendBooleanSwitch($('#hideIndexMode', t), entity, 'hideOnIndex', ['Hidden in index mode', 'Visible in index mode'], 'if URL does not end with an ID');
+//		_Entities.appendBooleanSwitch($('#hideDetailsMode', t), entity, 'hideOnDetail', ['Hidden in details mode', 'Visible in details mode'], 'if URL ends with an ID.');
 
-		el.append('<div id="data-tabs" class="data-tabs"><ul><li id="tab-rest">REST Query</li><li id="tab-cypher">Cypher Query</li><li id="tab-xpath">XPath Query</li><li id="tab-function">Function Query</li></ul>'
-			+ '<div id="content-tab-rest"></div><div id="content-tab-cypher"></div><div id="content-tab-xpath"></div><div id="content-tab-function"></div></div>');
+		_Entities.repeaterConfig(entity, el);
 
-		_Entities.appendTextarea($('#content-tab-rest'), entity, 'restQuery', 'REST Query', '');
-		_Entities.appendTextarea($('#content-tab-cypher'), entity, 'cypherQuery', 'Cypher Query', '');
-		_Entities.appendTextarea($('#content-tab-xpath'), entity, 'xpathQuery', 'XPath Query', '');
-		_Entities.appendTextarea($('#content-tab-function'), entity, 'functionQuery', 'Function Query', '');
+	},
+	repeaterConfig: function(entity, el) {
+
+		var queryTypes = [
+			{ title: 'REST Query',     propertyName: 'restQuery' },
+			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
+			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
+			{ title: 'Function Query', propertyName: 'functionQuery' }
+		];
+
+		var queryTypeButtonsContainer = $('<div class="query-type-buttons"></div>');
+		el.append('<h3>Repeater Configuration</h3>').append(queryTypeButtonsContainer);
+
+		var queryHeading = $('<h4 class="query-type-heading"></h4>').appendTo(el);
+		var textArea = $('<textarea class="query-text"></textarea>').appendTo(el);
+
+		queryTypes.forEach(function(queryType) {
+
+			var btn = $('<button>' + queryType.title + '</button>');
+			btn.addClass(queryType.propertyName);
+			queryTypeButtonsContainer.append(btn);
+
+			if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
+				btn.addClass('active');
+				textArea.text(textArea.text() + entity[queryType.propertyName]);
+				queryHeading.text(btn.text());
+			}
+		});
+
+		var allButtons = $('.query-type-buttons button');
+		allButtons.on('click', function () {
+			allButtons.removeClass('active');
+			var btn = $(this);
+			btn.addClass('active');
+			queryHeading.text(btn.text());
+		});
+
+		if ($('button.active', queryTypeButtonsContainer).length === 0) {
+			$('.query-type-buttons button:first', el).click();
+		}
+
+		var saveBtn = $('<button class="action">Save</button>');
+		el.append(saveBtn);
+
+		saveBtn.on('click', function() {
+
+			if ($('button.active', queryTypeButtonsContainer).length > 1) {
+				return new MessageBuilder().error('Please select only one query type!').show();
+			}
+
+			var data = {};
+			queryTypes.forEach(function (queryType) {
+				var val = null;
+				if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
+					val = textArea.val();
+				}
+				data[queryType.propertyName] = val;
+			});
+
+			Command.setProperties(entity.id, data, function(obj) {
+				blinkGreen(saveBtn);
+				_Pages.reloadPreviews();
+			});
+		});
 
 		_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
 			'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
@@ -466,7 +525,7 @@ var _Entities = {
 	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback) {
 
 		var ul = tabsEl.children('ul');
-		ul.append('<li id="tab-' + name + '">' + label + '</li>');
+		ul.append('<li id="tab-' + name + '"><div class="fill-pixel"></div>' + label + '</li>');
 
 		var tab = $('#tab-' + name + '');
 		if (active) {
@@ -785,7 +844,7 @@ var _Entities = {
 
 						if (key === 'name') {
 							var entity = StructrModel.objects[id];
-							if (entity.type !== 'Template' && entity.type !== 'Content') {
+							if (!_Entites.isContentElement(entity)) {
 								entity.name = entity.tag ? entity.tag : '[' + entity.type + ']';
 							}
 							StructrModel.refresh(id);
@@ -828,10 +887,16 @@ var _Entities = {
 
 			tabView.append('<button class="show-all">Show all attributes</button>');
 			$('.show-all', tabView).on('click', function() {
-				$('tr.hidden').toggle();
+				$('tr.hidden').toggle(0, function() {
+					$('tr:visible:odd').css({'background-color': '#f6f6f6'});
+					$('tr:visible:even').css({'background-color': '#fff'});
+				});
 				$(this).remove();
 			});
 		}
+
+		$('tr:visible:odd').css({'background-color': '#f6f6f6'});
+		$('tr:visible:even').css({'background-color': '#fff'});
 
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
@@ -1253,26 +1318,11 @@ var _Entities = {
 			});
 		});
 	},
-	appendTextarea: function(el, entity, key, label, desc) {
-		if (!el || !entity) {
-			return false;
-		}
-		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><textarea class="query-text ' + key + '_">' + (entity[key] ? entity[key] : '') + '</textarea></div>');
-		el.append('<div><button class="apply_' + key + '">Save</button></div>');
-		var btn = $('.apply_' + key, el);
-		btn.on('click', function() {
-			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
-				_Logger.log(_LogType.ENTITIES, key + ' successfully updated!', obj[key]);
-				blinkGreen(btn);
-				_Pages.reloadPreviews();
-			});
-		});
-	},
 	appendInput: function(el, entity, key, label, desc) {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
+		el.append('<div><h3>' + label + '</h3><p>' + desc + '</p><div class="input-and-button"><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="action save_' + key + '">Save</button></div></div>');
 		var btn = $('.save_' + key, el);
 		btn.on('click', function() {
 			Command.setProperty(entity.id, key, $('.' + key + '_', el).val(), false, function(obj) {
@@ -1855,6 +1905,9 @@ var _Entities = {
 				}
 			}
 		}
+	},
+	isContentElement: function (entity) {
+		return (entity.type === 'Template' || entity.type === 'Content');
 	}
 };
 

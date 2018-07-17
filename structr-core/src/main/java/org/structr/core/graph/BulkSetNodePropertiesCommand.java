@@ -92,7 +92,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					// Treat only "our" nodes
 					if (node.getProperty(GraphObject.id) != null) {
@@ -134,10 +134,10 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 								}
 							}
-
 						}
-
 					}
+
+					return true;
 				}
 
 				@Override

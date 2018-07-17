@@ -589,7 +589,7 @@ public class GeoTest {
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
-		Settings.Services.setValue("NodeService HttpService SchemaService");
+		Settings.Services.setValue("NodeService SchemaService HttpService");
 		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 
 		// example for new configuration setup

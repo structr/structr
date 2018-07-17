@@ -1377,6 +1377,309 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 	}
 
+	@Test
+	public void testPropertiesForCorrectInputType() {
+
+		try (final Tx tx = app.tx()) {
+
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+
+			project.addBooleanProperty("testBoolean").setIndexed(true);
+			project.addLongProperty("testLong").setIndexed(true);
+			project.addNumberProperty("testDouble").setIndexed(true);
+			project.addIntegerProperty("testInt").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+
+			final PropertyKey testBoolean = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "testBoolean");
+			final PropertyKey testDouble  = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "testDouble");
+			final PropertyKey testLong    = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "testLong");
+			final PropertyKey testInt     = StructrApp.getConfiguration().getPropertyKeyForJSONName(projectType, "testInt");
+
+			app.create(projectType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(testDouble,  252.52),
+				new NodeAttribute<>(testLong,    234532L),
+				new NodeAttribute<>(testInt,     4563332)
+			);
+
+			app.create(projectType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(testDouble,  124.52),
+				new NodeAttribute<>(testLong,    563L),
+				new NodeAttribute<>(testInt,     2345)
+			);
+
+			app.create(projectType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(testDouble,  323.22),
+				new NodeAttribute<>(testLong,    22L),
+				new NodeAttribute<>(testInt,     452)
+			);
+
+			app.create(projectType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(testDouble,  334.32),
+				new NodeAttribute<>(testLong,    5L),
+				new NodeAttribute<>(testInt,     235)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(testBoolean: { _equals: true}) { testBoolean, testDouble, testLong, testInt } }");
+			assertMapPathValueIs(result, "Project.#",           2);
+			assertMapPathValueIs(result, "Project.0.testBoolean", true);
+			assertMapPathValueIs(result, "Project.0.testDouble",  252.52);
+			assertMapPathValueIs(result, "Project.0.testLong",    234532.0);
+			assertMapPathValueIs(result, "Project.0.testInt",     4563332.0);
+			assertMapPathValueIs(result, "Project.1.testBoolean", true);
+			assertMapPathValueIs(result, "Project.1.testDouble",  323.22);
+			assertMapPathValueIs(result, "Project.1.testLong",    22.0);
+			assertMapPathValueIs(result, "Project.1.testInt",     452.0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(testDouble: { _equals: 334.32}) { testBoolean, testDouble, testLong, testInt } }");
+			assertMapPathValueIs(result, "Project.#",           1);
+			assertMapPathValueIs(result, "Project.0.testBoolean", false);
+			assertMapPathValueIs(result, "Project.0.testDouble",  334.32);
+			assertMapPathValueIs(result, "Project.0.testLong",    5.0);
+			assertMapPathValueIs(result, "Project.0.testInt",     235.0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(testLong: { _equals: 22}) { testBoolean, testDouble, testLong, testInt } }");
+			assertMapPathValueIs(result, "Project.#",           1);
+			assertMapPathValueIs(result, "Project.0.testBoolean", true);
+			assertMapPathValueIs(result, "Project.0.testDouble",  323.22);
+			assertMapPathValueIs(result, "Project.0.testLong",    22.0);
+			assertMapPathValueIs(result, "Project.0.testInt",     452.0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(testInt: { _equals: 2345}) { testBoolean, testDouble, testLong, testInt } }");
+			assertMapPathValueIs(result, "Project.#",           1);
+			assertMapPathValueIs(result, "Project.0.testBoolean", false);
+			assertMapPathValueIs(result, "Project.0.testDouble",  124.52);
+			assertMapPathValueIs(result, "Project.0.testLong",    563.0);
+			assertMapPathValueIs(result, "Project.0.testInt",     2345.0);
+		}
+
+	}
+
+	@Test
+	public void testRemotePropertiesForCorrectInputType() {
+
+		try (final Tx tx = app.tx()) {
+
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToMany, "project", "tasks");
+
+			task.addBooleanProperty("testBoolean").setIndexed(true);
+			task.addLongProperty("testLong").setIndexed(true);
+			task.addNumberProperty("testDouble").setIndexed(true);
+			task.addIntegerProperty("testInt").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+			final PropertyKey projectKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "project");
+			final PropertyKey testBoolean = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "testBoolean");
+			final PropertyKey testDouble  = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "testDouble");
+			final PropertyKey testLong    = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "testLong");
+			final PropertyKey testInt     = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "testInt");
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(testDouble,  252.52),
+				new NodeAttribute<>(testLong,    234532L),
+				new NodeAttribute<>(testInt,     4563332),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project1"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(testDouble,  124.52),
+				new NodeAttribute<>(testLong,    563L),
+				new NodeAttribute<>(testInt,     2345),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project2"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(testDouble,  323.22),
+				new NodeAttribute<>(testLong,    22L),
+				new NodeAttribute<>(testInt,     452),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project3"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(testDouble,  334.32),
+				new NodeAttribute<>(testLong,    5L),
+				new NodeAttribute<>(testInt,     235),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project4"))
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testBoolean: { _equals: true }}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			assertMapPathValueIs(result, "Project.#",                     2);
+			assertMapPathValueIs(result, "Project.0.name",                "Project1");
+			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", true);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testDouble",  252.52);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testLong",    234532.0);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testInt",     4563332.0);
+			assertMapPathValueIs(result, "Project.1.name",                "Project3");
+			assertMapPathValueIs(result, "Project.1.tasks.0.testBoolean", true);
+			assertMapPathValueIs(result, "Project.1.tasks.0.testDouble",  323.22);
+			assertMapPathValueIs(result, "Project.1.tasks.0.testLong",    22.0);
+			assertMapPathValueIs(result, "Project.1.tasks.0.testInt",     452.0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testDouble: { _equals: 334.32}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			assertMapPathValueIs(result, "Project.#",           1);
+			assertMapPathValueIs(result, "Project.0.name",                "Project4");
+			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", false);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testDouble",  334.32);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testLong",    5.0);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testInt",     235.0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testLong: { _equals: 22}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			assertMapPathValueIs(result, "Project.#",           1);
+			assertMapPathValueIs(result, "Project.0.name",                "Project3");
+			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", true);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testDouble",  323.22);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testLong",    22.0);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testInt",     452.0);
+		}
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(tasks: { testInt: { _equals: 2345}}) { name, tasks { testBoolean, testDouble, testLong, testInt } } }");
+			assertMapPathValueIs(result, "Project.#",                     1);
+			assertMapPathValueIs(result, "Project.0.name",                "Project2");
+			assertMapPathValueIs(result, "Project.0.tasks.0.testBoolean", false);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testDouble",  124.52);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testLong",    563.0);
+			assertMapPathValueIs(result, "Project.0.tasks.0.testInt",     2345.0);
+		}
+
+	}
+
+	@Test
+	public void testRemotePropertiesWithMultipleInstances() {
+
+		try (final Tx tx = app.tx()) {
+
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS", Relation.Cardinality.OneToOne, "project", "task");
+
+			task.addBooleanProperty("testBoolean").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Class projectType = StructrApp.getConfiguration().getNodeEntityClass("Project");
+			final Class taskType    = StructrApp.getConfiguration().getNodeEntityClass("Task");
+
+			final PropertyKey projectKey  = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "project");
+			final PropertyKey testBoolean = StructrApp.getConfiguration().getPropertyKeyForJSONName(taskType, "testBoolean");
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project1"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project2"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, true),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project3"))
+			);
+
+			app.create(taskType,
+				new NodeAttribute<>(testBoolean, false),
+				new NodeAttribute<>(projectKey,  app.create(projectType, "Project4"))
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Project(task: { testBoolean: { _equals: true }}) { name, task { testBoolean } } }");
+			assertMapPathValueIs(result, "Project.#",                     2);
+			assertMapPathValueIs(result, "Project.0.name",             "Project1");
+			assertMapPathValueIs(result, "Project.0.task.testBoolean", true);
+			assertMapPathValueIs(result, "Project.1.name",             "Project3");
+			assertMapPathValueIs(result, "Project.1.task.testBoolean", true);
+		}
+	}
+
 	// ----- private methods -----
 	private Map<String, Object> fetchGraphQL(final String query) {
 

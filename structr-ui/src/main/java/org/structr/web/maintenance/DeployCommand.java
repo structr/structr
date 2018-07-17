@@ -113,6 +113,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
 	private static final Map<String, String> deferredPageLinks = new LinkedHashMap<>();
+	private static final Set<String> missingPrincipals         = new HashSet<>();
 
 	private Integer stepCounter                            = 0;
 	private final static String DEPLOYMENT_IMPORT_STATUS   = "DEPLOYMENT_IMPORT_STATUS";
@@ -193,6 +194,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	// ----- private methods -----
 	private void doImport(final Map<String, Object> attributes) throws FrameworkException {
+
+		missingPrincipals.clear();
 
 		final long startTime = System.currentTimeMillis();
 		customHeaders.put("start", new Date(startTime).toString());
@@ -538,6 +541,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				publishDeploymentWarningMessage("Exception caught while importing post-deploy.conf", t.toString());
 			}
 		}
+
+		if (!missingPrincipals.isEmpty()) {
+
+			final String title = "Missing Principal(s)";
+			final String text = "The following user(s) and/or group(s) are missing for grants or node ownership during deployment.<br>"
+					+ "Because of these missing grants/ownerships, the functionality is not identical to the export you just imported!<br><br>"
+					+ String.join(", ",  missingPrincipals)
+					+ "<br><br>Consider adding these principals to your <a href=\"https://support.structr.com/article/428#pre-deployconf-javascript\">pre-deploy.conf</a> and re-importing.";
+
+			info("\n###############################################################################\n"
+					+ "\tWarning: " + title + "!\n"
+					+ "\tThe following user(s) and/or group(s) are missing for grants or node ownership during deployment.\n"
+					+ "\tBecause of these missing grants/ownerships, the functionality is not identical to the export you just imported!\n\n"
+					+ "\t" + String.join(", ",  missingPrincipals)
+					+ "\n\n\tConsider adding these principals to your 'pre-deploy.conf' (see https://support.structr.com/article/428#pre-deployconf-javascript) and re-importing.\n"
+					+ "###############################################################################"
+			);
+			publishDeploymentWarningMessage(title, text);
+		}
+
 
 		// restore saved value
 		Settings.ChangelogEnabled.setValue(changeLogEnabled);
@@ -1446,5 +1469,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
+	}
+
+	public static void addMissingPrincipal (final String principalName) {
+		missingPrincipals.add(principalName);
 	}
 }

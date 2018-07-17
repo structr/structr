@@ -122,6 +122,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 			} else {
 
 				logger.warn("Unknown owner {}, ignoring.", parameters);
+				DeployCommand.addMissingPrincipal(parameters);
 			}
 		});
 
@@ -161,6 +162,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 				} else {
 
 					logger.warn("Unknown grantee {}, ignoring.", parts[0]);
+					DeployCommand.addMissingPrincipal(parts[0]);
 				}
 
 			} else {

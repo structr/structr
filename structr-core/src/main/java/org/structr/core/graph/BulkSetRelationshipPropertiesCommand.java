@@ -71,7 +71,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipProperties", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					// Treat only "our" nodes
 					if (rel.getProperty(AbstractRelationship.id) != null) {
@@ -85,8 +85,8 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 							if (propertyKey != null) {
 
 								try {
-									rel.setProperty(propertyKey, val);
 
+									rel.setProperty(propertyKey, val);
 
 								} catch (FrameworkException fex) {
 
@@ -95,6 +95,8 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 							}
 						}
 					}
+
+					return true;
 				}
 
 				@Override

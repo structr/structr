@@ -164,7 +164,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		bulkGraphOperation(SecurityContext.getSuperUserInstance(), nodeIterator, 100000, "Analyzing nodes", new BulkGraphOperation<Node>() {
 
 			@Override
-			public void handleGraphObject(final SecurityContext securityContext, final Node node) throws FrameworkException {
+			public boolean handleGraphObject(final SecurityContext securityContext, final Node node) throws FrameworkException {
 
 				final NodeInfo nodeInfo = new NodeInfo(node);
 
@@ -173,6 +173,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 				// add node ID to our new test datastructure
 				nodeIdMap.add(nodeInfo, node.getId());
+
+				return true;
 			}
 		});
 
@@ -255,12 +257,14 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 			bulkGraphOperation(SecurityContext.getSuperUserInstance(), info.getNodeIds().iterator(), 10000, "Setting type and ID", new BulkGraphOperation<Long>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, Long nodeId) throws FrameworkException {
+				public boolean handleGraphObject(SecurityContext securityContext, Long nodeId) throws FrameworkException {
 
 					final Node node = graphDb.getNodeById(nodeId);
 
 					node.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
 					node.setProperty(GraphObject.type.dbName(), type);
+
+					return true;
 				}
 			});
 		}
@@ -281,7 +285,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		bulkGraphOperation(SecurityContext.getSuperUserInstance(), relIterator, 10000, "Analyzing relationships", new BulkGraphOperation<Relationship>() {
 
 			@Override
-			public void handleGraphObject(SecurityContext securityContext, Relationship rel) throws FrameworkException {
+			public boolean handleGraphObject(SecurityContext securityContext, Relationship rel) throws FrameworkException {
 
 				final Node startNode          = rel.getStartNode();
 				final Node endNode            = rel.getEndNode();
@@ -308,6 +312,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 					// create ID on imported relationship
 					rel.setProperty(GraphObject.id.dbName(), NodeServiceCommand.getNextUuid());
 				}
+
+				return true;
 			}
 		});
 
@@ -352,7 +358,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedTypeInfos.iterator(), 100000, "Creating schema nodes", new BulkGraphOperation<TypeInfo>() {
 
 			@Override
-			public void handleGraphObject(SecurityContext securityContext, TypeInfo typeInfo) throws FrameworkException {
+			public boolean handleGraphObject(SecurityContext securityContext, TypeInfo typeInfo) throws FrameworkException {
 
 				final String type = typeInfo.getPrimaryType();
 				if (!"ReferenceNode".equals(type)) {
@@ -409,6 +415,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 						schemaNodes.put(type, app.create(SchemaNode.class, propertyMap));
 					}
 				}
+
+				return true;
 			}
 		});
 
@@ -418,7 +426,7 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 		bulkGraphOperation(SecurityContext.getSuperUserInstance(), reducedRelationshipInfos.iterator(), 100000, "Creating schema relationships", new BulkGraphOperation<RelationshipInfo>() {
 
 			@Override
-			public void handleGraphObject(SecurityContext securityContext, RelationshipInfo template) throws FrameworkException {
+			public boolean handleGraphObject(SecurityContext securityContext, RelationshipInfo template) throws FrameworkException {
 
 				final String startNodeType    = template.getStartNodeType();
 				final String endNodeType      = template.getEndNodeType();
@@ -444,6 +452,8 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 						info("Unable to create schema relationship node for {} -> {}, no schema nodes found", startNodeType, endNodeType);
 					}
 				}
+
+				return true;
 			}
 		});
 

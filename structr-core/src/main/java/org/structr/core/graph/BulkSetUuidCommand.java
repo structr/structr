@@ -78,7 +78,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "SetNodeUuid", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
-				public void handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
+				public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
 
 					try {
 
@@ -92,6 +92,8 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 						logger.warn("Unable to set UUID of node {}", node, fex);
 					}
+
+					return true;
 				}
 
 				@Override
@@ -135,7 +137,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 			final long count = bulkGraphOperation(securityContext, relIterator, 1000, "SetRelationshipUuid", new BulkGraphOperation<AbstractRelationship>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
+				public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 					try {
 
@@ -149,6 +151,8 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 						logger.warn("Unable to set UUID of relationship {}: {}", new Object[] { rel, fex.getMessage() });
 					}
+
+					return true;
 				}
 
 				@Override

@@ -18,9 +18,14 @@
  */
 package org.structr.core.script;
 
+import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.function.Functions;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
+
+import java.awt.*;
 
 public class StructrScriptObject {
 
@@ -53,6 +58,17 @@ public class StructrScriptObject {
 
 		if (actionContext.getAllVariables().containsKey(name)) {
 			return actionContext.getAllVariables().get(name);
+		}
+
+		return null;
+	}
+
+	public Object call(final String name, Object... parameters) throws FrameworkException {
+
+		final Function<Object, Object> function = Functions.get(CaseHelper.toUnderscore(name, false));
+		if (function != null) {
+
+			return function.apply(actionContext, entity, parameters);
 		}
 
 		return null;

@@ -40,7 +40,6 @@ import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.BooleanProperty;
@@ -91,6 +90,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
 	public static final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
 	public static final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
+	public static final Property<Boolean> 			 isCachingEnabled 	   = new BooleanProperty("isCachingEnabled").defaultValue(false);
 	public static final Property<String>             contentHash           = new StringProperty("contentHash");
 	public static final Property<String>             readFunction          = new StringProperty("readFunction");
 	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
@@ -98,19 +98,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
 
 	public static final View defaultView = new View(SchemaProperty.class, PropertyView.Public,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
 	);
 
 	public static final View uiView = new View(SchemaProperty.class, PropertyView.Ui,
-		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
 	);
 
 	public static final View schemaView = new View(SchemaProperty.class, "schema",
-		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		id, type, name, dbName, schemaNode, schemaViews, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
 	);
 
 	public static final View exportView = new View(SchemaProperty.class, "export",
-		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers
+		id, type, name, schemaNode, schemaViews, dbName, propertyType, contentType, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly, defaultValue, isBuiltinProperty, isDefaultInUi, isDefaultInPublic, declaringClass, isDynamic, readFunction, writeFunction, validators, transformers, isCachingEnabled
 	);
 
 	private NotionPropertyParser notionPropertyParser           = null;
@@ -226,6 +226,19 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
+	public boolean isCachingEnabled() {
+
+		final Boolean _isCachingEnabled = getProperty(SchemaProperty.isCachingEnabled);
+		if (_isCachingEnabled != null && _isCachingEnabled) {
+
+			return true;
+
+		}
+
+		return false;
+	}
+
+	@Override
 	public String getRawSource() {
 		return "";
 	}
@@ -304,6 +317,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		_contentHash = addContentHash(isBuiltinProperty, _contentHash);
 		_contentHash = addContentHash(isDefaultInUi,     _contentHash);
 		_contentHash = addContentHash(isDefaultInPublic, _contentHash);
+		_contentHash = addContentHash(isCachingEnabled,  _contentHash);
 		_contentHash = addContentHash(readFunction,      _contentHash);
 		_contentHash = addContentHash(writeFunction,     _contentHash);
 		_contentHash = addContentHash(transformers,      _contentHash);

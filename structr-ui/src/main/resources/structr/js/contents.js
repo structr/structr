@@ -68,13 +68,13 @@ var _Contents = {
 
 		if (contentTree) {
 			contentTree.css({
-				height: windowHeight - headerOffsetHeight + 'px'
+				height: windowHeight - headerOffsetHeight + 7 + 'px'
 			});
 		}
 
 		if (contentsContents) {
 			contentsContents.css({
-				height: windowHeight - headerOffsetHeight - 55 + 'px'
+				height: windowHeight - headerOffsetHeight - 48 + 'px'
 			});
 		}
 
@@ -87,7 +87,7 @@ var _Contents = {
 		$('.column-resizer', contentsMain).css({ left: left });
 
 		$('#contents-tree').css({width: left - 14 + 'px'});
-		$('#contents-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 58 + 'px'});
+		$('#contents-contents').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
 	},
 	onload: function() {
 
@@ -597,8 +597,8 @@ var _Contents = {
 
 		Command.get(item.id, null, function(entity) {
 
-			dialogBtn.append('<button id="saveItem" disabled="disabled" class="disabled"> Save </button>');
-			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+			dialogBtn.append('<button id="saveItem" disabled="disabled" class="action disabled"> Save </button>');
+			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="action disabled"> Save and close</button>');
 
 			dialogSaveButton = $('#saveItem', dialogBtn);
 			saveAndClose = $('#saveAndClose', dialogBtn);

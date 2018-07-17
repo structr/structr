@@ -20,9 +20,21 @@ package org.structr.rest.test.property;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotSame;
+import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
+
+import com.vividsolutions.jts.util.Assert;
+import org.apache.commons.lang.UnhandledException;
 import org.junit.Test;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.rest.common.StructrRestTest;
+import org.structr.rest.entity.TestTen;
 
 /**
  *
@@ -50,6 +62,50 @@ public class FunctionPropertyTest extends StructrRestTest {
 			.body("result[0].functionTest.me.functionTest.value", equalTo(123))
 		.when()
 			.get("/TestTen");
+
+	}
+
+	@Test
+	public void testFunctionPropertyCaching() {
+
+		App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+			TestTen testObj = app.create(TestTen.class, "testObject");
+
+			// Test cache invalidation
+			String firstState = (String)testObj.getProperty(TestTen.getNameProperty);
+			String secondState = (String)testObj.getProperty(TestTen.getNameProperty);
+
+			assertEquals(firstState, secondState);
+
+			testObj.setProperty(TestTen.name, "testObject2");
+
+			secondState = (String)testObj.getProperty(TestTen.getNameProperty);
+
+			assertNotSame(firstState, secondState);
+
+			firstState = (String)testObj.getProperty(TestTen.getNameProperty);
+
+			assertEquals(firstState, secondState);
+
+			// Test caching for random numbers
+			Object firstNum  = testObj.getProperty(TestTen.getRandomNumProp);
+			Object secondNum = testObj.getProperty(TestTen.getRandomNumProp);
+
+			assertEquals(firstNum, secondNum);
+
+			// Invalidate cache to test random caching
+			testObj.setProperty(TestTen.name, "testObject3");
+
+			firstNum  = testObj.getProperty(TestTen.getRandomNumProp);
+			secondNum = testObj.getProperty(TestTen.getRandomNumProp);
+
+			assertEquals(firstNum, secondNum);
+
+		} catch (FrameworkException ex) {
+			fail("Exception during test: " + ex.getMessage());
+		}
 
 	}
 }

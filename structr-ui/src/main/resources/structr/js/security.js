@@ -42,19 +42,18 @@ var _Security = {
 //		Structr.fetchHtmlTemplate('security/main', {}, function (html) {
 
 			var html = '<div id="securityTabs">' +
-				'	<ul id="securityTabsMenu">' +
-				'		<li><a id="usersAndGroups_" href="#usersAndGroups"><span>Users and Groups</span></a></li>' +
-				'		<li><a id="resourceAccess_" href="#resourceAccess"><span>Resource Access Grants</span></a></li>' +
+				'	<ul id="securityTabsMenu" class="tabs-menu">' +
+				'		<li><a id="usersAndGroups_"><div class="fill-pixel"></div><span>Users and Groups</span></a></li>' +
+				'		<li><a id="resourceAccess_"><div class="fill-pixel"></div><span>Resource Access Grants</span></a></li>' +
 				'	</ul>' +
-				'	<div id="usersAndGroups">' +
+				'	<div id="usersAndGroups" class="tab-content">' +
 				'		<div id="users"></div>' +
 				'		<div id="groups"></div>' +
 				'	</div>' +
-				'	<div id="resourceAccess">' +
+				'	<div id="resourceAccess" class="tab-content">' +
 				'		<div id="resourceAccesses"></div>' +
 				'	</div>' +
 				'</div>';
-
 
 			main.append(html);
 
@@ -65,24 +64,27 @@ var _Security = {
 			var activeTab = LSWrapper.getItem(_Security.securityTabKey) || 'usersAndGroups';
 			_Security.selectTab(activeTab);
 
-			$('#securityTabs').tabs({
-				active: (activeTab === 'usersAndGroups' ? 0 : 1),
-				activate: function(event, ui) {
-					_Security.selectTab(ui.newPanel[0].id);
-				}
+			$('#securityTabsMenu > li > a').on('click', function() {
+				activeTab = $(this).attr('id').slice(0, -1);
+				_Security.selectTab(activeTab);
 			});
 
 			Structr.unblockMenu(100);
 //		});
 	},
-	selectTab: function (tab) {
+	selectTab: function(tab) {
 
 		LSWrapper.setItem(_Security.securityTabKey, tab);
-
+		$('#securityTabsMenu > li').removeClass('active');
+		$('#' + tab + '_').parent().addClass('active');
 		if (tab === 'usersAndGroups') {
+			$('#usersAndGroups').show();
+			$('#resourceAccess').hide();
 			_UsersAndGroups.refreshUsers();
 			_UsersAndGroups.refreshGroups();
 		} else if (tab === 'resourceAccess') {
+			$('#resourceAccess').show();
+			$('#usersAndGroups').hide();
 			_ResourceAccessGrants.refreshResourceAccesses();
 		}
 	}
@@ -92,7 +94,7 @@ var _UsersAndGroups = {
 
 	refreshUsers: function() {
 		_Security.users.empty();
-		_Security.users.append('<button class="add_user_icon button"><i title="Add User" class="' + _Icons.getFullSpriteClass(_Icons.user_add_icon) + '" /> Add User</button>');
+		_Security.users.append('<button class="action add_user_icon button"><i title="Add User" class="' + _Icons.getFullSpriteClass(_Icons.user_add_icon) + '" /> Add User</button>');
 		$('.add_user_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({type: 'User'});
@@ -173,7 +175,7 @@ var _UsersAndGroups = {
 				top: 0,
 				left: 0
 			}));
-			userDiv.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+			userDiv.removeClass('disabled');
 
 			_Entities.appendEditPropertiesIcon(userDiv, member);
 			_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
@@ -200,7 +202,7 @@ var _UsersAndGroups = {
 					left: 0
 				}));
 
-				groupDiv.removeClass('ui-state-disabled').removeClass('ui-draggable-disabled').removeClass('ui-draggable');
+				groupDiv.removeClass('disabled');
 
 				_Entities.appendEditPropertiesIcon(groupDiv, member);
 				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
@@ -224,7 +226,7 @@ var _UsersAndGroups = {
 	},
 	refreshGroups: function() {
 		_Security.groups.empty();
-		_Security.groups.append('<button class="add_group_icon button"><i title="Add Group" class="' + _Icons.getFullSpriteClass(_Icons.group_add_icon) + '" /> Add Group</button>');
+		_Security.groups.append('<button class="action add_group_icon button"><i title="Add Group" class="' + _Icons.getFullSpriteClass(_Icons.group_add_icon) + '" /> Add Group</button>');
 		$('.add_group_icon', main).on('click', function(e) {
 			e.stopPropagation();
 			return Command.create({type: 'Group'});
@@ -350,13 +352,13 @@ var _ResourceAccessGrants = {
 
 		Structr.fetchHtmlTemplate('security/resource-access', {}, function (html) {
 
-			var raPager = _Pager.addPager('resource-access', _Security.resourceAccesses, true, 'ResourceAccess', 'public');
+			_Security.resourceAccesses.append(html);
+
+			var raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', 'public');
 
 			raPager.cleanupFunction = function () {
 				$('#resourceAccesses table tbody tr').remove();
 			};
-
-			_Security.resourceAccesses.append(html);
 
 			raPager.activateFilterElements(_Security.resourceAccesses);
 

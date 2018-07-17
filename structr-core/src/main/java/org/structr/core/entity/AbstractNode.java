@@ -1433,6 +1433,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	@Override
 	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
 
+		// clear function property cache in security context since we are about to invalidate past results
+		if (securityContext != null) {
+			securityContext.getContextStore().clearFunctionPropertyCache();
+		}
+
 		// allow setting of ID without permissions
 		if (!key.equals(GraphObject.id)) {
 

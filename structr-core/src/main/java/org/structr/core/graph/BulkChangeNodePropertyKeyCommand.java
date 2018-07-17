@@ -82,7 +82,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 			final long count = bulkGraphOperation(securityContext, nodeIterator, 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
 
 				@Override
-				public void handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
 					for (Entry entry : properties.entrySet()) {
 
@@ -113,6 +113,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 					}
 
+					return true;
 				}
 
 				@Override

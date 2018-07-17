@@ -2056,6 +2056,11 @@ public class DeploymentTest extends StructrUiTest {
 
 			for (final Page page : app.nodeQuery(Page.class).sort(AbstractNode.name).getAsList()) {
 
+				// skip shadow document
+				if (page instanceof ShadowDocument) {
+					continue;
+				}
+
 				System.out.print("############################# ");
 				calculateHash(page, buf, 0);
 			}

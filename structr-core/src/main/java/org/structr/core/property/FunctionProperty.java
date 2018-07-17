@@ -68,12 +68,27 @@ public class FunctionProperty<T> extends Property<T> {
 
 			if (obj != null && readFunction != null) {
 
+				if (cachingEnabled) {
+
+					Object cachedValue = securityContext.getContextStore().retrieveFunctionPropertyResult(obj.getUuid(), jsonName);
+
+					if (cachedValue != null) {
+						return (T) cachedValue;
+					}
+
+				}
+
+
 				final ActionContext actionContext = new ActionContext(securityContext);
 
 				// don't ignore predicate
 				actionContext.setPredicate(predicate);
 
-				return (T)Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
+				Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction).concat("}"), "getProperty(" + jsonName + ")");
+
+				securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
+
+				return (T)result;
 
 			} else {
 
@@ -147,20 +162,26 @@ public class FunctionProperty<T> extends Property<T> {
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
 
+		final ActionContext ctx = new ActionContext(securityContext);
+		T result                = null;
+
 		try {
-			final ActionContext ctx = new ActionContext(securityContext);
 
 			ctx.setConstant("value", value);
 
-			return (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"), "setProperty(" + jsonName + ")");
+			result = (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"), "setProperty(" + jsonName + ")");
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception while evaluating write function in Function property \"{}\"", jsonName());
-
+			logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
 		}
 
-		return null;
+		if (ctx.hasError()) {
+
+			throw new FrameworkException(422, "Server-side scripting error", ctx.getErrorBuffer());
+		}
+
+		return result;
 	}
 
 	@Override

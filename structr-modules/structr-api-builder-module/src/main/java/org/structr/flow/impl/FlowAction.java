@@ -31,6 +31,7 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
+import javax.script.ScriptException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

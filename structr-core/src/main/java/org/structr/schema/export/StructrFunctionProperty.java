@@ -36,9 +36,10 @@ import org.structr.schema.json.JsonSchema;
  */
 public class StructrFunctionProperty extends StructrDynamicProperty implements JsonFunctionProperty {
 
-	protected String readFunction  = null;
-	protected String writeFunction = null;
-	protected String contentType   = null;
+	protected Boolean cachingEnabled	= false;
+	protected String readFunction  		= null;
+	protected String writeFunction 		= null;
+	protected String contentType   		= null;
 
 	public StructrFunctionProperty(final StructrTypeDefinition parent, final String name) {
 
@@ -75,6 +76,18 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	}
 
 	@Override
+	public JsonFunctionProperty setIsCachingEnabled(boolean enabled) {
+
+		this.cachingEnabled = enabled;
+		return this;
+	}
+
+	@Override
+	public Boolean getIsCachingEnabled() {
+		return this.cachingEnabled;
+	}
+
+	@Override
 	public JsonFunctionProperty setContentType(String contentType) {
 
 		this.contentType = contentType;
@@ -90,6 +103,8 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();
+
+		map.put(JsonSchema.KEY_IS_CACHING_ENABLED, cachingEnabled);
 
 		if (readFunction != null) {
 			map.put(JsonSchema.KEY_READ_FUNCTION, readFunction);
@@ -133,6 +148,19 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 			}
 		}
 
+		final Object cachingEnabledValue = source.get(JsonSchema.KEY_IS_CACHING_ENABLED);
+		if (cachingEnabledValue != null) {
+
+			if (cachingEnabledValue instanceof String) {
+
+				this.cachingEnabled = Boolean.valueOf((String)cachingEnabledValue);
+			} else if (cachingEnabledValue instanceof Boolean) {
+
+				this.cachingEnabled = (Boolean)cachingEnabledValue;
+			}
+
+		}
+
 		final Object contentTypeValue = source.get(JsonSchema.KEY_CONTENT_TYPE);
 		if (contentTypeValue != null) {
 
@@ -154,6 +182,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 
 		setReadFunction(property.getReadFunction());
 		setWriteFunction(property.getWriteFunction());
+		setIsCachingEnabled(property.isCachingEnabled());
 		setContentType(property.getSourceContentType());
 	}
 
@@ -165,6 +194,7 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 
 		properties.put(SchemaProperty.readFunction,  readFunction);
 		properties.put(SchemaProperty.writeFunction, writeFunction);
+		properties.put(SchemaProperty.isCachingEnabled, cachingEnabled);
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

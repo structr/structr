@@ -180,7 +180,7 @@ var _Schema = {
 		_Schema.connectorStyle = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
 		_Schema.zoomLevel = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 
-		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
+		schemaInputContainer.append('<div class="input-and-button"><input class="schema-input" id="type-name" type="text" size="10" placeholder="New type"><button id="create-type" class="action btn"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add</button></div>');
 
 		schemaInputContainer.append('<select id="connector-style"></select>');
 		['Flowchart', 'Bezier', 'StateMachine', 'Straight'].forEach(function(style) {
@@ -2004,7 +2004,7 @@ var _Schema = {
 
 		if (property.propertyType === 'Function' && !property.isBuiltinProperty) {
 			if (!$('button.edit-read-function', typeField.parent()).length) {
-				$('.' + key + ' .property-format', el).replaceWith('<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button>');
+				$('.' + key + ' .property-format', el).replaceWith('<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button><input id="caching-enabled-checkbox" class="caching-enabled" type="checkbox"><label for="caching-enabled-checkbox">Cache</label>');
 			}
 		}
 
@@ -2016,6 +2016,11 @@ var _Schema = {
 				_Schema.savePropertyDefinition(property);
 			}).prop('disabled', protected).val(property.dbName);
 		}
+
+
+		$('.' + key + ' .caching-enabled', el).on('change', function() {
+			_Schema.savePropertyDefinition(property);
+		}).prop('disabled', protected).val(property.propertyType);
 
 		$('.' + key + ' .property-type', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
@@ -2310,16 +2315,17 @@ var _Schema = {
 	savePropertyDefinition: function(property) {
 
 		var obj = {
-			name:         $('.' + property.name + ' .property-name').val(),
-			dbName:       $('.' + property.name + ' .property-dbname').val(),
-			propertyType: $('.' + property.name + ' .property-type').val(),
-			contentType:  $('.' + property.name + ' .content-type').val(),
-			format:       $('.' + property.name + ' .property-format').val(),
-			notNull:      $('.' + property.name + ' .not-null').is(':checked'),
-			compound:     $('.' + property.name + ' .compound').is(':checked'),
-			unique:       $('.' + property.name + ' .unique').is(':checked'),
-			indexed:      $('.' + property.name + ' .indexed').is(':checked'),
-			defaultValue: $('.' + property.name + ' .property-default').val()
+			name:         			$('.' + property.name + ' .property-name').val(),
+			dbName:       			$('.' + property.name + ' .property-dbname').val(),
+			propertyType: 			$('.' + property.name + ' .property-type').val(),
+			contentType:  			$('.' + property.name + ' .content-type').val(),
+			format:       			$('.' + property.name + ' .property-format').val(),
+			notNull:      			$('.' + property.name + ' .not-null').is(':checked'),
+			compound:     			$('.' + property.name + ' .compound').is(':checked'),
+			unique:       			$('.' + property.name + ' .unique').is(':checked'),
+			indexed:      			$('.' + property.name + ' .indexed').is(':checked'),
+			defaultValue: 			$('.' + property.name + ' .property-default').val(),
+            isCachingEnabled:      	$('.' + property.name + ' .caching-enabled').is(':checked')
 		};
 
 		if (obj.name && obj.name.length && obj.propertyType) {
@@ -2350,6 +2356,7 @@ var _Schema = {
 				property.unique = obj.unique;
 				property.indexed = obj.indexed;
 				property.defaultValue = obj.defaultValue;
+				property.isCachingEnabled = obj.isCachingEnabled;
 
 				_Schema.bindEvents(property);
 

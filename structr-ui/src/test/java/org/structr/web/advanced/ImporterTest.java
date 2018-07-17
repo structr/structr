@@ -51,7 +51,7 @@ public class ImporterTest extends StructrUiTest {
 		Settings.JsonIndentation.setValue(true);
 		Settings.HtmlIndentation.setValue(true);
 
-		final String source = testImport("https://getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.NONE);
+		final String source = testImport("http://ci.structr.org:59399/tests/getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.NONE);
 
 		assertEquals("<!DOCTYPE html>\n"
 			+ "<html lang=\"en\">\n"
@@ -155,7 +155,7 @@ public class ImporterTest extends StructrUiTest {
 		Settings.JsonIndentation.setValue(true);
 		Settings.HtmlIndentation.setValue(true);
 
-		final String source = testImport("https://getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.WIDGET);
+		final String source = testImport("http://ci.structr.org:59399/tests/getbootstrap.com/docs/3.3/examples/jumbotron/", RenderContext.EditMode.WIDGET);
 
 		assertEquals("<!DOCTYPE html>\n"
 			+ "<html lang=\"en\">\n"

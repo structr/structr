@@ -134,6 +134,9 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean cachingEnabled() { return propertyKey.cachingEnabled(); }
+
+	@Override
 	public SortType getSortType() {
 		return propertyKey.getSortType();
 	}
@@ -330,6 +333,9 @@ public class Reference<T> implements PropertyKey<T> {
 	public Property<T> writeFunction(final String writeFunction) {
 		return null;
 	}
+
+	@Override
+	public PropertyKey<T> cachingEnabled(boolean enabled) { return null; }
 
 	@Override
 	public Property<T> unique(final boolean unique) {

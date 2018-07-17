@@ -19,9 +19,11 @@
 package org.structr.core.entity;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
@@ -69,19 +71,19 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPasswordProperty("password");
                 principal.addDateProperty("passwordChangeDate");
                 principal.addIntegerProperty("passwordAttempts");
-                
+
                 principal.addPropertySetter("passwordChangeDate", Date.class);
                 principal.addPropertyGetter("passwordChangeDate", Date.class);
                 principal.addPropertySetter("passwordAttempts", Integer.class);
                 principal.addPropertyGetter("passwordAttempts", Integer.class);
-                
+
                 // Two Factor Authentication Attributes
                 principal.addStringProperty("twoFactorSecret");
                 principal.addStringProperty("twoFactorToken").setIndexed(true);
                 principal.addStringProperty("twoFactorImageUrl");
                 principal.addBooleanProperty("twoFactorUser");
                 principal.addStringProperty("twoFactorCode");
-                
+
                 principal.addPropertySetter("twoFactorUser", Boolean.TYPE);
                 principal.addPropertyGetter("twoFactorUser", Boolean.TYPE);
                 principal.addPropertySetter("twoFactorSecret", String.class);
@@ -92,7 +94,7 @@ public interface Principal extends NodeInterface, AccessControllable {
                 principal.addPropertyGetter("twoFactorImageUrl", String.class);
                 principal.addPropertySetter("twoFactorCode", String.class);
                 principal.addPropertyGetter("twoFactorCode", String.class);
-                
+
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");
 		principal.addStringProperty("publicKey");
@@ -163,7 +165,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 	boolean isAdmin();
 	boolean isBlocked();
 	boolean shouldSkipSecurityRelationships();
-        
+
 	void setFavorites(final List<Favoritable> favorites) throws FrameworkException;
 	void setIsAdmin(final boolean isAdmin) throws FrameworkException;
 	void setPassword(final String password) throws FrameworkException;
@@ -207,20 +209,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
 			final String[] ids              = principal.getProperty(key);
-			List<String> newSessionIds      = new ArrayList<>();
+			Set<String> sessionIds          = new HashSet<>(Arrays.asList(ids));
 
-			if (ids != null) {
+			sessionIds.remove(sessionId);
 
-				for (final String id : ids) {
-
-					if (!id.equals(sessionId)) {
-
-						newSessionIds.add(id);
-					}
-				}
-			}
-
-			principal.setProperty(key, (String[]) newSessionIds.toArray(new String[0]));
+			principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
 
 		} catch (FrameworkException ex) {
 			logger.error("Could not remove sessionId " + sessionId + " from array of sessionIds", ex);
