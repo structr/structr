@@ -20,6 +20,7 @@ package org.structr.web.entity;
 
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.net.URI;
+import java.util.Date;
 import org.structr.api.config.Settings;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
@@ -30,6 +31,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation.Cardinality;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
@@ -65,7 +67,7 @@ public interface User extends Principal {
 		user.overrideMethod("shouldSkipSecurityRelationships", false, "return getProperty(skipSecurityRelationshipsProperty);");
 
 		user.overrideMethod("onCreation",     true, User.class.getName() + ".onCreateAndModify(this, arg0);");
-		user.overrideMethod("onModification", true, User.class.getName() + ".onCreateAndModify(this, arg0);");
+		user.overrideMethod("onModification", true, User.class.getName() + ".onCreateAndModify(this, arg0, arg2);");
 		user.overrideMethod("onDeletion",     true, User.class.getName() + ".checkAndRemoveHomeDirectory(this, arg0);");
 
 		user.addMethod("setHomeDirectory")
@@ -99,12 +101,12 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "publicKey");
 		user.addViewProperty(PropertyView.Ui, "sessionIds");
 		user.addViewProperty(PropertyView.Ui, "workingDirectory");
-                user.addViewProperty(PropertyView.Ui, "twoFactorToken");
+		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
 		user.addViewProperty(PropertyView.Ui, "twoFactorSecret");
-                user.addViewProperty(PropertyView.Ui, "twoFactorImageUrl");
-                user.addViewProperty(PropertyView.Ui, "twoFactorUser");
-                user.addViewProperty(PropertyView.Ui, "passwordAttempts");
-                user.addViewProperty(PropertyView.Ui, "passwordChangeDate");
+		user.addViewProperty(PropertyView.Ui, "twoFactorImageUrl");
+		user.addViewProperty(PropertyView.Ui, "twoFactorUser");
+		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
+		user.addViewProperty(PropertyView.Ui, "passwordChangeDate");
 	}}
 
 	String getLocalStorage();
@@ -118,28 +120,35 @@ public interface User extends Principal {
 
 	// ----- public static methods -----
 	public static void onCreateAndModify(final User user, final SecurityContext securityContext) throws FrameworkException {
+		onCreateAndModify(user, securityContext, null);
+	}
 
-		final PropertyKey skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
-                final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
-                final PropertyKey<String> twoFactorSecretKey = StructrApp.key(User.class, "twoFactorSecret");
-                final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");		
-                
-                if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
+	public static void onCreateAndModify(final User user, final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
+		final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
+		final PropertyKey<String> twoFactorSecretKey = StructrApp.key(User.class, "twoFactorSecret");
+		final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
+
+		if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
 			throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
 		}
-                
-                // generate and set 2fa properties
-                if (user.getProperty(twoFactorSecretKey)==null)
-                {
-                    
-                    final String keyId = Settings.TwoFactorId.getValue();
-                    String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-                    user.setProperty(twoFactorUserKey, false);
-                    user.setProperty(twoFactorImageUrl, TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
-                    user.setProperty (twoFactorSecretKey, base32Secret);
-                }
-                
+
+		// generate and set 2fa properties
+		if (user.getProperty(twoFactorSecretKey) == null) {
+
+			final String keyId = Settings.TwoFactorId.getValue();
+			final String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+			user.setProperty(twoFactorUserKey, false);
+			user.setProperty(twoFactorImageUrl, TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
+			user.setProperty(twoFactorSecretKey, base32Secret);
+		}
+
+		if (modificationQueue != null && modificationQueue.getModifiedProperties().contains(StructrApp.key(Principal.class, "password"))) {
+			user.setProperty(StructrApp.key(User.class, "passwordChangeDate"), new Date());
+		}
+
 
 		if (Settings.FilesystemEnabled.getValue()) {
 

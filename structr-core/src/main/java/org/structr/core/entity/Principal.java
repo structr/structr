@@ -19,8 +19,8 @@
 package org.structr.core.entity;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -69,31 +69,31 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.addTransformer(LowercaseTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
-                principal.addDateProperty("passwordChangeDate");
-                principal.addIntegerProperty("passwordAttempts");
+		principal.addDateProperty("passwordChangeDate");
+		principal.addIntegerProperty("passwordAttempts");
 
-                principal.addPropertySetter("passwordChangeDate", Date.class);
-                principal.addPropertyGetter("passwordChangeDate", Date.class);
-                principal.addPropertySetter("passwordAttempts", Integer.class);
-                principal.addPropertyGetter("passwordAttempts", Integer.class);
+		principal.addPropertySetter("passwordChangeDate", Date.class);
+		principal.addPropertyGetter("passwordChangeDate", Date.class);
+		principal.addPropertySetter("passwordAttempts", Integer.class);
+		principal.addPropertyGetter("passwordAttempts", Integer.class);
 
-                // Two Factor Authentication Attributes
-                principal.addStringProperty("twoFactorSecret");
-                principal.addStringProperty("twoFactorToken").setIndexed(true);
-                principal.addStringProperty("twoFactorImageUrl");
-                principal.addBooleanProperty("twoFactorUser");
-                principal.addStringProperty("twoFactorCode");
+		// Two Factor Authentication Attributes
+		principal.addStringProperty("twoFactorSecret");
+		principal.addStringProperty("twoFactorToken").setIndexed(true);
+		principal.addStringProperty("twoFactorImageUrl");
+		principal.addBooleanProperty("twoFactorUser");
+		principal.addStringProperty("twoFactorCode");
 
-                principal.addPropertySetter("twoFactorUser", Boolean.TYPE);
-                principal.addPropertyGetter("twoFactorUser", Boolean.TYPE);
-                principal.addPropertySetter("twoFactorSecret", String.class);
-                principal.addPropertyGetter("twoFactorSecret", String.class);
-                principal.addPropertySetter("twoFactorToken", String.class);
-                principal.addPropertyGetter("twoFactorToken", String.class);
-                principal.addPropertySetter("twoFactorImageUrl", String.class);
-                principal.addPropertyGetter("twoFactorImageUrl", String.class);
-                principal.addPropertySetter("twoFactorCode", String.class);
-                principal.addPropertyGetter("twoFactorCode", String.class);
+		principal.addPropertySetter("twoFactorUser", Boolean.TYPE);
+		principal.addPropertyGetter("twoFactorUser", Boolean.TYPE);
+		principal.addPropertySetter("twoFactorSecret", String.class);
+		principal.addPropertyGetter("twoFactorSecret", String.class);
+		principal.addPropertySetter("twoFactorToken", String.class);
+		principal.addPropertyGetter("twoFactorToken", String.class);
+		principal.addPropertySetter("twoFactorImageUrl", String.class);
+		principal.addPropertyGetter("twoFactorImageUrl", String.class);
+		principal.addPropertySetter("twoFactorCode", String.class);
+		principal.addPropertyGetter("twoFactorCode", String.class);
 
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");
