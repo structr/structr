@@ -1379,7 +1379,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			localizations.sort(new AbstractMapComparator<Object>() {
 				@Override
 				public String getKey (Map<String, Object> map) {
-					return ((String)map.get("name")).concat(((String)map.get("domain"))).concat(((String)map.get("locale")));
+
+					final Object name   = map.get("name");
+					final Object domain = map.get("domain");
+					final Object locale = map.get("locale");
+
+					// null domain is replaced by a string so that those localizations are shown first
+					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null"));
 				}
 			});
 
