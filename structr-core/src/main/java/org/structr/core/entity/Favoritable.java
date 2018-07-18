@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import java.net.URI;
 import org.structr.api.Predicate;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.ContextAwareEntity;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;

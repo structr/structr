@@ -42,6 +42,7 @@ import org.structr.core.entity.Target;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.EntityIdProperty;
+import org.structr.core.property.InternalPathProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
@@ -58,6 +59,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public static final Property<String>          ownerId            = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
 
 	public static final Property<List<Principal>> grantees           = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
+	public static final Property<String>          internalPath       = new InternalPathProperty("internalEntityContextPath");
 
 	public static final View graphView = new View(NodeInterface.class, View.INTERNAL_GRAPH_VIEW,
 		id, name, type

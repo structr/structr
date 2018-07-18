@@ -34,6 +34,7 @@ import org.structr.api.Predicate;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.ContextAwareEntity;
 import org.structr.common.Filter;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
@@ -87,7 +88,7 @@ import org.w3c.dom.Text;
 /**
  * Combines AbstractNode and org.w3c.dom.Node.
  */
-public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode> {
+public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode>, ContextAwareEntity {
 
 	static class Impl { static {
 
@@ -234,6 +235,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("getPagePath",                         false, "return " + DOMNode.class.getName() + ".getPagePath(this);");
 		type.overrideMethod("getDataPropertyKeys",                 false, "return " + DOMNode.class.getName() + ".getDataPropertyKeys(this);");
 		type.overrideMethod("getAllChildNodes",                    false, "return " + DOMNode.class.getName() + ".getAllChildNodes(this);");
+		
+		// ContextAwareEntity
+		type.overrideMethod("getEntityContextPath",                false, "return getPagePath();");
 
 		type.addMethod("setOwnerDocument")
 			.setSource("setProperty(ownerDocumentProperty, (Page)ownerDocument);")

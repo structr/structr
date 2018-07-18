@@ -5053,7 +5053,7 @@ div#xml-configurations button {
  */
 input.refactoring-helper {
 	box-sizing: border-box;
-	width: 50%;
+	width: 25%;
 }
 
 table.refactoring-helper {

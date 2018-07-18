@@ -30,107 +30,142 @@ class RefactoringHelper {
 
 		var selectContainer = $('#select-container');
 		
-		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="Enter selector" /><input class="refactoring-helper" id="property-input" placeholder="Enter property keys to display" />');
+		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="Selector" />');
+		selectContainer.append('<input class="refactoring-helper" id="query-input" placeholder="Query parameters" />');
+		selectContainer.append('<input class="refactoring-helper" id="property-input" placeholder="Property keys to display" />');
+		selectContainer.append('<input type="checkbox" id="empty-checkbox" /> Show empty results');
 		selectContainer.append('<div id="result-container"></div>');
 		selectContainer.append('<div><pre id="error-container"></pre></div>');
 
+		window.setTimeout(() => { $('#selector-input').focus(); }, 100);
+
+		$('#property-input').on('blur', () => { this.loadResults(); });
+		$('#empty-checkbox').on('click', () => { this.loadResults(); });
+	}
+
+	loadResults() {
+
 		var typeSelector    = $('#selector-input');
+		var queryInput      = $('#query-input');
 		var keysSelector    = $('#property-input');
+		var emptyCheckbox   = $('#empty-checkbox');
 		var resultContainer = $('#result-container');
 		var errorContainer  = $('#error-container');
 
-		window.setTimeout(() => { $(typeSelector).focus(); }, 100);
+		var typeQuery     = typeSelector.val().trim();
+		var searchQuery   = queryInput.val().trim();
+		var properties    = keysSelector.val().trim();
+		var showEmptyRows = emptyCheckbox.is(':checked');
 
-		keysSelector.on('blur', () => {
+		if (typeQuery && properties) {
 
-			var typeQuery  = typeSelector.val().trim();
-			var properties = keysSelector.val().trim();
+			typeQuery = typeQuery[0].toUpperCase() + typeQuery.slice(1);
 
-			if (typeQuery && properties) {
+			resultContainer.empty();
+			errorContainer.empty();
 
-				typeQuery = typeQuery[0].toUpperCase() + typeQuery.slice(1);
+			$.ajax({
+				url: '/structr/rest/' + typeQuery + '/all' + searchQuery,
+				method: 'get',
+				statusCode: {
+					200: (response) => {
 
-				resultContainer.empty();
-				errorContainer.empty();
-	
-				$.ajax({
-					url: '/structr/rest/' + typeQuery + '/all',
-					method: 'get',
-					statusCode: {
-						200: (response) => {
+						if (response && response.result && response.result.length) {
+							
+							resultContainer.append('<table class="refactoring-helper" id="result-table"><thead><tr id="header-row"></tr></thead></table>');
+							var keyCandidates = Object.keys(response.result[0]);
+							var table         = $('#result-table');
+							var header        = $('#header-row');
+							var list          = properties.split(',');
+							var keys          = [];
+							var i             = 0;
 
-							if (response && response.result && response.result.length) {
+							list.forEach(p => {
 								
-								resultContainer.append('<table class="refactoring-helper" id="result-table"><thead><tr id="header-row"></tr></thead></table>');
-								var keyCandidates = Object.keys(response.result[0]);
-								var table         = $('#result-table');
-								var header        = $('#header-row');
-								var list          = properties.split(',');
-								var keys          = [];
-								var i             = 0;
+								var name = p.trim();
+								
+								if (keyCandidates.includes(name) && name !== 'id' && name !== 'type') {
+									keys.push({ name: name, title: name });
+								}
 
-								list.forEach(p => {
+								if (keyCandidates.includes('_html_' + name)) {
+									keys.push({ name: '_html_' + name, title: 'HTML ' + name });
+								}
+
+								if (keyCandidates.includes('_custom_html_' + name)) {
+									keys.push({ name: '_custom_html_' + name, title: 'HTML ' + name });
+								}
+
+								if (keyCandidates.includes('_custom_html_data-' + name)) {
+									keys.push({ name: '_custom_html_data-' + name, title: 'data-' + name });
+								}
+							});
+								
+							header.append('<th>Source</th>');
+
+							keys.forEach(k => {
+								header.append('<th>' + k.title + '</th>');
+							});
+
+							response.result.sort((a, b) => {
+								if (a.internalEntityContextPath < b.internalEntityContextPath) { return -1; }
+								if (a.internalEntityContextPath > b.internalEntityContextPath) { return 1; }
+								return 0;
+							});
+
+							response.result.forEach(v => {
+								
+								table.append('<tr id="row' + i + '"></tr>');
+
+								var hasValue = false;
+								var row      = $('#row' + i);
+								var src      = v.type;
+
+								if (v.internalEntityContextPath) {
+									src = v.internalEntityContextPath;
+								} else if (v.parent && v.parent.name) {
+									src = v.parent.name;
+								} else if (v.ownerDocument && v.ownerDocument.name) {
+									src = v.ownerDocument.name;
+								} else if (v.name) {
+									src = v.name;
+								}
 									
-									var name = p.trim();
-									
-									if (keyCandidates.includes(name) && name !== 'id' && name !== 'type') {
-										keys.push({ name: name, title: name });
-									}
-
-									if (keyCandidates.includes('_html_' + name)) {
-										keys.push({ name: '_html_' + name, title: 'HTML ' + name });
-									}
-
-									if (keyCandidates.includes('_custom_html_' + name)) {
-										keys.push({ name: '_custom_html_' + name, title: 'HTML ' + name });
-									}
-
-									if (keyCandidates.includes('_custom_html_data-' + name)) {
-										keys.push({ name: '_custom_html_data-' + name, title: 'data-' + name });
-									}
-								});
-									
-								header.append('<th>Page</th>');
+								row.append('<td>' + src + '</td>');
 
 								keys.forEach(k => {
-									header.append('<th>' + k.title + '</th>');
-								});
+									var id    = 'edit-' + v.id + '-' + k.name;
+									var value = '';
+									
+									if (v[k.name] || v[k.name] === 0) {
+										value = v[k.name];
+										hasValue = true;
+									}
 
-								response.result.forEach(v => {
-									table.append('<tr id="row' + i + '"></tr>');
-									var row = $('#row' + i);
-									row.append('<td>' + v.ownerDocument.name + '</td>');
-									keys.forEach(k => {
-										var value = '';
-										var id    = 'edit-' + v.id + '-' + k.name;
-										if (v[k.name]) {
-											value = v[k.name];
-										}
-										row.append('<td><input type="text" id="' + id + '" value="' + value + '"/></td>');
-										var input = $('#' + id);
-										input.on('blur', e => {
-											var val = $('#' + id).val();
-											Command.setProperty(v.id, k.name, val, false, function() {
-												blinkGreen(input);
-											});
+									row.append('<td><input type="text" id="' + id + '" value="' + value + '"/></td>');
+									var input = $('#' + id);
+									input.on('blur', e => {
+										var val = $('#' + id).val();
+										Command.setProperty(v.id, k.name, val, false, function() {
+											blinkGreen(input);
 										});
 									});
-
-									i++;
 								});
-							}
-						},
-						422:(response) =>{
-							errorContainer.append(response.responseText);
+
+								i++;
+
+								if (!hasValue && !showEmptyRows) {
+									
+									row.remove();
+								}
+							});
 						}
+					},
+					422:(response) =>{
+						errorContainer.append(response.responseText);
 					}
-				});
-			}
-
-		});
-	
-		
-
-
+				}
+			});
+		}
 	}
 }
