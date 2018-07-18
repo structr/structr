@@ -81,6 +81,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
@@ -1277,7 +1278,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final MailTemplate mailTemplate : app.nodeQuery(MailTemplate.class).sort(MailTemplate.name).getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final Map<String, Object> entry = new HashMap<>();
 				mailTemplates.add(entry);
 
 				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
@@ -1291,6 +1292,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			mailTemplates.sort(new AbstractMapComparator<Object>() {
+				@Override
+				public String getKey (Map<String, Object> map) {
+					return ((String)map.get("name")).concat(((String)map.get("locale")));
+				}
+			});
 
 			getGson().toJson(mailTemplates, fos);
 
@@ -1351,7 +1359,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Localization localization : app.nodeQuery(Localization.class).sort(Localization.name).getAsList()) {
 
-				final Map<String, Object> entry = new TreeMap<>();
+				final Map<String, Object> entry = new HashMap<>();
 				localizations.add(entry);
 
 				entry.put("name",                        localization.getProperty(Localization.name));
@@ -1367,6 +1375,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			localizations.sort(new AbstractMapComparator<Object>() {
+				@Override
+				public String getKey (Map<String, Object> map) {
+					return ((String)map.get("name")).concat(((String)map.get("domain"))).concat(((String)map.get("locale")));
+				}
+			});
 
 			getGson().toJson(localizations, fos);
 
