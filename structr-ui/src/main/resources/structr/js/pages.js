@@ -1024,7 +1024,9 @@ var _Pages = {
 		var el = $('#data-binding-inputs');
 		var entity = StructrModel.obj(id);
 
-		_Entities.repeaterConfig(entity, el);
+		if (entity) {
+			_Entities.repeaterConfig(entity, el);
+		}
 
 	},
 	reloadDataBindingWizard: function() {
