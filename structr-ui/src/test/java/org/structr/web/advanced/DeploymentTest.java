@@ -29,6 +29,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -1980,10 +1981,14 @@ public class DeploymentTest extends StructrUiTest {
 			System.out.println("Expected: " + sourceHash);
 			System.out.println("Actual:   " + roundtripHash);
 
+			System.out.println(StringUtils.difference(sourceHash, roundtripHash));
+
 		if (!sourceHash.equals(roundtripHash)) {
 
 			System.out.println("Expected: " + sourceHash);
 			System.out.println("Actual:   " + roundtripHash);
+
+			System.out.println(StringUtils.difference(sourceHash, roundtripHash));
 
 			fail("Invalid deployment roundtrip result");
 		}
