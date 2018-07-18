@@ -23,10 +23,10 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -126,7 +126,7 @@ public abstract class FlowDeploymentHandler {
 
 				for (final Object current : app.relationshipQuery(c).getAsList()) {
 
-					Map<String, String> attrs = new HashMap<>();
+					Map<String, String> attrs = new TreeMap<>();
 					attrs.put("type", c.getSimpleName());
 					attrs.put("relType", ((RelationshipInterface)current).getRelType().name());
 					attrs.put("sourceId", ((RelationshipInterface)current).getSourceNodeId());
