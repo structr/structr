@@ -23,7 +23,6 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +41,7 @@ import org.structr.flow.impl.*;
 import org.structr.flow.impl.rels.*;
 import org.structr.module.api.DeployableEntity;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.common.AbstractMapComparator;
 
 public abstract class FlowDeploymentHandler {
 
@@ -135,7 +135,12 @@ public abstract class FlowDeploymentHandler {
 				}
 			}
 
-			flowRelationships.sort(new FlowRelationshipComparator());
+			flowRelationships.sort(new AbstractMapComparator<String>() {
+				@Override
+				public String getKey (Map<String, String> map) {
+					return map.get("sourceId").concat(map.get("targetId"));
+				}
+			});
 
 			flowElements.addAll(flowRelationships);
 
@@ -226,14 +231,4 @@ public abstract class FlowDeploymentHandler {
 		}
 	}
 
-	private static class FlowRelationshipComparator implements Comparator<Map<String, String>> {
-
-		@Override
-		public int compare(Map<String, String> o1, Map<String, String> o2) {
-			String k1 = o1.get("sourceId").concat(o1.get("targetId"));
-			String k2 = o2.get("sourceId").concat(o2.get("targetId"));
-
-			return k1.compareTo(k2);
-		}
-	}
 }
