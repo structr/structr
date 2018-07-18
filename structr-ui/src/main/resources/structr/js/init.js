@@ -212,6 +212,12 @@ $(function() {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
+		// Ctrl-Alt-s
+		if (k === 83 && altKey && ctrlKey) {
+			e.preventDefault();
+			Structr.dialog('Refactoring helper');
+			new RefactoringHelper(dialog).show();
+		}
 	});
 
 	$(window).on('resize', function() {
