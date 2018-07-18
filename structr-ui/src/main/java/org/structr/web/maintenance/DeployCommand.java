@@ -1278,7 +1278,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final MailTemplate mailTemplate : app.nodeQuery(MailTemplate.class).sort(MailTemplate.name).getAsList()) {
 
-				final Map<String, Object> entry = new HashMap<>();
+				final Map<String, Object> entry = new TreeMap<>();
 				mailTemplates.add(entry);
 
 				entry.put("name",   mailTemplate.getProperty(MailTemplate.name));
@@ -1359,7 +1359,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (final Localization localization : app.nodeQuery(Localization.class).sort(Localization.name).getAsList()) {
 
-				final Map<String, Object> entry = new HashMap<>();
+				final Map<String, Object> entry = new TreeMap<>();
 				localizations.add(entry);
 
 				entry.put("name",                        localization.getProperty(Localization.name));
