@@ -50,21 +50,28 @@ public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 		final Boolean allowed = (Boolean)securityContext.getAttribute("setNestedProperties");
 		if (allowed != null && allowed == true) {
 
-			final PropertyMap mergedProperties = new PropertyMap();
+			if (securityContext.forceMergeOfNestedProperties()) {
 
-			for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
+				final PropertyMap mergedProperties = new PropertyMap();
 
-				final PropertyKey key = entry.getKey();
-				final Object newValue  = entry.getValue();
-				final Object oldValue = obj.getProperty(key);
+				for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
 
-				if (newValue != null && !newValue.equals(oldValue)) {
+					final PropertyKey key = entry.getKey();
+					final Object newValue  = entry.getValue();
+					final Object oldValue = obj.getProperty(key);
 
-					mergedProperties.put(key, merge(oldValue, newValue));
+					if (newValue != null && !newValue.equals(oldValue)) {
+
+						mergedProperties.put(key, merge(oldValue, newValue));
+					}
 				}
-			}
 
-			obj.setProperties(securityContext, mergedProperties);
+				obj.setProperties(securityContext, mergedProperties);
+
+			} else {
+
+				obj.setProperties(securityContext, properties);
+			}
 		}
 	}
 
@@ -76,8 +83,8 @@ public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 			final Collection newCollection = (Collection)newValue;
 			final Set merged               = new LinkedHashSet<>();
 
-			merged.addAll(oldCollection);
 			merged.addAll(newCollection);
+			merged.addAll(oldCollection);
 
 			return new LinkedList<>(merged);
 		};
