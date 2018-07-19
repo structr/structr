@@ -460,7 +460,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 										final SearchAttribute emptyAttribute = key.getSearchAttribute(securityContext, occurrence, null, exactMatch, null);
 
-										// test
+										// empty attribute must have the following occurrence set
 										emptyAttribute.setOccurrence(Occurrence.FORBIDDEN);
 
 										// add null search attribute for empty list of candidates
@@ -468,9 +468,22 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 									} else {
 
+										// collect all results in a single SourceSearchAttribute instead of using one for each item
+										SearchAttribute attribute = null;
+
 										for (final GraphObject candidate : query.getAsList()) {
 
-											addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, candidate, exactMatch, null), occurrence);
+											final SearchAttribute attr = key.getSearchAttribute(securityContext, Occurrence.REQUIRED, candidate, exactMatch, null);
+											if (attribute == null) {
+
+												attribute = attr;
+
+												addAttribute(key, attribute, Occurrence.REQUIRED);
+
+											} else {
+
+												attribute.addToResult(attr.getResult());
+											}
 										}
 									}
 								}

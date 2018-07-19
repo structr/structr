@@ -105,6 +105,7 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 
 			switch (attr.getOccurrence()) {
 
+				case FORBIDDEN:
 				case REQUIRED:
 					includeInResult &= attr.includeInResult(entity);
 					break;
@@ -123,11 +124,6 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 						// and evaluate next search predicate
 						includeInResult = false;
 					}
-					break;
-
-
-				case FORBIDDEN:
-					includeInResult &= !attr.includeInResult(entity);
 					break;
 			}
 		}
