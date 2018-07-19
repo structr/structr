@@ -473,7 +473,7 @@ public abstract class StreamingWriter {
 					if (keys != null) {
 
 						// speciality for the Ui view: limit recursive rendering to (id, name)
-						if (compactNestedProperties && depth > 0 && PropertyView.Ui.equals(localPropertyView)) {
+						if (compactNestedProperties && depth > 0 && (PropertyView.Ui.equals(localPropertyView) || PropertyView.All.equals(localPropertyView))) {
 							keys = idTypeNameOnly;
 						}
 
