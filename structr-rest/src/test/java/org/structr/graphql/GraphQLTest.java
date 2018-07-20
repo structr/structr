@@ -1194,7 +1194,6 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Project.0.tasks.#",   10);
 			assertMapPathValueIs(result, "Project.0.taskCount", 10.0);
 		}
-
 	}
 
 	@Test
@@ -1680,7 +1679,97 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 	}
 
+	@Test
+	public void testCombinedFilteringOnMultipleLevels() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project    = schema.addType("Project");
+			final JsonObjectType identifier = schema.addType("Identifier");
+
+			project.relate(identifier, "HAS",    Relation.Cardinality.OneToOne, "project", "identifier");
+
+			identifier.addStringProperty("test1").setIndexed(true);
+			identifier.addStringProperty("test2").setIndexed(true);
+			identifier.addStringProperty("test3").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> projects    = new LinkedList<>();
+		final List<NodeInterface> identifiers = new LinkedList<>();
+		final Class project                   = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class identifier                = StructrApp.getConfiguration().getNodeEntityClass("Identifier");
+		final PropertyKey projectNameKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "name");
+		final PropertyKey identifierKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "identifier");
+		final PropertyKey test1Key            = StructrApp.getConfiguration().getPropertyKeyForJSONName(identifier, "test1");
+		final PropertyKey test2Key            = StructrApp.getConfiguration().getPropertyKeyForJSONName(identifier, "test2");
+		final PropertyKey test3Key            = StructrApp.getConfiguration().getPropertyKeyForJSONName(identifier, "test3");
+
+		try (final Tx tx = app.tx()) {
+
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "bbb"), new NodeAttribute<>(test3Key, "ddd")));
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "bbb"), new NodeAttribute<>(test3Key, "eee")));
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "ccc"), new NodeAttribute<>(test3Key, "fff")));
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "ccc"), new NodeAttribute<>(test3Key, "ggg")));
+
+			projects.add(app.create(project, new NodeAttribute<>(projectNameKey, "project1"), new NodeAttribute<>(identifierKey, identifiers.get(0))));
+			projects.add(app.create(project, new NodeAttribute<>(projectNameKey, "project2"), new NodeAttribute<>(identifierKey, identifiers.get(1))));
+			projects.add(app.create(project, new NodeAttribute<>(projectNameKey, "project3"), new NodeAttribute<>(identifierKey, identifiers.get(2))));
+			projects.add(app.create(project, new NodeAttribute<>(projectNameKey, "project4"), new NodeAttribute<>(identifierKey, identifiers.get(3))));
+			projects.add(app.create(project, new NodeAttribute<>(projectNameKey, "project5")));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		final String body = "{ name, identifier { test1, test2, test3 }}";
+
+		// check _equals
+		assertCount("{ Project " + body + "}", "Project.#", 5);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}) " + body + "}", "Project.#", 4);
+		assertCount("{ Project(identifier: { test1: { _equals: \"xxx\" }}) " + body + "}", "Project.#", 0);
+
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"bbb\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"ddd\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"bbb\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"ddd\" }}) " + body + "}", "Project.#", 0);
+
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"bbb\" }, test3: { _equals: \"eee\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"bbb\" }, test3: { _equals: \"fff\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"bbb\" }}, identifier: {  test3: { _equals: \"eee\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"bbb\" }}, identifier: {  test3: { _equals: \"fff\" }}) " + body + "}", "Project.#", 0);
+
+		// same for _contains
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}) " + body + "}", "Project.#", 4);
+
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"b\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"d\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"b\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"d\" }}) " + body + "}", "Project.#", 0);
+
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"b\" }, test3: { _contains: \"e\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"b\" }, test3: { _contains: \"f\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"b\" }}, identifier: {  test3: { _contains: \"e\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"b\" }}, identifier: {  test3: { _contains: \"f\" }}) " + body + "}", "Project.#", 0);
+	}
+
 	// ----- private methods -----
+	private void assertCount(final String query, final String path, final int count) {
+		assertMapPathValueIs(fetchGraphQL(query), path, count);
+	}
+
 	private Map<String, Object> fetchGraphQL(final String query) {
 
 		return RestAssured

@@ -107,6 +107,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	private static final int permissionResolutionMaxLevel                                                 = Settings.ResolutionDepth.getValue();
 	private static final Logger logger                                                                    = LoggerFactory.getLogger(AbstractNode.class.getName());
+	private static final FixedSizeCache<String, Boolean> isGrantedResultCache                             = new FixedSizeCache<String, Boolean>(100000);
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                 = new FixedSizeCache<>(1000);
 	private static final Map<Long, Map<Long, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 
@@ -777,10 +778,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return this.getRelationships(type).iterator().hasNext();
 	}
 
+	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type) {
 		return getRelationshipForType(type).getSource().hasElements(securityContext, dbNode, null);
 	}
 
+	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type) {
 		return getRelationshipForType(type).getTarget().hasElements(securityContext, dbNode, null);
 	}
@@ -800,19 +803,29 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			accessingUser = context.getUser(false);
 		}
 
-		final boolean doLog = securityContext.hasParameter("logPermissionResolution");
+		final String cacheKey = getUuid() + "." + permission.name() + "." + context.getCachedUserId();
+		final Boolean cached  = isGrantedResultCache.get(cacheKey);
 
-		return isGranted(permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed(), true, doLog);
+		if (cached != null) {
+			return cached;
+		}
+
+		final boolean doLog  = securityContext.hasParameter("logPermissionResolution");
+		final boolean result = isGranted(permission, accessingUser, new PermissionResolutionMask(), 0, new AlreadyTraversed(), true, doLog);
+
+		isGrantedResultCache.put(cacheKey, result);
+
+		return result;
 	}
 
 	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog) {
 		return isGranted(permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null);
 	}
-	
+
 	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final List<Security> incomingSecurityRelationships) {
 
 		final List<Security> localIncomingSecurityRelationships = (List<Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));
-		
+
 		if (level > 100) {
 			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
 			return false;
@@ -1274,7 +1287,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return null;
 
 	}
-	
+
 	/**
 	 * Return the (cached) incoming relationship between this node and the
 	 * given principal which holds the security information.
@@ -1286,19 +1299,19 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public final Security getSecurityRelationship(final Principal p) {
 		return getSecurityRelationship(p, getIncomingRelationshipsAsSuperUser(Security.class));
 	}
-	
+
 	@Override
 	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
 	}
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		clearPermissionResolutionCache();
+		clearCaches();
 	}
 
 	@Override
 	public void onDeletion(SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties) throws FrameworkException {
-		clearPermissionResolutionCache();
+		clearCaches();
 	}
 
 	@Override
@@ -1315,22 +1328,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	@Override
 	public void ownerModified(SecurityContext securityContext) {
-		clearPermissionResolutionCache();
+		clearCaches();
 	}
 
 	@Override
 	public void securityModified(SecurityContext securityContext) {
-		clearPermissionResolutionCache();
+		clearCaches();
 	}
 
 	@Override
 	public void locationModified(SecurityContext securityContext) {
-		clearPermissionResolutionCache();
+		clearCaches();
 	}
 
 	@Override
 	public void propagatedModification(SecurityContext securityContext) {
-		clearPermissionResolutionCache();
+		clearCaches();
 	}
 
 	@Override
@@ -1576,8 +1589,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		relationshipTemplateInstanceCache.clear();
 	}
 
-	public static void clearPermissionResolutionCache() {
+	public static void clearCaches() {
 		globalPermissionResolutionCache.clear();
+		isGrantedResultCache.clear();
 	}
 
 	public static <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R getRelationshipForType(final Class<R> type) {
@@ -1801,6 +1815,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			throw new FrameworkException(403, "Access control not permitted");
 		}
 
+		clearCaches();
+
 		Security secRel = getSecurityRelationship(principal);
 		if (secRel == null) {
 
@@ -1833,6 +1849,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		if (!isGranted(Permission.accessControl, securityContext)) {
 			throw new FrameworkException(403, "Access control not permitted");
 		}
+
+		clearCaches();
 
 		Security secRel = getSecurityRelationship(principal);
 		if (secRel != null) {
