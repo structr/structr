@@ -728,6 +728,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 				query.or(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
+		} else if (requestParameter.contains(",")) {
+
+			// descend into a new group
+			query.and();
+
+			for (final String part : requestParameter.split("[,]+")) {
+
+				query.and(this, convertSearchValue(securityContext, part), exactMatch);
+			}
+
+			// ascend to the last group
+			query.parent();
+
 		} else {
 
 			query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);

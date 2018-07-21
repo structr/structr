@@ -46,6 +46,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.core.graph.search.SourceSearchAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
@@ -411,9 +412,10 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 			} else if (value instanceof ObjectValue) {
 
 				// handle complex query object
-				final Map<String, Object> input = unwrapValue((ObjectValue)value);
+				final Map<String, Object> input           = unwrapValue((ObjectValue)value);
+				final Set<Entry<String, Object>> entrySet = input.entrySet();
 
-				for (final Entry<String, Object> entry : input.entrySet()) {
+				for (final Entry<String, Object> entry : entrySet) {
 
 					final String searchKey   = entry.getKey();
 					final Object searchValue = entry.getValue();
@@ -447,24 +449,25 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 									exactMatch = false;
 								}
 
-								// add sources that will be merge later on
+								// add sources that will be merged later on
 								if (key.isCollection()) {
 
-									//addAttribute(key, key.getSearchAttribute(securityContext, occurrence, query.getAsList(), exactMatch, null), occurrence);
-									addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.OPTIONAL, query.getAsList(), exactMatch, null), occurrence);
+									final List<GraphObject> list = query.getAsList();
+									if (list.isEmpty()) {
+
+										addAttribute(key, new SourceSearchAttribute(Occurrence.REQUIRED), occurrence);
+
+									} else {
+
+										addAttribute(key, key.getSearchAttribute(securityContext, Occurrence.REQUIRED, list, exactMatch, null), Occurrence.REQUIRED);
+									}
 
 								} else {
 
 									final List<GraphObject> list = query.getAsList();
 									if (list.isEmpty()) {
 
-										final SearchAttribute emptyAttribute = key.getSearchAttribute(securityContext, occurrence, null, exactMatch, null);
-
-										// empty attribute must have the following occurrence set
-										emptyAttribute.setOccurrence(Occurrence.FORBIDDEN);
-
-										// add null search attribute for empty list of candidates
-										addAttribute(key, emptyAttribute, occurrence);
+										addAttribute(key, new SourceSearchAttribute(Occurrence.REQUIRED), occurrence);
 
 									} else {
 
