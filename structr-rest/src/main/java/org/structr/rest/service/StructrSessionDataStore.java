@@ -18,8 +18,6 @@
  */
 package org.structr.rest.service;
 
-import java.util.Date;
-import java.util.Set;
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionData;
 import org.slf4j.Logger;
@@ -27,43 +25,60 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SessionDataNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyMap;
+
+import java.util.*;
 
 /**
  */
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
+	private static final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+	private static final App app = StructrApp.getInstance(ctx);
+	private static final Services services = Services.getInstance();
+
+	private static final Map<String, SessionData> anonymousSessionCache = new HashMap<>();
 
 	@Override
 	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
 
 		assertInitialized();
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app             = StructrApp.getInstance(ctx);
-
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final SessionDataNode node = getOrCreateSessionDataNode(app, id);
-			if (node != null) {
+			Map<String, Object> params = new HashMap<>();
+			params.put("id", id);
+			List<GraphObject> results = app.cypher("MATCH (n:User) WHERE {id} IN n.sessionIds RETURN count(n) > 0 as result", params);
+			boolean isAuthenticated = results.get(0).getProperty(new BooleanProperty("result"));
 
-				final PropertyMap properties = new PropertyMap();
+			if (isAuthenticated) {
 
-				properties.put(SessionDataNode.lastAccessed, new Date(data.getLastAccessed()));
-				properties.put(SessionDataNode.contextPath,  data.getContextPath());
-				properties.put(SessionDataNode.vhost,        data.getVhost());
+				final SessionDataNode node = getOrCreateSessionDataNode(app, id);
+				if (node != null) {
 
-				node.setProperties(ctx, properties);
+					final PropertyMap properties = new PropertyMap();
+
+					properties.put(SessionDataNode.lastAccessed, new Date(data.getLastAccessed()));
+					properties.put(SessionDataNode.contextPath, data.getContextPath());
+					properties.put(SessionDataNode.vhost, data.getVhost());
+
+					node.setProperties(ctx, properties);
+				}
+
+				tx.success();
+
+			} else {
+				anonymousSessionCache.put(id, data);
 			}
-
-			tx.success();
 
 		} catch (FrameworkException ex) {
 
@@ -73,13 +88,17 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	@Override
 	public Set<String> doGetExpired(final Set<String> candidates) {
+		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
+		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
 
 		assertInitialized();
 
-		final long sessionTimeout = Settings.SessionTimeout.getValue(1800) * 1000;
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app             = StructrApp.getInstance(ctx);
-		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
+		for (Map.Entry<String,SessionData> entry : anonymousSessionCache.entrySet()) {
+			SessionData data = entry.getValue();
+			if ( (new Date().getTime() - data.getLastAccessed()) > sessionTimeout) {
+				candidates.add(entry.getKey());
+			}
+		}
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -106,10 +125,11 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	@Override
 	public boolean exists(final String id) throws Exception {
 
-		assertInitialized();
+		if (anonymousSessionCache.containsKey(id)) {
+			return true;
+		}
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app             = StructrApp.getInstance(ctx);
+		assertInitialized();
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -130,10 +150,12 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	@Override
 	public SessionData load(final String id) throws Exception {
 
+		if (anonymousSessionCache.containsKey(id)) {
+			return anonymousSessionCache.get(id);
+		}
+
 		assertInitialized();
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app             = StructrApp.getInstance(ctx);
 		SessionData result        = null;
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -165,10 +187,12 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	@Override
 	public boolean delete(final String id) throws Exception {
 
-		assertInitialized();
+		if (anonymousSessionCache.containsKey(id)) {
+			anonymousSessionCache.remove(id);
+			return true;
+		}
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app             = StructrApp.getInstance(ctx);
+		assertInitialized();
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -194,7 +218,6 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	// ----- private methods -----
 	private void assertInitialized() {
 
-		final Services services = Services.getInstance();
 		if (!services.isShuttingDown() && !services.isShutdownDone()) {
 
 			// wait for service layer to be initialized
