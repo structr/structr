@@ -443,6 +443,11 @@ img.disabled {
 	top: 271px;
 }
 
+#componentsArea .node {
+	width: calc(100% - 30px);
+}
+
+
 #elementsTab {
 	left: -74px;
 	width: 108px;
@@ -5041,4 +5046,42 @@ div#xml-configurations button {
 	min-height: 20px;
 	max-height: 300px;
 	overflow: auto;
+}
+
+/**
+ * Refactoring Helper
+ */
+input.refactoring-helper {
+	box-sizing: border-box;
+	width: 25%;
+}
+
+table.refactoring-helper {
+	width: 100%;
+	border-collapse: collapse;
+	margin-top: 12px;
+	margin-bottom: 12px;
+	font-size: 9pt;
+}
+
+table.refactoring-helper th {
+	background-color: #e4e4e4;
+	padding: 2px;
+}
+
+table.refactoring-helper tr:nth-child(odd) {
+	background-color: #f5f5f5;
+}
+
+table.refactoring-helper td:first-child {
+	width: 20%;
+}
+
+table.refactoring-helper td {
+	padding: 0px;
+}
+
+table.refactoring-helper td input {
+	width: 100%;
+	box-sizing: border-box;
 }

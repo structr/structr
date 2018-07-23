@@ -35,7 +35,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
-import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
@@ -50,7 +49,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.schema.ConfigurationProvider;
 
 /**
  * Base class for all resource constraints. Constraints can be combined with succeeding constraints to avoid unneccesary evaluation.
@@ -304,7 +302,6 @@ public abstract class Resource {
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
 			final boolean exactSearch          = !(parseInteger(request.getParameter(JsonRestServlet.REQUEST_PARAMETER_LOOSE_SEARCH)) == 1);
-			final ConfigurationProvider conf   = Services.getInstance().getConfigurationProvider();
 			final List<PropertyKey> searchKeys = new LinkedList<>();
 
 			for (final String name : request.getParameterMap().keySet()) {

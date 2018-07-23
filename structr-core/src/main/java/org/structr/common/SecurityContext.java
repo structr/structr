@@ -57,6 +57,7 @@ public class SecurityContext {
 	private static final Pattern customViewPattern       = Pattern.compile(".*properties=([a-zA-Z_,]+)");
 	private boolean uuidWasSetManually                   = false;
 	private boolean doTransactionNotifications           = false;
+	private boolean forceMergeOfNestedProperties         = false;
 	private boolean doCascadingDelete                    = true;
 	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
@@ -122,6 +123,10 @@ public class SecurityContext {
 
 			if ("disabled".equals(request.getHeader("Structr-Cascading-Delete"))) {
 				this.doCascadingDelete = false;
+			}
+
+			if ("enabled".equals(request.getHeader("Structr-Force-Merge-Of-Nested-Properties"))) {
+				this.forceMergeOfNestedProperties = true;
 			}
 
 			if (request.getParameter("ignoreResultCount") != null) {
@@ -814,6 +819,10 @@ public class SecurityContext {
 
 	public void enableEnsureCardinality() {
 		ensureCardinality = false;
+	}
+
+	public boolean forceMergeOfNestedProperties() {
+		return forceMergeOfNestedProperties;
 	}
 
 	public boolean uuidWasSetManually() {

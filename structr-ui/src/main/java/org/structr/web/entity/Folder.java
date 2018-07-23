@@ -26,6 +26,7 @@ import org.structr.api.util.Iterables;
 import org.structr.cmis.CMISInfo;
 import org.structr.cmis.info.CMISFolderInfo;
 import org.structr.common.ConstantBooleanTrue;
+import org.structr.common.ContextAwareEntity;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -40,7 +41,7 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
 
 
-public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
+public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextAwareEntity {
 
 	static class Impl { static {
 
@@ -79,6 +80,9 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo {
 		type.overrideMethod("isMounted",      false, "return " + Folder.class.getName() + ".isMounted(this);");
 
 		type.overrideMethod("getFileOnDisk",  false, "return " + Folder.class.getName() + ".getFileOnDisk(this, arg0, arg1, arg2);");
+		
+		// ContextAwareEntity
+		type.overrideMethod("getEntityContextPath",  false, "return getPath();");
 
 		// ----- CMIS support -----
 		type.overrideMethod("getCMISInfo",         false, "return this;");

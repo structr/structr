@@ -251,60 +251,25 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
-		final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
-		boolean alreadyAdded                      = false;
 
 		if (searchValue != null && !searchValue.isEmpty()) {
 
-			if (exactMatch) {
+			if (!Occurrence.FORBIDDEN.equals(occur)) {
 
-				for (NodeInterface node : searchValue) {
+				final Set<GraphObject> intersectionResult = new LinkedHashSet<>();
 
-					switch (occur) {
-
-						case REQUIRED:
-
-							if (!alreadyAdded) {
-
-								// the first result is the basis of all subsequent intersections
-								intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-
-								// the next additions are intersected with this one
-								alreadyAdded = true;
-
-							} else {
-
-								intersectionResult.retainAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-							}
-
-							break;
-
-						case OPTIONAL:
-							intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
-							break;
-
-						case FORBIDDEN:
-							break;
-					}
-				}
-
-			} else {
-
-				// loose search behaves differently, all results must be combined
 				for (NodeInterface node : searchValue) {
 
 					intersectionResult.addAll(getRelatedNodesReverse(securityContext, node, declaringClass, predicate));
 				}
-			}
 
-			attr.setResult(intersectionResult);
+				attr.setResult(intersectionResult);
+			}
 
 		} else {
 
-			// experimental filter attribute that
-			// removes entities with a non-empty
-			// value in the given field
-			return new EmptySearchAttribute(this, null);
+			// experimental filter attribute that removes entities with a non-empty value in the given field
+			return new EmptySearchAttribute(this, null, true);
 		}
 
 		return attr;

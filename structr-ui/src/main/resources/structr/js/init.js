@@ -212,6 +212,12 @@ $(function() {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
+		// Ctrl-Alt-s
+		if (k === 83 && altKey && ctrlKey) {
+			e.preventDefault();
+			Structr.dialog('Refactoring helper');
+			new RefactoringHelper(dialog).show();
+		}
 	});
 
 	$(window).on('resize', function() {
@@ -995,11 +1001,21 @@ var Structr = {
 		});
 	},
 	openSlideOut: function(slideout, tab, activeTabKey, callback) {
-		var s = $(slideout);
-		s.addClass('open');
+
+		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
+		var rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
+
+		slideout.css({
+			width: rsw - 12 + 'px'
+		});
+
+		slideout.addClass('open');
 		var t = $(tab);
 		t.addClass('active');
-		s.animate({right: '+=' + rsw + 'px'}, {duration: 100}).zIndex(1);
+		slideout.animate({right: 0 + 'px'}, {duration: 100}).zIndex(1);
+
+		$('.node', slideout).width(rsw - 25);
+
 		LSWrapper.setItem(activeTabKey, t.prop('id'));
 		if (callback) {
 			callback();
@@ -1007,12 +1023,16 @@ var Structr = {
 		_Pages.resize(0, rsw);
 	},
 	closeSlideOuts: function(slideouts, activeTabKey) {
+		var storedRightSlideoutWidth = LSWrapper.getItem(_Pages.rightSlideoutWidthKey);
+		var rsw = 0;
+
 		var wasOpen = false;
 		slideouts.forEach(function(slideout) {
 			slideout.removeClass('open');
 			var l = slideout.position().left;
 			if (Math.abs(l - $(window).width()) >= 3) {
 				wasOpen = true;
+				rsw = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideout.width() + 12);
 				slideout.animate({right: '-=' + rsw + 'px'}, {duration: 100}).zIndex(2);
 				$('.compTab.active', slideout).removeClass('active');
 

@@ -18,7 +18,6 @@
  */
 var pages, shadowPage;
 var previews, previewTabs, controls, activeTab, activeTabLeft, activeTabRight, paletteSlideout, elementsSlideout, componentsSlideout, widgetsSlideout, pagesSlideout, activeElementsSlideout, dataBindingSlideout;
-var rsw;
 var components, elements;
 var selStart, selEnd;
 var sel;
@@ -35,6 +34,7 @@ var _Pages = {
 	autoRefresh: [],
 	activeTabKey: 'structrActiveTab_' + port,
 	leftSlideoutWidthKey: 'structrLeftSlideoutWidthKey_' + port,
+	rightSlideoutWidthKey: 'structrRightSlideoutWidthKey_' + port,
 	activeTabRightKey: 'structrActiveTabRight_' + port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + port,
 	selectedTypeKey: 'structrSelectedType_' + port,
@@ -150,8 +150,6 @@ var _Pages = {
 		componentsSlideout = $('#components');
 		elementsSlideout = $('#elements');
 		elementsSlideout.data('closeCallback', _Elements.clearUnattachedNodes);
-
-		rsw = widgetsSlideout.width() + 12;
 
 		var pagesTabSlideoutAction = function() {
 			_Pages.leftSlideoutTrigger(this, pagesSlideout, [activeElementsSlideout, dataBindingSlideout, localizationsSlideout], _Pages.activeTabLeftKey, function (params) {

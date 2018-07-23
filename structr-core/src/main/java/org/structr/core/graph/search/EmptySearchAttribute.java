@@ -31,8 +31,17 @@ import org.structr.core.property.PropertyKey;
  */
 public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 
+	private boolean removeFromQuery = false;
+
 	public EmptySearchAttribute(PropertyKey<T> key, T value) {
+		this(key, value, false);
+	}
+
+	public EmptySearchAttribute(PropertyKey<T> key, T value, final boolean removeFromQuery) {
+
 		super(key, value, Occurrence.REQUIRED, true);
+
+		this.removeFromQuery = removeFromQuery;
 	}
 
 	@Override
@@ -77,6 +86,19 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Indicates whether this search attribute should be removed prior
+	 * to sending a query to the backend. This method exists to allow
+	 * relationship properties to signal that an empty query attribute
+	 * should not modify the query since it will only be used to filter
+	 * the query result afterwards.
+	 *
+	 * @return whether to remove this search attribute before actually querying the database
+	 */
+	public boolean removeFromQuery() {
+		return removeFromQuery;
 	}
 
 	private boolean equal(T nodeValue, T searchValue) {
