@@ -54,7 +54,6 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
-import org.eclipse.jetty.server.session.FileSessionDataStore;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -285,7 +284,9 @@ public class HttpService implements RunnableService {
 		sessionCache.setSessionDataStore(sessionDataStore);
 		sessionCache.setSaveOnInactiveEviction(false);
 		sessionCache.setRemoveUnloadableSessions(true);
-
+		sessionCache.setEvictionPolicy(60);
+		
+		servletContext.getSessionHandler().setMaxInactiveInterval(maxIdleTime);
 		servletContext.getSessionHandler().setSessionCache(sessionCache);
 
 		if (enableRewriteFilter) {

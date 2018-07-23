@@ -21,8 +21,6 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +38,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
@@ -521,12 +520,18 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			out.append("<").append(tag);
 
-			Set<PropertyKey> htmlAttributes = StructrApp.getConfiguration().getPropertySet(thisElement.getEntityType(), PropertyView.Html);
+			final ConfigurationProvider config = StructrApp.getConfiguration();
+			final Class type = thisElement.getEntityType();
 
+			final List<PropertyKey> htmlAttributes = new ArrayList<>();
+			thisElement.getNode().getPropertyKeys().forEach((key) -> {
+				if (key.startsWith(PropertyView.Html)) {
+					htmlAttributes.add(config.getPropertyKeyForJSONName(type, key));
+				}
+			});
+			
 			if (EditMode.DEPLOYMENT.equals(editMode)) {
-				List sortedAttributes = new LinkedList(htmlAttributes);
-				Collections.sort(sortedAttributes);
-				htmlAttributes = new LinkedHashSet<>(sortedAttributes);
+				Collections.sort(htmlAttributes);
 			}
 
 			for (PropertyKey attribute : htmlAttributes) {
