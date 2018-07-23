@@ -1401,6 +1401,7 @@ public class DocumentTest extends StructrRestTest {
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.header("Structr-Force-Merge-Of-Nested-Properties", "enabled")
 			.body("{\"name\":\"Project2\",\"tasks\":[{\"name\":\"Task1\",\"worker\":[{\"name\":\"Worker2\"}]}]}")
 			.expect()
 			.statusCode(201)
@@ -1426,6 +1427,138 @@ public class DocumentTest extends StructrRestTest {
 			.get("/Task/ui");
 	}
 
+	@Test
+	public void testNestedUpdate() {
+
+		cleanDatabaseAndSchema();
+
+		final String projectNodeId     = createSchemaNode("Project", new Pair("_name", "+String!"), new Pair("_description", "String"), new Pair("__test", "id, type, name, tasks"));
+		final String taskNodeId        = createSchemaNode("Task",    new Pair("_name", "+String!"), new Pair("_description", "String"), new Pair("__test", "id, type, name, workers"));
+		final String workerNodeId      = createSchemaNode("Worker",  new Pair("_name", "+String!"), new Pair("_description", "String"), new Pair("__test", "id, type, name"));
+
+		// create relationships
+		createSchemaRelationships(projectNodeId, taskNodeId,   "TASK",     "*", "*", "project",    "tasks",    Relation.NONE, Relation.SOURCE_TO_TARGET);
+		createSchemaRelationships(workerNodeId, taskNodeId,    "WORKS_ON", "*", "*", "workers",    "tasks",    Relation.NONE, Relation.SOURCE_TO_TARGET);
+
+		final String project1 = createEntity("/Project", "{ name: Project1 }");
+		final String task1    = createEntity("/Task", "{ name: Task1 }");
+		final String worker1  = createEntity("/Worker", "{ name: Worker1 }");
+		final String worker2  = createEntity("/Worker", "{ name: Worker2 }");
+		final String worker3  = createEntity("/Worker", "{ name: Worker3 }");
+		final String worker4  = createEntity("/Worker", "{ name: Worker4 }");
+
+		// add a task
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ tasks: [" + task1 + "] }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.put("/Project/" + project1);
+
+		// check result
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+
+			.body("result",                     hasSize(1))
+			.body("result_count",               equalTo(1))
+
+			.body("result[0].name",             equalTo("Project1"))
+			.body("result[0].tasks[0].name",    equalTo("Task1"))
+			.body("result[0].tasks[0].workers", hasSize(0))
+
+			.when()
+			.get("/Project/test");
+
+		// add a single worker using nested PUT
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker1 + "] } ] }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.put("/Project/" + project1);
+
+		// check result
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+
+			.body("result",                             hasSize(1))
+			.body("result_count",                       equalTo(1))
+
+			.body("result[0].name",                     equalTo("Project1"))
+			.body("result[0].tasks[0].name",            equalTo("Task1"))
+			.body("result[0].tasks[0].workers[0].name", equalTo("Worker1"))
+
+			.when()
+			.get("/Project/test");
+
+		// add a second worker
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker1 + ", " + worker2 + " ] } ] }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.put("/Project/" + project1);
+
+		// check result
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+
+			.body("result",                             hasSize(1))
+			.body("result_count",                       equalTo(1))
+
+			.body("result[0].name",                     equalTo("Project1"))
+			.body("result[0].tasks[0].name",            equalTo("Task1"))
+			.body("result[0].tasks[0].workers[0].name", equalTo("Worker1"))
+			.body("result[0].tasks[0].workers[1].name", equalTo("Worker2"))
+
+			.when()
+			.get("/Project/test");
+
+		// replace workers with worker3
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker3 + " ] } ] }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.put("/Project/" + project1);
+
+		// check result
+		RestAssured.given().contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(200)
+
+			.body("result",                             hasSize(1))
+			.body("result_count",                       equalTo(1))
+
+			.body("result[0].name",                     equalTo("Project1"))
+			.body("result[0].tasks[0].name",            equalTo("Task1"))
+			.body("result[0].tasks[0].workers[0].name", equalTo("Worker3"))
+
+			.when()
+			.get("/Project/test");
+
+	}
+
+	// ----- private methods -----
 	private String createSchemaNode(final String name, Pair... properties) {
 
 		final StringBuilder buf = new StringBuilder();
@@ -1466,7 +1599,6 @@ public class DocumentTest extends StructrRestTest {
 		return createEntity("/schema_nodes", buf.toString());
 	}
 
-	// ----- private methods -----
 	private String createSchemaRelationships(final String sourceId, final String targetId, final String relationshipType, final String sourceMultiplicity, final String targetMultiplicity, final String sourceJsonName, final String targetJsonName, final int autocreate, final int cascadingDelete) {
 
 		return createEntity(

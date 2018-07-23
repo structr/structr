@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
@@ -48,6 +49,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.rest.common.StructrGraphQLTest;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonEnumProperty;
@@ -1194,7 +1196,6 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Project.0.tasks.#",   10);
 			assertMapPathValueIs(result, "Project.0.taskCount", 10.0);
 		}
-
 	}
 
 	@Test
@@ -1680,7 +1681,427 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 	}
 
+	@Test
+	public void testCombinedFilteringOnMultipleProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project    = schema.addType("Project");
+			final JsonObjectType identifier = schema.addType("Identifier");
+
+			project.relate(identifier, "HAS",    Relation.Cardinality.OneToOne, "project", "identifier");
+
+			identifier.addStringProperty("test1").setIndexed(true);
+			identifier.addStringProperty("test2").setIndexed(true);
+			identifier.addStringProperty("test3").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<NodeInterface> identifiers = new LinkedList<>();
+		final Class project                   = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class identifier                = StructrApp.getConfiguration().getNodeEntityClass("Identifier");
+		final PropertyKey projectNameKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "name");
+		final PropertyKey identifierKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "identifier");
+		final PropertyKey test1Key            = StructrApp.getConfiguration().getPropertyKeyForJSONName(identifier, "test1");
+		final PropertyKey test2Key            = StructrApp.getConfiguration().getPropertyKeyForJSONName(identifier, "test2");
+		final PropertyKey test3Key            = StructrApp.getConfiguration().getPropertyKeyForJSONName(identifier, "test3");
+
+		try (final Tx tx = app.tx()) {
+
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "bbb"), new NodeAttribute<>(test3Key, "ddd")));
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "bbb"), new NodeAttribute<>(test3Key, "eee")));
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "ccc"), new NodeAttribute<>(test3Key, "fff")));
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "aaa"), new NodeAttribute<>(test2Key, "ccc"), new NodeAttribute<>(test3Key, "ggg")));
+			identifiers.add(app.create(identifier, new NodeAttribute<>(test1Key, "zzz"), new NodeAttribute<>(test2Key, "zzz"), new NodeAttribute<>(test3Key, "zzz")));
+
+			app.create(project, new NodeAttribute<>(projectNameKey, "project1"), new NodeAttribute<>(identifierKey, identifiers.get(0)));
+			app.create(project, new NodeAttribute<>(projectNameKey, "project2"), new NodeAttribute<>(identifierKey, identifiers.get(1)));
+			app.create(project, new NodeAttribute<>(projectNameKey, "project3"), new NodeAttribute<>(identifierKey, identifiers.get(2)));
+			app.create(project, new NodeAttribute<>(projectNameKey, "project4"), new NodeAttribute<>(identifierKey, identifiers.get(3)));
+			app.create(project, new NodeAttribute<>(projectNameKey, "project5"), new NodeAttribute<>(identifierKey, identifiers.get(4)));
+			app.create(project, new NodeAttribute<>(projectNameKey, "project6"));
+			app.create(project, new NodeAttribute<>(projectNameKey, "project7"));
+			app.create(project, new NodeAttribute<>(projectNameKey, "project8"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		final String body = "{ name, identifier { test1, test2, test3 }}";
+
+		// check _equals
+		assertCount("{ Project " + body + "}", "Project.#", 8);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}) " + body + "}", "Project.#", 4);
+		assertCount("{ Project(identifier: { test1: { _equals: \"xxx\" }}) " + body + "}", "Project.#", 0);
+
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"bbb\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"ddd\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"bbb\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"ddd\" }}) " + body + "}", "Project.#", 0);
+
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"bbb\" }, test3: { _equals: \"eee\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }, test2: { _equals: \"bbb\" }, test3: { _equals: \"fff\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"bbb\" }}, identifier: {  test3: { _equals: \"eee\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _equals: \"aaa\" }}, identifier: { test2: { _equals: \"bbb\" }}, identifier: {  test3: { _equals: \"fff\" }}) " + body + "}", "Project.#", 0);
+
+		// same for _contains
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}) " + body + "}", "Project.#", 4);
+
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"b\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"d\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"b\" }}) " + body + "}", "Project.#", 2);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"d\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(_page: 1, _pageSize: 100, _sort: \"name\", _desc: false, identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"b\" }}) " + body + "}", "Project.#", 2);
+
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"b\" }, test3: { _contains: \"e\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }, test2: { _contains: \"b\" }, test3: { _contains: \"f\" }}) " + body + "}", "Project.#", 0);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"b\" }}, identifier: {  test3: { _contains: \"e\" }}) " + body + "}", "Project.#", 1);
+		assertCount("{ Project(identifier: { test1: { _contains: \"a\" }}, identifier: { test2: { _contains: \"b\" }}, identifier: {  test3: { _contains: \"f\" }}) " + body + "}", "Project.#", 0);
+	}
+
+	@Test
+	public void testCombinedFilteringOnMultiplePropertiesAndCardinalities() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType root      = schema.addType("Root");
+			final JsonObjectType oneToOne  = schema.addType("OneToOneTest");
+			final JsonObjectType oneToMany = schema.addType("OneToManyTest");
+			final JsonObjectType manyToOne = schema.addType("ManyToOneTest");
+			final JsonObjectType manyToMany = schema.addType("ManyToManyTest");
+
+			root.relate(oneToOne,   "oneToOne",   Relation.Cardinality.OneToOne,   "rootOneToOne",   "oneToOne");
+			root.relate(oneToMany,  "oneToMany",  Relation.Cardinality.OneToMany,  "rootOneToMany",  "oneToMany");
+			root.relate(manyToOne,  "manyToOne",  Relation.Cardinality.ManyToOne,  "rootManyToOne",  "manyToOne");
+			root.relate(manyToMany, "manyToMany", Relation.Cardinality.ManyToMany, "rootManyToMany", "manyToMany");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class root                      = StructrApp.getConfiguration().getNodeEntityClass("Root");
+		final Class oneToOne                  = StructrApp.getConfiguration().getNodeEntityClass("OneToOneTest");
+		final Class oneToMany                 = StructrApp.getConfiguration().getNodeEntityClass("OneToManyTest");
+		final Class manyToOne                 = StructrApp.getConfiguration().getNodeEntityClass("ManyToOneTest");
+		final Class manyToMany                = StructrApp.getConfiguration().getNodeEntityClass("ManyToManyTest");
+		final PropertyKey nameKey             = StructrApp.getConfiguration().getPropertyKeyForJSONName(root, "name");
+		final PropertyKey oneToOneKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(root, "oneToOne");
+		final PropertyKey oneToManyKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(root, "oneToMany");
+		final PropertyKey manyToOneKey        = StructrApp.getConfiguration().getPropertyKeyForJSONName(root, "manyToOne");
+		final PropertyKey manyToManyKey       = StructrApp.getConfiguration().getPropertyKeyForJSONName(root, "manyToMany");
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface oneToOne0 = app.create(oneToOne, "oneToOne0");
+			final NodeInterface oneToOne1 = app.create(oneToOne, "oneToOne1");
+			final NodeInterface oneToOne2 = app.create(oneToOne, "oneToOne2");
+			final NodeInterface oneToOne3 = app.create(oneToOne, "oneToOne3");
+			final NodeInterface oneToOne4 = app.create(oneToOne, "oneToOne4");
+			final NodeInterface oneToOne5 = app.create(oneToOne, "oneToOne5");
+			final NodeInterface oneToOne6 = app.create(oneToOne, "oneToOne6");
+			final NodeInterface oneToOne7 = app.create(oneToOne, "oneToOne7");
+
+			final NodeInterface oneToMany00 = app.create(oneToMany, "oneToMany00");
+			final NodeInterface oneToMany01 = app.create(oneToMany, "oneToMany01");
+			final NodeInterface oneToMany02 = app.create(oneToMany, "oneToMany02");
+			final NodeInterface oneToMany03 = app.create(oneToMany, "oneToMany03");
+			final NodeInterface oneToMany04 = app.create(oneToMany, "oneToMany04");
+			final NodeInterface oneToMany05 = app.create(oneToMany, "oneToMany05");
+			final NodeInterface oneToMany06 = app.create(oneToMany, "oneToMany06");
+			final NodeInterface oneToMany07 = app.create(oneToMany, "oneToMany07");
+			final NodeInterface oneToMany08 = app.create(oneToMany, "oneToMany08");
+			final NodeInterface oneToMany09 = app.create(oneToMany, "oneToMany09");
+			final NodeInterface oneToMany10 = app.create(oneToMany, "oneToMany10");
+			final NodeInterface oneToMany11 = app.create(oneToMany, "oneToMany11");
+			final NodeInterface oneToMany12 = app.create(oneToMany, "oneToMany12");
+			final NodeInterface oneToMany13 = app.create(oneToMany, "oneToMany13");
+			final NodeInterface oneToMany14 = app.create(oneToMany, "oneToMany14");
+			final NodeInterface oneToMany15 = app.create(oneToMany, "oneToMany15");
+
+			final NodeInterface manyToOne0 = app.create(manyToOne, "manyToOne0");
+			final NodeInterface manyToOne1 = app.create(manyToOne, "manyToOne1");
+			final NodeInterface manyToOne2 = app.create(manyToOne, "manyToOne2");
+			final NodeInterface manyToOne3 = app.create(manyToOne, "manyToOne3");
+			final NodeInterface manyToOne4 = app.create(manyToOne, "manyToOne4");
+			final NodeInterface manyToOne5 = app.create(manyToOne, "manyToOne5");
+			final NodeInterface manyToOne6 = app.create(manyToOne, "manyToOne6");
+			final NodeInterface manyToOne7 = app.create(manyToOne, "manyToOne7");
+			final NodeInterface manyToOne8 = app.create(manyToOne, "manyToOne8");
+			final NodeInterface manyToOne9 = app.create(manyToOne, "manyToOne9");
+
+			final NodeInterface manyToMany0 = app.create(manyToMany, "manyToMany0");
+			final NodeInterface manyToMany1 = app.create(manyToMany, "manyToMany1");
+			final NodeInterface manyToMany2 = app.create(manyToMany, "manyToMany2");
+			final NodeInterface manyToMany3 = app.create(manyToMany, "manyToMany3");
+			final NodeInterface manyToMany4 = app.create(manyToMany, "manyToMany4");
+			final NodeInterface manyToMany5 = app.create(manyToMany, "manyToMany5");
+			final NodeInterface manyToMany6 = app.create(manyToMany, "manyToMany6");
+			final NodeInterface manyToMany7 = app.create(manyToMany, "manyToMany7");
+			final NodeInterface manyToMany8 = app.create(manyToMany, "manyToMany8");
+
+			final KeyData keys = new KeyData(nameKey, oneToOneKey, oneToManyKey, manyToOneKey, manyToManyKey);
+
+			createTestData(app, root, "root00", keys, null,      null,                                    null,       null);   // 0000
+			createTestData(app, root, "root01", keys, oneToOne0, null,                                    null,       null);   // 1000
+			createTestData(app, root, "root02", keys, null,      Arrays.asList(oneToMany00, oneToMany08), null,       null);   // 0100
+			createTestData(app, root, "root03", keys, oneToOne1, Arrays.asList(oneToMany01, oneToMany09), null,       null);   // 1100
+			createTestData(app, root, "root04", keys, null,      null,                                    manyToOne0, null);   // 0010
+			createTestData(app, root, "root05", keys, null,      null,                                    manyToOne8, null);   // 0010
+			createTestData(app, root, "root06", keys, oneToOne2, null,                                    manyToOne1, null);   // 1010
+			createTestData(app, root, "root07", keys, null,      Arrays.asList(oneToMany02, oneToMany10), manyToOne2, null);   // 0110
+			createTestData(app, root, "root08", keys, oneToOne3, Arrays.asList(oneToMany03, oneToMany11), manyToOne3, null);   // 1110
+
+			createTestData(app, root, "root09", keys, null,      null,                                    null,       Arrays.asList( manyToMany0, manyToMany1 ));   // 0001
+			createTestData(app, root, "root10", keys, oneToOne4, null,                                    null,       Arrays.asList( manyToMany1, manyToMany2 ));   // 1001
+			createTestData(app, root, "root11", keys, null,      Arrays.asList(oneToMany04, oneToMany12), null,       Arrays.asList( manyToMany2, manyToMany3 ));   // 0101
+			createTestData(app, root, "root12", keys, oneToOne5, Arrays.asList(oneToMany05, oneToMany13), null,       Arrays.asList( manyToMany3, manyToMany4 ));   // 1101
+			createTestData(app, root, "root13", keys, null,      null,                                    manyToOne4, Arrays.asList( manyToMany4, manyToMany5 ));   // 0011
+			createTestData(app, root, "root14", keys, null,      null,                                    manyToOne9, Arrays.asList( manyToMany4, manyToMany5 ));   // 0011
+			createTestData(app, root, "root15", keys, oneToOne6, null,                                    manyToOne5, Arrays.asList( manyToMany5, manyToMany6 ));   // 1011
+			createTestData(app, root, "root16", keys, null,      Arrays.asList(oneToMany06, oneToMany14), manyToOne6, Arrays.asList( manyToMany6, manyToMany7 ));   // 0111
+			createTestData(app, root, "root17", keys, oneToOne7, Arrays.asList(oneToMany07, oneToMany15), manyToOne7, Arrays.asList( manyToMany7, manyToMany8 ));   // 1111
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		final String body = "{ name, oneToOne { name }, oneToMany { name }, manyToOne { name }, manyToMany { name } }";
+
+		// test results for _equals
+		assertCount("{ Root"                                                                                                                                                      + body + "}", "Root.#", 18);
+		assertCount("{ Root(oneToOne:   " + eq("error")                                                                                                                    + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("error")                                                                                 + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany08")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne1") + ",oneToMany: " + eq("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("error")                                            + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne2")                                      + ",manyToOne: " + eq("manyToOne1")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany02") + ",manyToOne: " + eq("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne3") + ",oneToMany: " + eq("oneToMany03") + ",manyToOne: " + eq("manyToOne3")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                                                             manyToMany: " + eq("error")       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                                                             manyToMany: " + eq("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne4")                                                                          + ",manyToMany: " + eq("manyToMany1") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany04")                                     + ",manyToMany: " + eq("manyToMany2") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne5") + ",oneToMany: " + eq("oneToMany05")                                     + ",manyToMany: " + eq("manyToMany3") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne4") + ",manyToMany: " + eq("manyToMany4") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne6")                                      + ",manyToOne: " + eq("manyToOne5") + ",manyToMany: " + eq("manyToMany5") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany06") + ",manyToOne: " + eq("manyToOne6") + ",manyToMany: " + eq("manyToMany6") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne7") + ",oneToMany: " + eq("oneToMany07") + ",manyToOne: " + eq("manyToOne7") + ",manyToMany: " + eq("manyToMany7") + ") " + body + "}", "Root.#", 1);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne2")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne3") + ",oneToMany: " + eq("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne4")                                      + ",manyToOne: " + eq("manyToOne1")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany02") + ",manyToOne: " + eq("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne5") + ",oneToMany: " + eq("oneToMany03") + ",manyToOne: " + eq("manyToOne3")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                                                             manyToMany: " + eq("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne6")                                                                          + ",manyToMany: " + eq("manyToMany1") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany04")                                     + ",manyToMany: " + eq("manyToMany2") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne7") + ",oneToMany: " + eq("oneToMany05")                                     + ",manyToMany: " + eq("manyToMany3") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne4") + ",manyToMany: " + eq("manyToMany4") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne0")                                      + ",manyToOne: " + eq("manyToOne5") + ",manyToMany: " + eq("manyToMany5") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany06") + ",manyToOne: " + eq("manyToOne6") + ",manyToMany: " + eq("manyToMany6") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne1") + ",oneToMany: " + eq("oneToMany07") + ",manyToOne: " + eq("manyToOne7") + ",manyToMany: " + eq("manyToMany7") + ") " + body + "}", "Root.#", 0);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany02")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne1") + ",oneToMany: " + eq("oneToMany03")                                                                           + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne2")                                      + ",manyToOne: " + eq("manyToOne1")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany04") + ",manyToOne: " + eq("manyToOne2")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne3") + ",oneToMany: " + eq("oneToMany05") + ",manyToOne: " + eq("manyToOne3")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                                                             manyToMany: " + eq("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne4")                                                                          + ",manyToMany: " + eq("manyToMany1") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany06")                                     + ",manyToMany: " + eq("manyToMany2") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne5") + ",oneToMany: " + eq("oneToMany07")                                     + ",manyToMany: " + eq("manyToMany3") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne4") + ",manyToMany: " + eq("manyToMany4") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne6")                                      + ",manyToOne: " + eq("manyToOne5") + ",manyToMany: " + eq("manyToMany5") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany00") + ",manyToOne: " + eq("manyToOne6") + ",manyToMany: " + eq("manyToMany6") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne7") + ",oneToMany: " + eq("oneToMany01") + ",manyToOne: " + eq("manyToOne7") + ",manyToMany: " + eq("manyToMany7") + ") " + body + "}", "Root.#", 0);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne1") + ",oneToMany: " + eq("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne2")                                      + ",manyToOne: " + eq("manyToOne3")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany02") + ",manyToOne: " + eq("manyToOne4")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne3") + ",oneToMany: " + eq("oneToMany03") + ",manyToOne: " + eq("manyToOne5")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                                                             manyToMany: " + eq("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne4")                                                                          + ",manyToMany: " + eq("manyToMany1") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany04")                                     + ",manyToMany: " + eq("manyToMany2") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne5") + ",oneToMany: " + eq("oneToMany05")                                     + ",manyToMany: " + eq("manyToMany3") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne6") + ",manyToMany: " + eq("manyToMany4") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne6")                                      + ",manyToOne: " + eq("manyToOne7") + ",manyToMany: " + eq("manyToMany5") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany06") + ",manyToOne: " + eq("manyToOne0") + ",manyToMany: " + eq("manyToMany6") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne7") + ",oneToMany: " + eq("oneToMany07") + ",manyToOne: " + eq("manyToOne1") + ",manyToMany: " + eq("manyToMany7") + ") " + body + "}", "Root.#", 0);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne1") + ",oneToMany: " + eq("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne2")                                      + ",manyToOne: " + eq("manyToOne1")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany02") + ",manyToOne: " + eq("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne3") + ",oneToMany: " + eq("oneToMany03") + ",manyToOne: " + eq("manyToOne3")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                                                             manyToMany: " + eq("manyToMany2") + ") " + body + "}", "Root.#", 2);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne4")                                                                          + ",manyToMany: " + eq("manyToMany3") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany04")                                     + ",manyToMany: " + eq("manyToMany4") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne5") + ",oneToMany: " + eq("oneToMany05")                                     + ",manyToMany: " + eq("manyToMany5") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + eq("manyToOne4") + ",manyToMany: " + eq("manyToMany6") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne6")                                      + ",manyToOne: " + eq("manyToOne5") + ",manyToMany: " + eq("manyToMany7") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + eq("oneToMany06") + ",manyToOne: " + eq("manyToOne6") + ",manyToMany: " + eq("manyToMany0") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + eq("oneToOne7") + ",oneToMany: " + eq("oneToMany07") + ",manyToOne: " + eq("manyToOne7") + ",manyToMany: " + eq("manyToMany1") + ") " + body + "}", "Root.#", 0);
+
+
+
+		// test results for _contains
+		assertCount("{ Root"                                                                                                                                                      + body + "}", "Root.#", 18);
+		assertCount("{ Root(oneToOne:   " + ct("error")                                                                                                                    + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("o")                                                                                                                        + ") " + body + "}", "Root.#", 8);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne1") + ",oneToMany: " + ct("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne2")                                      + ",manyToOne: " + ct("manyToOne1")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany02") + ",manyToOne: " + ct("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne3") + ",oneToMany: " + ct("oneToMany03") + ",manyToOne: " + ct("manyToOne3")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                                                             manyToMany: " + ct("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne4")                                                                          + ",manyToMany: " + ct("manyToMany1") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany04")                                     + ",manyToMany: " + ct("manyToMany2") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne5") + ",oneToMany: " + ct("oneToMany05")                                     + ",manyToMany: " + ct("manyToMany3") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne4") + ",manyToMany: " + ct("manyToMany4") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne6")                                      + ",manyToOne: " + ct("manyToOne5") + ",manyToMany: " + ct("manyToMany5") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany06") + ",manyToOne: " + ct("manyToOne6") + ",manyToMany: " + ct("manyToMany6") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne7") + ",oneToMany: " + ct("oneToMany07") + ",manyToOne: " + ct("manyToOne7") + ",manyToMany: " + ct("manyToMany7") + ") " + body + "}", "Root.#", 1);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne2")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne3") + ",oneToMany: " + ct("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne4")                                      + ",manyToOne: " + ct("manyToOne1")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany02") + ",manyToOne: " + ct("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne5") + ",oneToMany: " + ct("oneToMany03") + ",manyToOne: " + ct("manyToOne3")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                                                             manyToMany: " + ct("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne6")                                                                          + ",manyToMany: " + ct("manyToMany1") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany04")                                     + ",manyToMany: " + ct("manyToMany2") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne7") + ",oneToMany: " + ct("oneToMany05")                                     + ",manyToMany: " + ct("manyToMany3") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne4") + ",manyToMany: " + ct("manyToMany4") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne0")                                      + ",manyToOne: " + ct("manyToOne5") + ",manyToMany: " + ct("manyToMany5") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany06") + ",manyToOne: " + ct("manyToOne6") + ",manyToMany: " + ct("manyToMany6") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne1") + ",oneToMany: " + ct("oneToMany07") + ",manyToOne: " + ct("manyToOne7") + ",manyToMany: " + ct("manyToMany7") + ") " + body + "}", "Root.#", 0);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany02")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne1") + ",oneToMany: " + ct("oneToMany03")                                                                           + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne2")                                      + ",manyToOne: " + ct("manyToOne1")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany04") + ",manyToOne: " + ct("manyToOne2")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne3") + ",oneToMany: " + ct("oneToMany05") + ",manyToOne: " + ct("manyToOne3")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                                                             manyToMany: " + ct("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne4")                                                                          + ",manyToMany: " + ct("manyToMany1") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany06")                                     + ",manyToMany: " + ct("manyToMany2") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne5") + ",oneToMany: " + ct("oneToMany07")                                     + ",manyToMany: " + ct("manyToMany3") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne4") + ",manyToMany: " + ct("manyToMany4") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne6")                                      + ",manyToOne: " + ct("manyToOne5") + ",manyToMany: " + ct("manyToMany5") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany00") + ",manyToOne: " + ct("manyToOne6") + ",manyToMany: " + ct("manyToMany6") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne7") + ",oneToMany: " + ct("oneToMany01") + ",manyToOne: " + ct("manyToOne7") + ",manyToMany: " + ct("manyToMany7") + ") " + body + "}", "Root.#", 0);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne1") + ",oneToMany: " + ct("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne2")                                      + ",manyToOne: " + ct("manyToOne3")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany02") + ",manyToOne: " + ct("manyToOne4")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne3") + ",oneToMany: " + ct("oneToMany03") + ",manyToOne: " + ct("manyToOne5")                                       + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                                                             manyToMany: " + ct("manyToMany0") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne4")                                                                          + ",manyToMany: " + ct("manyToMany1") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany04")                                     + ",manyToMany: " + ct("manyToMany2") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne5") + ",oneToMany: " + ct("oneToMany05")                                     + ",manyToMany: " + ct("manyToMany3") + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne6") + ",manyToMany: " + ct("manyToMany4") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne6")                                      + ",manyToOne: " + ct("manyToOne7") + ",manyToMany: " + ct("manyToMany5") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany06") + ",manyToOne: " + ct("manyToOne0") + ",manyToMany: " + ct("manyToMany6") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne7") + ",oneToMany: " + ct("oneToMany07") + ",manyToOne: " + ct("manyToOne1") + ",manyToMany: " + ct("manyToMany7") + ") " + body + "}", "Root.#", 0);
+
+		// test wrong results
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne0")                                                                                                                + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany00")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne1") + ",oneToMany: " + ct("oneToMany01")                                                                           + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne0")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne2")                                      + ",manyToOne: " + ct("manyToOne1")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany02") + ",manyToOne: " + ct("manyToOne2")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne3") + ",oneToMany: " + ct("oneToMany03") + ",manyToOne: " + ct("manyToOne3")                                       + ") " + body + "}", "Root.#", 1);
+		assertCount("{ Root(                                                                                                             manyToMany: " + ct("manyToMany2") + ") " + body + "}", "Root.#", 2);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne4")                                                                          + ",manyToMany: " + ct("manyToMany3") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany04")                                     + ",manyToMany: " + ct("manyToMany4") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne5") + ",oneToMany: " + ct("oneToMany05")                                     + ",manyToMany: " + ct("manyToMany5") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                                                         manyToOne: " + ct("manyToOne4") + ",manyToMany: " + ct("manyToMany6") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne6")                                      + ",manyToOne: " + ct("manyToOne5") + ",manyToMany: " + ct("manyToMany7") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany06") + ",manyToOne: " + ct("manyToOne6") + ",manyToMany: " + ct("manyToMany0") + ") " + body + "}", "Root.#", 0);
+		assertCount("{ Root(oneToOne:   " + ct("oneToOne7") + ",oneToMany: " + ct("oneToMany07") + ",manyToOne: " + ct("manyToOne7") + ",manyToMany: " + ct("manyToMany1") + ") " + body + "}", "Root.#", 0);
+
+	}
+
 	// ----- private methods -----
+	private String eq(final String value) {
+		return "{ name: { _equals: \"" + value + "\" }}";
+	}
+
+	private String ct(final String value) {
+		return "{ name: { _contains: \"" + value + "\" }}";
+	}
+
+	private void createTestData(final App app, final Class type, final String name, final KeyData keys, final Object ... data) throws FrameworkException {
+
+		final PropertyMap map = new PropertyMap();
+
+		map.put(keys.name, name);
+
+		switch (data.length) {
+
+			case 4: if (data[3] != null) { map.put(keys.t3, data[3]); }
+			case 3: if (data[2] != null) { map.put(keys.t2, data[2]); }
+			case 2: if (data[1] != null) { map.put(keys.t1, data[1]); }
+			case 1: if (data[0] != null) { map.put(keys.t0, data[0]); }
+		}
+
+		app.create(type, map);
+	}
+
+	private void assertCount(final String query, final String path, final int count) {
+		assertMapPathValueIs(fetchGraphQL(query), path, count);
+	}
+
 	private Map<String, Object> fetchGraphQL(final String query) {
 
 		return RestAssured
@@ -1744,5 +2165,24 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		assertEquals("Invalid map path result for " + mapPath, value, current);
+	}
+
+	// ----- nested classes -----
+	private static class KeyData {
+
+		public PropertyKey name = null;
+		public PropertyKey t0   = null;
+		public PropertyKey t1   = null;
+		public PropertyKey t2   = null;
+		public PropertyKey t3   = null;
+
+		public KeyData(final PropertyKey name, final PropertyKey t0, final PropertyKey t1, final PropertyKey t2, final PropertyKey t3) {
+
+			this.name = name;
+			this.t0 = t0;
+			this.t1 = t1;
+			this.t2 = t2;
+			this.t3 = t3;
+		}
 	}
 }
