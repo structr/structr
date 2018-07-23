@@ -1,0 +1,135 @@
+/**
+ * Copyright (C) 2010-2018 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.web.function;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.imageio.ImageIO;
+import org.structr.common.error.FrameworkException;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
+
+public class BarcodeFunction extends Function<Object, Object> {
+
+	public static final String ERROR_MESSAGE_BARCODE = "Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }";
+	public static final String ERROR_MESSAGE_BARCODE_JS = "Usage: ${{ Structr.barcode(type, data[, width, height[, hintsMap]]); }}";
+
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
+		try {
+
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+
+			final String barcodeType = sources[0].toString();
+			final String barcodeData = sources[1].toString();
+			final Number width      = (sources.length >= 3) ? (Number)sources[2] : 200;
+			final Number height     = (sources.length >= 4) ? (Number)sources[3] : 200;
+
+			final MultiFormatWriter barcodeWriter = new MultiFormatWriter();
+			try {
+
+				final Map<EncodeHintType, Object> hints = new HashMap();
+
+				if (sources.length >= 5 && sources[4] instanceof Map) {
+					parseHints(hints, (Map)sources[4]);
+				} else {
+					parseHints(hints, parseParametersAsMap(sources, 4));
+				}
+
+				BitMatrix bitMatrix = barcodeWriter.encode(barcodeData, BarcodeFormat.valueOf(barcodeType), width.intValue(), height.intValue(), hints);
+
+				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+				ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
+
+				return baos.toString("ISO-8859-1");//"ISO-8859-1"
+
+			} catch(WriterException we) {
+
+			} catch(IOException ioe) {
+
+			}
+
+			return "";
+
+		} catch (IllegalArgumentException e) {
+
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+	}
+
+	public Map<String, Object> parseParametersAsMap(final Object[] sources, final int startIndex) throws FrameworkException {
+
+		final int parameter_count = sources.length - startIndex;
+
+		if (parameter_count % 2 != 0) {
+
+			throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". " + ERROR_MESSAGE_BARCODE);
+		}
+
+		final Map<String, Object> params = new HashMap();
+
+		for (int i = startIndex; i < sources.length; i += 2) {
+
+			params.put(sources[i].toString(), sources[i+1]);
+		}
+
+		return params;
+	}
+
+	public void parseHints(final Map<EncodeHintType, Object> hints, final Map<String, Object> suppliedHints) {
+
+		for(final Map.Entry<String, Object> hint : suppliedHints.entrySet()) {
+
+			final Object obj = hint.getValue();
+
+			// All hints that are of type Number are Integers (since internally everything is handled as Double, we need to convert this)
+			if (obj instanceof Number) {
+				hints.put(EncodeHintType.valueOf(hint.getKey()), ((Number)obj).intValue());
+			} else {
+				hints.put(EncodeHintType.valueOf(hint.getKey()), obj);
+			}
+		}
+	}
+
+	@Override
+	public String usage(boolean inJavaScriptContext) {
+		return (inJavaScriptContext ? ERROR_MESSAGE_BARCODE_JS : ERROR_MESSAGE_BARCODE);
+	}
+
+	@Override
+	public String shortDescription() {
+		return "Creates a barcode of given type with the given data.";
+	}
+
+	@Override
+	public String getName() {
+		return "barcode()";
+	}
+}
