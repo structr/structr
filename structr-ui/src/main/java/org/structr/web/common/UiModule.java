@@ -26,6 +26,7 @@ import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
 import org.structr.web.function.AddHeaderFunction;
 import org.structr.web.function.AppendContentFunction;
+import org.structr.web.function.BarcodeFunction;
 import org.structr.web.function.CopyFileContentsFunction;
 import org.structr.web.function.CreateArchiveFunction;
 import org.structr.web.function.EscapeHtmlFunction;
@@ -109,6 +110,7 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "create_archive",           new CreateArchiveFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "schedule",                 new ScheduleFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "maintenance",              new MaintenanceFunction());
+		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "barcode",                  new BarcodeFunction());
 	}
 
 	@Override
