@@ -44,6 +44,7 @@ import org.structr.rest.service.HttpService;
 public class SessionHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
+	public static final String SESSION_IS_NEW     = "SESSION_IS_NEW";
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionHelper.class.getName());
 
@@ -199,6 +200,9 @@ public class SessionHelper {
 
 				// No session id requested => create new session
 				SessionHelper.newSession(request);
+
+				// Store info in request that session is new => saves us a lookup later
+				request.setAttribute(SESSION_IS_NEW, true);
 
 				// we just created a totally new session, there can't
 				// be a user with this session ID, so don't search.

@@ -485,10 +485,13 @@ public class UiAuthenticator implements Authenticator {
 
 		Principal user = null;
 
-		// First, check session (JSESSIONID cookie)
-		if (request.getSession(false) != null) {
+		if (request.getAttribute(SessionHelper.SESSION_IS_NEW) == null) {
 
-			user = AuthHelper.getPrincipalForSessionId(request.getSession(false).getId());
+			// First, check session (JSESSIONID cookie)
+			if (request.getSession(false) != null) {
+
+				user = AuthHelper.getPrincipalForSessionId(request.getSession(false).getId());
+			}
 		}
 
 		if (user == null) {
