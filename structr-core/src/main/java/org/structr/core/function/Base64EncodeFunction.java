@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Base64;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -27,8 +29,8 @@ import org.structr.schema.action.Function;
 
 public class Base64EncodeFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_BASE64ENCODE = "Usage: ${base64encode(text[, scheme])}. Example: ${base64encode(\"Check out http://structr.com\", \"url\")}";
-	public static final String ERROR_MESSAGE_BASE64ENCODE_JS = "Usage: ${{Structr.base64encode(text[, scheme])}}. Example: ${{Structr.base64encode(\"Check out http://structr.com\")}}";
+	public static final String ERROR_MESSAGE_BASE64ENCODE = "Usage: ${base64encode(text[, scheme[, charset]])}. Example: ${base64encode(\"Check out http://structr.com\")}";
+	public static final String ERROR_MESSAGE_BASE64ENCODE_JS = "Usage: ${{Structr.base64encode(text[, scheme[, charset]])}}. Example: ${{Structr.base64encode(\"Check out http://structr.com\")}}";
 
 	@Override
 	public String getName() {
@@ -40,18 +42,19 @@ public class Base64EncodeFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
-			final byte[] input = sources[0].toString().getBytes();
+			final Charset charset = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
+			final byte[] input    = sources[0].toString().getBytes(charset);
 
-			String encodingSchema = "basic";
+			String encodingScheme = "basic";
 			if (sources.length == 2) {
-				encodingSchema = sources[1].toString();
+				encodingScheme = sources[1].toString();
 			}
 
 			final Base64.Encoder encoder;
 
-			switch (encodingSchema) {
+			switch (encodingScheme) {
 				case "url":
 					encoder = Base64.getUrlEncoder();
 					break;
@@ -61,7 +64,7 @@ public class Base64EncodeFunction extends Function<Object, Object> {
 					break;
 
 				default:
-					logger.warn("Unsupported base64 encoding scheme '{}' - using 'basic' scheme", encodingSchema);
+					logger.warn("Unsupported base64 encoding scheme '{}' - using 'basic' scheme", encodingScheme);
 
 				case "basic":
 					encoder = Base64.getEncoder();
@@ -69,6 +72,10 @@ public class Base64EncodeFunction extends Function<Object, Object> {
 			}
 
 			return encoder.encodeToString(input);
+
+		} catch (UnsupportedCharsetException uce) {
+
+			logger.warn("base64encode: Unsupported charset {}", sources[2].toString(), uce);
 
 		} catch (ArgumentNullException pe) {
 

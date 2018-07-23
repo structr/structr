@@ -18,6 +18,8 @@
  */
 package org.structr.core.function;
 
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Base64;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -27,8 +29,8 @@ import org.structr.schema.action.Function;
 
 public class Base64DecodeFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_BASE64DECODE = "Usage: ${base64decode(text[, scheme])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}";
-	public static final String ERROR_MESSAGE_BASE64DECODE_JS = "Usage: ${{Structr.base64decode(text[, scheme])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}}";
+	public static final String ERROR_MESSAGE_BASE64DECODE = "Usage: ${base64decode(text[, scheme[, charset]])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}";
+	public static final String ERROR_MESSAGE_BASE64DECODE_JS = "Usage: ${{Structr.base64decode(text[, scheme[, charset]])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}}";
 
 	@Override
 	public String getName() {
@@ -40,18 +42,19 @@ public class Base64DecodeFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
-			final String input = sources[0].toString();
+			final String input    = sources[0].toString();
+			final Charset charset = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
 
-			String decodingSchema = "basic";
+			String decodingScheme = "basic";
 			if (sources.length == 2) {
-				decodingSchema = sources[1].toString();
+				decodingScheme = sources[1].toString();
 			}
 
 			final Base64.Decoder decoder;
 
-			switch (decodingSchema) {
+			switch (decodingScheme) {
 				case "url":
 					decoder = Base64.getUrlDecoder();
 					break;
@@ -61,7 +64,7 @@ public class Base64DecodeFunction extends Function<Object, Object> {
 					break;
 
 				default:
-					logger.warn("Unsupported base64 decoding scheme '{}' - using 'basic' scheme", decodingSchema);
+					logger.warn("Unsupported base64 decoding scheme '{}' - using 'basic' scheme", decodingScheme);
 
 				case "basic":
 					decoder = Base64.getDecoder();
@@ -70,11 +73,15 @@ public class Base64DecodeFunction extends Function<Object, Object> {
 
 			try {
 
-				return new String(decoder.decode(input));
+				return new String(decoder.decode(input), charset);
+
+			} catch (UnsupportedCharsetException uce) {
+
+					logger.warn("base64decode: Unsupported charset {}", sources[2].toString(), uce);
 
 			} catch  (IllegalArgumentException iae) {
 
-				logger.warn("Exception encountered while decoding '{}' with scheme '{}'", input, decodingSchema, iae);
+				logger.warn("Exception encountered while decoding '{}' with scheme '{}'", input, decodingScheme, iae);
 				return iae.getMessage();
 			}
 
