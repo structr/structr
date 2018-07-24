@@ -19,6 +19,7 @@
 package org.structr.bolt.wrapper;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +128,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		final SessionTransaction tx = db.getCurrentTransaction();
 
 		// only update values if actually different from what is stored
-		if (differentValue(key, value)) {
+		if (needsUpdate(key, value)) {
 
 			final Map<String, Object> map = new HashMap<>();
 			final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n.`" + key + "` = {value}";
@@ -287,16 +288,39 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		}
 	}
 
-	private boolean differentValue(final String key, final Object value) {
+	private boolean needsUpdate(final String key, final Object newValue) {
 
-		if (value == null && !data.containsKey(key)) {
+		final Object existingValue = data.get(key);
+
+		if (existingValue == null && newValue == null) {
 			return false;
 		}
 
-		if (value != null && value.equals(data.get(key))) {
-			return false;
+		if (existingValue == null && newValue != null) {
+			return true;
 		}
 
-		return true;
+		if (existingValue != null && newValue == null) {
+			return true;
+		}
+
+		if (existingValue != null && newValue != null) {
+			return !equal(existingValue, newValue);
+		}
+
+		return false;
+	}
+
+	private boolean equal(final Object existingValue, final Object newValue) {
+
+		if (existingValue instanceof List) {
+
+			final List list1 = (List)existingValue;
+			final List list2 = Arrays.asList((Object[])newValue);
+
+			return list1.equals(list2);
+		}
+
+		return existingValue.equals(newValue);
 	}
 }

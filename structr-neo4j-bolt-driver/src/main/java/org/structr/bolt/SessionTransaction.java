@@ -396,7 +396,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 				@Override
 				public void close() {
-					result.consume();
 				}
 
 				@Override
@@ -447,7 +446,9 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		try {
 
-			tx.run(statement, map).consume();
+			logQuery(statement, map, t0);
+
+			tx.run(statement, map);
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -551,7 +552,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		@Override
 		public void close() {
-			//result.consume();
 		}
 
 		@Override
