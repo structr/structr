@@ -674,7 +674,7 @@ public class ScriptingTest extends StructrTest {
 			testTwo        = createTestNode(TestTwo.class);
 			testThree      = createTestNode(TestThree.class);
 			testFour       = createTestNode(TestFour.class);
-			testSixs       = createTestNodes(TestSix.class, 20);
+			testSixs       = createTestNodes(TestSix.class, 20, 1);
 
 			// set string array on test four
 			testFour.setProperty(TestFour.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
@@ -1481,6 +1481,7 @@ public class ScriptingTest extends StructrTest {
 			final List sliceResult3 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'),  5, 10)}", "slice test");
 			final List sliceResult4 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 10, 15)}", "slice test");
 			final List sliceResult5 = (List)Scripting.evaluate(ctx, testOne, "${slice(find('TestSix'), 15, 20)}", "slice test");
+
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult2.size());
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult3.size());
 			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult4.size());
@@ -1489,6 +1490,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid slice() result", testSixs.get( 1), sliceResult2.get(1));
 			assertEquals("Invalid slice() result", testSixs.get( 2), sliceResult2.get(2));
 			assertEquals("Invalid slice() result", testSixs.get( 3), sliceResult2.get(3));
+
 			assertEquals("Invalid slice() result", testSixs.get( 4), sliceResult2.get(4));
 			assertEquals("Invalid slice() result", testSixs.get( 5), sliceResult3.get(0));
 			assertEquals("Invalid slice() result", testSixs.get( 6), sliceResult3.get(1));

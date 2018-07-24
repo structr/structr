@@ -19,7 +19,6 @@
 package org.structr.core.entity;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -74,7 +73,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 			} else {
 
 				// sort relationships by id
-				return Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), from), sort(rels));
+				return Iterables.map(from -> nodeFactory.instantiate(from.getEndNode(), from), rels);
 			}
 		}
 
@@ -96,7 +95,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 		}
 
 		// create intersection of both sets
-		final Set<T> intersection = new HashSet<>(toBeCreated);
+		final Set<T> intersection = new LinkedHashSet<>(toBeCreated);
 		intersection.retainAll(toBeDeleted);
 
 		// intersection needs no change

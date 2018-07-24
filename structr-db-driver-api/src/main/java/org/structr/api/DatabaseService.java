@@ -59,6 +59,7 @@ public interface DatabaseService {
 	GraphProperties getGlobalProperties();
 
 	String getTenantIdentifier();
+	String getInternalCreationTimestamp();
 
 	// ----- index -----
 	Index<Node> nodeIndex();
