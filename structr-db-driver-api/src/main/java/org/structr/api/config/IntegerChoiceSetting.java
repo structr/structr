@@ -18,26 +18,26 @@
  */
 package org.structr.api.config;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
 /**
  * A configuration setting with a key and a type.
  */
-public class ChoiceSetting extends StringSetting {
+public class IntegerChoiceSetting extends IntegerSetting {
 
-	private final Set<String> choices = new LinkedHashSet<>();
+	private final Map<Integer, String> choices = new LinkedHashMap<>();
 
-	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final Set<String> choices) {
+	public IntegerChoiceSetting(final SettingsGroup group, final String groupName, final String key, final Integer value, final Map<Integer, String> choices) {
 		this(group, groupName, key, value, choices, null);
 	}
 
-	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final Set<String> choices, final String comment) {
+	public IntegerChoiceSetting(final SettingsGroup group, final String groupName, final String key, final Integer value, final Map<Integer, String> choices, final String comment) {
 		super(group, groupName, key, value, comment);
 
-		this.choices.addAll(choices);
+		this.choices.putAll(choices);
 	}
 
 	@Override
@@ -49,15 +49,17 @@ public class ChoiceSetting extends StringSetting {
 
 		final Tag select = group.block("select").attr(new Attr("name", getKey()));
 
-		for (final String choice : choices) {
+		for (final Map.Entry<Integer, String> entry : choices.entrySet()) {
 
-			final Tag option = select.block("option").text(choice);
+			final Tag option = select.block("option").text(entry.getValue());
+			option.attr(new Attr("value", entry.getKey()));
 
 			// selected?
-			if (choice.equals(getValue())) {
+			if (entry.getKey().equals(getValue())) {
 				option.attr(new Attr("selected", "selected"));
 			}
 		}
 
+		renderResetButton(group);
 	}
 }

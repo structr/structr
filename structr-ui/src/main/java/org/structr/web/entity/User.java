@@ -20,6 +20,7 @@ package org.structr.web.entity;
 
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Date;
 import org.structr.api.config.Settings;
 import org.structr.common.ConstantBooleanTrue;
@@ -101,10 +102,11 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "publicKey");
 		user.addViewProperty(PropertyView.Ui, "sessionIds");
 		user.addViewProperty(PropertyView.Ui, "workingDirectory");
+
 		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
 		user.addViewProperty(PropertyView.Ui, "twoFactorSecret");
-		user.addViewProperty(PropertyView.Ui, "twoFactorImageUrl");
-		user.addViewProperty(PropertyView.Ui, "twoFactorUser");
+		user.addViewProperty(PropertyView.Ui, "isTwoFactorUser");
+
 		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
 		user.addViewProperty(PropertyView.Ui, "passwordChangeDate");
 	}}
@@ -126,22 +128,19 @@ public interface User extends Principal {
 	public static void onCreateAndModify(final User user, final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		final PropertyKey<Boolean> skipSecurityRels = StructrApp.key(User.class, "skipSecurityRelationships");
-		final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
-		final PropertyKey<String> twoFactorSecretKey = StructrApp.key(User.class, "twoFactorSecret");
-		final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
-
 		if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
 
 			throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
 		}
 
 		// generate and set 2fa properties
+		final PropertyKey<String> twoFactorSecretKey  = StructrApp.key(User.class, "twoFactorSecret");
+		final PropertyKey<Boolean> isTwoFactorUserKey = StructrApp.key(User.class, "isTwoFactorUser");
+
 		if (user.getProperty(twoFactorSecretKey) == null) {
 
-			final String keyId = Settings.TwoFactorId.getValue();
 			final String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-			user.setProperty(twoFactorUserKey, false);
-			user.setProperty(twoFactorImageUrl, TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
+			user.setProperty(isTwoFactorUserKey, false);
 			user.setProperty(twoFactorSecretKey, base32Secret);
 		}
 
@@ -223,6 +222,53 @@ public interface User extends Principal {
 				user.setSecurityContext(storedContext);
 			}
 
+		}
+	}
+
+	public static String getTwoFactorUrl(final User user) {
+
+		final Integer twoFactorLevel = Settings.TwoFactorLevel.getValue();
+		if (twoFactorLevel == 0) {
+			logger.warn("two_factor_url(): Two-factor authentication is disabled");
+			return "Warning: Two-factor authentication is disabled.";
+		}
+
+		final Boolean isTwoFactorUser = user.getProperty(StructrApp.key(User.class, "isTwoFactorUser"));
+		if (twoFactorLevel == 1 && !isTwoFactorUser) {
+
+			logger.warn("two_factor_url(): Two-factor authentication is disabled for this user: {} ({})", user.getName(), user.getUuid());
+			return "Warning: Two-factor authentication is disabled for this user.";
+		}
+
+
+		final String twoFactorIssuer    = Settings.TwoFactorIssuer.getValue();
+		final String twoFactorAlgorithm = Settings.TwoFactorAlgorithm.getValue();
+		final Integer twoFactorDigits   = Settings.TwoFactorDigits.getValue();
+		final Integer twoFactorPeriod   = Settings.TwoFactorPeriod.getValue();
+
+		final StringBuilder path = new StringBuilder("/").append(twoFactorIssuer);
+
+		final String eMail = user.getProperty(StructrApp.key(User.class, "eMail"));
+		if (eMail != null) {
+			path.append(":").append(eMail);
+		} else {
+			path.append(":").append(user.getProperty(User.name));
+		}
+
+		final PropertyKey<String> twoFactorSecretKey = StructrApp.key(User.class, "twoFactorSecret");
+		final StringBuilder query = new StringBuilder("secret=").append(user.getProperty(twoFactorSecretKey))
+				.append("&issuer=").append(twoFactorIssuer)
+				.append("&algorithm=").append(twoFactorAlgorithm)
+				.append("&digits=").append(twoFactorDigits)
+				.append("&period=").append(twoFactorPeriod);
+
+		try {
+
+			return new URI("otpauth", null, "totp", -1, path.toString(), query.toString(), null).toString();
+
+		} catch (URISyntaxException use) {
+			logger.warn("two_factor_url(): URISyntaxException for {}?{}", path, query, use);
+			return "URISyntaxException for " + path + "?" + query;
 		}
 	}
 }

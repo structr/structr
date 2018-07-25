@@ -19,7 +19,9 @@
 package org.structr.web.resource;
 
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
+import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -67,30 +69,28 @@ public class LoginResource extends Resource {
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
-		final PropertyKey<String> nameKey = StructrApp.key(User.class, "name");
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
-		final PropertyKey<String> pwdKey = StructrApp.key(User.class, "password");
+		final PropertyKey<String> pwdKey   = StructrApp.key(User.class, "password");
+
 		final PropertyKey<String> twoFactorTokenKey = StructrApp.key(User.class, "twoFactorToken");
-		final PropertyKey<String> twoFactorCodeKey = StructrApp.key(User.class, "twoFactorCode");
-		final PropertyKey<Boolean> twoFactorUserKey = StructrApp.key(User.class, "twoFactorUser");
-		final PropertyKey<String> twoFactorImageUrl = StructrApp.key(User.class, "twoFactorImageUrl");
+		final PropertyKey<String> twoFactorCodeKey  = StructrApp.key(User.class, "twoFactorCode");
+		final PropertyKey<Boolean> isTwoFactorUserKey = StructrApp.key(User.class, "isTwoFactorUser");
 
 		final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(User.class, "passwordAttempts");
-		final PropertyKey<Date> passwordChangeDateKey = StructrApp.key(User.class, "passwordChangeDate");
+		final PropertyKey<Date> passwordChangeDateKey  = StructrApp.key(User.class, "passwordChangeDate");
 
-		final String name = properties.get(nameKey);
-		final String email = properties.get(eMailKey);
+		final String name     = properties.get(User.name);
+		final String email    = properties.get(eMailKey);
 		final String password = properties.get(pwdKey);
 
-		final String twoFactorCode = properties.get(twoFactorCodeKey)==null ? null : properties.get(twoFactorCodeKey).replaceAll("\\s+","");
+		final String twoFactorCode = (properties.get(twoFactorCodeKey) == null) ? null : properties.get(twoFactorCodeKey).replaceAll("\\s+","");
 		final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
 		String twoFactorToken = properties.get(twoFactorTokenKey);
-		boolean isTwoFactor = false;
 
 		final int maximumAttempts = Settings.PasswordAttempts.getValue();
 		final int passwordDays = Settings.PasswordForceChangeDays.getValue();
-//      final int passwordDaysReminder = Settings.PasswordForceChangeReminder.getValue();
 		final boolean forcePasswordChange = Settings.PasswordForceChange.getValue();
+
 		final App app = StructrApp.getInstance();
 
 		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
@@ -105,7 +105,7 @@ public class LoginResource extends Resource {
 
 				Result<Principal> results;
 				try (final Tx tx = app.tx()) {
-					results = app.nodeQuery(Principal.class).and(StructrApp.key(User.class, "twoFactorToken"), twoFactorToken).getResult();
+					results = app.nodeQuery(Principal.class).and(twoFactorTokenKey, twoFactorToken).getResult();
 					tx.success();
 				}
 
@@ -130,7 +130,7 @@ public class LoginResource extends Resource {
 
 				if (user.getProperty(twoFactorTokenKey) != null) {
 					// if there is an old token delete it
-					user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null);
+					user.setProperty(twoFactorTokenKey, null);
 				}
 
 				int attempts = user.getProperty(passwordAttemptsKey) == null ? 0 : user.getProperty(passwordAttemptsKey);
@@ -138,9 +138,11 @@ public class LoginResource extends Resource {
 				if (attempts > maximumAttempts && maximumAttempts > 0) {
 
 					securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-					logger.info("Too many login-attempts for user: "+emailOrUsername);
+					logger.info("Too many login-attempts for user: {}", emailOrUsername);
+
 					RestMethodResult methodResult = new RestMethodResult(401);
 					methodResult.addHeader("reason", "attempts");
+
 					return methodResult;
 				}
 
@@ -149,36 +151,39 @@ public class LoginResource extends Resource {
 
 				if (forcePasswordChange) {
 
-					Date now = new Date();
-					Date passwordChangeDate = user.getProperty(passwordChangeDateKey) != null ? user.getProperty(passwordChangeDateKey) : new Date (0); // setting date in past if not yet set
-					int daysApart = (int) ((now.getTime() - passwordChangeDate.getTime()) / (1000 * 60 * 60 * 24l));
+					final Date now = new Date();
+					final Date passwordChangeDate = user.getProperty(passwordChangeDateKey) != null ? user.getProperty(passwordChangeDateKey) : new Date (0); // setting date in past if not yet set
+					final int daysApart = (int) ((now.getTime() - passwordChangeDate.getTime()) / (1000 * 60 * 60 * 24l));
 
 					if (daysApart > passwordDays) {
 						// User has not changed password for too long
 						securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-						logger.info("The password has not been changed by user: "+emailOrUsername);
+						logger.info("The password has not been changed by user: {}", emailOrUsername);
+
 						RestMethodResult methodResult = new RestMethodResult(401);
 						methodResult.addHeader("reason", "changed");
+
 						return methodResult;
 					}
 				}
 
-				boolean userIsTwoFactor = user.getProperty(twoFactorUserKey);
+				boolean isTwoFactorUser = user.getProperty(isTwoFactorUserKey);
 				// If System and user are two factor authentication
-				isTwoFactor = (userIsTwoFactor == true && twoFactorLevel > 0);
+				boolean isTwoFactor = (isTwoFactorUser == true && twoFactorLevel > 0);
 
 				// If user is not two factor authentication, but system expects him to be
-				if (userIsTwoFactor==false && twoFactorLevel == 2) {
+				if (isTwoFactorUser == false && twoFactorLevel == 2) {
 
 					logger.info("User needs to use two factor authentication to login");
-					user.setProperty(twoFactorUserKey, true);
-					String url = Settings.TwoFactorForceRegistrationUrl.getValue();
-					RestMethodResult methodResult = new RestMethodResult(204);
-					methodResult.addHeader("forceRegUrl", url);
-					methodResult.addHeader("imgurl", user.getProperty(twoFactorImageUrl));
-					securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-					return methodResult;
+					user.setProperty(isTwoFactorUserKey, true);
 
+					RestMethodResult methodResult = new RestMethodResult(204);
+					methodResult.addHeader("forceRegistrationPage", Settings.TwoFactorForceRegistrationPage.getValue());
+					methodResult.addHeader("qrdata",                Base64.getUrlEncoder().encodeToString(User.getTwoFactorUrl((User) user).getBytes(Charset.forName("ISO-8859-1"))));
+
+					securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+
+					return methodResult;
 				}
 
 
@@ -188,17 +193,19 @@ public class LoginResource extends Resource {
 
 						//set token to identify user by it
 						twoFactorToken = UUID.randomUUID().toString();
-						user.setProperty(StructrApp.key(User.class, "twoFactorToken"), twoFactorToken);
-						String url = Settings.TwoFactorUrl.getValue();
+						user.setProperty(twoFactorTokenKey, twoFactorToken);
+
 						RestMethodResult methodResult = new RestMethodResult(202);
 						methodResult.addHeader("token", twoFactorToken);
-						methodResult.addHeader("twofactorurl", url);
+						methodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
+
 						securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+
 						return methodResult;
 
 					} else {
 
-						String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));
+						final String twoFactorSecret = user.getProperty(StructrApp.key(User.class, "twoFactorSecret"));
 						String currentKey = "";
 
 						try {
@@ -210,7 +217,7 @@ public class LoginResource extends Resource {
 						// check two factor authentication
 						if (currentKey.equals(twoFactorCode)) {
 
-							user.setProperty(StructrApp.key(User.class, "twoFactorToken"), null); // reset token
+							user.setProperty(twoFactorTokenKey, null); // reset token
 							AuthHelper.doLogin(securityContext.getRequest(), user);
 							logger.info ("Succesful two factor authentication");
 
@@ -218,8 +225,10 @@ public class LoginResource extends Resource {
 
 							// two factor authentication not successful
 						   logger.info("Two factor authentication failed");
+
 						   RestMethodResult methodResult = new RestMethodResult(401);
 						   methodResult.addHeader("reason", "twofactor");
+
 						   return methodResult;
 
 						}
@@ -230,8 +239,10 @@ public class LoginResource extends Resource {
 
 				// make logged in user available to caller
 				securityContext.setCachedUser(user);
+
 				RestMethodResult methodResult = new RestMethodResult(200);
 				methodResult.addContent(user);
+
 				return methodResult;
 
 			} else {
@@ -267,8 +278,7 @@ public class LoginResource extends Resource {
 						}
 					}
 
-					if (user != null)
-					{
+					if (user != null) {
 						int attempts = user.getProperty(passwordAttemptsKey) == null ? 0 : user.getProperty(passwordAttemptsKey);
 
 						if (attempts <= maximumAttempts) {
@@ -279,10 +289,11 @@ public class LoginResource extends Resource {
 
 							//user.setProperty(StructrApp.key(User.class, "blocked"), true);
 							logger.info("Too many login-attempts for user: {}", emailOrUsername);
+
 							RestMethodResult methodResult = new RestMethodResult(401);
 							methodResult.addHeader("reason", "attempts");
-							return methodResult;
 
+							return methodResult;
 						}
 					}
 				}

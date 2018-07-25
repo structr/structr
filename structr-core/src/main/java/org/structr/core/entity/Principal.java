@@ -69,29 +69,32 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.addTransformer(LowercaseTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
-		principal.addDateProperty("passwordChangeDate");
-		principal.addIntegerProperty("passwordAttempts");
 
+
+		// Password Policy
+		principal.addDateProperty("passwordChangeDate");
 		principal.addPropertySetter("passwordChangeDate", Date.class);
 		principal.addPropertyGetter("passwordChangeDate", Date.class);
+
+		principal.addIntegerProperty("passwordAttempts");
 		principal.addPropertySetter("passwordAttempts", Integer.class);
 		principal.addPropertyGetter("passwordAttempts", Integer.class);
 
-		// Two Factor Authentication Attributes
-		principal.addStringProperty("twoFactorSecret");
-		principal.addStringProperty("twoFactorToken").setIndexed(true);
-		principal.addStringProperty("twoFactorImageUrl");
-		principal.addBooleanProperty("twoFactorUser");
-		principal.addStringProperty("twoFactorCode");
 
-		principal.addPropertySetter("twoFactorUser", Boolean.TYPE);
-		principal.addPropertyGetter("twoFactorUser", Boolean.TYPE);
+		// Two Factor Authentication
+		principal.addStringProperty("twoFactorSecret");
 		principal.addPropertySetter("twoFactorSecret", String.class);
 		principal.addPropertyGetter("twoFactorSecret", String.class);
+
+		principal.addStringProperty("twoFactorToken").setIndexed(true);
 		principal.addPropertySetter("twoFactorToken", String.class);
 		principal.addPropertyGetter("twoFactorToken", String.class);
-		principal.addPropertySetter("twoFactorImageUrl", String.class);
-		principal.addPropertyGetter("twoFactorImageUrl", String.class);
+
+		principal.addBooleanProperty("isTwoFactorUser");
+		principal.addPropertySetter("isTwoFactorUser", Boolean.TYPE);
+		principal.addPropertyGetter("isTwoFactorUser", Boolean.TYPE);
+
+		principal.addStringProperty("twoFactorCode");
 		principal.addPropertySetter("twoFactorCode", String.class);
 		principal.addPropertyGetter("twoFactorCode", String.class);
 

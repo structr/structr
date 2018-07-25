@@ -533,7 +533,7 @@ function StructrApp(baseUrl, locale) {
 		var data = {};
 
 		if (attrs && attrs.length === 2) {
-                    
+
                         // checking if the data is user/pw or 2fa
                         if (!attrs[0].includes("twoFactor"))
                         {
@@ -566,30 +566,30 @@ function StructrApp(baseUrl, locale) {
 					redirectOrReload(reload, returnUrl);
 				},
 				202: function(data) { //redirect 2fa and attach token
-                                        returnUrl = ajaxRequest.getResponseHeader("twofactorurl");
-                                        returnUrl = returnUrl+"?token="+ajaxRequest.getResponseHeader("token");
+					returnUrl = ajaxRequest.getResponseHeader("twoFactorLoginPage") + "?token=" + ajaxRequest.getResponseHeader("token");
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},
-                                204: function(data) { //redirect if 2fa is required, but user hasn't scanned barcode yet
-                                        returnUrl = ajaxRequest.getResponseHeader("forceRegUrl");
-                                        returnUrl = returnUrl+"?imgurl="+ajaxRequest.getResponseHeader("imgurl");
+				204: function(data) { //redirect if 2fa is required, but user hasn't scanned barcode yet
+					returnUrl = ajaxRequest.getResponseHeader("forceRegistrationPage") + "?qrdata=" + ajaxRequest.getResponseHeader("qrdata");
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
-                                },
+				},
 				401: function() { //change message on button depending on reason for 401
-                                        var buttonLabel = s.labels[s.lang].wrongUsernameOrPassword;
-                                        if (ajaxRequest.getResponseHeader("reason")=="attempts")
-                                        {
-                                            buttonLabel = s.labels[s.lang].passwordAttempts;
-                                        } else if (ajaxRequest.getResponseHeader("reason")=="twofactor")
-                                        {
-                                            buttonLabel = s.labels[s.lang].wrongTwoFactorCode;
-                                        } else if (ajaxRequest.getResponseHeader("reason")=="changed")
-                                        {
-                                            buttonLabel = s.labels[s.lang].passwordNotChanged;
-                                        }
-                                    
+					var buttonLabel = s.labels[s.lang].wrongUsernameOrPassword;
+
+					switch(ajaxRequest.getResponseHeader("reason")) {
+						case "attempts":
+							buttonLabel = s.labels[s.lang].passwordAttempts;
+							break;
+						case "twofactor":
+							buttonLabel = s.labels[s.lang].wrongTwoFactorCode;
+							break;
+						case "changed":
+							buttonLabel = s.labels[s.lang].passwordNotChanged;
+							break;
+					}
+
 					app.feedbackAction(msgBox, buttonLabel, 1000, btn, true, function () {
 						btn.text(oldBtnText);
 					});
