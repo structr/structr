@@ -287,7 +287,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("MATCH (n:NodeInterface");
+		buf.append("MATCH (n");
 
 		if (tenantId != null) {
 			buf.append(":");
@@ -308,7 +308,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("MATCH (n:NodeInterface");
+		buf.append("MATCH (n");
 
 		if (tenantId != null) {
 			buf.append(":");
@@ -331,7 +331,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("MATCH (n:NodeInterface");
+		buf.append("MATCH (n");
 
 		if (tenantId != null) {
 			buf.append(":");

@@ -81,8 +81,6 @@ public class TypeProperty extends StringProperty {
 
 	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class newType, final boolean removeUnused) {
 
-		System.out.println("updateLabels: " + node.getClass().getSimpleName() + " (" + node.getUuid() + ")");
-
 		final Set<Label> intersection = new LinkedHashSet<>();
 		final Set<Label> toRemove     = new LinkedHashSet<>();
 		final Set<Label> toAdd        = new LinkedHashSet<>();

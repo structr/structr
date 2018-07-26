@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -524,6 +525,8 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testTransactionIsolationWithFailures() {
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		// Tests the transaction isolation of the underlying database layer.
 
 		// Create a node and use ten different threads to set a property on
@@ -562,8 +565,11 @@ public class SystemTest extends StructrTest {
 			executor.shutdownNow();
 
 		} catch (Throwable fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test

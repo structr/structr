@@ -45,7 +45,7 @@ public class FulltextTokenizer extends Writer {
 	private final StringBuilder rawText      = new StringBuilder();
 	private final StringBuilder wordBuffer   = new StringBuilder();
 	private final List<String> words         = new LinkedList<>();
-	private String language                  = "de";
+	private String language                  = "en";
 	private String fileName                  = null;
 	private char lastCharacter               = 0;
 	private int consecutiveCharCount         = 0;
