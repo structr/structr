@@ -454,7 +454,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
 
-			assertEquals("Calling group.addMember(user) should be possible from JavaScript", 1.0, Scripting.evaluate(ctx, null, addMemberScript, "test"));
+			assertEquals("Calling group.addMember(user) should be possible from JavaScript!", 1.0, Scripting.evaluate(ctx, null, addMemberScript, "test"));
 
 			tx.success();
 
@@ -480,7 +480,8 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final ActionContext ctx = new ActionContext(securityContext, null);
 
-			assertEquals("Calling group.removeMember(user) should be possible from JavaScript", "before: 1 - after: 0", Scripting.evaluate(ctx, null, removeMemberScript, "test"));
+			// we need to .toString() the evaluation result because a ConsString is returned from javascript
+			assertEquals("Calling group.removeMember(user) should be possible from JavaScript!", "before: 1 - after: 0", Scripting.evaluate(ctx, null, removeMemberScript, "test").toString());
 
 			tx.success();
 
