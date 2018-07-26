@@ -67,11 +67,15 @@ public class BarcodeFunction extends Function<Object, Object> {
 
 				ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
 
-				return baos.toString("ISO-8859-1");//"ISO-8859-1"
+				return baos.toString("ISO-8859-1");
 
 			} catch(WriterException we) {
 
+				logger.warn("barcode(): WriterException while encoding barcode: {} {}", barcodeType, barcodeData, we);
+
 			} catch(IOException ioe) {
+
+				logger.warn("barcode(): IOException", ioe);
 
 			}
 
