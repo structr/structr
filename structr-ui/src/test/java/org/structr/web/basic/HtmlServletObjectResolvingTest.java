@@ -21,6 +21,7 @@ package org.structr.web.basic;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.TestOne;
 import org.structr.web.entity.dom.Page;
@@ -271,9 +271,8 @@ public class HtmlServletObjectResolvingTest {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
-				app.delete(node);
-			}
+			// delete remaining nodes without UUIDs etc.
+			app.cypher("MATCH (n) WHERE NOT n:SchemaReloadingNode DETACH DELETE n", Collections.emptyMap());
 
 			tx.success();
 
