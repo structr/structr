@@ -281,10 +281,13 @@ public class HtmlServletObjectResolvingTest {
 
 				tx.success();
 
-			// delete remaining nodes without UUIDs etc.
-			app.cypher("MATCH (n) WHERE NOT n:SchemaReloadingNode DETACH DELETE n", Collections.emptyMap());
+				FlushCachesCommand.flushAll();
 
-			FlushCachesCommand.flushAll();
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
 		}
 	}
 
