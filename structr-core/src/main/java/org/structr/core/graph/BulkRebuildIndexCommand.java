@@ -29,6 +29,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.StructrAndSpatialPredicate;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.fulltext.Indexable;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
@@ -58,6 +60,10 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 		if (mode == null || "relsOnly".equals(mode)) {
 			rebuildRelationshipIndex(relType);
+		}
+
+		if ("fulltext".equals(mode)) {
+			rebuildFulltextIndex();
 		}
 	}
 
@@ -160,5 +166,35 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		});
 
 		info("Done with (re-)indexing {} relationships", count);
+	}
+
+	private void rebuildFulltextIndex() {
+
+		final NodeFactory nodeFactory  = new NodeFactory(SecurityContext.getSuperUserInstance());
+		final DatabaseService graphDb  = (DatabaseService) arguments.get("graphDb");
+		final Iterator<Indexable> iter = Iterables.map(nodeFactory, graphDb.getNodesByLabel("Indexable")).iterator();
+
+		bulkGraphOperation(securityContext, iter, 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
+
+			@Override
+			public boolean handleGraphObject(SecurityContext securityContext, Indexable indexable) throws FrameworkException {
+
+				StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(indexable);
+
+				return true;
+			}
+
+			@Override
+			public void handleThrowable(SecurityContext securityContext, Throwable t, Indexable rel) {
+				logger.warn("Unable to build fulltext index for {}: {}", rel.getUuid(), t.getMessage());
+			}
+
+			@Override
+			public void handleTransactionFailure(SecurityContext securityContext, Throwable t) {
+				logger.warn("Unable to build fulltext index: {}", t.getMessage());
+			}
+		});
+
+		info("Rebuilding fulltext index done.");
 	}
 }

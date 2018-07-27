@@ -71,12 +71,12 @@
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver</artifactId>
-			<version>1.4.4</version>
+			<version>1.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-bolt</artifactId>
-			<version>3.2.6</version>
+			<version>3.4.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>net.sf.opencsv</groupId>

@@ -16,39 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.fulltext;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import org.structr.api.graph.Relationship;
-import org.structr.api.util.Iterables;
+import java.net.URI;
+import org.structr.common.PropertyView;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.SchemaService;
+import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonSchema;
 
 /**
- *
- *
  */
-public class IdSorter<T extends Relationship> implements Iterable<T>, Comparator<T> {
+public interface IndexedWord extends NodeInterface {
 
-	private List<T> sortedList = null;
+	static class Impl { static {
 
-	public IdSorter(final Iterable<T> source) {
-		this.sortedList = Iterables.toList(source);
-		Collections.sort(sortedList, this);
-	}
+		final JsonSchema schema   = SchemaService.getDynamicSchema();
+		final JsonObjectType type = schema.addType("IndexedWord");
 
-	@Override
-	public Iterator<T> iterator() {
-		return sortedList.iterator();
-	}
+		type.setImplements(URI.create("https://structr.org/v1.1/definitions/IndexedWord"));
 
-	@Override
-	public int compare(T o1, T o2) {
-
-		final long id1 = o1.getId();
-		final long id2 = o2.getId();
-
-		return id1 < id2 ? -1 : id1 > id2 ? 1 : 0;
-	}
+		type.addStringProperty("name", PropertyView.Ui, PropertyView.Public).setIndexed(true).setUnique(true);
+	}}
 }

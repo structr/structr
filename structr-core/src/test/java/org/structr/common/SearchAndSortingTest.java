@@ -27,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -396,7 +395,7 @@ public class SearchAndSortingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 1000;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
-			final int expectedNumber        = 1130;
+			final int expectedNumber        = 1135;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 

@@ -281,8 +281,8 @@ public class PropertyTest extends StructrTest {
 		List<TestSix> testSixs2           = null;
 		int index                         = 0;
 
-		List<Integer> index1              = new LinkedList();
-		List<Integer> index2              = new LinkedList();
+		List<Integer> index1              = new LinkedList<>();
+		List<Integer> index2              = new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -292,9 +292,11 @@ public class PropertyTest extends StructrTest {
 			for (final TestSix testSix : testSixs) {
 				int i = index++;
 				testSix.setProperty(TestSix.index, i);
-				System.out.println(i + " ");
+				System.out.print(i + ", ");
 				index1.add(i);
 			}
+
+			System.out.println();
 
 			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
 
@@ -308,16 +310,18 @@ public class PropertyTest extends StructrTest {
 
 			for (final TestSix testSix : testSixs2) {
 				int i = testSix.getProperty(TestSix.index);
-				System.out.println(i + " ");
+				System.out.println(i + ", " + testSix.getRawPathSegment().getProperty("internalCreationTimestamp"));
+
 				index2.add(i);
 			}
+
+			System.out.println();
 
 			assertEquals(index1, index2);
 
 			tx.success();
 
 		}
-
 
 	}
 
@@ -2029,7 +2033,7 @@ public class PropertyTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
-	
+
 	/**
 	 * This test creates a new typeProperty "Message" with different Notion properties.
 	 */
@@ -2039,7 +2043,7 @@ public class PropertyTest extends StructrTest {
 		cleanDatabaseAndSchema();
 
 		SchemaNode message = null;
-		
+
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
@@ -2052,7 +2056,7 @@ public class PropertyTest extends StructrTest {
 					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
 					new NodeAttribute<>(SchemaProperty.schemaNode, message)
 			);
-			
+
 			app.create(SchemaRelationshipNode.class,
 				new NodeAttribute<>(SchemaRelationshipNode.sourceNode, message),
 				new NodeAttribute<>(SchemaRelationshipNode.targetNode, message),
@@ -2062,7 +2066,7 @@ public class PropertyTest extends StructrTest {
 				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
 				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
 			);
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -2070,9 +2074,9 @@ public class PropertyTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
-		
+
 		try (final Tx tx = app.tx()) {
-			
+
 			app.create(SchemaProperty.class,
 					new NodeAttribute<>(SchemaProperty.name, "parentMessageId1"),
 					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
@@ -2138,7 +2142,7 @@ public class PropertyTest extends StructrTest {
 		}
 	}
 
-	
+
 	/**
 	 * This test creates a new typeProperty "Message" with different Notion properties.
 	 */
@@ -2169,7 +2173,7 @@ public class PropertyTest extends StructrTest {
 				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
 				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
 			);
-			
+
 			app.create(SchemaProperty.class,
 					new NodeAttribute<>(SchemaProperty.name, "parentMessageName1"),
 					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
@@ -2216,7 +2220,7 @@ public class PropertyTest extends StructrTest {
 				new NodeAttribute<>(SchemaRelationshipNode.targetJsonName, "parent"),
 				new NodeAttribute<>(SchemaRelationshipNode.relationshipType, "HAS_PARENT")
 			);
-			
+
 			app.create(SchemaProperty.class,
 					new NodeAttribute<>(SchemaProperty.name, "parentMessageTrue"),
 					new NodeAttribute<>(SchemaProperty.propertyType, "Notion"),
@@ -2238,5 +2242,5 @@ public class PropertyTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception");
 		}
-	}	
+	}
 }

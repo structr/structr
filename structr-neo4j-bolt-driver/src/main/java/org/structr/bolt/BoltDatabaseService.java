@@ -260,14 +260,14 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		map.put("id", id);
 
-		buf.append("MATCH (");
+		buf.append("MATCH (:NodeInterface");
 
 		if (tenantId != null) {
 			buf.append(":");
 			buf.append(tenantId);
 		}
 
-		buf.append(")-[r]->(");
+		buf.append(")-[r]->(:NodeInterface");
 
 		if (tenantId != null) {
 			buf.append(":");
@@ -353,14 +353,14 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("MATCH (");
+		buf.append("MATCH (:NodeInterface");
 
 		if (tenantId != null) {
 			buf.append(":");
 			buf.append(tenantId);
 		}
 
-		buf.append(")-[r]->(");
+		buf.append(")-[r]->(:NodeInterface");
 
 		if (tenantId != null) {
 			buf.append(":");
@@ -564,6 +564,11 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		}
 
 		return globalGraphProperties;
+	}
+
+	@Override
+	public String getInternalCreationTimestamp() {
+		return System.currentTimeMillis() + "." + System.nanoTime();
 	}
 
 	// ----- nested classes -----
