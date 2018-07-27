@@ -20,6 +20,7 @@ package org.structr.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -29,6 +30,8 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 
@@ -432,5 +435,60 @@ public class SchemaMethodsTest extends FrontendTest {
 			fail("Unexpected exception");
 		}
 
+	}
+
+	@Test
+	public void testCallingExportMethods() {
+
+		final String addMemberScript =  "${{\n" +
+				"\n" +
+				"	var newGroup = Structr.create('Group', 'name', 'testGroup');\n" +
+				"	var newUser  = Structr.create('User', 'name', 'testUser');\n" +
+				"\n" +
+				"	newGroup.addMember(newUser);\n" +
+				"\n" +
+				"	return newGroup.members.length;" +
+				"}}";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+
+			assertEquals("Calling group.addMember(user) should be possible from JavaScript!", 1.0, Scripting.evaluate(ctx, null, addMemberScript, "test"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final String removeMemberScript =  "${{\n" +
+				"\n" +
+				"	var group = Structr.find('Group', 'name', 'testGroup')[0];\n" +
+				"	var user  = Structr.find('User', 'name', 'testUser')[0];\n" +
+				"\n" +
+				"	var beforeRemove = 'before: ' + group.members.length;" +
+				"\n" +
+				"	group.removeMember(user);\n" +
+				"\n" +
+				"	return beforeRemove + ' - after: ' + group.members.length;" +
+				"}}";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+
+			// we need to .toString() the evaluation result because a ConsString is returned from javascript
+			assertEquals("Calling group.removeMember(user) should be possible from JavaScript!", "before: 1 - after: 0", Scripting.evaluate(ctx, null, removeMemberScript, "test").toString());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 }
