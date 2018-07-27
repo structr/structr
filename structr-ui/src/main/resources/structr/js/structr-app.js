@@ -118,9 +118,9 @@ function StructrApp(baseUrl, locale) {
 			couldNotCreate                   : 'Could not create',
 			checking                         : 'Checking...',
 			wrongUsernameOrPassword          : 'Wrong username or password!',
-                        wrongTwoFactorCode               : 'Wrong two factor code!',
-                        passwordAttempts                 : 'Too many wrong password attempts!',
-                        passwordNotChanged               : 'Your password has not been changed for too long!',
+			wrongTwoFactorCode               : 'Wrong two factor code!',
+			passwordAttempts                 : 'Too many wrong password attempts!',
+			passwordNotChanged               : 'Your password has not been changed for too long!',
 			pleaseEnterEMail                 : 'Please enter your e-mail address!',
 			processing                       : 'Processing...',
 			checkYourInbox                   : 'Thanks! Please check your inbox.',
@@ -144,9 +144,9 @@ function StructrApp(baseUrl, locale) {
 			couldNotCreate                   : 'Konnte nicht erstellen:',
 			checking                         : 'Prüfe ...',
 			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
-                        wrongTwoFactorCode               : 'Falscher Two Factor Code!',
-                        passwordAttempts                 : 'Zu viele falsche Passwort-Eingaben!',
-                        passwordNotChanged               : 'Sie haben Ihr Passwort zu lange nicht geändert!',
+			wrongTwoFactorCode               : 'Falscher Two Factor Code!',
+			passwordAttempts                 : 'Zu viele falsche Passwort-Eingaben!',
+			passwordNotChanged               : 'Sie haben Ihr Passwort zu lange nicht geändert!',
 			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
 			processing                       : 'In Bearbeitung ...',
 			checkYourInbox                   : 'Danke! Bitte E-Mail-Eingang prüfen.',
@@ -159,7 +159,7 @@ function StructrApp(baseUrl, locale) {
 			couldNotReadRelatedProperty      : 'Konnte entferntes Attribut nicht lesen:',
 			makeSureContainedInEntity        : 'Stellen Sie sicher, dass es in der\nEntität und in deren ui-View enthalten ist\nsowie per REST lesbar ist.',
 		}
-	}
+	};
 
 	/**
 	 * Bind 'click' event to all Structr buttons
@@ -534,15 +534,14 @@ function StructrApp(baseUrl, locale) {
 
 		if (attrs && attrs.length === 2) {
 
-                        // checking if the data is user/pw or 2fa
-                        if (!attrs[0].includes("twoFactor"))
-                        {
-                            data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
-                            data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
-                        } else {
-                            data['twoFactorToken'] = $('[data-structr-name="' + attrs[0] + '"]').val();
-                            data['twoFactorCode'] = $('[data-structr-name="' + attrs[1] + '"]').val();
-                        }
+			// checking if the data is user/pw or 2fa
+			if (!attrs[0].includes("twoFactor")) {
+				data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+				data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+			} else {
+				data['twoFactorToken'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+				data['twoFactorCode'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+			}
 		}
 
 		var msgBox = $('#msg');
@@ -590,7 +589,7 @@ function StructrApp(baseUrl, locale) {
 							break;
 					}
 
-					app.feedbackAction(msgBox, buttonLabel, 1000, btn, true, function () {
+					app.feedbackAction(msgBox, buttonLabel, 2000, btn, true, function () {
 						btn.text(oldBtnText);
 					});
 				}

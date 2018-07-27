@@ -68,12 +68,12 @@ public class LoginResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
+		final PropertyMap properties       = PropertyMap.inputTypeToJavaType(securityContext, User.class, propertySet);
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
 		final PropertyKey<String> pwdKey   = StructrApp.key(User.class, "password");
 
-		final PropertyKey<String> twoFactorTokenKey = StructrApp.key(User.class, "twoFactorToken");
-		final PropertyKey<String> twoFactorCodeKey  = StructrApp.key(User.class, "twoFactorCode");
+		final PropertyKey<String> twoFactorTokenKey   = StructrApp.key(User.class, "twoFactorToken");
+		final PropertyKey<String> twoFactorCodeKey    = StructrApp.key(User.class, "twoFactorCode");
 		final PropertyKey<Boolean> isTwoFactorUserKey = StructrApp.key(User.class, "isTwoFactorUser");
 
 		final PropertyKey<Integer> passwordAttemptsKey = StructrApp.key(User.class, "passwordAttempts");
@@ -83,29 +83,28 @@ public class LoginResource extends Resource {
 		final String email    = properties.get(eMailKey);
 		final String password = properties.get(pwdKey);
 
-		final String twoFactorCode = (properties.get(twoFactorCodeKey) == null) ? null : properties.get(twoFactorCodeKey).replaceAll("\\s+","");
-		final int twoFactorLevel = Settings.TwoFactorLevel.getValue();
-		String twoFactorToken = properties.get(twoFactorTokenKey);
+		final String twoFactorCode             = (properties.get(twoFactorCodeKey) == null) ? null : properties.get(twoFactorCodeKey).replaceAll("\\s+","");
+		final int twoFactorLevel               = Settings.TwoFactorLevel.getValue();
+		final String twoFactorTokenFromRequest = properties.get(twoFactorTokenKey);
 
-		final int maximumAttempts = Settings.PasswordAttempts.getValue();
-		final int passwordDays = Settings.PasswordForceChangeDays.getValue();
+		final int maximumAttempts         = Settings.PasswordAttempts.getValue();
+		final int passwordDays            = Settings.PasswordForceChangeDays.getValue();
 		final boolean forcePasswordChange = Settings.PasswordForceChange.getValue();
 
 		final App app = StructrApp.getInstance();
 
-		String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
+		final String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
 
-		if ((StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) || StringUtils.isNotEmpty(twoFactorToken)) {
+		if ((StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) || StringUtils.isNotEmpty(twoFactorTokenFromRequest)) {
 
 			Principal user = null;
 
 			// If there is no token get user by username/ pw, else get user by token
-			if (twoFactorToken != null) {
-
+			if (twoFactorTokenFromRequest != null) {
 
 				Result<Principal> results;
 				try (final Tx tx = app.tx()) {
-					results = app.nodeQuery(Principal.class).and(twoFactorTokenKey, twoFactorToken).getResult();
+					results = app.nodeQuery(Principal.class).and(twoFactorTokenKey, twoFactorTokenFromRequest).getResult();
 					tx.success();
 				}
 
@@ -128,11 +127,6 @@ public class LoginResource extends Resource {
 
 			if (user != null) {
 
-				if (user.getProperty(twoFactorTokenKey) != null) {
-					// if there is an old token delete it
-					user.setProperty(twoFactorTokenKey, null);
-				}
-
 				int attempts = user.getProperty(passwordAttemptsKey) == null ? 0 : user.getProperty(passwordAttemptsKey);
 
 				if (attempts > maximumAttempts && maximumAttempts > 0) {
@@ -152,7 +146,7 @@ public class LoginResource extends Resource {
 				if (forcePasswordChange) {
 
 					final Date now = new Date();
-					final Date passwordChangeDate = user.getProperty(passwordChangeDateKey) != null ? user.getProperty(passwordChangeDateKey) : new Date (0); // setting date in past if not yet set
+					final Date passwordChangeDate = (user.getProperty(passwordChangeDateKey) != null) ? user.getProperty(passwordChangeDateKey) : new Date (0); // setting date in past if not yet set
 					final int daysApart = (int) ((now.getTime() - passwordChangeDate.getTime()) / (1000 * 60 * 60 * 24l));
 
 					if (daysApart > passwordDays) {
@@ -189,14 +183,14 @@ public class LoginResource extends Resource {
 
 				if (isTwoFactor) {
 
-					if (twoFactorToken == null) {
+					if (twoFactorTokenFromRequest == null) {
 
-						//set token to identify user by it
-						twoFactorToken = UUID.randomUUID().toString();
-						user.setProperty(twoFactorTokenKey, twoFactorToken);
+						// set token to identify user by it
+						final String newTwoFactorToken = UUID.randomUUID().toString();
+						user.setProperty(twoFactorTokenKey, newTwoFactorToken);
 
 						RestMethodResult methodResult = new RestMethodResult(202);
-						methodResult.addHeader("token", twoFactorToken);
+						methodResult.addHeader("token", newTwoFactorToken);
 						methodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
 
 						securityContext.getAuthenticator().doLogout(securityContext.getRequest());
