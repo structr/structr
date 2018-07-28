@@ -141,7 +141,7 @@ public class FulltextTokenizer extends Writer {
 		if (StringUtils.isNotBlank(word)) {
 
 			// try to separate numbers / dates etc.
-			if (word.matches("-?[0-9\\.,]+")) {
+			if (word.matches("-?[0-9\\.,/]+")) {
 
 				while (word.endsWith(",")) {
 
