@@ -1127,6 +1127,10 @@ public class ValidationTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				uuid1 = app.create(testType, new NodeAttribute<>(key, new String[] { "one", "two" } )).getUuid();
+
+				// make sure creation of the two objects is more than 1ms apart
+				try { Thread.sleep(1); }catch (Throwable t) {}
+
 				uuid2 = app.create(testType, new NodeAttribute<>(key, new String[] { "one", "two" } )).getUuid();
 
 				tx.success();
@@ -1212,6 +1216,10 @@ public class ValidationTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				uuid = app.create(testType, new NodeAttribute<>(key, true)).getUuid();
+
+				// make sure creation of the two objects is more than 1ms apart
+				try { Thread.sleep(1); }catch (Throwable t) {}
+
 				app.create(testType, new NodeAttribute<>(key, false));
 				app.create(testType, new NodeAttribute<>(key, true));
 
@@ -1252,6 +1260,10 @@ public class ValidationTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				uuid = app.create(testType, new NodeAttribute<>(key, date)).getUuid();
+
+				// make sure creation of the two objects is more than 1ms apart
+				try { Thread.sleep(1); }catch (Throwable t) {}
+
 				app.create(testType, new NodeAttribute<>(key, date));
 
 				tx.success();
@@ -1324,6 +1336,10 @@ public class ValidationTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				uuid = app.create(testType, new NodeAttribute<>(key, 0.123)).getUuid();
+
+				// make sure creation of the two objects is more than 1ms apart
+				try { Thread.sleep(1); }catch (Throwable t) {}
+
 				app.create(testType, new NodeAttribute<>(key, 0.123));
 
 				tx.success();
@@ -1517,6 +1533,10 @@ public class ValidationTest extends StructrTest {
 				final Object value = ((EnumProperty)key).getEnumType().getEnumConstants()[0];
 
 				uuid = app.create(testType, new NodeAttribute<>(key, value)).getUuid();
+
+				// make sure creation of the two objects is more than 1ms apart
+				try { Thread.sleep(1); }catch (Throwable t) {}
+
 				app.create(testType, new NodeAttribute<>(key, value));
 
 				tx.success();
@@ -1586,6 +1606,10 @@ public class ValidationTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				uuid = app.create(testType, new NodeAttribute<>(key, 42)).getUuid();
+
+				// make sure creation of the two objects is more than 1ms apart
+				try { Thread.sleep(1); }catch (Throwable t) {}
+
 				app.create(testType, new NodeAttribute<>(key, 42));
 
 				tx.success();
@@ -1734,6 +1758,10 @@ public class ValidationTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				uuid = app.create(testType, new NodeAttribute<>(key, 42000000000L)).getUuid();
+
+				// make sure creation of the two objects is more than 1ms apart
+				try { Thread.sleep(1); }catch (Throwable t) {}
+
 				app.create(testType, new NodeAttribute<>(key, 42000000000L));
 
 				tx.success();
