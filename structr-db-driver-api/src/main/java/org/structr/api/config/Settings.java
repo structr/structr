@@ -270,9 +270,9 @@ public class Settings {
 	public static final Setting<String> TwoFactorForceRegistrationPage = new StringSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.forceRegistrationUrl",     "/scanqrcode", "The application page where the user is redirected to if he is not yet a two factor user but the system enforces two factor authentication");
 
 	public static final Setting<Boolean> PasswordForceChange           = new BooleanSetting(securityGroup, "Password Policy", "ForcePassword.change",   false, "Indicates if a forced password change is active");
-	public static final Setting<Integer> PasswordForceChangeDays       = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.days",     90, "The number of days after which a user has to change his password");
-	public static final Setting<Integer> PasswordForceChangeReminder   = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.reminder", 14, "The number of days (before the user has to change the password) where a warning should be issued. (Has to be handled in application code)");
-	public static final Setting<Integer> PasswordAttempts              = new IntegerSetting(securityGroup, "Password Policy", "Password.attempts",      4,  "The maximum number of failed login attempts before a user is blocked");
+	public static final Setting<Integer> PasswordForceChangeDays       = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.days",     90,    "The number of days after which a user has to change his password");
+	public static final Setting<Integer> PasswordForceChangeReminder   = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.reminder", 14,    "The number of days (before the user has to change the password) where a warning should be issued. (Has to be handled in application code)");
+	public static final Setting<Integer> PasswordAttempts              = new IntegerSetting(securityGroup, "Password Policy", "Password.attempts",      4,     "The maximum number of failed login attempts before a user is blocked");
 
 
 	// oauth settings

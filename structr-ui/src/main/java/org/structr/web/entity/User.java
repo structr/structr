@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity;
 
-import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
@@ -38,6 +37,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.TimeBasedOneTimePasswordHelper;
 
 public interface User extends Principal {
 
@@ -139,7 +139,7 @@ public interface User extends Principal {
 
 		if (user.getProperty(twoFactorSecretKey) == null) {
 
-			final String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+			final String base32Secret = TimeBasedOneTimePasswordHelper.generateBase32Secret();
 			user.setProperty(isTwoFactorUserKey, false);
 			user.setProperty(twoFactorSecretKey, base32Secret);
 		}

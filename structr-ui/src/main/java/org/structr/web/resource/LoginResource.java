@@ -18,7 +18,6 @@
  */
 package org.structr.web.resource;
 
-import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.util.Base64;
@@ -43,6 +42,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.web.common.TimeBasedOneTimePasswordHelper;
 import org.structr.web.entity.User;
 
 /**
@@ -203,7 +203,7 @@ public class LoginResource extends Resource {
 						String currentKey = "";
 
 						try {
-							currentKey = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(twoFactorSecret);
+							currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(twoFactorSecret, Settings.TwoFactorDigits.getValue());
 						} catch (GeneralSecurityException ex) {
 							logger.info("Two factor authentication key could not be generated");
 						}
