@@ -273,7 +273,7 @@ public class FulltextIndexingTest extends TextSearchModuleTest {
 	}
 
 	private void delay() {
-		delay(3000);
+		delay(5000);
 	}
 
 	private void delay(final long time) {

@@ -532,6 +532,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 							.nodeQuery(type)
 							.and(key, value)
+							.sortAscending(GraphObject.createdDate)
 							.getAsList();
 
 					} else {
@@ -539,6 +540,7 @@ public class ValidationHelper {
 						result = StructrApp.getInstance()
 							.relationshipQuery(type)
 							.and(key, value)
+							.sortAscending(GraphObject.createdDate)
 							.getAsList();
 
 					}
@@ -565,7 +567,7 @@ public class ValidationHelper {
 						if (foundNode.getId() != object.getId()) {
 
 							// validation is aborted when the first validation failure occurs, so
-							// we can assume that the object currently exmained is the first
+							// we can assume that the object currently examined is the first
 							// existing object, hence all others get the error message with the
 							// UUID of the first one.
 							errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid()));
@@ -614,7 +616,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.nodeQuery(type)
 						.and(properties)
-						.disableSorting()
+						.sortAscending(GraphObject.createdDate)
 						.getAsList();
 
 				} else {
@@ -622,7 +624,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.relationshipQuery(type)
 						.and(properties)
-						.disableSorting()
+						.sortAscending(GraphObject.createdDate)
 						.getAsList();
 
 				}
@@ -679,7 +681,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.nodeQuery(NodeInterface.class)
 						.and(key, value)
-						.disableSorting()
+						.sortAscending(GraphObject.createdDate)
 						.getAsList();
 
 				} else if (object instanceof RelationshipInterface) {
@@ -687,7 +689,7 @@ public class ValidationHelper {
 					result = StructrApp.getInstance()
 						.relationshipQuery(RelationshipInterface.class)
 						.and(key, value)
-						.disableSorting()
+						.sortAscending(GraphObject.createdDate)
 						.getAsList();
 
 				} else {
