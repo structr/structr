@@ -18,7 +18,6 @@
  */
 package org.structr.bolt.wrapper;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -84,7 +83,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	@Override
 	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
-		return createRelationshipTo(endNode, relationshipType, Collections.EMPTY_MAP);
+		return createRelationshipTo(endNode, relationshipType, new LinkedHashMap<>());
 	}
 
 	@Override
@@ -99,6 +98,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		final NodeWrapper otherNode   = (NodeWrapper)endNode;
 		final String tenantIdentifier = db.getTenantIdentifier();
 		final StringBuilder buf       = new StringBuilder();
+
+		// add creation timestamp to be able to sort nodes by creation time
+		properties.put("internalCreationTimestamp", db.getInternalCreationTimestamp());
 
 		map.put("id1", id);
 		map.put("id2", endNode.getId());
@@ -239,7 +241,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			map.put("id", id);
 
-			list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+			list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r ORDER BY r.internalCreationTimestamp", map)));
 
 			// store in cache
 			setList(null, null, list);
@@ -270,11 +272,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					return getRelationships();
 
 				case OUTGOING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->() WHERE ID(n) = {id} RETURN DISTINCT r ORDER BY r.internalCreationTimestamp", map)));
 					break;
 
 				case INCOMING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r ORDER BY r.internalCreationTimestamp", map)));
 					break;
 			}
 
@@ -304,15 +306,15 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			switch (direction) {
 
 				case BOTH:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r ORDER BY r.internalCreationTimestamp", map)));
 					break;
 
 				case OUTGOING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN DISTINCT r ORDER BY r.internalCreationTimestamp", map)));
 					break;
 
 				case INCOMING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r ORDER BY r.internalCreationTimestamp", map)));
 					break;
 			}
 
@@ -354,7 +356,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	public static void expunge(final Set<Long> toRemove) {
 
 		synchronized (nodeCache) {
-			
+
 			nodeCache.removeAll(toRemove);
 		}
 	}
@@ -392,13 +394,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
-				final String tenantIdentifier = db.getTenantIdentifier();
 
 				map.put("id", id);
 
 				//wrapper = new NodeWrapper(db, tx.getNode("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} RETURN n", map));
 				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n) WHERE ID(n) = {id} RETURN n", map));
-				
+
 				nodeCache.put(id, wrapper);
 			}
 

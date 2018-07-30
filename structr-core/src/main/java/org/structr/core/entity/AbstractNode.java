@@ -66,7 +66,6 @@ import org.structr.cmis.info.CMISRelationshipInfo;
 import org.structr.cmis.info.CMISSecondaryInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.GraphObjectComparator;
-import org.structr.common.IdSorter;
 import org.structr.common.Permission;
 import org.structr.common.PermissionPropagation;
 import org.structr.common.PermissionResolutionMask;
@@ -634,7 +633,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(new IdSorter<>(template.getSource().getRawSource(securityContext, dbNode, null)), factory);
+		//return new IterableAdapter<>(new IdSorter<>(template.getSource().getRawSource(securityContext, dbNode, null)), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode, null), factory);
 	}
 
 	@Override
@@ -657,17 +657,20 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template = getRelationshipForType(type);
 
-		return new IterableAdapter<>(new IdSorter<>(template.getTarget().getRawSource(securityContext, dbNode, null)), factory);
+		//return new IterableAdapter<>(new IdSorter<>(template.getTarget().getRawSource(securityContext, dbNode, null)), factory);
+		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode, null), factory);
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
-		return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.INCOMING)), new RelationshipFactory<R>(securityContext));
+		//return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.INCOMING)), new RelationshipFactory<R>(securityContext));
+		return new IterableAdapter<>(dbNode.getRelationships(Direction.INCOMING), new RelationshipFactory<R>(securityContext));
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
-		return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.OUTGOING)), new RelationshipFactory<R>(securityContext));
+		//return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.OUTGOING)), new RelationshipFactory<R>(securityContext));
+		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<R>(securityContext));
 	}
 
 	@Override

@@ -45,7 +45,7 @@ public class SchemaMethodsTest extends FrontendTest {
 	public void test01SchemaMethodOnBuiltinType() {
 
 		final String builtinTypeName = "File";
-		final String schemaMethodName = "testFileMethod";
+		final String schemaMethodName = "testFileMethodOnType";
 
 		try (final Tx tx = app.tx()) {
 
@@ -54,7 +54,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.source, "(log('test01SchemaMethodOnBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
@@ -108,7 +108,7 @@ public class SchemaMethodsTest extends FrontendTest {
 	public void test02SchemaMethodOnCustomType() {
 
 		final String customTypeName = "FooFile";
-		final String schemaMethodName = "testFooFileMethod";
+		final String schemaMethodName = "testFooFileMethodOnType";
 
 		try (final Tx tx = app.tx()) {
 
@@ -117,7 +117,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFooFileMethodProperties.put(SchemaMethod.source, "()");
+			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test02SchemaMethodOnCustomType successful'))");
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
 
 			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, testFooFileMethodProperties);
@@ -170,7 +170,7 @@ public class SchemaMethodsTest extends FrontendTest {
 	public void test03SchemaMethodOnEntityOfBuiltinType() {
 
 		final String builtinTypeName = "File";
-		final String schemaMethodName = "testFileMethod";
+		final String schemaMethodName = "testFileMethodOnEntity";
 
 		User admin = null;
 		try (final Tx tx = app.tx()) {
@@ -189,7 +189,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.source, "(log('test03SchemaMethodOnEntityOfBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
@@ -245,17 +245,17 @@ public class SchemaMethodsTest extends FrontendTest {
 	@Test
 	public void test04SchemaMethodOnEntityOfCustomType() {
 
-		final String customTypeName = "FooFile";
-		final String schemaMethodName = "testFooFileMethod";
+		final String customTypeName = "FooFileNew";
+		final String schemaMethodName = "testFooFileMethodOnEntity";
 
 		try (final Tx tx = app.tx()) {
 
-			// Add schema method "testFileMethod" to built-in File class
+			// Add schema method "testFooFileMethodOnEntity" to built-in File class
 			SchemaNode fooFileDef = app.create(SchemaNode.class, customTypeName);
 
 			final PropertyMap testFooFileMethodProperties = new PropertyMap();
 			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFooFileMethodProperties.put(SchemaMethod.source, "()");
+			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test04SchemaMethodOnEntityOfCustomType successful'))");
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
 
 			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, testFooFileMethodProperties);
@@ -310,7 +310,7 @@ public class SchemaMethodsTest extends FrontendTest {
 	public void test05InheritedSchemaMethodOnBuildinType() {
 
 		final String builtinTypeName = "File";
-		final String schemaMethodName = "testFileMethod";
+		final String schemaMethodName = "testFileMethodOnInheritingType";
 
 		User admin = null;
 		try (final Tx tx = app.tx()) {
@@ -329,7 +329,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.source, "(log('test05InheritedSchemaMethodOnBuildinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
@@ -374,7 +374,7 @@ public class SchemaMethodsTest extends FrontendTest {
 	public void test06InheritedSchemaMethodOnEntityOfBuiltinType() {
 
 		final String builtinTypeName = "File";
-		final String schemaMethodName = "testFileMethod";
+		final String schemaMethodName = "testFileMethodOnInheritingEntity";
 
 		User admin = null;
 		try (final Tx tx = app.tx()) {
@@ -393,7 +393,7 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			final PropertyMap testFileMethodProperties = new PropertyMap();
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
-			testFileMethodProperties.put(SchemaMethod.source, "()");
+			testFileMethodProperties.put(SchemaMethod.source, "(log('test06InheritedSchemaMethodOnEntityOfBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);

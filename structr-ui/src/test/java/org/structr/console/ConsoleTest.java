@@ -25,6 +25,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.entity.Principal;
@@ -144,9 +145,11 @@ public class ConsoleTest extends StructrUiTest {
 	@Test
 	public void testRebuildCommand() {
 
+		Settings.CypherDebugLogging.setValue(true);
+
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount   = 1538;
-		final int relCount    = 1877;
+		final int nodeCount   = 1543;
+		final int relCount    = 1883;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
@@ -293,5 +296,7 @@ public class ConsoleTest extends StructrUiTest {
 			fail("Unexpected exception.");
 			logger.warn("", fex);
 		}
+
+		Settings.CypherDebugLogging.setValue(false);
 	}
 }

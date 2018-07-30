@@ -21,6 +21,7 @@ package org.structr.web.basic;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ import org.apache.commons.io.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,10 +45,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.TestOne;
 import org.structr.web.entity.dom.Page;
 import org.w3c.dom.DOMException;
@@ -167,6 +170,7 @@ public class HtmlServletObjectResolvingTest {
 	protected static Properties config                   = new Properties();
 	protected static GraphDatabaseCommand graphDbCommand = null;
 	protected static SecurityContext securityContext     = null;
+	protected static boolean needsCleanup                = false;
 	protected static App app                             = null;
 	protected static String basePath                     = null;
 
@@ -174,7 +178,6 @@ public class HtmlServletObjectResolvingTest {
 	private boolean running = false;
 
 	protected static final String prot = "http://";
-//	protected static final String contextPath = "/";
 	protected static final String restUrl = "/structr/rest";
 	protected static final String htmlUrl = "/structr/html";
 	protected static final String wsUrl = "/structr/ws";
@@ -266,21 +269,51 @@ public class HtmlServletObjectResolvingTest {
 
 	}
 
-	@After
+	@Before
 	public void cleanDatabase() {
+
+		if (needsCleanup) {
+
+			try (final Tx tx = app.tx()) {
+
+				// delete remaining nodes without UUIDs etc.
+				app.cypher("MATCH (n) WHERE NOT n:SchemaReloadingNode DETACH DELETE n", Collections.emptyMap());
+
+				tx.success();
+
+				FlushCachesCommand.flushAll();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				logger.error("Exception while trying to clean database: {}", t.getMessage());
+			}
+		}
+	}
+
+	public void cleanDatabaseAndSchema() {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery().getAsList()) {
-				app.delete(node);
-			}
+			// delete everything
+			app.cypher("MATCH (n) DETACH DELETE n", Collections.emptyMap());
+
+			FlushCachesCommand.flushAll();
+
+			SchemaService.ensureBuiltinTypesExist(app);
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable t) {
 
-			 logger.error("Exception while trying to clean database: {}", fex);
+			t.printStackTrace();
+			logger.error("Exception while trying to clean database: {}", t.getMessage());
 		}
+	}
+
+	@After
+	public void enableCleanup() {
+		needsCleanup = true;
 	}
 
 	@AfterClass

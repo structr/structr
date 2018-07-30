@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import static org.structr.core.GraphObject.logger;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.schema.SchemaService;
 
 /**
@@ -46,6 +47,7 @@ public class BlacklistSchemaNodeWhenMissingPackage implements MigrationHandler {
 				logger.info("Identified missing package {}, blacklisting entity {}", matcher.group(1), errorToken.getType());
 
 				SchemaService.blacklist(errorToken.getType());
+				FlushCachesCommand.flushAll();
 			}
 		}
 	}

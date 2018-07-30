@@ -78,6 +78,7 @@ public interface GraphObject {
 	public static final Property<Boolean> visibleToPublicUsers        = new BooleanProperty("visibleToPublicUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 	public static final Property<Boolean> visibleToAuthenticatedUsers = new BooleanProperty("visibleToAuthenticatedUsers").passivelyIndexed().category(VISIBILITY_CATEGORY).partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 	public static final Property<String>  structrChangeLog            = new StringProperty("structrChangeLog").unvalidated().readOnly().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
+	public static final Property<String>  internalCreationTimestamp   = new StringProperty("internalCreationTimestamp").unvalidated().readOnly().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 
 	// ----- methods common to both types -----
 	/**
