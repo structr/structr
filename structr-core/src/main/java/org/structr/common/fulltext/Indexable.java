@@ -23,9 +23,11 @@ import java.net.URI;
 import org.structr.common.PropertyView;
 import org.structr.core.Export;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
+import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 
 /**
@@ -36,13 +38,17 @@ public interface Indexable extends NodeInterface {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType type = schema.addType("Indexable");
+		final JsonObjectType word = schema.addType("IndexedWord");
 
 		type.setIsInterface();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Indexable"));
 
+		final JsonReferenceType rel = type.relate(word, "INDEXED_WORD", Relation.Cardinality.ManyToMany, "indexables", "words").setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
+
+		type.addReferenceProperty("indexedWords", rel.getTargetProperty()).setProperties("name", "true");
+
 		type.addStringProperty("contentType",       PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("extractedContent",  PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("indexedWords", PropertyView.Ui).setIndexed(true);
+		type.addStringProperty("extractedContent",  PropertyView.Ui);
 	}}
 
 	String getContentType();

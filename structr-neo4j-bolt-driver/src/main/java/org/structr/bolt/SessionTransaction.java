@@ -21,6 +21,7 @@ package org.structr.bolt;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.StringUtils;
@@ -46,7 +47,6 @@ import org.structr.api.NotFoundException;
 import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
 import org.structr.api.util.QueryUtils;
-import org.structr.bolt.mapper.RecordLongMapper;
 import org.structr.bolt.mapper.RecordNodeMapper;
 import org.structr.bolt.mapper.RecordRelationshipMapper;
 import org.structr.bolt.wrapper.EntityWrapper;
@@ -86,7 +86,7 @@ public class SessionTransaction implements org.structr.api.Transaction {
 
 		tx.success();
 
-		// transaction must be marked successfull explicitely
+		// transaction must be marked successfull explicitly
 		success = true;
 	}
 
@@ -362,26 +362,6 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public QueryResult<Long> getIds(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
-
-		try {
-
-			return QueryUtils.map(new RecordLongMapper(), new StatementIterable(tx.run(statement, map)));
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
-		}
-	}
-
 	public QueryResult<String> getStrings(final String statement, final Map<String, Object> map) {
 
 		final long t0 = System.currentTimeMillis();
@@ -543,55 +523,19 @@ public class SessionTransaction implements org.structr.api.Transaction {
 	// ----- nested classes -----
 	private class StatementIterable implements QueryResult<Record> {
 
-		private StatementResult result = null;
+		private List<Record> result = null;
 
 		public StatementIterable(final StatementResult result) {
-			this.result = result;
+			this.result = result.list();
 		}
 
 		@Override
 		public void close() {
-			//result.consume();
 		}
 
 		@Override
 		public Iterator<Record> iterator() {
-
-			return new Iterator<Record>() {
-
-				@Override
-				public boolean hasNext() {
-
-					try {
-						return result.hasNext();
-
-					} catch (ServiceUnavailableException ex) {
-						closed = true;
-						throw new NetworkException(ex.getMessage(), ex);
-					}
-				}
-
-				@Override
-				public Record next() {
-
-					try {
-
-						return result.next();
-
-					} catch (TransientException tex) {
-						closed = true;
-						throw new RetryException(tex);
-					} catch (ServiceUnavailableException ex) {
-						closed = true;
-						throw new NetworkException(ex.getMessage(), ex);
-					}
-				}
-
-				@Override
-				public void remove() {
-					throw new UnsupportedOperationException("Removal not supported");
-				}
-			};
+			return result.iterator();
 		}
 	}
 }

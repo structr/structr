@@ -18,11 +18,7 @@
  */
 package org.structr.core.entity;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.Predicate;
@@ -98,33 +94,6 @@ public abstract class AbstractEndpoint {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Sort relationships by their Neo4j object graph id.
-	 *
-	 * @param rels
-	 * @return
-	 */
-	protected List<Relationship> sort(final Iterable<Relationship> rels) {
-
-		List<Relationship> eagerList = new LinkedList<>();
-
-		for (final Relationship r : rels) {
-			eagerList.add(r);
-		}
-
-		Collections.sort(eagerList, new Comparator<Relationship>() {
-
-			@Override
-			public int compare(final Relationship r1, final Relationship r2) {
-				return ((Long) r1.getId()).compareTo(r2.getId());
-
-			}
-
-		});
-
-		return eagerList;
 	}
 
 	protected GraphObject unwrap(final GraphObject node) throws FrameworkException {

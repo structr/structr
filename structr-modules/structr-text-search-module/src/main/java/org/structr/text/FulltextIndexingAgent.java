@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -69,21 +70,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 	private static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
 	public static final String TASK_NAME                              = "FulltextIndexing";
 
-	private static final Set<String> MimeTypeIndexingBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		/* disabled
-		"application/octet-stream",
-		"application/java-archive",
-		"application/x-7z-compressed",
-		"application/x-apple-diskimage",
-		"application/x-bzip2",
-		"application/x-cab",
-		"application/x-debian-package",
-		"application/zip"
-		*/
-	}));
-
-	private static final int maxStringLength = 32700;
-	private static final int maxTopWords     = 1000;
 	private final Detector detector;
 
 	public FulltextIndexingAgent() {
@@ -145,15 +131,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 			// each thread needs a separate AbstractNode object
 			if (indexable != null && !(indexable instanceof File && ((File)indexable).isTemplate())) {
 
-				// first, check for things we cannot scan
-				final String contentType = indexable.getContentType();
-				if (contentType != null) {
-
-					if (MimeTypeIndexingBlacklist.contains(contentType)) {
-						return true;
-					}
-				}
-
 				// skip files that are larger than the indexing file size limit
 				if (getFileSize(indexable) > Settings.IndexingMaxFileSize.getValue() * 1024 * 1024) {
 
@@ -168,7 +145,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 					final Metadata metadata = new Metadata();
 
-					try (final FulltextTokenizer tokenizer = new FulltextTokenizer(fileName)) {
+					try (final FulltextTokenizer tokenizer = new FulltextTokenizer()) {
 
 						try (final InputStream is = inputStream) {
 
@@ -183,7 +160,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 						if (parsingSuccessful) {
 
 							// save raw extracted text
-							indexable.setProperty(StructrApp.key(File.class, "extractedContent"), trimToLength(tokenizer.getRawText(), maxStringLength));
+							indexable.setProperty(StructrApp.key(File.class, "extractedContent"), tokenizer.getRawText());
 
 							// tokenize name
 							tokenizer.write(getName());
@@ -218,15 +195,15 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 							while (wordIterator.hasNext()) {
 
-								// strip double quotes
-								final String word = StringUtils.strip(wordIterator.next(), "\"");
+								// strip quotes
+								final String word = StringUtils.strip(wordIterator.next(), "\"\'");
 								if (!stopWords.contains(word)) {
 
 									add(indexedWords, word);
 								}
 							}
 
-							final String[] topWords = getFrequencySortedTopWords(indexedWords, maxTopWords);
+							final List<String> topWords = getFrequencySortedTopWords(indexedWords);
 
 							try {
 
@@ -271,7 +248,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		}
 	}
 
-	private String[] getFrequencySortedTopWords(final Map<String, Integer> frequency, int maxWords) {
+	private List<String> getFrequencySortedTopWords(final Map<String, Integer> frequency) {
 
 		final Map<Integer, Set<String>> words = new TreeMap<>(Collections.reverseOrder());
 		final ArrayList<String> resultList    = new ArrayList<>();
@@ -296,18 +273,10 @@ public class FulltextIndexingAgent extends Agent<String> {
 			for (final String word : set) {
 
 				resultList.add(word);
-
-				if (resultList.size() == maxWords) {
-					break;
-				}
-			}
-
-			if (resultList.size() == maxWords) {
-				break;
 			}
 		}
 
-		return resultList.toArray(new String[0]);
+		return resultList;
 	}
 
 	private String trimToLength(final String source, final int maxLength) {
