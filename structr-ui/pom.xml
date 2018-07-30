@@ -194,6 +194,12 @@
 			<artifactId>javase</artifactId>
 			<version>3.3.3</version>
 		</dependency>
+		<dependency>
+			<groupId>com.j256.two-factor-auth</groupId>
+			<artifactId>two-factor-auth</artifactId>
+			<version>1.0</version>
+			<type>jar</type>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>

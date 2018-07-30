@@ -20,11 +20,14 @@ package org.structr.api.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -46,6 +49,7 @@ public class Settings {
 	public static final SettingsGroup advancedGroup           = new SettingsGroup("advanced",    "Advanced Settings");
 	public static final SettingsGroup servletsGroup           = new SettingsGroup("servlets",    "Servlets");
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
+	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 
@@ -54,8 +58,6 @@ public class Settings {
 	public static final Setting<String> InstanceName          = new StringSetting(generalGroup,   "Application", "application.instance.name",  "");
 	public static final Setting<String> InstanceStage         = new StringSetting(generalGroup,   "Application", "application.instance.stage", "");
 	public static final Setting<String> MenuEntries           = new StringSetting(generalGroup,   "Application", "application.menu.main",      "Pages,Files,Security,Schema,Data", "The main menu entries - all other entries remain in the submenu");
-	public static final Setting<String> SuperUserName         = new StringSetting(generalGroup,   "Superuser",   "superuser.username",         "superadmin");
-	public static final Setting<String> SuperUserPassword     = new PasswordSetting(generalGroup, "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
 	public static final Setting<String> BasePath              = new StringSetting(generalGroup,   "Paths",       "base.path",                  ".");
 	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,   "Paths",       "tmp.path",                   "/tmp");
 	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,   "Paths",       "database.path",              "db");
@@ -106,7 +108,7 @@ public class Settings {
 
 	// database settings
 	public static final Setting<String> DatabaseDriver          = new StringSetting(databaseGroup,  "Database Driver",     "database.driver",                  "org.structr.bolt.BoltDatabaseService");
-	public static final Setting<String> DatabaseDriverMode      = new ChoiceSetting(databaseGroup,  "Database Driver",     "database.driver.mode",             "embedded", "embedded", "remote");
+	public static final Setting<String> DatabaseDriverMode      = new ChoiceSetting(databaseGroup,  "Database Driver",     "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
 	public static final Setting<String> ConnectionUrl           = new StringSetting(databaseGroup,  "Database Connection", "database.connection.url",          "bolt://localhost:7688");
 	public static final Setting<String> TestingConnectionUrl    = new StringSetting(databaseGroup,  "hidden",              "testing.connection.url",           "bolt://localhost:7689");
 	public static final Setting<String> ConnectionUser          = new StringSetting(databaseGroup,  "Database Connection", "database.connection.username",     "neo4j");
@@ -121,8 +123,6 @@ public class Settings {
 	public static final Setting<Boolean> SyncDebugging          = new BooleanSetting(databaseGroup, "Sync debugging",      "sync.debug",                       false);
 
 	// application settings
-	public static final Setting<Integer> ResolutionDepth          = new IntegerSetting(applicationGroup, "Security",     "application.security.resolution.depth",       5);
-	public static final Setting<String> OwnerlessNodes            = new StringSetting(applicationGroup,  "Security",     "application.security.ownerless.nodes",        "read");
 	public static final Setting<Boolean> ChangelogEnabled         = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",               false);
 	public static final Setting<Boolean> FilesystemEnabled        = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",              false);
 	public static final Setting<Boolean> UniquePaths              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",         true);
@@ -253,7 +253,27 @@ public class Settings {
 	public static final Setting<Integer> ProxyMaxRequestSize   = new IntegerSetting(servletsGroup, "ProxyServlet", "ProxyServlet.maxRequestSize",        1200);
 
 	// cron settings
-	public static final Setting<String> CronTasks               = new StringSetting(cronGroup,  "CronService.tasks", "");
+	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "CronService.tasks", "");
+
+	//security settings
+	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,   "Superuser",   "superuser.username",         "superadmin");
+	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup, "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
+	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security",     "application.security.resolution.depth",       5);
+	public static final Setting<String> OwnerlessNodes                 = new StringSetting(applicationGroup,  "Application Security",     "application.security.ownerless.nodes",        "read");
+
+	public static final Setting<Integer> TwoFactorLevel                = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "TwoFactor.level",              1, Settings.getTwoFactorSettingOptions());
+	public static final Setting<String> TwoFactorIssuer                = new StringSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.issuer",                   "Structr", "Must be URL-compliant in order to scan the created QR code");
+	public static final Setting<String> TwoFactorAlgorithm             = new ChoiceSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.algorithm",                "SHA1", Settings.getStringsAsSet("SHA1", "SHA256", "SHA512"), "<i>Currently, the algorithm parameter is ignored by the Google Authenticator implementations.</i>");
+	public static final Setting<Integer> TwoFactorDigits               = new IntegerChoiceSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.digits",            6, Settings.getTwoFactorDigitsOptions(), "<i>Currently, the digits parameter is ignored by the Google Authenticator implementations.</i> This means that even if 8 digits are shown, only last 6 digits are used for authentication.");
+	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.period",                  30, "Defines the period that a TOTP code will be valid for, in seconds.<br><i>Currently, the period parameter is ignored by the Google Authenticator implementations.</i>");
+	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.loginpage",                "/twofactor", "The application page where the user enters the current two factor token");
+	public static final Setting<String> TwoFactorForceRegistrationPage = new StringSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.forceRegistrationUrl",     "/scanqrcode", "The application page where the user is redirected to if he is not yet a two factor user but the system enforces two factor authentication");
+
+	public static final Setting<Boolean> PasswordForceChange           = new BooleanSetting(securityGroup, "Password Policy", "ForcePassword.change",   false, "Indicates if a forced password change is active");
+	public static final Setting<Integer> PasswordForceChangeDays       = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.days",     90, "The number of days after which a user has to change his password");
+	public static final Setting<Integer> PasswordForceChangeReminder   = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.reminder", 14, "The number of days (before the user has to change the password) where a warning should be issued. (Has to be handled in application code)");
+	public static final Setting<Integer> PasswordAttempts              = new IntegerSetting(securityGroup, "Password Policy", "Password.attempts",      4,  "The maximum number of failed login attempts before a user is blocked");
+
 
 	// oauth settings
 	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook");
@@ -543,5 +563,25 @@ public class Settings {
 
 	static void unregisterSetting(final Setting setting) {
 		settings.remove(setting.getKey());
+	}
+
+
+	public static Set<String> getStringsAsSet(final String... choices) {
+		return new LinkedHashSet<>(Arrays.asList(choices));
+	}
+
+	public static Map<Integer, String> getTwoFactorSettingOptions() {
+		final Map<Integer, String> options = new LinkedHashMap();
+		options.put(0, "off");
+		options.put(1, "optional");
+		options.put(2, "forced");
+		return options;
+	}
+
+	public static Map<Integer, String> getTwoFactorDigitsOptions() {
+		final Map<Integer, String> options = new LinkedHashMap();
+		options.put(6, "6 Digits");
+		options.put(8, "8 Digits");
+		return options;
 	}
 }

@@ -57,6 +57,7 @@ import org.structr.web.function.SetSessionAttributeFunction;
 import org.structr.web.function.StripHtmlFunction;
 import org.structr.web.function.ToGraphObjectFunction;
 import org.structr.web.function.ToJsonFunction;
+import org.structr.web.function.TwoFactorURLFunction;
 import org.structr.web.function.UnescapeHtmlFunction;
 
 /**
@@ -80,6 +81,7 @@ public class UiModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "include",                  new IncludeFunction());
 		Functions.put(true, LicenseManager.Community, "render",                   new RenderFunction());
 		Functions.put(true, LicenseManager.Community, "set_details_object",       new SetDetailsObjectFunction());
+		Functions.put(true, LicenseManager.Community, "two_factor_url",           new TwoFactorURLFunction());
 
 		// Basic Edition and up
 		Functions.put(basicEdition, LicenseManager.Basic, "send_html_mail",           new SendHtmlMailFunction());

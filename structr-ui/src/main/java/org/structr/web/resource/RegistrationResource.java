@@ -394,7 +394,6 @@ public class RegistrationResource extends Resource {
 		Principal user = null;
 
 		try {
-
 			// First, search for a person with that e-mail address
 			user = AuthHelper.getPrincipalForCredential(credentialKey, credentialValue);
 

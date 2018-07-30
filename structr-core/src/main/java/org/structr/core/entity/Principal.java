@@ -20,6 +20,7 @@ package org.structr.core.entity;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,6 +69,34 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.addTransformer(LowercaseTransformator.class.getName());
 
 		principal.addPasswordProperty("password");
+
+
+		// Password Policy
+		principal.addDateProperty("passwordChangeDate");
+		principal.addPropertySetter("passwordChangeDate", Date.class);
+		principal.addPropertyGetter("passwordChangeDate", Date.class);
+
+		principal.addIntegerProperty("passwordAttempts");
+		principal.addPropertySetter("passwordAttempts", Integer.class);
+		principal.addPropertyGetter("passwordAttempts", Integer.class);
+
+
+		// Two Factor Authentication
+		principal.addStringProperty("twoFactorSecret");
+		principal.addPropertySetter("twoFactorSecret", String.class);
+		principal.addPropertyGetter("twoFactorSecret", String.class);
+
+		principal.addStringProperty("twoFactorToken").setIndexed(true);
+		principal.addPropertySetter("twoFactorToken", String.class);
+		principal.addPropertyGetter("twoFactorToken", String.class);
+
+		principal.addBooleanProperty("isTwoFactorUser");
+		principal.addPropertySetter("isTwoFactorUser", Boolean.TYPE);
+		principal.addPropertyGetter("isTwoFactorUser", Boolean.TYPE);
+
+		principal.addStringProperty("twoFactorCode");
+		principal.addPropertySetter("twoFactorCode", String.class);
+		principal.addPropertyGetter("twoFactorCode", String.class);
 
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");
