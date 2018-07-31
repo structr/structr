@@ -455,6 +455,7 @@ var _LogType = {
 	ENTITIES:        "ENTITIES",
 	FAVORITES:       "FAVORITES",
 	FILES:           "FILES",
+	FLOWS:           "FLOWS",
 	FIND_DUPLICATES: "FIND_DUPLICATES",
 	GRAPH:           "GRAPH",
 	INIT:            "INIT",

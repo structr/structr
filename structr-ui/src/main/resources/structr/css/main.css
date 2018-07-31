@@ -1424,7 +1424,7 @@ button.action:hover {
 	border: 1px solid #666;
 }
 
-#files-main h1, #images h1, #code-main h1 {
+#files-main h1, #images h1, #code-main h1, #flows-main h1 {
 	color: #333;
 	font-size: 16px;
 	font-weight: bold;
@@ -1435,13 +1435,14 @@ button.action:hover {
 }
 
 #code-main .selected, #code-main .selected:hover,
-#files-main .selected, #files-main .selected:hover {
+#files-main .selected, #files-main .selected:hover,
+#flows-main .selected, #flows-main .selected:hover {
 	color: #333 ! important;
 	border: 1px solid transparent ! important;
 	background-color: #81ce25 ! important;
 }
 
-#code-button-container {
+#code-button-container, #flows-button-container {
 	min-height: 27px;
 }
 
@@ -3209,24 +3210,24 @@ td#cascading-options, td#propagation-options {
 	font-weight: bold;
 }
 
-#files-main, #code-main, #contents-main, #crawler-main {
+#files-main, #code-main, #contents-main, #crawler-main, #flows-main {
 	display: table-row;
 }
 
-#files-main b.name_, #code-main b.name_, #contents-main b.name, #crawler-main b.name {
+#files-main b.name_, #code-main b.name_, #contents-main b.name_, #crawler-main b.name_, #flows-main b.name_ {
 	font-weight: normal;
 }
 
-#files-main input.new-name, #code-main input.new-name, #contents-main input.new-name, #crawler-main input.new-name {
+#files-main input.new-name, #code-main input.new-name, #contents-main input.new-name, #crawler-main input.new-name, #flows-main input.new-name {
 	font-weight: normal;
 }
 
-#file-tree .nodeHover, #code-tree .nodeHover, #content-tree .nodeHover, #crawler-tree .nodeHover {
+#file-tree .nodeHover, #code-tree .nodeHover, #content-tree .nodeHover, #crawler-tree .nodeHover, #flows-tree .nodeHover {
 	border: none;
 	background-color: #eff8e3 ! important;
 }
 
-#file-tree-container, #code-tree-container, #content-tree-container, #crawler-tree-container {
+#file-tree-container, #code-tree-container, #content-tree-container, #crawler-tree-container, #flows-tree-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px;
@@ -3234,7 +3235,7 @@ td#cascading-options, td#propagation-options {
 	padding-top: 12px;
 }
 
-#file-tree, #code-tree, #contents-tree, #crawler-tree {
+#file-tree, #code-tree, #contents-tree, #crawler-tree, #flows-tree {
 	padding-top: 8px;
 	overflow: auto;
 	vertical-align: top;
@@ -3243,29 +3244,29 @@ td#cascading-options, td#propagation-options {
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 }
 
-#code-tree i.jstree-icon.gray {
+#code-tree i.jstree-icon.gray, #flows-tree i.jstree-icon.gray {
 	color: #666;
 }
 
-#code-tree i.jstree-icon.red {
+#code-tree i.jstree-icon.red, #flows-tree i.jstree-icon.red {
 	color: #880000;
 }
 
-#code-tree i.jstree-icon.blue {
+#code-tree i.jstree-icon.blue, #flows-tree i.jstree-icon.blue {
 	color: #000088;
 }
 
-#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container {
+#folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container, #flows-canvas-container {
 	display: table-cell;
 	vertical-align: top;
 	padding: 12px 12px 12px 10px;
 }
 
-#folder-contents-container select, #code-contents-container select, #contents-contents-container select, #crawler-list-container select {
+#folder-contents-container select, #code-contents-container select, #contents-contents-container select, #crawler-list-container select, #flows-canvas-container select {
 	padding: 3px;
 }
 
-#folder-contents, #code-contents, #contents-contents, #crawler-list {
+#folder-contents, #code-contents, #contents-contents, #crawler-list, #flows-canvas {
 	vertical-align: top;
 	background-color: #fff;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
@@ -3277,7 +3278,7 @@ td#cascading-options, td#propagation-options {
 	position: absolute;
 }
 
-#folder-contents h1, #code-contents h1, #contents-contents h1, #crawler-list h1 {
+#folder-contents h1, #code-contents h1, #contents-contents h1, #crawler-list h1, #flows-canvas h1 {
 	margin: 0px;
 }
 
