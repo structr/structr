@@ -115,32 +115,6 @@ var _Code = {
 		_Code.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', codeMain), codeResizerLeftKey, 204, _Code.moveResizer);
 
-		/*
-		$('#code-contents-container').prepend(
-				'<button class="add_file_icon button"><i title="Add Method" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '" /> Add Method</button>'
-				);
-
-		$('.add_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'File', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
-
-		$('.add_minified_css_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'MinifiedCssFile', contentType: 'text/css', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
-
-		$('.add_minified_js_file_icon', main).on('click', function(e) {
-			Command.create({ type: 'MinifiedJavaScriptFile', contentType: 'text/javascript', size: 0, parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
-
-		$('.duplicate_finder', main).on('click', _DuplicateFinder.openDuplicateFinderDialog);
-
-		$('.mount_folder', main).on('click', _Code.openMountDialog);
-
-		$('.add_folder_icon', main).on('click', function(e) {
-			Command.create({ type: 'Folder', parentId: currentWorkingDir ? currentWorkingDir.id : null });
-		});
-		*/
-
 		$.jstree.defaults.core.themes.dots      = false;
 		$.jstree.defaults.dnd.inside_pos        = 'last';
 		$.jstree.defaults.dnd.large_drop_target = true;
