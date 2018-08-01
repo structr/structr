@@ -1459,7 +1459,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		"FAVORITE",
 		"WORKING_DIR",
 		"HOME_DIR",
-		"THUMBNAIL"
+		"THUMBNAIL",
+		"INDEXED_WORD"
 	));
 
 	// ----- public static methods -----
