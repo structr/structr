@@ -1378,7 +1378,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void putIf(final Map<String, Object> target, final String key, final Object value) {
 
 		if (value != null) {
-			target.put(key, value);
+
+			final boolean isList = value instanceof List;
+
+			if (!isList || (isList && !((List)value).isEmpty()) ) {
+				target.put(key, value);
+			}
 		}
 	}
 
