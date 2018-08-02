@@ -3924,6 +3924,7 @@ i.fa.ps {
 #mail-template-detail-wrapper textarea {
 	width: calc(100% - 10px);
 	height: 300px;
+	resize: vertical;
 }
 
 #mail-template-detail .actions {
