@@ -3935,6 +3935,11 @@ i.fa.ps {
 #mail-template-detail-wrapper {
 	display: inline-block;
 	position: relative;
+	width: 100%;
+}
+
+#mail-template-detail-table th {
+	width: 200px;
 }
 
 #mail-template-detail-wrapper input[type="text"] {
@@ -3942,8 +3947,9 @@ i.fa.ps {
 }
 
 #mail-template-detail-wrapper textarea {
-	width: 800px;
+	width: calc(100% - 10px);
 	height: 300px;
+	resize: vertical;
 }
 
 #mail-template-detail .actions {

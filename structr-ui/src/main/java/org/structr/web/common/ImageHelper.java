@@ -734,7 +734,7 @@ public abstract class ImageHelper extends FileHelper {
 				metadata = ImageMetadataReader.readMetadata(in);
 			}
 
-		} catch (ImageProcessingException | IOException ex) {
+		} catch (NegativeArraySizeException | ImageProcessingException | IOException ex) {
 			logger.debug("Unable to get metadata information from image stream", ex);
 		}
 

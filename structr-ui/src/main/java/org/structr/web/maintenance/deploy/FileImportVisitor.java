@@ -336,9 +336,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		final Object data = config.get(path);
 		if (data != null && data instanceof Map) {
 
-			return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), AbstractFile.class, (Map<String, Object>)data);
+			return getPropertiesForFileOrFolder((Map<String, Object>)data);
 		}
 
 		return null;
+	}
+
+	private PropertyMap getPropertiesForFileOrFolder(final Map<String, Object> data) throws FrameworkException {
+
+		return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrApp.getConfiguration().getNodeEntityClass((String)data.get("type")), data);
+
 	}
 }

@@ -1219,8 +1219,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// export all dynamic properties
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
-			// only export dynamic (=> additional) keys
-			if (!key.isPartOfBuiltInSchema()) {
+			// only export dynamic (=> additional) keys that are *not* remote properties
+			if (!key.isPartOfBuiltInSchema() && key.relatedType() == null) {
 
 				putIf(config, key.jsonName(), abstractFile.getProperty(key));
 			}
@@ -1399,7 +1399,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private void putIf(final Map<String, Object> target, final String key, final Object value) {
 
 		if (value != null) {
-			target.put(key, value);
+
+			final boolean isList = value instanceof List;
+
+			if (!isList || (isList && !((List)value).isEmpty()) ) {
+				target.put(key, value);
+			}
 		}
 	}
 
@@ -1459,7 +1464,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		"FAVORITE",
 		"WORKING_DIR",
 		"HOME_DIR",
-		"THUMBNAIL"
+		"THUMBNAIL",
+		"INDEXED_WORD"
 	));
 
 	// ----- public static methods -----
