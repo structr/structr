@@ -80,6 +80,7 @@ var _MailTemplates = {
 
 				_MailTemplates.previewElement.contentDocument.open();
 				_MailTemplates.previewElement.contentDocument.write($('textarea', _MailTemplates.mailTemplateDetail).val());
+				_MailTemplates.previewElement.contentDocument.close();
 				_MailTemplates.switchMode(_MailTemplates.modes.preview);
 			});
 
@@ -104,6 +105,9 @@ var _MailTemplates = {
 				var self = $(this);
 				if (self.data('modes').split('|').indexOf(mode) !== -1) {
 					self.show();
+					if (self[0].tagName === 'TABLE') {
+						self.css('display', 'table');
+					}
 				}
 			});
 		}
@@ -210,7 +214,6 @@ var _MailTemplates = {
 		Command.get(mailTemplateId, '', function(mt) {
 
 			_MailTemplates.mailTemplateDetailTable.data('mail-template-id', mailTemplateId);
-
 
 			$('.property', _MailTemplates.mailTemplateDetailTable).each(function(idx, el) {
 				var el = $(el);
