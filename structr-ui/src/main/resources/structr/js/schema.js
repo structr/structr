@@ -3569,31 +3569,28 @@ var _Schema = {
 
 		schemaNodes.forEach(function(schemaNode) {
 
-			if (!schemaNode.isBuiltinType) {
+			var classObj = {
+				name: schemaNode.name,
+				parent: (schemaNode.extendsClass === null ? 'AbstractNode' : getParentClassName(schemaNode.extendsClass))
+			};
 
-				var classObj = {
-					name: schemaNode.name,
-					parent: (schemaNode.extendsClass === null ? 'AbstractNode' : getParentClassName(schemaNode.extendsClass))
-				};
+			classnameToId[classObj.name] = schemaNode.id;
 
-				classnameToId[classObj.name] = schemaNode.id;
+			var inserted = insertClassInClassTree(classObj, tmpHierarchy);
 
-				var inserted = insertClassInClassTree(classObj, tmpHierarchy);
+			if (!inserted) {
+				var insertedTmp = insertClassInClassTree(classObj, classTree);
 
-				if (!inserted) {
-					var insertedTmp = insertClassInClassTree(classObj, classTree);
-
-					if (!insertedTmp) {
-						if (classTree[classObj.name]) {
-							classTree[classObj.parent] = {};
-							classTree[classObj.parent][classObj.name] = classTree[classObj.name];
-							delete(classTree[classObj.name]);
-						} else {
-							classTree[classObj.parent] = {};
-							classTree[classObj.parent][classObj.name] = {};
-						}
-
+				if (!insertedTmp) {
+					if (classTree[classObj.name]) {
+						classTree[classObj.parent] = {};
+						classTree[classObj.parent][classObj.name] = classTree[classObj.name];
+						delete(classTree[classObj.name]);
+					} else {
+						classTree[classObj.parent] = {};
+						classTree[classObj.parent][classObj.name] = {};
 					}
+
 				}
 			}
 		});
