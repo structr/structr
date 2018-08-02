@@ -19,47 +19,56 @@
 package org.structr.flow.engine;
 
 import java.util.Collection;
-import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.DataHandler;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.ForEach;
-import org.structr.flow.api.FlowElement;
-import org.structr.schema.action.ActionContext;
+
+import org.structr.flow.api.*;
+import org.structr.flow.impl.FlowForEach;
+import org.structr.flow.impl.FlowNode;
 
 /**
  *
  */
-public class ForEachHandler<T> implements FlowHandler<ForEach<T>> {
+public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 	@Override
-	public FlowElement handle(final Context context, final ForEach<T> flowElement) {
+	public FlowElement handle(final Context context, final FlowForEach flowElement) throws FlowException {
 
-		final FlowEngine engine       = new FlowEngine(context);
-		final DataHandler dataHandler = flowElement.getDataHandler();
 		final DataSource dataSource   = flowElement.getDataSource();
-		final FlowElement loopBody    = flowElement.getLoopBody();
-		final Object data             = dataSource.get(context);
 
-		Context loopContext = new Context(context.getThisObject());
+		if (dataSource != null) {
 
-		if (data instanceof Collection) {
+			final FlowEngine engine = new FlowEngine(context);
+			final FlowNode loopBody = flowElement.getLoopBody();
 
-			for (final Object o : ((Collection)data)) {
+			if (loopBody != null) {
 
-				dataHandler.data(loopContext, o);
+				final Object data = dataSource.get(context);
 
-				// ignore sub result for now..
-				engine.execute(loopContext, loopBody);
+				Context loopContext = new Context(context);
+
+				if (data instanceof Collection) {
+
+					for (final Object o : ((Collection) data)) {
+
+						// Provide current element data for loop context and write evaluation result into main context data for this loop element
+						loopContext.setData(flowElement.getUuid(), o);
+						context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
+					}
+
+				} else {
+
+					// Provide current element data for loop context and write evaluation result into main context data for this loop element
+					loopContext.setData(flowElement.getUuid(), data);
+					context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
+
+				}
+
+				context.deepCopy(loopContext);
+
 			}
 
-		} else {
-
-			dataHandler.data(loopContext, data);
-
-			// ignore sub result for now..
-			engine.execute(loopContext, loopBody);
 		}
 
 		return flowElement.next();
 	}
+
 }

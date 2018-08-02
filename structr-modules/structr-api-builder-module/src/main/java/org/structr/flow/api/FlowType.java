@@ -27,5 +27,7 @@ public enum FlowType {
 	Decision,
 	Return,
 	ForEach,
-	Store
+	Store,
+	Aggregation,
+	Exception
 }

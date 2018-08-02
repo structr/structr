@@ -26,11 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import javax.script.*;
+
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
@@ -172,7 +169,7 @@ public class Scripting {
 				engine = matcher.group(1);
 				source = matcher.group(2);
 
-				logger.info("Scripting engine {} requested.", engine);
+				logger.debug("Scripting engine {} requested.", engine);
 
 				isJavascript   = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
 				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
@@ -278,14 +275,18 @@ public class Scripting {
 
 		} catch (final FrameworkException fex) {
 
-			fex.printStackTrace();
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				fex.printStackTrace();
+			}
 
 			// just throw the FrameworkException so we dont lose the information contained
 			throw fex;
 
 		} catch (final Throwable t) {
 
-			t.printStackTrace();
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				t.printStackTrace();
+			}
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
 			throw new FrameworkException(422, t.getMessage());
@@ -300,7 +301,24 @@ public class Scripting {
 	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final String script) throws FrameworkException {
 
 		final ScriptEngineManager manager = new ScriptEngineManager();
-		final ScriptEngine engine = manager.getEngineByName(engineName);
+		ScriptEngine engine = manager.getEngineByName(engineName);
+
+		if (engine == null) {
+			List<ScriptEngineFactory> factories = manager.getEngineFactories();
+
+			for (ScriptEngineFactory factory : factories) {
+
+				if (factory.getNames().contains(engineName)) {
+
+					engine = factory.getScriptEngine();
+					break;
+
+				}
+
+			}
+
+		}
+
 
 		if (engine == null) {
 			throw new RuntimeException(engineName + " script engine could not be initialized. Check class path.");
@@ -330,12 +348,14 @@ public class Scripting {
 
 			return extractedValue;
 
-		} catch (final ScriptException e) {
+		} catch (final Throwable e) {
 
-			logger.error("Error while processing {} script: {}", engineName, script, e);
+			if (!actionContext.getDisableVerboseExceptionLogging()) {
+				logger.error("Error while processing {} script: {}", engineName, script, e);
+			}
+
+			throw new FrameworkException(422, e.getMessage());
 		}
-
-		return null;
 
 	}
 

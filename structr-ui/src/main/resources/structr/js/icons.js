@@ -20,6 +20,7 @@ var _Icons = {
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',
 	delete_disabled_icon: 'icon/delete_gray.png',
+	add_brick_icon: 'icon/brick_add.png',
 	delete_brick_icon: 'icon/brick_delete.png',
 	edit_icon: 'icon/pencil.png',
 	wrench_icon: 'icon/wrench.png',
@@ -52,8 +53,8 @@ var _Icons = {
 	accept_icon: 'icon/accept.png',
 	push_file_icon: 'icon/page_white_get.png',
 	pull_file_icon: 'icon/page_white_put.png',
-	exec_cypher_icon: 'icon/control_play_blue.png',
-	exec_rest_icon: 'icon/control_play.png',
+	exec_icon: 'icon/control_play_blue.png',
+	exec_blue_icon: 'icon/control_play.png',
 	arrow_undo_icon: 'icon/arrow_undo.png',
 	information_icon: 'icon/information.png',
 	help_icon: 'icon/help.png',
@@ -126,6 +127,7 @@ var _Icons = {
 			case _Icons.add_icon:                     return 'sprite-add';
 			case _Icons.delete_icon:                  return 'sprite-delete';
 			case _Icons.delete_disabled_icon:         return 'sprite-delete_gray';
+			case _Icons.add_brick_icon:               return 'sprite-brick_add';
 			case _Icons.delete_brick_icon:            return 'sprite-brick_delete';
 			case _Icons.edit_icon:                    return 'sprite-pencil';
 			case _Icons.wrench_icon:                  return 'sprite-wrench';
@@ -158,8 +160,8 @@ var _Icons = {
 			case _Icons.accept_icon:                  return 'sprite-accept';
 			case _Icons.push_file_icon:               return 'sprite-page_white_get';
 			case _Icons.pull_file_icon:               return 'sprite-page_white_put';
-			case _Icons.exec_cypher_icon:             return 'sprite-control_play_blue';
-			case _Icons.exec_rest_icon:               return 'sprite-control_play';
+			case _Icons.exec_icon:                    return 'sprite-control_play_blue';
+			case _Icons.exec_icon:                    return 'sprite-control_play';
 			case _Icons.arrow_undo_icon:              return 'sprite-arrow_undo';
 			case _Icons.information_icon:             return 'sprite-information';
 			case _Icons.refresh_icon:                 return 'sprite-arrow_refresh';

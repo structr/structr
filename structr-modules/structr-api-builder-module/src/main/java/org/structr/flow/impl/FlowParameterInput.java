@@ -20,27 +20,30 @@ package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowCallParameter;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.module.api.DeployableEntity;
 
-public class FlowParameterInput extends FlowBaseNode {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-	public static final Property<FlowCall> call 				= new EndNode<>("call", FlowCallParameter.class);
-	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
+public class FlowParameterInput extends FlowBaseNode implements DeployableEntity {
 
-	public static final Property<String> key             		= new StringProperty("key");
+	public static final Property<List<FlowCall>> call 				= new EndNodes<>("call", FlowCallParameter.class);
+	public static final Property<DataSource> dataSource 			= new StartNode<>("dataSource", FlowDataInput.class);
 
-	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
-	public static final View uiView      						= new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
+	public static final Property<String> key             			= new StringProperty("key");
+
+	public static final View defaultView 							= new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
+	public static final View uiView      							= new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
 
 
-	public void process(final Context context, final Context functionContext) {
+	public void process(final Context context, final Context functionContext) throws FlowException {
 		DataSource _ds = getProperty(dataSource);
 		String _key = getProperty(key);
 
@@ -49,5 +52,16 @@ public class FlowParameterInput extends FlowBaseNode {
 			functionContext.setParameter(_key, data);
 		}
 
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("key", this.getProperty(key));
+
+		return result;
 	}
 }

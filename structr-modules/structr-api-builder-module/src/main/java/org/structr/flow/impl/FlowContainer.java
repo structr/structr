@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,11 +35,12 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowContainerBaseNode;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
+import org.structr.module.api.DeployableEntity;
 
 /**
  *
  */
-public class FlowContainer extends AbstractNode {
+public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	public static final Property<List<FlowBaseNode>> flowNodes = new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
 	public static final Property<FlowNode> startNode           = new EndNode<>("startNode", FlowContainerFlowNode.class);
@@ -60,4 +62,14 @@ public class FlowContainer extends AbstractNode {
 		return map;
 	}
 
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("name", this.getName());
+
+		return result;
+	}
 }

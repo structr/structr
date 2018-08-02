@@ -30,13 +30,17 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowCallContainer;
 import org.structr.flow.impl.rels.FlowCallParameter;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.module.api.DeployableEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class FlowCall extends FlowActionNode implements DataSource {
+public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity {
 
 	private static final Logger logger 									= LoggerFactory.getLogger(FlowCall.class);
 
@@ -44,11 +48,11 @@ public class FlowCall extends FlowActionNode implements DataSource {
 	public static final Property<List<FlowParameterInput>> parameters 	= new StartNodes<>("parameters", FlowCallParameter.class);
 	public static final Property<FlowContainer> flow                	= new EndNode<>("flow", FlowCallContainer.class);
 
-	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters);
-	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters);
+	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters, isStartNodeOfContainer);
+	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer);
 
 	@Override
-	public void execute(Context context) {
+	public void execute(Context context) throws FlowException {
 		FlowContainer flow = getProperty(FlowCall.flow);
 		List<FlowParameterInput> params = getProperty(parameters);
 
@@ -86,7 +90,20 @@ public class FlowCall extends FlowActionNode implements DataSource {
 	}
 
 	@Override
-	public Object get(Context context) {
+	public Object get(Context context) throws FlowException {
+		if (!context.hasData(getUuid())) {
+			this.execute(context);
+		}
 		return context.getData(getUuid());
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
 	}
 }

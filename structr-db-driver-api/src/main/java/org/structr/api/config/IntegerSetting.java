@@ -63,12 +63,29 @@ public class IntegerSetting extends Setting<Integer> {
 		super(group, categoryName, key, value);
 	}
 
+	/**
+	 * Constructor to create an IntegerSetting with category name and default value and comment.
+	 * @param group
+	 * @param categoryName
+	 * @param key
+	 * @param value
+	 * @param comment
+	 */
+	public IntegerSetting(final SettingsGroup group, final String categoryName, final String key, final Integer value, final String comment) {
+		super(group, categoryName, key, value, comment);
+	}
+
 	@Override
 	public void render(final Tag parent) {
 
 		final Tag group = parent.block("div").css("form-group");
 
-		group.block("label").text(getKey());
+		final Tag label = group.block("label").text(getKey());
+
+		if (getComment() != null) {
+			label.attr(new Attr("class", "has-comment"));
+			label.attr(new Attr("data-comment", getComment()));
+		}
 
 		final Tag input     = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final Integer value = getValue();

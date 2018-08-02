@@ -16,14 +16,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.impl.rels;
 
-import org.structr.flow.engine.Context;
+import org.structr.core.entity.ManyToMany;
+import org.structr.core.entity.Relation;
+import org.structr.flow.api.DataSource;
+import org.structr.flow.impl.FlowBaseNode;
 
-/**
- *
- */
-public interface DataHandler<T> {
+public class FlowDataInputs extends ManyToMany<DataSource, FlowBaseNode> {
 
-	void data(final Context context, final T value);
+	@Override
+	public Class<DataSource> getSourceType() {
+		return DataSource.class;
+	}
+
+	@Override
+	public Class<FlowBaseNode> getTargetType() {
+		return FlowBaseNode.class;
+	}
+
+	@Override
+	public String name() {
+		return "DATA_INPUTS";
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
+	}
 }

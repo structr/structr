@@ -18,12 +18,12 @@
  */
 package org.structr.flow.impl.rels;
 
-import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.Relation;
 import org.structr.flow.impl.FlowCall;
 import org.structr.flow.impl.FlowParameterInput;
 
-public class FlowCallParameter extends ManyToOne<FlowParameterInput, FlowCall> {
+public class FlowCallParameter extends ManyToMany<FlowParameterInput, FlowCall> {
 
 	@Override
 	public Class<FlowParameterInput> getSourceType() {

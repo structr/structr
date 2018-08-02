@@ -85,6 +85,10 @@ public class CreateComponentCommand extends AbstractCommand {
 
 	public DOMNode create(final DOMNode node) throws FrameworkException {
 
+		if (node == null) {
+			throw new FrameworkException(422, "No node to clone");
+		}
+		
 		final DOMNode clonedNode = (DOMNode) node.cloneNode(false);
 
 		// Child nodes of a template must stay in page tree

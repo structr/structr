@@ -21,29 +21,38 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.api.ThrowingElement;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.module.api.DeployableEntity;
 import org.structr.schema.action.ActionContext;
 import org.structr.flow.api.Return;
 import org.structr.flow.engine.Context;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  *
  */
-public class FlowReturn extends FlowNode implements Return {
+public class FlowReturn extends FlowNode implements Return, DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 	public static final Property<String> result = new StringProperty("result");
 
-	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource);
-	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource);
+	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource, exceptionHandler, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource, exceptionHandler, isStartNodeOfContainer);
 
 	@Override
-	public Object getResult(final Context context) {
+	public Object getResult(final Context context) throws FlowException {
 
 		final DataSource ds = getProperty(dataSource);
 		final String _script = getProperty(result);
@@ -61,10 +70,25 @@ public class FlowReturn extends FlowNode implements Return {
 			return Scripting.evaluate(context.getActionContext(securityContext, this), context.getThisObject(), "${" + script + "}", "FlowReturn(" + getUuid() + ")");
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+
+			throw new FlowException(fex);
 		}
 
-		return null;
+	}
 
+	@Override
+	public FlowExceptionHandler getExceptionHandler(Context context) {
+		return getProperty(exceptionHandler);
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+		result.put("result", this.getProperty(FlowReturn.result));
+
+		return result;
 	}
 }

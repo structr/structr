@@ -28,7 +28,7 @@ import org.structr.flow.api.Return;
 public class ReturnHandler implements FlowHandler<Return> {
 
 	@Override
-	public FlowElement handle(final Context context, final Return flowElement) {
+	public FlowElement handle(final Context context, final Return flowElement) throws FlowException {
 
 		context.setResult(flowElement.getResult(context));
 

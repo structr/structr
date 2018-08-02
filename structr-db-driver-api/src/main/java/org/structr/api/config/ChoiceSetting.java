@@ -18,7 +18,6 @@
  */
 package org.structr.api.config;
 
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import org.structr.api.util.html.Attr;
@@ -31,10 +30,14 @@ public class ChoiceSetting extends StringSetting {
 
 	private final Set<String> choices = new LinkedHashSet<>();
 
-	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final String... choices) {
-		super(group, groupName, key, value);
+	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final Set<String> choices) {
+		this(group, groupName, key, value, choices, null);
+	}
 
-		this.choices.addAll(Arrays.asList(choices));
+	public ChoiceSetting(final SettingsGroup group, final String groupName, final String key, final String value, final Set<String> choices, final String comment) {
+		super(group, groupName, key, value, comment);
+
+		this.choices.addAll(choices);
 	}
 
 	@Override
@@ -42,7 +45,12 @@ public class ChoiceSetting extends StringSetting {
 
 		final Tag group = parent.block("div").css("form-group");
 
-		group.block("label").text(getKey());
+		final Tag label = group.block("label").text(getKey());
+
+		if (getComment() != null) {
+			label.attr(new Attr("class", "has-comment"));
+			label.attr(new Attr("data-comment", getComment()));
+		}
 
 		final Tag select = group.block("select").attr(new Attr("name", getKey()));
 

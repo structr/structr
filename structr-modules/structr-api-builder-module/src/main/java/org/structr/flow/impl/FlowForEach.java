@@ -21,32 +21,35 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
-import org.structr.flow.api.DataHandler;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.ForEach;
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowEngine;
+import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowForEachBody;
-import org.structr.flow.impl.rels.FlowForEachDataHandler;
 import org.structr.flow.impl.rels.FlowForEachDataInput;
+import org.structr.module.api.DeployableEntity;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
-public class FlowForEach extends FlowNode implements ForEach {
+public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity {
 
-	public static final Property<FlowDataSource> dataSource   = new StartNode<>("dataSource", FlowForEachDataInput.class);
-	public static final Property<FlowDataHandler> dataHandler = new EndNode<>("dataHandler", FlowForEachDataHandler.class);
-	public static final Property<FlowNode> loopBody           = new EndNode<>("loopBody", FlowForEachBody.class);
+	public static final Property<DataSource> dataSource   	    = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<FlowNode> loopBody         	= new EndNode<>("loopBody", FlowForEachBody.class);
 
-	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, dataHandler, loopBody);
-	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, dataHandler, loopBody);
+	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer);
+	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer);
 
-	@Override
-	public DataHandler getDataHandler() {
-		return getProperty(dataHandler);
-	}
 
 	@Override
 	public DataSource getDataSource() {
@@ -54,7 +57,22 @@ public class FlowForEach extends FlowNode implements ForEach {
 	}
 
 	@Override
-	public FlowElement getLoopBody() {
+	public FlowNode getLoopBody() {
 		return getProperty(loopBody);
+	}
+
+	@Override
+	public Object get(Context context) {
+		return context.getData(getUuid());
+	}
+
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
 	}
 }

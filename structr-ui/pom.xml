@@ -306,6 +306,7 @@
 						<exclude>src/test/**/*.html</exclude>
 						<exclude>src/test/resources</exclude>
 						<exclude>src/main/deb/**</exclude>
+						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
 					</excludes>
 					<properties>
 						<year>2018</year>

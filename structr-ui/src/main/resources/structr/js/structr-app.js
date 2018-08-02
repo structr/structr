@@ -118,6 +118,9 @@ function StructrApp(baseUrl, locale) {
 			couldNotCreate                   : 'Could not create',
 			checking                         : 'Checking...',
 			wrongUsernameOrPassword          : 'Wrong username or password!',
+			wrongTwoFactorCode               : 'Wrong two factor code!',
+			passwordAttempts                 : 'Too many wrong password attempts!',
+			passwordNotChanged               : 'Your password has not been changed for too long!',
 			pleaseEnterEMail                 : 'Please enter your e-mail address!',
 			processing                       : 'Processing...',
 			checkYourInbox                   : 'Thanks! Please check your inbox.',
@@ -141,6 +144,9 @@ function StructrApp(baseUrl, locale) {
 			couldNotCreate                   : 'Konnte nicht erstellen:',
 			checking                         : 'Prüfe ...',
 			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
+			wrongTwoFactorCode               : 'Falscher Two Factor Code!',
+			passwordAttempts                 : 'Zu viele falsche Passwort-Eingaben!',
+			passwordNotChanged               : 'Sie haben Ihr Passwort zu lange nicht geändert!',
 			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
 			processing                       : 'In Bearbeitung ...',
 			checkYourInbox                   : 'Danke! Bitte E-Mail-Eingang prüfen.',
@@ -153,7 +159,7 @@ function StructrApp(baseUrl, locale) {
 			couldNotReadRelatedProperty      : 'Konnte entferntes Attribut nicht lesen:',
 			makeSureContainedInEntity        : 'Stellen Sie sicher, dass es in der\nEntität und in deren ui-View enthalten ist\nsowie per REST lesbar ist.',
 		}
-	}
+	};
 
 	/**
 	 * Bind 'click' event to all Structr buttons
@@ -527,8 +533,15 @@ function StructrApp(baseUrl, locale) {
 		var data = {};
 
 		if (attrs && attrs.length === 2) {
-			data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
-			data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+
+			// checking if the data is user/pw or 2fa
+			if (!attrs[0].includes("twoFactor")) {
+				data['name'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+				data['password'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+			} else {
+				data['twoFactorToken'] = $('[data-structr-name="' + attrs[0] + '"]').val();
+				data['twoFactorCode'] = $('[data-structr-name="' + attrs[1] + '"]').val();
+			}
 		}
 
 		var msgBox = $('#msg');
@@ -540,7 +553,7 @@ function StructrApp(baseUrl, locale) {
 
 		var app = this;
 
-		$.ajax({
+		var ajaxRequest = $.ajax({
 			type: 'POST',
 			method: 'POST',
 			contentType: 'application/json',
@@ -551,8 +564,32 @@ function StructrApp(baseUrl, locale) {
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},
-				401: function() {
-					app.feedbackAction(msgBox, s.labels[s.lang].wrongUsernameOrPassword, 1000, btn, true, function () {
+				202: function(data) { //redirect 2fa and attach token
+					returnUrl = ajaxRequest.getResponseHeader("twoFactorLoginPage") + "?token=" + ajaxRequest.getResponseHeader("token");
+					btn.text(s.labels[s.lang].success);
+					redirectOrReload(reload, returnUrl);
+				},
+				204: function(data) { //redirect if 2fa is required, but user hasn't scanned barcode yet
+					returnUrl = ajaxRequest.getResponseHeader("forceRegistrationPage") + "?qrdata=" + ajaxRequest.getResponseHeader("qrdata");
+					btn.text(s.labels[s.lang].success);
+					redirectOrReload(reload, returnUrl);
+				},
+				401: function() { //change message on button depending on reason for 401
+					var buttonLabel = s.labels[s.lang].wrongUsernameOrPassword;
+
+					switch(ajaxRequest.getResponseHeader("reason")) {
+						case "attempts":
+							buttonLabel = s.labels[s.lang].passwordAttempts;
+							break;
+						case "twofactor":
+							buttonLabel = s.labels[s.lang].wrongTwoFactorCode;
+							break;
+						case "changed":
+							buttonLabel = s.labels[s.lang].passwordNotChanged;
+							break;
+					}
+
+					app.feedbackAction(msgBox, buttonLabel, 2000, btn, true, function () {
 						btn.text(oldBtnText);
 					});
 				}

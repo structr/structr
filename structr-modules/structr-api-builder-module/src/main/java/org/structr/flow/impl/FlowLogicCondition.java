@@ -18,7 +18,10 @@
  */
 package org.structr.flow.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.Property;
@@ -26,22 +29,24 @@ import org.structr.core.property.StartNodes;
 import static org.structr.flow.impl.FlowAction.script;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowConditionCondition;
+import org.structr.module.api.DeployableEntity;
 
 /**
  *
  */
-public abstract class FlowLogicCondition extends FlowCondition implements DataSource {
+public abstract class FlowLogicCondition extends FlowCondition implements DataSource, DeployableEntity {
 
-	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("dataSources", FlowConditionCondition.class);
+	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
 
 	public static final View defaultView = new View(FlowAnd.class, PropertyView.Public, script, dataSources);
 	public static final View uiView      = new View(FlowAnd.class, PropertyView.Ui,     script, dataSources);
 
-	protected abstract boolean combine(final boolean result, final boolean value);
+	protected abstract Boolean combine(final Boolean result, final Boolean value);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
 		final List<FlowCondition> _dataSources = getProperty(dataSources);
 		if (_dataSources.isEmpty()) {
@@ -49,7 +54,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements DataSo
 			return false;
 		}
 
-		boolean result = true;
+		Boolean result = null;
 
 		for (final FlowCondition _dataSource : getProperty(dataSources)) {
 
@@ -59,8 +64,18 @@ public abstract class FlowLogicCondition extends FlowCondition implements DataSo
 		return result;
 	}
 
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
+	}
+
 	// ----- protected methods -----
-	protected boolean getBoolean(final Context context, final DataSource source) {
+	protected boolean getBoolean(final Context context, final DataSource source) throws FlowException {
 
 		if (source != null) {
 

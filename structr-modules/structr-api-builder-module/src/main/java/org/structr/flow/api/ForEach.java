@@ -18,14 +18,15 @@
  */
 package org.structr.flow.api;
 
+import org.structr.flow.impl.FlowNode;
+
 /**
  *
  */
 public interface ForEach<T> extends FlowElement {
 
-	DataHandler<T> getDataHandler();
 	DataSource<T> getDataSource();
-	FlowElement getLoopBody();
+	FlowNode getLoopBody();
 
 	@Override
 	default FlowType getFlowType() {

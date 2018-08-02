@@ -26,7 +26,7 @@ public class StoreHandler implements FlowHandler<Store> {
 
 
 	@Override
-	public FlowElement handle(Context context, Store flowElement) {
+	public FlowElement handle(Context context, Store flowElement) throws FlowException {
 
 		flowElement.handleStorage(context);
 		return flowElement.next();

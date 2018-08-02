@@ -74,7 +74,7 @@ var _Contents = {
 
 		if (contentsContents) {
 			contentsContents.css({
-				height: windowHeight - headerOffsetHeight - 48 + 'px'
+				height: windowHeight - headerOffsetHeight - 41 + 'px'
 			});
 		}
 

@@ -81,6 +81,7 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.AbstractFile;
@@ -1292,6 +1293,13 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
 
+			mailTemplates.sort(new AbstractMapComparator<Object>() {
+				@Override
+				public String getKey (Map<String, Object> map) {
+					return ((String)map.get("name")).concat(((String)map.get("locale")));
+				}
+			});
+
 			getGson().toJson(mailTemplates, fos);
 
 		} catch (IOException ioex) {
@@ -1367,6 +1375,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			localizations.sort(new AbstractMapComparator<Object>() {
+				@Override
+				public String getKey (Map<String, Object> map) {
+
+					final Object name   = map.get("name");
+					final Object domain = map.get("domain");
+					final Object locale = map.get("locale");
+
+					// null domain is replaced by a string so that those localizations are shown first
+					return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null"));
+				}
+			});
 
 			getGson().toJson(localizations, fos);
 

@@ -18,29 +18,31 @@
  */
 package org.structr.flow.impl.rels;
 
-import org.structr.core.entity.OneToOne;
+import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowDataHandler;
-import org.structr.flow.impl.FlowForEach;
+import org.structr.flow.impl.FlowContainerConfiguration;
 
-/**
- *
- */
-public class FlowForEachDataHandler extends OneToOne<FlowForEach, FlowDataHandler> {
+public class FlowContainerConfigurationPrincipal extends ManyToOne<FlowContainerConfiguration, Principal> {
 
 	@Override
-	public Class<FlowForEach> getSourceType() {
-		return FlowForEach.class;
+	public Class<FlowContainerConfiguration> getSourceType() {
+		return FlowContainerConfiguration.class;
 	}
 
 	@Override
-	public Class<FlowDataHandler> getTargetType() {
-		return FlowDataHandler.class;
+	public Class<Principal> getTargetType() {
+		return Principal.class;
 	}
 
 	@Override
 	public String name() {
-		return "DATA_HANDLER";
+		return "BELONGS_TO";
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.TARGET_TO_SOURCE;
 	}
 
 	@Override

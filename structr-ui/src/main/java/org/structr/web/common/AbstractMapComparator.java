@@ -16,35 +16,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl.rels;
+package org.structr.web.common;
 
-import org.structr.core.entity.OneToOne;
-import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowDataSource;
-import org.structr.flow.impl.FlowNode;
+import java.util.Comparator;
+import java.util.Map;
 
-/**
- *
- */
-public class FlowDataSourceFlowNode extends OneToOne<FlowDataSource, FlowNode> {
+public abstract class AbstractMapComparator<T> implements Comparator<Map<String, T>> {
 
 	@Override
-	public Class<FlowDataSource> getSourceType() {
-		return FlowDataSource.class;
+	public int compare(Map<String, T> o1, Map<String, T> o2) {
+		return getKey(o1).compareTo(getKey(o2));
 	}
 
-	@Override
-	public Class<FlowNode> getTargetType() {
-		return FlowNode.class;
-	}
-
-	@Override
-	public String name() {
-		return "FLOW_SOURCE";
-	}
-
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.ALWAYS;
-	}
+	public abstract String getKey (Map<String, T> map);
 }

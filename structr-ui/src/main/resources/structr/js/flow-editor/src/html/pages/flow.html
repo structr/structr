@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flow</title>
+    <script type="module" src="../../js/persistence/Persistence.js"></script>
+    <script type="module" src="../../js/editor/entities/FlowContainer.js"></script>
+
+</head>
+<body>
+
+    <script type="module">
+        import { Persistence } from "../../js/persistence/Persistence.js";
+        import { FlowContainer } from "../../js/editor/entities/FlowContainer.js";
+        import { FlowEditor } from "../../js/editor/FlowEditor.js";
+        import { FlowConnectionTypes } from "../../js/editor/FlowConnectionTypes.js";
+
+        let persistence = new Persistence();
+        let urlParams = new URLSearchParams(window.location.search);
+
+        var id = urlParams.get("id");
+
+        persistence.getNodesById(id, new FlowContainer()).then( r => {
+            document.title = "Flow - " + r[0].name;
+
+            const markup = `<div id="nodeEditor" class="node-editor"></div>`;
+
+            document.body.innerHTML = document.body.innerHTML.concat(markup);
+
+            let rootElement = document.querySelector("#nodeEditor");
+
+            let editor = new FlowEditor(rootElement, r[0]);
+
+            editor.waitForInitialization().then( () => {
+
+                let promises = [];
+
+                r[0].flowNodes.forEach(node => {
+                    promises.push(persistence.getNodesById(node.id).then(n => editor.renderNode(n[0])));
+                });
+
+                Promise.all(promises).then(() => {
+                    for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
+
+                        persistence.getNodesByClass(con).then(relNodes => {
+
+                            relNodes.forEach(rel => {
+
+                                if(Array.isArray(rel)) {
+                                    rel = rel[0];
+                                }
+
+                                if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
+                                    editor.connectNodes(rel);
+                                }
+
+                            });
+
+                        });
+
+                    }
+
+                    editor.applySavedLayout();
+
+                    editor._editor.view.update();
+
+                });
+
+
+            });
+
+        });
+
+
+    </script>
+</body>
+</html>

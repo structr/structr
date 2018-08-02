@@ -27,7 +27,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowNodeDataSource;
 import org.structr.flow.impl.rels.FlowNameDataSource;
 
@@ -38,17 +40,17 @@ public class FlowGetProperty extends FlowDataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowGetProperty.class);
 
-	public static final Property<FlowDataSource> nodeSource         = new StartNode<>("nodeSource",         FlowNodeDataSource.class);
-	public static final Property<FlowDataSource> propertyNameSource = new StartNode<>("propertyNameSource", FlowNameDataSource.class);
+	public static final Property<DataSource> nodeSource         = new StartNode<>("nodeSource",         FlowNodeDataSource.class);
+	public static final Property<DataSource> propertyNameSource = new StartNode<>("propertyNameSource", FlowNameDataSource.class);
 
 	public static final View defaultView = new View(FlowGetProperty.class, PropertyView.Public, nodeSource, propertyNameSource);
 	public static final View uiView      = new View(FlowGetProperty.class, PropertyView.Ui,     nodeSource, propertyNameSource);
 
 	@Override
-	public Object get(final Context context) {
+	public Object get(final Context context) throws FlowException {
 
-		final FlowDataSource _nodeSource = getProperty(nodeSource);
-		final FlowDataSource _nameSource = getProperty(propertyNameSource);
+		final DataSource _nodeSource = getProperty(nodeSource);
+		final DataSource _nameSource = getProperty(propertyNameSource);
 
 		if (_nodeSource != null && _nameSource != null) {
 

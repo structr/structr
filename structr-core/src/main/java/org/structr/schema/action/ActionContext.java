@@ -62,6 +62,7 @@ public class ActionContext {
 	protected Locale locale                        = Locale.getDefault();
 	private boolean javaScriptContext              = false;
 	private ContextStore temporaryContextStore     = new ContextStore();
+	private boolean disableVerboseExceptionLogging = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -97,6 +98,14 @@ public class ActionContext {
 
 	public boolean returnRawValue() {
 		return false;
+	}
+
+	public void setDisableVerboseExceptionLogging(final boolean disable) {
+		this.disableVerboseExceptionLogging = disable;
+	}
+
+	public boolean getDisableVerboseExceptionLogging() {
+		return this.disableVerboseExceptionLogging;
 	}
 
 	public Object getConstant(final String name) {

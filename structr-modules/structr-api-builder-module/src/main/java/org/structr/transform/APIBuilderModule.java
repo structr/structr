@@ -46,6 +46,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.flow.FlowDeploymentHandler;
 import org.structr.flow.impl.FlowFunction;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
@@ -150,6 +151,8 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
 		}
+
+		FlowDeploymentHandler.exportDeploymentData(target, gson);
 	}
 
 	@Override
@@ -193,6 +196,8 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 				logger.warn("", ioex);
 			}
 		}
+
+		FlowDeploymentHandler.importDeploymentData(source, gson);
 	}
 
 	// ----- interface APIBuilder -----
