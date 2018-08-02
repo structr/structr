@@ -99,7 +99,7 @@ var _Files = {
 
 		if (folderContents) {
 			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 48 + 'px'
+				height: windowHeight - headerOffsetHeight - 44 + 'px'
 			});
 		}
 
@@ -170,12 +170,12 @@ var _Files = {
 		Structr.initVerticalSlider($('.column-resizer', filesMain), filesResizerLeftKey, 204, _Files.moveResizer);
 
 		$('#folder-contents-container').prepend(
-				'<button class="add_folder_icon button"><i title="Add Folder" class="' + _Icons.getFullSpriteClass(_Icons.add_folder_icon) + '" /> Add Folder</button>'
-				+ '<button class="add_file_icon button"><i title="Add File" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '" /> Add File</button>'
-				+ '<button class="add_minified_css_file_icon button"><i title="Add Minified CSS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_css_icon) + '" />' + ' Add Minified CSS File</button>'
-				+ '<button class="add_minified_js_file_icon button"><i title="Add Minified JS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_js_icon) + '" />' + ' Add Minified JS File</button>'
-				+ '<button class="duplicate_finder button"><i title="Find duplicates" class="' + _Icons.getFullSpriteClass(_Icons.search_icon) + '" /> Find Duplicates</button>'
-				+ '<button class="mount_folder button"><i title="Mount Folder" class="' + _Icons.getFullSpriteClass(_Icons.folder_connect_icon) + '" /> Mount Folder</button>'
+				'<button class="add_folder_icon button"><i title="Add Folder" class="' + _Icons.getFullSpriteClass(_Icons.add_folder_icon) + '"></i> Add Folder</button>'
+				+ '<button class="add_file_icon button"><i title="Add File" class="' + _Icons.getFullSpriteClass(_Icons.add_file_icon) + '"></i> Add File</button>'
+				+ '<button class="add_minified_css_file_icon button"><i title="Add Minified CSS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_css_icon) + '"></i>' + ' Add Minified CSS File</button>'
+				+ '<button class="add_minified_js_file_icon button"><i title="Add Minified JS File" class="' + _Icons.getFullSpriteClass(_Icons.minification_dialog_js_icon) + '"></i>' + ' Add Minified JS File</button>'
+				+ '<button class="duplicate_finder button"><i title="Find duplicates" class="' + _Icons.getFullSpriteClass(_Icons.search_icon) + '"></i> Find Duplicates</button>'
+				+ '<button class="mount_folder button"><i title="Mount Folder" class="' + _Icons.getFullSpriteClass(_Icons.folder_connect_icon) + '"></i> Mount Folder</button>'
 				);
 
 		$('.add_file_icon', main).on('click', function(e) {

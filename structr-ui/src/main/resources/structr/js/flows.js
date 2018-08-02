@@ -16,7 +16,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, flowsMain, flowsTree, flowsCanvas;
+import { Persistence }         from "./flow-editor/src/js/persistence/Persistence.js";
+import { FlowContainer }       from "./flow-editor/src/js/editor/entities/FlowContainer.js";
+import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
+import { FlowConnectionTypes } from "./flow-editor/src/js/editor/FlowConnectionTypes.js";
+import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
+
+import { Component }           from "./lib/structr/Component.js";
+
+let main, flowsMain, flowsTree, flowsCanvas;
+let editor, flowId;
 var drop;
 var selectedElements = [];
 var activeMethodId, methodContents = {};
@@ -28,8 +37,8 @@ var flowsLastOpenMethodKey = 'structrFlowsLastOpenMethodKey_' + port;
 var flowsResizerLeftKey = 'structrFlowsResizerLeftKey_' + port;
 var activeFlowsTabPrefix = 'activeFlowsTabPrefix' + port;
 
-$(document).ready(function() {
-	Structr.registerModule(_Flows);
+document.addEventListener("DOMContentLoaded", function() {
+    Structr.registerModule(_Flows);
 });
 
 var _Flows = {
@@ -40,96 +49,126 @@ var _Flows = {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-
+		
 	},
 	resize: function() {
 
-		var windowHeight = $(window).height();
+		var windowHeight = window.innerHeight;
 		var headerOffsetHeight = 100;
 
 		if (flowsTree) {
-			flowsTree.css({
-				height: windowHeight - headerOffsetHeight + 7 + 'px'
-			});
+			flowsTree.style.height = windowHeight - headerOffsetHeight + 5 + 'px';
 		}
 
 		if (flowsCanvas) {
-			flowsCanvas.css({
-				height: windowHeight - headerOffsetHeight - 48 + 'px'
-			});
+			flowsCanvas.style.height = windowHeight - headerOffsetHeight - 24 + 'px';
 		}
 
 		_Flows.moveResizer();
 		Structr.resize();
 
-		if (flowsCanvas) {
-			flowsCanvas.find('.node').each(function() {
-				_Entities.setMouseOver($(this), true);
-			});
-		}
-
 	},
 	moveResizer: function(left) {
 		left = left || LSWrapper.getItem(flowsResizerLeftKey) || 300;
-		$('.column-resizer', flowsMain).css({ left: left });
+		document.querySelector('#flows-main .column-resizer').style.left = left + 'px';
 
-		$('#flows-tree').css({width: left - 14 + 'px'});
-		$('#flows-canvas').css({left: left + 8 + 'px', width: $(window).width() - left - 47 + 'px'});
+		document.querySelector('#flows-tree').style.width   = left - 14 + 'px';
+		document.querySelector('#flows-canvas').style.left  = left +  8 + 'px';
+		document.querySelector('#flows-canvas').style.width = window.innerWidth - left - 47 + 'px';
 	},
 	onload: function() {
 
 		_Flows.init();
+		
+		main = document.querySelector('#main');
 
-		main.append('<div id="flows-main"><div class="column-resizer"></div><div class="fit-to-height" id="flows-tree-container"><div id="flows-tree"></div></div><div class="fit-to-height" id="flows-canvas-container"><div id="flows-button-container"></div><div id="flows-canvas"></div></div>');
-		flowsMain = $('#flows-main');
+		main.innerHTML = '<div id="flows-main"><div class="column-resizer"></div><div class="fit-to-height" id="flows-tree-container"><div id="flows-tree"></div></div><div class="fit-to-height" id="flows-canvas-container"><div id="flows-canvas"></div></div>';
+		flowsMain = document.querySelector('#flows-main');
+		
+		let markup = `
+			<div class="input-and-button"><input id="name-input" type="text" size="12" placeholder="Enter flow name"><button id="create-new-flow" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button></div>
+			<select id="add-flow-node"><option value="">Add node</option></select>
+			<button class="delete_flow_icon button disabled"><i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow</button>
+			<button class="run_flow_icon button disabled"><i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run</button>
+			<button class="reset_view_icon button"><i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view</button>
+			<button class="layout_icon button disabled"><i title="Layout" class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Layout</button>
+		`;
+		
+		document.querySelector('#flows-canvas-container').insertAdjacentHTML('afterbegin', markup);
 
-		flowsTree = $('#flows-tree');
-		flowsCanvas = $('#flows-canvas');
-
-		_Flows.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', flowsMain), flowsResizerLeftKey, 204, _Flows.moveResizer);
-
-		$.jstree.defaults.core.themes.dots      = false;
-		$.jstree.defaults.dnd.inside_pos        = 'last';
-		$.jstree.defaults.dnd.large_drop_target = true;
-
-		flowsTree.on('select_node.jstree', function(evt, data) {
-
-			if (data.node && data.node.data && data.node.data.type) {
-
-				if (data.node.data.type === 'FlowContainer') {
-
-					// display flow canvas
-					console.log('load flow', data.node.id);
-					
-					flowsCanvas.append('<iframe width="100%" height="100%" src="js/flow-editor/src/html/pages/flow.html?id=' + data.node.id + '"></iframe>');
-					
-				} else {
-
-					if (data.node.state.opened) {
-						flowsTree.jstree('close_node', data.node.id);
-						data.node.state.openend = false;
-					} else {
-						flowsTree.jstree('open_node', data.node.id);
-						data.node.state.openend = true;
-					}
+		let persistence = new Persistence();
+		
+		function createFlow(inputElement) {
+            let name = inputElement.value;
+            inputElement.value = "";
+            persistence.createNode({type:"FlowContainer", name:name}).then( (r) => {
+               _Flows.refreshTree();
+            });
+        }
+		
+		function deleteFlow(id) {
+			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
+				if (confirm('Really delete flow ' + id + '?')) {
+					persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
+						_Flows.refreshTree();
+					});
 				}
+			}
+		}
+			
+		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
+		document.querySelector('.reset_view_icon').onclick = () => editor.resetView();
+		
+		document.querySelector('.delete_flow_icon').onclick = () => deleteFlow(flowId);
+		document.querySelector('.layout_icon').onclick = function() {
+			if (!this.getAttribute('class').includes('disabled')) {
+				new LayoutModal(editor);
+			}
+		};
 
-			} else {
+		document.querySelector('#add-flow-node').onchange = () => function() {
+			console.log('add flow node');
+		};
 
-				if (data.node.state.opened) {
-					flowsTree.jstree('close_node', data.node.id);
-					data.node.state.openend = false;
-				} else {
-					flowsTree.jstree('open_node', data.node.id);
-					data.node.state.openend = true;
-				}
+		document.querySelector('.run_flow_icon').addEventListener('click', function() {
+			if (!this.getAttribute('class').includes('disabled')) {
+				editor.executeFlow();
 			}
 		});
 
+		flowsTree = document.querySelector('#flows-tree');
+		flowsCanvas = document.querySelector('#flows-canvas');
+
+		_Flows.moveResizer();
+		Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), flowsResizerLeftKey, 204, _Flows.moveResizer);
+
+//		$.jstree.defaults.core.themes.dots      = false;
+//		$.jstree.defaults.dnd.inside_pos        = 'last';
+//		$.jstree.defaults.dnd.large_drop_target = true;
+
+		let displayFlow = function(e) {
+
+			let id = e.target.closest('.jstree-node') ? e.target.closest('.jstree-node').getAttribute('id') : e.target.closest('[data-id]').getAttribute('data-id');
+			
+			// display flow canvas
+			flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
+			
+			_Flows.initFlow(id);
+		}
+
+		_Flows.components = {
+			'flowsTree':  new Component('folderTree',  '#flows-tree'),
+			'flowsCanvas': new Component('flowsCanvas', '#flows-canvas')
+		};
+		
+		_Flows.components.flowsTree
+				.on('click', ['.jstree-node'], displayFlow)
+		;
+
 		_TreeHelper.initTree(flowsTree, _Flows.treeInitFunction, 'structr-ui-flows');
 
-		$(window).off('resize').resize(function() {
+		window.removeEventListener('resize', resizeFunction);
+		window.addEventListener('resize', function() {
 			_Flows.resize();
 		});
 
@@ -161,21 +200,6 @@ var _Flows = {
 						id: 'root',
 						text: 'Flows',
 						children: true,
-//						children: [
-//							{ id: 'custom', text: 'Custom', children: true, icon: _Icons.folder_icon },
-//							{
-//								id: 'builtin',
-//								text: 'Built-In',
-//								children: [
-//									{ id: 'core', text: 'Core', children: true, icon: _Icons.folder_icon },
-//									{ id: 'ui',  text: 'Ui',  children: [
-//										{ id: 'web', text: 'Pages', children: true, icon: _Icons.folder_icon },
-//										{ id: 'html', text: 'Html', children: true, icon: _Icons.folder_icon }
-//									], icon: _Icons.folder_icon }
-//								],
-//								icon: _Icons.folder_icon
-//							},
-//						],
 						icon: _Icons.structr_logo_small,
 						path: '/',
 						state: {
@@ -199,8 +223,8 @@ var _Flows = {
 
 	},
 	unload: function() {
-		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#flows-main', main));
+		fastRemoveAllChildren(document.querySelector('#main .searchBox'));
+		fastRemoveAllChildren(document.querySelector('#main #flows-main'));
 	},
 	load: function(id, callback) {
 
@@ -223,18 +247,10 @@ var _Flows = {
 						}
 				}
 
-				var hasVisibleChildren = false;
-
-				if (d.flowNodes) {
-					d.flowNodes.forEach(function(m) {
-						hasVisibleChildren = true;
-					});
-				}
-
 				list.push({
 					id: d.id,
 					text:  d.name ? d.name : '[unnamed]',
-					children: hasVisibleChildren,
+					children: false,
 					icon: 'fa ' + icon,
 					data: {
 						type: d.type
@@ -253,21 +269,6 @@ var _Flows = {
 
 			switch (id) {
 
-//				case 'custom':
-//					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: false}, displayFunction, true);
-//					break;
-//				case 'core':
-//					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'core' }, displayFunction, false);
-//					break;
-//				case 'web':
-//					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'ui' }, displayFunction, false);
-//					break;
-//				case 'html':
-//					Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true, isAbstract:false, category: 'html' }, displayFunction, false);
-//					break;
-//				case 'globals':
-//					Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, displayFunction, true, 'ui');
-//					break;
 				default:
 					Command.query('FlowContainer', methodPageSize, methodPage, 'name', 'asc', {flowContainer: id}, displayFunction, true, 'ui');
 					break;
@@ -275,36 +276,59 @@ var _Flows = {
 		}
 
 	},
-	fileOrFolderCreationNotification: function (newFileOrFolder) {
-		if ((currentWorkingDir === undefined || currentWorkingDir === null) && newFileOrFolder.parent === null) {
-			_Flows.appendFileOrFolder(newFileOrFolder);
-		} else if ((currentWorkingDir !== undefined && currentWorkingDir !== null) && newFileOrFolder.parent && currentWorkingDir.id === newFileOrFolder.parent.id) {
-			_Flows.appendFileOrFolder(newFileOrFolder);
-		}
-	},
-	registerParentLink: function(d, triggerEl) {
+	initFlow: function(id) {
+		
+		flowId = id;
+        let persistence = new Persistence();
 
-		// Change working dir by click on folder icon
-		triggerEl.on('click', function(e) {
+        persistence.getNodesById(id, new FlowContainer()).then( r => {
+            document.title = "Flow - " + r[0].name;
 
-			e.preventDefault();
-			e.stopPropagation();
+            let rootElement = document.querySelector("#nodeEditor");
+            editor = new FlowEditor(rootElement, r[0]);
 
-			if (d.parentId) {
+            editor.waitForInitialization().then( () => {
 
-				flowsTree.jstree('open_node', $('#' + d.parentId), function() {
-					if (d.name === '..') {
-						$('#' + d.parentId + '_anchor').click();
-					} else {
-						$('#' + d.id + '_anchor').click();
-					}
-				});
+                let promises = [];
 
-			} else {
-				$('#' + d.id + '_anchor').click();
-			}
+                r[0].flowNodes.forEach(node => {
+                    promises.push(persistence.getNodesById(node.id).then(n => editor.renderNode(n[0])));
+                });
 
-			return false;
-		});
+                Promise.all(promises).then(() => {
+                    for (let [name, con] of Object.entries(FlowConnectionTypes.getInst().getAllConnectionTypes())) {
+
+                        persistence.getNodesByClass(con).then(relNodes => {
+
+                            relNodes.forEach(rel => {
+
+                                if (Array.isArray(rel)) {
+                                    rel = rel[0];
+                                }
+
+                                if (r[0].flowNodes.filter(el => el.id === rel.sourceId).length > 0 && r[0].flowNodes.filter(el => el.id === rel.targetId).length > 0) {
+                                    editor.connectNodes(rel);
+                                }
+
+                            });
+
+                        });
+
+                    }
+
+                    editor.applySavedLayout();
+                    editor._editor.view.update();
+					editor.resetView();
+					
+					// activate buttons
+					document.querySelector('.run_flow_icon').classList.remove('disabled');
+					document.querySelector('.delete_flow_icon').classList.remove('disabled');
+					document.querySelector('.layout_icon').classList.remove('disabled');
+
+                });
+
+            });
+
+        });		
 	}
 };

@@ -75,7 +75,7 @@ a:hover, a:active {
 
 textarea {
 	font-size: 1em;
-	border: 1px solid #eee;
+	border: 1px solid rgba(0,0,0,.125);
 }
 
 button, textarea, input, select {
@@ -84,7 +84,7 @@ button, textarea, input, select {
 }
 
 input {
-	border: 1px solid #eee;
+	border: 1px solid rgba(0,0,0,.125);
 	padding: 4px 4px;
 }
 
@@ -1435,8 +1435,7 @@ button.action:hover {
 }
 
 #code-main .selected, #code-main .selected:hover,
-#files-main .selected, #files-main .selected:hover,
-#flows-main .selected, #flows-main .selected:hover {
+#files-main .selected, #files-main .selected:hover {
 	color: #333 ! important;
 	border: 1px solid transparent ! important;
 	background-color: #81ce25 ! important;
@@ -3259,11 +3258,32 @@ td#cascading-options, td#propagation-options {
 #folder-contents-container, #code-contents-container, #contents-contents-container, #crawler-list-container, #flows-canvas-container {
 	display: table-cell;
 	vertical-align: top;
-	padding: 12px 12px 12px 10px;
+	padding: 12px 12px 12px 8px;
 }
 
-#folder-contents-container select, #code-contents-container select, #contents-contents-container select, #crawler-list-container select, #flows-canvas-container select {
-	padding: 3px;
+#folder-contents-container select, #code-contents-container select, #contents-contents-container select, #crawler-list-container select, #schema-container select, #flows-canvas-container select {
+	padding: 2px 2px 3px 2px;
+	border: 1px solid rgba(0,0,0,.125);
+	/*margin-top: -1px;*/
+	margin-right: 4px;
+	background-color: #f1f1f1;
+}
+
+#folder-contents-container select, #code-contents-container select, #contents-contents-container:first-child select, #crawler-list-container select, #flows-canvas-container select {
+	margin-left: 0;
+}
+
+#folder-contents-container select:hover, #code-contents-container select:hover, #contents-contents-container select:hover, #crawler-list-container select:hover, #flows-canvas-container select:hover {
+	background-color: #fff;
+}
+
+#folder-contents-container button, #code-contents-container button, #contents-contents-container button, #crawler-list-container button, #flows-canvas-container button, #crud-buttons button {
+	margin-right: 8px;
+}
+
+#flows-canvas-container .input-and-button input {
+	margin-top: 0;
+	height: 22px;
 }
 
 #folder-contents, #code-contents, #contents-contents, #crawler-list, #flows-canvas {
@@ -3272,12 +3292,16 @@ td#cascading-options, td#propagation-options {
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 	border: 1px solid rgba(0,0,0,.125);
 	padding: 12px;
-	margin-top: 12px;
+	margin-top: 8px;
 	overflow: auto;
 	font-size: 9pt;
 	position: absolute;
 }
 
+ #flows-canvas {
+	 padding: 0;
+ }
+ 
 #folder-contents h1, #code-contents h1, #contents-contents h1, #crawler-list h1, #flows-canvas h1 {
 	margin: 0px;
 }

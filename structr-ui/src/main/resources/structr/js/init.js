@@ -35,7 +35,7 @@ var dialogDataKey = 'structrDialogData_' + port;
 var dialogHtmlKey = 'structrDialogHtml_' + port;
 var scrollInfoKey = 'structrScrollInfoKey_' + port;
 var consoleModeKey = 'structrConsoleModeKey_' + port;
-
+var resizeFunction;
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false, cmdKey = false;
 
 $(function() {
@@ -220,9 +220,12 @@ $(function() {
 		}
 	});
 
-	$(window).on('resize', function() {
+	resizeFunction = function() {
 		Structr.resize();
-	});
+	};
+	
+	$(window).on('resize', resizeFunction);
+	
 	dmp = new diff_match_patch();
 });
 
@@ -1322,7 +1325,7 @@ var Structr = {
 			return;
 		}
 
-		sliderEl.draggable({
+		$(sliderEl).draggable({
 			axis: 'x',
 			drag: function(e, ui) {
 				var left = Math.max(minWidth, ui.position.left);
@@ -1614,7 +1617,7 @@ var Structr = {
 
 var _TreeHelper = {
 	initTree: function (tree, initFunction, stateKey) {
-		tree.jstree({
+		$(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
@@ -1651,7 +1654,7 @@ var _TreeHelper = {
 		}
 	},
 	refreshTree: function(tree, callback) {
-		tree.jstree('refresh');
+		$(tree).jstree('refresh');
 
 		if (typeof callback === "function") {
 			window.setTimeout(function() {

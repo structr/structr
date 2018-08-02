@@ -1,0 +1,159 @@
+/**
+ * Copyright (C) 2010-2018 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@charset "UTF-8";
+
+#flows-canvas-container {
+	min-width: 600px;
+}
+
+#flows-canvas-container button.run_flow_icon {
+	position: absolute;
+	right: 29px;
+}
+
+#flows-canvas-container button.reset_view_icon {
+	position: absolute;
+	right: 124px;
+}
+
+#flows-canvas-container button.layout_icon {
+	position: absolute;
+	right: 220px;
+}
+
+/** Overwrite styles of Flow Editor for Structr UI integration */
+
+#nodeEditor {
+	background-color: transparent;
+	background-image: none;
+}
+
+#nodeEditor .node {
+	color: #555;
+	background-color: #f1f1f1;
+	box-shadow: 0 0 12px rgba(127,127,127,.1);
+    margin: 0 ! important;
+    opacity: .9;
+	border: 1px solid rgba(0,0,0,.125);
+	padding: 0;
+}
+
+#nodeEditor .node .title {
+	border: none;
+	font-family: inherit;
+	color: #555;
+	font-weight: normal;
+}
+
+#nodeEditor .node .startNode {
+    background-color: #81ce25;
+}
+
+#nodeEditor .node .startNode:hover {
+    background-color: #bfe27f;
+}
+
+#nodeEditor .node.selected {
+    background: #e0e0e0 ! important;
+    border: 1px solid rgba(0,0,0,.125);
+}
+
+#nodeEditor .node .input-title, #nodeEditor .node .output-title, #nodeEditor .node .control-title {
+    color: #222;
+    font-family: inherit;
+}
+
+#nodeEditor .node .control-textarea {
+	color: #222;
+	background-color: #fff;
+}
+
+#nodeEditor .node .control-select {
+	color: #222;
+	background-color: #fff;
+	font-family: inherit;
+	border: 1px solid rgba(0,0,0,.125);
+}
+
+#nodeEditor select, #nodeEditor input {
+	border-radius: 0;
+	color: #222;
+	background-color: #fff;
+	font-family: inherit;
+	border: 1px solid rgba(0,0,0,.125);
+}
+
+#nodeEditor .node .socket:after {
+	border-color: transparent transparent transparent #555;
+}
+
+#executionResult pre {
+	font-size: 1em ! important;
+	margin-top: 27px;
+}
+
+#executionResult {
+	top: 60px ! important;
+	height: auto ! important;
+}
+
+#executionResult span.close {
+	margin-top: -29px;
+	display: inline-block;
+    position: absolute;
+    right: 69px;
+}
+
+.context-menu {
+	border: 1px solid rgba(0,0,0,.125) ! important;
+	padding: 0 ! important;
+	font-family: inherit ! important;
+}
+
+.context-menu .item {
+	font-size: em;
+	width: auto ! important;
+	min-width: 200px;
+	color: #222 ! important;
+	background-color: #fff ! important;
+	border: none ! important;
+	border-bottom: 1px solid rgba(0,0,0,.125) ! important;
+	border-radius: 0 ! important;
+	padding: 6px ! important;
+	margin: 0;
+	margin-left: 0 ! important;
+}
+
+.context-menu .item:hover {
+	background-color: #81ce25 ! important;
+}
+
+.context-menu .item:first-child {
+	border-radius: 0 ! important;
+}
+
+.context-menu .item:last-child {
+	border-bottom: none ! important;
+}
+
+.context-menu .item .subitems {
+	border: 1px solid rgba(0,0,0,.125) ! important;
+	border-radius: 0 ! important;
+	font-family: inherit ! important;
+}
