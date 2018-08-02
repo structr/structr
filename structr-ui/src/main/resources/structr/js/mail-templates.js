@@ -105,6 +105,9 @@ var _MailTemplates = {
 				var self = $(this);
 				if (self.data('modes').split('|').indexOf(mode) !== -1) {
 					self.show();
+					if (self[0].tagName === 'TABLE') {
+						self.css('display', 'table');
+					}
 				}
 			});
 		}
