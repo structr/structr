@@ -389,9 +389,8 @@ public class SchemaHelper {
 
 		try {
 
-			final List<DynamicResourceAccess> existingDynamicGrants  = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
-
-			final Set<String> existingSchemaNodeNames = new HashSet<>();
+			final List<DynamicResourceAccess> existingDynamicGrants = StructrApp.getInstance().nodeQuery(DynamicResourceAccess.class).getAsList();
+			final Set<String> existingSchemaNodeNames               = new HashSet<>();
 
 			for (final SchemaNode schemaNode : existingSchemaNodes) {
 

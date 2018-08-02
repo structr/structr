@@ -27,10 +27,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.net.SocketException;
 import java.security.CodeSigner;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.MessageDigest;
@@ -54,7 +58,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.RandomUtils;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,37 +103,44 @@ public class StructrLicenseManager implements LicenseManager {
 		"/u7r3lfqJ4h5bVTb6AMJ9gl/lOyob46gH1jNbx5ld53/ADgDFRcMW2vwLiZhay0p" +
 		"Nhx1o8vT2VnQUzZxU1G4gnkdtiXN6knFTorl";
 
-	private static final String SignatureAlgorithm = "SHA512WithRSA";
-	private static final String DatePattern        = "yyyy-MM-dd";
-	private static final String KeystoreAlias      = "structr";
-	private static final String KeyAlgorithm       = "RSA";
-	private static final String CharSet            = "UTF-8";
-	private static final String NameKey            = "name";
-	private static final String DateKey            = "date";
-	private static final String StartKey           = "start";
-	private static final String EndKey             = "end";
-	private static final String EditionKey         = "edition";
-	private static final String ModulesKey         = "modules";
-	private static final String MachineKey         = "machine";
-	private static final String SignatureKey       = "key";
+	public static final String DataEncryptionAlgorithm = "AES/CBC/PKCS5Padding";
+	public static final String KeyEncryptionAlgorithm  = "RSA/ECB/OAEPWithSHA-256AndMGF1Padding";
+	public static final String SignatureAlgorithm      = "SHA512WithRSA";
+	public static final String DatePattern             = "yyyy-MM-dd";
+	public static final String KeystoreAlias           = "structr";
+	public static final String KeyAlgorithm            = "RSA";
+	public static final String CharSet                 = "UTF-8";
+	public static final String NameKey                 = "name";
+	public static final String DateKey                 = "date";
+	public static final String StartKey                = "start";
+	public static final String EndKey                  = "end";
+	public static final String EditionKey              = "edition";
+	public static final String ModulesKey              = "modules";
+	public static final String MachineKey              = "machine";
+	public static final String SignatureKey            = "key";
+	public static final String ServersKey              = "servers";
+	public static final String HostIdKey               = "hostId";
+	public static final String LimitKey                = "limit";
+	public static final String CountKey                = "count";
+	public static final String HostIdMappingKey        = "hostIdValidationAttempts";
 
-	private static final int CommunityMask         = 0x01; // 0001
-	private static final int BasicMask             = 0x03; // 0011
-	private static final int SmallBusinessMask     = 0x07; // 0111
-	private static final int EnterpriseMask        = 0x0f; // 1111
+	private static final int CommunityMask              = 0x01; // 0001
+	private static final int BasicMask                  = 0x03; // 0011
+	private static final int SmallBusinessMask          = 0x07; // 0111
+	private static final int EnterpriseMask             = 0x0f; // 1111
 
-	private final Set<String> modules            = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
-	private final Set<String> classes            = new LinkedHashSet<>();
-	private final SimpleDateFormat format        = new SimpleDateFormat(DatePattern);
-	private Certificate certificate              = null;
-	private PublicKey publicKey                  = null;
-	private boolean allModulesLicensed           = false;
-	private boolean licensePresent               = false;
-	private String edition                       = "Community";
-	private String licensee                      = null;
-	private String startDateString               = null;
-	private String endDateString                 = null;
-	private int editionMask                      = CommunityMask;
+	private final Set<String> modules                   = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
+	private final Set<String> classes                   = new LinkedHashSet<>();
+	private final SimpleDateFormat format               = new SimpleDateFormat(DatePattern);
+	private Certificate certificate                     = null;
+	private PublicKey publicKey                         = null;
+	private boolean allModulesLicensed                  = false;
+	private boolean licensePresent                      = false;
+	private String edition                              = "Community";
+	private String licensee                             = null;
+	private String startDateString                      = null;
+	private String endDateString                        = null;
+	private int editionMask                             = CommunityMask;
 
 	public StructrLicenseManager(final String licenseFileName) {
 
@@ -277,6 +296,7 @@ public class StructrLicenseManager implements LicenseManager {
 		return false;
 	}
 
+	@Override
 	public void addLicensedClass(final String fqcn) {
 		classes.add(fqcn);
 	}
@@ -288,7 +308,7 @@ public class StructrLicenseManager implements LicenseManager {
 			return false;
 		}
 
-		final String src             = collect(properties);
+		final String src             = collectLicenseFieldsForSignature(properties);
 		final String name            = properties.get(NameKey);
 		final String key             = properties.get(SignatureKey);
 		final String hostId          = properties.get(MachineKey);
@@ -298,6 +318,7 @@ public class StructrLicenseManager implements LicenseManager {
 		final String dateString      = properties.get(DateKey);
 		final String startDateString = properties.get(StartKey);
 		final String endDateString   = properties.get(EndKey);
+		final String serversString   = properties.get(ServersKey);
 		final Date now               = new Date();
 
 		if (StringUtils.isEmpty(key)) {
@@ -377,6 +398,15 @@ public class StructrLicenseManager implements LicenseManager {
 		}
 
 		if ("*".equals(hostId)) {
+
+			// check volume license against server addresses
+			if (StringUtils.isNotBlank(serversString)) {
+
+				// send HostID to server
+				properties.put(HostIdKey, thisHostId);
+
+				return checkVolumeLicense(properties, serversString);
+			}
 
 			final Calendar issuedAtPlusOneMonth = GregorianCalendar.getInstance();
 			final Calendar cal                  = GregorianCalendar.getInstance();
@@ -527,8 +557,7 @@ public class StructrLicenseManager implements LicenseManager {
 	}
 
 	// ----- private static methods -----
-
-	private static String collect(final Map<String, String> properties) {
+	public static String collectLicenseFieldsForSignature(final Map<String, String> properties) {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -540,10 +569,17 @@ public class StructrLicenseManager implements LicenseManager {
 		buf.append(properties.get(ModulesKey));
 		buf.append(properties.get(MachineKey));
 
+		// optional value
+		final String servers = properties.get(ServersKey);
+		if (StringUtils.isNotBlank(servers)) {
+
+			buf.append(servers);
+		}
+
 		return buf.toString();
 	}
 
-	private static void create(final String name, final String start, final String end, final String edition, final String modules, final String hostId, final String keystoreFileName, final String password, final String outputFileName) {
+	private static void create(final String name, final String start, final String end, final String edition, final String modules, final String hostId, final String servers, final String keystoreFileName, final String password, final String outputFileName) {
 
 		final Map<String, String> properties = new LinkedHashMap<>();
 		final SimpleDateFormat format        = new SimpleDateFormat(DatePattern);
@@ -555,6 +591,7 @@ public class StructrLicenseManager implements LicenseManager {
 		properties.put(EditionKey, edition);
 		properties.put(ModulesKey, modules);
 		properties.put(MachineKey, hostId);
+		properties.put(ServersKey, servers);
 
 		sign(properties, keystoreFileName, password);
 		write(properties, outputFileName);
@@ -562,7 +599,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 	private static void sign(final Map<String, String> properties, final String keystoreFileName, final String password) {
 
-		final String src = collect(properties);
+		final String src = collectLicenseFieldsForSignature(properties);
 
 		try {
 
@@ -593,22 +630,147 @@ public class StructrLicenseManager implements LicenseManager {
 
 		try (final Writer writer = new OutputStreamWriter(base64Encoder.wrap(new FileOutputStream(fileName)))) {
 
-			properties.forEach((key, value) -> {
-
-				try {
-					writer.write(key);
-					writer.write(" = ");
-					writer.write(value);
-					writer.write("\n");
-
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
-				}
-			});
+			writer.write(write(properties));
 
 		} catch (IOException ioex) {
 			logger.warn("Unable to write file.", ioex);
 		}
+	}
+
+	private static String write(final Map<String, String> properties) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		properties.forEach((key, value) -> {
+
+			buf.append(key);
+			buf.append(" = ");
+			buf.append(value);
+			buf.append("\n");
+		});
+
+		return buf.toString();
+
+	}
+
+	private boolean checkVolumeLicense(final Map<String, String> properties, final String serversString) {
+
+		try {
+
+			final KeyGenerator kgen = KeyGenerator.getInstance("AES");
+			final byte[] data       = write(properties).getBytes("utf-8");
+			final String name       = properties.get(NameKey);
+			final byte[] expected   = name.getBytes("utf-8");
+
+			kgen.init(128);
+
+			for (final String part : serversString.split("[, ]+")) {
+
+				final String address = part.trim();
+
+				if (StringUtils.isNotBlank(address)) {
+
+					try {
+
+						logger.info("Trying to verify volume license with server {}", address);
+
+						final long t0              = System.currentTimeMillis();
+						final SecretKey aesKey     = kgen.generateKey(); // symmetric stream key
+						final byte[] ivspec        = RandomUtils.nextBytes(16); // initialization vector for stream cipher
+						final byte[] key           = encryptSessionKey(aesKey.getEncoded());
+						final byte[] encryptedIV   = encryptSessionKey(ivspec);
+						final byte[] encryptedData = encryptData(data, aesKey, ivspec);
+						final byte[] response      = sendAndReceive(address, key, encryptedIV, encryptedData);
+						final boolean result       = verify(expected, response);
+
+						if (result == true) {
+							logger.info("License verified in {} ms", System.currentTimeMillis() - t0);
+						}
+
+						return result;
+
+					} catch (Throwable t) {
+						logger.warn("Unable to verify volume license: {}", t.getMessage());
+					}
+				}
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return false;
+	}
+
+	private byte[] encryptData(final byte[] data, final SecretKey sessionKey, final byte[] ivSpec) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, UnsupportedEncodingException, InvalidAlgorithmParameterException {
+
+		// setup
+		final Cipher cipher = Cipher.getInstance(DataEncryptionAlgorithm);
+
+		cipher.init(Cipher.ENCRYPT_MODE, sessionKey, new IvParameterSpec(ivSpec));
+
+		return cipher.doFinal(data);
+	}
+
+	private byte[] encryptSessionKey(final byte[] sessionKey) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, UnsupportedEncodingException {
+
+		// setup
+		final Cipher cipher = Cipher.getInstance(KeyEncryptionAlgorithm);
+
+		cipher.init(Cipher.ENCRYPT_MODE, certificate);
+
+		return cipher.doFinal(sessionKey);
+	}
+
+	private byte[] sendAndReceive(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
+
+		final byte[] result = new byte[256];
+
+		try(final Socket socket = new java.net.Socket(address, 5725)) {
+
+			socket.getOutputStream().write(key);
+			socket.getOutputStream().flush();
+
+			socket.getOutputStream().write(ivspec);
+			socket.getOutputStream().flush();
+
+			socket.getOutputStream().write(data);
+			socket.getOutputStream().flush();
+
+			// don't waste much time to wait for an answer
+			socket.setSoTimeout(1000);
+
+			// read exactly 256 bytes (size of expected signature response)
+			socket.getInputStream().read(result, 0, 256);
+
+		} catch (Throwable  t) {
+			logger.warn("Unable to verify volume license: {}", t.getMessage());
+		}
+
+		return result;
+	}
+
+	private boolean verify(final byte[] data, final byte[] signatureData) {
+
+		try {
+
+			final Signature verifier = Signature.getInstance(SignatureAlgorithm);
+
+			verifier.initVerify(certificate);
+			verifier.update(data);
+
+			if (verifier.verify(signatureData)) {
+
+				return true;
+			}
+
+		} catch (Throwable t) {
+			logger.warn("Unable to verify volume license: {}", t.getMessage());
+		}
+
+		logger.error("License verification failed, license is not valid.");
+
+		return false;
 	}
 
 	// ----- nested classes ------
@@ -623,6 +785,7 @@ public class StructrLicenseManager implements LicenseManager {
 			final String edition  = (String)attributes.get(EditionKey);
 			final String modules  = (String)attributes.get(ModulesKey);
 			final String hostId   = (String)attributes.get(MachineKey);
+			final String servers  = (String)attributes.get(ServersKey);
 			final String keystore = (String)attributes.get("keystore");
 			final String password = (String)attributes.get("password");
 
@@ -638,7 +801,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 			} else {
 
-				StructrLicenseManager.create(name, start, end, edition, modules, hostId, keystore, password, outFile);
+				StructrLicenseManager.create(name, start, end, edition, modules, hostId, servers, keystore, password, outFile);
 				logger.info("Successfully created license file {}.", outFile);
 			}
 		}

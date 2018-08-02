@@ -613,7 +613,6 @@ public class SchemaService implements Service {
 
 	private static void handleAutomaticMigration(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-
 		for (final ErrorToken errorToken : errorBuffer.getErrorTokens()) {
 
 			for (final MigrationHandler handler : migrationHandlers) {

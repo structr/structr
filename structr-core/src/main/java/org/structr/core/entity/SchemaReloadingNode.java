@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -26,7 +25,6 @@ import org.structr.core.graph.ModificationQueue;
 import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.ReloadSchema;
-import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -55,15 +53,10 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 	@Override
 	public void onNodeDeletion() {
 
-		final String signature = getResourceSignature();
-		if (StringUtils.isNotBlank(signature)) {
-
-			SchemaHelper.removeDynamicGrants(getResourceSignature());
-		}
+		super.onNodeDeletion();
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema());
-
 	}
 
 	public String getResourceSignature() {
