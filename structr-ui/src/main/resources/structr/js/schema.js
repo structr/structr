@@ -3614,13 +3614,20 @@ var _Schema = {
 			}
 		});
 
+		var searchTimeout;
 		$('#search-classes').keyup(function(e) {
 			if (e.which === 27) {
 				$('#search-classes').val('');
 				inheritanceTree.jstree(true).clear_search();
 			} else {
-				var query = $('#search-classes').val();
-				inheritanceTree.jstree(true).search(query, true, true);
+				if (searchTimeout) {
+					clearTimeout(searchTimeout);
+				}
+
+				searchTimeout = setTimeout(function () {
+					var query = $('#search-classes').val();
+					inheritanceTree.jstree(true).search(query, true, true);
+				}, 250);
 			}
 		});
 	},
