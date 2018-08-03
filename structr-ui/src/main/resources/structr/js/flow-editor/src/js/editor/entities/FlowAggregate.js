@@ -42,9 +42,9 @@ export class FlowAggregate extends FlowNode {
                     control.id = "script";
                     control.name = "Script";
 
-                    element.addEventListener('focus', ()=> {
-                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
-                    });
+//                    element.addEventListener('focus', ()=> {
+//                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
+//                    });
 
                     element.addEventListener('change', ()=>{
                         control.putData('script',element.value);

@@ -695,6 +695,7 @@ span.close:focus {
 	margin-top: 27px;
 }
 #executionResult span.close {
+	color: #fff;
 	margin-top: -22px;
 	display: inline-block;
     position: absolute;

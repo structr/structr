@@ -32,7 +32,7 @@ export class FlowAction extends FlowNode {
 
                 let script = new D3NE.Control('<textarea class="control-textarea">', (element, control) =>{
 
-                    if(scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
+                    if (scopedDbNode !== undefined && scopedDbNode.script !== undefined) {
                         element.value = scopedDbNode.script;
                     }
 
@@ -42,9 +42,9 @@ export class FlowAction extends FlowNode {
                     control.id = "script";
                     control.name = "Script";
 
-                    element.addEventListener('focus', ()=> {
-                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
-                    });
+//                    element.addEventListener('focus', ()=> {
+//                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
+//                    });
 
                     element.addEventListener('change', ()=>{
                         control.putData('script',element.value);
