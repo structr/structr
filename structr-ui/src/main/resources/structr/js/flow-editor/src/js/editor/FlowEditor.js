@@ -78,8 +78,8 @@ export class FlowEditor {
                 "lib/d3-node-editor/alight.min.js"
             ],
             stylesheets: [
-                "lib/d3-node-editor/d3-node-editor.css",
-                "css/FlowEditor.css"
+                "lib/d3-node-editor/d3-node-editor.css"
+				, "../../../css/flow-editor.css"
             ]
         };
 
