@@ -18,6 +18,8 @@
  */
 package org.structr.rest.auth;
 
+import java.util.Date;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -237,6 +239,36 @@ public class AuthHelper {
 		} catch (UnlicensedScriptException ex) {
 				ex.log(logger);
 		}
+	}
+
+	/**
+	 * @return A confirmation key with the current timestamp
+	 */
+	public static String getConfirmationKey() {
+
+		return UUID.randomUUID().toString() + "|" + new Date().getTime();
+	}
+
+	/**
+	 * Determines if the key is valid or not. If the key has no timestamp the configuration setting for keys without timestamp is used
+	 *
+	 * @param confirmationKey The confirmation key to check
+	 * @param validityPeriod The validity period for the key (in minutes)
+	 * @return
+	 */
+	public static boolean isConfirmationKeyValid(final String confirmationKey, final Integer validityPeriod) {
+
+		final String[] parts = confirmationKey.split("\\|");
+
+		if (parts.length == 2) {
+
+			final long timeStamp = Long.parseLong(parts[1]);
+			final long endOfPeriod = new Date().getTime() + validityPeriod * 60 * 1000;
+
+			return (timeStamp <= endOfPeriod);
+		}
+
+		return Settings.ConfirmationKeyValidWithoutTimestamp.getValue();
 	}
 
 }

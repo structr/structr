@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -114,7 +113,7 @@ public class RegistrationResource extends Resource {
 			}
 
 			final String localeString = (String) propertySet.get("locale");
-			final String confKey      = UUID.randomUUID().toString();
+			final String confKey      = AuthHelper.getConfirmationKey();
 
 			Principal user = StructrApp.getInstance().nodeQuery(User.class).and(eMailKey, emailString).getFirst();
 			if (user != null) {
