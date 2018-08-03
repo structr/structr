@@ -123,6 +123,7 @@ public class StructrLicenseManager implements LicenseManager {
 	public static final String LimitKey                = "limit";
 	public static final String CountKey                = "count";
 	public static final String HostIdMappingKey        = "hostIdValidationAttempts";
+	public static final int ServerPort                 = 5725;
 
 	private static final int CommunityMask              = 0x01; // 0001
 	private static final int BasicMask                  = 0x03; // 0011
@@ -726,7 +727,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 		final byte[] result = new byte[256];
 
-		try(final Socket socket = new java.net.Socket(address, 5725)) {
+		try(final Socket socket = new java.net.Socket(address, ServerPort)) {
 
 			socket.getOutputStream().write(key);
 			socket.getOutputStream().flush();
@@ -738,7 +739,7 @@ public class StructrLicenseManager implements LicenseManager {
 			socket.getOutputStream().flush();
 
 			// don't waste much time to wait for an answer
-			socket.setSoTimeout(1000);
+			socket.setSoTimeout(2000);
 
 			// read exactly 256 bytes (size of expected signature response)
 			socket.getInputStream().read(result, 0, 256);

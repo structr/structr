@@ -47,15 +47,19 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class StructrLicenseVerifier {
 
+	private static final Logger logger         = LoggerFactory.getLogger(StructrLicenseVerifier.class);
+
 	private static final Pattern HostIdPattern = Pattern.compile("[a-f0-9]{32}");
 	private static final Pattern DatePattern   = Pattern.compile("[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}");
-	private static final Pattern NamePattern   = Pattern.compile("[a-zA-Z0-9 ]+");
+	private static final Pattern NamePattern   = Pattern.compile("[a-zA-Z0-9 \\-]+");
 
 	private Gson gson           = null;
 	private Signature signer    = null;
@@ -80,7 +84,11 @@ public class StructrLicenseVerifier {
 
 	private StructrLicenseVerifier(final String keystoreFileName, final String password) {
 
+		logger.info("Starting license server..");
+
 		try {
+
+			logger.info("Loading key store, initializing ciphers..");
 
 			this.gson         = new GsonBuilder().setPrettyPrinting().create();
 			this.keyStore     = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -98,7 +106,7 @@ public class StructrLicenseVerifier {
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("Unable to initialize key store or ciphers: {}", t.getMessage());
 		}
 	}
 
@@ -106,7 +114,9 @@ public class StructrLicenseVerifier {
 
 		try {
 
-			final ServerSocket serverSocket = new ServerSocket(5725);
+			logger.info("Listening on port {}", StructrLicenseManager.ServerPort);
+
+			final ServerSocket serverSocket = new ServerSocket(StructrLicenseManager.ServerPort);
 
 			serverSocket.setReuseAddress(true);
 
@@ -115,10 +125,12 @@ public class StructrLicenseVerifier {
 
 				try (final Socket socket = serverSocket.accept()) {
 
+					logger.info("New connection from {}", socket.getInetAddress().getHostAddress());
+
 					final InputStream is = socket.getInputStream();
 					final int bufSize    = 4096;
 
-					socket.setSoTimeout(10);
+					socket.setSoTimeout(2000);
 
 					// decrypt AES stream key using RSA block cipher
 					final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
@@ -153,17 +165,21 @@ public class StructrLicenseVerifier {
 						// respond with the signature of the data sent to us
 						socket.getOutputStream().write(sign(response));
 						socket.getOutputStream().flush();
+
+					} else {
+
+						logger.info("License verification failed.");
 					}
 
 					socket.getOutputStream().close();
 
 				} catch (Throwable t) {
-					t.printStackTrace();
+					logger.warn("Unable to verify license: {}", t.getMessage());
 				}
 			}
 
 		} catch (Throwable t) {
-			t.printStackTrace();
+			logger.warn("Unable to verify license: {}", t.getMessage());
 		}
 	}
 
@@ -190,12 +206,15 @@ public class StructrLicenseVerifier {
 				// verify signature of license data sent to us
 				if (!signer.verify(signatureData)) {
 
+					logger.info("Client signature not valid.");
+
 					return false;
 				}
 
 			} catch (Throwable t) {
 
-				t.printStackTrace();
+				logger.warn("Unable to verify client signature: {}", t.getMessage());
+
 				return false;
 			}
 
@@ -204,9 +223,13 @@ public class StructrLicenseVerifier {
 				// make sure that date and licensee do not contain illegal characters
 				if (DatePattern.matcher(startDate).matches() && NamePattern.matcher(licensee).matches() && HostIdPattern.matcher(hostId).matches()) {
 
+					logger.info("License request for {}, start date {}, host ID {}", licensee, startDate, hostId);
+
 					final String cleanedName = licensee.replace(" ", "-");
-					final String configName  = startDate + "-" + cleanedName;
+					final String configName  = startDate + "-" + cleanedName + ".json";
 					int count                = 0;
+
+					logger.info("Loading license configuration from {}..", configName);
 
 					// load config file or create new one
 					Map<String, Object> config = readConfig(configName);
@@ -233,6 +256,8 @@ public class StructrLicenseVerifier {
 						valid = true;
 					}
 
+					logger.info("count: {}, limit: {}", count, limitSource);
+
 					// record validation attempt
 					config.put("count", count + 1);
 
@@ -258,8 +283,20 @@ public class StructrLicenseVerifier {
 
 					// store config
 					writeConfig(configName, config);
+
+				} else {
+
+					logger.info("Client request malformed: {} {} {}", startDate, licensee, hostId);
 				}
+
+			} else {
+
+				logger.info("Client request incomplete, missing startDate, licensee or hostId.");
 			}
+
+		} else {
+
+			logger.info("Client request incomplete, missing data or signature.");
 		}
 
 		return valid;
@@ -284,7 +321,7 @@ public class StructrLicenseVerifier {
 			return gson.fromJson(reader, Map.class);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("Unable to open license config {}: {}", name, ioex.getMessage());
 		}
 
 		return null;
@@ -297,7 +334,7 @@ public class StructrLicenseVerifier {
 			gson.toJson(config, writer);
 
 		} catch (IOException ioex) {
-			ioex.printStackTrace();
+			logger.warn("Unable to store license config {}: {}", name, ioex.getMessage());
 		}
 	}
 
