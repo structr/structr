@@ -27,6 +27,7 @@ import org.structr.schema.action.Actions;
 import org.structr.web.function.AddHeaderFunction;
 import org.structr.web.function.AppendContentFunction;
 import org.structr.web.function.BarcodeFunction;
+import org.structr.web.function.ConfirmationKeyFunction;
 import org.structr.web.function.CopyFileContentsFunction;
 import org.structr.web.function.CreateArchiveFunction;
 import org.structr.web.function.EscapeHtmlFunction;
@@ -82,6 +83,7 @@ public class UiModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "render",                   new RenderFunction());
 		Functions.put(true, LicenseManager.Community, "set_details_object",       new SetDetailsObjectFunction());
 		Functions.put(true, LicenseManager.Community, "two_factor_url",           new TwoFactorURLFunction());
+		Functions.put(true, LicenseManager.Community, "confirmation_key",         new ConfirmationKeyFunction());
 
 		// Basic Edition and up
 		Functions.put(basicEdition, LicenseManager.Basic, "send_html_mail",           new SendHtmlMailFunction());
