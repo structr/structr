@@ -1389,7 +1389,27 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				}
 			});
 
-			getGson().toJson(localizations, fos);
+			final Gson gson = new GsonBuilder().serializeNulls().create();
+
+			final StringBuilder sb = new StringBuilder("[");
+
+			List<String> jsonStrings = new LinkedList();
+
+			for (Map<String, Object> loc : localizations) {
+				jsonStrings.add("\t" + gson.toJson(loc));
+			}
+
+			if (!jsonStrings.isEmpty()) {
+
+				sb.append("\n").append(String.join(",\n", jsonStrings)).append("\n");
+
+			}
+
+			sb.append("]");
+
+			fos.write(sb.toString());
+
+//			getGson().toJson(localizations, fos);
 
 		} catch (IOException ioex) {
 			logger.warn("", ioex);
