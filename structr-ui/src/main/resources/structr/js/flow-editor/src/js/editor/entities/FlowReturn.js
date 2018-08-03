@@ -11,7 +11,7 @@ export class FlowReturn extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowReturn', {
+        return new D3NE.Component('Return', {
             template: FlowReturn._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

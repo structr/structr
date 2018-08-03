@@ -11,7 +11,7 @@ export class FlowDecision extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowDecision', {
+        return new D3NE.Component('Decision', {
             template: FlowDecision._nodeTemplate(),
             builder(node) {
 

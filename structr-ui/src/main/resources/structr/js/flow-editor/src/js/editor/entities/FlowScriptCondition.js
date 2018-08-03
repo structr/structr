@@ -11,7 +11,7 @@ export class FlowScriptCondition extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowScriptCondition', {
+        return new D3NE.Component('Condition', {
             template: FlowScriptCondition._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

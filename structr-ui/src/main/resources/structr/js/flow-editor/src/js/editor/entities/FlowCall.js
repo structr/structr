@@ -13,7 +13,7 @@ export class FlowCall extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowCall', {
+        return new D3NE.Component('Call', {
             template: FlowCall._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

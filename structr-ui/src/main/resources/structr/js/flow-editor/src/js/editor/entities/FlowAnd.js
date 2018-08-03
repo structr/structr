@@ -11,7 +11,7 @@ export class FlowAnd extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowAnd', {
+        return new D3NE.Component('And', {
             template: FlowAnd._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

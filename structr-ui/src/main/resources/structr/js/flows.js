@@ -87,7 +87,7 @@ var _Flows = {
 		
 		let markup = `
 			<div class="input-and-button"><input id="name-input" type="text" size="12" placeholder="Enter flow name"><button id="create-new-flow" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button></div>
-			<select id="add-flow-node"><option value="">Add node</option></select>
+			<!--button class="add-flow-node"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)}"></i> Add node</button-->
 			<button class="delete_flow_icon button disabled"><i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow</button>
 			<button class="run_flow_icon button disabled"><i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run</button>
 			<button class="reset_view_icon button"><i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view</button>
@@ -126,9 +126,7 @@ var _Flows = {
 			}
 		};
 
-		document.querySelector('#add-flow-node').onchange = () => function() {
-			console.log('add flow node');
-		};
+		//document.querySelector('.add-flow-node').onclick = function() {};
 
 		document.querySelector('.run_flow_icon').addEventListener('click', function() {
 			if (!this.getAttribute('class').includes('disabled')) {
@@ -150,20 +148,17 @@ var _Flows = {
 
 			let id = e.target.closest('.jstree-node') ? e.target.closest('.jstree-node').getAttribute('id') : e.target.closest('[data-id]').getAttribute('data-id');
 			
-			// display flow canvas
-			flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
-			
 			_Flows.initFlow(id);
 		}
 
-		_Flows.components = {
-			'flowsTree':  new Component('folderTree',  '#flows-tree'),
-			'flowsCanvas': new Component('flowsCanvas', '#flows-canvas')
-		};
-		
-		_Flows.components.flowsTree
-				.on('click', ['.jstree-node'], displayFlow)
-		;
+//		_Flows.components = {
+//			'flowsTree':  new Component('folderTree',  '#flows-tree'),
+//			'flowsCanvas': new Component('flowsCanvas', '#flows-canvas')
+//		};
+//		
+//		_Flows.components.flowsTree
+//				.on('click', ['.jstree-node'], displayFlow)
+//		;
 
 		_TreeHelper.initTree(flowsTree, _Flows.treeInitFunction, 'structr-ui-flows');
 
@@ -176,7 +171,13 @@ var _Flows = {
 
 		_Flows.resize();
 		Structr.adaptUiToAvailableFeatures();
-
+		
+		$(flowsTree).on('select_node.jstree', function(a,b) {
+			let id = $(flowsTree).jstree('get_selected')[0];
+			if (id) {
+				_Flows.initFlow(id);
+			}
+		});
 	},
 	refreshTree: function() {
 
@@ -184,7 +185,7 @@ var _Flows = {
 
 	},
 	treeInitFunction: function(obj, callback) {
-
+		
 		switch (obj.id) {
 
 			case '#':
@@ -220,7 +221,7 @@ var _Flows = {
 				_Flows.load(obj.id, callback);
 				break;
 		}
-
+		
 	},
 	unload: function() {
 		fastRemoveAllChildren(document.querySelector('#main .searchBox'));
@@ -228,7 +229,7 @@ var _Flows = {
 	},
 	load: function(id, callback) {
 
-		var displayFunction = function (result) {
+		var displayFunction = function(result) {
 
 			var list = [];
                         
@@ -277,6 +278,9 @@ var _Flows = {
 
 	},
 	initFlow: function(id) {
+
+		// display flow canvas
+		flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
 		
 		flowId = id;
         let persistence = new Persistence();

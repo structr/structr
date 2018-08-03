@@ -11,7 +11,7 @@ export class FlowGetProperty extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowGetProperty', {
+        return new D3NE.Component('GetProperty', {
             template: FlowGetProperty._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

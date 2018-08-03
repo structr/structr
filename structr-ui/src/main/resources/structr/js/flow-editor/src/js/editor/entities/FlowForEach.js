@@ -11,7 +11,7 @@ export class FlowForEach extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowForEach', {
+        return new D3NE.Component('Loop', {
             template: FlowForEach._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
@@ -19,7 +19,7 @@ export class FlowForEach extends FlowNode {
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
                 let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'));
-                let forEachBody = new D3NE.Output('ForEachBody', socket.getSocket('loopBody'));
+                let forEachBody = new D3NE.Output('FirstAction', socket.getSocket('loopBody'));
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
                     node.isStartNode = true;

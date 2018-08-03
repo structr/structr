@@ -12,7 +12,7 @@ export class FlowNotNull extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowNotNull', {
+        return new D3NE.Component('NotNull', {
             template: FlowNotNull._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

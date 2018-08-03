@@ -11,7 +11,7 @@ export class FlowOr extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowOr', {
+        return new D3NE.Component('Or', {
             template: FlowOr._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

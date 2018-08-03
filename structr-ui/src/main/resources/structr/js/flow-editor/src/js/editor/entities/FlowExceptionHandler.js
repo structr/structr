@@ -12,7 +12,7 @@ export class FlowExceptionHandler extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowExceptionHandler', {
+        return new D3NE.Component('ExceptionHandler', {
             template: FlowExceptionHandler._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

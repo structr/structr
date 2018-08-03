@@ -14,7 +14,7 @@ export class FlowAction extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowAction', {
+        return new D3NE.Component('Action', {
             template: FlowAction._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

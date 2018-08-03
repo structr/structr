@@ -106,7 +106,7 @@ export class FlowEditor {
         this._rootElement.oncontextmenu = event => {
             if (event.target === this._rootElement) {
                 this._editor.view.assignContextMenuHandler();
-                this._editor.view.contextMenu.show(event.clientX, event.clientY);
+                this._editor.view.contextMenu.show(event.clientX-20, event.clientY);
             }
             return false;
         };
@@ -360,31 +360,31 @@ export class FlowEditor {
 
         let menu = new D3NE.ContextMenu({
             'Action Nodes': {
-                'FlowAction' : self._getNodeCreationFunction("FlowAction"),
-                'FlowCall' : self._getNodeCreationFunction("FlowCall"),
-                'FlowForEach' : self._getNodeCreationFunction("FlowForEach"),
-                'FlowAggregate' : self._getNodeCreationFunction("FlowAggregate"),
-                'FlowExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
-                'FlowReturn' : self._getNodeCreationFunction("FlowReturn")
+                'Action' : self._getNodeCreationFunction("FlowAction"),
+                'Call' : self._getNodeCreationFunction("FlowCall"),
+                'ForEach' : self._getNodeCreationFunction("FlowForEach"),
+                'Aggregate' : self._getNodeCreationFunction("FlowAggregate"),
+                'ExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
+                'Return' : self._getNodeCreationFunction("FlowReturn")
             },
             'Data Nodes': {
-                'FlowDataSource' : self._getNodeCreationFunction("FlowDataSource"),
-                'FlowConstant' : self._getNodeCreationFunction("FlowConstant"),
-                'FlowCollectionDataSource' : self._getNodeCreationFunction("FlowCollectionDataSource"),
-                'FlowObjectDataSource' : self._getNodeCreationFunction("FlowObjectDataSource"),
-                'FlowKeyValue' : self._getNodeCreationFunction("FlowKeyValue"),
-                'FlowParameterInput' : self._getNodeCreationFunction("FlowParameterInput"),
-                'FlowParameterDataSource' : self._getNodeCreationFunction("FlowParameterDataSource"),
-                'FlowStore' : self._getNodeCreationFunction("FlowStore"),
-                'FlowGetProperty': self._getNodeCreationFunction("FlowGetProperty")
+                'DataSource' : self._getNodeCreationFunction("FlowDataSource"),
+                'Constant' : self._getNodeCreationFunction("FlowConstant"),
+                'CollectionDataSource' : self._getNodeCreationFunction("FlowCollectionDataSource"),
+                'ObjectDataSource' : self._getNodeCreationFunction("FlowObjectDataSource"),
+                'KeyValue' : self._getNodeCreationFunction("FlowKeyValue"),
+                'ParameterInput' : self._getNodeCreationFunction("FlowParameterInput"),
+                'ParameterDataSource' : self._getNodeCreationFunction("FlowParameterDataSource"),
+                'Store' : self._getNodeCreationFunction("FlowStore"),
+                'GetProperty': self._getNodeCreationFunction("FlowGetProperty")
             },
             'Logic Nodes': {
-                'FlowDecision' : self._getNodeCreationFunction("FlowDecision"),
-                'FlowNotNull' : self._getNodeCreationFunction("FlowNotNull"),
-                'FlowNot' : self._getNodeCreationFunction("FlowNot"),
-                'FlowOr' : self._getNodeCreationFunction("FlowOr"),
-                'FlowAnd' : self._getNodeCreationFunction("FlowAnd"),
-                'FlowScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition")
+                'Decision' : self._getNodeCreationFunction("FlowDecision"),
+                'NotNull' : self._getNodeCreationFunction("FlowNotNull"),
+                'Not' : self._getNodeCreationFunction("FlowNot"),
+                'Or' : self._getNodeCreationFunction("FlowOr"),
+                'And' : self._getNodeCreationFunction("FlowAnd"),
+                'ScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition")
             },
             'Actions': {
                 'Execute Flow': function() { self.executeFlow() },

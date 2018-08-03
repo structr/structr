@@ -11,7 +11,7 @@ export class FlowKeyValue extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowKeyValue', {
+        return new D3NE.Component('KeyValue', {
             template: FlowKeyValue._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

@@ -13,7 +13,7 @@ export class FlowStore extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowStore', {
+        return new D3NE.Component('Store', {
             template: FlowStore._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();

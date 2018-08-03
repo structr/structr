@@ -12,7 +12,7 @@ export class FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowNode', {
+        return new D3NE.Component('Node', {
             template: FlowNode._nodeTemplate(),
             builder(node) {
                 node.data.dbNode = scopedDbNode;

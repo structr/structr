@@ -11,7 +11,7 @@ export class FlowDataSource extends FlowNode {
 
     getComponent() {
         let scopedDbNode = this.dbNode;
-        return new D3NE.Component('FlowDataSource', {
+        return new D3NE.Component('DataSource', {
             template: FlowDataSource._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
