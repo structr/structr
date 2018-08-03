@@ -15,7 +15,6 @@ html, body {
     box-sizing: border-box; }
   .node-editor .node {
     background: rgba(35, 35, 35, 0.7);
-    box-shadow: 1px solid black;
     border: 1px solid black;
     border-radius: 10px;
     cursor: pointer;
