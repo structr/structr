@@ -39,14 +39,8 @@ function resetToDefault(key) {
 
 	var currentTab = $('#active_section').val();
 
-	if (currentTab && currentTab.length) {
+	window.location.href = '/structr/config?reset=' + key + currentTab;
 
-		window.location.href = '/structr/config?reset=' + key + "#" + currentTab;
-
-	} else {
-
-		window.location.href = '/structr/config?reset=' + key;
-	}
 }
 
 function resize() {
@@ -95,6 +89,7 @@ $(function () {
 		$('.tab-content').hide();
 		let el = $(this);
 		el.parent().addClass('active');
+		$('#active_section').val(el.attr('href'));
 		$(el.attr('href')).show();
 	});
 

@@ -211,7 +211,7 @@ public class ConfigServlet extends HttpServlet {
 
 				if ("active_section".equals(key)) {
 
-					redirectTarget = "#" + value;
+					redirectTarget = value;
 					continue;
 				}
 
@@ -332,7 +332,7 @@ public class ConfigServlet extends HttpServlet {
 		final Tag buttons = form.block("div").css("buttons");
 
 		buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?reload';")).text("Reload configuration file");
+		buttons.block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "' + $('#active_section').val() + '" +  "?reload';")).text("Reload configuration file");
 		buttons.empty("input").attr(new Type("submit"), new Value("Save to structr.conf"));
 
 		body.block("script").text("$('#new-entry-button').on('click', createNewEntry);");
