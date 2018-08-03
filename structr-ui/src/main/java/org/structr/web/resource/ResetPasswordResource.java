@@ -21,7 +21,6 @@ package org.structr.web.resource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +38,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
 import org.structr.schema.ConfigurationProvider;
@@ -103,7 +103,7 @@ public class ResetPasswordResource extends Resource {
 			final PropertyKey<String> confirmationKey = StructrApp.key(User.class, "confirmationKey");
 			final PropertyKey<String> eMail           = StructrApp.key(User.class, "eMail");
 			final String localeString                 = (String) propertySet.get("locale");
-			final String confKey                      = UUID.randomUUID().toString();
+			final String confKey                      = AuthHelper.getConfirmationKey();
 			final Principal user                      = StructrApp.getInstance().nodeQuery(User.class).and(eMail, emailString).getFirst();
 
 			if (user != null) {

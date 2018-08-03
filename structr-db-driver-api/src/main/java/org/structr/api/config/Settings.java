@@ -256,24 +256,31 @@ public class Settings {
 	public static final Setting<String> CronTasks              = new StringSetting(cronGroup,  "CronService.tasks", "");
 
 	//security settings
-	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,   "Superuser",   "superuser.username",         "superadmin");
-	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup, "Superuser",   "superuser.password",         RandomStringUtils.randomAlphanumeric(12));
-	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security",     "application.security.resolution.depth",       5);
-	public static final Setting<String> OwnerlessNodes                 = new StringSetting(applicationGroup,  "Application Security",     "application.security.ownerless.nodes",        "read");
+	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin");
+	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    RandomStringUtils.randomAlphanumeric(12));
+	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security", "application.security.resolution.depth", 5);
+	public static final Setting<String> OwnerlessNodes                 = new StringSetting(applicationGroup,  "Application Security", "application.security.ownerless.nodes",  "read");
 
-	public static final Setting<Integer> TwoFactorLevel                = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "TwoFactor.level",              1, Settings.getTwoFactorSettingOptions());
-	public static final Setting<String> TwoFactorIssuer                = new StringSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.issuer",                   "Structr", "Must be URL-compliant in order to scan the created QR code");
-	public static final Setting<String> TwoFactorAlgorithm             = new ChoiceSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.algorithm",                "SHA1", Settings.getStringsAsSet("SHA1", "SHA256", "SHA512"), "<i>Currently, the algorithm parameter is ignored by the Google Authenticator implementations.</i>");
-	public static final Setting<Integer> TwoFactorDigits               = new IntegerChoiceSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.digits",            6, Settings.getTwoFactorDigitsOptions(), "<i>Currently, the digits parameter is ignored by the Google Authenticator implementations.</i> This means that even if 8 digits are shown, only last 6 digits are used for authentication.");
-	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.period",                  30, "Defines the period that a TOTP code will be valid for, in seconds.<br><i>Currently, the period parameter is ignored by the Google Authenticator implementations.</i>");
-	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.loginpage",                "/twofactor", "The application page where the user enters the current two factor token");
-	public static final Setting<String> TwoFactorForceRegistrationPage = new StringSetting(securityGroup,  "Two Factor Authentication", "TwoFactor.forceRegistrationUrl",     "/scanqrcode", "The application page where the user is redirected to if he is not yet a two factor user but the system enforces two factor authentication");
+	public static final Setting<Integer> TwoFactorLevel                = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "TwoFactor.level",                1,             Settings.getTwoFactorSettingOptions());
+	public static final Setting<String> TwoFactorIssuer                = new StringSetting(securityGroup,        "Two Factor Authentication", "TwoFactor.issuer",               "Structr",     "Must be URL-compliant in order to scan the created QR code");
+	public static final Setting<String> TwoFactorAlgorithm             = new ChoiceSetting(securityGroup,        "Two Factor Authentication", "TwoFactor.algorithm",            "SHA1",        Settings.getStringsAsSet("SHA1", "SHA256", "SHA512"), "<i>Currently, the algorithm parameter is ignored by the Google Authenticator implementations.</i>");
+	public static final Setting<Integer> TwoFactorDigits               = new IntegerChoiceSetting(securityGroup, "Two Factor Authentication", "TwoFactor.digits",               6,             Settings.getTwoFactorDigitsOptions(), "<i>Currently, the digits parameter is ignored by the Google Authenticator implementations.</i> This means that even if 8 digits are shown, only last 6 digits are used for authentication.");
+	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,       "Two Factor Authentication", "TwoFactor.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br><i>Currently, the period parameter is ignored by the Google Authenticator implementations.</i>");
+	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,        "Two Factor Authentication", "TwoFactor.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
+	public static final Setting<String> TwoFactorForceRegistrationPage = new StringSetting(securityGroup,        "Two Factor Authentication", "TwoFactor.forceRegistrationUrl", "/scanqrcode", "The application page where the user is redirected to if he is not yet a two factor user but the system enforces two factor authentication");
 
-	public static final Setting<Boolean> PasswordForceChange           = new BooleanSetting(securityGroup, "Password Policy", "ForcePassword.change",   false, "Indicates if a forced password change is active");
-	public static final Setting<Integer> PasswordForceChangeDays       = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.days",     90,    "The number of days after which a user has to change his password");
-	public static final Setting<Integer> PasswordForceChangeReminder   = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.reminder", 14,    "The number of days (before the user has to change the password) where a warning should be issued. (Has to be handled in application code)");
-	public static final Setting<Integer> PasswordAttempts              = new IntegerSetting(securityGroup, "Password Policy", "Password.attempts",      4,     "The maximum number of failed login attempts before a user is blocked");
+	public static final Setting<Boolean> PasswordForceChange              = new BooleanSetting(securityGroup, "Password Policy", "ForcePassword.change",              false, "Indicates if a forced password change is active");
+	public static final Setting<Integer> PasswordForceChangeDays          = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.days",                90,    "The number of days after which a user has to change his password");
+	public static final Setting<Integer> PasswordForceChangeReminder      = new IntegerSetting(securityGroup, "Password Policy", "ForcePassword.reminder",            14,    "The number of days (before the user has to change the password) where a warning should be issued. (Has to be handled in application code)");
+	public static final Setting<Integer> PasswordAttempts                 = new IntegerSetting(securityGroup, "Password Policy", "Password.attempts",                 4,     "The maximum number of failed login attempts before a user is blocked");
 
+	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(securityGroup,  "User Self Registration", "Registration.customUserClass",              "");
+	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(securityGroup, "User Self Registration", "Registration.allowLoginBeforeConfirmation", false);
+	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(securityGroup,  "User Self Registration", "Registration.customUserAttributes",         "name");
+
+	public static final Setting<Integer> ConfirmationKeyPasswordResetValidityPeriod = new IntegerSetting(securityGroup, "Confirmation Key Validity", "ConfirmationKey.PasswordReset.validityPeriod", 30,    "Validity period (in minutes) of the confirmation key generated when a user resets his password. Default is 30.");
+	public static final Setting<Integer> ConfirmationKeyRegistrationValidityPeriod  = new IntegerSetting(securityGroup, "Confirmation Key Validity", "ConfirmationKey.Registration.validityPeriod",  2880,  "Validity period (in minutes) of the confirmation key generated during self registration. Default is 2 days (2880 minutes)");
+	public static final Setting<Boolean> ConfirmationKeyValidWithoutTimestamp       = new BooleanSetting(securityGroup, "Confirmation Key Validity", "ConfirmationKey.validWithoutTimestamp",        false, "How to interpret confirmation keys without a timestamp");
 
 	// oauth settings
 	public static final Setting<String> OAuthServers            = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook");
@@ -323,10 +330,6 @@ public class Settings {
 	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/");
 
 	// miscellaneous settings
-	public static final Setting<String> RegistrationCustomUserClass               = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserClass",              "");
-	public static final Setting<Boolean> RegistrationAllowLoginBeforeConfirmation = new BooleanSetting(miscGroup, "User Self Registration", "Registration.allowLoginBeforeConfirmation", false);
-	public static final Setting<String> RegistrationCustomAttributes              = new StringSetting(miscGroup,  "User Self Registration", "Registration.customUserAttributes",         "name");
-
 	public static final Setting<String> TranslationGoogleApiKey = new StringSetting(miscGroup,  "Translation Module", "translation.google.apikey",         "");
 
 	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");

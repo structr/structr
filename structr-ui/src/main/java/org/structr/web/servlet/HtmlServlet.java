@@ -89,12 +89,12 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.File;
 import org.structr.websocket.command.AbstractCommand;
 
 /**
@@ -1120,7 +1120,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		logger.debug("Checking registration ...");
 
-		String key = request.getParameter(CONFIRM_KEY_KEY);
+		final String key = request.getParameter(CONFIRM_KEY_KEY);
 
 		if (StringUtils.isEmpty(key)) {
 			return false;
@@ -1151,9 +1151,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Clear confirmation key and set session id
 					user.setProperty(confirmationKeyKey, null);
 
-					if (Settings.RestUserAutologin.getValue()) {
+					if (AuthHelper.isConfirmationKeyValid(key, Settings.ConfirmationKeyRegistrationValidityPeriod.getValue())) {
 
-						AuthHelper.doLogin(request, user);
+						if (Settings.RestUserAutologin.getValue()) {
+
+							AuthHelper.doLogin(request, user);
+						}
+
+					} else {
+
+						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
+
 					}
 
 					tx.success();
@@ -1191,9 +1199,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 	 */
 	private boolean checkResetPassword(final Authenticator auth, final HttpServletRequest request, final HttpServletResponse response, final String path) throws FrameworkException, IOException {
 
-		logger.debug("Checking registration ...");
+		logger.debug("Checking reset password ...");
 
-		String key = request.getParameter(CONFIRM_KEY_KEY);
+		final String key = request.getParameter(CONFIRM_KEY_KEY);
 
 		if (StringUtils.isEmpty(key)) {
 			return false;
@@ -1223,9 +1231,17 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					// Clear confirmation key and set session id
 					user.setProperty(confirmationKeyKey, null);
 
-					if (Settings.RestUserAutologin.getValue()) {
+					if (AuthHelper.isConfirmationKeyValid(key, Settings.ConfirmationKeyPasswordResetValidityPeriod.getValue())) {
 
-						AuthHelper.doLogin(request, user);
+						if (Settings.RestUserAutologin.getValue()) {
+
+							AuthHelper.doLogin(request, user);
+						}
+
+					} else {
+
+						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
+
 					}
 
 					tx.success();
