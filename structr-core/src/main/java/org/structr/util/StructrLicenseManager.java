@@ -592,7 +592,10 @@ public class StructrLicenseManager implements LicenseManager {
 		properties.put(EditionKey, edition);
 		properties.put(ModulesKey, modules);
 		properties.put(MachineKey, hostId);
-		properties.put(ServersKey, servers);
+
+		if (StringUtils.isNotBlank(servers)) {
+			properties.put(ServersKey, servers);
+		}
 
 		sign(properties, keystoreFileName, password);
 		write(properties, outputFileName);

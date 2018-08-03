@@ -125,7 +125,7 @@ public class StructrLicenseVerifier {
 
 				try (final Socket socket = serverSocket.accept()) {
 
-					logger.info("New connection from {}", socket.getInetAddress().getHostAddress());
+					logger.info("##### New connection from {}", socket.getInetAddress().getHostAddress());
 
 					final InputStream is = socket.getInputStream();
 					final int bufSize    = 4096;
