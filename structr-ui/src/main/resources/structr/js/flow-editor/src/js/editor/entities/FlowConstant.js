@@ -29,9 +29,10 @@ export class FlowConstant extends FlowNode {
                     control.id = "value";
                     control.name = "Value";
 
-//                    element.addEventListener('focus', ()=> {
-//                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
-//                    });
+                    element.addEventListener('focus', ()=> {
+                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Constant"}}));
+                    });
 
                     element.addEventListener('change', ()=>{
                         control.putData('value',element.value);

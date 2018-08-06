@@ -42,9 +42,10 @@ export class FlowAction extends FlowNode {
                     control.id = "script";
                     control.name = "Script";
 
-//                    element.addEventListener('focus', ()=> {
-//                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
-//                    });
+                    element.addEventListener('focus', ()=> {
+                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Action"}}));
+                    });
 
                     element.addEventListener('change', ()=>{
                         control.putData('script',element.value);
