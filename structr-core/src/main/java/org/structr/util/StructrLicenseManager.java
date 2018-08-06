@@ -121,7 +121,6 @@ public class StructrLicenseManager implements LicenseManager {
 	public static final String ServersKey              = "servers";
 	public static final String HostIdKey               = "hostId";
 	public static final String LimitKey                = "limit";
-	public static final String CountKey                = "count";
 	public static final String HostIdMappingKey        = "hostIdValidationAttempts";
 	public static final int ServerPort                 = 5725;
 
