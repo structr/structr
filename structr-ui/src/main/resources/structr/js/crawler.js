@@ -17,7 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var main, crawlerMain, crawlerTree, crawlerList;
-var currentSite;
+var currentSite, currentPage;
 var sitePageSize = 10000, sitePage = 1;
 var currentSiteKey = 'structrCurrentSite_' + port;
 var crawlerResizerLeftKey = 'structrCrawlerResizerLeftKey_' + port;
@@ -36,28 +36,6 @@ var _Crawler = {
 		_Logger.log(_LogType.CRAWLER, '_Crawler.init');
 
 		main = $('#main');
-
-		main.append('<div class="searchBox module-dependend" data-structr-module="text-search"><input class="search" name="search" placeholder="Search..."><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-
-		searchField = $('.search', main);
-		searchField.focus();
-
-		searchField.keyup(function(e) {
-
-			var searchString = $(this).val();
-			if (searchString && searchString.length && e.keyCode === 13) {
-
-				$('.clearSearchIcon').show().on('click', function() {
-					_Crawler.clearSearch();
-				});
-
-				_Crawler.fulltextSearch(searchString);
-
-			} else if (e.keyCode === 27 || searchString === '') {
-				_Crawler.clearSearch();
-			}
-
-		});
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
@@ -106,7 +84,7 @@ var _Crawler = {
 
 		Structr.updateMainHelpLink('https://support.structr.com/knowledge-graph');
 
-		main.append('<div id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height" id="crawler-tree-container"><div id="crawler-tree"></div></div><div class="fit-to-height" id="crawler-list-container"><div id="crawler-list"></div></div>');
+		main.append(`<div id="crawler-main"><div class="column-resizer"></div><div class="fit-to-height" id="crawler-tree-container"><div id="crawler-tree"></div></div><div class="fit-to-height" id="crawler-list-container"><div id="crawler-list"></div></div>`);
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');
@@ -115,7 +93,7 @@ var _Crawler = {
 		_Crawler.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', crawlerMain), crawlerResizerLeftKey, 204, _Crawler.moveResizer);
 
-		$('#crawler-list-container').prepend('<button class="add_site_icon button"><i title="Add Site" class="' + _Icons.getFullSpriteClass(_Icons.add_site_icon) + '" /> Add Site</button>');
+		$('#crawler-list-container').prepend(`<button class="add_site_icon button"><i title="Add Site" class="${_Icons.getFullSpriteClass(_Icons.add_site_icon)}" /> Add Site</button>`);
 
 		$('.add_site_icon', main).on('click', function(e) {
 			e.stopPropagation();
@@ -126,6 +104,19 @@ var _Crawler = {
 				}, 250);
 			});
 		});
+		
+		$('#crawler-list-container').append(`<button class="add_page_icon button"><i title="Add Page" class="${_Icons.getFullSpriteClass(_Icons.add_page_icon)}" /> Add Page</button>`);
+		
+		$('.add_page_icon', main).on('click', function(e) {
+			
+			e.stopPropagation();
+			if (currentSite) {
+				Command.create({ type: 'SourcePage', site: currentSite.id }, function(site) {
+					_Crawler.refreshTree();
+				});
+			}
+		});
+
 
 		$.jstree.defaults.core.themes.dots      = false;
 		$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -150,11 +141,11 @@ var _Crawler = {
 				_Crawler.deepOpen(currentSite);
 			}
 
-			_Crawler.setWorkingDirectory(data.node.id);
-
 			if (data.node.icon === 'fa fa-sitemap') {
+				_Crawler.setWorkingDirectory(data.node.id);
 				_Crawler.displayPages(data.node.id, data.node.site);
 			} else {
+				_Crawler.setWorkingDirectory(data.node.parent);
 				_Crawler.displayPatterns(data.node.id);
 			}
 
@@ -223,26 +214,6 @@ var _Crawler = {
 		fastRemoveAllChildren($('.searchBox', main));
 		fastRemoveAllChildren($('#crawler-main', main));
 	},
-	fulltextSearch: function(searchString) {
-		crawlerList.children().hide();
-
-		var url;
-		if (searchString.contains(' ')) {
-			url = rootUrl + 'ContentItem/ui?loose=1';
-			searchString.split(' ').forEach(function(str, i) {
-				url = url + '&name=' + str;
-			});
-		} else {
-			url = rootUrl + 'ContentItem/ui?name=' + searchString;
-		}
-
-		_Crawler.displaySearchResultsForURL(url);
-	},
-	clearSearch: function() {
-		$('.search', main).val('');
-		$('#search-results').remove();
-		crawlerList.children().show();
-	},
 	loadAndSetWorkingDir: function(callback) {
 
 		currentSite = LSWrapper.getItem(currentSiteKey);
@@ -308,7 +279,16 @@ var _Crawler = {
 		Command.get(id, "id,type,name", function(site) {
 
 			var name = (site.name || '[unnamed]');
-			crawlerList.append('<div class="site-header"><div id="id_' + site.id + '" class="site-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Site" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
+			crawlerList.append(`
+				<div class="site-header">
+					<div id="id_${site.id}" class="site-name">
+						<b class="name_" title="${name}">${name}</b>
+					</div>
+					<div class="button-area">
+						<i title="Edit Properties" class="edit-properties ${_Icons.getFullSpriteClass(_Icons.view_detail_icon)}" />
+						<i title="Delete Site" class="delete ${_Icons.getFullSpriteClass(_Icons.delete_icon)}" />
+					</div>
+				</div>`);
 
 			var nameEl = $('.site-header .site-name', crawlerList);
 			nameEl.children('b.name_').off('click').on('click', function (e) {
@@ -345,7 +325,7 @@ var _Crawler = {
 			page['SourcePage'] = 1;
 			_Pager.initFilters('crawler-pages', 'SourcePage', id === 'root' ? {} : { site: id });
 
-			var itemsPager = _Pager.addPager('crawler-pages', crawlerList, false, 'SourcePage', 'ui', handlePage);
+			var itemsPager = _Pager.addPager('crawler-pages', $('.site-header', crawlerList), false, 'SourcePage', 'ui', handlePage);
 
 			itemsPager.cleanupFunction = function () {
 				var toRemove = $('.node.item', itemsPager.el).closest('tr');
@@ -354,22 +334,7 @@ var _Crawler = {
 				});
 			};
 
-			itemsPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-			itemsPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((siteId === '#') ? '' : id) + '" hidden>');
-			itemsPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((siteId === '#') ? '' : 'checked') + ' hidden>');
-			itemsPager.activateFilterElements();
-
-			crawlerList.append(
-					  '<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th><th>Login Page</th></tr></thead><tbody id="files-table-body"></tbody></table>'
-			);
-
-			crawlerList.append('<button class="add_page_icon button"><i title="Add Page" class="' + _Icons.getFullSpriteClass(_Icons.add_page_icon) + '" /> Add Page</button>');
-			$('.add_page_icon', main).on('click', function(e) {
-				e.stopPropagation();
-				Command.create({ type: 'SourcePage', site: site.id }, function(site) {
-					_Crawler.refreshTree();
-				});
-			});
+			crawlerList.append(`<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>URL</th><th>Login Page</th></tr></thead><tbody id="files-table-body"></tbody></table>`);
 		});
 	},
 	appendPageRow: function(sourcePage) {
@@ -386,11 +351,11 @@ var _Crawler = {
 		var row = $('#' + rowId);
 		var icon = 'fa-file-code-o';
 
-		row.append('<td class="file-type"><a href="' + (sourcePage.url || '') + '" target="_blank"><i class="fa ' + icon + '"></i></a></td>');
-		row.append('<td><div id="id_' + sourcePage.id + '" data-structr_type="item" class="node item"><b title="' +  (sourcePage.name ? sourcePage.name : '[unnamed]') + '" class="name_">' + (sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]') + '</b></td>');
+		row.append(`<td class="file-type"><a href="${sourcePage.url || ''}" target="_blank"><i class="fa ' + icon + '"></i></a></td>`);
+		row.append(`<td><div id="id_${sourcePage.id}" data-structr_type="item" class="node item"><b title="${sourcePage.name ? sourcePage.name : '[unnamed]'}" class="name_">${sourcePage.name ? fitStringToWidth(sourcePage.name, 200) : '[unnamed]'}</b></td>`);
 
-		row.append('<td><div class="editable url_" title="' + (sourcePage.url || '') + '">' + (sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>') + '</div></td>');
-		row.append('<td>' + (sourcePage.isLoginPage ? '✓' : '') + '</td>');
+		row.append(`<td><div class="editable url_" title="${sourcePage.url || ''}">${sourcePage.url && sourcePage.url.length ? sourcePage.url : '<span class="placeholder">click to edit</span>'}</div></td>`);
+		row.append(`<td>${sourcePage.isLoginPage ? '✓' : ''}</td>`);
 
 		var div = Structr.node(sourcePage.id);
 
@@ -465,7 +430,15 @@ var _Crawler = {
 			fastRemoveAllChildren(crawlerList[0]);
 
 			var name = (sourcePage.name || '[unnamed]');
-			crawlerList.append('<div class="page-header"><div id="id_' + sourcePage.id + '" class="page-name"><b class="name_" title="' + name + '">' + name + '</b></div><div class="button-area"><i title="Edit Properties" class="edit-properties ' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '" /><i title="Delete Page" class="delete ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" /></div></div>');
+			crawlerList.append(`
+				<div class="page-header">
+					<div id="id_${sourcePage.id}" class="page-name"><b class="name_" title="' + name + '">${name}</b></div>
+					<div class="button-area">
+						<i title="Edit Properties" class="edit-properties ${_Icons.getFullSpriteClass(_Icons.view_detail_icon)}" />
+						<i title="Delete Page" class="delete ${_Icons.getFullSpriteClass(_Icons.delete_icon)}" />
+					</div>
+				</div>
+			`);
 
 			var nameEl = $('.page-header .page-name', crawlerList);
 			nameEl.children('b.name_').off('click').on('click', function (e) {
@@ -492,15 +465,65 @@ var _Crawler = {
 			});
 
 			_Pager.initPager('crawler-patterns', 'SourcePattern', 1, 25, 'name', 'asc');
-			page['ContentItem'] = 1;
+			page['SourcePattern'] = 1;
 			_Pager.initFilters('crawler-patterns', 'SourcePattern', sourcePage.id === 'root' ? {} : { sourcePage: sourcePage.id });
+			
+			if (sourcePage.isLoginPage) {
+
+				crawlerList.append(`
+					<table id="files-table" class="stripe">
+						<thead>
+							<tr>
+								<th class="icon">&nbsp;</th>
+								<th>Name</th>
+								<th>Selector</th>
+								<th>Value</th>
+							</tr>
+						</thead>
+						<tbody id="files-table-body">
+						</tbody>
+					</table>
+				`);
+
+			} else {
+
+				crawlerList.append(`
+					<table id="files-table" class="stripe">
+						<thead>
+							<tr>
+								<th class="icon">&nbsp;</th>
+								<th>Name</th>
+								<th>Selector</th>
+								<th>Mapped Type</th>
+								<th>Mapped Attribute</th>
+								<th class="transform-head">Transformation Function</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody id="files-table-body">
+						</tbody>
+					</table>
+				`);
+
+				var helpText = 'Specify optional StructrScript expression here to transform the input value. The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Examples</b>:<br>parse_number(input)<br>parse_date(input, \'dd.MM.yyyy\')';
+				Structr.appendInfoTextToElement({
+					text: helpText,
+					element: $('th.transform-head', crawlerList),
+					css: {
+						marginLeft: "2px"
+					}
+				});
+			}
 
 			_Crawler.refreshPatterns(sourcePage);
 
-			crawlerList.append('<div class="crawler-inputs"><input id="element-path" type="text" placeholder="Selector">'
-				+ '<input id="element-link" type="text" placeholder="Link"><br>'
-				+ '<input id="element-id" type="text" placeholder="Id">'
-				+ '<input id="element-class" type="text" placeholder="Class"></div>');
+			crawlerList.append(`
+				<div class="crawler-inputs"><input id="element-path" type="text" placeholder="Selector">
+					<input id="element-link" type="text" placeholder="Link"><br>
+					<input id="element-id" type="text" placeholder="Id">
+					<input id="element-class" type="text" placeholder="Class">
+				</div>
+			`);
 
 			var url = proxyUrl;
 
@@ -541,7 +564,7 @@ var _Crawler = {
 
 				//console.log(url);
 
-				crawlerList.append('<iframe id="page-frame" name="page-frame" src="' + url + '" data-site-id="' + sourcePage.site.id + '" data-page-id="' + sourcePage.id + '"></iframe>');
+				crawlerList.append(`<iframe id="page-frame" name="page-frame" src="${url}" data-site-id="${sourcePage.site.id}" data-page-id="${sourcePage.id}"></iframe>`);
 				_Crawler.initPageFrame(sourcePage.url);
 			}
 
@@ -555,12 +578,15 @@ var _Crawler = {
 
 		fastRemoveAllChildren($('#files-table-body')[0]);
 
-		var itemsPager = _Pager.addPager('crawler-patterns', crawlerList, false, 'SourcePattern', 'ui', function(patterns) {
+		$('.pager.pagercrawler-patterns').remove();
+
+		var itemsPager = _Pager.addPager('crawler-patterns', $('.page-header', crawlerList), false, 'SourcePattern', 'ui', function(patterns) {
+			
 			if (patterns && patterns.length) {
 				patterns.forEach(_Crawler.appendPatternRow);
 
 				$('.selector').each(function(i, pattern) {
-					var h = $(pattern).text().split(' > ').map(function(t) { return '<span>' + t + '</span>'; }).join(' > ');
+					var h = $(pattern).text().split(' > ').map(function(t) { return `<span>${t}</span>`; }).join(' > ');
 					$(pattern).html(h);
 				});
 
@@ -596,10 +622,9 @@ var _Crawler = {
 				});
 
 				$('.sub-selector').each(function(i, pattern) {
-					var h = $(pattern).text().split(' > ').map(function(t) { return '<span>' + t + '</span>'; }).join(' > ');
+					var h = $(pattern).text().split(' > ').map(function(t) { return `<span>${t}</span>`; }).join(' > ');
 					$(pattern).html(h);
 				});
-
 
 				var childPatterns = $('.sub-selector span');
 
@@ -650,55 +675,13 @@ var _Crawler = {
 				_Crawler.resize();
 			}
 		});
-
+		
 		itemsPager.cleanupFunction = function () {
 			var toRemove = $('.node.item', itemsPager.el).closest('tr');
 			toRemove.each(function(i, elem) {
 				fastRemoveAllChildren(elem);
 			});
 		};
-
-		if (sourcePage) {
-
-			itemsPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-			itemsPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((sourcePage.id === '#') ? '' : sourcePage.id) + '" hidden>');
-			itemsPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((sourcePage.id === '#') ? '' : 'checked') + ' hidden>');
-			itemsPager.activateFilterElements();
-
-		}
-
-		if (sourcePage.isLoginPage) {
-
-			crawlerList.append(
-				'<table id="files-table" class="stripe"><thead><tr>'
-				+ '<th class="icon">&nbsp;</th>'
-				+ '<th>Name</th>'
-				+ '<th>Selector</th>'
-				+ '<th>Value</th>'
-				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
-
-		} else {
-
-			crawlerList.append(
-				'<table id="files-table" class="stripe"><thead><tr>'
-				+ '<th class="icon">&nbsp;</th>'
-				+ '<th>Name</th>'
-				+ '<th>Selector</th>'
-				+ '<th>Mapped Type</th>'
-				+ '<th>Mapped Attribute</th>'
-				+ '<th class="transform-head">Transformation Function</th>'
-				+ '<th>Actions</th>'
-				+ '</tr></thead><tbody id="files-table-body"></tbody></table>');
-		}
-
-		var helpText = 'Specify optional StructrScript expression here to transform the input value. The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Examples</b>:<br>parse_number(input)<br>parse_date(input, \'dd.MM.yyyy\')';
-		Structr.appendInfoTextToElement({
-			text: helpText,
-			element: $('th.transform-head', crawlerList),
-			css: {
-				marginLeft: "2px"
-			}
-		});
 
 		$('.breadcrumb-entry').click(function (e) {
 			e.preventDefault();
@@ -732,6 +715,7 @@ var _Crawler = {
 		tableBody.append('<tr id="' + rowId + '"></tr>');
 
 		d.subPatterns.forEach(function(subPattern) {
+			
 			var name = subPattern.name;
 			tableBody.append('<tr id="row' + subPattern.id + '">'
 				+ '<td class="file-type"><a href="javascript:void(0)"><i class="fa fa-code"></i></a></td>'
@@ -755,16 +739,16 @@ var _Crawler = {
 
 			// target selection
 			//row.find('.mappedType_').append('<select class="target-type-select" name="targetType"><option value="" disabled="disabled" selected="selected">Select target type..</option></select>');
-			row.find('.mappedAttribute_').append('<select class="property-select"></select>');
+			row.find('.mappedAttribute_').append(`<select class="property-select"></select>`);
 
 			var propertySelector   = row.find('.property-select');
 
-			var updatePropertySelector = function(type) {
+			var updateTypeSelector = function(type) {
 
 				var blacklist = [
 					'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 					'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
-					'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
+					'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog', 'internalCreationTimestamp', 'internalEntityContextPath'
 				];
 
 				propertySelector.empty();
@@ -782,7 +766,7 @@ var _Crawler = {
 
 						typeInfo.result.forEach(function(r) {
 							if (blacklist.indexOf(r.jsonName) === -1) {
-								propertySelector.append('<option ' + (subPattern.mappedAttribute === r.jsonName ? 'selected ' : '') + 'value="' + r.jsonName + '">' + r.jsonName + '</option>');
+								propertySelector.append(`<option ${subPattern.mappedAttribute === r.jsonName ? 'selected ' : ''}value="${r.jsonName}">${r.jsonName}</option>`);
 							}
 						});
 					}
@@ -790,7 +774,7 @@ var _Crawler = {
 				});
 			}
 
-			updatePropertySelector(d.mappedType);
+			updateTypeSelector(d.mappedType);
 
 			propertySelector.on('change', function() {
 				var newAttr = $(this).val();
@@ -819,13 +803,15 @@ var _Crawler = {
 			}
 			div.children('.delete_icon').on('click', function(e) {
 				e.stopPropagation();
-				_Entities.deleteNode(this, subPattern, false, function() {
+				_Entities.deleteNode(this, subPattern, false, function(subPattern) {
 					_Crawler.refreshPatterns(subPattern.parentPattern.sourcePage);
 				});
 			});
-				_Entities.setMouseOver(div);
-				_Entities.makeSelectable(div);
-			});
+		
+			_Entities.setMouseOver(div);
+			_Entities.makeSelectable(div);
+		
+		});
 
 		var row = $('#' + rowId);
 

@@ -3975,6 +3975,10 @@ i.fa.ps {
 	min-height: 600px;
 }
 
+.crawler-inputs {
+	margin: 24px 0;
+}
+
 .crawler-inputs input {
 	background: #fff;
 	border: 1px solid #ccc;
@@ -4016,8 +4020,9 @@ input#element-class {
 	background-color: #e7e7e7;
 }
 
-#crawler-list .site-header, #crawler-list .page-header {
-	height: 40px;
+#crawler-list .site-header .pager, #crawler-list .page-header .pager {
+	margin-bottom: 12px;
+	float: right;
 }
 
 #crawler-list .site-name, #crawler-list .page-name {
