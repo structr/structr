@@ -58,9 +58,9 @@ public class DeleteNodeCommand extends AbstractCommand {
 		final Boolean recursive = (Boolean) webSocketData.getNodeData().get("recursive");
 		final NodeInterface obj = getNode(webSocketData.getId());
 
-		TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
-		
 		if (obj != null) {
+
+			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
 
 			deleteNode(getWebSocket(), obj, recursive);
 		}
