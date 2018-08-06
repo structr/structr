@@ -32,7 +32,6 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.common.StructrTest;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
@@ -734,6 +733,11 @@ public class ValidationTest extends StructrTest {
 
 					// for string properties, null equals the empty string
 					uuid = app.create(testType, new NodeAttribute<>(key, "")).getUuid();
+
+					// wait a little while so the objects are created in different milliseconds
+					try { Thread.sleep(1); } catch (InterruptedException ex) { }
+
+					// create constraint violating object
 					app.create(testType, new NodeAttribute<>(key, ""));
 
 					tx.success();
@@ -787,6 +791,11 @@ public class ValidationTest extends StructrTest {
 
 					// for string properties, null equals the empty string
 					uuid = app.create(testType, new NodeAttribute<>(key, null)).getUuid();
+
+					// wait a little while so the objects are created in different milliseconds
+					try { Thread.sleep(1); } catch (InterruptedException ex) { }
+
+					// create constraint violating object
 					app.create(testType, new NodeAttribute<>(key, null));
 
 					tx.success();
@@ -891,8 +900,6 @@ public class ValidationTest extends StructrTest {
 			final PropertyKey key = StructrApp.key(testType, "testUnique");
 			if (key != null) {
 
-				Settings.CypherDebugLogging.setValue(true);
-
 				try (final Tx tx = app.tx()) {
 
 					// key must be unique, but can empty
@@ -904,8 +911,6 @@ public class ValidationTest extends StructrTest {
 					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
-
-				Settings.CypherDebugLogging.setValue(true);
 
 				for (int i=0; i<5; i++) {
 
@@ -2052,6 +2057,9 @@ public class ValidationTest extends StructrTest {
 				new NodeAttribute<>(key3, "three")
 			);
 
+			// wait a little while so the objects are created in different milliseconds
+			try { Thread.sleep(1); } catch (InterruptedException ex) { }
+
 			app.create(type,
 				new NodeAttribute<>(key1, "one"),
 				new NodeAttribute<>(key2, "one"),
@@ -2071,6 +2079,9 @@ public class ValidationTest extends StructrTest {
 				new NodeAttribute<>(key1, "one"),
 				new NodeAttribute<>(key3, "three")
 			);
+
+			// wait a little while so the objects are created in different milliseconds
+			try { Thread.sleep(1); } catch (InterruptedException ex) { }
 
 			app.create(type,
 				new NodeAttribute<>(key1, "one"),
@@ -2093,6 +2104,9 @@ public class ValidationTest extends StructrTest {
 				new NodeAttribute<>(key2, "two"),
 				new NodeAttribute<>(key3, "three")
 			).getUuid();
+
+			// wait a little while so the objects are created in different milliseconds
+			try { Thread.sleep(1); } catch (InterruptedException ex) { }
 
 			app.create(type,
 				new NodeAttribute<>(key1, "one"),

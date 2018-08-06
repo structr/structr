@@ -152,10 +152,12 @@ public class StructrLicenseVerifier {
 
 					final byte[] decrypted        = streamCipher.doFinal(buf, 0, count);
 					final String data             = new String(decrypted, "utf-8");
+
+					// transform decrypted data into a Map<String, String>
 					final List<Pair> pairs        = split(data).stream().map(StructrLicenseVerifier::keyValue).collect(Collectors.toList());
 					final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
-					// validate data against customer database..
+					// validate data against customer database
 					if (isValid(map)) {
 
 						// send signatur of name field back to client
@@ -192,7 +194,6 @@ public class StructrLicenseVerifier {
 		final String hostId           = map.get(StructrLicenseManager.HostIdKey);
 		boolean valid                 = false;
 
-		// validate license first
 		if (StringUtils.isNotBlank(toValidate) && StringUtils.isNotBlank(signature)) {
 
 			try {
@@ -218,6 +219,7 @@ public class StructrLicenseVerifier {
 				return false;
 			}
 
+			// verify license contents
 			if (StringUtils.isNotBlank(startDate) && StringUtils.isNotBlank(licensee) && StringUtils.isNotBlank(hostId)) {
 
 				// make sure that date and licensee do not contain illegal characters
@@ -227,7 +229,6 @@ public class StructrLicenseVerifier {
 
 					final String cleanedName = licensee.replace(" ", "-");
 					final String configName  = startDate + "-" + cleanedName + ".json";
-					int count                = 0;
 
 					logger.info("Loading license configuration from {}..", configName);
 
@@ -239,47 +240,28 @@ public class StructrLicenseVerifier {
 					}
 
 					// load count
-					final Object countSource = config.get(StructrLicenseManager.CountKey);
-					if (countSource instanceof Number) {
+					final Map<String, Object> hostIdMapping = getMapValue(config, StructrLicenseManager.HostIdMappingKey);
+					final int limit                         = getIntValue(config, StructrLicenseManager.LimitKey, -1);
+					final int hostIdCount                   = getIntValue(hostIdMapping, hostId, 0);
+					final int count                         = hostIdMapping.size();
 
-						count = ((Number)countSource).intValue();
-					}
+					if (limit == -1) {
 
-					// load limit
-					final Object limitSource = config.get(StructrLicenseManager.LimitKey);
-					if (limitSource instanceof Number) {
+						// no numerical limit found in config, check for "*" value
+						valid = "*".equals(getStringValue(config, StructrLicenseManager.LimitKey, null));
 
-						valid = count < ((Number)limitSource).intValue();
-
-					} else if ("*".equals(limitSource)) {
-
-						valid = true;
-					}
-
-					logger.info("count: {}, limit: {}", count, limitSource);
-
-					// record validation attempt
-					config.put("count", count + 1);
-
-					// update hostId count mapping
-					Map<String, Object> hostIdMapping = (Map<String, Object>)config.get(StructrLicenseManager.HostIdMappingKey);
-					if (hostIdMapping == null) {
-
-						hostIdMapping = new HashMap<>();
-
-						// store in config
-						config.put(StructrLicenseManager.HostIdMappingKey, hostIdMapping);
-					}
-
-					final Number hostIdCount = (Number)hostIdMapping.get(hostId);
-					if (hostIdCount == null) {
-
-						hostIdMapping.put(hostId, 1);
+						logger.info("count: {}, unlimited license", count);
 
 					} else {
 
-						hostIdMapping.put(hostId, hostIdCount.intValue() + 1);
+						valid = count <= limit;
+
+						logger.info("count: {}, limit: {}", count, limit);
 					}
+
+
+					// update host ID count
+					hostIdMapping.put(hostId, hostIdCount + 1);
 
 					// store config
 					writeConfig(configName, config);
@@ -336,6 +318,46 @@ public class StructrLicenseVerifier {
 		} catch (IOException ioex) {
 			logger.warn("Unable to store license config {}: {}", name, ioex.getMessage());
 		}
+	}
+
+	private int getIntValue(final Map<String, Object> data, final String key, final int defaultValue) {
+
+		final Object src = data.get(key);
+		if (src instanceof Number) {
+
+			return ((Number)src).intValue();
+		}
+
+		return defaultValue;
+	}
+
+	private String getStringValue(final Map<String, Object> data, final String key, final String defaultValue) {
+
+		final Object src = data.get(key);
+		if (src instanceof String) {
+
+			return (String)src;
+		}
+
+		return defaultValue;
+	}
+
+	private Map<String, Object> getMapValue(final Map<String, Object> data, final String key) {
+
+		final Object src = data.get(key);
+		if (src instanceof Map) {
+
+			return (Map<String, Object>)src;
+		}
+
+		// create empty map
+		final Map<String, Object> newMap = new HashMap<>();
+
+		// store map in data object
+		data.put(key, newMap);
+
+		return newMap;
+
 	}
 
 	// ----- private static members -----
