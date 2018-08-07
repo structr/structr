@@ -214,6 +214,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 		if (user != null && user.shouldSkipSecurityRelationships() == false) {
 
+			final String userId = user.getUuid();
+
 			buf.append("MATCH (u:Principal");
 
 			if (tenantId != null) {
@@ -241,17 +243,19 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			buf.append(" RETURN n");
 
 			// configure OWNS relationship
-			ownsProperties.put(GraphObject.id.dbName(),                getNextUuid());
-			ownsProperties.put(GraphObject.type.dbName(),              PrincipalOwnsNode.class.getSimpleName());
-			ownsProperties.put(AbstractRelationship.sourceId.dbName(), user.getUuid());
-			ownsProperties.put(AbstractRelationship.targetId.dbName(), newUuid);
+			ownsProperties.put(GraphObject.id.dbName(),                         getNextUuid());
+			ownsProperties.put(GraphObject.type.dbName(),                       PrincipalOwnsNode.class.getSimpleName());
+			ownsProperties.put(AbstractRelationship.sourceId.dbName(),          userId);
+			ownsProperties.put(AbstractRelationship.targetId.dbName(),          newUuid);
+			ownsProperties.put(AbstractRelationship.internalTimestamp.dbName(), graphDb.getInternalTimestamp());
 
 			// configure SECURITY relationship
-			securityProperties.put(Security.allowed.dbName(),              new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
-			securityProperties.put(GraphObject.id.dbName(),                getNextUuid());
-			securityProperties.put(GraphObject.type.dbName(),              Security.class.getSimpleName());
-			securityProperties.put(AbstractRelationship.sourceId.dbName(), user.getUuid());
-			securityProperties.put(AbstractRelationship.targetId.dbName(), newUuid);
+			securityProperties.put(Security.allowed.dbName(),                       new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
+			securityProperties.put(GraphObject.id.dbName(),                         getNextUuid());
+			securityProperties.put(GraphObject.type.dbName(),                       Security.class.getSimpleName());
+			securityProperties.put(AbstractRelationship.sourceId.dbName(),          userId);
+			securityProperties.put(AbstractRelationship.targetId.dbName(),          newUuid);
+			securityProperties.put(AbstractRelationship.internalTimestamp.dbName(), graphDb.getInternalTimestamp());
 
 			// store properties in statement
 			parameters.put("userId",             user.getId());

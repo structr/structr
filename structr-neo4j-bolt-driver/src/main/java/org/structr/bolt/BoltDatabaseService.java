@@ -79,6 +79,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final Map<String, Label> labelCache                = new ConcurrentHashMap<>();
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
+	private static final long nanoEpoch                               = System.nanoTime();
 	private Properties globalGraphProperties                          = null;
 	private CypherRelationshipIndex relationshipIndex                 = null;
 	private CypherNodeIndex nodeIndex                                 = null;
@@ -500,6 +501,15 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public String getTenantIdentifier() {
 		return tenantId;
+	}
+
+	@Override
+	public String getInternalTimestamp() {
+
+		final String millis = StringUtils.leftPad(Long.toString(System.currentTimeMillis()), 18, "0");
+		final String nanos  = StringUtils.leftPad(Long.toString(System.nanoTime() - nanoEpoch), 18, "0");
+
+		return millis + "." + nanos;
 	}
 
 	public Label getOrCreateLabel(final String name) {
