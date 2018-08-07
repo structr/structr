@@ -512,6 +512,8 @@ public class SchemaService implements Service {
 										createIndex &= !NonIndexed.class.isAssignableFrom(type);
 										createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
 
+										final String indexName = ":" + typeName + "(" + key.dbName() + ")";
+
 										if (createIndex) {
 
 											if (!alreadySet) {
@@ -519,10 +521,10 @@ public class SchemaService implements Service {
 												try {
 
 													// create index
-													app.cypher("CREATE INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
+													app.cypher("CREATE INDEX ON " + indexName, params);
 
 												} catch (Throwable t) {
-													logger.warn("", t);
+													logger.warn("Unable to create index for {}: {}", indexName, t.getMessage());
 												}
 
 												// store the information that we already created this index
@@ -534,10 +536,10 @@ public class SchemaService implements Service {
 											try {
 
 												// drop index
-												app.cypher("DROP INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
+												app.cypher("DROP INDEX ON " + indexName, params);
 
 											} catch (Throwable t) {
-												logger.warn("", t);
+												logger.warn("Unable to drop index for {}: {}", indexName, t.getMessage());
 											}
 
 											// remove entry from config file

@@ -37,7 +37,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory {
 			final SpatialQuery spatial = (SpatialQuery)predicate;
 			final StringBuilder buf    = new StringBuilder();
 			final Double[] coords      = spatial.getCoords();
-			
+
 			if (coords == null || coords.length != 2)  {
 				return false;
 			}
@@ -46,7 +46,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory {
 			buf.append(coords[0]);
 			buf.append(",longitude:");
 			buf.append(coords[1]);
-			buf.append("}), point(n))");
+			buf.append("}), point({latitude: n.latitude, longitude: n.longitude}))");
 
 			// do not include nodes that have no lat/lon properties
 			query.beginGroup();

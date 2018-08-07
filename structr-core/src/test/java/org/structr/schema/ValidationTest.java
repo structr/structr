@@ -735,7 +735,7 @@ public class ValidationTest extends StructrTest {
 					uuid = app.create(testType, new NodeAttribute<>(key, "")).getUuid();
 
 					// wait a little while so the objects are created in different milliseconds
-					try { Thread.sleep(1); } catch (InterruptedException ex) { }
+					try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
 					// create constraint violating object
 					app.create(testType, new NodeAttribute<>(key, ""));
@@ -793,7 +793,7 @@ public class ValidationTest extends StructrTest {
 					uuid = app.create(testType, new NodeAttribute<>(key, null)).getUuid();
 
 					// wait a little while so the objects are created in different milliseconds
-					try { Thread.sleep(1); } catch (InterruptedException ex) { }
+					try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
 					// create constraint violating object
 					app.create(testType, new NodeAttribute<>(key, null));
@@ -1134,7 +1134,7 @@ public class ValidationTest extends StructrTest {
 				uuid1 = app.create(testType, new NodeAttribute<>(key, new String[] { "one", "two" } )).getUuid();
 
 				// make sure creation of the two objects is more than 1ms apart
-				try { Thread.sleep(1); }catch (Throwable t) {}
+				try { Thread.sleep(5); } catch (Throwable t) {}
 
 				uuid2 = app.create(testType, new NodeAttribute<>(key, new String[] { "one", "two" } )).getUuid();
 
@@ -1223,7 +1223,7 @@ public class ValidationTest extends StructrTest {
 				uuid = app.create(testType, new NodeAttribute<>(key, true)).getUuid();
 
 				// make sure creation of the two objects is more than 1ms apart
-				try { Thread.sleep(1); }catch (Throwable t) {}
+				try { Thread.sleep(5); } catch (Throwable t) {}
 
 				app.create(testType, new NodeAttribute<>(key, false));
 				app.create(testType, new NodeAttribute<>(key, true));
@@ -1267,7 +1267,7 @@ public class ValidationTest extends StructrTest {
 				uuid = app.create(testType, new NodeAttribute<>(key, date)).getUuid();
 
 				// make sure creation of the two objects is more than 1ms apart
-				try { Thread.sleep(1); }catch (Throwable t) {}
+				try { Thread.sleep(2); }catch (Throwable t) {}
 
 				app.create(testType, new NodeAttribute<>(key, date));
 
@@ -1343,7 +1343,7 @@ public class ValidationTest extends StructrTest {
 				uuid = app.create(testType, new NodeAttribute<>(key, 0.123)).getUuid();
 
 				// make sure creation of the two objects is more than 1ms apart
-				try { Thread.sleep(1); }catch (Throwable t) {}
+				try { Thread.sleep(5); } catch (Throwable t) {}
 
 				app.create(testType, new NodeAttribute<>(key, 0.123));
 
@@ -1540,7 +1540,7 @@ public class ValidationTest extends StructrTest {
 				uuid = app.create(testType, new NodeAttribute<>(key, value)).getUuid();
 
 				// make sure creation of the two objects is more than 1ms apart
-				try { Thread.sleep(1); }catch (Throwable t) {}
+				try { Thread.sleep(5); } catch (Throwable t) {}
 
 				app.create(testType, new NodeAttribute<>(key, value));
 
@@ -1613,7 +1613,7 @@ public class ValidationTest extends StructrTest {
 				uuid = app.create(testType, new NodeAttribute<>(key, 42)).getUuid();
 
 				// make sure creation of the two objects is more than 1ms apart
-				try { Thread.sleep(1); }catch (Throwable t) {}
+				try { Thread.sleep(5); } catch (Throwable t) {}
 
 				app.create(testType, new NodeAttribute<>(key, 42));
 
@@ -1765,7 +1765,7 @@ public class ValidationTest extends StructrTest {
 				uuid = app.create(testType, new NodeAttribute<>(key, 42000000000L)).getUuid();
 
 				// make sure creation of the two objects is more than 1ms apart
-				try { Thread.sleep(1); }catch (Throwable t) {}
+				try { Thread.sleep(5); } catch (Throwable t) {}
 
 				app.create(testType, new NodeAttribute<>(key, 42000000000L));
 
@@ -2058,7 +2058,7 @@ public class ValidationTest extends StructrTest {
 			);
 
 			// wait a little while so the objects are created in different milliseconds
-			try { Thread.sleep(1); } catch (InterruptedException ex) { }
+			try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
 			app.create(type,
 				new NodeAttribute<>(key1, "one"),
@@ -2081,7 +2081,7 @@ public class ValidationTest extends StructrTest {
 			);
 
 			// wait a little while so the objects are created in different milliseconds
-			try { Thread.sleep(1); } catch (InterruptedException ex) { }
+			try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
 			app.create(type,
 				new NodeAttribute<>(key1, "one"),
@@ -2106,7 +2106,7 @@ public class ValidationTest extends StructrTest {
 			).getUuid();
 
 			// wait a little while so the objects are created in different milliseconds
-			try { Thread.sleep(1); } catch (InterruptedException ex) { }
+			try { Thread.sleep(5); } catch (InterruptedException ex) { }
 
 			app.create(type,
 				new NodeAttribute<>(key1, "one"),

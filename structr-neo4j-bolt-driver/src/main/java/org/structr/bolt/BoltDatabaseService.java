@@ -566,11 +566,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return globalGraphProperties;
 	}
 
-	@Override
-	public String getInternalCreationTimestamp() {
-		return System.currentTimeMillis() + "." + System.nanoTime();
-	}
-
 	// ----- nested classes -----
 	private static class LabelImpl implements Label {
 

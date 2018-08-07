@@ -21,7 +21,6 @@ package org.structr.bolt.wrapper;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.structr.api.NotFoundException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -108,9 +107,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 		try {
 			return db.getNodeById(sourceNodeId);
-		} catch (NotFoundException nfex) {
-			nfex.printStackTrace();
-		}
+		} catch (Throwable t) {}
 
 		return null;
 	}
@@ -120,9 +117,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 		try {
 			return db.getNodeById(targetNodeId);
-		} catch (NotFoundException nfex) {
-			nfex.printStackTrace();
-		}
+		} catch (Throwable t) {}
 
 		return null;
 	}

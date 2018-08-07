@@ -310,8 +310,6 @@ public class PropertyTest extends StructrTest {
 
 			for (final TestSix testSix : testSixs2) {
 				int i = testSix.getProperty(TestSix.index);
-				System.out.println(i + ", " + testSix.getRawPathSegment().getProperty("internalCreationTimestamp"));
-
 				index2.add(i);
 			}
 

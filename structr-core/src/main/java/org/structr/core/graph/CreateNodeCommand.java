@@ -245,7 +245,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			ownsProperties.put(GraphObject.type.dbName(),              PrincipalOwnsNode.class.getSimpleName());
 			ownsProperties.put(AbstractRelationship.sourceId.dbName(), user.getUuid());
 			ownsProperties.put(AbstractRelationship.targetId.dbName(), newUuid);
-			ownsProperties.put(GraphObject.internalCreationTimestamp.dbName(), graphDb.getInternalCreationTimestamp());
 
 			// configure SECURITY relationship
 			securityProperties.put(Security.allowed.dbName(),              new String[] { Permission.read.name(), Permission.write.name(), Permission.delete.name(), Permission.accessControl.name() } );
@@ -253,7 +252,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			securityProperties.put(GraphObject.type.dbName(),              Security.class.getSimpleName());
 			securityProperties.put(AbstractRelationship.sourceId.dbName(), user.getUuid());
 			securityProperties.put(AbstractRelationship.targetId.dbName(), newUuid);
-			securityProperties.put(GraphObject.internalCreationTimestamp.dbName(), graphDb.getInternalCreationTimestamp());
 
 			// store properties in statement
 			parameters.put("userId",             user.getId());

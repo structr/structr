@@ -151,7 +151,7 @@ public class AgentService extends Thread implements RunnableService {
 		return true;
 	}
 
-	private void assignNextAgentForTask(Task nextTask) {
+	private void assignNextAgentForTask(final Task nextTask) {
 
 		Class taskClass    = nextTask.getClass();
 		List<Agent> agents = getRunningAgentsForTask(taskClass);
@@ -166,22 +166,22 @@ public class AgentService extends Thread implements RunnableService {
 				if (agent.assignTask(nextTask)) {
 
 					// ok, task is assigned
-					logger.debug("Task assigned to agent {}", agent.getName());
+					logger.debug("Task assigned to agent {} ({})", agent.getName(), agent.hashCode());
 
 					return;
 				}
 			}
 		}
 
-		// FIXME: find better solution for hard limit here!
 		if (agents.size() < maxAgents) {
 
-			// if we get here, task was not assigned to any agent, need to
-			// create a new one.
+			// if we get here, task was not assigned to any agent, need to create a new one.
 			Agent agent = createAgent(nextTask);
 
 			if ((agent != null) && agent.assignTask(nextTask)) {
+
 				agent.start();
+
 			} else {
 
 				// re-add task..
@@ -189,6 +189,7 @@ public class AgentService extends Thread implements RunnableService {
 					taskQueue.add(nextTask);
 				}
 			}
+
 		} else {
 
 			logger.debug("Overall agents limit reached, re-queueing task");
@@ -209,6 +210,8 @@ public class AgentService extends Thread implements RunnableService {
 	 */
 	private Agent createAgent(Task forTask) {
 
+		logger.debug("Creating new agent for task {}", forTask.getClass().getSimpleName());
+
 		Agent agent = null;
 
 		try {
@@ -221,9 +224,9 @@ public class AgentService extends Thread implements RunnableService {
 				agent.setAgentService(this);
 			}
 
-		} catch (Exception ex) {
+		} catch (Throwable t) {
 
-			// TODO: handle exception etc..
+			t.printStackTrace();
 		}
 
 		return (agent);

@@ -395,7 +395,7 @@ public class SearchAndSortingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 1000;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
-			final int expectedNumber        = 1135;
+			final int expectedNumber        = 1159;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
@@ -1179,6 +1179,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(1, result.size());
 				assertTrue(result.get(0).equals(node));
+
+				tx.success();
 			}
 
 		} catch (FrameworkException ex) {

@@ -38,7 +38,8 @@ import org.structr.api.config.Settings;
  */
 public class FulltextTokenizer extends Writer {
 
-	private static final Logger logger = LoggerFactory.getLogger(FulltextTokenizer.class.getName());
+	private static final Logger logger   = LoggerFactory.getLogger(FulltextTokenizer.class.getName());
+
 	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
 	private final int wordMinLength          = Settings.IndexingMinLength.getValue();
@@ -61,15 +62,8 @@ public class FulltextTokenizer extends Writer {
 		SpecialChars.add('Ö');
 		SpecialChars.add('Ü');
 		SpecialChars.add('ß');
-		SpecialChars.add('§');
 		SpecialChars.add('-');
-		SpecialChars.add('%');
-		SpecialChars.add('/');
 		SpecialChars.add('@');
-		SpecialChars.add('$');
-		SpecialChars.add('€');
-		SpecialChars.add('æ');
-		SpecialChars.add('¢');
 		SpecialChars.add('.');
 		SpecialChars.add(',');
 	}
@@ -138,35 +132,20 @@ public class FulltextTokenizer extends Writer {
 	public void flush() throws IOException {
 
 		String word = wordBuffer.toString().trim();
-		if (StringUtils.isNotBlank(word)) {
 
-			// try to separate numbers / dates etc.
-			if (word.matches("-?[0-9\\.,/]+")) {
+		if (accept(word)) {
 
-				while (word.endsWith(",")) {
+			final String[] parts = word.split("[\\.,]+");
+			final int len        = parts.length;
 
-					word = word.substring(0, word.length() - 1);
-				}
+			for (int i=0; i<len; i++) {
 
-				// remove minus sign from suspected numbers
-				word = word.replace("-", "");
+				String part = parts[i].trim();
+				part        = part.replaceAll("[\\-/]+", "");
 
-				addWord(word);
+				if (StringUtils.isNotBlank(part) && !StringUtils.isNumeric(part)) {
 
-			} else {
-
-				final String[] parts = word.split("[\\.,]+");
-				final int len        = parts.length;
-
-				for (int i=0; i<len; i++) {
-
-					String part = parts[i].trim();
-					part        = part.replaceAll("[\\-/]+", "");
-
-					if (StringUtils.isNotBlank(part) && !StringUtils.isNumeric(part)) {
-
-						addWord(part.toLowerCase());
-					}
+					addWord(part.toLowerCase());
 				}
 			}
 		}
@@ -203,5 +182,35 @@ public class FulltextTokenizer extends Writer {
 
 			wordCount++;
 		}
+	}
+
+	private boolean accept(final String word) {
+
+		if (word == null) {
+			return false;
+		}
+
+		int letters = 0;
+		int digits  = 0;
+
+		// a num code is a word that contains >= 5 numbers and >= 3 characters
+		for (final char c : word.toCharArray()) {
+
+			if (Character.isDigit(c)) {
+				digits++;
+			}
+
+			// might not be suited to handle non-latin characters..
+			if (Character.isLetter(c)) {
+				letters++;
+			}
+		}
+
+		// no letters: reject
+		if (letters < 3 || digits > letters) {
+			return false;
+		}
+
+		return true;
 	}
 }

@@ -21,13 +21,12 @@ package org.structr.text;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -51,9 +50,12 @@ import org.structr.agent.Agent;
 import org.structr.agent.ReturnValue;
 import org.structr.agent.Task;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
+import org.structr.common.fulltext.IndexedWord;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
@@ -80,21 +82,30 @@ public class FulltextIndexingAgent extends Agent<String> {
 	@Override
 	public ReturnValue processTask(final Task<String> task) throws Throwable {
 
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final App app                         = StructrApp.getInstance(securityContext);
+
+		securityContext.disableEnsureCardinality();
+
 		if (TASK_NAME.equals(task.getType())) {
 
 			for (final String indexableId : task.getWorkObjects()) {
 
 				for (int i=0; i<3; i++) {
 
-					try (final Tx tx = StructrApp.getInstance().tx()) {
+					try (final Tx tx = app.tx(true, false, false)) {
 
-						final Indexable indexable = StructrApp.getInstance().nodeQuery(Indexable.class).and(GraphObject.id, indexableId).getFirst();
+						final Indexable indexable = app.nodeQuery(Indexable.class).and(GraphObject.id, indexableId).getFirst();
 						if (indexable != null) {
 
-							doIndexing(indexable);
+							if (doIndexing(app, indexable)) {
 
-							// only try indexing once..
-							return ReturnValue.Success;
+								return ReturnValue.Success;
+							}
+
+						} else {
+
+							logger.info("Indexable {} not available, retrying in 1s", indexableId);
 						}
 
 						tx.success();
@@ -117,8 +128,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 		return FulltextIndexingTask.class;
 	}
 
+	@Override
+	protected boolean canHandleMore() {
+		return true;
+	}
+
 	// ----- private methods -----
-	private boolean doIndexing(final Indexable indexable) {
+	private boolean doIndexing(final App app, final Indexable indexable) {
 
 		boolean parsingSuccessful         = false;
 		InputStream inputStream           = null;
@@ -203,16 +219,31 @@ public class FulltextIndexingAgent extends Agent<String> {
 								}
 							}
 
-							final List<String> topWords = getFrequencySortedTopWords(indexedWords);
+							final List<String> topWords       = getFrequencySortedTopWords(indexedWords);
+							final List<IndexedWord> wordNodes = new LinkedList<>();
 
 							try {
 
+								// create words first
+								for (final String word : topWords) {
+
+									IndexedWord wordNode = app.nodeQuery(IndexedWord.class).andName(word).getFirst();
+									if (wordNode == null) {
+
+										wordNode = app.create(IndexedWord.class, word);
+									}
+
+									wordNodes.add(wordNode);
+								}
+
 								// store indexed words
-								indexable.setProperty(StructrApp.key(File.class, "indexedWords"), topWords);
+								indexable.setProperty(StructrApp.key(File.class, "words"), wordNodes);
 
 							} catch (Throwable t) {
 
-								logger.warn("Unable to store fulltext indexing result for {}: {}", fileName, t.getMessage());
+								logger.info("Unable to store fulltext indexing result for {}, retrying after 1000ms..", fileName);
+
+								return false;
 							}
 						}
 					}
@@ -277,21 +308,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 		}
 
 		return resultList;
-	}
-
-	private String trimToLength(final String source, final int maxLength) {
-
-		final Charset utf = Charset.forName("utf-8");
-		final byte[] data = source.getBytes(utf);
-
-		if (data.length > maxLength) {
-
-			// this might corrupt the last character of the string if
-			// it is a multi-byte value..
-			return new String(Arrays.copyOfRange(data, 0, maxLength), utf);
-		}
-
-		return source;
 	}
 
 	private long getFileSize(final Indexable indexable) {

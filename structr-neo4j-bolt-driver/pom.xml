@@ -71,12 +71,12 @@
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver</artifactId>
-			<version>1.6.1</version>
+			<version>1.6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-bolt</artifactId>
-			<version>3.4.4</version>
+			<version>3.3.6</version>
 			<exclusions>
 				<exclusion>
 					<groupId>net.sf.opencsv</groupId>
@@ -150,37 +150,6 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile>
-		<profile>
-			<id>community</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.neo4j</groupId>
-					<artifactId>neo4j-community</artifactId>
-					<version>3.2.6</version>
-					<type>pom</type>
-				</dependency>
-			</dependencies>
-		</profile>
-		<profile>
-			<id>enterprise</id>
-			<dependencies>
-				<dependency>
-					<groupId>org.neo4j</groupId>
-					<artifactId>neo4j-enterprise</artifactId>
-					<version>3.2.6</version>
-					<type>pom</type>
-					<exclusions>
-						<exclusion>
-							<groupId>org.slf4j</groupId>
-							<artifactId>slf4j-nop</artifactId>
-						</exclusion>
-					</exclusions>
-				</dependency>
-			</dependencies>
 		</profile>
 		<profile>
 			<id>release-sign-artifacts</id>

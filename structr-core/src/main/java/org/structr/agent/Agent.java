@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import static org.structr.agent.ReturnValue.Retry;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -89,6 +90,11 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 							ret = processTask(currentTask);
 							tx.success();
 
+						} catch (FrameworkException fex) {
+
+							// task processing failed..
+							logger.error("Processing task {} failed: {}", currentTask.getType(), fex.toString());
+
 						} catch (Throwable t) {
 
 							// task processing failed..
@@ -100,6 +106,11 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 						try {
 
 							ret = processTask(currentTask);
+
+						} catch (FrameworkException fex) {
+
+							// task processing failed..
+							logger.error("Processing task {} failed: {}", currentTask.getType(), fex.toString());
 
 						} catch (Throwable t) {
 
@@ -142,7 +153,6 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 
 	public final boolean assignTask(final Task<T> task) {
 
-		// TODO: do type check here
 		if (canHandleMore() && acceptingTasks.get()) {
 
 			synchronized (taskQueue) {
@@ -150,10 +160,10 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 				taskQueue.add(task);
 			}
 
-			return (true);
+			return true;
 		}
 
-		return (false);
+		return false;
 	}
 
 	public final void killAgent() {
@@ -187,7 +197,7 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 		// override me
 	}
 
-	private boolean canHandleMore() {
+	protected boolean canHandleMore() {
 
 		int size = 0;
 
