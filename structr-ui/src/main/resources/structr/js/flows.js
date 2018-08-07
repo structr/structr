@@ -190,7 +190,7 @@ var _Flows = {
 			}
 
 			let id = $(flowsTree).jstree('get_selected')[0];
-			if (id) {
+			if (id && b.node.data.type === "FlowContainer") {
 				_Flows.initFlow(id);
 			}
 		});
@@ -215,7 +215,8 @@ var _Flows = {
 						id: 'globals',
 						text: 'Favorites',
 						children: true,
-						icon: _Icons.star_icon
+						icon: _Icons.star_icon,
+						data: {type: "favorite"}
 					},
 					{
 						id: 'root',
@@ -226,7 +227,8 @@ var _Flows = {
 						state: {
 							opened: true,
 							selected: true
-						}
+						},
+                        data: {type: "root"}
 					}
 				];
 
@@ -321,7 +323,7 @@ var _Flows = {
         dialogSaveButton = $('#editorSave', dialogBtn);
         saveAndClose = $('#saveAndClose', dialogBtn);
 
-        saveAndClose.on('click', function(e) {
+        saveAndClose.off('click').on('click', function(e) {
             e.stopPropagation();
             dialogSaveButton.click();
             setTimeout(function() {
@@ -331,10 +333,17 @@ var _Flows = {
             }, 500);
         });
 
-        dialogSaveButton.on('click', function(e) {
+        dialogSaveButton.off('click').on('click', function(e) {
             e.stopPropagation();
             element.value = editor.getValue();
             element.dispatchEvent(new Event('change'));
+            dialogSaveButton.prop("disabled", true).addClass('disabled');
+        });
+
+        dialogCancelButton.on('click', function(e) {
+            dialogSaveButton.remove();
+            saveAndClose.remove();
+            return false;
         });
 
         editor.on('change', function(cm, change) {
