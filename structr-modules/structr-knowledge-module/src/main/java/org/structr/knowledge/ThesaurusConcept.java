@@ -43,7 +43,7 @@ public interface ThesaurusConcept extends NodeInterface {
 
 		type.relate(term,          "HAS_TERM",           Cardinality.OneToMany,  "concept",        "terms");
 		type.relate(preferredTerm, "HAS_PREFERRED_TERM", Cardinality.OneToMany,  "preferredLabel", "preferredTerms");
-		type.relate(type,          "BROADER_TERM",       Cardinality.ManyToMany, "broaderTerms",   "narrowerTerms");
+		type.relate(type,          "BROADER_TERM",       Cardinality.ManyToMany, "narrowerTerms", "broaderTerms");
 		type.relate(type,          "RELATED_TERM",       Cardinality.ManyToMany, "relatedTermsOf", "relatedTerms");
 
 		type.addViewProperty(PropertyView.Public, "name");

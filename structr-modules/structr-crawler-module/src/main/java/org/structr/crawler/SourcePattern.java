@@ -330,7 +330,8 @@ public class SourcePattern extends AbstractNode {
 				// Loop through the sub patterns of this pattern
 				for (final SourcePattern subPattern : subPatterns) {
 
-					final String subSelector = selector + ":nth-child(" + i + ") > " + subPattern.getProperty(SourcePattern.selectorProperty);
+					//final String subSelector = selector + ":nth-child(" + i + ") > " + subPattern.getProperty(SourcePattern.selectorProperty);
+					final String subSelector = selector + " > " + subPattern.getProperty(SourcePattern.selectorProperty);
 
 					final String subPatternMappedAttribute         = subPattern.getProperty(SourcePattern.mappedAttributeProperty);
 					final String subPatternMappedAttributeFunction = subPattern.getProperty(SourcePattern.mappedAttributeFunctionProperty);

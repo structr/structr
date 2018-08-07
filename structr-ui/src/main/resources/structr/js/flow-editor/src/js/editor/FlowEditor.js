@@ -36,7 +36,7 @@ import {AreaSelector} from "./utility/AreaSelector.js";
 
 export class FlowEditor {
 
-    constructor(rootElement, flowContainer) {
+    constructor(rootElement, flowContainer, options) {
 
         this._initializationPromise = new Promise(resolve => {
 
@@ -53,9 +53,11 @@ export class FlowEditor {
 
                 this._setupEditor();
 
-                document.addEventListener('openeditor', e => {
-                    new CodeModal(e.detail.element);
-                });
+                if (options && !options.deactivateInternalEvents) {
+                    document.addEventListener('floweditor.internal.openeditor', e => {
+                        new CodeModal(e.detail.element);
+                    });
+                }
 
                 resolve();
 
@@ -346,11 +348,12 @@ export class FlowEditor {
         let entType = type;
         return function() {
             let persistence = new Persistence();
-            persistence.createNode({type: entType}).then(node => {
+            return persistence.createNode({type: entType}).then(node => {
                 let fNode = self.renderNode(node);
                 node.flowContainer = self._flowContainer.id;
                 fNode.editorNode.position = self._editor.view.mouse;
                 self._editor.view.update();
+                return node;
             });
         }
     }

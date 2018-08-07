@@ -160,7 +160,19 @@ var _Flows = {
 //				.on('click', ['.jstree-node'], displayFlow)
 //		;
 
-		_TreeHelper.initTree(flowsTree, _Flows.treeInitFunction, 'structr-ui-flows');
+
+        $(flowsTree).jstree({
+            plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+            contextmenu: {items: _Flows.createFlowsTreeContextMenuItems},
+            core: {
+                animation: 0,
+                state: {
+                    key: 'structr-ui-flows'
+                },
+                async: true,
+                data: _Flows.treeInitFunction
+            }
+        });
 
 		window.removeEventListener('resize', resizeFunction);
 		window.addEventListener('resize', function() {
@@ -172,15 +184,23 @@ var _Flows = {
 		_Flows.resize();
 		Structr.adaptUiToAvailableFeatures();
 		
-		$(flowsTree).on('select_node.jstree', function(a,b) {
+		$(flowsTree).on('select_node.jstree', function(a, b) {
+			if (b.event && b.event.type === "contextmenu") {
+				return;
+			}
+
 			let id = $(flowsTree).jstree('get_selected')[0];
-			if (id) {
+			if (id && b.node.data.type === "FlowContainer") {
 				_Flows.initFlow(id);
 			}
 		});
+
+		document.addEventListener("floweditor.nodescriptclick", event => {
+            _Flows.openCodemirror(event.detail.element, event.detail.nodeType);
+		});
+
 	},
 	refreshTree: function() {
-
 		_TreeHelper.refreshTree(flowsTree);
 
 	},
@@ -195,7 +215,8 @@ var _Flows = {
 						id: 'globals',
 						text: 'Favorites',
 						children: true,
-						icon: _Icons.star_icon
+						icon: _Icons.star_icon,
+						data: {type: "favorite"}
 					},
 					{
 						id: 'root',
@@ -206,7 +227,8 @@ var _Flows = {
 						state: {
 							opened: true,
 							selected: true
-						}
+						},
+                        data: {type: "root"}
 					}
 				];
 
@@ -277,6 +299,96 @@ var _Flows = {
 		}
 
 	},
+    openCodemirror: function(element, flowNodeType) {
+        Structr.dialog("Edit " + flowNodeType, function() {}, function() {});
+
+        dialogText.append('<div class="editor"></div>');
+		var contentBox = $('.editor', dialogText);
+		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+		editor = CodeMirror(contentBox.get(0), {
+			value: element.value,
+			mode: "application/javascript",
+			lineNumbers: true,
+			lineWrapping: lineWrapping,
+			indentUnit: 4,
+			tabSize:4,
+			indentWithTabs: true
+		});
+
+        Structr.resize();
+
+        dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+        dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+
+        dialogSaveButton = $('#editorSave', dialogBtn);
+        saveAndClose = $('#saveAndClose', dialogBtn);
+
+        saveAndClose.off('click').on('click', function(e) {
+            e.stopPropagation();
+            dialogSaveButton.click();
+            setTimeout(function() {
+                dialogSaveButton.remove();
+                saveAndClose.remove();
+                dialogCancelButton.click();
+            }, 500);
+        });
+
+        dialogSaveButton.off('click').on('click', function(e) {
+            e.stopPropagation();
+            element.value = editor.getValue();
+            element.dispatchEvent(new Event('change'));
+            dialogSaveButton.prop("disabled", true).addClass('disabled');
+        });
+
+        dialogCancelButton.on('click', function(e) {
+            dialogSaveButton.remove();
+            saveAndClose.remove();
+            return false;
+        });
+
+        editor.on('change', function(cm, change) {
+            if (element.value === editor.getValue()) {
+                dialogSaveButton.prop("disabled", true).addClass('disabled');
+                saveAndClose.prop("disabled", true).addClass('disabled');
+            } else {
+                dialogSaveButton.prop("disabled", false).removeClass('disabled');
+                saveAndClose.prop("disabled", false).removeClass('disabled');
+            }
+        });
+
+	},
+    /*createFlowsTreeContextMenuItems: function(node, test) {
+        var items = {
+            addFlowCallToCurrentOpenFlow: { // The "rename" menu item
+                label: "Add Call to current Flow",
+                action: function () {
+					editor._getNodeCreationFunction("FlowCall")().then(newCallNode => {
+
+						if (node.id === newCallNode.id) {
+							return;
+						}
+
+                        console.log(newCallNode);
+                    	console.log(node);
+
+                    	let select = document.querySelector('#flow-call-node-select-' + newCallNode.id);
+                    	select.value = node.id;
+                    	select.dispatchEvent(new Event("change"));
+
+					});
+
+
+				}
+            }
+        };
+
+        if (!$(node).hasClass("FlowContainer")) {
+            // Delete the "delete" menu item
+            delete items.deleteItem;
+        }
+
+        return items;
+	},*/
 	initFlow: function(id) {
 
 		// display flow canvas
@@ -289,7 +401,7 @@ var _Flows = {
             document.title = "Flow - " + r[0].name;
 
             let rootElement = document.querySelector("#nodeEditor");
-            editor = new FlowEditor(rootElement, r[0]);
+            editor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
 
             editor.waitForInitialization().then( () => {
 

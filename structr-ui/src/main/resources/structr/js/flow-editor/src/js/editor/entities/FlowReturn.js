@@ -37,9 +37,10 @@ export class FlowReturn extends FlowNode {
                     control.id = "result";
                     control.name = "Query";
 
-//                    element.addEventListener('focus', ()=> {
-//                        document.dispatchEvent(new CustomEvent('openeditor', {detail: {element: element}}));
-//                    });
+                    element.addEventListener('focus', ()=> {
+                        document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Return"}}));
+                    });
 
                     element.addEventListener('change', ()=>{
                         control.putData('result',element.value);
