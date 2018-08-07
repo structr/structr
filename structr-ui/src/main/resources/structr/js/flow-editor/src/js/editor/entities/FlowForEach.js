@@ -30,8 +30,8 @@ export class FlowForEach extends FlowNode {
                 node.data.dbNode = scopedDbNode;
 
                 return node
-                    .addInput(dataSource)
                     .addInput(prev)
+                    .addInput(dataSource)
                     .addOutput(next)
                     .addOutput(forEachBody)
                     .addOutput(dataTarget);
