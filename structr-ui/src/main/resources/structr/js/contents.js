@@ -113,7 +113,7 @@ var _Contents = {
 		var containerTypesSelector = $('#add-content-container', containerTypesWrapper);
 		selectWrapper.append(containerTypesWrapper);
 
-		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentContainer' }, function(schemaNodes) {
+		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.dynamic.ContentContainer' }, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
 				var type = schemaNode.name;
 				containerTypesSelector.append('<option value="' + type + '">' + type + '</option>');
@@ -121,7 +121,7 @@ var _Contents = {
 
 			if (schemaNodes.length === 0) {
 				Structr.appendInfoTextToElement({
-					text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+					text: "You need to create a custom type extending <b>org.structr.dynamic.<u>ContentContainer</u></b> to add ContentContainers",
 					element: containerTypesWrapper,
 					css: {
 						marginLeft: '4px',
@@ -149,7 +149,7 @@ var _Contents = {
 		var itemTypesSelector = $('#add-content-item', itemTypesWrapper);
 		selectWrapper.append(itemTypesWrapper);
 
-		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.web.entity.ContentItem' }, function(schemaNodes) {
+		Command.query('SchemaNode', 1000, 1, 'name', 'asc', { extendsClass: 'org.structr.dynamic.ContentItem' }, function(schemaNodes) {
 			schemaNodes.forEach(function(schemaNode) {
 				var type = schemaNode.name;
 				itemTypesSelector.append('<option value="' + type + '">' + type + '</option>');
@@ -157,7 +157,7 @@ var _Contents = {
 
 			if (schemaNodes.length === 0) {
 				Structr.appendInfoTextToElement({
-					text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to add ContentItem",
+					text: "You need to create a custom type extending <b>org.structr.dynamic.<u>ContentItem</u></b> to add ContentItem",
 					element: itemTypesWrapper,
 					css: {
 						marginLeft: '4px',

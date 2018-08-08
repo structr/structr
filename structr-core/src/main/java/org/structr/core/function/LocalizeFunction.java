@@ -70,9 +70,9 @@ public class LocalizeFunction extends Function<Object, Object> {
 
 		} catch (ArgumentNullException pe) {
 
-			if (sources.length == 1 && sources[0] == null) {
+			if (sources[0] == null) {
 
-				// silently ignore case which can happen for localize(current.propertyThatCanBeNull)
+				// silently ignore case which can happen for localize(current.propertyThatCanBeNull[, domain])
 				return "";
 
 			} else if (sources.length <= 2) {
