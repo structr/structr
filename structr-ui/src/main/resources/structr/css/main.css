@@ -420,7 +420,7 @@ img.disabled {
 }
 
 #localizationsTab {
-	right: -62px;
+	right: -61px;
 	width: 77px;
 	top: 394px;
 }
@@ -948,7 +948,7 @@ span.id {
 
 .page, .widget, .user, .group, .folder, .file, .container, .item, #images .image, .resourceAccess,
 .ver-scrollable > .node {
-	margin: 4px 0;
+	margin: 4px 0 4px 24px;
 	padding-right: 4px;
 }
 
