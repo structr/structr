@@ -58,6 +58,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_PROPAGATING_MODIFICATION = 128;
 	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
+	private final long timestamp                 = System.nanoTime();
 	private final PropertyMap modifiedProperties = new PropertyMap();
 	private final PropertyMap removedProperties  = new PropertyMap();
 	private final PropertyMap newProperties      = new PropertyMap();
@@ -547,6 +548,10 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 
 		return JsonNull.INSTANCE;
+	}
+
+	public long getTimestamp() {
+		return timestamp;
 	}
 
 	// ----- interface ModificationEvent -----

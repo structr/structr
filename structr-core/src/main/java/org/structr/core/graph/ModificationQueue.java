@@ -20,11 +20,13 @@ package org.structr.core.graph;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -81,7 +83,7 @@ public class ModificationQueue {
 
 			hasModifications = false;
 
-			for (GraphObjectModificationState state : modifications.values()) {
+			for (GraphObjectModificationState state : getSortedModifications()) {
 
 				if (state.wasModified()) {
 
@@ -108,16 +110,17 @@ public class ModificationQueue {
 		long t0 = System.currentTimeMillis();
 
 		// do validation and indexing
-		for (Entry<String, GraphObjectModificationState> entry : modifications.entrySet()) {
+		for (final GraphObjectModificationState state : getSortedModifications()) {
 
 			// do callback according to entry state
-			if (!entry.getValue().doValidationAndIndexing(this, securityContext, errorBuffer, doValidation)) {
+			if (!state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation)) {
 				return false;
 			}
 		}
 
 		long t = System.currentTimeMillis() - t0;
 		if (t > 3000) {
+
 			logger.info("doValidation: {} ms ({} modifications)", t, modifications.size());
 		}
 
@@ -357,7 +360,7 @@ public class ModificationQueue {
 	 */
 	public boolean isPropertyModified(final GraphObject graphObject, final PropertyKey key) {
 
-		for (GraphObjectModificationState state : modifications.values()) {
+		for (GraphObjectModificationState state : getSortedModifications()) {
 
 			for (PropertyKey k : state.getModifiedProperties().keySet()) {
 
@@ -389,7 +392,7 @@ public class ModificationQueue {
 
 		HashSet<PropertyKey> modifiedKeys = new HashSet<>();
 
-		for (GraphObjectModificationState state : modifications.values()) {
+		for (GraphObjectModificationState state : getSortedModifications()) {
 
 			for (PropertyKey key : state.getModifiedProperties().keySet()) {
 
@@ -483,5 +486,28 @@ public class ModificationQueue {
 
 	private String hash(final RelationshipInterface rel) {
 		return "R" + rel.getId();
+	}
+
+	private Iterable<GraphObjectModificationState> getSortedModifications() {
+
+		final List<GraphObjectModificationState> state = new LinkedList<>(modifications.values());
+
+		Collections.sort(state, (a, b) -> {
+
+			final long t1 = a.getTimestamp();
+			final long t2 = b.getTimestamp();
+
+			if (t1 < t2) {
+				return -1;
+			}
+
+			if (t1 > t2) {
+				return 1;
+			}
+
+			return 0;
+		});
+
+		return state;
 	}
 }

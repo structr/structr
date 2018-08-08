@@ -674,7 +674,7 @@ public class ScriptingTest extends StructrTest {
 			testTwo        = createTestNode(TestTwo.class);
 			testThree      = createTestNode(TestThree.class);
 			testFour       = createTestNode(TestFour.class);
-			testSixs       = createTestNodes(TestSix.class, 20);
+			testSixs       = createTestNodes(TestSix.class, 20, 1);
 
 			// set string array on test four
 			testFour.setProperty(TestFour.stringArrayProperty, new String[] { "one", "two", "three", "four" } );

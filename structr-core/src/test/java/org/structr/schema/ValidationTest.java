@@ -2127,7 +2127,7 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid validation status code", fex.getStatus(), 422);
 			assertEquals("Invalid validation error token", "already_taken", token.getToken());
 			assertEquals("Invalid validation error type", "TestType",       token.getType());
-			assertEquals("Invalid validation error type", uuid,             token.getDetail());
+			assertEquals("Invalid validation error UUID", uuid,             token.getDetail());
 			assertTrue("Invalid validation error type", Arrays.equals(keys, (PropertyKey[])token.getValue()));
 
 		}

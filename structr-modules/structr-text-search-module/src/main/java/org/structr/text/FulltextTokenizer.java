@@ -191,13 +191,11 @@ public class FulltextTokenizer extends Writer {
 		}
 
 		int letters = 0;
-		int digits  = 0;
 
-		// a num code is a word that contains >= 5 numbers and >= 3 characters
 		for (final char c : word.toCharArray()) {
 
 			if (Character.isDigit(c)) {
-				digits++;
+				return false;
 			}
 
 			// might not be suited to handle non-latin characters..
@@ -206,11 +204,6 @@ public class FulltextTokenizer extends Writer {
 			}
 		}
 
-		// no letters: reject
-		if (letters < 3 || digits > letters) {
-			return false;
-		}
-
-		return true;
+		return letters >= 3;
 	}
 }
