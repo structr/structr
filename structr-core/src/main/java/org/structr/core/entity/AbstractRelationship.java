@@ -64,6 +64,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationshipTypeProperty;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.SourceNodeProperty;
+import org.structr.core.property.StringProperty;
 import org.structr.core.property.TargetId;
 import org.structr.core.property.TargetNodeProperty;
 import org.structr.core.script.Scripting;
@@ -82,6 +83,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractRelationship.class.getName());
 
+	public static final Property<String>        internalTimestamp  = new StringProperty("internalTimestamp").systemInternal().indexed().unvalidated().writeOnce().partOfBuiltInSchema().category(SYSTEM_CATEGORY);
 	public static final Property<Integer>       cascadeDelete      = new IntProperty("cascadeDelete");
 	public static final Property<String>        relType            = new RelationshipTypeProperty();
 	public static final SourceId                sourceId           = new SourceId("sourceId");

@@ -294,7 +294,6 @@ public class DocumentTest extends StructrRestTest {
 			.body("result[0].tasks[2].name",                    equalTo("Task2"))
 			.when()
 			.get("/workers/test?name=Worker2");
-
 	}
 
 	@Test

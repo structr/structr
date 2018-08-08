@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
@@ -54,6 +55,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		// disable updating access time when creating relationships
 		securityContext.disableModificationOfAccessTime();
 
+		final DatabaseService db             = (DatabaseService)this.getArgument("graphDb");
 		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
 		final PropertyMap properties         = new PropertyMap(attributes);
 		final CreationContainer tmp          = new CreationContainer();
@@ -66,6 +68,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		template.ensureCardinality(securityContext, fromNode, toNode);
 
 		// date properties need converter
+		AbstractRelationship.internalTimestamp.setProperty(securityContext, tmp, db.getInternalTimestamp());
 		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
 		AbstractRelationship.lastModifiedDate.setProperty(securityContext, tmp, now);
 
