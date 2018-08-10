@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-	
+
 class RefactoringHelper {
 
 	constructor(container) {
@@ -24,12 +24,12 @@ class RefactoringHelper {
 	}
 
 	show() {
-		
+
 		this.container.append('<p>This helper allows you to find and edit HTML elements in Structr pages and Shared Components based on a type and some common attributes.</p>');
 		this.container.append('<div id="select-container"></div>');
 
 		var selectContainer = $('#select-container');
-		
+
 		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="Selector" />');
 		selectContainer.append('<input class="refactoring-helper" id="query-input" placeholder="Query parameters" />');
 		selectContainer.append('<input class="refactoring-helper" id="property-input" placeholder="Property keys to display" />');
@@ -71,19 +71,28 @@ class RefactoringHelper {
 					200: (response) => {
 
 						if (response && response.result && response.result.length) {
-							
+
 							resultContainer.append('<table class="refactoring-helper" id="result-table"><thead><tr id="header-row"></tr></thead></table>');
-							var keyCandidates = Object.keys(response.result[0]);
+							var keyMap        = {};
+							var keyCandidates = [];
 							var table         = $('#result-table');
 							var header        = $('#header-row');
 							var list          = properties.split(',');
 							var keys          = [];
 							var i             = 0;
 
+							response.result.forEach(r => {
+								Object.keys(r).forEach(k => {
+									keyMap[k] = true;
+								});
+							});
+
+							keyCandidates = Object.keys(keyMap);
+
 							list.forEach(p => {
-								
+
 								var name = p.trim();
-								
+
 								if (keyCandidates.includes(name) && name !== 'id' && name !== 'type') {
 									keys.push({ name: name, title: name });
 								}
@@ -100,7 +109,7 @@ class RefactoringHelper {
 									keys.push({ name: '_custom_html_data-' + name, title: 'data-' + name });
 								}
 							});
-								
+
 							header.append('<th>Source</th>');
 
 							keys.forEach(k => {
@@ -114,7 +123,7 @@ class RefactoringHelper {
 							});
 
 							response.result.forEach(v => {
-								
+
 								table.append('<tr id="row' + i + '"></tr>');
 
 								var hasValue = false;
@@ -130,13 +139,13 @@ class RefactoringHelper {
 								} else if (v.name) {
 									src = v.name;
 								}
-									
+
 								row.append('<td>' + src + '</td>');
 
 								keys.forEach(k => {
 									var id    = 'edit-' + v.id + '-' + k.name;
 									var value = '';
-									
+
 									if (v[k.name] || v[k.name] === 0) {
 										value = v[k.name];
 										hasValue = true;
@@ -155,7 +164,7 @@ class RefactoringHelper {
 								i++;
 
 								if (!hasValue && !showEmptyRows) {
-									
+
 									row.remove();
 								}
 							});
