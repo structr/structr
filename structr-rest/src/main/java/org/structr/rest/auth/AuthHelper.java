@@ -246,7 +246,7 @@ public class AuthHelper {
 	 */
 	public static String getConfirmationKey() {
 
-		return UUID.randomUUID().toString() + "|" + new Date().getTime();
+		return UUID.randomUUID().toString() + "!" + new Date().getTime();
 	}
 
 	/**
@@ -258,7 +258,7 @@ public class AuthHelper {
 	 */
 	public static boolean isConfirmationKeyValid(final String confirmationKey, final Integer validityPeriod) {
 
-		final String[] parts = confirmationKey.split("\\|");
+		final String[] parts = confirmationKey.split("!");
 
 		if (parts.length == 2) {
 
