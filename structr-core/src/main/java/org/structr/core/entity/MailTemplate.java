@@ -39,7 +39,7 @@ public interface MailTemplate extends NodeInterface {
 		type.setCategory("core");
 
 		type.addStringProperty("text",   PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("locale", PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("locale", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 
 		type.addPropertyGetter("text", String.class);
 		type.addPropertyGetter("locale", String.class);
