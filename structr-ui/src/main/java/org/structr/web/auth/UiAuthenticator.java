@@ -315,11 +315,10 @@ public class UiAuthenticator implements Authenticator {
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
-				logger.warn("Login as {} not allowed before confirmation.", user);
+				logger.warn("Login as {} not allowed before confirmation.", user.getName());
 				throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 			}
 
-			AuthHelper.doLogin(request, user);
 		}
 
 		return user;

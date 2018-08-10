@@ -1390,7 +1390,7 @@ button.action:hover {
 	padding: 4px;
 }
 
-#login #errorText {
+#login #errorText, #login #errorText-2fa {
 	color: #c00;
 }
 
@@ -1418,6 +1418,15 @@ button.action:hover {
 #login .logo-login {
 	margin: 8px auto 14px auto;
 	display: block;
+}
+
+#login #two-factor-qr-code {
+	text-align: center;
+}
+
+#login #two-factor-qr-code #two-factor-qr-info {
+	margin-top: 8px;
+	margin-bottom: 10px;
 }
 
 .dialog button:focus {
@@ -3301,7 +3310,7 @@ td#cascading-options, td#propagation-options {
  #flows-canvas {
 	 padding: 0;
  }
- 
+
 #folder-contents h1, #code-contents h1, #contents-contents h1, #crawler-list h1, #flows-canvas h1 {
 	margin: 0px;
 }

@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
 import org.structr.common.AccessControllable;
 import org.structr.common.EMailValidator;
@@ -258,6 +260,53 @@ public interface Principal extends NodeInterface, AccessControllable {
 		}
 
 		return null;
+	}
+
+	public static String getTwoFactorUrl(final Principal principal) {
+
+		final Integer twoFactorLevel = Settings.TwoFactorLevel.getValue();
+		if (twoFactorLevel == 0) {
+			logger.warn("two_factor_url(): Two-factor authentication is disabled");
+			return "Warning: Two-factor authentication is disabled.";
+		}
+
+		final Boolean isTwoFactorUser = principal.getProperty(StructrApp.key(Principal.class, "isTwoFactorUser"));
+		if (twoFactorLevel == 1 && !isTwoFactorUser) {
+
+			logger.warn("two_factor_url(): Two-factor authentication is disabled for this user: {} ({})", principal.getName(), principal.getUuid());
+			return "Warning: Two-factor authentication is disabled for this user.";
+		}
+
+
+		final String twoFactorIssuer    = Settings.TwoFactorIssuer.getValue();
+		final String twoFactorAlgorithm = Settings.TwoFactorAlgorithm.getValue();
+		final Integer twoFactorDigits   = Settings.TwoFactorDigits.getValue();
+		final Integer twoFactorPeriod   = Settings.TwoFactorPeriod.getValue();
+
+		final StringBuilder path = new StringBuilder("/").append(twoFactorIssuer);
+
+		final String eMail = principal.getProperty(StructrApp.key(Principal.class, "eMail"));
+		if (eMail != null) {
+			path.append(":").append(eMail);
+		} else {
+			path.append(":").append(principal.getName());
+		}
+
+		final PropertyKey<String> twoFactorSecretKey = StructrApp.key(Principal.class, "twoFactorSecret");
+		final StringBuilder query = new StringBuilder("secret=").append(principal.getProperty(twoFactorSecretKey))
+				.append("&issuer=").append(twoFactorIssuer)
+				.append("&algorithm=").append(twoFactorAlgorithm)
+				.append("&digits=").append(twoFactorDigits)
+				.append("&period=").append(twoFactorPeriod);
+
+		try {
+
+			return new URI("otpauth", null, "totp", -1, path.toString(), query.toString(), null).toString();
+
+		} catch (URISyntaxException use) {
+			logger.warn("two_factor_url(): URISyntaxException for {}?{}", path, query, use);
+			return "URISyntaxException for " + path + "?" + query;
+		}
 	}
 }
 

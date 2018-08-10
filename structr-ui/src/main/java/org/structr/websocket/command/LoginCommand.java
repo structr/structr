@@ -18,16 +18,26 @@
  */
 package org.structr.websocket.command;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.auth.exception.PasswordChangeRequiredException;
+import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
+import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
+import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
+import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
-import org.structr.schema.action.Actions;
+import org.structr.web.function.BarcodeFunction;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -51,44 +61,47 @@ public class LoginCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		final String username = (String) webSocketData.getNodeData().get("username");
-		final String password = (String) webSocketData.getNodeData().get("password");
-		Principal user;
+		final String username       = (String) webSocketData.getNodeData().get("username");
+		final String password       = (String) webSocketData.getNodeData().get("password");
+		final String twoFactorToken = (String) webSocketData.getNodeData().get("twoFactorToken");
+		final String twoFactorCode  = (String) webSocketData.getNodeData().get("twoFactorCode");
+		Principal user = null;
 
-		if ((username != null) && (password != null)) {
+		try {
 
-			try {
+			Authenticator auth = getWebSocket().getAuthenticator();
 
-				StructrWebSocket socket = this.getWebSocket();
-				Authenticator auth = socket.getAuthenticator();
+			if (StringUtils.isNotEmpty(twoFactorToken)) {
 
-				user = auth.doLogin(socket.getRequest(), username, password);
+				user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
-				if (user != null) {
+			} else  if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+
+				user = auth.doLogin(getWebSocket().getRequest(), username, password);
+			}
+
+			if (user != null) {
+
+				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, getWebSocket().getRequest().getRemoteAddr());
+
+				if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
 					String sessionId = webSocketData.getSessionId();
 					if (sessionId == null) {
-						
+
 						logger.debug("Unable to login {}: No sessionId found", new Object[]{ username, password });
 						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 						return;
-
 					}
 
 					sessionId = SessionHelper.getShortSessionId(sessionId);
 
-					try {
-						Actions.call(Actions.NOTIFICATION_LOGIN, user);
-
-					} catch (UnlicensedScriptException ex) {
-						ex.log(logger);
-					}
-
 					// Clear possible existing sessions
 					SessionHelper.clearSession(sessionId);
-
 					user.addSessionId(sessionId);
+
+					AuthHelper.sendLoginNotification(user);
 
 					// store token in response data
 					webSocketData.getNodeData().clear();
@@ -96,23 +109,79 @@ public class LoginCommand extends AbstractCommand {
 					webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
 
 					// authenticate socket
-					socket.setAuthenticated(sessionId, user);
+					getWebSocket().setAuthenticated(sessionId, user);
 
 					// send data..
-					socket.send(webSocketData, false);
+					getWebSocket().send(webSocketData, false);
 
 				}
-
-			} catch (AuthenticationException e) {
-
-				logger.info("Unable to login {}, probably wrong password", username);
-				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
-
-			} catch (FrameworkException fex) {
-
-				logger.warn("Unable to execute command", fex);
 			}
+
+		} catch (PasswordChangeRequiredException ex) {
+
+			logger.info(ex.getMessage());
+			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
+
+			return;
+
+		} catch (TooManyFailedLoginAttemptsException ex) {
+
+			logger.info(ex.getMessage());
+			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
+
+			return;
+
+		} catch (TwoFactorAuthenticationFailedException ex) {
+
+			logger.debug(ex.getMessage());
+			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
+
+			return;
+
+		} catch (TwoFactorAuthenticationRequiredException ex) {
+
+			logger.debug(ex.getMessage());
+
+			String qrdata = "";
+			if (user != null) {
+
+				try {
+
+					final Map<String, Object> hints = new HashMap();
+					hints.put("MARGIN", 0);
+					hints.put("ERROR_CORRECTION", "M");
+
+					qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
+
+				} catch (UnsupportedEncodingException uee) {
+					logger.warn("Charset ISO-8859-1 not supported!?", uee);
+				}
+			}
+
+			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).data("qrdata", qrdata).code(204).build(), true);
+
+			return;
+
+		} catch (TwoFactorAuthenticationNextStepException ex) {
+
+			logger.debug(ex.getMessage());
+			getWebSocket().send(MessageBuilder.status().data("token", ex.getNextStepToken()).code(202).build(), true);
+
+			return;
+
+		} catch (AuthenticationException e) {
+
+			logger.info("Unable to login {}, probably wrong password", username);
+			getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+
+			return;
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Unable to execute command", fex);
 		}
+
+		getWebSocket().send(MessageBuilder.status().code(401).build(), true);
 	}
 
 	//~--- get methods ----------------------------------------------------

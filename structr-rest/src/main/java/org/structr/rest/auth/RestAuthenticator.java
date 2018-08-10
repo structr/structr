@@ -23,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,6 +104,8 @@ public class RestAuthenticator implements Authenticator {
 	 */
 	@Override
 	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, final HttpServletResponse response) throws FrameworkException {
+
+		logger.warn("KAI: RestAuthenticator.initializeAndExamineRequest");
 
 		SecurityContext securityContext;
 
@@ -317,6 +318,8 @@ public class RestAuthenticator implements Authenticator {
 	@Override
 	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException {
 
+		logger.warn("KAI: RestAuthenticator.doLogin");
+
 		final PropertyKey<String> eMailKey = StructrApp.key(Principal.class, "eMail");
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
@@ -337,7 +340,7 @@ public class RestAuthenticator implements Authenticator {
 
 			final String sessionId = request.getRequestedSessionId();
 			if (sessionId != null) {
-				
+
 				SessionHelper.invalidateSession(sessionId);
 			}
 

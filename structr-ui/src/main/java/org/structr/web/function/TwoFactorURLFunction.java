@@ -20,7 +20,6 @@ package org.structr.web.function;
 
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.User;
 
 
 public class TwoFactorURLFunction extends UiFunction {
@@ -41,7 +40,7 @@ public class TwoFactorURLFunction extends UiFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return User.getTwoFactorUrl((User) user);
+		return Principal.getTwoFactorUrl(user);
 	}
 
 	@Override

@@ -156,9 +156,9 @@ function wsConnect() {
 				} else if (!user || user !== data.data.username || loginBox.is(':visible')) {
 					Structr.updateUsername(data.data.username);
 					loginBox.hide();
-					loginBox.find('#usernameField').val('');
-					loginBox.find('#passwordField').val('');
-					loginBox.find('#errorText').empty();
+					Structr.clearLoginForm();
+					$('table.username-password', loginBox).show();
+					$('table.twofactor', loginBox).hide();
 					Structr.refreshUi();
 				}
 
@@ -187,7 +187,21 @@ function wsConnect() {
 				} else if (code === 401) {
 					user = null;
 					userId = null;
-					Structr.login('');
+					Structr.login((msg !== null) ? msg : '');
+				} else if (code === 204) {
+					user = null;
+					userId = null;
+					Structr.login((msg !== null) ? msg : '');
+
+					Structr.show2FAQRBox(data.data.qrdata);
+
+				} else if (code === 202) {
+					user = null;
+					userId = null;
+					Structr.login((msg !== null) ? msg : '');
+
+					Structr.toggle2FALoginBox(data.data.token);
+
 				} else {
 
 					var codeStr = code ? code.toString() : '';

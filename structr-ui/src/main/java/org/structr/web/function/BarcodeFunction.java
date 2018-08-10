@@ -50,36 +50,9 @@ public class BarcodeFunction extends Function<Object, Object> {
 			final Number width      = (sources.length >= 3) ? (Number)sources[2] : 200;
 			final Number height     = (sources.length >= 4) ? (Number)sources[3] : 200;
 
-			final MultiFormatWriter barcodeWriter = new MultiFormatWriter();
-			try {
+			final Map<String, Object> hints = (sources.length >= 5 && sources[4] instanceof Map) ? (Map)sources[4] : BarcodeFunction.parseParametersAsMap(sources, 4);
 
-				final Map<EncodeHintType, Object> hints = new HashMap();
-
-				if (sources.length >= 5 && sources[4] instanceof Map) {
-					parseHints(hints, (Map)sources[4]);
-				} else {
-					parseHints(hints, parseParametersAsMap(sources, 4));
-				}
-
-				BitMatrix bitMatrix = barcodeWriter.encode(barcodeData, BarcodeFormat.valueOf(barcodeType), width.intValue(), height.intValue(), hints);
-
-				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-				ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
-
-				return baos.toString("ISO-8859-1");
-
-			} catch(WriterException we) {
-
-				logger.warn("barcode(): WriterException while encoding barcode: {} {}", barcodeType, barcodeData, we);
-
-			} catch(IOException ioe) {
-
-				logger.warn("barcode(): IOException", ioe);
-
-			}
-
-			return "";
+			return BarcodeFunction.getQRCode(barcodeData, barcodeType, width, height, hints);
 
 		} catch (IllegalArgumentException e) {
 
@@ -88,7 +61,34 @@ public class BarcodeFunction extends Function<Object, Object> {
 		}
 	}
 
-	public Map<String, Object> parseParametersAsMap(final Object[] sources, final int startIndex) throws FrameworkException {
+	public static String getQRCode(final String barcodeData, final String barcodeType, final Number width, final Number height, final Map<String, Object> hints) {
+
+		final MultiFormatWriter barcodeWriter = new MultiFormatWriter();
+
+		try {
+
+			BitMatrix bitMatrix = barcodeWriter.encode(barcodeData, BarcodeFormat.valueOf(barcodeType), width.intValue(), height.intValue(), BarcodeFunction.parseHints(hints));
+
+			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+			ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
+
+			return baos.toString("ISO-8859-1");
+
+		} catch(WriterException we) {
+
+			logger.warn("barcode(): WriterException while encoding barcode: {} {}", barcodeType, barcodeData, we);
+
+		} catch(IOException ioe) {
+
+			logger.warn("barcode(): IOException", ioe);
+
+		}
+
+		return "";
+	}
+
+	public static Map<String, Object> parseParametersAsMap(final Object[] sources, final int startIndex) throws FrameworkException {
 
 		final int parameter_count = sources.length - startIndex;
 
@@ -107,7 +107,9 @@ public class BarcodeFunction extends Function<Object, Object> {
 		return params;
 	}
 
-	public void parseHints(final Map<EncodeHintType, Object> hints, final Map<String, Object> suppliedHints) {
+	public static Map<EncodeHintType, Object> parseHints(final Map<String, Object> suppliedHints) {
+
+		final Map<EncodeHintType, Object> hints = new HashMap();
 
 		for(final Map.Entry<String, Object> hint : suppliedHints.entrySet()) {
 
@@ -120,6 +122,8 @@ public class BarcodeFunction extends Function<Object, Object> {
 				hints.put(EncodeHintType.valueOf(hint.getKey()), obj);
 			}
 		}
+
+		return hints;
 	}
 
 	@Override

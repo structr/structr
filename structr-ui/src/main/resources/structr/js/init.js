@@ -22,7 +22,7 @@ var lastMenuEntry, menuBlocked;
 var dmp;
 var editorCursor, ignoreKeyUp;
 var dialog, isMax = false;
-var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginButton, loginBox, dialogCloseButton;
+var dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
 var dialogId;
 var pagerType = {}, page = {}, pageSize = {}, sortKey = {}, sortOrder = {}, pagerFilters = {};
 var dialogMaximizedKey = 'structrDialogMaximized_' + port;
@@ -58,14 +58,26 @@ $(function() {
 	dialogCancelButton = $('.closeButton', dialogBox);
 	dialogSaveButton   = $('.save', dialogBox);
 
-	loginButton = $('#loginButton');
-	loginButton.on('click', function(e) {
+	$('#loginButton').on('click', function(e) {
 		e.stopPropagation();
 		var username = $('#usernameField').val();
 		var password = $('#passwordField').val();
 		Structr.doLogin(username, password);
 		return false;
 	});
+	$('#loginButtonTFA').on('click', function(e) {
+		e.stopPropagation();
+		var tfaToken = $('#twoFactorTokenField').val();
+		var tfaCode  = $('#twoFactorCodeField').val();
+		Structr.doTFALogin(tfaCode, tfaToken);
+		return false;
+	});
+	$('#two-factor-qr-confirm-button').on('click', function(e) {
+		e.stopPropagation();
+		Structr.hide2FAQRBox();
+		return false;
+	});
+
 	$('#logout_').on('click', function(e) {
 		e.stopPropagation();
 		Structr.doLogout();
@@ -223,9 +235,9 @@ $(function() {
 	resizeFunction = function() {
 		Structr.resize();
 	};
-	
+
 	$(window).on('resize', resizeFunction);
-	
+
 	dmp = new diff_match_patch();
 });
 
@@ -359,13 +371,60 @@ var Structr = {
 		$('#logout_').html('Login');
 		if (text) {
 			$('#errorText').html(text);
+			$('#errorText-2fa').html(text);
 		}
 
 		//Structr.activateMenuEntry('logout');
 	},
+	clearLoginForm: function () {
+		loginBox.find('#usernameField').val('');
+		loginBox.find('#passwordField').val('');
+		loginBox.find('#errorText').empty();
+		loginBox.find('#errorText-2fa').empty();
+		loginBox.find('#twoFactorTokenField').val('');
+		loginBox.find('#twoFactorCodeField').val('');
+		loginBox.find('#two-factor-qr-code img').attr('src', '');
+	},
+	toggle2FALoginBox: function (token) {
+
+		$('table.username-password', loginBox).hide();
+		$('table.twofactor', loginBox).show();
+
+		$('#twoFactorTokenField').val(token);
+		$('#twoFactorCodeField').val('').focus();
+	},
+	show2FAQRBox: function (qrdata) {
+
+		$('table.username-password', loginBox).hide();
+		$('table.twofactor', loginBox).hide();
+
+		var qrBox = $('#two-factor-qr-code', loginBox);
+		$('img', qrBox).attr('src', 'data:image/png;base64, ' + qrdata);
+		qrBox.show();
+	},
+	hide2FAQRBox: function () {
+
+		$('table.twofactor', loginBox).hide();
+		$('#two-factor-qr-code', loginBox).hide();
+
+		Structr.clearLoginForm();
+
+		$('table.username-password', loginBox).show();
+	},
 	doLogin: function(username, password) {
 		Structr.renewSessionId(function () {
-			Command.login(username, password);
+			Command.login({
+				username: username,
+				password: password
+			});
+		});
+	},
+	doTFALogin: function(twoFactorCode, twoFacorToken) {
+		Structr.renewSessionId(function () {
+			Command.login({
+				twoFactorCode: twoFactorCode,
+				twoFactorToken: twoFacorToken
+			});
 		});
 	},
 	doLogout: function(text) {

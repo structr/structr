@@ -26,16 +26,13 @@ var Command = {
 	/**
 	 * Send the LOGIN command to the server.
 	 */
-	login: function(username, password) {
+	login: function(data) {
 		var obj = {
 			command: 'LOGIN',
 			sessionId: Structr.getSessionId(),
-			data: {
-				username: username,
-				password: password
-			}
+			data: data
 		};
-		_Logger.log(_LogType.WS[obj.command], 'login()' + username + ' with ' + password);
+		_Logger.log(_LogType.WS[obj.command], 'login() with ' + JSON.stringify(data));
 		return sendObj(obj);
 	},
 	/**
