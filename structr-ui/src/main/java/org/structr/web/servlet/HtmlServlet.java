@@ -55,6 +55,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -537,14 +538,20 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 											}
 										}
 
-									} catch (Throwable t) {
-										logger.warn("", t);
+									} catch (EofException ee) {
+										logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+									} catch (IOException | InterruptedException t) {
+										logger.warn("Unexpected exception", t);
 									}
 								}
 
 								@Override
 								public void onError(Throwable t) {
-									logger.warn("", t);
+									if (t instanceof EofException) {
+										logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+									} else {
+										logger.warn("Unexpected exception", t);
+									}
 								}
 							});
 
