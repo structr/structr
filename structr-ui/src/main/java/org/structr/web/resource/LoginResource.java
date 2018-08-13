@@ -92,21 +92,24 @@ public class LoginResource extends Resource {
 				user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 			}
 
-			final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, securityContext.getRequest().getRemoteAddr());
+			if (user != null) {
 
-			if (twoFactorAuthenticationSuccessOrNotNecessary) {
+				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, securityContext.getRequest().getRemoteAddr());
 
-				AuthHelper.doLogin(securityContext.getRequest(), user);
+				if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
-				logger.info("Login successful: {}", user);
+					AuthHelper.doLogin(securityContext.getRequest(), user);
 
-				// make logged in user available to caller
-				securityContext.setCachedUser(user);
+					logger.info("Login successful: {}", user);
 
-				RestMethodResult methodResult = new RestMethodResult(200);
-				methodResult.addContent(user);
+					// make logged in user available to caller
+					securityContext.setCachedUser(user);
 
-				return methodResult;
+					RestMethodResult methodResult = new RestMethodResult(200);
+					methodResult.addContent(user);
+
+					return methodResult;
+				}
 			}
 
 		} catch (PasswordChangeRequiredException ex) {
