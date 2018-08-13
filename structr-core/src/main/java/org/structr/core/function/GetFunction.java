@@ -122,7 +122,7 @@ public class GetFunction extends Function<Object, Object> {
 				} else {
 
 					// key does not exist and generic property is not desired => log warning
-					logger.warn("Unknown property {}.{}, value will not be returned.", type.getSimpleName(), keyName);
+					logger.warn("get(): Unknown property {}.{}, value will not be returned. [{}]", type.getSimpleName(), keyName, dataObject.getUuid());
 				}
 
 				return "";
