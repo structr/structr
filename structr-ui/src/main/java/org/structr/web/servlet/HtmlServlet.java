@@ -1263,7 +1263,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			// Redirect to target page
 			if (StringUtils.isNotBlank(targetPage)) {
-				response.sendRedirect(targetPage);
+				response.sendRedirect("/" + targetPage);
 			}
 
 			return true;
