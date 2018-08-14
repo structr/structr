@@ -187,7 +187,13 @@ function wsConnect() {
 				} else if (code === 401) {
 					user = null;
 					userId = null;
+					if (data.data.reason === 'twofactortoken') {
+						Structr.clearLoginForm();
+						$('table.username-password', loginBox).show();
+						$('table.twofactor', loginBox).hide();
+					}
 					Structr.login((msg !== null) ? msg : '');
+
 				} else if (code === 204) {
 					user = null;
 					userId = null;

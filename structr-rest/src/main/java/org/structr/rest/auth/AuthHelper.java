@@ -36,6 +36,7 @@ import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
+import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
@@ -262,10 +263,10 @@ public class AuthHelper {
 
 		if (parts.length == 2) {
 
-			final long timeStamp = Long.parseLong(parts[1]);
-			final long endOfPeriod = new Date().getTime() + validityPeriod * 60 * 1000;
+			final long confirmationKeyCreated = Long.parseLong(parts[1]);
+			final long maxValidity            = confirmationKeyCreated + validityPeriod * 60 * 1000;
 
-			return (timeStamp <= endOfPeriod);
+			return (maxValidity >= new Date().getTime());
 		}
 
 		return Settings.ConfirmationKeyValidWithoutTimestamp.getValue();
@@ -345,18 +346,45 @@ public class AuthHelper {
 		}
 	}
 
-	public static Principal getUserForTwoFactorToken (final String twoFactorIdentificationToken) throws FrameworkException {
+	public static Principal getUserForTwoFactorToken (final String twoFactorIdentificationToken) throws TwoFactorAuthenticationTokenInvalidException, FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
 		Principal principal = null;
 
+		final PropertyKey<String> twoFactorTokenKey   = StructrApp.key(Principal.class, "twoFactorToken");
+
 		try (final Tx tx = app.tx()) {
-			principal = app.nodeQuery(Principal.class).and(StructrApp.key(Principal.class, "twoFactorToken"), twoFactorIdentificationToken).getFirst();
+			principal = app.nodeQuery(Principal.class).and(twoFactorTokenKey, twoFactorIdentificationToken).getFirst();
 			tx.success();
 		}
 
+		if (principal != null) {
+
+			if (!AuthHelper.isTwoFactorTokenValid(twoFactorIdentificationToken)) {
+
+				principal.setProperty(twoFactorTokenKey, null);
+
+				throw new TwoFactorAuthenticationTokenInvalidException();
+			}
+		}
+
 		return principal;
+	}
+
+	public static boolean isTwoFactorTokenValid(final String twoFactorIdentificationToken) {
+
+		final String[] parts = twoFactorIdentificationToken.split("!");
+
+		if (parts.length == 2) {
+
+			final long tokenCreatedTimestamp = Long.parseLong(parts[1]);
+			final long maxTokenValidity      = tokenCreatedTimestamp + Settings.TwoFactorLoginTimeout.getValue() * 1000;
+
+			return (maxTokenValidity >= new Date().getTime());
+		}
+
+		return false;
 	}
 
 	public static boolean isRequestingIPWhitelistedForTwoFactorAuthentication(final String requestIP) {
@@ -377,7 +405,6 @@ public class AuthHelper {
 	public static boolean handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationNextStepException, TwoFactorAuthenticationFailedException {
 
 		if (!AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP)) {
-
 
 			final PropertyKey<String> twoFactorTokenKey   = StructrApp.key(Principal.class, "twoFactorToken");
 			final PropertyKey<Boolean> isTwoFactorUserKey = StructrApp.key(Principal.class, "isTwoFactorUser");
@@ -402,8 +429,8 @@ public class AuthHelper {
 
 				if (twoFactorToken == null) {
 
-					// set token to identify user by it
-					final String newTwoFactorToken = UUID.randomUUID().toString();
+					// set token to identify user by
+					final String newTwoFactorToken = UUID.randomUUID().toString() + "!" + new Date().getTime();
 					principal.setProperty(twoFactorTokenKey, newTwoFactorToken);
 
 					throw new TwoFactorAuthenticationNextStepException(newTwoFactorToken);

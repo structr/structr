@@ -35,6 +35,7 @@ import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
+import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -130,6 +131,13 @@ public class LoginResource extends Resource {
 
 			RestMethodResult methodResult = new RestMethodResult(401);
 			methodResult.addHeader("reason", "twofactor");
+
+			return methodResult;
+
+		} catch (TwoFactorAuthenticationTokenInvalidException ex) {
+
+			RestMethodResult methodResult = new RestMethodResult(401);
+			methodResult.addHeader("reason", "twofactortoken");
 
 			return methodResult;
 
