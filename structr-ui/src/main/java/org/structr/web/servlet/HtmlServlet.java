@@ -1163,12 +1163,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						if (Settings.RestUserAutologin.getValue()) {
 
 							AuthHelper.doLogin(request, user);
+
+						} else {
+
+							logger.warn("Refusing login because {} is disabled", Settings.RestUserAutologin.getKey());
 						}
 
 					} else {
 
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
-
 					}
 
 					tx.success();
@@ -1243,12 +1246,15 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						if (Settings.RestUserAutologin.getValue()) {
 
 							AuthHelper.doLogin(request, user);
+
+						} else {
+
+							logger.warn("Refusing login because {} is disabled", Settings.RestUserAutologin.getKey());
 						}
 
 					} else {
 
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
-
 					}
 
 					tx.success();
@@ -1257,7 +1263,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 			// Redirect to target page
 			if (StringUtils.isNotBlank(targetPage)) {
-				response.sendRedirect(targetPage);
+				response.sendRedirect("/" + targetPage);
 			}
 
 			return true;

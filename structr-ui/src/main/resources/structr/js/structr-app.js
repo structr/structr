@@ -119,6 +119,7 @@ function StructrApp(baseUrl, locale) {
 			checking                         : 'Checking...',
 			wrongUsernameOrPassword          : 'Wrong username or password!',
 			wrongTwoFactorCode               : 'Wrong two factor code!',
+			invalidTwoFactorToken            : 'Two Factor login took too long',
 			passwordAttempts                 : 'Too many wrong password attempts!',
 			passwordNotChanged               : 'Your password has not been changed for too long!',
 			pleaseEnterEMail                 : 'Please enter your e-mail address!',
@@ -145,6 +146,7 @@ function StructrApp(baseUrl, locale) {
 			checking                         : 'Prüfe ...',
 			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
 			wrongTwoFactorCode               : 'Falscher Two Factor Code!',
+			invalidTwoFactorToken            : 'Two Factor login hat zu lange gedauert',
 			passwordAttempts                 : 'Zu viele falsche Passwort-Eingaben!',
 			passwordNotChanged               : 'Sie haben Ihr Passwort zu lange nicht geändert!',
 			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
@@ -577,6 +579,10 @@ function StructrApp(baseUrl, locale) {
 				401: function() { //change message on button depending on reason for 401
 					var buttonLabel = s.labels[s.lang].wrongUsernameOrPassword;
 
+					var callbackFn = function () {
+						btn.text(oldBtnText);
+					};
+
 					switch(ajaxRequest.getResponseHeader("reason")) {
 						case "attempts":
 							buttonLabel = s.labels[s.lang].passwordAttempts;
@@ -587,11 +593,15 @@ function StructrApp(baseUrl, locale) {
 						case "changed":
 							buttonLabel = s.labels[s.lang].passwordNotChanged;
 							break;
+						case "twofactortoken":
+							buttonLabel = s.labels[s.lang].invalidTwoFactorToken;
+							callbackFn = function () {
+								history.back();
+							};
+							break;
 					}
 
-					app.feedbackAction(msgBox, buttonLabel, 2000, btn, true, function () {
-						btn.text(oldBtnText);
-					});
+					app.feedbackAction(msgBox, buttonLabel, 2000, btn, true, callbackFn);
 				}
 			}
 		});

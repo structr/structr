@@ -3,8 +3,14 @@
 # configuration options for FINAL_NAME
 #
 
+if [ -f ./memory.config ]; then
+	MEMORY_OPTS="$(cat ./memory.config)"
+else
+	MEMORY_OPTS="-Xms4g -Xmx4g"
+fi
+
 RUN_OPTS="-cp lib/*:FINAL_NAME.jar"
-JAVA_OPTS="-Djava.awt.headless=true -Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Dorg.apache.sshd.registerBouncyCastle=false -server -d64 -Xms4g -Xmx4g -XX:+UseNUMA -XX:+UseG1GC"
+JAVA_OPTS="-Djava.awt.headless=true -Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Dorg.apache.sshd.registerBouncyCastle=false -server -d64 $MEMORY_OPTS -XX:+UseNUMA -XX:+UseG1GC"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="FINAL_NAME"
 LOG_FILE="/var/log/structr.log"

@@ -33,6 +33,7 @@ import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
+import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.rest.auth.AuthHelper;
@@ -135,6 +136,13 @@ public class LoginCommand extends AbstractCommand {
 
 			logger.debug(ex.getMessage());
 			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
+
+			return;
+
+		} catch (TwoFactorAuthenticationTokenInvalidException ex) {
+
+			logger.debug(ex.getMessage());
+			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", "twofactortoken").build(), true);
 
 			return;
 

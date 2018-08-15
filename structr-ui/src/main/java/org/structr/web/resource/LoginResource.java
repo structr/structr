@@ -35,6 +35,7 @@ import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
+import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -92,21 +93,24 @@ public class LoginResource extends Resource {
 				user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 			}
 
-			final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, securityContext.getRequest().getRemoteAddr());
+			if (user != null) {
 
-			if (twoFactorAuthenticationSuccessOrNotNecessary) {
+				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, securityContext.getRequest().getRemoteAddr());
 
-				AuthHelper.doLogin(securityContext.getRequest(), user);
+				if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
-				logger.info("Login successful: {}", user);
+					AuthHelper.doLogin(securityContext.getRequest(), user);
 
-				// make logged in user available to caller
-				securityContext.setCachedUser(user);
+					logger.info("Login successful: {}", user);
 
-				RestMethodResult methodResult = new RestMethodResult(200);
-				methodResult.addContent(user);
+					// make logged in user available to caller
+					securityContext.setCachedUser(user);
 
-				return methodResult;
+					RestMethodResult methodResult = new RestMethodResult(200);
+					methodResult.addContent(user);
+
+					return methodResult;
+				}
 			}
 
 		} catch (PasswordChangeRequiredException ex) {
@@ -127,6 +131,13 @@ public class LoginResource extends Resource {
 
 			RestMethodResult methodResult = new RestMethodResult(401);
 			methodResult.addHeader("reason", "twofactor");
+
+			return methodResult;
+
+		} catch (TwoFactorAuthenticationTokenInvalidException ex) {
+
+			RestMethodResult methodResult = new RestMethodResult(401);
+			methodResult.addHeader("reason", "twofactortoken");
 
 			return methodResult;
 
