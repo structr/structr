@@ -1164,6 +1164,24 @@ i.button {
 	border: 1px solid rgba(0,0,0,.125);
 }
 
+#pages .node {
+	border: none;
+	padding: 2px 0px 2px 4px;
+	margin: 0 0 0 11px;
+	
+}
+
+#pages .node.page {
+	border: none;
+	padding: 2px 0px 2px 12px;
+	margin: 0 0 0 11px;
+}
+
+#pages .node.nodeHover {
+	margin: -1px -1px -1px 10px ! important;
+	border: 1px solid rgba(0,0,0,.125) ! important;
+}
+
 .node.nodeSelectedFromContextMenu {
     color: #333 ! important;
     background-color: #fafafa ! important;
