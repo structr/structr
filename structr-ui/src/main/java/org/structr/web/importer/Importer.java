@@ -767,6 +767,8 @@ public class Importer {
 						final String _html_src = newNode.getProperty(new StringProperty("_html_src"));
 						if (!StringUtils.isEmpty(_html_src)) {
 							node.attr("src", _html_src);
+						} else {
+							node.removeAttr("src");
 						}
 
 						newNode.setSharedComponent(component);
