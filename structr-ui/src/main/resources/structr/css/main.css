@@ -336,6 +336,10 @@ img.disabled {
 	margin-top: 8px;
 }
 
+#pages .ver-scrollable {
+	overflow-x: hidden;
+}
+
 #previews {
 	margin: 4px 25px 0 25px;
 }
