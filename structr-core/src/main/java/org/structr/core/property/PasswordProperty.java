@@ -91,9 +91,13 @@ public class PasswordProperty extends StringProperty {
 					final String oldSalt        = Principal.getSalt(principal);
 					final String oldEncPassword = Principal.getEncryptedPassword(principal);
 
-					boolean passwordChanged = !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt));
-					if (passwordChanged) {
-						obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
+					if (oldEncPassword != null && oldSalt != null) {
+
+						boolean passwordChanged = !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt));
+						if (passwordChanged) {
+
+							obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
+						}
 					}
 				}
 			}

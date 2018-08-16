@@ -256,9 +256,8 @@ public class ResourceAccessTest extends StructrUiTest {
 			testFolder.setProperties(testFolder.getSecurityContext(), new PropertyMap(AbstractNode.owner, testUser));
 
 			tx.success();
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			logger.error(fex.toString());
+		} catch (Throwable t) {
+			t.printStackTrace();
 			fail("Unexpected exception");
 		}
 
