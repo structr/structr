@@ -439,7 +439,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			}
 
 			// render end tag, if needed (= if not singleton tags)
-			if (StringUtils.isNotBlank(_tag) && (!isVoid)) {
+			if (StringUtils.isNotBlank(_tag) && (!isVoid) || (isVoid && thisElement.getSharedComponent() != null && EditMode.DEPLOYMENT.equals(editMode))) {
 
 				// only insert a newline + indentation before the closing tag if any child-element used a newline
 				final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
@@ -529,7 +529,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					htmlAttributes.add(config.getPropertyKeyForJSONName(type, key));
 				}
 			});
-			
+
 			if (EditMode.DEPLOYMENT.equals(editMode)) {
 				Collections.sort(htmlAttributes);
 			}
