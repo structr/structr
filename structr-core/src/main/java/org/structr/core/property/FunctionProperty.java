@@ -36,7 +36,12 @@ import org.structr.schema.action.ActionContext;
  */
 public class FunctionProperty<T> extends Property<T> {
 
-	private static final Logger logger = LoggerFactory.getLogger(FunctionProperty.class.getName());
+	private static final Logger logger            = LoggerFactory.getLogger(FunctionProperty.class.getName());
+	private static final BooleanProperty pBoolean = new BooleanProperty("pBoolean");
+	private static final IntProperty pInt         = new IntProperty("pInt");
+	private static final LongProperty pLong       = new LongProperty("pLong");
+	private static final DoubleProperty pDouble   = new DoubleProperty("pDouble");
+	private static final DateProperty pDate       = new DateProperty("pDate");
 
 	public FunctionProperty(final String name) {
 		super(name);
@@ -190,4 +195,29 @@ public class FunctionProperty<T> extends Property<T> {
 		return this;
 	}
 
+	@Override
+	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
+
+		if (typeHint != null) {
+
+			PropertyConverter converter = null;
+
+			switch (typeHint.toLowerCase()) {
+
+				case "boolean": converter = pBoolean.inputConverter(securityContext); break;
+				case "int":     converter = pInt.inputConverter(securityContext); break;
+				case "long":    converter = pLong.inputConverter(securityContext); break;
+				case "double":  converter = pDouble.inputConverter(securityContext); break;
+				case "date":    converter = pDate.inputConverter(securityContext); break;
+			}
+
+			if (converter != null) {
+
+				return (T)converter.convert(requestParameter);
+			}
+		}
+
+		// fallback
+		return super.convertSearchValue(securityContext, requestParameter);
+	}
 }

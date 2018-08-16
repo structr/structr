@@ -25,16 +25,21 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotSame;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 
-import com.vividsolutions.jts.util.Assert;
-import org.apache.commons.lang.UnhandledException;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestTen;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 /**
  *
@@ -107,5 +112,77 @@ public class FunctionPropertyTest extends StructrRestTest {
 			fail("Exception during test: " + ex.getMessage());
 		}
 
+	}
+
+	@Test
+	public void testSearchWithTypeHint() {
+
+		cleanDatabaseAndSchema();
+
+		testSearchWithType("Boolean", "eq(this.name, 'test')", true);
+		testSearchWithType("Int",     "if(eq(this.name, 'test'), int(3), int(8))", 3);
+		testSearchWithType("Long",    "if(eq(this.name, 'test'), int(3), int(8))", 3);
+		testSearchWithType("Double",  "if(eq(this.name, 'test'), 3.0, 8.0)", 3.0f);
+	}
+
+	private void testSearchWithType(final String typeName, final String readFunction, final Object value) {
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+			final JsonType type     = schema.addType("TestType");
+
+			type.addFunctionProperty("test" + typeName).setReadFunction(readFunction).setTypeHint(typeName).setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final Class type      = StructrApp.getConfiguration().getNodeEntityClass("TestType");
+		final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, "test" + typeName);
+
+		// data setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "not test"));
+			app.create(type, new NodeAttribute<>(AbstractNode.name, "test"));
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Invalid search result for typed function property", 1, app.nodeQuery(type).and(key, value).getAsList().size());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// search via REST
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+		.expect()
+			.statusCode(200)
+			.body("result[0].type",            equalTo("TestType"))
+			.body("result[0].name",            equalTo("test"))
+			.body("result[0].test" + typeName, equalTo(value))
+			.body("result",                    hasSize(1))
+		.when()
+			.get("/TestType/ui?test" + typeName + "=" + value);
 	}
 }
