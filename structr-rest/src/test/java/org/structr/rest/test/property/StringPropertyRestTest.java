@@ -148,28 +148,11 @@ public class StringPropertyRestTest extends IndexingTest {
 	@Test
 	public void testLargeStrings() {
 
-		testLargeString(4045, 201);
-
-		// it seems that even those cause errors with Neo4j 3.4.4 and above
-		/*
-		testLargeString(4074, 201);
-		testLargeString(4075, 201);
-		*/
-
-		/* danger territory, causes unrecoverable error
-		testLargeString(4076, 500);
-		testLargeString(4077, 500);
-		testLargeString(4078, 500);
-		testLargeString(4079, 500);
-		testLargeString(4094, 500);
-		testLargeString(4095, 500);
-
-		testLargeString(4096, 422);
-		testLargeString(4097, 422);
-		testLargeString(4098, 422);
-		*/
-
-
+		testLargeString(4000, 201);
+		testLargeString(4039, 201);
+		testLargeString(4040, 422);
+		testLargeString(4100, 422);
+		testLargeString(5000, 422);
 	}
 
 	private void testLargeString(final int length, final int expectedStatusCode) {
