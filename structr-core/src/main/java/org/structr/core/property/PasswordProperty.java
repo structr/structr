@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import java.util.Date;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -27,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.CreationContainer;
 
 /**
  * A {@link StringProperty} that converts its value to a hexadecimal SHA512 hash upon storage.
@@ -76,6 +78,23 @@ public class PasswordProperty extends StringProperty {
 				if (minLength > 0 && clearTextPassword.length() < minLength) {
 
 					throw new FrameworkException(422, "Validation of entity with ID " + obj.getUuid() + " failed", new TooShortToken(errorType, errorKey, minLength));
+				}
+			}
+
+			if (obj instanceof CreationContainer) {
+
+				final GraphObject wrappedObject = ((CreationContainer)obj).getWrappedObject();
+
+				if (wrappedObject != null && wrappedObject instanceof Principal) {
+
+					final Principal principal   = (Principal)wrappedObject;
+					final String oldSalt        = Principal.getSalt(principal);
+					final String oldEncPassword = Principal.getEncryptedPassword(principal);
+
+					boolean passwordChanged = !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt));
+					if (passwordChanged) {
+						obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
+					}
 				}
 			}
 

@@ -19,7 +19,6 @@
 package org.structr.web.entity;
 
 import java.net.URI;
-import java.util.Date;
 import org.structr.api.config.Settings;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
@@ -33,10 +32,10 @@ import org.structr.core.entity.Relation.Cardinality;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
-import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 
 public interface User extends Principal {
 
@@ -142,11 +141,6 @@ public interface User extends Principal {
 			user.setProperty(isTwoFactorUserKey, false);
 			user.setProperty(twoFactorSecretKey, base32Secret);
 		}
-
-		if (modificationQueue != null && modificationQueue.getModifiedProperties().contains(StructrApp.key(Principal.class, "password"))) {
-			user.setProperty(StructrApp.key(User.class, "passwordChangeDate"), new Date());
-		}
-
 
 		if (Settings.FilesystemEnabled.getValue()) {
 
