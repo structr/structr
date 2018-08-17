@@ -91,18 +91,15 @@ public class PasswordProperty extends StringProperty {
 					final String oldSalt        = Principal.getSalt(principal);
 					final String oldEncPassword = Principal.getEncryptedPassword(principal);
 
-					if (oldEncPassword != null && oldSalt != null) {
+					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
+					if (passwordChangedOrFirstPassword) {
 
-						boolean passwordChanged = !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt));
-						if (passwordChanged) {
-
-							obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
-						}
+						obj.setProperty(StructrApp.key(Principal.class, "passwordChangeDate"), new Date().getTime());
 					}
 				}
 			}
 
-			String salt = RandomStringUtils.randomAlphanumeric(16);
+			final String salt = RandomStringUtils.randomAlphanumeric(16);
 
 			obj.setProperty(StructrApp.key(Principal.class, "salt"), salt);
 
