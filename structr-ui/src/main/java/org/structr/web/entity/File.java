@@ -310,7 +310,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	static void afterCreation(final File thisFile, final SecurityContext securityContext) {
+	static void afterCreation(final File thisFile, final SecurityContext securityContext) throws FrameworkException {
 
 		try {
 

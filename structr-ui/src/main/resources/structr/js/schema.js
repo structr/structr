@@ -1459,6 +1459,11 @@ var _Schema = {
 				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('onCreate'));
 			});
 
+			el.append('<button class="add-icon add-afterCreate-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add afterCreate</button>');
+			$('.add-afterCreate-button', el).on('click', function() {
+				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('afterCreate'));
+			});
+
 			el.append('<button class="add-icon add-onSave-button"><i class="' + _Icons.getFullSpriteClass(_Icons.add_icon) + '" /> Add onSave</button>');
 			$('.add-onSave-button', el).on('click', function() {
 				_Schema.appendEmptyMethod(actionsTable, entity, _Schema.getFirstFreeMethodName('onSave'));

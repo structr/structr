@@ -146,7 +146,7 @@ public class ModificationQueue {
 		return true;
 	}
 
-	public void doOuterCallbacks(final SecurityContext securityContext) {
+	public void doOuterCallbacks(final SecurityContext securityContext) throws FrameworkException {
 
 		long t0 = System.currentTimeMillis();
 

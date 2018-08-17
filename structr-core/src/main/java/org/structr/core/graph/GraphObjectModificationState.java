@@ -373,7 +373,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 	 *
 	 * @param securityContext
 	 */
-	public void doOuterCallback(SecurityContext securityContext) {
+	public void doOuterCallback(SecurityContext securityContext) throws FrameworkException {
 
 		if ((status & (STATE_DELETED | STATE_DELETED_PASSIVELY)) == 0) {
 

@@ -411,7 +411,7 @@ public interface GraphObject {
 	 *
 	 * @param securityContext the context in which the creation took place
 	 */
-	public void afterCreation(final SecurityContext securityContext);
+	public void afterCreation(final SecurityContext securityContext) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully modified. Please note that this method

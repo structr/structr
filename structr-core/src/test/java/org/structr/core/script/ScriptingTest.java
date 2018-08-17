@@ -52,6 +52,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -63,7 +64,6 @@ import org.structr.core.entity.TestOne.Status;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
-import org.structr.core.entity.Principal;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
@@ -80,6 +80,9 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 
 
 /**
@@ -2486,6 +2489,125 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testAfterCreateMethod() {
+
+		final String expectedErrorToken = "create_not_allowed";
+
+		// test setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema  = StructrSchema.createFromDatabase(app);
+			final JsonType dummyType = schema.addType("DummyType");
+			final JsonType newType   = schema.addType("MyDynamicType");
+
+			newType.addMethod("onCreation",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))", "");
+			newType.addMethod("afterCreation", "create('DummyType', 'name', 'this should not be possible!')", "");
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			logger.error("", t);
+			fail("Unexpected exception during test setup.");
+		}
+
+
+		final Class myDynamicType = StructrApp.getConfiguration().getNodeEntityClass("MyDynamicType");
+		final Class dummyType     = StructrApp.getConfiguration().getNodeEntityClass("DummyType");
+
+		// test that afterCreate is called
+		try (final Tx tx = app.tx()) {
+
+			app.create(myDynamicType, new NodeAttribute<>(AbstractNode.name, "allowedName"));
+
+			final Integer myDynamicTypeCount = app.nodeQuery(myDynamicType).getAsList().size();
+			final Integer dummyTypeCount     = app.nodeQuery(dummyType).getAsList().size();
+
+			final boolean correct = myDynamicTypeCount == 1 && dummyTypeCount == 0;
+
+			assertTrue("Before tx.success() there should be exactly 1 node of type MyDynamicNode and 0 of type DummyType", correct);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Integer myDynamicTypeCount = app.nodeQuery(myDynamicType).getAsList().size();
+			final Integer dummyTypeCount     = app.nodeQuery(dummyType).getAsList().size();
+
+			final boolean correct = myDynamicTypeCount == 1 && dummyTypeCount == 1;
+
+			assertTrue("After tx.success() there should be exactly 1 node of type MyDynamicNode and 1 of type DummyType", correct);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// delete nodes
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			Scripting.replaceVariables(ctx, null, "${delete(find('MyDynamicType'))}");
+			Scripting.replaceVariables(ctx, null, "${delete(find('DummyType'))}");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// test that afterCreate is not called if there was an error in onCreate
+		try (final Tx tx = app.tx()) {
+
+			app.create(myDynamicType, new NodeAttribute<>(AbstractNode.name, "forbiddenName"));
+
+			final Integer myDynamicTypeCount = app.nodeQuery(myDynamicType).getAsList().size();
+			final Integer dummyTypeCount     = app.nodeQuery(dummyType).getAsList().size();
+
+			final boolean correct = myDynamicTypeCount == 1 && dummyTypeCount == 0;
+
+			assertTrue("Before tx.success() there should be exactly 1 node of type MyDynamicNode and 0 of type DummyType", correct);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			final boolean isExpectedErrorToken = fex.getErrorBuffer().getErrorTokens().get(0).getToken().equals(expectedErrorToken);
+
+			assertTrue("Encountered unexpected error!", isExpectedErrorToken);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Integer myDynamicTypeCount = app.nodeQuery(myDynamicType).getAsList().size();
+			final Integer dummyTypeCount     = app.nodeQuery(dummyType).getAsList().size();
+
+			final boolean correct = myDynamicTypeCount == 0 && dummyTypeCount == 0;
+
+			assertTrue("After tx.success() there should be exactly 0 node of type MyDynamicNode and 0 of type DummyType (because we used a forbidden name)", correct);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

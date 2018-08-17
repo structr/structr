@@ -1242,6 +1242,10 @@ public class SchemaHelper {
 					formatCreationCallback(schemaNode, src, name, actionList);
 					break;
 
+				case "afterCreation":
+					formatAfterCreationCallback(schemaNode, src, name, actionList);
+					break;
+
 				case "onModification":
 					formatModificationCallback(schemaNode, src, name, actionList);
 					break;
@@ -1267,6 +1271,25 @@ public class SchemaHelper {
 		src.append("\t\tsuper.");
 		src.append(name);
 		src.append("(arg0, arg1);\n\n");
+
+		for (final ActionEntry action : actionList) {
+
+			src.append("\t\t").append(action.getSource("this")).append(";\n");
+		}
+
+		src.append("\t}\n");
+
+	}
+
+	public static void formatAfterCreationCallback(final AbstractSchemaNode schemaNode, final StringBuilder src, final String name, final List<ActionEntry> actionList) {
+
+		src.append("\n\t@Override\n");
+		src.append("\tpublic void ");
+		src.append(name);
+		src.append("(final SecurityContext arg0) throws FrameworkException {\n\n");
+		src.append("\t\tsuper.");
+		src.append(name);
+		src.append("(arg0);\n\n");
 
 		for (final ActionEntry action : actionList) {
 

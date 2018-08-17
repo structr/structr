@@ -1318,7 +1318,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	@Override
-	public void afterCreation(SecurityContext securityContext) {
+	public void afterCreation(SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override
