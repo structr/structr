@@ -58,7 +58,10 @@ var _Dashboard = {
 
 		_Dashboard.appendAboutBox();
 
-		_Dashboard.appendMaintenanceBox();
+		if (me.isAdmin) {
+			_Dashboard.appendDeploymentBox();
+			_Dashboard.appendMaintenanceBox();
+		}
 
 		/*
 		var myPages = _Dashboard.appendBox('My Pages', 'my-pages');
@@ -306,6 +309,54 @@ var _Dashboard = {
 					});
 				});
 			});
+		});
+
+	},
+	appendDeploymentBox: function () {
+
+		var deploymentBox  = _Dashboard.appendBox('Deployment', 'deployment');
+		var container      = $('<div></div>').appendTo(deploymentBox);
+
+		container.append('<h3>Import application from repository</h3>');
+		container.append('<div style="padding-right: 12px; "><input type="text" id="deployment-source-input" style="width: 100%;" /> <button class="action" style="margin-top: 6px;" id="do-import">Import</button></div>');
+
+		container.append('<h3>Export application to repository</h3>');
+		container.append('<div style="padding-right: 12px; "><input type="text" id="deployment-target-input" style="width: 100%;" /> <button class="action" style="margin-top: 6px;" id="do-export">Export</button></div>');
+
+		$('button#do-import').on('click', function() {
+			var location = $('#deployment-source-input').val();
+			if (location && location.length) {
+				_Dashboard.deploy('import', location);
+			} else {
+				// show error message
+			}
+		});
+
+		$('button#do-export').on('click', function() {
+			var location = $('#deployment-target-input').val();
+			if (location && location.length) {
+				_Dashboard.deploy('export', location);
+			} else {
+				// show error message
+			}
+		});
+	},
+	deploy: function(mode, location) {
+
+		var data = {
+			mode: mode
+		};
+
+		if (mode === 'import') {
+			data['source'] = location;
+		} else if (mode === 'export') {
+			data['target'] = location;
+		}
+
+		$.ajax({
+			url: rootUrl + '/maintenance/deploy',
+			data: JSON.stringify(data),
+			method: 'POST'
 		});
 
 	}
