@@ -93,13 +93,13 @@ var _Files = {
 
 		if (fileTree) {
 			fileTree.css({
-				height: windowHeight - headerOffsetHeight + 7 + 'px'
+				height: windowHeight - headerOffsetHeight + 5 + 'px'
 			});
 		}
 
 		if (folderContents) {
 			folderContents.css({
-				height: windowHeight - headerOffsetHeight - 44 + 'px'
+				height: windowHeight - headerOffsetHeight - 46 + 'px'
 			});
 		}
 
