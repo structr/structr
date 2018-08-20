@@ -68,13 +68,13 @@ var _Contents = {
 
 		if (contentTree) {
 			contentTree.css({
-				height: windowHeight - headerOffsetHeight + 7 + 'px'
+				height: windowHeight - headerOffsetHeight + 5 + 'px'
 			});
 		}
 
 		if (contentsContents) {
 			contentsContents.css({
-				height: windowHeight - headerOffsetHeight - 41 + 'px'
+				height: windowHeight - headerOffsetHeight - 44 + 'px'
 			});
 		}
 

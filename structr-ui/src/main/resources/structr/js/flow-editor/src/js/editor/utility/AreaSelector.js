@@ -28,7 +28,8 @@ export class AreaSelector {
             return 'M'+[x,y]+' l'+[w,0]+' l'+[0,h]+' l'+[-w,0]+'z';
         };
 
-        const svg = d3.select('body').append('svg')
+        const rootElement = this._editor._rootElement.parentNode;
+        const svg = d3.select(rootElement).append('svg')
             .attr('class','area-selector')
             .attr('visibility', 'hidden');
 
@@ -79,6 +80,7 @@ export class AreaSelector {
         };
 
         svg.on('mousedown', function() {
+            console.log(this.parentNode);
             const subject = d3.select(window), parent = this.parentNode,
                 start = d3.mouse(parent);
             startSelection(start);
