@@ -296,8 +296,6 @@ img.disabled {
 #pages,
 #dataBinding,
 #localizations,
-#widgets,
-#remoteWidgets,
 #propertyDefinitions,
 #previews,
 #contents,
@@ -316,9 +314,17 @@ img.disabled {
 	padding: 6px;
 }
 
+#users .node.user, #groups .node.group {
+	margin-left: 0;
+}
+
 #widgets,
 #remoteWidgets {
 	width: 385px;
+}
+
+#remoteWidgetsFilter  {
+	margin: -6px 0 6px 0;
 }
 
 #widgetsSlideout button.add_widgets_icon {
@@ -447,11 +453,6 @@ img.disabled {
 	top: 271px;
 }
 
-#componentsArea .node {
-	width: calc(100% - 30px);
-}
-
-
 #elementsTab {
 	left: -74px;
 	width: 108px;
@@ -536,7 +537,7 @@ img.disabled {
 	overflow-x: hidden;
 }
 
-.ver-scrollable > .node {
+.ver-scrollable > .node, #widgets > .node, #remoteWidgets > .node {
 	width: 360px;
 }
 
@@ -554,9 +555,11 @@ img.disabled {
 #widgetsSlideout #widgets, #widgetsSlideout #remoteWidgets {
 	min-height: 48px;
 	margin: 0 ! important;
-	padding: 0;
 }
 
+#widgetsSlideout {
+	padding: 0 0 0 12px;
+}
 
 #palette .elementGroup {
 	float: left;
@@ -950,12 +953,6 @@ span.id {
 	cursor: pointer;
 }
 
-.page, .widget, .user, .group, .folder, .file, .container, .item, #images .image, .resourceAccess,
-.ver-scrollable > .node {
-	margin: 4px 0 4px 24px;
-	padding-right: 4px;
-}
-
 .node.sub {
 	margin-left: 16px ! important;
 }
@@ -1168,17 +1165,21 @@ i.button {
 	border: 1px solid rgba(0,0,0,.125);
 }
 
-#pages .node {
+.slideOut .node {
 	border: none;
 	padding: 2px 0px 2px 4px;
 	margin: 0 0 0 11px;
-	
 }
 
-#pages .node.page {
+.slideOut .node.page {
 	border: none;
 	padding: 2px 0px 2px 12px;
 	margin: 0 0 0 11px;
+}
+
+.slideOut .node.widget {
+	margin-left: 0;
+	padding-left: 0;
 }
 
 #pages .node.nodeHover {
@@ -2634,7 +2635,7 @@ table.push {
  */
 
 #usersAndGroups, #resourceAccess {
-	height: 100%;
+	height: calc(100% + 6px);
 }
 
 #usersAndGroups #users, #usersAndGroups #groups {

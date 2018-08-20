@@ -49,13 +49,13 @@ var _Code = {
 
 		if (codeTree) {
 			codeTree.css({
-				height: windowHeight - headerOffsetHeight + 7 + 'px'
+				height: windowHeight - headerOffsetHeight + 5 + 'px'
 			});
 		}
 
 		if (codeContents) {
 			codeContents.css({
-				height: windowHeight - headerOffsetHeight - 44 + 'px'
+				height: windowHeight - headerOffsetHeight - 46 + 'px'
 			});
 		}
 
