@@ -94,7 +94,7 @@
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start.bat</source>
+			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start.cmd</source>
 			<outputDirectory>/bin</outputDirectory>
 		</file>
 		<file>

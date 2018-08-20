@@ -127,6 +127,8 @@ public class FunctionPropertyTest extends StructrRestTest {
 
 	private void testSearchWithType(final String typeName, final String readFunction, final Object value) {
 
+		try { Thread.sleep(1000); } catch (Throwable t) {}
+
 		// schema setup
 		try (final Tx tx = app.tx()) {
 

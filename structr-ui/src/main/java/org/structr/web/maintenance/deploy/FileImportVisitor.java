@@ -164,6 +164,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			final Folder existingFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "path"), path).getFirst();
 			if (existingFolder != null) {
+
 				this.folderCache.put(path, existingFolder);
 			}
 
@@ -173,7 +174,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private void createFolder(final Path folderObj) {
 
-		final String folderPath = "/" + basePath.relativize(folderObj).toString();
+		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -183,7 +184,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (!basePath.equals(folderObj.getParent())) {
 
-					final String parentPath = "/" + basePath.relativize(folderObj.getParent()).toString();
+					final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
 					folderProperties.put(StructrApp.key(Folder.class, "parent"), getExistingFolder(parentPath));
 				}
 
@@ -211,7 +212,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
-			final String fullPath = "/" + basePath.relativize(path).toString();
+			final String fullPath            = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final PropertyMap fileProperties = getPropertiesForFileOrFolder(fullPath);
 
 			if (fileProperties == null) {
@@ -225,7 +226,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				Folder parent = null;
 
 				if (!basePath.equals(path.getParent())) {
-					final String parentPath  = "/" + basePath.relativize(path.getParent()).toString();
+					final String parentPath  = harmonizeFileSeparators("/", basePath.relativize(path.getParent()).toString());
 					parent = getExistingFolder(parentPath);
 				}
 
@@ -346,5 +347,24 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		return PropertyMap.inputTypeToJavaType(SecurityContext.getSuperUserInstance(), StructrApp.getConfiguration().getNodeEntityClass((String)data.get("type")), data);
 
+	}
+
+	private String harmonizeFileSeparators(final String... sources) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (final String src : sources) {
+			buf.append(src);
+		}
+
+		int pos = buf.indexOf("\\");
+
+		while (pos >= 0) {
+
+			buf.replace(pos, pos+1, "/");
+			pos = buf.indexOf("\\");
+		}
+
+		return buf.toString();
 	}
 }
