@@ -472,8 +472,6 @@ var _Entities = {
 
 				} else {
 
-					views = views.concat(['in', 'out']);
-
 					if (entity.isDOMNode && !entity.isContent) {
 						views.unshift('_html_');
 						if (Structr.isModuleActive(_Pages)) {
@@ -483,8 +481,6 @@ var _Entities = {
 
 					tabTexts._html_ = 'HTML Attributes';
 					tabTexts.ui = 'Node Properties';
-					tabTexts['in'] = 'Incoming Relationships';
-					tabTexts.out = 'Outgoing Relationships';
 
 					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
 
@@ -685,13 +681,6 @@ var _Entities = {
 				} else if (key !== 'id') {
 					propsTable.append('<tr class="hidden"><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td>' + _Entities.getNullIconForKey(key) + '</td></tr>');
 				}
-
-			} else if (view === 'in' || view === 'out') {
-				if (key === 'id') {
-					// set ID to rel ID
-					id = res[key];
-				}
-				propsTable.append('<tr><td class="key">' + key + '</td><td rel_id="' + id + '" class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td></tr>');
 
 			} else {
 
