@@ -1,7 +1,8 @@
 export class ResultPanel {
 
-    constructor(result) {
+    constructor(result, editor) {
         this._result = result;
+        this._editor = editor;
         const formattedResult = JSON.stringify(this._result, null, 2);
         // Check for existing layout modal to hijack before creating a new one
         let container = document.body.querySelector("div#executionResult");
@@ -41,7 +42,7 @@ export class ResultPanel {
             container.remove();
         });
 
-        document.body.append(container);
+        this._editor._rootElement.parentNode.prepend(container);
 
     }
 

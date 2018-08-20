@@ -673,11 +673,10 @@ span.close:focus {
 #executionResult {
 	position: absolute;
 	background-color: rgba(54, 54, 54, 0.3);
-	left: calc(80% - 20px);
-	width: 20%;
-	z-index: 2;
+	width: 30%;
+	right: 0;
+	z-index: 9999;
 	padding: 10px;
-	top: 60px ! important;
 	height: auto ! important;
 }
 #executionResult h4 {
@@ -685,6 +684,7 @@ span.close:focus {
 	color: white;
 }
 #executionResult pre {
+	z-index: auto;
 	border-radius: 5px;
 	border: 1px solid rgba(0,0,0,.125) ! important;
 	color: #222;
@@ -693,13 +693,14 @@ span.close:focus {
 	overflow: auto;
 	font-size: 1em ! important;
 	margin-top: 27px;
+	line-height: 1.0;
 }
 #executionResult span.close {
+	right: 10px;
 	color: #fff;
 	margin-top: -22px;
 	display: inline-block;
     position: absolute;
-    right: 69px;
 }
 .area-selector {
 	position: absolute;
