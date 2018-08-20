@@ -17,7 +17,7 @@ export class ResultPanel {
     static removePanel() {
         let panel = document.body.querySelector("div#executionResult");
         if (panel !== undefined && panel !== null) {
-            document.body.removeChild(panel);
+            panel.parentNode.removeChild(panel);
         }
     }
 

@@ -29,7 +29,7 @@ import org.structr.flow.impl.rels.FlowContainerBaseNode;
  */
 public abstract class FlowBaseNode extends AbstractNode {
 
-	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class);
+	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
 
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, flowContainer);
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     flowContainer);

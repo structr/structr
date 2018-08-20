@@ -70,7 +70,8 @@ public abstract class FlowDeploymentHandler {
 			FlowConstant.class,
 			FlowContainerConfiguration.class,
 			FlowCollectionDataSource.class,
-			FlowExceptionHandler.class
+			FlowExceptionHandler.class,
+			FlowTypeQuery.class
 	};
 
 	private static final Class[] relsToExport = {

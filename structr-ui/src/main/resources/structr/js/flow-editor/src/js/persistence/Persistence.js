@@ -24,7 +24,7 @@ export class Persistence {
         return undefined;
     }
 
-    async getNodesByClass(model) {
+    async getNodesByClass(model, view) {
 
         let object;
 
@@ -34,12 +34,12 @@ export class Persistence {
             object = model;
         }
 
-        let result = await this._structrRest.get(object.type);
+        let result = await this._structrRest.get(object.type, view);
         return this._extractRestResult(result, object);
 
     }
 
-    async getNodesById(id, model) {
+    async getNodesById(id, model, view) {
 
         let object;
 
@@ -49,11 +49,11 @@ export class Persistence {
             object = model;
         }
 
-        let result = await this._structrRest.getById(object.type, id);
+        let result = await this._structrRest.getById(object.type, id, view);
         return this._extractRestResult(result, object);
     }
 
-    async getNodesByName(name, model) {
+    async getNodesByName(name, model, view) {
 
         let object;
 
@@ -63,7 +63,7 @@ export class Persistence {
             object = model;
         }
 
-        let result = await this._structrRest.getByName(object.type, name);
+        let result = await this._structrRest.getByName(object.type, name, view);
         return this._extractRestResult(result, object);
     }
 

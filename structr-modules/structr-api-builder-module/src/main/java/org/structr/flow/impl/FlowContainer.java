@@ -43,7 +43,7 @@ import org.structr.module.api.DeployableEntity;
 public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	public static final Property<List<FlowBaseNode>> flowNodes = new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
-	public static final Property<FlowNode> startNode           = new EndNode<>("startNode", FlowContainerFlowNode.class);
+	public static final Property<FlowNode> startNode           = new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
 	public static final Property<String> name                  = new StringProperty("name").indexed().unique().notNull();
 
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode);
