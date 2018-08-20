@@ -409,7 +409,7 @@ export class FlowEditor {
         let rest = new Rest();
 
         rest.post('/structr/rest/FlowContainer/' + this._flowContainer.id + '/evaluate', {}, true).then((res) => {
-            new ResultPanel(res);
+            new ResultPanel(res, this);
         });
 
     }

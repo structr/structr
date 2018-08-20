@@ -628,6 +628,7 @@ span.close:focus {
   background-color: white;
   padding: 5px;
   overflow: auto;
+  line-height: 1;
 }
 
 .area-selector {
