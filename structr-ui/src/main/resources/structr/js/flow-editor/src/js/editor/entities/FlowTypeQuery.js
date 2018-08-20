@@ -26,25 +26,49 @@ export class FlowTypeQuery extends FlowNode {
                 }
 
                 // Add select box and render all SchemaTypes as dataType options
-                let dataType = new D3NE.Control('<select class="control-select"><option disabled selected>-</option></select>', (element, control) =>{
+                let dataType = new D3NE.Control('<select class="control-select"></select>', (element, control) =>{
 
                     let persistence = new Persistence();
                     persistence.getNodesByClass({type:"SchemaNode"},"ui").then(result => {
 
-                        const filteredResults = result.filter( el => {
-                           return el.category !== 'html';
-                        });
+                        if (result && result.length > 0) {
 
-                        for (let schemaNode of filteredResults  ) {
-                            let option = document.createElement("option");
-                            option.text = schemaNode.name;
-                            option.value = schemaNode.name;
+                            let customTypes = document.createElement("optgroup");
+                            customTypes.setAttribute("label", "Custom types");
+                            let builtinTypes = document.createElement("optgroup");
+                            builtinTypes.setAttribute("label", "Built-In Types");
 
-                            if (scopedDbNode.dataType !== undefined && scopedDbNode.dataType !== null && scopedDbNode.dataType === schemaNode.name) {
-                                option.selected = true;
+                            const filteredResults = result.filter(el => {
+                                return el.category !== 'html';
+                            });
+
+                            for (let schemaNode of filteredResults) {
+                                let option = document.createElement("option");
+                                option.text = schemaNode.name;
+                                option.value = schemaNode.name;
+
+                                if (scopedDbNode.dataType !== undefined && scopedDbNode.dataType !== null && scopedDbNode.dataType === schemaNode.name) {
+                                    option.selected = true;
+                                }
+
+                                if (schemaNode.isBuiltinType) {
+                                    builtinTypes.append(option);
+                                } else {
+                                    customTypes.append(option);
+                                }
+
                             }
 
+                            element.add(customTypes);
+                            element.add(builtinTypes);
+
+                        } else {
+
+                            let option = document.createElement("option");
+                            option.selected = true;
+                            option.disabled = true;
                             element.add(option);
+                            
                         }
 
                     });
