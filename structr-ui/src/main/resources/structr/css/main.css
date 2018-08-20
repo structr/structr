@@ -1395,6 +1395,10 @@ button.action:hover {
 	min-width: 200px;
 }
 
+.schema-props td label {
+	min-width: 100px;
+}
+
 #confirmationText, #infoText, #dialogBox .dialogText {
 	margin-bottom: 12px;
 	vertical-align: top;

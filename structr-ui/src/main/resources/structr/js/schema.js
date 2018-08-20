@@ -132,7 +132,19 @@ var _Schema = {
 		+ '<option value="Thumbnail">Thumbnail</option>'
 		+ '<option value="IdNotion" data-protected="true" disabled>IdNotion</option>'
 		+ '<option value="Custom" data-protected="true" disabled>Custom</option>'
-		+ '<option value="Password" data-protected="true" disabled>Password</option>',
+		+ '<option value="Password" data-protected="true" disabled>Password</option>'
+		+ '</select>',
+	typeHintOptions: '<select class="type-hint">'
+		+ '<optgroup label="Type Hint">'
+		+ '<option value="null">-</option>'
+		+ '<option>Boolean</option>'
+		+ '<option>String</option>'
+		+ '<option>Int</option>'
+		+ '<option>Long</option>'
+		+ '<option>Double</option>'
+		+ '<option>Date</option>'
+		+ '</optgroup>'
+		+ '</select>',
 	currentNodeDialogId:null,
 	reload: function(callback) {
 
@@ -2013,12 +2025,6 @@ var _Schema = {
 			}).prop('disabled', null).val(property.contentType);
 		}
 
-		if (property.propertyType === 'Function' && !property.isBuiltinProperty) {
-			if (!$('button.edit-read-function', typeField.parent()).length) {
-				$('.' + key + ' .property-format', el).replaceWith('<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button><input id="caching-enabled-checkbox" class="caching-enabled" type="checkbox"><label for="caching-enabled-checkbox">Cache</label>');
-			}
-		}
-
 		if (property.propertyType && property.propertyType !== '') {
 			$('.' + key + ' .property-name', el).on('change', function() {
 				_Schema.savePropertyDefinition(property);
@@ -2028,10 +2034,13 @@ var _Schema = {
 			}).prop('disabled', protected).val(property.dbName);
 		}
 
-
 		$('.' + key + ' .caching-enabled', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
-		}).prop('disabled', protected).val(property.propertyType);
+		}).prop('disabled', protected).val(property.isCachingEnabled);
+
+		$('.' + key + ' .type-hint', el).on('change', function() {
+			_Schema.savePropertyDefinition(property);
+		}).prop('disabled', protected).val("" + property.typeHint);
 
 		$('.' + key + ' .property-type', el).on('change', function() {
 			_Schema.savePropertyDefinition(property);
@@ -2086,6 +2095,8 @@ var _Schema = {
 		$('.' + key + ' .property-type', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .content-type', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .property-format', el).off('change').prop('disabled', 'disabled');
+		$('.' + key + ' .caching-enabled', el).off('change').prop('disabled', 'disabled');
+		$('.' + key + ' .type-hint', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .not-null', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .compound', el).off('change').prop('disabled', 'disabled');
 		$('.' + key + ' .unique', el).off('change').prop('disabled', 'disabled');
@@ -2336,8 +2347,13 @@ var _Schema = {
 			unique:       			$('.' + property.name + ' .unique').is(':checked'),
 			indexed:      			$('.' + property.name + ' .indexed').is(':checked'),
 			defaultValue: 			$('.' + property.name + ' .property-default').val(),
-            isCachingEnabled:      	$('.' + property.name + ' .caching-enabled').is(':checked')
+            isCachingEnabled:      	$('.' + property.name + ' .caching-enabled').is(':checked'),
+			typeHint:				$('.' + property.name + ' .type-hint').val()
 		};
+
+		if (obj.typeHint === "null") {
+			obj.typeHint = null;
+		}
 
 		if (obj.name && obj.name.length && obj.propertyType) {
 
@@ -2368,6 +2384,7 @@ var _Schema = {
 				property.indexed = obj.indexed;
 				property.defaultValue = obj.defaultValue;
 				property.isCachingEnabled = obj.isCachingEnabled;
+				property.typeHint = obj.typeHint;
 
 				_Schema.bindEvents(property);
 
