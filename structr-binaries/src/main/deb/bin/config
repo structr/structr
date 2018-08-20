@@ -3,8 +3,8 @@
 # configuration options for FINAL_NAME
 #
 
-if [ -f ./memory.config ]; then
-	MEMORY_OPTS="$(cat ./memory.config)"
+if [ -f /usr/lib/structr/bin/memory.config ]; then
+	MEMORY_OPTS="$(cat /usr/lib/structr/bin/memory.config)"
 else
 	MEMORY_OPTS="-Xms4g -Xmx4g"
 fi
