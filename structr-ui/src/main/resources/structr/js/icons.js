@@ -160,7 +160,7 @@ var _Icons = {
 			case _Icons.accept_icon:                  return 'sprite-accept';
 			case _Icons.push_file_icon:               return 'sprite-page_white_get';
 			case _Icons.pull_file_icon:               return 'sprite-page_white_put';
-			case _Icons.exec_icon:                    return 'sprite-control_play_blue';
+			case _Icons.exec_blue_icon:               return 'sprite-control_play_blue';
 			case _Icons.exec_icon:                    return 'sprite-control_play';
 			case _Icons.arrow_undo_icon:              return 'sprite-arrow_undo';
 			case _Icons.information_icon:             return 'sprite-information';
