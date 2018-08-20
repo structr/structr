@@ -31,6 +31,7 @@ import {LayoutModal} from "./utility/LayoutModal.js";
 import {FlowExceptionHandler} from "./entities/FlowExceptionHandler.js";
 import {ResultPanel} from "./utility/ResultPanel.js";
 import {AreaSelector} from "./utility/AreaSelector.js";
+import {FlowTypeQuery} from "./entities/FlowTypeQuery.js";
 
 
 
@@ -326,7 +327,8 @@ export class FlowEditor {
             new FlowConstant(),
             new FlowGetProperty(),
             new FlowCollectionDataSource(),
-            new FlowExceptionHandler()
+            new FlowExceptionHandler(),
+            new FlowTypeQuery()
         ];
     }
 
@@ -379,7 +381,8 @@ export class FlowEditor {
                 'ParameterInput' : self._getNodeCreationFunction("FlowParameterInput"),
                 'ParameterDataSource' : self._getNodeCreationFunction("FlowParameterDataSource"),
                 'Store' : self._getNodeCreationFunction("FlowStore"),
-                'GetProperty': self._getNodeCreationFunction("FlowGetProperty")
+                'GetProperty': self._getNodeCreationFunction("FlowGetProperty"),
+                'TypeQuery': self._getNodeCreationFunction("FlowTypeQuery")
             },
             'Logic Nodes': {
                 'Decision' : self._getNodeCreationFunction("FlowDecision"),
@@ -534,6 +537,9 @@ export class FlowEditor {
                 break;
             case 'FlowExceptionHandler':
                 fNode = new FlowExceptionHandler(node, this);
+                break;
+            case 'FlowTypeQuery':
+                fNode = new FlowTypeQuery(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);
