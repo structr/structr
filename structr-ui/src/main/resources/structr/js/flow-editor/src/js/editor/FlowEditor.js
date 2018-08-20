@@ -601,7 +601,6 @@ export class FlowEditor {
         for (let node of this.flowNodes) {
 
             let nodePos = node.editorNode.position;
-            console.log(nodePos);
 
             if (
                 FlowEditor._rectContainsRect({
