@@ -68,7 +68,7 @@ export class FlowTypeQuery extends FlowNode {
                             option.selected = true;
                             option.disabled = true;
                             element.add(option);
-                            
+
                         }
 
                     });

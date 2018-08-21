@@ -57,7 +57,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 			Class clazz = StructrApp.getConfiguration().getNodeEntityClass(getProperty(dataType));
 
-			return app.nodeQuery(clazz);
+			return app.nodeQuery(clazz).getAsList();
 
 		} catch (FrameworkException ex) {
 
