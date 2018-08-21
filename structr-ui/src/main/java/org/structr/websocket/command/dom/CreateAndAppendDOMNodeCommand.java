@@ -29,6 +29,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMElement;
@@ -100,7 +101,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 				nodeData.remove("tagName");
 
-				try {
+				try (final Tx tx = StructrApp.getInstance(getWebSocket().getSecurityContext()).tx(true, true, true)) {
 
 					DOMNode newNode;
 
@@ -131,7 +132,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 							try {
 
 								final Class entityClass = StructrApp.getConfiguration().getNodeEntityClass("DOMElement");
-								
+
 								// experimental: create DOM element with literal tag
 								newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create(entityClass,
 									new NodeAttribute(StructrApp.key(DOMElement.class, "tag"),          "custom"),
@@ -193,7 +194,6 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 								}
 							}
-
 						}
 
 						PropertyMap visibilityFlags = null;
@@ -210,7 +210,6 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 								logger.warn("Unable to inherit visibility flags for node {} from parent node {}", newNode, parentNode );
 
 							}
-
 						}
 
 						// create a child text node if content is given
@@ -229,12 +228,15 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 									logger.warn("Unable to inherit visibility flags for node {} from parent node {}", childNode, newNode );
 
 								}
-
 							}
-
 						}
-
 					}
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
 
 				} catch (DOMException dex) {
 
@@ -259,4 +261,8 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		return "CREATE_AND_APPEND_DOM_NODE";
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 }
