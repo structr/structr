@@ -61,7 +61,7 @@ public class SnapshotsCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);

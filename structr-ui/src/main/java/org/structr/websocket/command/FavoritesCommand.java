@@ -48,7 +48,7 @@ public class FavoritesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final Map<String, Object> data        = webSocketData.getNodeData();
 		final String mode                     = (String)data.get("mode");

@@ -48,7 +48,7 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		try {
 

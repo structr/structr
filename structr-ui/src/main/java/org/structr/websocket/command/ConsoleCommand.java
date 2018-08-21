@@ -56,13 +56,15 @@ public class ConsoleCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
+		setDoTransactionNotifications(false);
+
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
 
 		final String  line       = (String) webSocketData.getNodeData().get("line");
 		final String  mode       = (String) webSocketData.getNodeData().get("mode");
 		final Boolean completion = (Boolean) webSocketData.getNodeData().get("completion");
-		
+
 		final Console console;
 		if (StringUtils.isNotBlank(mode)) {
 			console    = getWebSocket().getConsole(ConsoleMode.valueOf(mode));

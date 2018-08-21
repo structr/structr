@@ -48,7 +48,7 @@ public class GetPropertiesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		final String properties                = (String) webSocketData.getNodeData().get("properties");

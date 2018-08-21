@@ -555,15 +555,14 @@ public class StructrWebSocket implements WebSocketListener {
 				return this.console;
 
 			}
-
 		}
 
 		return null;
-
 	}
 
 	//~--- set methods ----------------------------------------------------
 	public void setAuthenticated(final String sessionId, final Principal user) {
+
 		securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
 		securityContext.setSessionId(sessionId);
 

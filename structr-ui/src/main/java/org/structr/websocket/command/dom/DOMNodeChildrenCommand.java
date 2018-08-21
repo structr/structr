@@ -44,7 +44,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final DOMNode node = getDOMNode(webSocketData.getId());
 

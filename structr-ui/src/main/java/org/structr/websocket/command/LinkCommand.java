@@ -65,9 +65,6 @@ public class LinkCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-
 		return "LINK";
-
 	}
-
 }

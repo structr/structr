@@ -44,7 +44,7 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final Map<String, Object> nodeData = webSocketData.getNodeData();
 		final String localStorageString = (String) nodeData.get("localStorageString");

@@ -329,7 +329,7 @@ public abstract class AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		if (securityContext != null) {
-			securityContext.setDoTransactionNotifications(true);
+			securityContext.setDoTransactionNotifications(notify);
 		}
 
 	}

@@ -57,7 +57,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final int pageSize = webSocketData.getPageSize();
@@ -105,15 +105,15 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 		final String sortOrder = webSocketData.getSortOrder();
 		final String sortKey   = webSocketData.getSortKey();
-		
+
 		Query query;
 		if (sortKey != null) {
-			
+
 			final PropertyKey sortProperty = StructrApp.key(DOMNode.class, sortKey);
 			query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden().sort(sortProperty).order("desc".equals(sortOrder));
-			
+
 		} else {
-			
+
 			query = StructrApp.getInstance(securityContext).nodeQuery().includeDeletedAndHidden();
 		}
 

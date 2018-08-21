@@ -52,7 +52,7 @@ public class GetByTypeCommand extends AbstractCommand {
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
-		setDoTransactionNotifications(true);
+		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		final String rawType                   = (String) webSocketData.getNodeData().get("type");
