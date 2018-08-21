@@ -123,6 +123,9 @@ public class Console {
 
 		} else {
 
+			final boolean notificationsEnabled = actionContext.getSecurityContext().doTransactionNotifications();
+			actionContext.getSecurityContext().setDoTransactionNotifications(false);
+
 			switch (mode) {
 
 				case Cypher:
@@ -145,6 +148,8 @@ public class Console {
 					RestCommand.run(this, line, output);
 					break;
 			}
+
+			actionContext.getSecurityContext().setDoTransactionNotifications(notificationsEnabled);
 		}
 	}
 
