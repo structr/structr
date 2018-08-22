@@ -18,11 +18,16 @@
  */
 package org.structr.flow.impl;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.EndNodes;
@@ -42,9 +47,10 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 	public static final Property<List<FlowBaseNode>> dataTarget				= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> dataType							= new StringProperty("dataType");
+	public static final Property<String> query								= new StringProperty("query");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, dataTarget, dataType);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, dataTarget, dataType);
+	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, dataTarget, dataType, query);
+	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, dataTarget, dataType, query);
 
 
 	@Override
@@ -54,10 +60,22 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 		try (Tx tx = app.tx()) {
 
-
 			Class clazz = StructrApp.getConfiguration().getNodeEntityClass(getProperty(dataType));
 
-			return app.nodeQuery(clazz).getAsList();
+			JSONObject jsonObject = null;
+
+			final String queryString = getProperty(query);
+			if (queryString != null) {
+				jsonObject = new JSONObject(queryString);
+			}
+
+			Query query = app.nodeQuery(clazz);
+
+			if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
+				resolveQueryObject(jsonObject, query);
+			}
+
+			return query.getAsList();
 
 		} catch (FrameworkException ex) {
 
@@ -74,8 +92,58 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
 		result.put("dataType", getProperty(dataType));
+		result.put("query", getProperty(query));
 
 		return result;
+	}
+
+	private Query resolveQueryObject(final JSONObject object, final Query query) {
+		final String type = object.getString("type");
+		switch(type) {
+			case "group":
+				return resolveGroup(object, query);
+			case "operation":
+				return resolveOperation(object, query);
+		}
+		return query;
+	}
+
+	private Query resolveGroup(final JSONObject object, final Query query) {
+		final String op = object.getString("op");
+		final JSONArray operations = object.getJSONArray("operations");
+
+		// Add group operator
+		switch (op) {
+			case "and":
+				query.and();
+				break;
+			case "or":
+				query.or();
+				break;
+		}
+
+		// Resolve nested elements
+		for (int i = 0; i < operations.length(); i++) {
+			resolveQueryObject(operations.getJSONObject(i), query);
+		}
+
+		return query;
+	}
+
+	private Query resolveOperation(final JSONObject object, final Query query) {
+		final String key = object.getString("key");
+		final String op = object.getString("op");
+		final String value = object.getString("value");
+
+		switch (op) {
+			case "eq":
+				query.and(key,value);
+				break;
+			case "neq":
+				query.not().and(key,value);
+				break;
+		}
+		return query;
 	}
 
 }

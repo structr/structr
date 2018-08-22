@@ -430,3 +430,24 @@ span.close
     stroke-opacity: 0.7
     stroke-width: 2
     stroke-dasharray: 5, 5
+
+// query builder
+.query-operation
+  background: white
+  border: 1px solid black
+  border-radius: 5px
+.query-group
+  border: 1px solid black
+  border-radius: 5px
+  padding: 5px
+  .query-group-button-and, .query-group-button-or
+    margin-left: 0
+    margin-right: 0
+    background-color: white
+    &.active
+      background-color: green
+    .query-group
+      background-color: darken(#f1f1f1, 20%)
+  .query-group-operations>::after,.query-group-operations>::before
+    left: -25px
+    width: 25px

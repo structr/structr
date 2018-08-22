@@ -718,3 +718,24 @@ span.close:focus {
 	stroke-width: 2;
 	stroke-dasharray: 5, 5;
 }
+
+.query-operation {
+	background: white;
+	border: 1px solid black;
+	border-radius: 5px; }
+
+.query-group {
+	border: 1px solid black;
+	border-radius: 5px;
+	padding: 5px; }
+.query-group .query-group-button-and, .query-group .query-group-button-or {
+	margin-left: 0;
+	margin-right: 0;
+	background-color: white; }
+.query-group .query-group-button-and.active, .query-group .query-group-button-or.active {
+	background-color: green; }
+.query-group .query-group-button-and .query-group, .query-group .query-group-button-or .query-group {
+	background-color: #bebebe; }
+.query-group .query-group-operations > ::after, .query-group .query-group-operations > ::before {
+	left: -25px;
+	width: 25px; }

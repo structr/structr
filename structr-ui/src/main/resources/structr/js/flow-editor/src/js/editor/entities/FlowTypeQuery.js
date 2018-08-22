@@ -4,6 +4,9 @@ import {FlowNode} from "./FlowNode.js";
 import {FlowSockets} from "../FlowSockets.js";
 import {Persistence} from "../../persistence/Persistence.js";
 import {FlowContainer} from "./FlowContainer.js";
+import {QueryOperation} from "./components/QueryBuilder/QueryOperation.js";
+import {QueryGroup} from "./components/QueryBuilder/QueryGroup.js";
+import {QueryBuilder} from "./components/QueryBuilder/QueryBuilder.js";
 
 export class FlowTypeQuery extends FlowNode {
 
@@ -12,6 +15,7 @@ export class FlowTypeQuery extends FlowNode {
     }
 
     getComponent() {
+
         let scopedDbNode = this.dbNode;
         return new D3NE.Component('TypeQuery', {
             template: FlowTypeQuery._nodeTemplate(),
@@ -85,9 +89,32 @@ export class FlowTypeQuery extends FlowNode {
                     });
                 });
 
+                let queryBuilder = new D3NE.Control('<div class="query-builder-container"></div>', (element, control) => {
+                    const builder = new QueryBuilder();
+
+                    const queryString = node.data['dbNode'].query;
+
+                    if (queryString !== undefined && queryString !== "") {
+                        builder.loadConfiguration(queryString);
+                    }
+
+                    element.appendChild(builder.getDOMNodes());
+
+                    element.addEventListener("mousedown", (event)=>{event.stopPropagation();});
+                    builder.getDOMNodes().addEventListener("query.builder.change", (event)=>{
+                        const builder = event.detail;
+                        const queryString = JSON.stringify(builder.interpret());
+                        control.putData('query', queryString);
+                        node.data['dbNode'].query = queryString;
+                    });
+                });
+
+
+
                 return node
                     .addOutput(dataTarget)
-                    .addControl(dataType);
+                    .addControl(dataType)
+                    .addControl(queryBuilder);
             },
             worker(node, inputs, outputs) {
             }
@@ -116,15 +143,15 @@ export class FlowTypeQuery extends FlowNode {
                         </div>
                     </column>
                 </content>
-                    <!-- Controls-->
-                    <content al-repeat="control in node.controls" style="display:inline">
-                        <column>
-                            <label class="control-title" for="{{control.id}}">{{control.name}}</label>
-                        </column>
-                        <column>
-                            <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
-                        </column>
-                    </content>
+                <!-- Controls-->
+                <content al-repeat="control in node.controls">
+                    <column>
+                        <label class="control-title" for="{{control.id}}">{{control.name}}</label>
+                    </column>
+                    <column>
+                        <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
+                    </column>
+                </content>
             </div>
         `;
     }
