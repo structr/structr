@@ -339,6 +339,11 @@ public class Services implements StructrServices {
 
 	public void shutdown() {
 
+		if (shuttingDown || !initializationDone) {
+
+			return;
+		}
+
 		shuttingDown = true;
 
 		if (!shutdownDone) {

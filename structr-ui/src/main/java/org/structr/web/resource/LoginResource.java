@@ -18,8 +18,9 @@
  */
 package org.structr.web.resource;
 
-import java.nio.charset.Charset;
+import java.io.UnsupportedEncodingException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+import org.structr.web.function.BarcodeFunction;
 
 /**
  * Resource that handles user logins.
@@ -145,7 +147,18 @@ public class LoginResource extends Resource {
 
 			RestMethodResult methodResult = new RestMethodResult(204);
 			methodResult.addHeader("forceRegistrationPage", Settings.TwoFactorForceRegistrationPage.getValue());
-			methodResult.addHeader("qrdata",                Base64.getUrlEncoder().encodeToString(Principal.getTwoFactorUrl(user).getBytes(Charset.forName("ISO-8859-1"))));
+
+			try {
+
+				final Map<String, Object> hints = new HashMap();
+				hints.put("MARGIN", 0);
+				hints.put("ERROR_CORRECTION", "M");
+
+				methodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
+
+			} catch (UnsupportedEncodingException uee) {
+				logger.warn("Charset ISO-8859-1 not supported!?", uee);
+			}
 
 			securityContext.getAuthenticator().doLogout(securityContext.getRequest());
 
