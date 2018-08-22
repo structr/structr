@@ -1,0 +1,53 @@
+================================================================================
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+================================================================================
+
+                   Apache Commons Daemon 1.1
+                         Release Notes
+
+This document contains the release notes for this version of the
+Apache Commons Daemon package, and highlights new features compared
+to the 1.0 releases.
+
+
+New Features
+------------
+
+ - The minimum required Java version has been increased from Java
+   1.3 to Java 6
+ - Explicit support has been added for Java 9
+ - The minimum target platform for Windows has been increased to
+   Windows XP
+
+
+Bug Fixes
+---------
+
+ - Please see the change log
+   http://commons.apache.org/proper/commons-daemon/changes-report.html
+
+Feedback
+--------
+Open source works best when you give feedback:
+http://commons.apache.org/daemon/
+
+Please direct all bug reports to JIRA
+https://issues.apache.org/jira/browse/DAEMON
+
+Or subscribe to the commons-user mailing list (prefix emails by [daemon])
+http://commons.apache.org/mail-lists.html
+
+The Apache Commons Daemon Team
