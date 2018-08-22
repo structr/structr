@@ -27,16 +27,16 @@ import org.structr.core.Services;
  * 
  *
  */
-public class Server {
+public class Shutdown {
 
-	private static final Logger logger = LoggerFactory.getLogger(Server.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(Shutdown.class.getName());
 	
 	public static void main(String[] args) {
 		
-		logger.info("Starting Structr..");
+		logger.info("Stopping Structr..");
 		
 		// start service layer using default configuration
 		// augmented by local structr.conf
-		Services.getInstance();
+		Services.getInstance().shutdown();
 	}
 }

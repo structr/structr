@@ -42,8 +42,17 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>src/main/resources/logs</directory>
+			<directory>${project.parent.basedir}/structr-ui/src/main/resources/logs</directory>
 			<outputDirectory>/logs</outputDirectory>
+			<directoryMode>0755</directoryMode>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>**</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>${project.parent.basedir}/structr-ui/src/main/resources/bin</directory>
+			<outputDirectory>/bin</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
 			<includes>
@@ -55,59 +64,6 @@
 		<file>
 			<source>${project.parent.basedir}/structr-ui/seed.zip</source>
 			<outputDirectory>/</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/add_mail_templates.sh</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/config</source>
-			<outputDirectory>/bin</outputDirectory>
-			<filtered>true</filtered>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/cypher</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/delete</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/env</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/get</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/post</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/put</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start.cmd</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/stop</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/su</source>
-			<outputDirectory>/bin</outputDirectory>
-		</file>
-		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/docker.sh</source>
-			<outputDirectory>/bin</outputDirectory>
 		</file>
 	</files>
 </assembly>

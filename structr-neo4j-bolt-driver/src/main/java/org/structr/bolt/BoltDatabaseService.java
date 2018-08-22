@@ -130,11 +130,10 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 			final GraphDatabaseBuilder builder = new GraphDatabaseFactory()
 				.newEmbeddedDatabaseBuilder(new File(databasePath))
-				.setConfig( GraphDatabaseSettings.allow_store_upgrade, "true")
-				.setConfig("dbms.allow_format_migration", "true")
+				.setConfig( GraphDatabaseSettings.allow_upgrade, "true")
 				.setConfig( bolt.type, "BOLT" )
 				.setConfig( bolt.enabled, "true" )
-				.setConfig( bolt.address, databaseServerUrl);
+				.setConfig( bolt.listen_address, databaseServerUrl);
 
 			if (confFile.exists()) {
 				builder.loadPropertiesFromFile(confPath);
