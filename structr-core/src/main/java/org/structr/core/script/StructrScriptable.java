@@ -280,7 +280,7 @@ public class StructrScriptable extends ScriptableObject {
 					try {
 
 						// replace security context with super user context
-						actionContext.setSecurityContext(SecurityContext.getSuperUserInstance());
+						actionContext.setSecurityContext(SecurityContext.getSuperUserInstance(securityContext.getRequest()));
 
 						if (parameters != null && parameters.length == 1) {
 
