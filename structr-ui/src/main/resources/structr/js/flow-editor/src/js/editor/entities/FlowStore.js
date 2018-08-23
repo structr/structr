@@ -71,6 +71,10 @@ export class FlowStore extends FlowNode {
                     control.id = "key";
                     control.name = "Key";
 
+                    element.addEventListener('mousedown', event => {
+                        event.stopPropagation();
+                    });
+
                     element.addEventListener('change', ()=>{
                         control.putData('key',element.value);
                         node.data['dbNode'].key = element.value;

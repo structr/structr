@@ -36,6 +36,10 @@ export class FlowDataSource extends FlowNode {
                         document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "DataSource"}}));
                     });
 
+                    element.addEventListener('mousedown', event => {
+                        event.stopPropagation();
+                    });
+
                     element.addEventListener('change', ()=>{
                         control.putData('query',element.value);
                         node.data['dbNode'].query = element.value;
