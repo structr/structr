@@ -17,8 +17,15 @@ export class QueryBuilder {
     }
 
     loadConfiguration(queryString) {
-        const queryObject = JSON.parse(queryString);
-        this.rootGroup.loadConfiguration(queryObject);
+        if (queryString !== undefined && queryString !== null) {
+            const queryObject = JSON.parse(queryString);
+            this.rootGroup.loadConfiguration(queryObject);
+        }
+    }
+
+    setQueryType(type) {
+        this.rootGroup.setQueryType(type);
+        this.getDOMNodes().dispatchEvent(new CustomEvent("query.builder.change", {detail: this}));
     }
 
     // ---------- Internal ----------

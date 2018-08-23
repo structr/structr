@@ -1,3 +1,7 @@
+import {Persistence} from "../../../../persistence/Persistence.js";
+import {Rest} from "../../../../rest/Rest.js";
+import {StructrRest} from "../../../../rest/StructrRest.js";
+
 export class QueryOperation {
 
     constructor() {
@@ -6,9 +10,10 @@ export class QueryOperation {
 
         this.model = new Proxy(
             {
-              key:"",
-              op:"eq",
-              value:""
+                key:"",
+                op:"eq",
+                value:"",
+                queryType: ""
             },
             QueryOperation._getProxyHandler(this)
         );
@@ -27,11 +32,21 @@ export class QueryOperation {
         return this.model;
     }
 
+    setQueryType(type) {
+        this.model.queryType = type;
+        this._loadKeyOptions();
+    }
+
     loadConfiguration(config) {
-        if(config !== undefined) {
+        if(config !== undefined && config !== undefined) {
             this.model.key = config.key;
             this.model.op = config.op;
             this.model.value = config.value;
+            this.model.queryType = config.queryType;
+
+            console.log(config.queryType);
+
+            this._loadKeyOptions();
         }
     }
 
@@ -40,7 +55,8 @@ export class QueryOperation {
             type: "operation",
             key: this.handles.key.value,
             op: this.handles.op.querySelector("option:checked").value,
-            value: this.handles.value.value
+            value: this.handles.value.value,
+            queryType: this.model.queryType
         }
     }
 
@@ -51,12 +67,44 @@ export class QueryOperation {
         const rootElement = html.body.firstChild;
 
         //Select configured operation
-        this.handles.key = rootElement.querySelector(".query-operation .query-key");
+        this.handles.key = rootElement.querySelector(".query-operation .query-key-select");
         this.handles.op = rootElement.querySelector(".query-operation .query-operation-select");
         this.handles.value = rootElement.querySelector(".query-operation .query-value");
         this.handles.buttonDelete = rootElement.querySelector(".query-operation-delete");
 
         return rootElement;
+    }
+
+    _loadKeyOptions(type) {
+        let queryType = undefined;
+        if (type !== undefined && type !== null && type.length > 0) {
+            queryType = type;
+        }
+
+        if (this.model.queryType !== undefined && this.model.queryType.length > 0) {
+            queryType = this.model.queryType;
+        }
+
+        if (queryType !== undefined) {
+            this.handles.key.remove(this.handles.key.childNodes);
+
+            const structrRest = new StructrRest();
+            structrRest.get("_schema/" + queryType).then((res) => {
+                const properties = res.result[0].views.ui;
+                for (let [key,prop] of Object.entries(properties)) {
+                    const option = document.createElement("option");
+                    option.value = prop.jsonName;
+                    option.text = prop.jsonName;
+
+                    if (prop.jsonName === this.model.key) {
+                        option.selected = true;
+                    }
+
+                    this.handles.key.appendChild(option);
+                }
+            });
+
+        }
     }
 
     _dispatchChangeEvent() {
@@ -66,7 +114,7 @@ export class QueryOperation {
     _bindEvents() {
         // Events
         this.handles.key.addEventListener("change", () => {
-            this.model.key = this.handles.key.value;
+            this.model.key = this.handles.key.querySelector("option:checked").value;
             this._dispatchChangeEvent();
         });
 
@@ -89,7 +137,7 @@ export class QueryOperation {
     _getTemplate() {
         return `
             <div class="query-operation">
-                <input class="query-key" type="text" placeholder="Key">
+                <select class="query-key-select"><option>N/A</option></select>
                 <select class="query-operation-select">
                     <option value="eq">Equal</option>
                     <option value="neq"> Not Equal</option>
@@ -108,13 +156,19 @@ export class QueryOperation {
 
                 switch (prop) {
                     case 'key':
-                        entity.handles.key.value = value;
+                        const option = entity.handles.key.querySelector("option[value=\"" + value + "\"]");
+                        if (option !== undefined && option !== null) {
+                            option.setAttribute("selected", "selected");
+                        }
                         break;
                     case 'op':
                         entity.handles.op.querySelector("option[value=\"" + value + "\"]").setAttribute("selected","selected");
                         break;
                     case 'value':
                         entity.handles.value.value = value;
+                        break;
+                    case 'queryType':
+                        entity._loadKeyOptions(value);
                         break;
                 }
 

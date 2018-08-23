@@ -29,6 +29,9 @@ export class FlowTypeQuery extends FlowNode {
                     node.isStartNode = false;
                 }
 
+
+                const builder = new QueryBuilder();
+
                 // Add select box and render all SchemaTypes as dataType options
                 let dataType = new D3NE.Control('<select class="control-select"></select>', (element, control) =>{
 
@@ -86,11 +89,11 @@ export class FlowTypeQuery extends FlowNode {
                     element.addEventListener('change', ()=>{
                         control.putData('dataType',element.value);
                         node.data['dbNode'].dataType = element.value;
+                        builder.setQueryType(element.value);
                     });
                 });
 
                 let queryBuilder = new D3NE.Control('<div class="query-builder-container"></div>', (element, control) => {
-                    const builder = new QueryBuilder();
 
                     const queryString = node.data['dbNode'].query;
 
