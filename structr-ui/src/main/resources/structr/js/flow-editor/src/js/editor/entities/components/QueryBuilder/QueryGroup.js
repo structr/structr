@@ -72,6 +72,8 @@ export class QueryGroup {
 
         if(this.isRootGroup) {
            this.handles.deleteButton.classList.add("hidden");
+           this.handles.andButton.classList.add("hidden");
+           this.handles.orButton.classList.add("hidden");
         }
 
         return rootElement;
