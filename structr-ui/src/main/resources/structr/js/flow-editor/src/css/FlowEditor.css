@@ -501,12 +501,10 @@ span.close {
 
 .query-operation {
   background: white;
-  border: 1px solid black;
   border-radius: 5px; }
 
 .query-group {
-  border: 1px solid black;
-  border-radius: 5px;
+  margin-left: 20px;
   padding: 5px; }
   .query-group .query-group-button-and, .query-group .query-group-button-or {
     margin-left: 0;
@@ -516,8 +514,5 @@ span.close {
       background-color: green; }
     .query-group .query-group-button-and .query-group, .query-group .query-group-button-or .query-group {
       background-color: #bebebe; }
-  .query-group .query-group-operations > ::after, .query-group .query-group-operations > ::before {
-    left: -25px;
-    width: 25px; }
 
 /*# sourceMappingURL=FlowEditor.css.map */

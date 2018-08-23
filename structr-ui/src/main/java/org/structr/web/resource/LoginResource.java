@@ -90,7 +90,7 @@ public class LoginResource extends Resource {
 
 				user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
-			} else  if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
+			} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 
 				user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 			}

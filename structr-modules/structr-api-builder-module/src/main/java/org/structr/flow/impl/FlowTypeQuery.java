@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.structr.api.search.Occurrence;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -30,8 +31,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
@@ -39,6 +42,7 @@ import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
 import java.sql.Struct;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +116,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		final String op = object.getString("op");
 		final JSONArray operations = object.getJSONArray("operations");
 
-		// Add group operator
+		// Add group operator to wrap all added SearchAttributes in a new SearchAttributeGroup
 		switch (op) {
 			case "and":
 				query.and();
@@ -127,6 +131,8 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 			resolveQueryObject(operations.getJSONObject(i), query);
 		}
 
+		query.parent();
+
 		return query;
 	}
 
@@ -135,14 +141,36 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		final String op = object.getString("op");
 		final String value = object.getString("value");
 
-		switch (op) {
-			case "eq":
-				query.and(key,value);
-				break;
-			case "neq":
-				query.not().and(key,value);
-				break;
+		PropertyKey propKey = null;
+
+		String queryType = getProperty(dataType);
+		if (queryType != null) {
+
+			Class queryTypeClass = StructrApp.getConfiguration().getNodeEntityClass(queryType);
+
+			if (queryTypeClass != null) {
+				propKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(queryTypeClass, key);
+			}
+
 		}
+
+		if (propKey != null) {
+
+			List<SearchAttribute> attributes = new ArrayList<>();
+
+			switch (op) {
+				case "eq":
+					attributes.add(propKey.getSearchAttribute(securityContext, Occurrence.REQUIRED, value, true, query));
+					break;
+				case "neq":
+					attributes.add(propKey.getSearchAttribute(securityContext, Occurrence.FORBIDDEN, value, true, query));
+					break;
+			}
+
+			query.attributes(attributes);
+
+		}
+
 		return query;
 	}
 

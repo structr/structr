@@ -10,7 +10,8 @@ export class QueryGroup {
         this.model = new Proxy(
             {
                 op:"and",
-                operations:[]
+                operations:[],
+                queryType: ""
             },
             QueryGroup._getProxyHandler(this)
         );
@@ -29,9 +30,17 @@ export class QueryGroup {
         return this.model;
     }
 
+    setQueryType(type) {
+        this.model.queryType = type;
+        for(let op of this.model.operations) {
+            op.setQueryType(type);
+        }
+    }
+
     loadConfiguration(config) {
-        if(config !== undefined) {
+        if(config !== undefined && config !== undefined) {
             this.model.op = config.op;
+            this.model.queryType = config.queryType;
 
             for (const element of config.operations) {
                 switch (element.type) {
@@ -52,7 +61,8 @@ export class QueryGroup {
         return {
             type: "group",
             op: this.model.op,
-            operations: this.model.operations.length > 0 ? this.model.operations.map( op => op.interpret()) : []
+            operations: this.model.operations.length > 0 ? this.model.operations.map( op => op.interpret()) : [],
+            queryType: this.model.queryType
         }
     }
 
@@ -72,6 +82,8 @@ export class QueryGroup {
 
         if(this.isRootGroup) {
            this.handles.deleteButton.classList.add("hidden");
+           this.handles.andButton.classList.add("hidden");
+           this.handles.orButton.classList.add("hidden");
         }
 
         return rootElement;
@@ -124,6 +136,7 @@ export class QueryGroup {
             this._dispatchChangeEvent();
         });
 
+        group.getModel().queryType = this.model.queryType;
         this.model.operations.push(group);
         this.handles.operations.appendChild(group.getDOMNodes());
 
@@ -145,6 +158,7 @@ export class QueryGroup {
             this._dispatchChangeEvent();
         });
 
+        operation.getModel().queryType = this.model.queryType;
         this.model.operations.push(operation);
 
         const firstGroup = this.handles.operations.querySelector(".query-group");
