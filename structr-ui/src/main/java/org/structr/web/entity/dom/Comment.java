@@ -46,7 +46,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
 	static void render(final Comment comment, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		final String _content = comment.getContent();
+		String _content = comment.getContent();
 
 		// Avoid rendering existing @structr comments since those comments are
 		// created depending on the visiblity settings of individual nodes. If
@@ -54,8 +54,30 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 		// trip export/import test.
 		if (!_content.contains("@structr:")) {
 
-			renderContext.getBuffer().append("<!--").append(_content).append("-->");
-		}
+			try {
 
+				final SecurityContext securityContext = comment.getSecurityContext();
+				final RenderContext.EditMode edit = renderContext.getEditMode(securityContext.getUser(false));
+				final AsyncBuffer buf = renderContext.getBuffer();
+
+				if (RenderContext.EditMode.DEPLOYMENT.equals(edit)) {
+
+					DOMNode.renderDeploymentExportComments(comment, buf, true);
+
+				} else {
+
+					_content = comment.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Content.class, "content"));
+
+				}
+
+				buf.append("<!--").append(escapeForHtml(_content)).append("-->");
+
+			} catch (Throwable t) {
+
+				// catch exception to prevent ugly status 500 error pages in frontend.
+				logger.error("", t);
+
+			}
+		}
 	}
 }
