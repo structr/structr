@@ -47,6 +47,10 @@ export class FlowAction extends FlowNode {
                         document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Action"}}));
                     });
 
+                    element.addEventListener('mousedown', event => {
+                        event.stopPropagation();
+                    });
+
                     element.addEventListener('change', ()=>{
                         control.putData('script',element.value);
                         node.data['dbNode'].script = element.value;

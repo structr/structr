@@ -42,6 +42,10 @@ export class FlowReturn extends FlowNode {
                         document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Return"}}));
                     });
 
+                    element.addEventListener('mousedown', event => {
+                        event.stopPropagation();
+                    });
+
                     element.addEventListener('change', ()=>{
                         control.putData('result',element.value);
                         node.data['dbNode'].result = element.value;

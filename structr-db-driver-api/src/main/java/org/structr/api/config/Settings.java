@@ -188,6 +188,17 @@ public class Settings {
 	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "HtmlServlet.resolveProperties",     "AbstractNode.name");
 	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "HtmlServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block");
 
+	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.path",                  "/structr/pdf/*");
+	public static final Setting<String> PdfServletClass          = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.class",                 "org.structr.pdf.servlet.PdfServlet");
+	public static final Setting<String> PdfAuthenticator         = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> PdfDefaultView           = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.defaultview",           "public");
+	public static final Setting<Integer> PdfOutputDepth          = new IntegerSetting(servletsGroup, "PdfServlet", "PdfServlet.outputdepth",           3);
+	public static final Setting<String> PdfResourceProvider      = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
+	public static final Setting<Boolean> PdfUserAutologin        = new BooleanSetting(servletsGroup, "PdfServlet", "PdfServlet.user.autologin",        false);
+	public static final Setting<Boolean> PdfUserAutocreate       = new BooleanSetting(servletsGroup, "PdfServlet", "PdfServlet.user.autocreate",       true);
+	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "PdfServlet.resolveProperties",     "AbstractNode.name");
+	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "PdfServlet.customResponseHeaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block");
+
 	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.path",              "/structr/ws/*");
 	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.class",             "org.structr.websocket.servlet.WebSocketServlet");
 	public static final Setting<String> WebsocketAuthenticator     = new StringSetting(servletsGroup,  "WebSocketServlet", "WebSocketServlet.authenticator",     "org.structr.web.auth.UiAuthenticator");

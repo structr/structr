@@ -34,6 +34,10 @@ export class FlowConstant extends FlowNode {
                         document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Constant"}}));
                     });
 
+                    element.addEventListener('mousedown', event => {
+                        event.stopPropagation();
+                    });
+
                     element.addEventListener('change', ()=>{
                         control.putData('value',element.value);
                         node.data['dbNode'].value = element.value;
