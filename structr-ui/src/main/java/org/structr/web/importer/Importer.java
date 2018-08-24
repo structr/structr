@@ -1075,14 +1075,27 @@ public class Importer {
 
 	private Linkable downloadFile(final String downloadAddress, final URL base) {
 
+		URL downloadUrl = null;
+
+		try {
+
+			downloadUrl = new URL(base, downloadAddress);
+
+		} catch (MalformedURLException ex) {
+
+			logger.error("Could not resolve address {}", address.concat("/"));
+			return null;
+		}
+
+		final String alreadyDownloadedKey = downloadUrl.getPath();
+
 		// Don't download the same file twice
-		if (alreadyDownloaded.containsKey(downloadAddress)) {
-			return alreadyDownloaded.get(downloadAddress);
+		if (alreadyDownloaded.containsKey(alreadyDownloadedKey)) {
+			return alreadyDownloaded.get(alreadyDownloadedKey);
 		}
 
 		long size;
 		long checksum;
-		URL downloadUrl;
 		String contentType;
 		java.io.File tmpFile;
 
@@ -1098,8 +1111,6 @@ public class Importer {
 		}
 
 		try {
-
-			downloadUrl = new URL(base, downloadAddress);
 
 			logger.info("Starting download from {}", downloadUrl);
 
@@ -1146,7 +1157,8 @@ public class Importer {
 		}
 
 		//downloadAddress = StringUtils.substringBefore(downloadAddress, "?");
-		final String fileName = PathHelper.getName(downloadAddress);
+		final String downloadName = cleanFileName(downloadUrl.getFile());
+		final String fileName     = PathHelper.getName(downloadName);
 
 		if (StringUtils.isBlank(fileName)) {
 
@@ -1175,6 +1187,7 @@ public class Importer {
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
+
 			relativePath = downloadAddress;
 		}
 
@@ -1185,19 +1198,19 @@ public class Importer {
 
 		if (downloadAddress.startsWith(httpsPrefix)) {
 
-			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpsPrefix)), fileName);
+			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpsPrefix)), "/");
 
 		} else if (downloadAddress.startsWith(httpPrefix)) {
 
-			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpPrefix)), fileName);
+			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, httpPrefix)), "/");
 
 		} else if (downloadAddress.startsWith(flexiblePrefix)) {
 
-			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, flexiblePrefix)), fileName);
+			path = StringUtils.substringBefore((StringUtils.substringAfter(downloadAddress, flexiblePrefix)), "/");
 
 		} else {
 
-			path = StringUtils.substringBefore(relativePath, fileName);
+			path = StringUtils.substringBeforeLast(relativePath, "/");
 		}
 
 
@@ -1210,7 +1223,7 @@ public class Importer {
 
 		try {
 
-			final String fullPath = path + fileName;
+			final String fullPath = path + "/" + fileName;
 
 			File fileNode = fileExists(fullPath, checksum);
 			if (fileNode == null) {
@@ -1240,7 +1253,7 @@ public class Importer {
 				tmpFile.delete();
 			}
 
-			alreadyDownloaded.put(downloadAddress, fileNode);
+			alreadyDownloaded.put(alreadyDownloadedKey, fileNode);
 			return fileNode;
 
 		} catch (final FrameworkException | IOException ex) {
@@ -1262,7 +1275,6 @@ public class Importer {
 		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
 		final PropertyKey<Folder> parentKey      = StructrApp.key(File.class, "parent");
 		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
-		final PropertyKey<String> pathKey        = StructrApp.key(File.class, "path");
 		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
 		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
 
@@ -1472,5 +1484,22 @@ public class Importer {
 
 		}
 
+	}
+
+	private String cleanFileName(final String src) {
+
+		String result = src;
+
+		result = result.replace("?", ".");
+		result = result.replace("#", ".");
+		result = result.replace(",", ".");
+		result = result.replace("=", ".");
+		result = result.replace(":", ".");
+		result = result.replace("+", ".");
+
+		// replace multiple dots by a single dot
+		result = result.replaceAll("\\.+", ".");
+
+		return result;
 	}
 }
