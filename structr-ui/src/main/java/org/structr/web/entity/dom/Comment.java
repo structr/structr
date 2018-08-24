@@ -19,11 +19,14 @@
 package org.structr.web.entity.dom;
 
 import java.net.URI;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonSchema;
+import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 
 /**
@@ -70,7 +73,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
 				}
 
-				buf.append("<!--").append(escapeForHtml(_content)).append("-->");
+				buf.append("<!--").append(DOMNode.escapeForHtml(_content)).append("-->");
 
 			} catch (Throwable t) {
 
