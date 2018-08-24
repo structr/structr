@@ -21,7 +21,13 @@ package org.structr.bolt.index.factory;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.TypeQuery;
 import org.structr.bolt.index.AdvancedCypherQuery;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -33,26 +39,52 @@ public class GroupQueryFactory extends AbstractQueryFactory {
 
 		if (predicate instanceof GroupQuery) {
 
-			if (predicate.getOccurrence().equals(Occurrence.FORBIDDEN)) {
-				query.not();
-			}
-
-			//query.beginGroup();
-
 			final GroupQuery group   = (GroupQuery)predicate;
 			boolean first            = isFirst;
 
-			for (final QueryPredicate attr : group.getQueryPredicates()) {
+			// Filter type predicates since they require special handling
+			List<QueryPredicate> predicateList = group.getQueryPredicates();
 
-				if (parent.createQuery(parent, attr, query, first)) {
+			List<QueryPredicate> typePredicates = predicateList.stream().filter((p) -> {
+				return p instanceof TypeQuery;
+			}).collect(Collectors.toList());
 
-					first = false;
+			List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> {
+				return !(p instanceof TypeQuery);
+			}).collect(Collectors.toList());
+
+			// Apply all type queries first as they affect as different part of the query expression
+			for (final QueryPredicate p : typePredicates) {
+				parent.createQuery(parent, p, query, first);
+			}
+
+			// Apply any group and attribute predicates, if existent
+			if (attributeAndGroupPredicates.size() > 0) {
+
+				checkOccur(query, predicate.getOccurrence(), first);
+
+				if (attributeAndGroupPredicates.size() > 1) {
+					query.beginGroup();
+				}
+
+				boolean firstWithinGroup = true;
+
+				Iterator<QueryPredicate> it = attributeAndGroupPredicates.iterator();
+
+				while (it.hasNext()) {
+
+					if (parent.createQuery(parent, it.next(), query, firstWithinGroup)) {
+
+						firstWithinGroup = false;
+					}
+				}
+
+				if (attributeAndGroupPredicates.size() > 1) {
+					query.endGroup();
 				}
 			}
 
-			//query.endGroup();
-
-			return !first;
+			return first;
 		}
 
 		return false;

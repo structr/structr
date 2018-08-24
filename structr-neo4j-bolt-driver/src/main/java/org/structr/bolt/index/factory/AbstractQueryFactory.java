@@ -83,7 +83,6 @@ public abstract class AbstractQueryFactory implements QueryFactory {
 					query.andNot();
 				}
 				break;
-
 			case OPTIONAL:
 				query.or();
 				break;

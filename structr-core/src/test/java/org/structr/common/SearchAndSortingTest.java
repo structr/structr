@@ -2040,6 +2040,55 @@ public class SearchAndSortingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testNestedSearchGroups() {
+
+		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(groupType, "ttt");
+			createTestNode(groupType, "aaa");
+			createTestNode(groupType, "bbb");
+			createTestNode(groupType, "xxx");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			List<Group> list = app.nodeQuery(Group.class)
+					.or()
+						.andName("aaa")
+						.not().andName("bbb").parent()
+					.or()
+						.andName("ttt").parent()
+					.or()
+						.andName("xxx").parent()
+					.or()
+						.andName("bbb").parent()
+					.sort(AbstractNode.name)
+					.order(false)
+					.getAsList();
+
+			assertEquals("Invalid sort() result", "aaa", list.get(0).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+	}
+
 	// ----- private methods -----
 	private void testPaging(final Class type, final int pageSize, final int page, final int number, final int offset, final boolean includeDeletedAndHidden, final boolean publicOnly, final PropertyKey sortKey, final boolean sortDesc) throws FrameworkException {
 

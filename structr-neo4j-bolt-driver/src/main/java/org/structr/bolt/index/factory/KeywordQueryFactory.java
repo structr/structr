@@ -20,6 +20,8 @@ package org.structr.bolt.index.factory;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.index.AdvancedCypherQuery;
 
