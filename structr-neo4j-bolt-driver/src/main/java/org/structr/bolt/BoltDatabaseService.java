@@ -260,14 +260,14 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		map.put("id", id);
 
-		buf.append("MATCH (:NodeInterface");
+		buf.append("MATCH (");
 
 		if (tenantId != null) {
 			buf.append(":");
 			buf.append(tenantId);
 		}
 
-		buf.append(")-[r]->(:NodeInterface");
+		buf.append(")-[r]->(");
 
 		if (tenantId != null) {
 			buf.append(":");
@@ -353,14 +353,14 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append("MATCH (:NodeInterface");
+		buf.append("MATCH (");
 
 		if (tenantId != null) {
 			buf.append(":");
 			buf.append(tenantId);
 		}
 
-		buf.append(")-[r]->(:NodeInterface");
+		buf.append(")-[r]->(");
 
 		if (tenantId != null) {
 			buf.append(":");
