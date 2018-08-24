@@ -40,7 +40,8 @@
 		<module>structr-messaging-engine-module</module>
 		<module>structr-excel-module</module>
 		<module>structr-advanced-mail-module</module>
-	</modules>
+        <module>structr-pdf-module</module>
+    </modules>
 
 	<profiles>
 		<profile>
