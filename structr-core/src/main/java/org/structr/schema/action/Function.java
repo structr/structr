@@ -101,7 +101,7 @@ public abstract class Function<S, T> extends Hint {
 		logger.error(msg, messageParams, t);
 	}
 
-	protected String getParametersAsString (final Object[] sources) {
+	protected static String getParametersAsString (final Object[] sources) {
 		return Arrays.toString(sources);
 	}
 
