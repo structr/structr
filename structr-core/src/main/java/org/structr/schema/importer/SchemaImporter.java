@@ -134,8 +134,17 @@ public abstract class SchemaImporter extends NodeServiceCommand {
 
 	public void analyzeSchema() {
 
+		final String schemaAnalyzerTmpPath = userHome + File.separator + ".structrSchemaAnalyzer";
+
+		final File analyzerFolder = new File(schemaAnalyzerTmpPath + File.separator);
+		if (analyzerFolder.exists()) {
+			for (final File existingLFC : analyzerFolder.listFiles((File dir, String name) -> name.endsWith(".lfc"))) {
+				existingLFC.delete();
+			}
+		}
+
 		final App app                                       = StructrApp.getInstance();
-		final FileBasedHashLongMap<NodeInfo> nodeIdMap      = new FileBasedHashLongMap<>(userHome + File.separator + ".structrSchemaAnalyzer");
+		final FileBasedHashLongMap<NodeInfo> nodeIdMap      = new FileBasedHashLongMap<>(schemaAnalyzerTmpPath);
 		final DatabaseService graphDb                       = app.getDatabaseService();
 		final ConfigurationProvider configuration           = Services.getInstance().getConfigurationProvider();
 		final Set<NodeInfo> nodeTypes                       = new LinkedHashSet<>();
