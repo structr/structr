@@ -73,7 +73,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
 				}
 
-				buf.append("<!--").append(DOMNode.escapeForHtml(_content)).append("-->");
+				buf.append("<!--").append(_content).append("-->");
 
 			} catch (Throwable t) {
 
