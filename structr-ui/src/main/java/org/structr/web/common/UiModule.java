@@ -41,6 +41,7 @@ import org.structr.web.function.HttpGetFunction;
 import org.structr.web.function.HttpHeadFunction;
 import org.structr.web.function.HttpPostFunction;
 import org.structr.web.function.HttpPutFunction;
+import org.structr.web.function.IncludeChildFunction;
 import org.structr.web.function.IncludeFunction;
 import org.structr.web.function.IsLocaleFunction;
 import org.structr.web.function.LogEventFunction;
@@ -80,6 +81,7 @@ public class UiModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "to_json",                  new ToJsonFunction());
 		Functions.put(true, LicenseManager.Community, "to_graph_object",          new ToGraphObjectFunction());
 		Functions.put(true, LicenseManager.Community, "include",                  new IncludeFunction());
+		Functions.put(true, LicenseManager.Community, "include_child",            new IncludeChildFunction());
 		Functions.put(true, LicenseManager.Community, "render",                   new RenderFunction());
 		Functions.put(true, LicenseManager.Community, "set_details_object",       new SetDetailsObjectFunction());
 		Functions.put(true, LicenseManager.Community, "two_factor_url",           new TwoFactorURLFunction());

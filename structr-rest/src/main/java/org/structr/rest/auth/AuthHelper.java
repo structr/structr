@@ -419,7 +419,7 @@ public class AuthHelper {
 			// If user is not two factor authentication, but system expects him to be
 			if (isTwoFactorUser == false && twoFactorLevel == 2) {
 
-				logger.info("User needs to use two factor authentication to login");
+				logger.info("User needs to use two factor authentication to login ({})", principal.getName());
 				principal.setProperty(isTwoFactorUserKey, true);
 
 				throw new TwoFactorAuthenticationRequiredException();

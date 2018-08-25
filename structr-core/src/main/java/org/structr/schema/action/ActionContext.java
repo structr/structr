@@ -318,23 +318,7 @@ public class ActionContext {
 						case "baseUrl":
 						case "base_url": {
 
-							final StringBuilder sb = new StringBuilder("http");
-
-							final Boolean httpsEnabled = Settings.HttpsEnabled.getValue();
-							final int port = securityContext.getRequest().getServerPort();
-
-							if (httpsEnabled) {
-								sb.append("s");
-							}
-
-							sb.append("://");
-							sb.append(securityContext.getRequest().getServerName());
-
-							if ( !(httpsEnabled && port == 443) && !(!httpsEnabled && port == 80)) {
-								sb.append(":").append(port);
-							}
-
-							return sb.toString();
+							return getBaseUrl();
 						}
 					}
 
@@ -367,6 +351,26 @@ public class ActionContext {
 		}
 
 		return value;
+	}
+
+	public String getBaseUrl () {
+		final StringBuilder sb = new StringBuilder("http");
+
+		final Boolean httpsEnabled = Settings.HttpsEnabled.getValue();
+		final int port = securityContext.getRequest().getServerPort();
+
+		if (httpsEnabled) {
+			sb.append("s");
+		}
+
+		sb.append("://");
+		sb.append(securityContext.getRequest().getServerName());
+
+		if ( !(httpsEnabled && port == 443) && !(!httpsEnabled && port == 80)) {
+			sb.append(":").append(port);
+		}
+
+		return sb.toString();
 	}
 
 	public void print(final Object... objects) {

@@ -110,84 +110,7 @@ public class IncludeFunction extends Function<Object, Object> {
 				}
 			}
 
-			if (node != null) {
-
-				if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
-
-					final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);
-					final String dataKey                 = (String)sources[2];
-
-					innerCtx.setListSource(iterable);
-					node.renderNodeList(securityContext, innerCtx, 0, dataKey);
-
-				} else {
-
-					node.render(innerCtx, 0);
-				}
-
-				if (innerCtx.appLibRendered()) {
-					((RenderContext)ctx).setAppLibRendered(true);
-				}
-
-			} else {
-
-				final File file = app.nodeQuery(File.class).andName((String)sources[0]).getFirst();
-
-				if (file != null) {
-
-					final String name        = file.getProperty(NodeInterface.name);
-					final String contentType = file.getContentType();
-					final String charset     = StringUtils.substringAfterLast(contentType, "charset=");
-					final String extension   = StringUtils.substringAfterLast(name, ".");
-
-					if (contentType == null || StringUtils.isBlank(extension)) {
-
-						logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
-						return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
-
-					}
-
-					if (contentType.startsWith("text/css")) {
-
-						return "<link href=\"" + file.getPath() + "\" rel=\"stylesheet\">";
-
-					} else if (contentType.contains("/javascript")) {
-
-						return "<script src=\"" + file.getPath() + "\"></script>";
-
-					} else if (contentType.startsWith("image/svg")) {
-
-						try (final InputStream is = file.getInputStream()) {
-
-							final byte[] buffer = new byte[file.getSize().intValue()];
-							IOUtils.read(is, buffer);
-							return StringUtils.toEncodedString(buffer, Charset.forName(charset));
-
-						} catch (IOException ex) {
-
-							logger.warn("Exception for parameters: {}", getParametersAsString(sources));
-							logger.error("", ex);
-
-						}
-
-						return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
-
-					} else if (contentType.startsWith("image/")) {
-
-						return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
-
-					} else {
-
-						logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
-						return "Don't know how to render content type or extension of  " + name + ".";
-
-					}
-
-				}
-
-			}
-
-			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
+			return renderNode(securityContext, ctx, innerCtx, sources, app, node);
 
 		} catch (ArgumentNullException pe) {
 
@@ -211,4 +134,86 @@ public class IncludeFunction extends Function<Object, Object> {
 		return "Includes the content of the node with the given name";
 	}
 
+	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node) throws FrameworkException {
+		
+		if (node != null) {
+
+			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
+
+				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);
+				final String dataKey                 = (String)sources[2];
+
+				innerCtx.setListSource(iterable);
+				node.renderNodeList(securityContext, innerCtx, 0, dataKey);
+
+			} else {
+
+				node.render(innerCtx, 0);
+			}
+
+			if (innerCtx.appLibRendered()) {
+				((RenderContext)ctx).setAppLibRendered(true);
+			}
+
+		} else {
+
+			final File file = app.nodeQuery(File.class).andName((String)sources[0]).getFirst();
+
+			if (file != null) {
+
+				final String name        = file.getProperty(NodeInterface.name);
+				final String contentType = file.getContentType();
+				final String charset     = StringUtils.substringAfterLast(contentType, "charset=");
+				final String extension   = StringUtils.substringAfterLast(name, ".");
+
+				if (contentType == null || StringUtils.isBlank(extension)) {
+
+					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
+
+				}
+
+				if (contentType.startsWith("text/css")) {
+
+					return "<link href=\"" + file.getPath() + "\" rel=\"stylesheet\">";
+
+				} else if (contentType.contains("/javascript")) {
+
+					return "<script src=\"" + file.getPath() + "\"></script>";
+
+				} else if (contentType.startsWith("image/svg")) {
+
+					try (final InputStream is = file.getInputStream()) {
+
+						final byte[] buffer = new byte[file.getSize().intValue()];
+						IOUtils.read(is, buffer);
+						return StringUtils.toEncodedString(buffer, Charset.forName(charset));
+
+					} catch (IOException ex) {
+
+						logger.warn("Exception for parameters: {}", getParametersAsString(sources));
+						logger.error("", ex);
+
+					}
+
+					return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+
+				} else if (contentType.startsWith("image/")) {
+
+					return "<img alt=\"" + name + "\" src=\"" + file.getPath() + "\">";
+
+				} else {
+
+					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					return "Don't know how to render content type or extension of  " + name + ".";
+
+				}
+
+			}
+
+		}
+
+		return StringUtils.join(innerCtx.getBuffer().getQueue(), "");		
+	}
+	
 }

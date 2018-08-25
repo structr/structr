@@ -467,93 +467,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 						// async or not?
 						if (isAsync && !createsRawData) {
 
-							final AsyncContext async = request.startAsync();
-							final ServletOutputStream out = async.getResponse().getOutputStream();
-							final AtomicBoolean finished = new AtomicBoolean(false);
-							final DOMNode rootNode = rootElement;
-
-							threadPool.submit(new Runnable() {
-
-								@Override
-								public void run() {
-
-									try (final Tx tx = app.tx()) {
-
-										// render
-										rootNode.render(renderContext, 0);
-										finished.set(true);
-
-										tx.success();
-
-									} catch (Throwable t) {
-
-										t.printStackTrace();
-										logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
-
-										try {
-
-											response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-											finished.set(true);
-
-										} catch (IOException ex) {
-											logger.warn("", ex);
-										}
-									}
-								}
-
-							});
-
-							// start output write listener
-							out.setWriteListener(new WriteListener() {
-
-								@Override
-								public void onWritePossible() throws IOException {
-
-									try {
-
-										final Queue<String> queue = renderContext.getBuffer().getQueue();
-										while (out.isReady()) {
-
-											String buffer = null;
-
-											synchronized (queue) {
-												buffer = queue.poll();
-											}
-
-											if (buffer != null) {
-
-												out.print(buffer);
-
-											} else {
-
-												if (finished.get()) {
-
-													async.complete();
-
-													// prevent this block from being called again
-													break;
-												}
-
-												Thread.sleep(1);
-											}
-										}
-
-									} catch (EofException ee) {
-										logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
-									} catch (IOException | InterruptedException t) {
-										logger.warn("Unexpected exception", t);
-									}
-								}
-
-								@Override
-								public void onError(Throwable t) {
-									if (t instanceof EofException) {
-										logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
-									} else {
-										logger.warn("Unexpected exception", t);
-									}
-								}
-							});
+							renderAsyncOutput(request, response, app, renderContext, rootElement);
 
 						} else {
 
@@ -565,9 +479,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 							try {
 
-								response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
-								response.getOutputStream().flush();
-								response.getOutputStream().close();
+								writeOutputSteam (response, buffer);
 
 							} catch (IOException ioex) {
 								logger.warn("", ioex);
@@ -902,6 +814,102 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
+	}
+
+	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement) throws IOException {
+		final AsyncContext async = request.startAsync();
+		final ServletOutputStream out = async.getResponse().getOutputStream();
+		final AtomicBoolean finished = new AtomicBoolean(false);
+		final DOMNode rootNode = rootElement;
+
+		threadPool.submit(new Runnable() {
+
+			@Override
+			public void run() {
+
+				try (final Tx tx = app.tx()) {
+
+					// render
+					rootNode.render(renderContext, 0);
+					finished.set(true);
+
+					tx.success();
+
+				} catch (Throwable t) {
+
+					t.printStackTrace();
+					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+
+					try {
+
+						response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+						finished.set(true);
+
+					} catch (IOException ex) {
+						logger.warn("", ex);
+					}
+				}
+			}
+
+		});
+
+		// start output write listener
+		out.setWriteListener(new WriteListener() {
+
+			@Override
+			public void onWritePossible() throws IOException {
+
+				try {
+
+					final Queue<String> queue = renderContext.getBuffer().getQueue();
+					while (out.isReady()) {
+
+						String buffer = null;
+
+						synchronized (queue) {
+							buffer = queue.poll();
+						}
+
+						if (buffer != null) {
+
+							out.print(buffer);
+
+						} else {
+
+							if (finished.get()) {
+
+								async.complete();
+
+								// prevent this block from being called again
+								break;
+							}
+
+							Thread.sleep(1);
+						}
+					}
+
+				} catch (EofException ee) {
+					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+				} catch (IOException | InterruptedException t) {
+					logger.warn("Unexpected exception", t);
+				}
+			}
+
+			@Override
+			public void onError(Throwable t) {
+				if (t instanceof EofException) {
+					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+				} else {
+					logger.warn("Unexpected exception", t);
+				}
+			}
+		});
+	}
+
+	protected void writeOutputSteam(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+		response.getOutputStream().flush();
+		response.getOutputStream().close();
 	}
 
 	/**

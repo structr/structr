@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * A helper class that provides methods for URL path splitting etc.
- * 
+ *
  *
  */
 public class PathHelper {
@@ -50,15 +50,15 @@ public class PathHelper {
 		// Remove leading and trailing /
 		return StringUtils.strip(path, PATH_SEP);
 	}
-	
+
 	public static String replaceWhitespaceByPlus(final String path) {
 		return StringUtils.replace(path, " ", "+");
 	}
-	
+
 	public static String replaceWhitespaceByPercentTwenty(final String path) {
 		return StringUtils.replace(path, " ", "%20");
 	}
-	
+
 
 	//~--- get methods ----------------------------------------------------
 
@@ -148,14 +148,14 @@ public class PathHelper {
 
 	/**
 	 * Return last part of the given path after separator or the path if no path separator was found.
-	 * 
+	 *
 	 * @param path
 	 * @return name
 	 */
 	public static String getName(final String path) {
 
 		String cleanedPath = clean(path);
-		
+
 		if (cleanedPath != null && cleanedPath.contains(PATH_SEP)) {
 
 			return StringUtils.substringAfterLast(cleanedPath, PATH_SEP);
@@ -169,14 +169,14 @@ public class PathHelper {
 
 	/**
 	 * Return part of the given path before the last separator or the root path ("/") if no separator was found
-	 * 
+	 *
 	 * @param path
 	 * @return name
 	 */
 	public static String getFolderPath(final String path) {
-		
+
 		String cleanedPath = clean(path);
-		
+
 		if (cleanedPath != null && cleanedPath.contains(PATH_SEP)) {
 
 			return PATH_SEP + StringUtils.substringBeforeLast(cleanedPath, PATH_SEP);
@@ -187,10 +187,10 @@ public class PathHelper {
 
 		}
 	}
-	
+
 	/**
 	 * Return array of path parts.
-	 * 
+	 *
 	 * @param path
 	 * @return path parts
 	 */
