@@ -833,7 +833,7 @@ var _Entities = {
 
 						if (key === 'name') {
 							var entity = StructrModel.objects[id];
-							if (!_Entites.isContentElement(entity)) {
+							if (!_Entities.isContentElement(entity)) {
 								entity.name = entity.tag ? entity.tag : '[' + entity.type + ']';
 							}
 							StructrModel.refresh(id);
@@ -1100,11 +1100,11 @@ var _Entities = {
 						input.data('changed', false);
 						_Logger.log(_LogType.ENTITIES, 'existing key: Command.setProperty(', objId, key, val);
 						_Entities.setProperty(objId, key, val, false, function(newVal) {
-							if (isPassword || (newVal && newVal !== oldVal)) {
+							if (isPassword || (newVal !== oldVal)) {
 								blinkGreen(input);
 								input.val(newVal);
-								Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with value "' + newVal + '".' : '.'), 'success', 2000, 200);
-
+								let valueMsg = newVal ? 'value "' + newVal : 'empty value';
+								Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '".' : '.'), 'success', 2000, 200);
 							} else {
 								input.val(oldVal);
 							}
