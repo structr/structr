@@ -645,7 +645,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path templatesConf  = target.resolve("templates.json");
 			final Path mailTemplates  = target.resolve("mail-templates.json");
 			final Path localizations  = target.resolve("localizations.json");
-			final Path widgets		  = target.resolve("widgets.json");
+			final Path widgets	  = target.resolve("widgets.json");
 
 			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);

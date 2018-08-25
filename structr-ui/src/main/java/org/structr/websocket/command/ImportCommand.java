@@ -51,11 +51,12 @@ public class ImportCommand extends AbstractCommand {
 		final String name                     = (String) properties.get("name");
 		final boolean publicVisible           = (Boolean) properties.get("publicVisible");
 		final boolean authVisible             = (Boolean) properties.get("authVisible");
+		final boolean includeInExport         = (Boolean) properties.get("includeInExport");
 		final boolean processDeploymentInfo   = (Boolean) properties.get("processDeploymentInfo");
 
 		try {
 
-			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible);
+			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible, includeInExport);
 
 			if (processDeploymentInfo) {
 

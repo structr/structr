@@ -110,7 +110,7 @@ public interface Widget extends NodeInterface {
 
 		if (!errorBuffer.hasError()) {
 
-			Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false);
+			Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false, false);
 
 			if (processDeploymentInfo) {
 				importer.setIsDeployment(true);

@@ -204,7 +204,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
 
-				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth);
+				final Importer importer = new Importer(securityContext, src, null, name, visibleToPublic, visibleToAuth, false);
 
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);

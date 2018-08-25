@@ -226,7 +226,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
 				boolean visibleToPublic = get(properties, GraphObject.visibleToPublicUsers, false);
 				boolean visibleToAuth   = get(properties, GraphObject.visibleToAuthenticatedUsers, false);
-				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth);
+				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth, false);
 
 				// enable literal import of href attributes
 				importer.setIsDeployment(true);

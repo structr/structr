@@ -110,7 +110,6 @@ public class Importer {
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
 	private static App app;
-	private static ConfigurationProvider config;
 
 	private final static String DATA_STRUCTR_PREFIX = "data-structr-";
 	private final static String DATA_META_PREFIX    = "data-structr-meta-";
@@ -126,6 +125,7 @@ public class Importer {
 
 	private final StringBuilder commentSource = new StringBuilder();
 	private final SecurityContext securityContext;
+	private final boolean includeInExport;
 	private final boolean publicVisible;
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
@@ -150,7 +150,7 @@ public class Importer {
 	 * @param publicVisible
 	 * @param authVisible
 	 */
-	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible) {
+	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport) {
 
 		this.code            = code;
 		this.address         = address;
@@ -158,7 +158,7 @@ public class Importer {
 		this.securityContext = securityContext;
 		this.publicVisible   = publicVisible;
 		this.authVisible     = authVisible;
-		this.config          = StructrApp.getConfiguration();
+		this.includeInExport = includeInExport;
 
 		if (address != null && !address.endsWith("/") && !address.endsWith(".html")) {
 			this.address = this.address.concat("/");
@@ -344,7 +344,7 @@ public class Importer {
 
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
-		final Importer importer = new Importer(securityContext, source, null, "source", false, false);
+		final Importer importer = new Importer(securityContext, source, null, "source", false, false, false);
 		final App localAppCtx = StructrApp.getInstance(securityContext);
 		Page page = null;
 
@@ -1235,6 +1235,9 @@ public class Importer {
 					processCssFileNode(fileNode, downloadUrl);
 				}
 
+				// set export flag according to user preference
+				fileNode.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
+
 			} else {
 
 				tmpFile.delete();
@@ -1262,13 +1265,19 @@ public class Importer {
 		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
 		final PropertyKey<Folder> parentKey      = StructrApp.key(File.class, "parent");
 		final PropertyKey<String> contentTypeKey = StructrApp.key(File.class, "contentType");
-		final PropertyKey<String> pathKey        = StructrApp.key(File.class, "path");
 		final PropertyKey<Long> checksumKey      = StructrApp.key(File.class, "checksum");
 		final PropertyKey<Long> sizeKey          = StructrApp.key(File.class, "size");
+		final Folder parentFolder                = FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path));
+
+		if (parentFolder != null) {
+
+			// set export flag according to user preference
+			parentFolder.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
+		}
 
 		return app.create(fileClass != null ? fileClass : File.class,
 			new NodeAttribute(AbstractNode.name, PathHelper.getName(path)),
-			new NodeAttribute(parentKey,      FileHelper.createFolderPath(securityContext, PathHelper.getFolderPath(path))),
+			new NodeAttribute(parentKey,      parentFolder),
 			new NodeAttribute(contentTypeKey, contentType),
 			new NodeAttribute(sizeKey,        size),
 			new NodeAttribute(checksumKey,    checksum),

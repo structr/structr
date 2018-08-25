@@ -421,7 +421,7 @@ public class ImporterTest extends StructrUiTest {
 			// render page into HTML string
 			try (final Tx tx = app.tx()) {
 
-				final Importer importer = new Importer(securityContext, null, address, "testpage", true, true);
+				final Importer importer = new Importer(securityContext, null, address, "testpage", true, true, false);
 
 				importer.parse();
 
@@ -453,7 +453,7 @@ public class ImporterTest extends StructrUiTest {
 			// render page into HTML string
 			try (final Tx tx = app.tx()) {
 
-				final Importer importer = new Importer(securityContext, code, address, "widget", true, true);
+				final Importer importer = new Importer(securityContext, code, address, "widget", true, true, false);
 
 				importer.parse(true);
 

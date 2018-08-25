@@ -1600,7 +1600,7 @@ public class DeploymentTest extends StructrUiTest {
 					new NodeAttribute<>(StructrApp.key(Widget.class, "visibleToAuthenticatedUsers"), true)
 			);
 
-			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true);
+			Importer importer = new Importer(securityContext, widgetToImport.getProperty(new StringProperty("source")), null, null, true, true, false);
 
 			importer.setIsDeployment(true);
 			importer.setCommentHandler(new DeploymentCommentHandler());

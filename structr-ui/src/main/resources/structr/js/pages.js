@@ -314,6 +314,7 @@ var _Pages = {
 					+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
 					+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
 					+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>'
+					+ '<tr><td><label for="includeInExport">Include imported files in deployment export</label></td><td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>'
 					+ '<tr><td><label for="processDeploymentInfo">Process deployment annotations</label></td><td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>'
 					+ '</table>');
 
@@ -338,10 +339,11 @@ var _Pages = {
 				var name = $('#_name', dialog).val();
 				var publicVisible = $('#_publicVisible', dialog).prop('checked');
 				var authVisible = $('#_authVisible', dialog).prop('checked');
+				var includeInExport = $('#_includeInExport', dialog).prop('checked');
 				var processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
 
 				_Logger.log(_LogType.PAGES, 'start');
-				return Command.importPage(code, address, name, publicVisible, authVisible, processDeploymentInfo);
+				return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
 			});
 
 		});
