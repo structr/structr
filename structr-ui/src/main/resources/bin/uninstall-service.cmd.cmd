@@ -1,1 +1,1 @@
-bin\commons-daemon\amd64\prunsrv //DS//Structr
+commons-daemon\amd64\prunsrv //DS//Structr
