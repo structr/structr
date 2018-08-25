@@ -736,6 +736,12 @@ var _Elements = {
 			if (div.hasClass('nodeActive')) {
 				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
 			} else {
+				Command.getProperty(entityToLinkTo.id, '_html_src', function(val) {
+					if (!val || val === '') {
+						Command.setProperty(entityToLinkTo.id, '_html_src', '${link.path}', null);
+					}
+				});
+				
 				Command.link(entityToLinkTo.id, linkableObject.id);
 			}
 
