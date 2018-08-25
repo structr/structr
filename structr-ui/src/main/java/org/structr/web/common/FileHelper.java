@@ -573,8 +573,9 @@ public class FileHelper {
 			}
 		}
 
-		try {
-			final MediaType mediaType = new DefaultDetector().detect(new BufferedInputStream(new FileInputStream(file)), new Metadata());
+		try (final InputStream is = new BufferedInputStream(new FileInputStream(file))) {
+
+			final MediaType mediaType = new DefaultDetector().detect(is, new Metadata());
 			if (mediaType != null) {
 
 				mimeType = mediaType.toString();
