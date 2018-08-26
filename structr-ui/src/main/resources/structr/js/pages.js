@@ -567,12 +567,12 @@ var _Pages = {
 						_Entities.handleActiveElement(activeElement);
 					});
 				} else {
-					activeElementsContainer.append("<br><center>Page does not contain active elements</center>");
+					activeElementsContainer.append("<br><center>Page does not contain any active elements.</center>");
 				}
 			});
 
 		} else {
-			activeElementsContainer.append('<br><center>Cannot show active elements - no preview loaded<br><br></center>');
+			activeElementsContainer.append('<br><center>Unable to show active elements - no preview loaded.<br><br></center>');
 		}
 	},
 	/**
