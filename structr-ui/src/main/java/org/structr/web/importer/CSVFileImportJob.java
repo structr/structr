@@ -88,6 +88,7 @@ public class CSVFileImportJob extends FileImportJob {
 			final String delimiter                   = getOrDefault(configuration.get("delimiter"), ";");
 			final String quoteChar                   = getOrDefault(configuration.get("quoteChar"), "\"");
 			final String range                       = getOrDefault(configuration.get("range"), "");
+			final boolean strictQuotes               = getOrDefault(configuration.get("strictQuotes"), false);
 			final Integer commitInterval             = parseInt(configuration.get("commitInterval"), 1000);
 
 			logger.info("Importing CSV from {} ({}) to {} using {}", filePath, fileUuid, targetType, configuration);
@@ -120,7 +121,7 @@ public class CSVFileImportJob extends FileImportJob {
 				final Class targetEntityType       = StructrApp.getConfiguration().getNodeEntityClass(targetType);
 				final Character fieldSeparator     = delimiter.charAt(0);
 				final Character quoteCharacter     = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings));
+				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
 				int overallCount                   = 0;
