@@ -215,7 +215,8 @@ var Importer = {
 							$('#record-separator').val(config.recordSeparator);
 							$('#target-type-select').val(config.targetType).trigger('change', [config]);
 							$('#commit-interval').val(config.commitInterval);
-							$('#ignore-invalid').prop('checked', config.ignoreInvalid),
+							$('#strict-quotes').prop('checked', config.strictQuotes === true),
+							$('#ignore-invalid').prop('checked', config.ignoreInvalid === true),
 							$('#range').val(config.range);
 						}
 					});
@@ -254,6 +255,7 @@ var Importer = {
 						recordSeparator: $('#record-separator').val(),
 						targetType: $('#target-type-select').val(),
 						commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+						strictQuotes: $('#strict-quotes').prop('checked'),
 						ignoreInvalid: $('#ignore-invalid').prop('checked'),
 						range: $('#range').val(),
 						mappings: mappings,
@@ -272,8 +274,6 @@ var Importer = {
 					});
 				}
 			});
-
-
 
 			// load first lines to display a sample of the data
 			$.post(rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
@@ -384,6 +384,7 @@ var Importer = {
 							delimiter: $('#delimiter').val(),
 							quoteChar: $('#quote-char').val(),
 							commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+							strictQuotes: $('#strict-quotes').prop('checked'),
 							ignoreInvalid: $('#ignore-invalid').prop('checked'),
 							range: $('#range').val(),
 							mappings: mappings,
