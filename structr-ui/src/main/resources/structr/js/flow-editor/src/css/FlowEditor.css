@@ -500,19 +500,21 @@ span.close {
     stroke-dasharray: 5, 5; }
 
 .query-operation {
+  position: relative;
   background: white;
   border-radius: 5px; }
 
 .query-group {
-  margin-left: 20px;
-  padding: 5px; }
-  .query-group .query-group-button-and, .query-group .query-group-button-or {
-    margin-left: 0;
-    margin-right: 0;
-    background-color: white; }
-    .query-group .query-group-button-and.active, .query-group .query-group-button-or.active {
-      background-color: green; }
-    .query-group .query-group-button-and .query-group, .query-group .query-group-button-or .query-group {
-      background-color: #bebebe; }
+  min-width: 400px;
+  position: relative;
+  padding: 0 0 0 15px; }
+  .query-group .query-group-operations {
+    position: relative; }
+  .query-group .query-controls .query-button-group {
+    display: inline-block; }
+    .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or {
+      background-color: white; }
+      .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or.active {
+        background-color: green; }
 
 /*# sourceMappingURL=FlowEditor.css.map */
