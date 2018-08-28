@@ -63,6 +63,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
@@ -124,6 +125,8 @@ public class SchemaService implements Service {
 
 		// compiling must only be done once
 		if (compiling.compareAndSet(false, true)) {
+
+			FlushCachesCommand.flushAll();
 
 			final long t0 = System.currentTimeMillis();
 
@@ -312,12 +315,16 @@ public class SchemaService implements Service {
 
 				} catch (FrameworkException fex) {
 
+					FlushCachesCommand.flushAll();
+
 					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
 					success = false;
 
 					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
 
 				} catch (Throwable t) {
+
+					FlushCachesCommand.flushAll();
 
 					t.printStackTrace();
 

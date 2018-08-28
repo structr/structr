@@ -217,6 +217,20 @@ $(function() {
 				}
 			}
 		}
+        // Ctrl-Alt-g
+        if (k === 71 && altKey && ctrlKey) {
+            e.preventDefault();
+            var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+            if (uuid) {
+                if (uuid.length === 32) {
+                    Command.get(uuid, null, function(obj) {
+                        _Entities.showAccessControlDialog(obj);
+                    });
+                } else {
+                    alert('That does not look like a UUID! length != 32');
+                }
+            }
+        }
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
 			e.preventDefault();
