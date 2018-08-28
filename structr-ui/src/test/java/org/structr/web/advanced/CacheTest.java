@@ -18,6 +18,7 @@
  */
 package org.structr.web.advanced;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -25,9 +26,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Test;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.json.JsonProperty;
+import org.structr.schema.json.JsonSchema;
+import org.structr.schema.json.JsonType;
 import org.structr.web.StructrUiTest;
 import org.structr.web.entity.TestFive;
 import org.structr.web.entity.TestTwo;
@@ -127,4 +135,72 @@ public class CacheTest extends StructrUiTest {
 		service.shutdown();
 	}
 
+	@Test
+	public void testRollback() {
+
+		Settings.CypherDebugLogging.setValue(true);
+
+		try {
+
+			try (final Tx tx = app.tx()) {
+
+				app.create(SchemaProperty.class,
+					new NodeAttribute<>(SchemaProperty.schemaNode, app.nodeQuery(SchemaNode.class).andName("Person").getFirst()),
+					new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+					new NodeAttribute<>(SchemaProperty.name, "name")
+				);
+
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final JsonSchema schema = StructrSchema.createEmptySchema();
+				StructrSchema.replaceDatabaseSchema(app, schema);
+
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			System.exit(0);
+
+			try (final Tx tx = app.tx()) {
+
+				final JsonSchema schema = StructrSchema.createFromDatabase(app);
+				final JsonType type     = schema.getType("Person");
+
+				final Iterator<JsonProperty> iterator = type.getProperties().iterator();
+				while (iterator.hasNext()) {
+
+					if ("rollbackTest".equals(iterator.next().getName())) {
+						iterator.remove();
+					}
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final JsonSchema schema = StructrSchema.createEmptySchema();
+				StructrSchema.replaceDatabaseSchema(app, schema);
+
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
 }

@@ -42,7 +42,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.parent.basedir}/structr-ui/src/main/resources/logs</directory>
+			<directory>src/main/resources/logs</directory>
 			<outputDirectory>/logs</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>

@@ -189,4 +189,8 @@ public class ResourceAccess extends AbstractNode {
 
 		return grant;
 	}
+
+	public static void clearCache() {
+		grantCache.clear();
+	}
 }
