@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl.rels;
 
+import org.structr.core.entity.ManyToMany;
 import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.Relation;
 import org.structr.flow.api.DataSource;
@@ -27,7 +28,7 @@ import org.structr.flow.impl.FlowDataSource;
 /**
  *
  */
-public class FlowConditionDataInput extends ManyToOne<DataSource, FlowCondition> {
+public class FlowConditionDataInput extends ManyToMany<DataSource, FlowCondition> {
 
 	@Override
 	public Class<DataSource> getSourceType() {

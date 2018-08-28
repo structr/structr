@@ -80,7 +80,6 @@ export class AreaSelector {
         };
 
         svg.on('mousedown', function() {
-            console.log(this.parentNode);
             const subject = d3.select(window), parent = this.parentNode,
                 start = d3.mouse(parent);
             startSelection(start);

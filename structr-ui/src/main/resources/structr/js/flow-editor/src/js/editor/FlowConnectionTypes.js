@@ -28,12 +28,6 @@ export class FlowConnectionTypes {
                 targetAttribute: "parameters",
                 type: "FlowCallParameter"
             },
-            FlowConditionDataInput: {
-                name: "DATA_INPUT",
-                sourceAttribute: "dataTarget",
-                targetAttribute: "dataSources",
-                type: "FlowConditionDataInput"
-            },
             FlowDecisionCondition: {
                 name: "CONDITION",
                 sourceAttribute: "result",

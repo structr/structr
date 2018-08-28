@@ -27,6 +27,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.impl.rels.FlowDataInputs;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;

@@ -167,6 +167,11 @@ export class FlowEditor {
                 // Select all nodes and prevent default selection
                 this.selectAllNodes();
                 event.preventDefault();
+            } else if (event.key === "p" && event.altKey === true) {
+                const id = prompt("Enter UUID for FlowNode to search for:");
+                this.selectNodeById(id);
+            } else if (event.key === "o" && event.altKey === true) {
+                this._editor.selected.list.map( (node) => console.log(node.data.dbNode.type + '[' +node.data.dbNode.id + "]"));
             }
         });
 
@@ -591,6 +596,10 @@ export class FlowEditor {
         this._editor.view.update();
     }
 
+    selectNodeById(id) {
+        this._editor.selected.list = this.flowNodes.filter((fNode) => {return fNode.dbNode.id === id}).map( n => n.editorNode);
+        this._editor.view.update();
+    }
 
     static _rectContainsRect(r1,r2) {
         return (r2.x + r2.w) < (r1.x + r1.w)
