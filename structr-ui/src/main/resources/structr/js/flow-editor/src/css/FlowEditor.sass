@@ -433,19 +433,23 @@ span.close
 
 // query builder
 .query-operation
+  position: relative
   background: white
-  //border: 1px solid black
   border-radius: 5px
 .query-group
-  margin-left: 20px
-  //border: 1px solid black
-  //border-radius: 5px
-  padding: 5px
-  .query-group-button-and, .query-group-button-or
-    margin-left: 0
-    margin-right: 0
-    background-color: white
-    &.active
-      background-color: green
-    .query-group
-      background-color: darken(#f1f1f1, 20%)
+  min-width: 400px
+  position: relative
+  padding: 0 0 0 15px
+  .query-group-operations
+    position: relative
+  .query-controls
+    .query-button-group
+      display: inline-block
+      &.query-button-group-operation
+        .query-group-button-and, .query-group-button-or
+          background-color: white
+          &.active
+            background-color: green
+      &.query-button-group-control
+        .query-group-button-add-operation, .query-group-button-add-group, .query-group-button-delete
+

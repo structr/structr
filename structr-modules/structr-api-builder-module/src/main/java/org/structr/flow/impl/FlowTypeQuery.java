@@ -139,7 +139,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 	private Query resolveOperation(final JSONObject object, final Query query) {
 		final String key = object.getString("key");
 		final String op = object.getString("op");
-		final String value = object.getString("value");
+		final Object value = object.get("value");
 
 		PropertyKey propKey = null;
 

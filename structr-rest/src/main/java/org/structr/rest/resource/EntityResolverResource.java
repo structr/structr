@@ -18,11 +18,13 @@
  */
 package org.structr.rest.resource;
 
+import java.util.Collection;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
@@ -49,22 +51,27 @@ public class EntityResolverResource extends SortableResource {
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-		// TODO: fetch nodes with superuser security context, collect forbidden nodes and return
-		//       in error response
+		final RestMethodResult result = new RestMethodResult(200);
+		final Object src              = propertySet.get("ids");
 
-		RestMethodResult result = new RestMethodResult(200);
+		if (src != null && src instanceof Collection) {
 
-		for (Object o : propertySet.values()) {
+			final Collection list = (Collection)src;
+			for (final Object obj : list) {
 
-			if (o instanceof String) {
+				if (obj instanceof String) {
 
-				String id = (String)o;
+					AbstractNode node = (AbstractNode) StructrApp.getInstance().getNodeById((String)obj);
+					if (node != null) {
 
-				AbstractNode node = (AbstractNode) StructrApp.getInstance().getNodeById(id);
-				if (node != null) {
-					result.addContent(node);
+						result.addContent(node);
+					}
 				}
 			}
+
+		} else {
+
+			throw new FrameworkException(422, "Send a JSON object containing an array named 'ids' to use this endpoint.");
 		}
 
 		return result;
@@ -88,5 +95,11 @@ public class EntityResolverResource extends SortableResource {
 	@Override
 	public String getUriPart() {
 		return "resolver";
+	}
+
+	@Override
+	public void configurePropertyView(Value<String> propertyView) {
+
+		System.out.println(propertyView.get(securityContext));
 	}
 }
