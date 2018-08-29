@@ -197,7 +197,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.20.1</version>
 				<configuration>
-					<argLine>-Xms1g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+					<argLine>-Xms1g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0</argLine>
 					<reuseForks>false</reuseForks>
 					<forkCount>1</forkCount>
 				</configuration>
