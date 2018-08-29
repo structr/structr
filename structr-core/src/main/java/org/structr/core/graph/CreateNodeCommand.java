@@ -29,6 +29,7 @@ import org.structr.api.NativeResult;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -240,7 +241,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			}
 
 			buf.append(" {nodeProperties})<-[s:SECURITY {securityProperties}]-(u)");
-			buf.append(" RETURN n");
+			buf.append(" RETURN n, s, o");
 
 			// configure OWNS relationship
 			ownsProperties.put(GraphObject.id.dbName(),                         getNextUuid());
@@ -291,7 +292,19 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			if (result.hasNext()) {
 
 				final Map<String, Object> data = result.next();
-				final Node newNode             = (Node)data.get("n");
+				final Node newNode             = (Node)         data.get("n");
+				final Relationship securityRel = (Relationship) data.get("s");
+				final Relationship ownsRel     = (Relationship) data.get("o");
+				
+				final Security securityRelationship = new RelationshipFactory<Security>(securityContext).instantiate(securityRel);
+				if (securityRelationship != null) {
+					TransactionCommand.relationshipCreated(user, securityRelationship);
+				}
+				
+				final PrincipalOwnsNode ownsRelationship = new RelationshipFactory<PrincipalOwnsNode>(securityContext).instantiate(ownsRel);
+				if (ownsRelationship != null) {
+					TransactionCommand.relationshipCreated(user, ownsRelationship);
+				}
 
 				return newNode;
 			}
