@@ -34,7 +34,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
 import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.Principal;
@@ -145,34 +144,29 @@ public class LoginResource extends Resource {
 
 		} catch (TwoFactorAuthenticationRequiredException ex) {
 
-			RestMethodResult methodResult = new RestMethodResult(204);
-			methodResult.addHeader("forceRegistrationPage", Settings.TwoFactorForceRegistrationPage.getValue());
+			RestMethodResult methodResult = new RestMethodResult(202);
+			methodResult.addHeader("token", ex.getNextStepToken());
+			methodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
 
-			try {
+			if (ex.showQrCode()) {
 
-				final Map<String, Object> hints = new HashMap();
-				hints.put("MARGIN", 0);
-				hints.put("ERROR_CORRECTION", "M");
+				try {
 
-				methodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
+					final Map<String, Object> hints = new HashMap();
+					hints.put("MARGIN", 0);
+					hints.put("ERROR_CORRECTION", "M");
 
-			} catch (UnsupportedEncodingException uee) {
-				logger.warn("Charset ISO-8859-1 not supported!?", uee);
+					methodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
+
+				} catch (UnsupportedEncodingException uee) {
+					logger.warn("Charset ISO-8859-1 not supported!?", uee);
+				}
 			}
 
 			securityContext.getAuthenticator().doLogout(securityContext.getRequest());
 
 			return methodResult;
 
-		} catch (TwoFactorAuthenticationNextStepException ex) {
-
-			RestMethodResult methodResult = new RestMethodResult(202);
-			methodResult.addHeader("token", ex.getNextStepToken());
-			methodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
-
-			securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-
-			return methodResult;
 		}
 
 		logger.info("Invalid credentials for {}", emailOrUsername);
