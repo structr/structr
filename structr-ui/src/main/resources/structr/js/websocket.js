@@ -194,19 +194,12 @@ function wsConnect() {
 					}
 					Structr.login((msg !== null) ? msg : '');
 
-				} else if (code === 204) {
-					user = null;
-					userId = null;
-					Structr.login((msg !== null) ? msg : '');
-
-					Structr.show2FAQRBox(data.data.qrdata);
-
 				} else if (code === 202) {
 					user = null;
 					userId = null;
 					Structr.login((msg !== null) ? msg : '');
 
-					Structr.toggle2FALoginBox(data.data.token);
+					Structr.toggle2FALoginBox(data.data);
 
 				} else {
 

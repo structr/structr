@@ -104,6 +104,7 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
 		user.addViewProperty(PropertyView.Ui, "twoFactorSecret");
 		user.addViewProperty(PropertyView.Ui, "isTwoFactorUser");
+		user.addViewProperty(PropertyView.Ui, "twoFactorConfirmed");
 
 		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
 		user.addViewProperty(PropertyView.Ui, "passwordChangeDate");

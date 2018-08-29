@@ -31,7 +31,6 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
 import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.AbstractNode;
@@ -150,8 +149,9 @@ public class LoginCommand extends AbstractCommand {
 
 			logger.debug(ex.getMessage());
 
-			String qrdata = "";
-			if (user != null) {
+			final MessageBuilder msg = MessageBuilder.status().message(ex.getMessage()).data("token", ex.getNextStepToken());
+
+			if (ex.showQrCode()) {
 
 				try {
 
@@ -159,21 +159,16 @@ public class LoginCommand extends AbstractCommand {
 					hints.put("MARGIN", 0);
 					hints.put("ERROR_CORRECTION", "M");
 
-					qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
+					final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
+
+					msg.data("qrdata", qrdata);
 
 				} catch (UnsupportedEncodingException uee) {
 					logger.warn("Charset ISO-8859-1 not supported!?", uee);
 				}
 			}
 
-			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).data("qrdata", qrdata).code(204).build(), true);
-
-			return;
-
-		} catch (TwoFactorAuthenticationNextStepException ex) {
-
-			logger.debug(ex.getMessage());
-			getWebSocket().send(MessageBuilder.status().data("token", ex.getNextStepToken()).code(202).build(), true);
+			getWebSocket().send(msg.code(202).build(), true);
 
 			return;
 

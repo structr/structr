@@ -96,6 +96,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPropertySetter("isTwoFactorUser", Boolean.TYPE);
 		principal.addPropertyGetter("isTwoFactorUser", Boolean.TYPE);
 
+		principal.addBooleanProperty("twoFactorConfirmed");
+		principal.addPropertySetter("twoFactorConfirmed", Boolean.TYPE);
+		principal.addPropertyGetter("twoFactorConfirmed", Boolean.TYPE);
+
 		principal.addStringProperty("twoFactorCode");
 		principal.addPropertySetter("twoFactorCode", String.class);
 		principal.addPropertyGetter("twoFactorCode", String.class);

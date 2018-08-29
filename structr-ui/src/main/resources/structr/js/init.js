@@ -72,11 +72,6 @@ $(function() {
 		Structr.doTFALogin(tfaCode, tfaToken);
 		return false;
 	});
-	$('#two-factor-qr-confirm-button').on('click', function(e) {
-		e.stopPropagation();
-		Structr.hide2FAQRBox();
-		return false;
-	});
 
 	$('#logout_').on('click', function(e) {
 		e.stopPropagation();
@@ -364,6 +359,7 @@ var Structr = {
 		}
 	},
 	login: function(text) {
+
 		if (!loginBox.is(':visible')) {
 
 			fastRemoveAllChildren(main[0]);
@@ -385,7 +381,7 @@ var Structr = {
 		$('#logout_').html('Login');
 		if (text) {
 			$('#errorText').html(text);
-			$('#errorText-2fa').html(text);
+			$('#errorText-two-factor').html(text);
 		}
 
 		//Structr.activateMenuEntry('logout');
@@ -394,36 +390,27 @@ var Structr = {
 		loginBox.find('#usernameField').val('');
 		loginBox.find('#passwordField').val('');
 		loginBox.find('#errorText').empty();
-		loginBox.find('#errorText-2fa').empty();
+
+		loginBox.find('#two-factor').hide();
+		loginBox.find('#two-factor #two-factor-qr-code').hide();
+		loginBox.find('#two-factor img').attr('src', '');
+
+		loginBox.find('#errorText-two-factor').empty();
 		loginBox.find('#twoFactorTokenField').val('');
 		loginBox.find('#twoFactorCodeField').val('');
-		loginBox.find('#two-factor-qr-code img').attr('src', '');
 	},
-	toggle2FALoginBox: function (token) {
+	toggle2FALoginBox: function (data) {
 
 		$('table.username-password', loginBox).hide();
-		$('table.twofactor', loginBox).show();
+		$('#two-factor', loginBox).show();
+		$('#two-factor #two-factor-qr-code').show();
 
-		$('#twoFactorTokenField').val(token);
+		if (data.qrdata) {
+			$('#two-factor img', loginBox).attr('src', 'data:image/png;base64, ' + data.qrdata);
+		}
+
+		$('#twoFactorTokenField').val(data.token);
 		$('#twoFactorCodeField').val('').focus();
-	},
-	show2FAQRBox: function (qrdata) {
-
-		$('table.username-password', loginBox).hide();
-		$('table.twofactor', loginBox).hide();
-
-		var qrBox = $('#two-factor-qr-code', loginBox);
-		$('img', qrBox).attr('src', 'data:image/png;base64, ' + qrdata);
-		qrBox.show();
-	},
-	hide2FAQRBox: function () {
-
-		$('table.twofactor', loginBox).hide();
-		$('#two-factor-qr-code', loginBox).hide();
-
-		Structr.clearLoginForm();
-
-		$('table.username-password', loginBox).show();
 	},
 	doLogin: function(username, password) {
 		Structr.renewSessionId(function () {
