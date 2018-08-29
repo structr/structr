@@ -101,8 +101,15 @@ public class CloneNodeCommand extends AbstractCommand {
 
 				DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
 
-				if (parent != null) {
-					parent.insertBefore(clonedNode, node.getNextSibling());
+				DOMNode nextSibling = node.getNextSibling();
+				
+				if (parent != null && ownerPage.equals(node.getOwnerDocument())) {
+					
+					parent.insertBefore(clonedNode, nextSibling);
+					
+				} else {
+					
+					parent.appendChild(clonedNode);
 				}
 
 				setOwnerPageRecursively(clonedNode, clonedNode.getSecurityContext(), ownerPage);
