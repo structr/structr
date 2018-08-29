@@ -159,6 +159,16 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
+	public int getRetryDelay() {
+		return Settings.NodeServiceStartTimeout.getValue();
+	}
+
+	@Override
+	public int getRetryCount() {
+		return Settings.NodeServiceStartRetries.getValue();
+	}
+	
+	@Override
 	public boolean waitAndRetry() {
 		return true;
 	}

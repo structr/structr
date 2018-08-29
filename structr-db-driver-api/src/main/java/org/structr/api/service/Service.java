@@ -18,6 +18,8 @@
  */
 package org.structr.api.service;
 
+import org.structr.api.config.Settings;
+
 /**
  * The base class for services in structr.
  */
@@ -83,10 +85,10 @@ public interface Service extends Feature {
 	boolean waitAndRetry();
 
 	default int getRetryCount() {
-		return 10;
+		return Settings.ServicesStartRetries.getValue(10);
 	}
 
 	default int getRetryDelay() {
-		return 30;
+		return Settings.ServicesStartTimeout.getValue(30);
 	}
 }

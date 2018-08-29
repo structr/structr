@@ -46,7 +46,6 @@ import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.NotFoundException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.CaseHelper;
@@ -85,6 +84,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graphql.GraphQLListType;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.GenericProperty;
@@ -401,37 +401,33 @@ public class SchemaHelper {
 
 				boolean foundAllParts = true;
 
-				final String sig;
-				try {
-					sig = grant.getResourceSignature();
+				if (!TransactionCommand.isDeleted(grant.getNode())) {
 
-				} catch (NotFoundException nfe) {
-					logger.debug("Unable to get signature from grant");
-					continue;
-				}
+					final String sig = grant.getResourceSignature();
 
-				// Try to find schema nodes for all parts of the grant signature
-				final String[] parts = StringUtils.split(sig, "/");
+					// Try to find schema nodes for all parts of the grant signature
+					final String[] parts = StringUtils.split(sig, "/");
 
-				if (parts != null) {
+					if (parts != null) {
 
 
-					for (final String sigPart : parts) {
+						for (final String sigPart : parts) {
 
-						if ("/".equals(sigPart) || sigPart.startsWith("_")) {
-							continue;
+							if ("/".equals(sigPart) || sigPart.startsWith("_")) {
+								continue;
+							}
+
+							// If one of the signature parts doesn't have an equivalent existing schema node, remove it
+							foundAllParts &= existingSchemaNodeNames.contains(sigPart);
 						}
-
-						// If one of the signature parts doesn't have an equivalent existing schema node, remove it
-						foundAllParts &= existingSchemaNodeNames.contains(sigPart);
 					}
-				}
 
-				if (!foundAllParts) {
+					if (!foundAllParts) {
 
-					logger.info("Did not find all parts of signature, will be removed: {}, ", new Object[]{ sig });
+						logger.info("Did not find all parts of signature, will be removed: {} ", sig);
 
-					removeDynamicGrants(sig);
+						removeDynamicGrants(sig);
+					}
 				}
 			}
 

@@ -1081,16 +1081,23 @@ var _Entities = {
 				_Logger.log(_LogType.ENTITIES, keyInput);
 				if (keyInput && keyInput.length) {
 
-					var newKey = '_custom_html_' + keyInput.val();
-					var val = input.val();
+					var userInput = keyInput.val();
+					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
 
-					// new key
-					_Logger.log(_LogType.ENTITIES, 'new key: Command.setProperty(', objId, newKey, val);
-					Command.setProperty(objId, newKey, val, false, function() {
-						blinkGreen(input);
-						Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" was added and saved with value "' + val + '".', 'success', 2000, 1000);
-					});
+					if (regexAllowed.test(userInput)) {
+						var newKey = '_custom_html_' + userInput;
+						var val = input.val();
 
+						// new key
+						_Logger.log(_LogType.ENTITIES, 'new key: Command.setProperty(', objId, newKey, val);
+						Command.setProperty(objId, newKey, val, false, function() {
+							blinkGreen(input);
+							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" was added and saved with value "' + val + '".', 'success', 2000, 1000);
+						});
+					} else {
+						blinkRed(keyInput);
+						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
+					}
 
 				} else {
 					var key = input.prop('name');

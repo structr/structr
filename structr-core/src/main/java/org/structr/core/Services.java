@@ -460,8 +460,8 @@ public class Services implements StructrServices {
 
 	public void startService(final Class serviceClass) {
 
-		int retryCount       = 10;
-		int retryDelay       = 30;
+		int retryCount       = Settings.ServicesStartRetries.getValue(10);
+		int retryDelay       = Settings.ServicesStartTimeout.getValue(30);
 		boolean waitAndRetry = true;
 		boolean isVital      = false;
 
