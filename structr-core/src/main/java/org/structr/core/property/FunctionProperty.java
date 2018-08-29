@@ -170,15 +170,18 @@ public class FunctionProperty<T> extends Property<T> {
 		final ActionContext ctx = new ActionContext(securityContext);
 		T result                = null;
 
-		try {
+		if (writeFunction != null) {
 
-			ctx.setConstant("value", value);
+			try {
 
-			result = (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"), "setProperty(" + jsonName + ")");
+				ctx.setConstant("value", value);
 
-		} catch (Throwable t) {
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(writeFunction).concat("}"), "setProperty(" + jsonName + ")");
 
-			logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
+			} catch (Throwable t) {
+
+				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
+			}
 		}
 
 		if (ctx.hasError()) {

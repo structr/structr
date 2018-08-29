@@ -72,6 +72,11 @@ public class Settings {
 	public static final Setting<String> LogName               = new StringSetting(generalGroup,   "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
 	public static final Setting<String> Configuration         = new StringSetting(generalGroup,   "hidden",      "configuration.provider",     "org.structr.module.JarConfigurationProvider");
 	public static final StringSetting Services                = new StringSetting(generalGroup,   "Services",    "configured.services",        "NodeService AgentService CronService SchemaService LogService HttpService");
+	public static final Setting<Integer> ServicesStartTimeout = new IntegerSetting(generalGroup,  "Services",    "services.start.timeout",     30);
+	public static final Setting<Integer> ServicesStartRetries = new IntegerSetting(generalGroup,  "Services",    "services.start.retries",     10);
+
+	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.timeout",     600);
+	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.retries",     3);
 
 	// server settings
 	public static final Setting<String> ApplicationHost       = new StringSetting(serverGroup,  "Interfaces", "application.host",              "0.0.0.0");
@@ -279,7 +284,6 @@ public class Settings {
 	public static final Setting<Integer> TwoFactorPeriod               = new IntegerSetting(securityGroup,       "Two Factor Authentication", "TwoFactor.period",               30,            "Defines the period that a TOTP code will be valid for, in seconds.<br><i>Currently, the period parameter is ignored by the Google Authenticator implementations.</i>");
 	public static final Setting<Integer> TwoFactorLoginTimeout         = new IntegerSetting(securityGroup,       "Two Factor Authentication", "TwoFactor.loginTimeout",         30,            "Defines how long the two-factor login time window in seconds is. After entering the username and password the user has this amount of time to enter a two factor token before he has to re-authenticate via password");
 	public static final Setting<String> TwoFactorLoginPage             = new StringSetting(securityGroup,        "Two Factor Authentication", "TwoFactor.loginpage",            "/twofactor",  "The application page where the user enters the current two factor token");
-	public static final Setting<String> TwoFactorForceRegistrationPage = new StringSetting(securityGroup,        "Two Factor Authentication", "TwoFactor.forceRegistrationUrl", "/scanqrcode", "The application page where the user is redirected to if he is not yet a two factor user but the system enforces two factor authentication");
 	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "TwoFactor.whitelistedIPs",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled.");
 
 	public static final Setting<Boolean> PasswordForceChange              = new BooleanSetting(securityGroup, "Password Policy", "ForcePassword.change",              false, "Indicates if a forced password change is active");

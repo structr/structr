@@ -34,7 +34,6 @@ import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
 import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationNextStepException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.AbstractNode;
@@ -402,69 +401,72 @@ public class AuthHelper {
 		return false;
 	}
 
-	public static boolean handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationNextStepException, TwoFactorAuthenticationFailedException {
+	public static boolean handleTwoFactorAuthentication (final Principal principal, final String twoFactorCode, final String twoFactorToken, final String requestIP) throws FrameworkException, TwoFactorAuthenticationRequiredException, TwoFactorAuthenticationFailedException {
 
 		if (!AuthHelper.isRequestingIPWhitelistedForTwoFactorAuthentication(requestIP)) {
 
-			final PropertyKey<String> twoFactorTokenKey   = StructrApp.key(Principal.class, "twoFactorToken");
-			final PropertyKey<Boolean> isTwoFactorUserKey = StructrApp.key(Principal.class, "isTwoFactorUser");
+			final PropertyKey<String> twoFactorTokenKey      = StructrApp.key(Principal.class, "twoFactorToken");
+			final PropertyKey<Boolean> isTwoFactorUserKey    = StructrApp.key(Principal.class, "isTwoFactorUser");
+			final PropertyKey<Boolean> twoFactorConfirmedKey = StructrApp.key(Principal.class, "twoFactorConfirmed");
 
-			final int twoFactorLevel               = Settings.TwoFactorLevel.getValue();
+			final int twoFactorLevel   = Settings.TwoFactorLevel.getValue();
+			boolean isTwoFactorUser    = principal.getProperty(isTwoFactorUserKey);
+			boolean twoFactorConfirmed = principal.getProperty(twoFactorConfirmedKey);
 
-			boolean isTwoFactorUser = principal.getProperty(isTwoFactorUserKey);
+			boolean userNeedsTwoFactor = twoFactorLevel == 2 || (twoFactorLevel == 1 && isTwoFactorUser == true);
 
-			// If System and user are two factor authentication
-			boolean isTwoFactor = (isTwoFactorUser == true && twoFactorLevel > 0);
-
-			// If user is not two factor authentication, but system expects him to be
-			if (isTwoFactorUser == false && twoFactorLevel == 2) {
-
-				logger.info("User needs to use two factor authentication to login ({})", principal.getName());
-				principal.setProperty(isTwoFactorUserKey, true);
-
-				throw new TwoFactorAuthenticationRequiredException();
-			}
-
-			if (isTwoFactor) {
+			if (userNeedsTwoFactor) {
 
 				if (twoFactorToken == null) {
 
-					// set token to identify user by
-					final String newTwoFactorToken = UUID.randomUUID().toString() + "!" + new Date().getTime();
+					// user just logged in via username/password - no two factor identification token
+
+					final String newTwoFactorToken = AuthHelper.getIdentificationTokenForPrincipal();
 					principal.setProperty(twoFactorTokenKey, newTwoFactorToken);
 
-					throw new TwoFactorAuthenticationNextStepException(newTwoFactorToken);
+					throw new TwoFactorAuthenticationRequiredException(newTwoFactorToken, !twoFactorConfirmed);
 
 				} else {
 
 					final String twoFactorSecret = principal.getProperty(StructrApp.key(Principal.class, "twoFactorSecret"));
-					String currentKey = "";
 
 					try {
-						currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(twoFactorSecret, Settings.TwoFactorDigits.getValue());
+
+						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(twoFactorSecret, Settings.TwoFactorDigits.getValue());
+
+						// check two factor authentication
+						if (currentKey.equals(twoFactorCode)) {
+
+							principal.setProperty(twoFactorTokenKey,     null);   // reset token
+							principal.setProperty(twoFactorConfirmedKey, true);   // user has verified two factor use
+							principal.setProperty(isTwoFactorUserKey,    true);
+
+							logger.info ("Succesful two factor authentication ({})", principal.getName());
+
+							return true;
+
+						} else {
+
+							// two factor authentication not successful
+						   logger.info("Two factor authentication failed ({})", principal.getName());
+
+						   throw new TwoFactorAuthenticationFailedException();
+						}
+
 					} catch (GeneralSecurityException ex) {
-						logger.info("Two factor authentication key could not be generated");
-					}
 
-					// check two factor authentication
-					if (currentKey.equals(twoFactorCode)) {
+						logger.warn("Two factor authentication key could not be generated - login impossible!");
 
-						principal.setProperty(twoFactorTokenKey, null); // reset token
-						logger.info ("Succesful two factor authentication ({})", principal.getName());
-
-						return true;
-
-					} else {
-
-						// two factor authentication not successful
-					   logger.info("Two factor authentication failed ({})", principal.getName());
-
-					   throw new TwoFactorAuthenticationFailedException();
+						return false;
 					}
 				}
 			}
 		}
 
 		return true;
+	}
+
+	public static String getIdentificationTokenForPrincipal () {
+		return UUID.randomUUID().toString() + "!" + new Date().getTime();
 	}
 }

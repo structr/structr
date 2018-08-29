@@ -27,6 +27,7 @@ import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.ResourceAccess;
 
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -43,6 +44,7 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	}
 
 	public static void flushAll() {
+		ResourceAccess.clearCache();
 		NodeWrapper.clearCache();
 		RelationshipWrapper.clearCache();
 		AccessPathCache.invalidate();

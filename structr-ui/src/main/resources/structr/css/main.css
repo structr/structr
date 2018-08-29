@@ -1417,7 +1417,7 @@ button.action:hover {
 	padding: 4px;
 }
 
-#login #errorText, #login #errorText-2fa {
+#login #errorText, #login #errorText-two-factor {
 	color: #c00;
 }
 

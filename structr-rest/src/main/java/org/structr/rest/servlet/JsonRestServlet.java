@@ -463,8 +463,11 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					}
 				}
 
-				// set default value for property view
-				propertyView.set(securityContext, config.getDefaultPropertyView());
+				// set default value for property view (if not already set)
+				if (propertyView.get(securityContext) == null) {
+
+					propertyView.set(securityContext, config.getDefaultPropertyView());
+				}
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {

@@ -745,7 +745,6 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
-
 	private static class TestRunner implements Runnable {
 
 		private boolean success = true;

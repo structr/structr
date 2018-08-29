@@ -20,8 +20,22 @@ package org.structr.core.auth.exception;
 
 public class TwoFactorAuthenticationRequiredException extends UnauthorizedException {
 
-	public TwoFactorAuthenticationRequiredException() {
-		super("Two factor authentication required");
+	private String nextStepToken = null;
+	private boolean showQrCode   = false;
+
+	public TwoFactorAuthenticationRequiredException(final String token, final boolean showQrCode) {
+		super("Two factor authentication - login via OTC required");
+
+		this.nextStepToken = token;
+		this.showQrCode    = showQrCode;
+	}
+
+	public String getNextStepToken() {
+		return nextStepToken;
+	}
+
+	public boolean showQrCode() {
+		return showQrCode;
 	}
 
 }

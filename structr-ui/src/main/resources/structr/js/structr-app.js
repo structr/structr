@@ -566,13 +566,12 @@ function StructrApp(baseUrl, locale) {
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},
-				202: function(data) { //redirect 2fa and attach token
+				202: function(data) {
 					returnUrl = ajaxRequest.getResponseHeader("twoFactorLoginPage") + "?token=" + ajaxRequest.getResponseHeader("token");
-					btn.text(s.labels[s.lang].success);
-					redirectOrReload(reload, returnUrl);
-				},
-				204: function(data) { //redirect if 2fa is required, but user hasn't scanned barcode yet
-					returnUrl = ajaxRequest.getResponseHeader("forceRegistrationPage") + "?qrdata=" + ajaxRequest.getResponseHeader("qrdata");
+					var qrdata = ajaxRequest.getResponseHeader("qrdata");
+					if (qrdata) {
+						returnUrl += "&qrdata=" + qrdata;
+					}
 					btn.text(s.labels[s.lang].success);
 					redirectOrReload(reload, returnUrl);
 				},

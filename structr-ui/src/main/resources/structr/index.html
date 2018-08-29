@@ -144,17 +144,18 @@
 				</table>
 			</form>
 			<form action="javascript:void(0)">
-				<table class="twofactor" style="display:none;">
-					<tr><td><label for="twoFactorTokenField">Two-Factor Code:</label></td><td><input id="twoFactorTokenField" type="hidden" name="twoFactorToken"><input id="twoFactorCodeField" type="text" name="twoFactorCode" required></td></tr>
-					<tr><td colspan="2" class="btn"><span id="errorText-2fa"></span></td></tr>
-					<tr><td colspan="2" class="btn"><button id="loginButtonTFA" name="login"><i class="sprite sprite-key"></i> Login 2FA</button></td></tr>
-				</table>
+				<div id="two-factor" style="display:none;">
+					<div id="two-factor-qr-code" style="display:none;">
+						<div><img></div>
+						<div id="two-factor-qr-info">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
+					</div>
+					<table>
+						<tr><td><label for="twoFactorTokenField">Two-Factor Code:</label></td><td><input id="twoFactorTokenField" type="hidden" name="twoFactorToken"><input id="twoFactorCodeField" type="text" name="twoFactorCode" required></td></tr>
+						<tr><td colspan="2" class="btn"><span id="errorText-two-factor"></span></td></tr>
+						<tr><td colspan="2" class="btn"><button id="loginButtonTFA" name="login"><i class="sprite sprite-key"></i> Login 2FA</button></td></tr>
+					</table>
+				</div>
 			</form>
-			<div id="two-factor-qr-code" style="display:none;">
-				<div><img></div>
-				<div id="two-factor-qr-info">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
-				<button id="two-factor-qr-confirm-button"><i class="sprite sprite-tick"></i> OK</button>
-			</div>
 		</div>
 
 		<div id="confirmation" class="dialog">
