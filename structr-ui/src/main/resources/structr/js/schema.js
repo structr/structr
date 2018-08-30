@@ -137,12 +137,12 @@ var _Schema = {
 	typeHintOptions: '<select class="type-hint">'
 		+ '<optgroup label="Type Hint">'
 		+ '<option value="null">-</option>'
-		+ '<option>Boolean</option>'
-		+ '<option>String</option>'
-		+ '<option>Int</option>'
-		+ '<option>Long</option>'
-		+ '<option>Double</option>'
-		+ '<option>Date</option>'
+		+ '<option value="boolean">Boolean</option>'
+		+ '<option value="string">String</option>'
+		+ '<option value="int">Int</option>'
+		+ '<option value="long">Long</option>'
+		+ '<option value="double">Double</option>'
+		+ '<option value="date">Date</option>'
 		+ '</optgroup>'
 		+ '</select>',
 	currentNodeDialogId:null,
