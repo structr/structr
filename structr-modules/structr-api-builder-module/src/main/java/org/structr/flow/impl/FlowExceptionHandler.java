@@ -32,10 +32,13 @@ import org.structr.flow.engine.FlowError;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.module.api.DeployableEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class FlowExceptionHandler extends FlowNode implements Exception, DataSource {
+public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
 
 	public static final Property<List<FlowBaseNode>> handledNodes 			= new StartNodes<>("handledNodes", FlowExceptionHandlerNodes.class);
 	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
@@ -85,4 +88,13 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 		return getProperty(FlowExceptionHandler.next);
 	}
 
+	@Override
+	public Map<String, Object> exportData() {
+		Map<String, Object> result = new HashMap<>();
+
+		result.put("id", this.getUuid());
+		result.put("type", this.getClass().getSimpleName());
+
+		return result;
+	}
 }

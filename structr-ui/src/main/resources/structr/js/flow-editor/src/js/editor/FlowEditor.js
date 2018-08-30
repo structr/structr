@@ -220,10 +220,14 @@ export class FlowEditor {
                         id = flow;
                     }
 
+                    const loadEvent = new CustomEvent("floweditor.loadflow", {detail: {id: id}});
+                    document.dispatchEvent(loadEvent);
+
+                    /*
                     let searchParams = new URLSearchParams(window.location.search);
                     searchParams.set("id", id);
                     window.location.search = searchParams.toString();
-
+                    */
                 }
             }
         }

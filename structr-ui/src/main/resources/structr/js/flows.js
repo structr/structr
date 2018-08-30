@@ -103,6 +103,9 @@ var _Flows = {
             inputElement.value = "";
             persistence.createNode({type:"FlowContainer", name:name}).then( (r) => {
                _Flows.refreshTree();
+               if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
+                   _Flows.initFlow(r.id);
+               }
             });
         }
 		
@@ -198,6 +201,15 @@ var _Flows = {
 		document.addEventListener("floweditor.nodescriptclick", event => {
             _Flows.openCodemirror(event.detail.element, event.detail.nodeType);
 		});
+
+        document.addEventListener("floweditor.loadflow", event => {
+        	if (event.detail.id !== undefined && event.detail.id !== null) {
+                _Flows.initFlow(event.detail.id);
+                $(flowsTree).jstree("deselect_all");
+                $(flowsTree).jstree(true).select_node('li[id=\"' + event.detail.id + '\"]');
+                this.refreshTree();
+            }
+        });
 
 	},
 	refreshTree: function() {

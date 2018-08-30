@@ -24,10 +24,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.flow.impl.rels.FlowContainerBaseNode;
+import org.structr.module.api.DeployableEntity;
 
 /**
  */
-public abstract class FlowBaseNode extends AbstractNode {
+public abstract class FlowBaseNode extends AbstractNode implements DeployableEntity {
 
 	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
 
