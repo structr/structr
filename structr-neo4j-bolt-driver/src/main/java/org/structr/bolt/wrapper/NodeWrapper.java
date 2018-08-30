@@ -408,13 +408,13 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	// ----- private methods -----
 	private Map<String, List<Relationship>> getCache(final Direction direction) {
 
-		final String key                      = direction != null ? direction.name() : "*";
-		Map<String, List<Relationship>> cache = relationshipCache.get(key);
+		final String directionKey             = direction != null ? direction.name() : "*";
+		Map<String, List<Relationship>> cache = relationshipCache.get(directionKey);
 
 		if (cache == null) {
 
 			cache = new HashMap<>();
-			relationshipCache.put(key, cache);
+			relationshipCache.put(directionKey, cache);
 		}
 
 		return cache;

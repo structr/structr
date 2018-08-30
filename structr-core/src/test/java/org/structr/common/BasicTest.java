@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
@@ -66,6 +67,7 @@ import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.entity.TestSix;
 import org.structr.core.entity.TestTen;
+import org.structr.core.entity.TestThirteen;
 import org.structr.core.entity.TestThree;
 import org.structr.core.entity.TestTwo;
 import org.structr.core.entity.relationship.NodeHasLocation;
@@ -881,6 +883,13 @@ public class BasicTest extends StructrTest {
 
 					}
 
+					// For TestThirteen, fill mandatory fields
+					if (type.equals(TestThirteen.class)) {
+
+						props.put(TestThirteen.notNull, "some-value");
+
+					}
+
 					// For ResourceAccess, fill mandatory fields
 					if (type.equals(ResourceAccess.class)) {
 
@@ -1661,6 +1670,114 @@ public class BasicTest extends StructrTest {
 		}
 	}
 
+	/**
+	 * This test makes sure that no graph objects that were created in a transaction which is rolled back
+	 * are visible/accessible in other tx.
+	 * 
+	 * Before a bug fix this test was created for, we saw NotFoundExceptions with wrapped NoSuchRecordException
+	 * when trying to access stale nodes through relationships from the cache.
+	 */
+	
+	@Test
+	public void testRelationshipsOnNodeCreationAfterRollback() {
+
+		Principal user = null;
+		TestThirteen test  = null;
+
+		// create user
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(Principal.class, "tester");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext ctx = SecurityContext.getInstance(user, AccessMode.Backend);
+		final App app             = StructrApp.getInstance(ctx);
+
+		String uuid = null;
+
+		List<? extends RelationshipInterface> rels1 = Collections.EMPTY_LIST;
+		List<? extends RelationshipInterface> rels2 = Collections.EMPTY_LIST;
+		List<? extends RelationshipInterface> rels3 = Collections.EMPTY_LIST;
+		List<? extends RelationshipInterface> rels4 = Collections.EMPTY_LIST;
+		
+		// create object with user context
+		try (final Tx tx = app.tx()) {
+
+			test = app.create(TestThirteen.class);
+			uuid = test.getUuid();
+			
+			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
+			rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
+			rels3 = Iterables.toList(test.getIncomingRelationships());
+			rels4 = Iterables.toList(user.getOutgoingRelationships());
+			
+			System.out.println("rels1: " + rels1.size());
+			System.out.println("rels2: " + rels2.size());
+			System.out.println("rels3: " + rels3.size());
+			System.out.println("rels4: " + rels4.size());
+			
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			//fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// We shouldn't find a not-created node by its UUID
+			final TestThirteen test2 = app.get(TestThirteen.class, uuid);
+			assertNull(test2);
+
+			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
+			rels4 = Iterables.toList(user.getOutgoingRelationships());
+			
+			System.out.println("rels1: " + rels1.size());
+			System.out.println("rels4: " + rels4.size());
+
+			for (final RelationshipInterface rel : rels1) {
+				System.out.println("Source node: " + rel.getSourceNode() + ", target node: " + rel.getTargetNode());
+			}
+			
+			for (final RelationshipInterface rel : rels4) {
+				System.out.println("Source node: " + rel.getSourceNode() + ", target node: " + rel.getTargetNode());
+			}
+
+		} catch (Exception fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+		
+		// query for relationships
+		try (final Tx tx = app.tx()) {
+
+			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
+			final List<Class> classes1                        = rels1.stream().map(r -> r.getClass()).collect(Collectors.toList());
+			assertEquals("Invalid number of relationships after object creation", 0, rels1.size());
+
+			rels4 = Iterables.toList(user.getOutgoingRelationships());
+			final List<Class> classes4                        = rels4.stream().map(r -> r.getClass()).collect(Collectors.toList());
+			assertEquals("Invalid number of relationships after object creation", 0, rels4.size());
+
+			final Security sec = app.relationshipQuery(Security.class).getFirst();
+			assertNull("Relationship caching on node creation is broken", sec);
+
+			final PrincipalOwnsNode owns = app.relationshipQuery(PrincipalOwnsNode.class).getFirst();
+			assertNull("Relationship caching on node creation is broken", owns);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}	
 	@Test
 	public void testNodeCreationWithForcedUuid() {
 

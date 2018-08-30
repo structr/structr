@@ -65,7 +65,7 @@ public class SearchAndSortingTest extends StructrTest {
 	private static final Logger logger = LoggerFactory.getLogger(SearchAndSortingTest.class.getName());
 
 	@Test
-	public void test01SeachByName() {
+	public void test01SearchByName() {
 
 		try  {
 
@@ -123,7 +123,7 @@ public class SearchAndSortingTest extends StructrTest {
 	}
 
 	@Test
-	public void test02SeachByNameProperty() {
+	public void test02SearchByNameProperty() {
 
 		try  {
 
@@ -174,7 +174,7 @@ public class SearchAndSortingTest extends StructrTest {
 	}
 
 	@Test
-	public void test03SeachByNamePropertyLooseLowercase() {
+	public void test03SearchByNamePropertyLooseLowercase() {
 
 		try  {
 
@@ -225,7 +225,7 @@ public class SearchAndSortingTest extends StructrTest {
 	}
 
 	@Test
-	public void test04SeachByNamePropertyLooseUppercase() {
+	public void test04SearchByNamePropertyLooseUppercase() {
 
 		try  {
 
@@ -276,7 +276,7 @@ public class SearchAndSortingTest extends StructrTest {
 	}
 
 	@Test
-	public void test05SeachByDefaultValue() {
+	public void test05SearchByDefaultValue() {
 
 		try  {
 
@@ -395,7 +395,7 @@ public class SearchAndSortingTest extends StructrTest {
 			Class type                      = TestOne.class;
 			int number                      = 1000;
 			final List<NodeInterface> nodes = this.createTestNodes(type, number);
-			final int expectedNumber        = 1159;
+			final int expectedNumber        = 1163;
 
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
