@@ -78,7 +78,6 @@ public abstract class FlowDeploymentHandler {
 			FlowCallContainer.class,
 			FlowCallParameter.class,
 			FlowConditionCondition.class,
-			FlowConditionDataInput.class,
 			FlowContainerBaseNode.class,
 			FlowContainerFlowNode.class,
 			FlowDataInput.class,
