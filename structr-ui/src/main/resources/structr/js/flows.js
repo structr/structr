@@ -26,14 +26,7 @@ import { Component }           from "./lib/structr/Component.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
 let editor, flowId;
-var drop;
-var selectedElements = [];
-var activeMethodId, methodContents = {};
-var currentWorkingDir;
 var methodPageSize = 10000, methodPage = 1;
-var timeout, attempts = 0, maxRetry = 10;
-var displayingFavorites = false;
-var flowsLastOpenMethodKey = 'structrFlowsLastOpenMethodKey_' + port;
 var flowsResizerLeftKey = 'structrFlowsResizerLeftKey_' + port;
 var activeFlowsTabPrefix = 'activeFlowsTabPrefix' + port;
 
@@ -103,12 +96,10 @@ var _Flows = {
             inputElement.value = "";
             persistence.createNode({type:"FlowContainer", name:name}).then( (r) => {
                if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
-                   _Flows.initFlow(r.id);
-                   $(flowsTree).jstree("deselect_all");
-
-                   $(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
-                   _Flows.refreshTree();
-                   console.log(document.querySelector('li[id=\"' + r.id + '\"]'));
+               	_Flows.refreshTree(() => {
+                    $(flowsTree).jstree("deselect_all");
+                    $(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
+				});
                }
             });
         }
@@ -133,8 +124,6 @@ var _Flows = {
 			}
 		};
 
-		//document.querySelector('.add-flow-node').onclick = function() {};
-
 		document.querySelector('.run_flow_icon').addEventListener('click', function() {
 			if (!this.getAttribute('class').includes('disabled')) {
 				editor.executeFlow();
@@ -146,27 +135,6 @@ var _Flows = {
 
 		_Flows.moveResizer();
 		Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), flowsResizerLeftKey, 204, _Flows.moveResizer);
-
-//		$.jstree.defaults.core.themes.dots      = false;
-//		$.jstree.defaults.dnd.inside_pos        = 'last';
-//		$.jstree.defaults.dnd.large_drop_target = true;
-
-		let displayFlow = function(e) {
-
-			let id = e.target.closest('.jstree-node') ? e.target.closest('.jstree-node').getAttribute('id') : e.target.closest('[data-id]').getAttribute('data-id');
-			
-			_Flows.initFlow(id);
-		}
-
-//		_Flows.components = {
-//			'flowsTree':  new Component('folderTree',  '#flows-tree'),
-//			'flowsCanvas': new Component('flowsCanvas', '#flows-canvas')
-//		};
-//		
-//		_Flows.components.flowsTree
-//				.on('click', ['.jstree-node'], displayFlow)
-//		;
-
 
         $(flowsTree).jstree({
             plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
@@ -208,16 +176,14 @@ var _Flows = {
 
         document.addEventListener("floweditor.loadflow", event => {
         	if (event.detail.id !== undefined && event.detail.id !== null) {
-                _Flows.initFlow(event.detail.id);
                 $(flowsTree).jstree("deselect_all");
                 $(flowsTree).jstree(true).select_node('li[id=\"' + event.detail.id + '\"]');
-                this.refreshTree();
             }
         });
 
 	},
-	refreshTree: function() {
-		_TreeHelper.refreshTree(flowsTree);
+	refreshTree: function(callback) {
+		_TreeHelper.refreshTree(flowsTree, callback);
 
 	},
 	treeInitFunction: function(obj, callback) {
@@ -375,42 +341,12 @@ var _Flows = {
         });
 
 	},
-    /*createFlowsTreeContextMenuItems: function(node, test) {
-        var items = {
-            addFlowCallToCurrentOpenFlow: { // The "rename" menu item
-                label: "Add Call to current Flow",
-                action: function () {
-					editor._getNodeCreationFunction("FlowCall")().then(newCallNode => {
 
-						if (node.id === newCallNode.id) {
-							return;
-						}
-
-                        console.log(newCallNode);
-                    	console.log(node);
-
-                    	let select = document.querySelector('#flow-call-node-select-' + newCallNode.id);
-                    	select.value = node.id;
-                    	select.dispatchEvent(new Event("change"));
-
-					});
-
-
-				}
-            }
-        };
-
-        if (!$(node).hasClass("FlowContainer")) {
-            // Delete the "delete" menu item
-            delete items.deleteItem;
-        }
-
-        return items;
-	},*/
 	initFlow: function(id) {
 
 		if (editor !== undefined && editor !== null) {
 			editor.cleanup();
+			editor = undefined;
 		}
 
 		// display flow canvas
