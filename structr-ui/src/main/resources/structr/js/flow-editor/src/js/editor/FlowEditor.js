@@ -74,7 +74,10 @@ export class FlowEditor {
     }
 
     cleanup() {
-        this._unregisterKeybinds()
+        this._unregisterKeybinds();
+        while (this._rootElement.firstChild) {
+            this._rootElement.removeChild(this._rootElement.firstChild);
+        }
     }
 
     _injectDependencies() {
@@ -411,7 +414,7 @@ export class FlowEditor {
         return function() {
             let persistence = new Persistence();
             return persistence.createNode({type: entType}).then(node => {
-                if ((self.flowNodes.filter(node => node.isStartNodeOfContainer !== null).length <= 0)
+                if ((self.flowNodes.filter(node => node.dbNode.isStartNodeOfContainer !== undefined && node.dbNode.isStartNodeOfContainer !== null).length <= 0)
                     && (FlowEditor._getViableStartNodes().indexOf(node.type) !== -1)) {
                     node.isStartNodeOfContainer = self._flowContainer.id;
                 }
