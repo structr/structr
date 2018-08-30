@@ -73,6 +73,10 @@ export class FlowEditor {
         return this._initializationPromise;
     }
 
+    cleanup() {
+        this._unregisterKeybinds()
+    }
+
     _injectDependencies() {
         let dep = new DependencyLoader();
         let depObject = {
@@ -138,55 +142,95 @@ export class FlowEditor {
 
     }
 
-    _registerKeybinds() {
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'x' && event.altKey === true) {
-                // Execute flow on alt+x
-                this.executeFlow();
-            } else if (event.key === 'l' && event.altKey === true) {
-                // Open layout modal on alt+l
-                new LayoutModal(this);
-            } else if (event.key === 's' && event.altKey === true) {
-                // Save layout on alt+s
-                if (confirm('Save layout?')) {
-                    if (confirm('Save as public layout?')) {
-                        this.saveLayout(true);
-                    } else {
-                        this.saveLayout(false);
+    _getEventHandlers() {
+        const self = this;
+        if (this._eventHandlers === undefined) {
+            this._eventHandlers = {
+                local: {
+                    keydown: function (event) {
+                        if (event.shiftKey === true && event.ctrlKey === true) {
+                            // Enable area selection on shift+ctrl
+                            new AreaSelector(self).enable();
+                            event.stopPropagation();
+                        } else if (event.key === "a" && event.ctrlKey === true) {
+                            // Select all nodes and prevent default selection
+                            self.selectAllNodes();
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                    }
+                },
+                global: {
+                    keydown: function (event) {
+                        if (event.key === 'x' && event.altKey === true) {
+                            // Execute flow on alt+x
+                            self.executeFlow();
+                            event.stopPropagation();
+                        } else if (event.key === 'l' && event.altKey === true) {
+                            // Open layout modal on alt+l
+                            new LayoutModal(self);
+                            event.stopPropagation();
+                        } else if (event.key === 's' && event.altKey === true) {
+                            event.stopPropagation();
+                            // Save layout on alt+s
+                            if (confirm('Save layout?')) {
+                                if (confirm('Save as public layout?')) {
+                                    self.saveLayout(true);
+                                } else {
+                                    self.saveLayout(false);
+                                }
+                            }
+                        } else if (event.key === 'Escape') {
+                            // Close panel on ESC and clear selection
+                            event.stopPropagation();
+                            ResultPanel.removePanel();
+                            self._editor.selected.list = [];
+                            self._editor.view.update();
+                        } else if (event.key === "p" && event.altKey === true) {
+                            const id = prompt("Enter UUID for FlowNode to search for:");
+                            self.selectNodeById(id);
+                            event.stopPropagation();
+                        } else if (event.key === "o" && event.altKey === true) {
+                            self._editor.selected.list.map((node) => console.log(node.data.dbNode.type + '[' + node.data.dbNode.id + "]"));
+                            event.stopPropagation();
+                        }
+                    },
+                    keyup: function (event) {
+                        if (event.key === "Shift" || event.key === "Ctrl") {
+                            // Stop area selection on shift or ctrl keyup
+                            new AreaSelector(self).disable();
+                            event.stopPropagation();
+                        }
                     }
                 }
-            } else if (event.key === 'Escape') {
-                // Close panel on ESC and clear selection
-                ResultPanel.removePanel();
-                this._editor.selected.list = [];
-                this._editor.view.update();
-            } else if (event.shiftKey === true && event.ctrlKey === true) {
-                // Enable area selection on shift+ctrl
-                new AreaSelector(this).enable();
-            } else if (event.key === "a" && event.ctrlKey === true) {
-                // Select all nodes and prevent default selection
-                this.selectAllNodes();
-                event.preventDefault();
-            } else if (event.key === "p" && event.altKey === true) {
-                const id = prompt("Enter UUID for FlowNode to search for:");
-                this.selectNodeById(id);
-            } else if (event.key === "o" && event.altKey === true) {
-                this._editor.selected.list.map( (node) => console.log(node.data.dbNode.type + '[' +node.data.dbNode.id + "]"));
-            }
-        });
-
-        document.addEventListener('keyup', (event) => {
-            if (event.key === "Shift" || event.key === "Ctrl") {
-                // Stop area selection on shift or ctrl keyup
-                new AreaSelector(this).disable();
-            }
-        });
+            };
+            return this._eventHandlers;
+        } else {
+            return this._eventHandlers;
+        }
     }
 
-    _getContextMenuItemsForElement(editor, element) {
-        let items = {};
+    _registerKeybinds() {
+        // Local binds
+        this._rootElement.addEventListener('keydown', this._getEventHandlers().local.keydown);
 
-        const viableStartNodeTypes = [
+        // Global binds
+        document.addEventListener('keydown', this._getEventHandlers().global.keydown);
+        document.addEventListener('keyup', this._getEventHandlers().global.keyup);
+
+    }
+
+    _unregisterKeybinds() {
+        //  Local binds
+        this._rootElement.removeEventListener('keydown', this._getEventHandlers().local.keydown);
+
+        // Global binds
+        document.removeEventListener('keydown', this._getEventHandlers().global.keydown);
+        document.removeEventListener('keyup', this._getEventHandlers().global.keyup);
+    }
+
+    static _getViableStartNodes() {
+        return [
             'FlowAction',
             'FlowCall',
             'FlowDecision',
@@ -195,6 +239,13 @@ export class FlowEditor {
             'FlowStore',
             'FlowAggregate'
         ];
+    }
+
+    _getContextMenuItemsForElement(editor, element) {
+        let items = {};
+
+        const viableStartNodeTypes = FlowEditor._getViableStartNodes();
+
 
         if ( viableStartNodeTypes.filter( t => (t===element.dbNode.type) ).length > 0 ) {
             items['Set as start node'] = function setAsStartNode() {
@@ -360,6 +411,10 @@ export class FlowEditor {
         return function() {
             let persistence = new Persistence();
             return persistence.createNode({type: entType}).then(node => {
+                if ((self.flowNodes.filter(node => node.isStartNodeOfContainer !== null).length <= 0)
+                    && (FlowEditor._getViableStartNodes().indexOf(node.type) !== -1)) {
+                    node.isStartNodeOfContainer = self._flowContainer.id;
+                }
                 let fNode = self.renderNode(node);
                 node.flowContainer = self._flowContainer.id;
                 fNode.editorNode.position = self._editor.view.mouse;

@@ -47,6 +47,7 @@ export class CodeModal {
             indentWithTabs: true,
             scrollbarStyle: "overlay",
             value: element.value,
+            autofocus: true,
             extraKeys: {
                 "F11": function(cm) {
                     cm.setOption("fullScreen", !cm.getOption("fullScreen"));
@@ -59,10 +60,12 @@ export class CodeModal {
         // Write changes on blur/exit
         editor.on('blur', ()=>{element.value = editor.getValue();element.dispatchEvent(new Event('change'))});
 
-        // Focus editor and move cursor to end of last line
-        editor.focus();
-        editor.setCursor(editor.lineCount(), 0);
+        // Stop key events from bubbling up
+        editor.on('keydown', (event) => event.stopPropagation());
 
+        // Focus editor and move cursor to end of last line
+        editor.setCursor(editor.lineCount(), 0);
+        editor.focus();
     }
 
     _injectDependencies() {

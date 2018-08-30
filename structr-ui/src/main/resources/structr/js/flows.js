@@ -102,9 +102,13 @@ var _Flows = {
             let name = inputElement.value;
             inputElement.value = "";
             persistence.createNode({type:"FlowContainer", name:name}).then( (r) => {
-               _Flows.refreshTree();
                if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
                    _Flows.initFlow(r.id);
+                   $(flowsTree).jstree("deselect_all");
+
+                   $(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
+                   _Flows.refreshTree();
+                   console.log(document.querySelector('li[id=\"' + r.id + '\"]'));
                }
             });
         }
@@ -324,8 +328,10 @@ var _Flows = {
 			lineWrapping: lineWrapping,
 			indentUnit: 4,
 			tabSize:4,
-			indentWithTabs: true
+			indentWithTabs: true,
+			autofocus: true
 		});
+        editor.setCursor(editor.lineCount(), 0);
 
         Structr.resize();
 
@@ -402,6 +408,10 @@ var _Flows = {
         return items;
 	},*/
 	initFlow: function(id) {
+
+		if (editor !== undefined && editor !== null) {
+			editor.cleanup();
+		}
 
 		// display flow canvas
 		flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
