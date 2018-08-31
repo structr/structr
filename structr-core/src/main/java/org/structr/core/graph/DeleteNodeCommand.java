@@ -66,7 +66,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private void doDeleteNode(final NodeInterface node) {
 
-		if (TransactionCommand.isDeleted(node.getNode())) {
+		if (node == null || TransactionCommand.isDeleted(node.getNode())) {
 			return;
 		}
 
