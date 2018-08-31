@@ -228,10 +228,8 @@ public class PageImportVisitor implements FileVisitor<Path> {
 						// remove duplicate elements
 						fixDocumentElements(newPage);
 
-						// store properties from pages.json if present
-						if (properties != null) {
-							newPage.setProperties(securityContext, properties);
-						}
+						// store properties from pages.json
+						newPage.setProperties(securityContext, properties);
 					}
 
 				} else {
@@ -250,10 +248,8 @@ public class PageImportVisitor implements FileVisitor<Path> {
 						// parse page
 						final Page newPage = app.create(Page.class, name);
 
-						// store properties from pages.json if present
-						if (properties != null) {
-							newPage.setProperties(securityContext, properties);
-						}
+						// store properties from pages.json
+						newPage.setProperties(securityContext, properties);
 
 						// add children
 						importer.createChildNodes(newPage, newPage);
