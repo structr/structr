@@ -373,7 +373,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			NodeWrapper wrapper = nodeCache.get(node.id());
-			if (wrapper == null) {
+			if (wrapper == null || wrapper.stale) {
 
 				wrapper = new NodeWrapper(db, node);
 				nodeCache.put(node.id(), wrapper);
@@ -388,7 +388,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		synchronized (nodeCache) {
 
 			NodeWrapper wrapper = nodeCache.get(id);
-			if (wrapper == null) {
+			if (wrapper == null || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
@@ -422,10 +422,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 	private List<Relationship> getList(final Direction direction, final RelationshipType relType) {
 
-		final String key                            = relType != null ? relType.name() : "*";
+		final String relTypeKey                            = relType != null ? relType.name() : "*";
 		final Map<String, List<Relationship>> cache = getCache(direction);
 
-		return cache.get(key);
+		return cache.get(relTypeKey);
 	}
 
 	private void setList(final Direction direction, final RelationshipType relType, final List<Relationship> list) {

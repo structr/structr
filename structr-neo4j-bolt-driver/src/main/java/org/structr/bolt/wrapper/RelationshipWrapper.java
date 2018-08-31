@@ -168,7 +168,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		synchronized (relationshipCache) {
 
 			RelationshipWrapper wrapper = relationshipCache.get(relationship.id());
-			if (wrapper == null) {
+			if (wrapper == null || wrapper.stale) {
 
 				wrapper = new RelationshipWrapper(db, relationship);
 				relationshipCache.put(relationship.id(), wrapper);
@@ -183,7 +183,7 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		synchronized (relationshipCache) {
 
 			RelationshipWrapper wrapper = relationshipCache.get(id);
-			if (wrapper == null) {
+			if (wrapper == null || wrapper.stale) {
 
 				final SessionTransaction tx   = db.getCurrentTransaction();
 				final Map<String, Object> map = new HashMap<>();
