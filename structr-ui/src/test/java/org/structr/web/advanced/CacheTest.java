@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -118,8 +119,7 @@ public class CacheTest extends StructrUiTest {
 					System.out.println("Leaking cache detected, collection has wrong number of elements: " + count + " vs. " + size);
 				}
 
-				// do not fail this test for now
-				//assertEquals("Leaking cache detected, collection has wrong number of elements", count, size);
+				assertEquals("Leaking cache detected, collection has wrong number of elements", count, size);
 
 				tx.success();
 
@@ -138,7 +138,7 @@ public class CacheTest extends StructrUiTest {
 	@Test
 	public void testRollback() {
 
-		Settings.CypherDebugLogging.setValue(true);
+		//Settings.CypherDebugLogging.setValue(true);
 
 		try {
 
@@ -166,8 +166,6 @@ public class CacheTest extends StructrUiTest {
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
-
-			System.exit(0);
 
 			try (final Tx tx = app.tx()) {
 
