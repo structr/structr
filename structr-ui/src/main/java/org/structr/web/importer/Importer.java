@@ -358,9 +358,13 @@ public class Importer {
 
 			tx.success();
 
+			return page;
+
+		} catch (Throwable t) {
+			logger.warn("Unable to parse source:\n\n" + source);
+			return null;
 		}
 
-		return page;
 	}
 
 	public static List<InvertibleModificationOperation> diffNodes(final DOMNode sourceNode, final DOMNode modifiedNode) {
@@ -518,7 +522,7 @@ public class Importer {
 	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
 
 		DOMNode rootElement     = null;
-		Linkable res            = null;
+		Linkable linkable            = null;
 		String instructions     = null;
 
 		final List<Node> children = startNode.childNodes();
@@ -562,12 +566,12 @@ public class Importer {
 						? "src" : hrefElements.contains(tag)
 						? "href" : null;
 
-					if (downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
+					if (originalUrl != null && downloadAddressAttr != null && StringUtils.isNotBlank(node.attr(downloadAddressAttr))) {
 
 						String downloadAddress = node.attr(downloadAddressAttr);
-						res = downloadFile(downloadAddress, originalUrl);
+						linkable = downloadFile(downloadAddress, originalUrl);
 					} else {
-						res = null;
+						linkable = null;
 					}
 				}
 
@@ -800,8 +804,8 @@ public class Importer {
 				}
 
 				// set linkable
-				if (res != null && newNode instanceof LinkSource) {
-					((LinkSource)newNode).setLinkable(res);
+				if (linkable != null && newNode instanceof LinkSource) {
+					((LinkSource)newNode).setLinkable(linkable);
 				}
 
 				// container for bulk setProperties()
@@ -896,11 +900,11 @@ public class Importer {
 							boolean isActive = notBlank && value.contains("${");
 							boolean isStructrLib = notBlank && value.startsWith("/structr/js/");
 
-							if ("link".equals(tag) && "href".equals(key) && isLocal && !isActive && !isDeployment) {
+							if (linkable != null && "link".equals(tag) && "href".equals(key) && isLocal && !isActive && !isDeployment) {
 
 								newNodeProperties.put(new StringProperty(PropertyView.Html + key), "${link.path}?${link.version}");
 
-							} else if (("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib && !isDeployment) {
+							} else if (linkable != null && ("href".equals(key) || "src".equals(key)) && isLocal && !isActive && !isAnchor && !isStructrLib && !isDeployment) {
 
 								newNodeProperties.put(new StringProperty(PropertyView.Html + key), "${link.path}");
 
@@ -1082,7 +1086,7 @@ public class Importer {
 
 		} catch (MalformedURLException ex) {
 
-			logger.error("Could not resolve address {}", address.concat("/"));
+			logger.error("Could not resolve address {}", address != null ? address.concat("/") : "");
 			return null;
 		}
 
