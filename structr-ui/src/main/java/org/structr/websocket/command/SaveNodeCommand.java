@@ -70,7 +70,12 @@ public class SaveNodeCommand extends AbstractCommand {
 
 				// parse page from modified source
 				modifiedNode = Importer.parsePageFromSource(securityContext, modifiedHtml, "__SaveNodeCommand_Temporary_Page__");
-
+				
+				if (modifiedNode == null) {
+					final String errorMessage = "Unable to parse " + modifiedHtml;
+					logger.warn(errorMessage);
+					getWebSocket().send(MessageBuilder.status().code(422).message(errorMessage).build(), true);
+				}
 
 				DOMNode targetNode = modifiedNode;
 
