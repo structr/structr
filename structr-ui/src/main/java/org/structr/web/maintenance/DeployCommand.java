@@ -93,6 +93,7 @@ import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.MinifiedCssFile;
 import org.structr.web.entity.MinifiedJavaScriptFile;
+import org.structr.web.entity.Site;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
@@ -201,10 +202,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final long startTime = System.currentTimeMillis();
 		customHeaders.put("start", new Date(startTime).toString());
 
-		final String path                        = (String) attributes.get("source");
-
+		final String path         = (String) attributes.get("source");
 		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-		final App app                            = StructrApp.getInstance(ctx);
+		final App app             = StructrApp.getInstance(ctx);
 
 		ctx.setDoTransactionNotifications(false);
 		ctx.disableEnsureCardinality();
@@ -232,10 +232,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		final Map<String, Object> broadcastData = new HashMap();
-		broadcastData.put("type", DEPLOYMENT_IMPORT_STATUS);
+		broadcastData.put("type",    DEPLOYMENT_IMPORT_STATUS);
 		broadcastData.put("subtype", DEPLOYMENT_STATUS_BEGIN);
-		broadcastData.put("start", startTime);
-		broadcastData.put("source", source);
+		broadcastData.put("start",   startTime);
+		broadcastData.put("source",  source);
 		TransactionCommand.simpleBroadcastGenericMessage(broadcastData);
 
 		// apply configuration
@@ -417,6 +417,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final Path templates  = source.resolve("templates");
 		final Path components = source.resolve("components");
 		final Path pages      = source.resolve("pages");
+		final Path sitesConfFile = source.resolve("sites.json");
 
 		// remove all DOMNodes from the database (clean webapp for import, but only
 		// if the actual import directories exist, don't delete web components if
@@ -425,18 +426,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			try (final Tx tx = app.tx()) {
 
-				final String tenantIdentifier = app.getDatabaseService().getTenantIdentifier();
+				final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
+				final String optionalTenantLabel = (tenantIdentifier != null) ? ":" + tenantIdentifier : "";
 
 				info("Removing pages, templates and components");
 				publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing pages, templates and components");
 
-				if (tenantIdentifier != null) {
+				app.cypher("MATCH (n" + optionalTenantLabel + ":DOMNode) DETACH DELETE n", null);
 
-					app.cypher("MATCH (n:" + tenantIdentifier + ":DOMNode) DETACH DELETE n", null);
+				if (Files.exists(sitesConfFile)) {
 
-				} else {
+					info("Removing sites");
+					publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Removing sites");
 
-					app.cypher("MATCH (n:DOMNode) DETACH DELETE n", null);
+					app.cypher("MATCH (n" + optionalTenantLabel + ":Site) DETACH DELETE n", null);
 				}
 
 				FlushCachesCommand.flushAll();
@@ -492,6 +495,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			} catch (IOException ioex) {
 				logger.warn("Exception while importing pages", ioex);
 			}
+		}
+
+		// import sites
+		if (Files.exists(sitesConfFile)) {
+
+			info("Importing sites");
+			publishDeploymentProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing sites");
+
+			importSites(readConfigList(sitesConfFile));
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -640,6 +652,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path schemaJson     = schema.resolve("schema.json");
 			final Path grants         = security.resolve("grants.json");
 			final Path filesConf      = target.resolve("files.json");
+			final Path sitesConf      = target.resolve("sites.json");
 			final Path pagesConf      = target.resolve("pages.json");
 			final Path componentsConf = target.resolve("components.json");
 			final Path templatesConf  = target.resolve("templates.json");
@@ -649,6 +662,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Files");
 			exportFiles(files, filesConf);
+
+			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Sites");
+			exportSites(sitesConf);
 
 			publishDeploymentProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Pages");
 			exportPages(pages, pagesConf);
@@ -830,6 +846,47 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!properties.isEmpty()) {
 			config.put(file.getPath(), properties);
+		}
+	}
+
+	private void exportSites(final Path target) throws FrameworkException {
+
+		logger.info("Exporting sites");
+
+		final List<Map<String, Object>> sites = new LinkedList<>();
+		final App app                          = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final Site site : app.nodeQuery(Site.class).sort(Site.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+				sites.add(entry);
+
+				entry.put("name",     site.getName());
+				entry.put("hostname", site.getHostname());
+				entry.put("port",     site.getPort());
+				entry.put("visibleToAuthenticatedUsers", site.getProperty(Site.visibleToAuthenticatedUsers));
+				entry.put("visibleToPublicUsers",        site.getProperty(Site.visibleToPublicUsers));
+
+				final List<String> pageNames = new LinkedList<>();
+				for (final Page page : (List<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
+					pageNames.add(page.getName());
+				}
+				entry.put("pages", pageNames);
+
+				exportOwnershipAndSecurity(site, entry);
+			}
+
+			tx.success();
+		}
+
+		try (final Writer fos = new OutputStreamWriter(new FileOutputStream(target.toFile()))) {
+
+			getGson().toJson(sites, fos);
+
+		} catch (IOException ioex) {
+			logger.warn("", ioex);
 		}
 	}
 
@@ -1470,6 +1527,42 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage());
+			fex.printStackTrace();
+
+			throw fex;
+		}
+	}
+
+	private void importSites(final List<Map<String, Object>> data) throws FrameworkException {
+
+		final SecurityContext context = SecurityContext.getSuperUserInstance();
+		context.setDoTransactionNotifications(false);
+		final App app                 = StructrApp.getInstance(context);
+
+		try (final Tx tx = app.tx()) {
+
+			for (Map<String, Object> entry : data) {
+
+				final List<Page> pages = new LinkedList();
+
+				for (final String pageName : (List<String>)entry.get("pages")) {
+					pages.add(app.nodeQuery(Page.class).andName(pageName).getFirst());
+				}
+
+				entry.remove("pages");
+
+				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, Site.class, entry);
+
+				map.put(StructrApp.key(Site.class, "pages"), pages);
+
+				app.create(Site.class, map);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Unable to import site, aborting with {}", fex.getMessage());
 			fex.printStackTrace();
 
 			throw fex;
