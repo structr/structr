@@ -447,8 +447,16 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		Collections.sort(sorted, (a, b) -> {
 
-			if (a.hasProperty(key) && b.hasProperty(key)) {
+			if (!a.hasProperty(key) && b.hasProperty(key)) {
+				return -1;
+			}
+			
+			if (a.hasProperty(key) && !b.hasProperty(key)) {
+				return 1;
+			}
 
+			if (a.hasProperty(key) && b.hasProperty(key)) {
+				
 				final String t1 = (String)a.getProperty(key);
 				final String t2 = (String)b.getProperty(key);
 

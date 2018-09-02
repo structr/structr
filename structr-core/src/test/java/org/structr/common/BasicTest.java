@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -1777,7 +1778,58 @@ public class BasicTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
-	}	
+	}
+	
+	@Test
+	public void testRelationshipsToListWithNullTimestamp() {
+
+		String id = null;
+		
+		try (final Tx tx = app.tx()) {
+
+			final TestSix testSix = createTestNode(TestSix.class);
+			id = testSix.getUuid();
+			
+			// Create 1000 rels
+			for (int i=0; i<10; i++) {
+				
+				final TestThree testThree = createTestNode(TestThree.class, new NodeAttribute<>(TestThree.oneToManyTestSix, testSix));
+				final RelationshipInterface rel = testThree.getRelationships(SixThreeOneToMany.class).iterator().next();
+				
+				if (i%2 == 0) {
+					rel.getRelationship().setProperty("internalTimestamp", null);
+				}
+			}
+			
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final TestSix testSix = app.get(TestSix.class, id);
+			
+			// This calls NodeWrapper#toList internally
+			List<OneTwoOneToOne> rels = Iterables.toList(testSix.getRelationships());
+			
+			assertEquals("Wrong number of relationships", 10, rels.size());
+			
+			for (RelationshipInterface rel : rels) {
+				System.out.println(rel.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(RelationshipInterface.class, "internalTimestamp")));
+			}
+			
+			
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
 	@Test
 	public void testNodeCreationWithForcedUuid() {
 
