@@ -403,9 +403,9 @@ var Structr = {
 
 		$('table.username-password', loginBox).hide();
 		$('#two-factor', loginBox).show();
-		$('#two-factor #two-factor-qr-code').show();
 
 		if (data.qrdata) {
+			$('#two-factor #two-factor-qr-code').show();
 			$('#two-factor img', loginBox).attr('src', 'data:image/png;base64, ' + data.qrdata);
 		}
 
