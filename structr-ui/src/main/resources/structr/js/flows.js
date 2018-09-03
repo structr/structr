@@ -344,7 +344,7 @@ var _Flows = {
 
 	initFlow: function(id) {
 
-		if (editor !== undefined && editor !== null) {
+		if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
 			editor.cleanup();
 			editor = undefined;
 		}

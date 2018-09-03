@@ -52,6 +52,11 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 						// Provide current element data for loop context and write evaluation result into main context data for this loop element
 						loopContext.setData(flowElement.getUuid(), o);
 						context.setData(flowElement.getUuid(), engine.execute(loopContext, loopBody));
+
+						// Break when an intermediate result or error occurs
+						if (context.hasResult() || context.hasError()) {
+							break;
+						}
 					}
 
 				} else {
