@@ -401,6 +401,9 @@ var Structr = {
 	},
 	toggle2FALoginBox: function (data) {
 
+		$('#errorText').html('');
+		$('#errorText-two-factor').html('');
+
 		$('table.username-password', loginBox).hide();
 		$('#two-factor', loginBox).show();
 
