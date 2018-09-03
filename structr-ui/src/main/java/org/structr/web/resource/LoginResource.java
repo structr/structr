@@ -30,7 +30,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
-import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
 import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
@@ -38,7 +37,6 @@ import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
@@ -68,18 +66,13 @@ public class LoginResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		final PropertyMap properties       = PropertyMap.inputTypeToJavaType(securityContext, Principal.class, propertySet);
-		final PropertyKey<String> eMailKey = StructrApp.key(Principal.class, "eMail");
-		final PropertyKey<String> pwdKey   = StructrApp.key(Principal.class, "password");
+		final String username       = (String) propertySet.get("name");
+		final String email          = (String) propertySet.get("eMail");
+		final String password       = (String) propertySet.get("password");
+		final String twoFactorToken = (String) propertySet.get("twoFactorToken");
+		final String twoFactorCode  = (String) propertySet.get("twoFactorCode");
 
-		final String name     = properties.get(Principal.name);
-		final String email    = properties.get(eMailKey);
-		final String password = properties.get(pwdKey);
-
-		final String emailOrUsername = StringUtils.isNotEmpty(email) ? email : name;
-
-		final String twoFactorToken     = properties.get(StructrApp.key(Principal.class, "twoFactorToken"));
-		final String twoFactorCode      = properties.get(StructrApp.key(Principal.class, "twoFactorCode"));
+		final String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
 
 		Principal user = null;
 

@@ -428,11 +428,9 @@ public class AuthHelper {
 
 				} else {
 
-					final String twoFactorSecret = principal.getProperty(StructrApp.key(Principal.class, "twoFactorSecret"));
-
 					try {
 
-						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(twoFactorSecret, Settings.TwoFactorDigits.getValue());
+						final String currentKey = TimeBasedOneTimePasswordHelper.generateCurrentNumberString(Principal.getTwoFactorSecret(principal), Settings.TwoFactorDigits.getValue());
 
 						// check two factor authentication
 						if (currentKey.equals(twoFactorCode)) {

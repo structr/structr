@@ -102,7 +102,6 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "workingDirectory");
 
 		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
-		user.addViewProperty(PropertyView.Ui, "twoFactorSecret");
 		user.addViewProperty(PropertyView.Ui, "isTwoFactorUser");
 		user.addViewProperty(PropertyView.Ui, "twoFactorConfirmed");
 
@@ -132,15 +131,11 @@ public interface User extends Principal {
 			throw new FrameworkException(422, "", new SemanticErrorToken(user.getClass().getSimpleName(), skipSecurityRels, "can_only_be_set_for_admin_accounts"));
 		}
 
-		// generate and set 2fa properties
-		final PropertyKey<String> twoFactorSecretKey  = StructrApp.key(User.class, "twoFactorSecret");
-		final PropertyKey<Boolean> isTwoFactorUserKey = StructrApp.key(User.class, "isTwoFactorUser");
+		if (Principal.getTwoFactorSecret(user) == null) {
 
-		if (user.getProperty(twoFactorSecretKey) == null) {
-
-			final String base32Secret = TimeBasedOneTimePasswordHelper.generateBase32Secret();
-			user.setProperty(isTwoFactorUserKey, false);
-			user.setProperty(twoFactorSecretKey, base32Secret);
+			user.setProperty(StructrApp.key(User.class, "isTwoFactorUser"),    false);
+			user.setProperty(StructrApp.key(User.class, "twoFactorConfirmed"), false);
+			user.setProperty(StructrApp.key(User.class, "twoFactorSecret"),    TimeBasedOneTimePasswordHelper.generateBase32Secret());
 		}
 
 		if (Settings.FilesystemEnabled.getValue()) {

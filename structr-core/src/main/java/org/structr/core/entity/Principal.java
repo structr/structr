@@ -85,8 +85,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		// Two Factor Authentication
 		principal.addStringProperty("twoFactorSecret");
-		principal.addPropertySetter("twoFactorSecret", String.class);
-		principal.addPropertyGetter("twoFactorSecret", String.class);
 
 		principal.addStringProperty("twoFactorToken").setIndexed(true);
 		principal.addPropertySetter("twoFactorToken", String.class);
@@ -100,9 +98,6 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPropertySetter("twoFactorConfirmed", Boolean.TYPE);
 		principal.addPropertyGetter("twoFactorConfirmed", Boolean.TYPE);
 
-		principal.addStringProperty("twoFactorCode");
-		principal.addPropertySetter("twoFactorCode", String.class);
-		principal.addPropertyGetter("twoFactorCode", String.class);
 
 		principal.addStringProperty("salt");
 		principal.addStringProperty("locale");
@@ -145,7 +140,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.setReturnType("<T> T")
 			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
 			.addParameter("arg1", Predicate.class.getName() + "<GraphObject>")
-			.setSource("if (arg0.equals(passwordProperty) || arg0.equals(saltProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
+			.setSource("if (arg0.equals(passwordProperty) || arg0.equals(saltProperty) || arg0.equals(twoFactorSecretProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
 
 		// create relationships
 		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
@@ -266,21 +261,18 @@ public interface Principal extends NodeInterface, AccessControllable {
 		return null;
 	}
 
+	public static String getTwoFactorSecret(final Principal principal) {
+
+		final Node dbNode = principal.getNode();
+		if (dbNode.hasProperty("twoFactorSecret")) {
+
+			return (String) dbNode.getProperty("twoFactorSecret");
+		}
+
+		return null;
+	}
+
 	public static String getTwoFactorUrl(final Principal principal) {
-
-		final Integer twoFactorLevel = Settings.TwoFactorLevel.getValue();
-		if (twoFactorLevel == 0) {
-			logger.warn("two_factor_url(): Two-factor authentication is disabled");
-			return "Warning: Two-factor authentication is disabled.";
-		}
-
-		final Boolean isTwoFactorUser = principal.getProperty(StructrApp.key(Principal.class, "isTwoFactorUser"));
-		if (twoFactorLevel == 1 && !isTwoFactorUser) {
-
-			logger.warn("two_factor_url(): Two-factor authentication is disabled for this user: {} ({})", principal.getName(), principal.getUuid());
-			return "Warning: Two-factor authentication is disabled for this user.";
-		}
-
 
 		final String twoFactorIssuer    = Settings.TwoFactorIssuer.getValue();
 		final String twoFactorAlgorithm = Settings.TwoFactorAlgorithm.getValue();
@@ -296,8 +288,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 			path.append(":").append(principal.getName());
 		}
 
-		final PropertyKey<String> twoFactorSecretKey = StructrApp.key(Principal.class, "twoFactorSecret");
-		final StringBuilder query = new StringBuilder("secret=").append(principal.getProperty(twoFactorSecretKey))
+		final StringBuilder query = new StringBuilder("secret=").append(Principal.getTwoFactorSecret(principal))
 				.append("&issuer=").append(twoFactorIssuer)
 				.append("&algorithm=").append(twoFactorAlgorithm)
 				.append("&digits=").append(twoFactorDigits)
