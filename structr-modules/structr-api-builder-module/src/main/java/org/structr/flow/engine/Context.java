@@ -137,6 +137,8 @@ public class Context {
 		this.store = deepCopyMap(context.store);
 		this.parameters = deepCopyMap(context.store);
 		this.currentData = deepCopyMap(context.currentData);
+		this.result = context.result;
+		this.error = context.error;
 	}
 
 	private Map<String, Object> deepCopyMap(Map<String,Object> map) {
