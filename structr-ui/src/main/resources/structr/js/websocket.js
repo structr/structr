@@ -197,7 +197,7 @@ function wsConnect() {
 				} else if (code === 202) {
 					user = null;
 					userId = null;
-					Structr.login((msg !== null) ? msg : '');
+					Structr.login('');
 
 					Structr.toggle2FALoginBox(data.data);
 
