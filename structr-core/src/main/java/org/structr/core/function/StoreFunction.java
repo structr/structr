@@ -39,9 +39,13 @@ public class StoreFunction extends Function<Object, Object> {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
-
-			ctx.store(sources[0].toString(), sources[1]);
+			if (sources != null && sources.length == 2 && sources[0] != null && sources[0] != Functions.NULL_STRING) {
+				if (sources[1] == null || sources[1] == Functions.NULL_STRING) {
+					ctx.getContextStore().remove(sources[0].toString());
+				} else {
+					ctx.store(sources[0].toString(), sources[1]);
+				}
+			}
 
 			return "";
 

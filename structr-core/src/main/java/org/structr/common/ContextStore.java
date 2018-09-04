@@ -88,6 +88,8 @@ public class ContextStore {
 		return tmpStore.get(key);
 	}
 
+	public void remove(final String key) { tmpStore.remove(key);}
+
 	public Map<String, Object> getAllVariables () {
 		return tmpStore;
 	}

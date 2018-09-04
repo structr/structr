@@ -1270,7 +1270,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1289,7 +1289,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1308,7 +1308,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t").append(action.getSource("this")).append(";\n");
+			src.append("\t\t").append(action.getSource("this", "arg0")).append(";\n");
 		}
 
 		src.append("\t}\n");
@@ -1329,7 +1329,7 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			src.append("\t\t\t").append(action.getSource("this")).append(";\n");
+			src.append("\t\t\t").append(action.getSource("this", "arg0")).append(";\n");
 		}
 
 		src.append("\t\t} catch (FrameworkException fex) {\n");
