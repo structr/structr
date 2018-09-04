@@ -80,6 +80,10 @@ public interface Group extends Principal {
 
 	public static void addMember(final Group group, final Principal user) throws FrameworkException {
 
+		if (user == null) {
+			throw new FrameworkException(422, "Unable to add user " + user + " to group " + group);
+		}
+		
 		final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
 		final List<Principal> _users           = group.getProperty(key);
 
@@ -89,6 +93,10 @@ public interface Group extends Principal {
 	}
 
 	public static void removeMember(final Group group, final Principal member) throws FrameworkException {
+
+		if (member == null) {
+			throw new FrameworkException(422, "Unable to remove member " + member + " from group " + group);
+		}
 
 		final PropertyKey<List<Principal>> key = StructrApp.key(group.getClass(), "members");
 		final List<Principal> _users           = group.getProperty(key);
