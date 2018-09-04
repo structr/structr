@@ -1257,9 +1257,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		final long t0 = System.currentTimeMillis();
 
+		int relCount = 0;
+
 		for (final Security r : incomingSecurityRelationships) {
 
 			if (r != null) {
+
+				relCount++;
 
 				if (p.equals(r.getSourceNode())) {
 
@@ -1268,7 +1272,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 					if (dt > 20) {
 
-						logger.warn("AbstractNode.getSecurityRelationship took {} ms", dt);
+						logger.warn("AbstractNode.getSecurityRelationship took {} ms. Relationship found after {} rels: Principal {} - Relationship {}", dt, relCount, p.getUuid(), r.getUuid());
 					}
 
 
@@ -1283,7 +1287,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		if (dt > 20) {
 
-			logger.warn("AbstractNode.getSecurityRelationship took {} ms", dt);
+			logger.warn("AbstractNode.getSecurityRelationship took {} ms. Nothing found after {} rels", dt, relCount);
 		}
 
 

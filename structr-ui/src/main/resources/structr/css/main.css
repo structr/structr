@@ -2982,6 +2982,11 @@ input.bitmask {
 	bottom: 4px;
 }
 
+#info-area .message:only-child .confirmAll {
+	visibility: hidden;
+	display: none;
+}
+
 #info-area b.uniqueCount {
 	margin: 0;
 	text-align: inherit;
