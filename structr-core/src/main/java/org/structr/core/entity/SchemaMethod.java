@@ -61,7 +61,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             signature             = new StringProperty("signature").indexed();
 	public static final Property<String>             virtualFileName       = new StringProperty("virtualFileName").indexed();
 	public static final Property<String>             returnType            = new StringProperty("returnType").indexed();
-	public static final Property<String>             source                = new StringProperty("source").indexed();
+	public static final Property<String>             source                = new StringProperty("source");
 	public static final Property<String>             comment               = new StringProperty("comment").indexed();
 	public static final Property<String[]>           exceptions            = new ArrayProperty("exceptions", String.class).indexed();
 	public static final Property<Boolean>            callSuper             = new BooleanProperty("callSuper").indexed();

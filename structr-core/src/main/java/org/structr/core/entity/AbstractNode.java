@@ -809,8 +809,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		final String cacheKey = getUuid() + "." + permission.name() + "." + context.getCachedUserId();
 		final Boolean cached  = isGrantedResultCache.get(cacheKey);
 
-		if (cached != null) {
-			return cached;
+		if (cached != null && cached == true) {
+			return true;
 		}
 
 		final boolean doLog  = securityContext.hasParameter("logPermissionResolution");

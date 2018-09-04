@@ -216,8 +216,8 @@ public class ModificationQueue {
 
 		getState(relationship).create();
 
-		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
-		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
+		final NodeInterface sourceNode = relationship.getSourceNode();
+		final NodeInterface targetNode = relationship.getTargetNode();
 
 		if (sourceNode != null && targetNode != null) {
 

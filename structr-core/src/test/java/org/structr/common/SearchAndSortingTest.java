@@ -393,10 +393,27 @@ public class SearchAndSortingTest extends StructrTest {
 		try  {
 
 			Class type                      = TestOne.class;
-			int number                      = 1000;
-			final List<NodeInterface> nodes = this.createTestNodes(type, number);
-			final int expectedNumber        = 1163;
+			int countBefore                 = 0;
+			int numberToCreate              = 1000;
 
+			try (final Tx tx = app.tx()) {
+
+				long t0 = System.currentTimeMillis();
+
+				Result<? extends GraphObject> result = app.nodeQuery(NodeInterface.class).getResult();
+
+				countBefore = result.size();
+				
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				logger.error(ex.toString());
+				fail("Unexpected exception");
+			}
+			
+			final int expectedNumber        = countBefore + numberToCreate;
+			final List<NodeInterface> nodes = this.createTestNodes(type, numberToCreate);
+			
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
@@ -419,10 +436,8 @@ public class SearchAndSortingTest extends StructrTest {
 			}
 
 		} catch (FrameworkException ex) {
-
 			logger.error(ex.toString());
 			fail("Unexpected exception");
-
 		}
 	}
 

@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -64,9 +65,23 @@ public class ImageTest extends StructrUiTest {
 			tester2 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester2"), new NodeAttribute<>(passwordKey, "test"));
 			tester3 = app.create(Principal.class, new NodeAttribute<>(Principal.name, "tester3"), new NodeAttribute<>(passwordKey, "test"));
 
-			FileHelper.createFolderPath(securityContext, "/Test1").setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-			FileHelper.createFolderPath(securityContext, "/Test1/Subtest2").setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
-			FileHelper.createFolderPath(securityContext, "/Test1/Subtest3").setProperty(AbstractNode.visibleToAuthenticatedUsers, true);;
+			final Folder folder1 = FileHelper.createFolderPath(securityContext, "/Test1");
+			folder1.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			folder1.grant(Permission.write, tester1);
+			folder1.grant(Permission.write, tester2);
+			folder1.grant(Permission.write, tester3);
+			
+			final Folder folder2 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest2");
+			folder2.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			folder2.grant(Permission.write, tester1);
+			folder2.grant(Permission.write, tester2);
+			folder2.grant(Permission.write, tester3);
+			
+			final Folder folder3 = FileHelper.createFolderPath(securityContext, "/Test1/Subtest3");
+			folder3.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
+			folder3.grant(Permission.write, tester1);
+			folder3.grant(Permission.write, tester2);
+			folder3.grant(Permission.write, tester3);
 
 			tx.success();
 
