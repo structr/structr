@@ -10,6 +10,8 @@ export class QueryBooleanValue extends QueryValue {
         this.domNodes = this._constructDOMElements();
 
         this._bindEvents();
+
+        this.setValue(true);
     }
 
     // ---------- Interface ----------

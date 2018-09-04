@@ -503,6 +503,8 @@ span.close {
   position: relative;
   background: white;
   border-radius: 5px; }
+  .query-operation.query-sort {
+    margin-top: 25px; }
 
 .query-group {
   min-width: 400px;

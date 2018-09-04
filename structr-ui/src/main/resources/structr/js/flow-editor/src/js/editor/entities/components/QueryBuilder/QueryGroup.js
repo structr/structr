@@ -1,4 +1,5 @@
 import {QueryOperation} from "./QueryOperation.js";
+import {QuerySortOperation} from "./QuerySortOperation.js";
 
 export class QueryGroup {
 
@@ -53,6 +54,10 @@ export class QueryGroup {
                         let operation = this._addOperation();
                         operation.loadConfiguration(element);
                         break;
+                    case "sort":
+                        let sortoperation = this._addSortOperation();
+                        sortoperation.loadConfiguration(element);
+                        break;
                 }
             }
         }
@@ -79,10 +84,13 @@ export class QueryGroup {
         this.handles.orButton = rootElement.querySelector(".query-group .query-group-button-or");
         this.handles.addOperation = rootElement.querySelector(".query-group .query-group-button-add-operation");
         this.handles.addGroup = rootElement.querySelector(".query-group .query-group-button-add-group");
+        this.handles.addSort = rootElement.querySelector(".query-group .query-group-button-add-sort");
         this.handles.deleteButton = rootElement.querySelector(".query-group .query-group-button-delete");
 
         if (this.isRootGroup) {
             this.handles.deleteButton.classList.add("hidden");
+        } else {
+            this.handles.addSort.classList.add("hidden");
         }
 
         if (this.isFirstGroup) {
@@ -119,6 +127,11 @@ export class QueryGroup {
             this._dispatchChangeEvent();
         });
 
+        this.handles.addSort.addEventListener("click", () => {
+           this._addSortOperation();
+           this._dispatchChangeEvent();
+        });
+
         this.handles.deleteButton.addEventListener("click", () => {
             this.getDOMNodes().dispatchEvent(new CustomEvent("query.group.delete", {detail: this}));
         });
@@ -150,7 +163,13 @@ export class QueryGroup {
         this.model.operations.push(group);
         this._sortOperations();
 
-        this.handles.operations.appendChild(group.getDOMNodes());
+        const sortOp = this.handles.operations.querySelector(".query-sort");
+
+        if (sortOp !== null) {
+            this.handles.operations.insertBefore(group.getDOMNodes(), sortOp);
+        } else {
+            this.handles.operations.appendChild(group.getDOMNodes());
+        }
 
         return group;
     }
@@ -176,13 +195,49 @@ export class QueryGroup {
 
         const firstGroup = this.handles.operations.querySelector(".query-group");
 
-        if (firstGroup !== undefined) {
+        if (firstGroup !== null) {
             this.handles.operations.insertBefore(operation.getDOMNodes(), firstGroup);
         } else {
-            this.handles.operations.appendChild(operation.getDOMNodes());
+            const sortOp = this.handles.operations.querySelector(".query-sort");
+            if (sortOp !== null) {
+                this.handles.operations.insertBefore(operation.getDOMNodes(), sortOp);
+            } else {
+                this.handles.operations.appendChild(operation.getDOMNodes());
+            }
         }
 
         return operation;
+    }
+
+    _addSortOperation() {
+        // Only allow root group to add sort op and limit to one instance
+        if (this.isRootGroup && this.handles.operations.querySelector(".query-sort") === null) {
+
+            const operation = new QuerySortOperation();
+
+            //Add listener for deletion event fired by QueryOperation delete button
+            operation.getDOMNodes().addEventListener("query.operation.delete", (event) => {
+                const toBeDeleted = event.detail;
+                this.model.operations.splice(this.model.operations.indexOf(toBeDeleted), 1);
+                this.handles.operations.removeChild(toBeDeleted.getDOMNodes());
+                this._dispatchChangeEvent();
+            });
+
+            operation.getDOMNodes().addEventListener("query.operation.change", (event) => {
+                this._dispatchChangeEvent();
+            });
+
+            operation.getModel().queryType = this.model.queryType;
+            this.model.operations.push(operation);
+            this._sortOperations();
+
+            this.handles.operations.appendChild(operation.getDOMNodes());
+
+            return operation;
+
+        } else {
+            return null;
+        }
     }
 
     _getTemplate() {
@@ -196,6 +251,7 @@ export class QueryGroup {
                     <div class="query-button-group query-button-group-control">
                         <button class="query-group-button-add-operation">Add Operation</button>
                         <button class="query-group-button-add-group">Add Group</button>
+                        <button class="query-group-button-add-sort">Add Sort</button>
                         <button class="query-group-button-delete">X</button>
                     </div>
                 </div>

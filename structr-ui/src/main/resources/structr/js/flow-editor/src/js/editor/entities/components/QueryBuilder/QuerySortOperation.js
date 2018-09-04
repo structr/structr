@@ -2,7 +2,7 @@ import {StructrRest} from "../../../../rest/StructrRest.js";
 import {QueryStringValue} from "./QueryStringValue.js";
 import {QueryBooleanValue} from "./QueryBooleanValue.js";
 
-export class QueryOperation {
+export class QuerySortOperation {
 
     constructor() {
 
@@ -11,11 +11,10 @@ export class QueryOperation {
         this.model = new Proxy(
             {
                 key:"",
-                op:"eq",
-                value:"",
+                order:"asc",
                 queryType: ""
             },
-            QueryOperation._getProxyHandler(this)
+            QuerySortOperation._getProxyHandler(this)
         );
 
         this.valueComponent = new QueryStringValue();
@@ -42,26 +41,18 @@ export class QueryOperation {
     async loadConfiguration(config) {
         if(config !== undefined && config !== undefined) {
             this.model.key = config.key;
-            this.model.op = config.op;
-            this.model.value = config.value;
+            this.model.order = config.order;
             this.model.queryType = config.queryType;
 
             await this._loadKeyOptions();
-
-            let selectedKeyOption = this.getDOMNodes().querySelector(".query-operation .query-key-select option:checked");
-            if (selectedKeyOption !== null) {
-                this._swapValueComponent(selectedKeyOption.dataset.dataType);
-            }
-
         }
     }
 
     interpret() {
         return {
-            type: "operation",
+            type: "sort",
             key: this.model.key,
-            op: this.model.op,
-            value: this.model.value,
+            order: this.model.order,
             queryType: this.model.queryType
         }
     }
@@ -73,11 +64,8 @@ export class QueryOperation {
         const rootElement = html.body.firstChild;
 
         this.handles.key = rootElement.querySelector(".query-operation .query-key-select");
-        this.handles.op = rootElement.querySelector(".query-operation .query-operation-select");
+        this.handles.order = rootElement.querySelector(".query-operation .query-order-select");
         this.handles.buttonDelete = rootElement.querySelector(".query-operation-delete");
-
-        rootElement.insertBefore(this.valueComponent.getDOMNodes(),this.handles.buttonDelete);
-        this.handles.value = rootElement.querySelector(".query-operation .query-value");
 
         return rootElement;
     }
@@ -115,42 +103,6 @@ export class QueryOperation {
         }
     }
 
-    _swapValueComponent(type) {
-        this.getDOMNodes().removeChild(this.handles.value);
-
-        let valueComponentType = undefined;
-
-        switch (type) {
-            case "String":
-                valueComponentType = QueryStringValue;
-                break;
-            case "Boolean":
-                valueComponentType = QueryBooleanValue;
-                break;
-            default:
-                valueComponentType = QueryStringValue;
-                break;
-        }
-
-        this.valueComponent = new valueComponentType;
-
-        this.getDOMNodes().insertBefore(this.valueComponent.getDOMNodes(),this.handles.buttonDelete);
-        this.handles.value = this.getDOMNodes().querySelector(".query-operation .query-value");
-
-        if (this.model.value !== undefined && this.model.value !== null) {
-            this.valueComponent.setValue(this.model.value);
-        }
-
-        this.handles.value.addEventListener("query.operation.value.change", () => {
-            this.model.value = this.valueComponent.getValue();
-            this._dispatchChangeEvent();
-        });
-
-        this.model.value = this.valueComponent.getValue();
-        this._dispatchChangeEvent();
-
-    }
-
     _dispatchChangeEvent() {
         this.getDOMNodes().dispatchEvent(new CustomEvent("query.operation.change", {detail: this}));
     }
@@ -162,17 +114,10 @@ export class QueryOperation {
             this._dispatchChangeEvent();
         });
 
-        this.handles.op.addEventListener("change", () => {
-            this.model.op = this.handles.op.querySelector("option:checked").value;
+        this.handles.order.addEventListener("change", () => {
+            this.model.order = this.handles.order.querySelector("option:checked").value;
             this._dispatchChangeEvent();
         });
-
-
-        this.handles.value.addEventListener("query.operation.value.change", () => {
-            this.model.value = this.valueComponent.getValue();
-            this._dispatchChangeEvent();
-        });
-
 
         this.handles.buttonDelete.addEventListener("click", () => {
             this.getDOMNodes().dispatchEvent(new CustomEvent("query.operation.delete", {detail: this}));
@@ -182,11 +127,11 @@ export class QueryOperation {
 
     _getTemplate() {
         return `
-            <div class="query-operation">
+            <div class="query-operation query-sort">
                 <select class="query-key-select"><option>N/A</option></select>
-                <select class="query-operation-select">
-                    <option value="eq">Equal</option>
-                    <option value="neq"> Not Equal</option>
+                <select class="query-order-select">
+                    <option value="asc">Asc</option>
+                    <option value="desc">Desc</option>
                 </select>
                 <button class="query-operation-delete">X</button>
             </div>
@@ -204,14 +149,10 @@ export class QueryOperation {
                         const option = entity.handles.key.querySelector("option[value=\"" + value + "\"]");
                         if (option !== undefined && option !== null) {
                             option.setAttribute("selected", "selected");
-                            entity._swapValueComponent(option.dataset.dataType);
                         }
                         break;
-                    case 'op':
-                        entity.handles.op.querySelector("option[value=\"" + value + "\"]").setAttribute("selected","selected");
-                        break;
-                    case 'value':
-                        entity.valueComponent.setValue(value);
+                    case 'order':
+                        entity.handles.order.querySelector("option[value=\"" + value + "\"]").setAttribute("selected","selected");
                         break;
                     case 'queryType':
                         entity._loadKeyOptions(value);

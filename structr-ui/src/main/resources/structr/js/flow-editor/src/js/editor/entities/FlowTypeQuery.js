@@ -107,6 +107,7 @@ export class FlowTypeQuery extends FlowNode {
                     builder.getDOMNodes().addEventListener("query.builder.change", (event)=>{
                         const builder = event.detail;
                         const queryString = JSON.stringify(builder.interpret());
+
                         control.putData('query', queryString);
                         node.data['dbNode'].query = queryString;
                     });

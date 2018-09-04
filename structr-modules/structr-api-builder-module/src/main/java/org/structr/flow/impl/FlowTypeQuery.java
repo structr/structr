@@ -108,7 +108,39 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 				return resolveGroup(object, query);
 			case "operation":
 				return resolveOperation(object, query);
+			case "sort":
+				return resolveSortOperation(object, query);
 		}
+		return query;
+	}
+
+	private Query resolveSortOperation(final JSONObject object, final Query query) {
+		final String queryType = object.getString("queryType");
+		final String key = object.getString("key");
+		final String order = object.getString("order");
+
+		if (queryType != null && queryType.length() > 0 && key != null && key.length() > 0) {
+
+			Class queryTypeClass = StructrApp.getConfiguration().getNodeEntityClass(queryType);
+			if (queryTypeClass != null) {
+				PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(queryTypeClass, key);
+
+				switch (order) {
+					case "asc":
+						query.sortAscending(propKey);
+						break;
+					case "desc":
+						query.sortDescending(propKey);
+						break;
+					default:
+						query.sort(propKey);
+						break;
+				}
+
+			}
+
+		}
+
 		return query;
 	}
 
