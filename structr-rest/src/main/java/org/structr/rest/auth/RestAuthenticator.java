@@ -203,7 +203,7 @@ public class RestAuthenticator implements Authenticator {
 		// no grants => no access rights
 		if (resourceAccess == null) {
 
-			logger.info("No resource access grant found for signature {}.", rawResourceSignature);
+			logger.info("No resource access grant found for signature {}. Method was {}. ({})", rawResourceSignature, method, (validUser ? "authenticated users" : "public users"));
 
 			throw new UnauthorizedException("Forbidden");
 

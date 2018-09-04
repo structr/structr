@@ -43,6 +43,7 @@ public class Context {
 	public Context() {}
 
 	public Context(final Context context) {
+		this.thisObject = context.thisObject;
 		this.data = deepCopyMap(context.data);
 		this.store = deepCopyMap(context.store);
 		this.parameters = deepCopyMap(context.parameters);
@@ -133,6 +134,7 @@ public class Context {
 	}
 
 	public void deepCopy(Context context) {
+		this.thisObject = context.thisObject;
 		this.data = deepCopyMap(context.data);
 		this.store = deepCopyMap(context.store);
 		this.parameters = deepCopyMap(context.store);
