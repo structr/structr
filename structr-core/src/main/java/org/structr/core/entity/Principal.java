@@ -144,7 +144,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		// override setProperty final PropertyKey<T> key, final T value) 
 		principal.addMethod("setProperty")
-			.setReturnType("<T> Object")
+			.setReturnType("<T> java.lang.Object")
 			.addParameter("key", PropertyKey.class.getName() + "<T>")
 			.addParameter("value", "T")
 			.addException(FrameworkException.class.getName())
