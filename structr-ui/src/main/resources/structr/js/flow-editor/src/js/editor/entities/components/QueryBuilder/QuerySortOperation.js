@@ -98,6 +98,11 @@ export class QuerySortOperation {
 
                     this.handles.key.appendChild(option);
                 }
+
+                if (this.model.key === undefined || this.model.key === null || this.model.key.length <= 0) {
+                    this.model.key = this.handles.key.querySelector("option").value;
+                    this._dispatchChangeEvent();
+                }
             });
 
         }

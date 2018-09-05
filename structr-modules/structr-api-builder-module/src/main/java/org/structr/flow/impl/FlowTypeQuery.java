@@ -33,6 +33,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.ComparisonSearchAttribute;
+import org.structr.core.graph.search.EmptySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -158,6 +159,9 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 			case "or":
 				query.or();
 				break;
+			case "not":
+				query.not();
+				break;
 		}
 
 		// Resolve nested elements
@@ -210,6 +214,12 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 					break;
 				case "lseq":
 					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.lessOrEqual, value, Occurrence.REQUIRED));
+					break;
+				case "null":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.isNull, value, Occurrence.REQUIRED));
+					break;
+				case "notNull":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.isNotNull, value, Occurrence.REQUIRED));
 					break;
 			}
 

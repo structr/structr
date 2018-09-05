@@ -26,7 +26,9 @@ public interface ComparisonQuery<T> extends QueryPredicate {
 		greater,
 		greaterOrEqual,
 		less,
-		lessOrEqual
+		lessOrEqual,
+		isNull,
+		isNotNull
 	}
 
 	T getSearchValue();

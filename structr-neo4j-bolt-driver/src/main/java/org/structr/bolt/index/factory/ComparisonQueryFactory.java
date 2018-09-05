@@ -30,9 +30,9 @@ public class ComparisonQueryFactory extends AbstractQueryFactory {
 
 			checkOccur(query, predicate.getOccurrence(), isFirst);
 
-			final ComparisonQuery rangeQuery 				= (ComparisonQuery)predicate;
-			final Object value     							= getReadValue(rangeQuery.getSearchValue());
-			final ComparisonQuery.Operation operation       = rangeQuery.getOperation();
+			final ComparisonQuery comparisonQuery			= (ComparisonQuery)predicate;
+			final Object value     							= getReadValue(comparisonQuery.getSearchValue());
+			final ComparisonQuery.Operation operation       = comparisonQuery.getOperation();
 			final String name           					= predicate.getName();
 
 			if (value == null && operation == null) {
@@ -59,6 +59,13 @@ public class ComparisonQueryFactory extends AbstractQueryFactory {
 				case lessOrEqual:
 					operationString = "<=";
 					break;
+				case isNull:
+					query.addSimpleParameter(name, "IS", null);
+					return true;
+				case isNotNull:
+					query.addSimpleParameter(name, "IS NOT", null);
+
+					return false;
 			}
 
 			if (operationString != null) {

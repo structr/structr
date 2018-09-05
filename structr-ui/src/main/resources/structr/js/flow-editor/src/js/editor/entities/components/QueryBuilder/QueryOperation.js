@@ -110,44 +110,60 @@ export class QueryOperation {
 
                     this.handles.key.appendChild(option);
                 }
+
+                if (this.model.key === undefined || this.model.key === null || this.model.key.length <= 0) {
+                    this.model.key = this.handles.key.querySelector("option").value;
+                    this._dispatchChangeEvent();
+                }
             });
 
         }
     }
 
     _swapValueComponent(type) {
-        this.getDOMNodes().removeChild(this.handles.value);
 
-        let valueComponentType = undefined;
+        this.model.value = "";
 
-        switch (type) {
-            case "String":
-                valueComponentType = QueryStringValue;
-                break;
-            case "Boolean":
-                valueComponentType = QueryBooleanValue;
-                break;
-            default:
-                valueComponentType = QueryStringValue;
-                break;
+        // Remove value component
+        if (this.handles.value !== undefined) {
+            this.getDOMNodes().removeChild(this.handles.value);
+            this.handles.value = undefined;
         }
 
-        this.valueComponent = new valueComponentType;
+        if (this.model.op !== "null" && this.model.op !== "notNull") {
 
-        this.getDOMNodes().insertBefore(this.valueComponent.getDOMNodes(),this.handles.buttonDelete);
-        this.handles.value = this.getDOMNodes().querySelector(".query-operation .query-value");
+            let valueComponentType = undefined;
 
-        if (this.model.value !== undefined && this.model.value !== null) {
-            this.valueComponent.setValue(this.model.value);
-        }
+            switch (type) {
+                case "String":
+                    valueComponentType = QueryStringValue;
+                    break;
+                case "Boolean":
+                    valueComponentType = QueryBooleanValue;
+                    break;
+                default:
+                    valueComponentType = QueryStringValue;
+                    break;
+            }
 
-        this.handles.value.addEventListener("query.operation.value.change", () => {
+            this.valueComponent = new valueComponentType;
+
+            this.getDOMNodes().insertBefore(this.valueComponent.getDOMNodes(), this.handles.buttonDelete);
+            this.handles.value = this.getDOMNodes().querySelector(".query-operation .query-value");
+
+            if (this.model.value !== undefined && this.model.value !== null) {
+                this.valueComponent.setValue(this.model.value);
+            }
+
+            this.handles.value.addEventListener("query.operation.value.change", () => {
+                this.model.value = this.valueComponent.getValue();
+                this._dispatchChangeEvent();
+            });
+
             this.model.value = this.valueComponent.getValue();
             this._dispatchChangeEvent();
-        });
 
-        this.model.value = this.valueComponent.getValue();
-        this._dispatchChangeEvent();
+        }
 
     }
 
@@ -164,6 +180,17 @@ export class QueryOperation {
 
         this.handles.op.addEventListener("change", () => {
             this.model.op = this.handles.op.querySelector("option:checked").value;
+
+            // If Null/NotNull is selected, remove value component
+            if ((this.model.op === "null"  || this.model.op === "notNull") && this.handles.value !== undefined) {
+                this.getDOMNodes().removeChild(this.handles.value);
+                this.handles.value = undefined;
+            } else if (this.handles.value === undefined) {
+                if (this.model.queryType !== undefined && this.model.queryType !== null && this.model.queryType.length > 0) {
+                    this._swapValueComponent(this.model.queryType);
+                }
+            }
+
             this._dispatchChangeEvent();
         });
 
@@ -191,6 +218,8 @@ export class QueryOperation {
                     <option value="gteq">Greater/Equal</option>
                     <option value="ls">Less</option>
                     <option value="lseq">Less/Equal</option>
+                    <option value="null">Null</option>
+                    <option value="notNull">NotNull</option>
                 </select>
                 <button class="query-operation-delete">X</button>
             </div>
@@ -207,6 +236,7 @@ export class QueryOperation {
                     case 'key':
                         const option = entity.handles.key.querySelector("option[value=\"" + value + "\"]");
                         if (option !== undefined && option !== null) {
+                            obj[prop] = value;
                             option.setAttribute("selected", "selected");
                             entity._swapValueComponent(option.dataset.dataType);
                         }

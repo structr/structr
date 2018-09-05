@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import org.renjin.sexp.Null;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
@@ -43,7 +44,9 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 
 		try {
 
-			this.searchValue = (T)converter.convert(value);
+			if (converter != null) {
+				this.searchValue = (T) converter.convert(value);
+			}
 		} catch (FrameworkException ex) {
 
 			LoggerFactory.getLogger(ComparisonSearchAttribute.class).warn("Could not convert given value. " + ex.getMessage());
@@ -98,6 +101,10 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 				}
 
 			}
+		} else if (value == null && operation.equals(Operation.isNull)) {
+			return true;
+		} else if (value != null && operation.equals(Operation.isNotNull)) {
+			return true;
 		}
 
 		return false;

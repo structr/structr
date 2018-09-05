@@ -82,6 +82,7 @@ export class QueryGroup {
         this.handles.operations = rootElement.querySelector(".query-group .query-group-operations");
         this.handles.andButton = rootElement.querySelector(".query-group .query-group-button-and");
         this.handles.orButton = rootElement.querySelector(".query-group .query-group-button-or");
+        this.handles.notButton = rootElement.querySelector(".query-group .query-group-button-not");
         this.handles.addOperation = rootElement.querySelector(".query-group .query-group-button-add-operation");
         this.handles.addGroup = rootElement.querySelector(".query-group .query-group-button-add-group");
         this.handles.addSort = rootElement.querySelector(".query-group .query-group-button-add-sort");
@@ -96,6 +97,7 @@ export class QueryGroup {
         if (this.isFirstGroup) {
             this.handles.andButton.classList.add("hidden");
             this.handles.orButton.classList.add("hidden");
+            this.handles.notButton.classList.add("hidden");
         }
 
         return rootElement;
@@ -114,6 +116,11 @@ export class QueryGroup {
 
         this.handles.orButton.addEventListener("click", () => {
             this.model.op = "or";
+            this._dispatchChangeEvent();
+        });
+
+        this.handles.notButton.addEventListener("click", () => {
+            this.model.op = "not";
             this._dispatchChangeEvent();
         });
 
@@ -246,7 +253,8 @@ export class QueryGroup {
                 <div class="query-controls">
                     <div class="query-button-group query-button-group-operation">
                         <button class="query-group-button-and ${this.model.op === 'and' ? "active" : ''}">AND</button>
-                        <button class="query-group-button-or ${this.model.op === 'or' ? "active" : ''}">OR</button>                
+                        <button class="query-group-button-or ${this.model.op === 'or' ? "active" : ''}">OR</button>
+                        <button class="query-group-button-not ${this.model.op === 'not' ? "active" : ''}">NOT</button>                      
                     </div>
                     <div class="query-button-group query-button-group-control">
                         <button class="query-group-button-add-operation">Add Operation</button>
@@ -282,11 +290,18 @@ export class QueryGroup {
                         switch (value) {
                             case "and":
                                 entity.handles.orButton.classList.remove('active');
+                                entity.handles.notButton.classList.remove('active');
                                 entity.handles.andButton.classList.add('active');
                                 break;
                             case "or":
                                 entity.handles.orButton.classList.add('active');
+                                entity.handles.notButton.classList.remove('active');
                                 entity.handles.andButton.classList.remove('active');
+                                break;
+                            case "not":
+                                entity.handles.notButton.classList.add('active');
+                                entity.handles.andButton.classList.remove('active');
+                                entity.handles.orButton.classList.remove('active');
                                 break;
                         }
                         break;
