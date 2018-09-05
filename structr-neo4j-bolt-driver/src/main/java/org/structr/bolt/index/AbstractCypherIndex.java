@@ -31,20 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
-import org.structr.api.search.ArrayQuery;
-import org.structr.api.search.EmptyQuery;
-import org.structr.api.search.ExactQuery;
-import org.structr.api.search.FulltextQuery;
-import org.structr.api.search.GroupQuery;
-import org.structr.api.search.NotEmptyQuery;
-import org.structr.api.search.QueryContext;
-import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.RangeQuery;
-import org.structr.api.search.RelationshipQuery;
-import org.structr.api.search.SpatialQuery;
-import org.structr.api.search.TypeConverter;
-import org.structr.api.search.TypeQuery;
-import org.structr.api.search.UuidQuery;
+import org.structr.api.search.*;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
@@ -56,17 +43,7 @@ import org.structr.bolt.index.converter.IntTypeConverter;
 import org.structr.bolt.index.converter.LongTypeConverter;
 import org.structr.bolt.index.converter.ShortTypeConverter;
 import org.structr.bolt.index.converter.StringTypeConverter;
-import org.structr.bolt.index.factory.ArrayQueryFactory;
-import org.structr.bolt.index.factory.EmptyQueryFactory;
-import org.structr.bolt.index.factory.GroupQueryFactory;
-import org.structr.bolt.index.factory.KeywordQueryFactory;
-import org.structr.bolt.index.factory.NotEmptyQueryFactory;
-import org.structr.bolt.index.factory.QueryFactory;
-import org.structr.bolt.index.factory.RangeQueryFactory;
-import org.structr.bolt.index.factory.RelationshipQueryFactory;
-import org.structr.bolt.index.factory.SpatialQueryFactory;
-import org.structr.bolt.index.factory.TypeQueryFactory;
-import org.structr.bolt.index.factory.UuidQueryFactory;
+import org.structr.bolt.index.factory.*;
 
 /**
  *
@@ -96,6 +73,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		FACTORIES.put(TypeQuery.class,         new TypeQueryFactory());
 		FACTORIES.put(UuidQuery.class,         new UuidQueryFactory());
 		FACTORIES.put(RelationshipQuery.class, new RelationshipQueryFactory());
+		FACTORIES.put(ComparisonQuery.class,   new ComparisonQueryFactory());
 
 		CONVERTERS.put(Boolean.class, new BooleanTypeConverter());
 		CONVERTERS.put(String.class,  new StringTypeConverter());

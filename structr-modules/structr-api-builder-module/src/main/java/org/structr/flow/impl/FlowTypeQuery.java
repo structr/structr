@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -31,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.ComparisonSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
@@ -192,10 +194,22 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 			switch (op) {
 				case "eq":
-					attributes.add(propKey.getSearchAttribute(securityContext, Occurrence.REQUIRED, value, true, query));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.equal, value, Occurrence.REQUIRED));
 					break;
 				case "neq":
-					attributes.add(propKey.getSearchAttribute(securityContext, Occurrence.FORBIDDEN, value, true, query));
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.notEqual, value, Occurrence.REQUIRED));
+					break;
+				case "gt":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.greater, value, Occurrence.REQUIRED));
+					break;
+				case "gteq":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.greaterOrEqual, value, Occurrence.REQUIRED));
+					break;
+				case "ls":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.less, value, Occurrence.REQUIRED));
+					break;
+				case "lseq":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.lessOrEqual, value, Occurrence.REQUIRED));
 					break;
 			}
 
