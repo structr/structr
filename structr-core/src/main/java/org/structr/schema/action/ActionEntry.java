@@ -178,11 +178,16 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		return doExport;
 	}
 
-	public String getSource(final String objVariable) {
-		return getSource(objVariable, false);
+	public String getSource(final String objVariable, final String securityContextVariable) {
+		return getSource(objVariable, securityContextVariable, false);
 	}
 
 	public String getSource(final String objVariable, final boolean includeParameters) {
+
+		return getSource(objVariable, "securityContext", includeParameters);
+	}
+
+	public String getSource(final String objVariable, final String securityContextVariable, final boolean includeParameters) {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -193,7 +198,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		} else {
 
 			buf.append(Actions.class.getSimpleName());
-			buf.append(".execute(securityContext, ").append(objVariable).append(", \"${");
+			buf.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", \"${");
 			buf.append(StringEscapeUtils.escapeJava(call.trim()));
 			buf.append("}\"");
 

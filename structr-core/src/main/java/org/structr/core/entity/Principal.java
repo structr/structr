@@ -134,13 +134,21 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
 		principal.overrideMethod("addSessionId",                    false, Principal.class.getName() + ".addSessionId(this, arg0);");
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
-
+		
 		// override getProperty
 		principal.addMethod("getProperty")
 			.setReturnType("<T> T")
-			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
-			.addParameter("arg1", Predicate.class.getName() + "<GraphObject>")
-			.setSource("if (arg0.equals(passwordProperty) || arg0.equals(saltProperty) || arg0.equals(twoFactorSecretProperty)) { return (T)Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
+			.addParameter("key", PropertyKey.class.getName() + "<T>")
+			.addParameter("value", Predicate.class.getName() + "<GraphObject>")
+			.setSource("if (key.equals(passwordProperty) || key.equals(saltProperty) || key.equals(twoFactorSecretProperty)) { return (T) Principal.HIDDEN; } else { return super.getProperty(key, value); }");
+
+		// override setProperty final PropertyKey<T> key, final T value) 
+		principal.addMethod("setProperty")
+			.setReturnType("<T> java.lang.Object")
+			.addParameter("key", PropertyKey.class.getName() + "<T>")
+			.addParameter("value", "T")
+			.addException(FrameworkException.class.getName())
+			.setSource("AbstractNode.clearCaches(); return super.setProperty(key, value);");
 
 		// create relationships
 		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");
