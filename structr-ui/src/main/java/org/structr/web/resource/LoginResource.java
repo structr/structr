@@ -97,6 +97,8 @@ public class LoginResource extends Resource {
 
 					logger.info("Login successful: {}", user);
 
+					user.setSecurityContext(securityContext);
+
 					// make logged in user available to caller
 					securityContext.setCachedUser(user);
 

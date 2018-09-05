@@ -24,10 +24,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.structr.api.DatabaseService;
-import org.structr.api.NativeResult;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.Permission;
@@ -295,12 +295,12 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				final Node newNode             = (Node)         data.get("n");
 				final Relationship securityRel = (Relationship) data.get("s");
 				final Relationship ownsRel     = (Relationship) data.get("o");
-				
+
 				final Security securityRelationship = new RelationshipFactory<Security>(securityContext).instantiate(securityRel);
 				if (securityRelationship != null) {
 					TransactionCommand.relationshipCreated(user, securityRelationship);
 				}
-				
+
 				final PrincipalOwnsNode ownsRelationship = new RelationshipFactory<PrincipalOwnsNode>(securityContext).instantiate(ownsRel);
 				if (ownsRelationship != null) {
 					TransactionCommand.relationshipCreated(user, ownsRelationship);
