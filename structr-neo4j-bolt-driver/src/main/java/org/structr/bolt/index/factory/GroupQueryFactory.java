@@ -40,7 +40,6 @@ public class GroupQueryFactory extends AbstractQueryFactory {
 		if (predicate instanceof GroupQuery) {
 
 			final GroupQuery group   = (GroupQuery)predicate;
-			boolean first            = isFirst;
 
 			// Filter type predicates since they require special handling
 			List<QueryPredicate> predicateList = group.getQueryPredicates();
@@ -55,15 +54,32 @@ public class GroupQueryFactory extends AbstractQueryFactory {
 
 			// Apply all type queries first as they affect as different part of the query expression
 			for (final QueryPredicate p : typePredicates) {
-				parent.createQuery(parent, p, query, first);
+				parent.createQuery(parent, p, query, isFirst);
 			}
 
 			// Apply any group and attribute predicates, if existent
 			if (attributeAndGroupPredicates.size() > 0) {
 
-				checkOccur(query, predicate.getOccurrence(), first);
+				// Check if any child group contains elements
+				boolean allChildrenAreGroups = true;
+				boolean nonEmptyGroup = false;
 
-				if (attributeAndGroupPredicates.size() > 1) {
+				for (QueryPredicate p : attributeAndGroupPredicates) {
+					if (p instanceof GroupQuery) {
+						List<QueryPredicate> containedPredicates = ((GroupQuery)p).getQueryPredicates();
+						if (containedPredicates.size() > 0) {
+							nonEmptyGroup = true;
+						}
+					} else {
+						allChildrenAreGroups = false;
+					}
+				}
+
+				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
+					checkOccur(query, predicate.getOccurrence(), isFirst);
+				}
+
+				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
 					query.beginGroup();
 				}
 
@@ -79,12 +95,19 @@ public class GroupQueryFactory extends AbstractQueryFactory {
 					}
 				}
 
-				if (attributeAndGroupPredicates.size() > 1) {
+				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
 					query.endGroup();
 				}
+
+				if (allChildrenAreGroups && !nonEmptyGroup) {
+					return false;
+				} else {
+					return true;
+				}
+
 			}
 
-			return first;
+			return false;
 		}
 
 		return false;

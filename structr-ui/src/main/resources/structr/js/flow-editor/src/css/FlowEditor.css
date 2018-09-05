@@ -501,22 +501,35 @@ span.close {
 
 .query-operation {
   position: relative;
-  background: white;
-  border-radius: 5px; }
+  background: #f1f1f1; }
   .query-operation.query-sort {
-    margin-top: 25px; }
+    padding-top: 25px;
+    background: #f1f1f1; }
+    .query-operation.query-sort .query-key-select {
+      min-width: 50%; }
+    .query-operation.query-sort .query-order-select {
+      min-width: 20%; }
+  .query-operation select, .query-operation input {
+    min-width: 27%; }
+  .query-operation .query-operation-delete {
+    float: right; }
 
 .query-group {
   min-width: 400px;
   position: relative;
-  padding: 0 0 0 15px; }
+  padding: 0 0 0 15px;
+  background: #b3b3b3; }
+  .query-group .query-controls {
+    background: #f1f1f1; }
   .query-group .query-group-operations {
     position: relative; }
   .query-group .query-controls .query-button-group {
     display: inline-block; }
     .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not {
-      background-color: white; }
+      background-color: #f1f1f1; }
       .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not.active {
-        background-color: green; }
+        background-color: #81ce25; }
+      .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not:hover {
+        background-color: #e7e7e7; }
 
 /*# sourceMappingURL=FlowEditor.css.map */

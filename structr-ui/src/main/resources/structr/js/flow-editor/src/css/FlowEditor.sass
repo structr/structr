@@ -434,14 +434,25 @@ span.close
 // query builder
 .query-operation
   position: relative
-  background: white
-  border-radius: 5px
+  background: #f1f1f1
   &.query-sort
-    margin-top: 25px
+    padding-top: 25px
+    background: #f1f1f1
+    .query-key-select
+      min-width: 50%
+    .query-order-select
+      min-width: 20%
+  select, input
+    min-width: 27%
+  .query-operation-delete
+    float: right
 .query-group
   min-width: 400px
   position: relative
   padding: 0 0 0 15px
+  background: #b3b3b3
+  .query-controls
+    background: #f1f1f1
   .query-group-operations
     position: relative
   .query-controls
@@ -449,7 +460,9 @@ span.close
       display: inline-block
       &.query-button-group-operation
         .query-group-button-and, .query-group-button-or, .query-group-button-not
-          background-color: white
+          background-color: #f1f1f1
           &.active
-            background-color: green
+            background-color: #81ce25
+          &:hover
+            background-color: #e7e7e7
 
