@@ -138,17 +138,17 @@ public interface Principal extends NodeInterface, AccessControllable {
 		// override getProperty
 		principal.addMethod("getProperty")
 			.setReturnType("<T> T")
-			.addParameter("key", PropertyKey.class.getName() + "<T>")
-			.addParameter("value", Predicate.class.getName() + "<GraphObject>")
-			.setSource("if (key.equals(passwordProperty) || key.equals(saltProperty) || key.equals(twoFactorSecretProperty)) { return (T) Principal.HIDDEN; } else { return super.getProperty(key, value); }");
+			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
+			.addParameter("arg1", Predicate.class.getName() + "<GraphObject>")
+			.setSource("if (arg0.equals(passwordProperty) || arg0.equals(saltProperty) || arg0.equals(twoFactorSecretProperty)) { return (T) Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
 
 		// override setProperty final PropertyKey<T> key, final T value) 
 		principal.addMethod("setProperty")
 			.setReturnType("<T> java.lang.Object")
-			.addParameter("key", PropertyKey.class.getName() + "<T>")
-			.addParameter("value", "T")
+			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
+			.addParameter("arg1", "T")
 			.addException(FrameworkException.class.getName())
-			.setSource("AbstractNode.clearCaches(); return super.setProperty(key, value);");
+			.setSource("AbstractNode.clearCaches(); return super.setProperty(arg0, arg1);");
 
 		// create relationships
 		principal.relate(favoritable, "FAVORITE", Relation.Cardinality.ManyToMany, "favoriteUsers", "favorites");

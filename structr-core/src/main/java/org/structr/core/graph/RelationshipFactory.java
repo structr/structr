@@ -70,8 +70,13 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
 			return null;
 		}
+		
+		final Class relationshipType = factoryDefinition.determineRelationshipType(relationship);
+		if (relationshipType == null) {
+			return null;
+		}
 
-		return (T) instantiateWithType(relationship, factoryDefinition.determineRelationshipType(relationship), null, false);
+		return (T) instantiateWithType(relationship, relationshipType, null, false);
 	}
 
 	@Override
