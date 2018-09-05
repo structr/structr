@@ -50,7 +50,8 @@ export class QueryOperation {
 
             let selectedKeyOption = this.getDOMNodes().querySelector(".query-operation .query-key-select option:checked");
             if (selectedKeyOption !== null) {
-                this._swapValueComponent(selectedKeyOption.dataset.dataType);
+                this._swapValueComponent(selectedKeyOption.dataset.dataType, true);
+                this.valueComponent.setValue(this.model.value);
             }
 
         }
@@ -120,9 +121,11 @@ export class QueryOperation {
         }
     }
 
-    _swapValueComponent(type) {
+    _swapValueComponent(type, retainValue) {
 
-        this.model.value = "";
+        if (retainValue !== true) {
+            this.model.value = "";
+        }
 
         // Remove value component
         if (this.handles.value !== undefined) {
@@ -235,7 +238,7 @@ export class QueryOperation {
                 switch (prop) {
                     case 'key':
                         const option = entity.handles.key.querySelector("option[value=\"" + value + "\"]");
-                        if (option !== undefined && option !== null) {
+                        if (option !== undefined && option !== null && value !== obj[prop]) {
                             obj[prop] = value;
                             option.setAttribute("selected", "selected");
                             entity._swapValueComponent(option.dataset.dataType);

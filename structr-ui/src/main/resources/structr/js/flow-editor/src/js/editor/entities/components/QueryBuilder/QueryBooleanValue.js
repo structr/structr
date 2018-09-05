@@ -26,6 +26,13 @@ export class QueryBooleanValue extends QueryValue {
         if (currentlySelectedOption !== undefined && currentlySelectedOption !== null) {
             currentlySelectedOption.removeAttribute("selected");
         }
+
+        if (value === true) {
+            value = "true";
+        } else if (value === false) {
+            value = "false";
+        }
+
         if (value === "true" || value === "false") {
             this.handles.value.querySelector(".query-value option[value=\"" + value + "\"]").setAttribute("selected", "selected");
         }
