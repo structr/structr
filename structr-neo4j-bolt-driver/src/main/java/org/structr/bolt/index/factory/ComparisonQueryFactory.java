@@ -64,17 +64,15 @@ public class ComparisonQueryFactory extends AbstractQueryFactory {
 					return true;
 				case isNotNull:
 					query.addSimpleParameter(name, "IS NOT", null);
-
-					return false;
+					return true;
 			}
 
 			if (operationString != null) {
 				query.addSimpleParameter(name, operationString, value);
 			}
 
-			return true;
 		}
 
-		return false;
+		return true;
 	}
 }
