@@ -2086,6 +2086,10 @@ public class SearchAndSortingTest extends StructrTest {
 						.andName("xxx").parent()
 					.or()
 						.andName("bbb").parent()
+					.and()
+						.and().parent()
+						.and().parent()
+						.and().parent()
 					.sort(AbstractNode.name)
 					.order(false)
 					.getAsList();
