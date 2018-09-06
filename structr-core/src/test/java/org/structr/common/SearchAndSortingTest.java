@@ -18,15 +18,8 @@
  */
 package org.structr.common;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -34,6 +27,8 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.search.ComparisonQuery;
+import org.structr.api.search.Occurrence;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
@@ -52,6 +47,9 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.ComparisonSearchAttribute;
+import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -2098,6 +2096,75 @@ public class SearchAndSortingTest extends StructrTest {
 			assertEquals("Invalid sort() result", "bbb", list.get(1).getProperty(nameKey));
 			assertEquals("Invalid sort() result", "ttt", list.get(2).getProperty(nameKey));
 			assertEquals("Invalid sort() result", "xxx", list.get(3).getProperty(nameKey));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			System.out.println(fex.getMessage());
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testComparisonSearchAttributes() {
+
+		final Class<Group> groupType      = StructrApp.getConfiguration().getNodeEntityClass("Group");
+		final PropertyKey<String> nameKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "name");
+		final PropertyKey<Principal> ownerKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "owner");
+
+		try (final Tx tx = app.tx()) {
+
+			Group a = createTestNode(groupType, "a");
+			Group b = createTestNode(groupType, "b");
+			Group c = createTestNode(groupType, "c");
+			Group d = createTestNode(groupType, "d");
+			Group e = createTestNode(groupType, "e");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			List<SearchAttribute> attributes = new ArrayList<>();
+
+			SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+
+			SearchAttributeGroup mainMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "a", Occurrence.OPTIONAL));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "b", Occurrence.OPTIONAL));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "c", Occurrence.OPTIONAL));
+			mainMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.equal, "d", Occurrence.OPTIONAL));
+
+			SearchAttributeGroup secondaryMatchingGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
+
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNull, null, Occurrence.REQUIRED));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(ownerKey, ComparisonQuery.Operation.isNotNull, null, Occurrence.FORBIDDEN));
+			// Test Greater/Less with ASCII chars
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greater, "_", Occurrence.REQUIRED));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.greaterOrEqual, "a", Occurrence.REQUIRED));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.lessOrEqual, "d", Occurrence.REQUIRED));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.less, "e", Occurrence.REQUIRED));
+			secondaryMatchingGroup.add(new ComparisonSearchAttribute(nameKey, ComparisonQuery.Operation.notEqual, "b", Occurrence.REQUIRED));
+
+			rootGroup.add(mainMatchingGroup);
+			rootGroup.add(secondaryMatchingGroup);
+			attributes.add(rootGroup);
+
+			List<Group> list = app.nodeQuery(Group.class)
+					.attributes(attributes)
+					.sort(AbstractNode.name)
+					.order(false)
+					.getAsList();
+
+			assertEquals("Invalid sort() result", "a", list.get(0).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "c", list.get(1).getProperty(nameKey));
+			assertEquals("Invalid sort() result", "d", list.get(2).getProperty(nameKey));
+			assertEquals("Too many query results", 3, list.size());
 
 			tx.success();
 
