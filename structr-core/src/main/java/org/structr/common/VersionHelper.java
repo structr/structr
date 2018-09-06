@@ -41,13 +41,14 @@ public class VersionHelper {
 	static {
 
 		classPath                            = System.getProperty("java.class.path");
-		final Pattern outerPattern           = Pattern.compile("(structr-.+?(?=.jar))");
-		final Matcher outerMatcher           = outerPattern.matcher(classPath);
+		final Pattern outerPattern           = Pattern.compile("(structr-[^:]*\\.jar)");
+		final Pattern innerPattern           = Pattern.compile("(structr-core|structr-rest|structr-ui|structr)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,5}))\\.jar");
+
+		final Matcher outerMatcher           = outerPattern.matcher(System.getProperty("java.class.path"));
 
 		while (outerMatcher.find()) {
 
 			final String group               = outerMatcher.group();
-			final Pattern innerPattern       = Pattern.compile("(structr-core|structr-rest|structr-ui)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,5})).*");
 			final Matcher innerMatcher       = innerPattern.matcher(group);
 			final Map<String, String> module = new HashMap<>();
 
@@ -60,7 +61,6 @@ public class VersionHelper {
 				components.put(innerMatcher.group(1), module);
 			}
 		}
-
 	}
 
 	public static String getFullVersionInfo() {
@@ -130,4 +130,3 @@ public class VersionHelper {
 	}
 
 }
-

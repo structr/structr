@@ -40,7 +40,7 @@
 					<replacements>
 						<replacement>
 							<token>FINAL_NAME</token>
-							<value>${project.parent.build.finalName}</value>
+							<value>${project.build.finalName}</value>
 						</replacement>
 					</replacements>
 				</configuration>
@@ -262,7 +262,7 @@
 				</executions>
 			</plugin>
 		</plugins>
-		<finalName>${project.parent.artifactId}-${project.version}</finalName>
+		<finalName>${project.parent.artifactId}-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
 		<!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
 		<pluginManagement>
 			<plugins>
