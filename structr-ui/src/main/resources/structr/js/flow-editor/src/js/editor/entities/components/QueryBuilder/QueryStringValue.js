@@ -37,6 +37,10 @@ export class QueryStringValue extends QueryValue {
             this._dispatchChangeEvent();
         });
 
+        this.handles.value.addEventListener("keydown", (event) => {
+            event.stopPropagation();
+        });
+
     }
 
     _getTemplate() {
