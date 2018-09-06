@@ -193,7 +193,7 @@
 					<tag>${project.version}</tag>
 					<skip>${skipDocker}</skip>
 					<buildArgs>
-						<STRUCTR_VERSION>${project.version}</STRUCTR_VERSION>
+						<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
 					</buildArgs>
 				</configuration>
 			</plugin>
