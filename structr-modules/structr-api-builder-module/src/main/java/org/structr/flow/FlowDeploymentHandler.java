@@ -96,7 +96,9 @@ public abstract class FlowDeploymentHandler {
 			FlowAggregateStartValue.class,
 			FlowScriptConditionSource.class,
 			FlowContainerConfigurationFlow.class,
+			/* Do not export principal relation as the principal won't be available after an import into a clean database
 			FlowContainerConfigurationPrincipal.class,
+			*/
 			FlowExceptionHandlerNodes.class
 	};
 
