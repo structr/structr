@@ -20,6 +20,7 @@ package org.structr.bolt.wrapper;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -322,6 +323,15 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return list;
 	}
 
+	@Override
+	public void delete(final boolean deleteRelationships) {
+
+		super.delete(deleteRelationships);
+
+		final SessionTransaction tx = db.getCurrentTransaction();
+		tx.deleted(this);
+	}
+
 	/**
 	 * Evaluate a custom query and return result as a boolean value
 	 *
@@ -341,16 +351,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		return result;
 	}
-
-	@Override
-	public void delete(final boolean deleteRelationships) {
-
-		super.delete(deleteRelationships);
-
-		final SessionTransaction tx = db.getCurrentTransaction();
-		tx.deleted(this);
+	
+	public static FixedSizeCache<Long, NodeWrapper> getCache() {
+		return nodeCache;
 	}
 
+	// ----- public static methods -----
 	public static void expunge(final Set<Long> toRemove) {
 
 		synchronized (nodeCache) {
@@ -367,7 +373,6 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		}
 	}
 
-	// ----- public static methods -----
 	public static NodeWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 
 		synchronized (nodeCache) {
