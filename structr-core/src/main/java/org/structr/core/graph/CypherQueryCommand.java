@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -75,9 +76,18 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 			try (final NativeResult result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap())) {
 
+				final List<Map<String, Object>> rows = new ArrayList<>();
+				
 				while (result.hasNext()) {
 
 					final Map<String, Object> row = result.next();
+					rows.add(row);
+				}
+
+				result.close();
+				
+				for (final Map<String, Object> row : rows) {
+					
 					for (Entry<String, Object> entry : row.entrySet()) {
 
 						String key   = entry.getKey();
