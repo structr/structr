@@ -152,7 +152,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
-		return "core";
+		return "rest";
 	}
 
 
