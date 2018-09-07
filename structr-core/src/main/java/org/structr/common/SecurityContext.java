@@ -449,6 +449,10 @@ public class SecurityContext {
 
 	}
 
+	public boolean isSuperUserSecurityContext () {
+		return false;
+	}
+
 	public boolean isVisible(AccessControllable node) {
 
 		switch (accessMode) {
@@ -937,6 +941,11 @@ public class SecurityContext {
 
 		}
 
-	}
+		@Override
+		public boolean isSuperUserSecurityContext () {
 
+			return true;
+
+		}
+	}
 }
