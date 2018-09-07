@@ -25,7 +25,11 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessMode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
@@ -35,6 +39,7 @@ import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.function.BarcodeFunction;
@@ -59,137 +64,145 @@ public class LoginCommand extends AbstractCommand {
 
 	//~--- methods --------------------------------------------------------
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
-		final String username       = (String) webSocketData.getNodeData().get("username");
-		final String password       = (String) webSocketData.getNodeData().get("password");
-		final String twoFactorToken = (String) webSocketData.getNodeData().get("twoFactorToken");
-		final String twoFactorCode  = (String) webSocketData.getNodeData().get("twoFactorCode");
-		Principal user = null;
+		final App app = StructrApp.getInstance();
 
-		try {
+		try (final Tx tx = app.tx(true, true, true)) {
 
-			Authenticator auth = getWebSocket().getAuthenticator();
+			final String username       = (String) webSocketData.getNodeData().get("username");
+			final String password       = (String) webSocketData.getNodeData().get("password");
+			final String twoFactorToken = (String) webSocketData.getNodeData().get("twoFactorToken");
+			final String twoFactorCode  = (String) webSocketData.getNodeData().get("twoFactorCode");
+			Principal user = null;
 
-			if (StringUtils.isNotEmpty(twoFactorToken)) {
+			try {
 
-				user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
+				Authenticator auth = getWebSocket().getAuthenticator();
 
-			} else  if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+				if (StringUtils.isNotEmpty(twoFactorToken)) {
 
-				user = auth.doLogin(getWebSocket().getRequest(), username, password);
-			}
+					user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
-			if (user != null) {
+				} else  if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
 
-				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, getWebSocket().getRequest().getRemoteAddr());
+					user = auth.doLogin(getWebSocket().getRequest(), username, password);
 
-				if (twoFactorAuthenticationSuccessOrNotNecessary) {
+					tx.setSecurityContext(SecurityContext.getInstance(user, AccessMode.Backend));
+				}
 
-					String sessionId = webSocketData.getSessionId();
-					if (sessionId == null) {
+				if (user != null) {
 
-						logger.debug("Unable to login {}: No sessionId found", new Object[]{ username, password });
-						getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, getWebSocket().getRequest().getRemoteAddr());
 
-						return;
+					if (twoFactorAuthenticationSuccessOrNotNecessary) {
+
+						String sessionId = webSocketData.getSessionId();
+						if (sessionId == null) {
+
+							logger.debug("Unable to login {}: No sessionId found", new Object[]{ username, password });
+							getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+
+						} else {
+
+							sessionId = SessionHelper.getShortSessionId(sessionId);
+
+							// Clear possible existing sessions
+							SessionHelper.clearSession(sessionId);
+							user.addSessionId(sessionId);
+
+							AuthHelper.sendLoginNotification(user);
+
+							// store token in response data
+							webSocketData.getNodeData().clear();
+							webSocketData.setSessionId(sessionId);
+							webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
+
+							// authenticate socket
+							getWebSocket().setAuthenticated(sessionId, user);
+
+							tx.setSecurityContext(getWebSocket().getSecurityContext());
+
+							// send data..
+							getWebSocket().send(webSocketData, false);
+						}
 					}
 
-					sessionId = SessionHelper.getShortSessionId(sessionId);
+				} else {
 
-					// Clear possible existing sessions
-					SessionHelper.clearSession(sessionId);
-					user.addSessionId(sessionId);
-
-					AuthHelper.sendLoginNotification(user);
-
-					// store token in response data
-					webSocketData.getNodeData().clear();
-					webSocketData.setSessionId(sessionId);
-					webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
-
-					// authenticate socket
-					getWebSocket().setAuthenticated(sessionId, user);
-
-					// send data..
-					getWebSocket().send(webSocketData, false);
+					getWebSocket().send(MessageBuilder.status().code(401).build(), true);
 
 				}
-			}
 
-		} catch (PasswordChangeRequiredException ex) {
+			} catch (PasswordChangeRequiredException ex) {
 
-			logger.info(ex.getMessage());
-			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
+				logger.info(ex.getMessage());
+				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
 
-			return;
+			} catch (TooManyFailedLoginAttemptsException ex) {
 
-		} catch (TooManyFailedLoginAttemptsException ex) {
+				logger.info(ex.getMessage());
+				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
 
-			logger.info(ex.getMessage());
-			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
+			} catch (TwoFactorAuthenticationFailedException ex) {
 
-			return;
+				logger.debug(ex.getMessage());
+				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
 
-		} catch (TwoFactorAuthenticationFailedException ex) {
+			} catch (TwoFactorAuthenticationTokenInvalidException ex) {
 
-			logger.debug(ex.getMessage());
-			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
+				logger.debug(ex.getMessage());
+				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", "twofactortoken").build(), true);
 
-			return;
+			} catch (TwoFactorAuthenticationRequiredException ex) {
 
-		} catch (TwoFactorAuthenticationTokenInvalidException ex) {
+				logger.debug(ex.getMessage());
 
-			logger.debug(ex.getMessage());
-			getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", "twofactortoken").build(), true);
+				final MessageBuilder msg = MessageBuilder.status().message(ex.getMessage()).data("token", ex.getNextStepToken());
 
-			return;
+				if (ex.showQrCode()) {
 
-		} catch (TwoFactorAuthenticationRequiredException ex) {
+					try {
 
-			logger.debug(ex.getMessage());
+						final Map<String, Object> hints = new HashMap();
+						hints.put("MARGIN", 0);
+						hints.put("ERROR_CORRECTION", "M");
 
-			final MessageBuilder msg = MessageBuilder.status().message(ex.getMessage()).data("token", ex.getNextStepToken());
+						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
 
-			if (ex.showQrCode()) {
+						msg.data("qrdata", qrdata);
 
-				try {
-
-					final Map<String, Object> hints = new HashMap();
-					hints.put("MARGIN", 0);
-					hints.put("ERROR_CORRECTION", "M");
-
-					final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
-
-					msg.data("qrdata", qrdata);
-
-				} catch (UnsupportedEncodingException uee) {
-					logger.warn("Charset ISO-8859-1 not supported!?", uee);
+					} catch (UnsupportedEncodingException uee) {
+						logger.warn("Charset ISO-8859-1 not supported!?", uee);
+					}
 				}
+
+				getWebSocket().send(msg.code(202).build(), true);
+
+			} catch (AuthenticationException e) {
+
+				logger.info("Unable to login {}, probably wrong password", username);
+				getWebSocket().send(MessageBuilder.status().code(403).build(), true);
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Unable to execute command", fex);
+				getWebSocket().send(MessageBuilder.status().code(401).build(), true);
+
 			}
 
-			getWebSocket().send(msg.code(202).build(), true);
-
-			return;
-
-		} catch (AuthenticationException e) {
-
-			logger.info("Unable to login {}, probably wrong password", username);
-			getWebSocket().send(MessageBuilder.status().code(403).build(), true);
-
-			return;
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("Unable to execute command", fex);
+			tx.success();
 		}
-
-		getWebSocket().send(MessageBuilder.status().code(401).build(), true);
 	}
 
 	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "LOGIN";
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction () {
+		return false;
 	}
 }

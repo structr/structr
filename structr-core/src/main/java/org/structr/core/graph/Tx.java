@@ -118,4 +118,21 @@ public class Tx implements AutoCloseable {
 	public void setSource(final TransactionSource source) {
 		cmd.setSource(source);
 	}
+
+	/**
+	 * Allow setting the securityContext if it was null.
+	 * Important for Login transactions.
+	 * @param sc
+	 */
+	public void setSecurityContext(final SecurityContext sc) {
+
+		if (securityContext == null && cmd.securityContext == null) {
+
+			if (sc.isSuperUserSecurityContext() == Boolean.FALSE) {
+
+				securityContext     = sc;
+				cmd.securityContext = sc;
+			}
+		}
+	}
 }
