@@ -142,13 +142,13 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 		super.delete(deleteRelationships);
 
-		final NodeWrapper startNode = (NodeWrapper)getStartNode();
+		final NodeWrapper startNode = NodeWrapper.getCache().get(sourceNodeId);
 		if (startNode != null) {
 
 			startNode.clearCaches();
 		}
 
-		final NodeWrapper endNode = (NodeWrapper)getEndNode();
+		final NodeWrapper endNode = NodeWrapper.getCache().get(targetNodeId);
 		if (endNode != null) {
 
 			endNode.clearCaches();
@@ -158,11 +158,15 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		tx.deleted(this);
 	}
 
+	public static FixedSizeCache<Long, RelationshipWrapper> getCache() {
+		return relationshipCache;
+	}
+	
+	// ----- public static methods -----
 	public static void clearCache() {
 		relationshipCache.clear();
 	}
 
-	// ----- public static methods -----
 	public static RelationshipWrapper newInstance(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Relationship relationship) {
 
 		synchronized (relationshipCache) {
