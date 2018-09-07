@@ -507,9 +507,11 @@ public class SchemaService implements Service {
 
 								final String typeName = type.getSimpleName();
 
-								try (final Tx tx = app.tx()) {
 
-									for (final PropertyKey key : entry.getValue().values()) {
+
+								for (final PropertyKey key : entry.getValue().values()) {
+
+									try (final Tx tx = app.tx()) {
 
 										final String indexKey    = "index." + typeName + "." + key.dbName();
 										final String value       = app.getGlobalSetting(indexKey, null);
@@ -553,12 +555,11 @@ public class SchemaService implements Service {
 											app.setGlobalSetting(indexKey, null);
 										}
 
+										tx.success();
+
+									} catch (Throwable ignore) {
+										logger.warn("", ignore);
 									}
-
-									tx.success();
-
-								} catch (Throwable ignore) {
-									logger.warn("", ignore);
 								}
 							}
 						}
