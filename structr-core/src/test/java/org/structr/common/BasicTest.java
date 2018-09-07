@@ -20,12 +20,13 @@ package org.structr.common;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -37,14 +38,19 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
+import org.structr.bolt.wrapper.NodeWrapper;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Result;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AOneToOne;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.BOneToOne;
 import org.structr.core.entity.DynamicResourceAccess;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
@@ -1940,11 +1946,125 @@ public class BasicTest extends StructrTest {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
 		}
-
-
-
 	}
 
+	@Test
+	public void testIdLifecycle() {
+		
+		final long wait = 1000 * 100L;
+
+		cleanDatabaseAndSchema();
+
+		try {
+			Thread.sleep(1000L);
+		} catch (InterruptedException ex) {
+			logger.error("Thread sleep was interrupted", ex);
+		}
+		
+		final int  n    = 10000;      // number of CREATE iterations
+
+		final Map<Long, String> results = new HashMap<>();
+
+		try (final Tx tx = app.tx()) {
+
+			System.out.println("Creating " + n + " triples with reltype A");
+			
+			for (int i=0; i<n; i++) {
+				
+				//tx.run("CREATE (n)-[r:A]->(m)");
+				final TestOne test1 = app.create(TestOne.class, "noname");
+				final TestOne test2 = app.create(TestOne.class, "noname");
+				app.create(test1, test2, AOneToOne.class);
+			}
+
+			System.out.println("done.");
+
+			final List<RelationshipInterface> rels1 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
+			System.out.println("Storing relationships in map...");
+			
+			for (final RelationshipInterface rel : rels1) {
+				
+				Long id = rel.getId();
+				String type = rel.getType();
+				
+				results.put(id, type);
+			}
+			System.out.println("done.");
+			
+			System.out.println("Deleting all A relationships through Cypher...");
+			app.cypher("MATCH (n)-[r:A]-(m) DETACH DELETE n,r,m", Collections.EMPTY_MAP); // tx.run("MATCH (n)-[r]-(m) DETACH DELETE n,r,m");
+			System.out.println("done.");
+			
+			System.out.println("Waiting " + wait/1000 + " second(s)...");
+			try {
+				Thread.sleep(wait);
+			} catch (InterruptedException ex) {
+				logger.error("Thread sleep was interrupted", ex);
+			}
+			System.out.println("done.");
+			
+			System.out.println("Creating " + n + " triples with reltype B");
+			for (int i=0; i<n; i++) {
+				
+				//tx.run("CREATE (n)-[r:B]->(m)");
+				final TestOne test1 = app.create(TestOne.class, "noname");
+				final TestOne test2 = app.create(TestOne.class, "noname");
+				app.create(test1, test2, BOneToOne.class);
+			}
+
+			System.out.println("done.");
+			
+			
+			System.out.println("Comparing relationships with cache...");
+			final List<RelationshipInterface> rels2 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
+
+			FixedSizeCache<Long, RelationshipWrapper> relCache = RelationshipWrapper.getCache();
+			
+			for (final RelationshipInterface rel : rels2) {
+				
+				Long id = rel.getId();
+				String type = rel.getType();
+				
+				RelationshipWrapper relWrapper = relCache.get(id);
+				
+				if (relWrapper != null && !relWrapper.getType().name().equals(type)) {
+					fail("R" + id + " Relationship found in cache with type " + relWrapper.getType().name() + " while type in database is " + type);
+				}
+				
+				if (results.containsKey(id) && !results.get(id).equals(type)) {
+					fail("ERROR: Result contained relationship with same id but different type: R" + id + ": stored type is " + results.get(id) + ", new type is " + type);
+				}
+			}		
+			System.out.println("done.");
+
+			System.out.println("Comparing nodes with cache...");
+			final List<NodeInterface> nodes = app.cypher("MATCH (n) RETURN DISTINCT n ORDER BY id(n)", Collections.EMPTY_MAP);
+
+			FixedSizeCache<Long, NodeWrapper> nodeCache = NodeWrapper.getCache();
+			
+			for (final NodeInterface node : nodes) {
+				
+				Long id = node.getId();
+				String type = node.getType();
+				
+				NodeWrapper nodeWrapper = nodeCache.get(id);
+				
+				if (nodeWrapper != null && !nodeWrapper.getProperty("type").equals(type)) {
+					fail("N" + id + " Node found in cache with type " + nodeWrapper.getProperty("type") + " while type in database is " + type);
+				}
+				
+			}		
+			System.out.println("done.");
+			
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+			
+	}
+	
 	// ----- private methods -----
 	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
 
