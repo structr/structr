@@ -34,8 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.bolt.wrapper.EntityWrapper;
 import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -112,6 +114,11 @@ public class ModificationQueue {
 		// do validation and indexing
 		for (final GraphObjectModificationState state : getSortedModifications()) {
 
+			PropertyContainer container = state.getGraphObject().getPropertyContainer();
+			if (container instanceof EntityWrapper && ((EntityWrapper) container).isStale()) {
+				continue;
+			}
+			
 			// do callback according to entry state
 			if (!state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation)) {
 				return false;
