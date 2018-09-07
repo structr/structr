@@ -20,6 +20,8 @@ package org.structr.rest.auth;
 
 import java.security.GeneralSecurityException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -223,7 +225,10 @@ public class AuthHelper {
 
 		try {
 
-			Actions.call(Actions.NOTIFICATION_LOGIN, user);
+			final Map<String, Object> params = new HashMap<>();
+			params.put("user", user);
+
+			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGIN, params);
 
 		} catch (UnlicensedScriptException ex) {
 			ex.log(logger);
@@ -234,7 +239,10 @@ public class AuthHelper {
 
 		try {
 
-			Actions.call(Actions.NOTIFICATION_LOGOUT, user);
+			final Map<String, Object> params = new HashMap<>();
+			params.put("user", user);
+
+			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGOUT, params);
 
 		} catch (UnlicensedScriptException ex) {
 				ex.log(logger);

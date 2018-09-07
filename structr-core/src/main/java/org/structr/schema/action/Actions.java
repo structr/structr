@@ -19,7 +19,6 @@
 package org.structr.schema.action;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -32,7 +31,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
@@ -110,25 +108,6 @@ public class Actions {
 		}
 
 		return result;
-	}
-
-	/**
-	 * Convenience method to call a schema method with a user parameter.
-	 * This method is currently used to broadcast login and logout events.
-	 *
-	 * @param key
-	 * @param user
-	 *
-	 * @return Object the method call result
-	 *
-	 * @throws FrameworkException
-	 */
-	public static Object call(final String key, final Principal user) throws FrameworkException, UnlicensedScriptException {
-
-		final Map<String, Object> params = new HashMap<>();
-		params.put("user", user);
-
-		return callAsSuperUser(key, params);
 	}
 
 	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
