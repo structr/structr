@@ -40,13 +40,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
-import org.structr.rest.resource.Resource;
+import org.structr.rest.resource.FilterableResource;
 import org.structr.web.function.BarcodeFunction;
 
 /**
  * Resource that handles user logins.
  */
-public class LoginResource extends Resource {
+public class LoginResource extends FilterableResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
 
@@ -182,11 +182,6 @@ public class LoginResource extends Resource {
 	@Override
 	public RestMethodResult doDelete() throws FrameworkException {
 		throw new NotAllowedException("DELETE not allowed on " + getResourceSignature());
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		return null;
 	}
 
 	@Override
