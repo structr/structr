@@ -418,6 +418,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 			if (securityContext != null) {
 
+				propertyView.set(securityContext, config.getDefaultPropertyView());
+
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
@@ -461,12 +463,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 							retry = true;
 						}
 					}
-				}
-
-				// set default value for property view (if not already set)
-				if (propertyView.get(securityContext) == null) {
-
-					propertyView.set(securityContext, config.getDefaultPropertyView());
 				}
 
 				// isolate write output
