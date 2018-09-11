@@ -20,7 +20,6 @@ package org.structr.bolt.wrapper;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -129,14 +128,18 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
 
-		tx.modified(this);
-		tx.modified(otherNode);
+		setModified();
+		otherNode.setModified();
 
 		// clear caches
 		((NodeWrapper)endNode).relationshipCache.clear();
 		relationshipCache.clear();
 
-		return RelationshipWrapper.newInstance(db, rel);
+		final RelationshipWrapper createdRelationship = RelationshipWrapper.newInstance(db, rel);
+
+		createdRelationship.setModified();
+
+		return createdRelationship;
 	}
 
 	@Override
@@ -152,7 +155,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		tx.set("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} SET n :" + label.name(), map);
 
-		tx.modified(this);
+		setModified();
 	}
 
 	@Override
@@ -167,7 +170,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		map.put("id", id);
 
 		tx.set("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ") WHERE ID(n) = {id} REMOVE n:" + label.name(), map);
-		tx.modified(this);
+		setModified();
 	}
 
 	@Override
@@ -351,7 +354,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		return result;
 	}
-	
+
 	public static FixedSizeCache<Long, NodeWrapper> getCache() {
 		return nodeCache;
 	}
@@ -455,13 +458,13 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			if (!a.hasProperty(key) && b.hasProperty(key)) {
 				return -1;
 			}
-			
+
 			if (a.hasProperty(key) && !b.hasProperty(key)) {
 				return 1;
 			}
 
 			if (a.hasProperty(key) && b.hasProperty(key)) {
-				
+
 				final String t1 = (String)a.getProperty(key);
 				final String t2 = (String)b.getProperty(key);
 

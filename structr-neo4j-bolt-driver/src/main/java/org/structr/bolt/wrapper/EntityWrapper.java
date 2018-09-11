@@ -144,7 +144,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		}
 
 		// mark node as modified
-		tx.modified(this);
+		setModified();
 	}
 
 	@Override
@@ -166,7 +166,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		// update data
 		update(values);
 
-		tx.modified(this);
+		setModified();
 	}
 
 	@Override
@@ -186,7 +186,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		// remove key from data
 		data.remove(key);
 
-		tx.modified(this);
+		setModified();
 	}
 
 	@Override
@@ -219,7 +219,7 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		buf.append(" DELETE n");
 
 		tx.set(buf.toString(), map);
-		tx.modified(this);
+		setModified();
 
 		stale = true;
 	}
@@ -235,6 +235,10 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 	public void stale() {
 		this.stale = true;
+	}
+
+	public void setModified() {
+		db.getCurrentTransaction().modified(this);
 	}
 
 	// ----- protected methods -----
