@@ -39,6 +39,7 @@ import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.BulkDeleteCommand;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
@@ -134,7 +135,7 @@ public abstract class Resource {
 			for (final GraphObject obj : results) {
 
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
-					throw new FrameworkException(403, "Modification not permitted.");
+					throw new FrameworkException(403, "Modification of node " + obj.getProperty(GraphObject.id) + " with type " + obj.getProperty(GraphObject.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
 				}
 
 				obj.setProperties(securityContext, properties);
@@ -346,7 +347,6 @@ public abstract class Resource {
 	/**
 	 * Returns the first part of the given source string when it contains a "."
 	 *
-	 * @param parameter
 	 * @return source
 	 */
 	private String getFirstPartOfString(final String source) {
