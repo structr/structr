@@ -1680,11 +1680,11 @@ public class BasicTest extends StructrTest {
 	/**
 	 * This test makes sure that no graph objects that were created in a transaction which is rolled back
 	 * are visible/accessible in other tx.
-	 * 
+	 *
 	 * Before a bug fix this test was created for, we saw NotFoundExceptions with wrapped NoSuchRecordException
 	 * when trying to access stale nodes through relationships from the cache.
 	 */
-	
+
 	@Test
 	public void testRelationshipsOnNodeCreationAfterRollback() {
 
@@ -1712,23 +1712,23 @@ public class BasicTest extends StructrTest {
 		List<? extends RelationshipInterface> rels2 = Collections.EMPTY_LIST;
 		List<? extends RelationshipInterface> rels3 = Collections.EMPTY_LIST;
 		List<? extends RelationshipInterface> rels4 = Collections.EMPTY_LIST;
-		
+
 		// create object with user context
 		try (final Tx tx = app.tx()) {
 
 			test = app.create(TestThirteen.class);
 			uuid = test.getUuid();
-			
+
 			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
 			rels2 = app.relationshipQuery().and(AbstractRelationship.targetId, test.getUuid()).getAsList();
 			rels3 = Iterables.toList(test.getIncomingRelationships());
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
-			
+
 			System.out.println("rels1: " + rels1.size());
 			System.out.println("rels2: " + rels2.size());
 			System.out.println("rels3: " + rels3.size());
 			System.out.println("rels4: " + rels4.size());
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -1744,14 +1744,14 @@ public class BasicTest extends StructrTest {
 
 			rels1 = app.relationshipQuery().and(AbstractRelationship.sourceId, user.getUuid()).getAsList();
 			rels4 = Iterables.toList(user.getOutgoingRelationships());
-			
+
 			System.out.println("rels1: " + rels1.size());
 			System.out.println("rels4: " + rels4.size());
 
 			for (final RelationshipInterface rel : rels1) {
 				System.out.println("Source node: " + rel.getSourceNode() + ", target node: " + rel.getTargetNode());
 			}
-			
+
 			for (final RelationshipInterface rel : rels4) {
 				System.out.println("Source node: " + rel.getSourceNode() + ", target node: " + rel.getTargetNode());
 			}
@@ -1760,7 +1760,7 @@ public class BasicTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
-		
+
 		// query for relationships
 		try (final Tx tx = app.tx()) {
 
@@ -1785,28 +1785,28 @@ public class BasicTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
-	
+
 	@Test
 	public void testRelationshipsToListWithNullTimestamp() {
 
 		String id = null;
-		
+
 		try (final Tx tx = app.tx()) {
 
 			final TestSix testSix = createTestNode(TestSix.class);
 			id = testSix.getUuid();
-			
+
 			// Create 1000 rels
 			for (int i=0; i<10; i++) {
-				
+
 				final TestThree testThree = createTestNode(TestThree.class, new NodeAttribute<>(TestThree.oneToManyTestSix, testSix));
 				final RelationshipInterface rel = testThree.getRelationships(SixThreeOneToMany.class).iterator().next();
-				
+
 				if (i%2 == 0) {
 					rel.getRelationship().setProperty("internalTimestamp", null);
 				}
 			}
-			
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -1817,17 +1817,17 @@ public class BasicTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final TestSix testSix = app.get(TestSix.class, id);
-			
+
 			// This calls NodeWrapper#toList internally
 			List<OneTwoOneToOne> rels = Iterables.toList(testSix.getRelationships());
-			
+
 			assertEquals("Wrong number of relationships", 10, rels.size());
-			
+
 			for (RelationshipInterface rel : rels) {
 				System.out.println(rel.getProperty(StructrApp.getConfiguration().getPropertyKeyForJSONName(RelationshipInterface.class, "internalTimestamp")));
 			}
-			
-			
+
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -1950,7 +1950,7 @@ public class BasicTest extends StructrTest {
 
 	@Test
 	public void testIdLifecycle() {
-		
+
 		final long wait = 1000 * 100L;
 
 		cleanDatabaseAndSchema();
@@ -1960,7 +1960,7 @@ public class BasicTest extends StructrTest {
 		} catch (InterruptedException ex) {
 			logger.error("Thread sleep was interrupted", ex);
 		}
-		
+
 		final int  n    = 10000;      // number of CREATE iterations
 
 		final Map<Long, String> results = new HashMap<>();
@@ -1968,9 +1968,9 @@ public class BasicTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			System.out.println("Creating " + n + " triples with reltype A");
-			
+
 			for (int i=0; i<n; i++) {
-				
+
 				//tx.run("CREATE (n)-[r:A]->(m)");
 				final TestOne test1 = app.create(TestOne.class, "noname");
 				final TestOne test2 = app.create(TestOne.class, "noname");
@@ -1981,20 +1981,20 @@ public class BasicTest extends StructrTest {
 
 			final List<RelationshipInterface> rels1 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
 			System.out.println("Storing relationships in map...");
-			
+
 			for (final RelationshipInterface rel : rels1) {
-				
+
 				Long id = rel.getId();
 				String type = rel.getType();
-				
+
 				results.put(id, type);
 			}
 			System.out.println("done.");
-			
+
 			System.out.println("Deleting all A relationships through Cypher...");
 			app.cypher("MATCH (n)-[r:A]-(m) DETACH DELETE n,r,m", Collections.EMPTY_MAP); // tx.run("MATCH (n)-[r]-(m) DETACH DELETE n,r,m");
 			System.out.println("done.");
-			
+
 			System.out.println("Waiting " + wait/1000 + " second(s)...");
 			try {
 				Thread.sleep(wait);
@@ -2002,10 +2002,10 @@ public class BasicTest extends StructrTest {
 				logger.error("Thread sleep was interrupted", ex);
 			}
 			System.out.println("done.");
-			
+
 			System.out.println("Creating " + n + " triples with reltype B");
 			for (int i=0; i<n; i++) {
-				
+
 				//tx.run("CREATE (n)-[r:B]->(m)");
 				final TestOne test1 = app.create(TestOne.class, "noname");
 				final TestOne test2 = app.create(TestOne.class, "noname");
@@ -2013,58 +2013,177 @@ public class BasicTest extends StructrTest {
 			}
 
 			System.out.println("done.");
-			
-			
+
+
 			System.out.println("Comparing relationships with cache...");
 			final List<RelationshipInterface> rels2 = app.cypher("MATCH ()-[r]-() RETURN DISTINCT r ORDER BY id(r)", Collections.EMPTY_MAP);
 
 			FixedSizeCache<Long, RelationshipWrapper> relCache = RelationshipWrapper.getCache();
-			
+
 			for (final RelationshipInterface rel : rels2) {
-				
+
 				Long id = rel.getId();
 				String type = rel.getType();
-				
+
 				RelationshipWrapper relWrapper = relCache.get(id);
-				
+
 				if (relWrapper != null && !relWrapper.getType().name().equals(type)) {
 					fail("R" + id + " Relationship found in cache with type " + relWrapper.getType().name() + " while type in database is " + type);
 				}
-				
+
 				if (results.containsKey(id) && !results.get(id).equals(type)) {
 					fail("ERROR: Result contained relationship with same id but different type: R" + id + ": stored type is " + results.get(id) + ", new type is " + type);
 				}
-			}		
+			}
 			System.out.println("done.");
 
 			System.out.println("Comparing nodes with cache...");
 			final List<NodeInterface> nodes = app.cypher("MATCH (n) RETURN DISTINCT n ORDER BY id(n)", Collections.EMPTY_MAP);
 
 			FixedSizeCache<Long, NodeWrapper> nodeCache = NodeWrapper.getCache();
-			
+
 			for (final NodeInterface node : nodes) {
-				
+
 				Long id = node.getId();
 				String type = node.getType();
-				
+
 				NodeWrapper nodeWrapper = nodeCache.get(id);
-				
+
 				if (nodeWrapper != null && !nodeWrapper.getProperty("type").equals(type)) {
 					fail("N" + id + " Node found in cache with type " + nodeWrapper.getProperty("type") + " while type in database is " + type);
 				}
-				
-			}		
+
+			}
 			System.out.println("done.");
-			
+
 			tx.success();
 
 		} catch (Throwable t) {
 			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
-			
+
 	}
-	
+
+	@Test
+	public void testObjectCreationAfterRollback() {
+
+		/**
+		 * 1. Test Setup:
+		 * - Clean Database
+		 * - Create "bad" type with error in onCreate
+		 * - Create "good" type
+		 * - Create a test user
+		 */
+
+		cleanDatabaseAndSchema();
+
+		try {
+			Thread.sleep(1000L);
+		} catch (InterruptedException ex) {
+			logger.error("Thread sleep was interrupted", ex);
+		}
+
+		// setup: create dynamic type with onCreate() method
+		try (final Tx tx = app.tx()) {
+
+			SchemaNode badNodeType = createTestNode(SchemaNode.class, "BadNode");
+			badNodeType.setProperty(new StringProperty("___onCreate"), "{ return Structr.error('name', 'no node of this type can not be created!'); }");
+
+			SchemaNode goodNodeType = createTestNode(SchemaNode.class, "GoodNode");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+
+		Principal user = null;
+
+		// create user
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(Principal.class, "tester");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext ctx = SecurityContext.getInstance(user, AccessMode.Backend);
+		final App userApp             = StructrApp.getInstance(ctx);
+
+
+		/**
+		 * 2. Test Execution:
+		 * - Try to create one node of the type that fails ==> rollback
+		 * - Create HALF as many nodes of a type that can be created ==> the fail probability is quite high (fail meaning that a previously deleted relationship is still present in the cache and not marked as stale)
+		 */
+
+		long maxId = 0;
+
+		try (final Tx tx = userApp.tx()) {
+
+			Class failingType = StructrApp.getConfiguration().getNodeEntityClass("BadNode");
+
+			final NodeInterface x = userApp.create(failingType, "should fail");
+			for (RelationshipInterface r : x.getIncomingRelationships()) {
+				System.out.println(r.getRelType().name() + ": " + r.getId());
+				maxId = Long.max(maxId, r.getId());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			// expected error
+			assertEquals("BadNode.name no node of this type can not be created!", fex.toString());
+
+		}
+
+		/**
+		 * Sleep for some time - in the hopes that the database will re-use the previously deleted relationship ids
+		 */
+		try {
+			logger.info("Waiting for 20 seconds...");
+			Thread.sleep(20000L);
+		} catch (InterruptedException ex) {
+			logger.error("Thread sleep was interrupted", ex);
+		}
+
+		try (final Tx tx = userApp.tx()) {
+
+			Class goodType = StructrApp.getConfiguration().getNodeEntityClass("GoodNode");
+
+			for (int cnt = 0; cnt < (maxId / 2); cnt++) {
+				userApp.create(goodType, "Good node " + cnt);
+			}
+
+			tx.success();
+
+		} catch (ClassCastException cce) {
+
+			logger.warn("", cce);
+			fail("ClassCastException occurred - this happens because a relationship cache entry was not set to stale after a rollback!");
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			if (fex.getStatus() == 403) {
+				fail("Previously existing relationship (which was deleted) but not set stale has been re-used in the cache... which is why the user is not allowed to modify his own node");
+			}
+
+			fail("Unexpected exception.");
+		}
+
+	}
+
 	// ----- private methods -----
 	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
 
