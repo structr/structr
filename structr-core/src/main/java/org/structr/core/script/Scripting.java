@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.script.*;
-
 import org.apache.commons.collections4.map.LRUMap;
 import org.apache.commons.lang3.StringUtils;
 import org.mozilla.javascript.Context;
@@ -179,14 +178,14 @@ public class Scripting {
 		actionContext.setJavaScriptContext(isJavascript);
 
 		// temporarily disable notifications for scripted actions
-		
+
 		boolean enableTransactionNotifactions = false;
-		
+
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		if (securityContext != null) {
 
 			enableTransactionNotifactions = securityContext.doTransactionNotifications();
-			
+
 			securityContext.setDoTransactionNotifications(false);
 		}
 
@@ -197,11 +196,11 @@ public class Scripting {
 		} else if (isJavascript) {
 
 			final Object result = evaluateJavascript(actionContext, entity, new Snippet(methodName, source));
-			
+
 			if (enableTransactionNotifactions && securityContext != null) {
 				securityContext.setDoTransactionNotifications(true);
 			}
-			
+
 			return result;
 
 		} else {
@@ -217,7 +216,7 @@ public class Scripting {
 			if (enableTransactionNotifactions && securityContext != null) {
 				securityContext.setDoTransactionNotifications(true);
 			}
-			
+
 			return extractedValue;
 		}
 	}
@@ -276,7 +275,7 @@ public class Scripting {
 		} catch (final FrameworkException fex) {
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				fex.printStackTrace();
+				logger.warn("Exception in Scripting context", fex);
 			}
 
 			// just throw the FrameworkException so we dont lose the information contained
@@ -285,7 +284,7 @@ public class Scripting {
 		} catch (final Throwable t) {
 
 			if (!actionContext.getDisableVerboseExceptionLogging()) {
-				t.printStackTrace();
+				logger.warn("Exception in Scripting context", t);
 			}
 
 			// if any other kind of Throwable is encountered throw a new FrameworkException and be done with it
