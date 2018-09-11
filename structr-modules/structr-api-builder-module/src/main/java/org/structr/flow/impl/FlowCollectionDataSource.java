@@ -65,6 +65,8 @@ public class FlowCollectionDataSource extends FlowDataSource implements Deployab
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

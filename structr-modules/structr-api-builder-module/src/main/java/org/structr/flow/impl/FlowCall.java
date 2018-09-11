@@ -103,6 +103,8 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

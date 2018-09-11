@@ -100,6 +100,8 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 		result.put("type", this.getClass().getSimpleName());
 		result.put("dataType", getProperty(dataType));
 		result.put("query", getProperty(query));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

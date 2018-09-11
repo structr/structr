@@ -87,6 +87,8 @@ public class FlowDataSource extends FlowBaseNode implements DataSource, Deployab
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
 		result.put("query", this.getProperty(query));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

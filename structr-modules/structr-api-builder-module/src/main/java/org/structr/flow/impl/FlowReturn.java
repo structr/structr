@@ -88,6 +88,8 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
 		result.put("result", this.getProperty(FlowReturn.result));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

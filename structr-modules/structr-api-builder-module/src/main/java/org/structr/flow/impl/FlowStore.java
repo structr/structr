@@ -92,6 +92,8 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 		result.put("type", this.getClass().getSimpleName());
 		result.put("key", this.getProperty(key));
 		result.put("operation", this.getProperty(operation));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

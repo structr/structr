@@ -19,8 +19,12 @@
 package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
 import org.structr.flow.impl.rels.FlowContainerBaseNode;
@@ -34,4 +38,12 @@ public abstract class FlowBaseNode extends AbstractNode implements DeployableEnt
 
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, flowContainer);
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     flowContainer);
+
+	@Override
+	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
+		super.onCreation(securityContext, errorBuffer);
+
+		this.setProperty(visibleToAuthenticatedUsers, true);
+		this.setProperty(visibleToPublicUsers, true);
+	}
 }

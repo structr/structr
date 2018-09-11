@@ -103,6 +103,9 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 		result.put("type", this.getClass().getSimpleName());
 		result.put("script", this.getProperty(script));
 
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+
 		return result;
 	}
 }

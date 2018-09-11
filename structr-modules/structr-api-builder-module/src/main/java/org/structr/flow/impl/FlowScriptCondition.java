@@ -91,6 +91,8 @@ public class FlowScriptCondition extends FlowCondition implements DataSource, De
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
 		result.put("script", this.getProperty(script));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}

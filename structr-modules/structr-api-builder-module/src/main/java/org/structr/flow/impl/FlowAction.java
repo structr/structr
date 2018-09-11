@@ -93,6 +93,9 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 		result.put("type", this.getClass().getSimpleName());
 		result.put("script", this.getProperty(script));
 
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
+
 		return result;
 	}
 

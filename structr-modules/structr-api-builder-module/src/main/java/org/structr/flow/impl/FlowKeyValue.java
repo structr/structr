@@ -86,6 +86,8 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource, Deployable
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
 		result.put("key", this.getProperty(key));
+		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
+		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
 	}
