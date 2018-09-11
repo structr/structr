@@ -1466,7 +1466,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				internalSystemPropertiesUnlocked = false;
 				readOnlyPropertiesUnlocked       = false;
 
-				throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
+				Principal currentUser = securityContext.getUser(false);
+				String user =  null;
+
+				if (currentUser == null) {
+					user = securityContext.isSuperUser() ? "superuser" : "anonymous";
+				} else {
+					user = currentUser.getProperty(AbstractNode.id);
+				}
+
+				throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
 			}
 		}
 
