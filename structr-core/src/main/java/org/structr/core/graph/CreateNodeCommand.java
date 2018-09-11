@@ -29,7 +29,8 @@ import org.structr.api.DataFormatException;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
+import org.structr.bolt.wrapper.NodeWrapper;
+import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -262,6 +263,41 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			parameters.put("userId",             user.getId());
 			parameters.put("ownsProperties",     ownsProperties);
 			parameters.put("securityProperties", securityProperties);
+			parameters.put("nodeProperties", properties);
+
+			final NativeResult result = graphDb.execute(buf.toString(), parameters);
+			try {
+
+				if (result.hasNext()) {
+
+					final Map<String, Object> data = result.next();
+					final NodeWrapper newNode             = (NodeWrapper)         data.get("n");
+					final RelationshipWrapper securityRel = (RelationshipWrapper) data.get("s");
+					final RelationshipWrapper ownsRel     = (RelationshipWrapper) data.get("o");
+
+					newNode.setModified();
+					securityRel.setModified();
+					ownsRel.setModified();
+
+					final Security securityRelationship = new RelationshipFactory<Security>(securityContext).instantiate(securityRel);
+					if (securityRelationship != null) {
+						TransactionCommand.relationshipCreated(user, securityRelationship);
+					}
+
+					final PrincipalOwnsNode ownsRelationship = new RelationshipFactory<PrincipalOwnsNode>(securityContext).instantiate(ownsRel);
+					if (ownsRelationship != null) {
+						TransactionCommand.relationshipCreated(user, ownsRelationship);
+					}
+
+					return newNode;
+				}
+
+			} catch (DataFormatException dex) {
+				throw new FrameworkException(422, dex.getMessage());
+			} catch (ConstraintViolationException qex) {
+				throw new FrameworkException(422, qex.getMessage());
+			}
+
 
 		} else {
 
@@ -281,38 +317,28 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 
 			buf.append(" {nodeProperties})");
 			buf.append(" RETURN n");
-		}
 
-		// make properties available to Cypher statement
-		parameters.put("nodeProperties", properties);
+			// make properties available to Cypher statement
+			parameters.put("nodeProperties", properties);
 
-		final NativeResult result = graphDb.execute(buf.toString(), parameters);
-		try {
+			final NativeResult result = graphDb.execute(buf.toString(), parameters);
+			try {
 
-			if (result.hasNext()) {
+				if (result.hasNext()) {
 
-				final Map<String, Object> data = result.next();
-				final Node newNode             = (Node)         data.get("n");
-				final Relationship securityRel = (Relationship) data.get("s");
-				final Relationship ownsRel     = (Relationship) data.get("o");
+					final Map<String, Object> data = result.next();
+					final NodeWrapper newNode = (NodeWrapper) data.get("n");
 
-				final Security securityRelationship = new RelationshipFactory<Security>(securityContext).instantiate(securityRel);
-				if (securityRelationship != null) {
-					TransactionCommand.relationshipCreated(user, securityRelationship);
+					newNode.setModified();
+
+					return newNode;
 				}
 
-				final PrincipalOwnsNode ownsRelationship = new RelationshipFactory<PrincipalOwnsNode>(securityContext).instantiate(ownsRel);
-				if (ownsRelationship != null) {
-					TransactionCommand.relationshipCreated(user, ownsRelationship);
-				}
-
-				return newNode;
+			} catch (DataFormatException dex) {
+				throw new FrameworkException(422, dex.getMessage());
+			} catch (ConstraintViolationException qex) {
+				throw new FrameworkException(422, qex.getMessage());
 			}
-
-		} catch (DataFormatException dex) {
-			throw new FrameworkException(422, dex.getMessage());
-		} catch (ConstraintViolationException qex) {
-			throw new FrameworkException(422, qex.getMessage());
 		}
 
 		throw new RuntimeException("Unable to create new node.");
