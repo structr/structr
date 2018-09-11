@@ -284,7 +284,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		if (!isGranted(Permission.write, securityContext)) {
-			throw new FrameworkException(403, "Modification not permitted.");
+			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
 		}
 
 		if (this.dbNode != null) {
@@ -1466,7 +1466,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				internalSystemPropertiesUnlocked = false;
 				readOnlyPropertiesUnlocked       = false;
 
-				throw new FrameworkException(403, "Modification not permitted.");
+				throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
 			}
 		}
 
@@ -1485,6 +1485,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return null;
 	}
 
+
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
@@ -1493,7 +1494,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			internalSystemPropertiesUnlocked = false;
 			readOnlyPropertiesUnlocked       = false;
 
-			throw new FrameworkException(403, "Modification not permitted.");
+			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + securityContext.getUser(false).getProperty(AbstractNode.id) + " not permitted.");
 		}
 
 		for (final PropertyKey key : properties.keySet()) {

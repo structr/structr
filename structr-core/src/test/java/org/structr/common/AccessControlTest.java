@@ -720,11 +720,15 @@ public class AccessControlTest extends StructrTest {
 
 		// ################################################################################################################
 		// user2 should NOT be able to write the object
-
+		String testId = "";
+		String testType = "";
 		try (final Tx tx = user2App.tx()) {
 
 			final TestOne test = user2App.nodeQuery(TestOne.class).getFirst();
 			assertNotNull("Group should be readable for members", test);
+
+			testId = test.getProperty(AbstractNode.id);
+			testType = test.getProperty(AbstractNode.type);
 
 			test.setProperty(TestOne.name, "newname");
 
@@ -733,9 +737,8 @@ public class AccessControlTest extends StructrTest {
 			fail("User should not be able to write an object that it doesn't own.");
 
 		} catch (FrameworkException fex) {
-
 			assertEquals("Invalid group permissions result", 403, fex.getStatus());
-			assertEquals("Invalid group permissions result", "Modification not permitted.", fex.getMessage());
+			assertEquals("Modification of node " + testId + " with type " + testType + " by user " + user2Context.getUser(false).getProperty(AbstractNode.id) + " not permitted.", fex.getMessage());
 		}
 
 		// ################################################################################################################
@@ -1118,14 +1121,18 @@ public class AccessControlTest extends StructrTest {
 		}
 
 		// ################################################################################################################
-		// test write access to group, expected result: 403 Modification not permitted.
-
+		// test write access to group, expected result: 403 Modification of node {id} with type {type} not permitted.
+		String testId = "";
+		String testType = "";
 		try (final Tx tx = user2App.tx()) {
 
 			final Group testGroup = user2App.nodeQuery(Group.class).andName("group").getFirst();
 
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
+
+			testId = testGroup.getProperty(AbstractNode.id);
+			testType = testGroup.getProperty(AbstractNode.type);
 
 			testGroup.setProperty(Group.name, "dontchangeme");
 
@@ -1136,7 +1143,7 @@ public class AccessControlTest extends StructrTest {
 		} catch (FrameworkException t) {
 
 			assertEquals(403, t.getStatus());
-			assertEquals("Modification not permitted.", t.getMessage());
+			assertEquals("Modification of node " + testId + " with type " + testType + " by user " + user2Context.getUser(false).getProperty(AbstractNode.id) + " not permitted.", t.getMessage());
 		}
 
 	}
