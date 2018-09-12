@@ -34,6 +34,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.rest.auth.AuthHelper;
 import org.structr.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
@@ -265,7 +266,7 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 			.expect()
 			.statusCode(401)
 			.body("code", equalTo(401))
-			.body("message", equalTo("Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!"))
+			.body("message", equalTo(AuthHelper.STANDARD_ERROR_MSG))
 			.when()
 			.post("/login");
 
