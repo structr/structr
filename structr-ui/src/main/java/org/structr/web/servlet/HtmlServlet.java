@@ -1253,6 +1253,11 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 						if (Settings.RestUserAutologin.getValue()) {
 
+							if (Settings.PasswordResetFailedCounterOnPWReset.getValue()) {
+
+								AuthHelper.resetFailedLoginAttemptsCounter(user);
+							}
+
 							AuthHelper.doLogin(request, user);
 
 						} else {
