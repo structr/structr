@@ -30,12 +30,16 @@ import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.PasswordChangeRequiredException;
 import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
 import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.auth.AuthHelper;
@@ -75,98 +79,107 @@ public class LoginResource extends FilterableResource {
 		final String emailOrUsername = StringUtils.isNotEmpty(email) ? email : username;
 
 		Principal user = null;
+		RestMethodResult returnedMethodResult = null;
 
-		try {
+		final App app = StructrApp.getInstance();
 
-			if (StringUtils.isNotEmpty(twoFactorToken)) {
+		try (final Tx tx = app.tx(true, true, true)) {
 
-				user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
+			try {
 
-			} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
+				if (StringUtils.isNotEmpty(twoFactorToken)) {
 
-				user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
-			}
+					user = AuthHelper.getUserForTwoFactorToken(twoFactorToken);
 
-			if (user != null) {
+				} else if (StringUtils.isNotEmpty(emailOrUsername) && StringUtils.isNotEmpty(password)) {
 
-				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, securityContext.getRequest().getRemoteAddr());
-
-				if (twoFactorAuthenticationSuccessOrNotNecessary) {
-
-					AuthHelper.doLogin(securityContext.getRequest(), user);
-
-					logger.info("Login successful: {}", user);
-
-					user.setSecurityContext(securityContext);
-
-					// make logged in user available to caller
-					securityContext.setCachedUser(user);
-
-					RestMethodResult methodResult = new RestMethodResult(200);
-					methodResult.addContent(user);
-
-					return methodResult;
+					user = securityContext.getAuthenticator().doLogin(securityContext.getRequest(), emailOrUsername, password);
 				}
-			}
 
-		} catch (PasswordChangeRequiredException ex) {
+				if (user != null) {
 
-			RestMethodResult methodResult = new RestMethodResult(401);
-			methodResult.addHeader("reason", "changed");
+					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, securityContext.getRequest().getRemoteAddr());
 
-			return methodResult;
+					if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
-		} catch (TooManyFailedLoginAttemptsException ex) {
+						AuthHelper.doLogin(securityContext.getRequest(), user);
 
-			RestMethodResult methodResult = new RestMethodResult(401);
-			methodResult.addHeader("reason", "attempts");
+						logger.info("Login successful: {}", user);
 
-			return methodResult;
+						user.setSecurityContext(securityContext);
 
-		} catch (TwoFactorAuthenticationFailedException ex) {
+						// make logged in user available to caller
+						securityContext.setCachedUser(user);
 
-			RestMethodResult methodResult = new RestMethodResult(401);
-			methodResult.addHeader("reason", "twofactor");
-
-			return methodResult;
-
-		} catch (TwoFactorAuthenticationTokenInvalidException ex) {
-
-			RestMethodResult methodResult = new RestMethodResult(401);
-			methodResult.addHeader("reason", "twofactortoken");
-
-			return methodResult;
-
-		} catch (TwoFactorAuthenticationRequiredException ex) {
-
-			RestMethodResult methodResult = new RestMethodResult(202);
-			methodResult.addHeader("token", ex.getNextStepToken());
-			methodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
-
-			if (ex.showQrCode()) {
-
-				try {
-
-					final Map<String, Object> hints = new HashMap();
-					hints.put("MARGIN", 0);
-					hints.put("ERROR_CORRECTION", "M");
-
-					methodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
-
-				} catch (UnsupportedEncodingException uee) {
-					logger.warn("Charset ISO-8859-1 not supported!?", uee);
+						returnedMethodResult = new RestMethodResult(200);
+						returnedMethodResult.addContent(user);
+					}
 				}
+
+			} catch (PasswordChangeRequiredException ex) {
+
+				logger.info("Password change required for {}", emailOrUsername);
+
+				returnedMethodResult = new RestMethodResult(401);
+				returnedMethodResult.addHeader("reason", "changed");
+
+			} catch (TooManyFailedLoginAttemptsException ex) {
+
+				logger.info("Too many failed login attempts for {}", emailOrUsername);
+
+				returnedMethodResult = new RestMethodResult(401);
+				returnedMethodResult.addHeader("reason", "attempts");
+
+			} catch (TwoFactorAuthenticationFailedException ex) {
+
+				returnedMethodResult = new RestMethodResult(401);
+				returnedMethodResult.addHeader("reason", "twofactor");
+
+			} catch (TwoFactorAuthenticationTokenInvalidException ex) {
+
+				returnedMethodResult = new RestMethodResult(401);
+				returnedMethodResult.addHeader("reason", "twofactortoken");
+
+			} catch (TwoFactorAuthenticationRequiredException ex) {
+
+				returnedMethodResult = new RestMethodResult(202);
+				returnedMethodResult.addHeader("token", ex.getNextStepToken());
+				returnedMethodResult.addHeader("twoFactorLoginPage", Settings.TwoFactorLoginPage.getValue());
+
+				if (ex.showQrCode()) {
+
+					try {
+
+						final Map<String, Object> hints = new HashMap();
+						hints.put("MARGIN", 0);
+						hints.put("ERROR_CORRECTION", "M");
+
+						returnedMethodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(user), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
+
+					} catch (UnsupportedEncodingException uee) {
+						logger.warn("Charset ISO-8859-1 not supported!?", uee);
+					}
+				}
+
+				securityContext.getAuthenticator().doLogout(securityContext.getRequest());
+
+
+			} catch (AuthenticationException ae) {
+
+				logger.info("Invalid credentials for {}", emailOrUsername);
+				returnedMethodResult = new RestMethodResult(401);
+
 			}
 
-			securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-
-			return methodResult;
-
+			tx.success();
 		}
 
-		logger.info("Invalid credentials for {}", emailOrUsername);
+		if (returnedMethodResult == null) {
+			// should not happen
+			returnedMethodResult = new RestMethodResult(401);
+		}
 
-		return new RestMethodResult(401);
+		return returnedMethodResult;
 	}
 
 	@Override
@@ -201,6 +214,11 @@ public class LoginResource extends FilterableResource {
 
 	@Override
 	public boolean isCollectionResource() {
+		return false;
+	}
+
+	@Override
+	public boolean createPostTransaction() {
 		return false;
 	}
 }
