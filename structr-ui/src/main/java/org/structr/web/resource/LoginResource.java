@@ -148,7 +148,7 @@ public class LoginResource extends FilterableResource {
 			} catch (AuthenticationException ae) {
 
 				logger.info("Invalid credentials for {}", emailOrUsername);
-				returnedMethodResult = new RestMethodResult(401);
+				returnedMethodResult = new RestMethodResult(401, ae.getMessage());
 
 			}
 
