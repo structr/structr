@@ -42,9 +42,9 @@ public class VersionHelper {
 
 		classPath                            = System.getProperty("java.class.path");
 		final Pattern outerPattern           = Pattern.compile("(structr-[^:]*\\.jar)");
-		final Pattern innerPattern           = Pattern.compile("(structr-core|structr-rest|structr-ui|structr)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,5}))\\.jar");
+		final Pattern innerPattern           = Pattern.compile("(structr-core|structr-rest|structr-ui|structr)-([^-]*(?:-SNAPSHOT){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,6}))\\.jar");
 
-		final Matcher outerMatcher           = outerPattern.matcher(System.getProperty("java.class.path"));
+		final Matcher outerMatcher           = outerPattern.matcher(classPath);
 
 		while (outerMatcher.find()) {
 
@@ -65,13 +65,25 @@ public class VersionHelper {
 
 	public static String getFullVersionInfo() {
 
+		Map<String, String> structrModule = components.get("structr");
+
+		if (structrModule != null) {
+			return VersionHelper.getFullVersionInfoFromModule(structrModule);
+		}
+
 		Map<String, String> structrUiModule = getComponents().get("structr-ui");
 
 		if (structrUiModule != null) {
-			return structrUiModule.get("version") + " " + structrUiModule.get("build") + " " + structrUiModule.get("date");
+			return VersionHelper.getFullVersionInfoFromModule(structrUiModule);
 		}
 
 		return "Could not determine version string";
+
+	}
+
+	private static String getFullVersionInfoFromModule(final Map<String, String> module) {
+
+		return module.get("version") + " " + module.get("build") + " " + module.get("date");
 
 	}
 
