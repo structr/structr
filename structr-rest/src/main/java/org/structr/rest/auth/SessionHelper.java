@@ -43,7 +43,6 @@ import org.structr.rest.service.HttpService;
  */
 public class SessionHelper {
 
-	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	public static final String SESSION_IS_NEW     = "SESSION_IS_NEW";
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionHelper.class.getName());
