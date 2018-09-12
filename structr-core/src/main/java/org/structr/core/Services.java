@@ -48,6 +48,7 @@ import org.structr.api.service.StructrServices;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
+import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeService;
@@ -293,6 +294,7 @@ public class Services implements StructrServices {
 			logger.warn("Exception while executing post-initialization tasks", t);
 		}
 
+		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
 
 		// Don't use logger here because start/stop scripts rely on this line.
 		System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.ms").format(new Date()) + "  ---------------- Initialization complete ----------------");
