@@ -354,6 +354,13 @@ public class ActionContext {
 	}
 
 	public String getBaseUrl () {
+		
+		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
+		
+		if (StringUtils.isNotEmpty(baseUrlOverride)) {
+			return baseUrlOverride;
+		}
+		
 		final StringBuilder sb = new StringBuilder("http");
 
 		final Boolean httpsEnabled = Settings.HttpsEnabled.getValue();
