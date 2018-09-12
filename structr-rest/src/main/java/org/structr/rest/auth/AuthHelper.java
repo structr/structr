@@ -150,12 +150,17 @@ public class AuthHelper {
 					throw new AuthenticationException(STANDARD_ERROR_MSG);
 				}
 
-				AuthHelper.checkTooManyFailedLoginAttempts(principal);
-
 				// let Principal decide how to check password
-				if (!principal.isValidPassword(password)) {
+				final boolean passwordValid = principal.isValidPassword(password);
+
+				if (!passwordValid) {
 
 					AuthHelper.incrementFailedLoginAttemptsCounter(principal);
+				}
+
+				AuthHelper.checkTooManyFailedLoginAttempts(principal);
+
+				if (!passwordValid) {
 
 					throw new AuthenticationException(STANDARD_ERROR_MSG);
 
