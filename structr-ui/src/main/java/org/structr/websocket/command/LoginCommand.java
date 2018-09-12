@@ -134,25 +134,10 @@ public class LoginCommand extends AbstractCommand {
 
 				}
 
-			} catch (PasswordChangeRequiredException ex) {
+			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
 				logger.info(ex.getMessage());
-				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
-
-			} catch (TooManyFailedLoginAttemptsException ex) {
-
-				logger.info(ex.getMessage());
-				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
-
-			} catch (TwoFactorAuthenticationFailedException ex) {
-
-				logger.debug(ex.getMessage());
-				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).build(), true);
-
-			} catch (TwoFactorAuthenticationTokenInvalidException ex) {
-
-				logger.debug(ex.getMessage());
-				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", "twofactortoken").build(), true);
+				getWebSocket().send(MessageBuilder.status().message(ex.getMessage()).code(401).data("reason", ex.getReason()).build(), true);
 
 			} catch (TwoFactorAuthenticationRequiredException ex) {
 

@@ -120,8 +120,8 @@ function StructrApp(baseUrl, locale) {
 			wrongUsernameOrPassword          : 'Wrong username or password!',
 			wrongTwoFactorCode               : 'Wrong two factor code!',
 			invalidTwoFactorToken            : 'Two Factor login took too long',
-			passwordAttempts                 : 'Too many wrong password attempts!',
-			passwordNotChanged               : 'Your password has not been changed for too long!',
+			loginAttempts                    : 'Too many failed password attempts!',
+			passwordChangeRequired           : 'Your password has not been changed for too long!',
 			pleaseEnterEMail                 : 'Please enter your e-mail address!',
 			processing                       : 'Processing...',
 			checkYourInbox                   : 'Thanks! Please check your inbox.',
@@ -147,8 +147,8 @@ function StructrApp(baseUrl, locale) {
 			wrongUsernameOrPassword          : 'Falscher Benutzername oder Passwort!',
 			wrongTwoFactorCode               : 'Falscher Two Factor Code!',
 			invalidTwoFactorToken            : 'Two Factor login hat zu lange gedauert',
-			passwordAttempts                 : 'Zu viele falsche Passwort-Eingaben!',
-			passwordNotChanged               : 'Sie haben Ihr Passwort zu lange nicht geändert!',
+			loginAttempts                    : 'Zu viele fehlgeschlagene Passwort-Eingaben!',
+			passwordChangeRequired           : 'Sie haben Ihr Passwort zu lange nicht geändert!',
 			pleaseEnterEMail                 : 'Bitte E-Mail-Adresse eingeben!',
 			processing                       : 'In Bearbeitung ...',
 			checkYourInbox                   : 'Danke! Bitte E-Mail-Eingang prüfen.',
@@ -583,16 +583,16 @@ function StructrApp(baseUrl, locale) {
 					};
 
 					switch(ajaxRequest.getResponseHeader("reason")) {
-						case "attempts":
-							buttonLabel = s.labels[s.lang].passwordAttempts;
+						case "loginAttempts":
+							buttonLabel = s.labels[s.lang].loginAttempts;
 							break;
-						case "twofactor":
+						case "wrongTwoFactorCode":
 							buttonLabel = s.labels[s.lang].wrongTwoFactorCode;
 							break;
-						case "changed":
-							buttonLabel = s.labels[s.lang].passwordNotChanged;
+						case "passwordChangeRequired":
+							buttonLabel = s.labels[s.lang].passwordChangeRequired;
 							break;
-						case "twofactortoken":
+						case "invalidTwoFactorToken":
 							buttonLabel = s.labels[s.lang].invalidTwoFactorToken;
 							callbackFn = function () {
 								history.back();

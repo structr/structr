@@ -18,10 +18,10 @@
  */
 package org.structr.core.auth.exception;
 
-public class TwoFactorAuthenticationFailedException extends UnauthorizedException {
+public class TwoFactorAuthenticationFailedException extends UnauthorizedReasonException {
 
 	public TwoFactorAuthenticationFailedException() {
-		super("Two factor authentication failed");
+		super("Two factor authentication failed", "wrongTwoFactorCode");
 	}
 
 }

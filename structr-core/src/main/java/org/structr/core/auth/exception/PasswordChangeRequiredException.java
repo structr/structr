@@ -18,10 +18,10 @@
  */
 package org.structr.core.auth.exception;
 
-public class PasswordChangeRequiredException extends UnauthorizedException {
+public class PasswordChangeRequiredException extends UnauthorizedReasonException {
 
 	public PasswordChangeRequiredException() {
-		super("The password has not been changed for too long");
+		super("The password has not been changed for too long", "passwordChangeRequired");
 	}
 
 }

@@ -116,29 +116,10 @@ public class LoginResource extends FilterableResource {
 					}
 				}
 
-			} catch (PasswordChangeRequiredException ex) {
-
-				logger.info("Password change required for {}", emailOrUsername);
+			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
 				returnedMethodResult = new RestMethodResult(401);
-				returnedMethodResult.addHeader("reason", "changed");
-
-			} catch (TooManyFailedLoginAttemptsException ex) {
-
-				logger.info("Too many failed login attempts for {}", emailOrUsername);
-
-				returnedMethodResult = new RestMethodResult(401);
-				returnedMethodResult.addHeader("reason", "attempts");
-
-			} catch (TwoFactorAuthenticationFailedException ex) {
-
-				returnedMethodResult = new RestMethodResult(401);
-				returnedMethodResult.addHeader("reason", "twofactor");
-
-			} catch (TwoFactorAuthenticationTokenInvalidException ex) {
-
-				returnedMethodResult = new RestMethodResult(401);
-				returnedMethodResult.addHeader("reason", "twofactortoken");
+				returnedMethodResult.addHeader("reason", ex.getReason());
 
 			} catch (TwoFactorAuthenticationRequiredException ex) {
 
