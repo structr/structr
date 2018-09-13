@@ -297,7 +297,6 @@ var _Flows = {
 			indentWithTabs: true,
 			autofocus: true
 		});
-        editor.setCursor(editor.lineCount(), 0);
 
         Structr.resize();
 
@@ -330,6 +329,7 @@ var _Flows = {
             return false;
         });
 
+
         editor.on('change', function(cm, change) {
             if (element.value === editor.getValue()) {
                 dialogSaveButton.prop("disabled", true).addClass('disabled');
@@ -340,6 +340,10 @@ var _Flows = {
             }
         });
 
+        editor.focus();
+        editor.setCursor(editor.lineCount(), 0);
+
+        window.setTimeout(() => {$('.closeButton', dialogBtn).blur(); editor.focus();}, 10);
 	},
 
 	initFlow: function(id) {
