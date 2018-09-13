@@ -26,7 +26,7 @@ export class DependencyLoader {
 
     injectScript(src) {
         return new Promise((resolve, reject) => {
-            let scripts = document.head.querySelectorAll("script");
+            let scripts = document.querySelectorAll("script");
 
             if (Array.prototype.slice.call(scripts).filter(s => s.hasAttribute("src") && s.getAttribute("src").indexOf(src) !== -1).length <= 0) {
                     const script = document.createElement('script');
@@ -43,7 +43,7 @@ export class DependencyLoader {
 
     injectStyle(href) {
         return new Promise((resolve, reject) => {
-            let stylesheets = document.head.querySelectorAll("link");
+            let stylesheets = document.querySelectorAll("link");
 
             if (Array.prototype.slice.call(stylesheets).filter(s => s.hasAttribute("href") && s.getAttribute("href").indexOf(href) !== -1).length <= 0) {
                 const link = document.createElement('link');
