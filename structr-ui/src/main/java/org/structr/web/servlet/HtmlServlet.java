@@ -889,7 +889,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 					}
 
 				} catch (EofException ee) {
+
+					final SecurityContext sc = renderContext.getSecurityContext();
+					final Principal user     = sc.getUser(false);
+					final String username    = (user != null) ? user.getName() : "anonymous";
+
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
+
 				} catch (IOException | InterruptedException t) {
 					logger.warn("Unexpected exception", t);
 				}
@@ -898,7 +905,14 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			@Override
 			public void onError(Throwable t) {
 				if (t instanceof EofException) {
+
+					final SecurityContext sc = renderContext.getSecurityContext();
+					final Principal user     = sc.getUser(false);
+					final String username    = (user != null) ? user.getName() : "anonymous";
+
 					logger.warn("Could not flush the response body content to the client, probably because the network connection was terminated.");
+					logger.warn(" -> From: {} | URI: {} | Query: {} | User: {}", request.getRemoteAddr(), request.getRequestURI(), request.getQueryString(), username);
+
 				} else {
 					logger.warn("Unexpected exception", t);
 				}
