@@ -27,6 +27,8 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -426,6 +428,148 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 		return relationshipIndex;
 	}
+
+	@Override
+	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses) {
+
+		final Map<String, Boolean> existingDbIndexes = new HashMap<>();
+
+		try (final Transaction tx = beginTx()) {
+
+			/* Example full result of `CALL db.indexes`
+				{
+					"provider": {
+					  "version": "2.0",
+					  "key": "lucene+native"
+					},
+					"state": "ONLINE",
+					"description": "INDEX ON :Bank(BIC)",
+					"label": "Bank",
+					"properties": [
+					  "BIC"
+					],
+					"type": "node_label_property"		// possible values: node_label_property, node_unique_property
+				}
+			 */
+
+			try (final NativeResult result = execute("CALL db.indexes() YIELD description, state, type WHERE type = 'node_label_property' RETURN {description: description, state: state}")) {
+
+				while (result.hasNext()) {
+
+					final Map<String, Object> row = result.next();
+
+					for (final Object value : row.values()) {
+
+						final Map<String, String> valueMap = (Map<String, String>)value;
+
+						existingDbIndexes.put(valueMap.get("description"), "ONLINE".equals(valueMap.get("state")));
+					}
+				}
+			}
+
+			tx.success();
+		}
+
+		logger.debug("Found {} existing indexes", existingDbIndexes.size());
+
+		Integer createdIndexes = 0;
+		Integer droppedIndexes = 0;
+
+		// create indices for properties of existing classes
+		for (final Map.Entry<String, Map<String, Boolean>> entry : schemaIndexConfig.entrySet()) {
+
+			final String typeName = entry.getKey();
+
+			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+
+				try (final Transaction tx = beginTx()) {
+
+					final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+
+					final boolean alreadySet  = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
+					final boolean createIndex = propertyIndexConfig.getValue();
+
+					if (createIndex) {
+
+						if (!alreadySet) {
+
+							try {
+
+								// create index
+								execute("CREATE " + indexDescription);
+								createdIndexes++;
+
+							} catch (Throwable t) {
+								logger.warn("Unable to create {}: {}", indexDescription, t.getMessage());
+							}
+						}
+
+					} else if (alreadySet) {
+
+						try {
+
+							// drop index
+							execute("DROP " + indexDescription);
+							droppedIndexes++;
+
+						} catch (Throwable t) {
+							logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+						}
+					}
+
+					tx.success();
+
+				} catch (Throwable ignore) {
+					logger.warn("", ignore);
+				}
+			}
+		}
+
+		if (createdIndexes > 0) {
+			logger.debug("Created {} indexes", createdIndexes);
+		}
+
+		if (droppedIndexes > 0) {
+			logger.debug("Dropped {} indexes", droppedIndexes);
+		}
+
+		Integer droppedIndexesOfRemovedTypes = 0;
+		final List removedTypes = new LinkedList();
+
+		// drop indices for all indexed properties of removed classes
+		for (final Map.Entry<String, Map<String, Boolean>> entry : removedClasses.entrySet()) {
+
+			final String typeName = entry.getKey();
+			removedTypes.add(typeName);
+
+			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
+
+				final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+				final boolean indexExists     = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
+				final boolean dropIndex       = propertyIndexConfig.getValue();
+
+				if (indexExists && dropIndex) {
+
+					try (final Transaction tx = beginTx()) {
+
+						// drop index
+						execute("DROP " + indexDescription);
+						droppedIndexesOfRemovedTypes++;
+
+						tx.success();
+
+					} catch (Throwable t) {
+						logger.warn("Unable to drop {}: {}", indexDescription, t.getMessage());
+					}
+				}
+			}
+		}
+
+		if (droppedIndexesOfRemovedTypes > 0) {
+			logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes, StringUtils.join(removedTypes, ", "));
+		}
+	}
+
 
 	@Override
 	public NativeResult execute(final String nativeQuery, final Map<String, Object> parameters) {

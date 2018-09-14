@@ -47,6 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
@@ -496,10 +497,11 @@ public class SchemaService implements Service {
 
 					try {
 
-						final Map<String, Object> params = new HashMap<>();
-						final App app                    = StructrApp.getInstance();
+						final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
-						// create indices for properties of existing classes
+						final Map<String, Map<String, Boolean>> schemaIndexConfig    = new HashMap();
+						final Map<String, Map<String, Boolean>> removedClassesConfig = new HashMap();
+
 						for (final Entry<String, Map<String, PropertyKey>> entry : StructrApp.getConfiguration().getTypeAndPropertyMapping().entrySet()) {
 
 							final Class type = getType(entry.getKey());
@@ -507,99 +509,39 @@ public class SchemaService implements Service {
 
 								final String typeName = type.getSimpleName();
 
-
+								final Map<String, Boolean> typeConfig = new HashMap();
+								schemaIndexConfig.put(typeName, typeConfig);
 
 								for (final PropertyKey key : entry.getValue().values()) {
 
-									try (final Tx tx = app.tx()) {
+									boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty();
 
-										final String indexKey    = "index." + typeName + "." + key.dbName();
-										final String value       = app.getGlobalSetting(indexKey, null);
-										final boolean alreadySet = "true".equals(value);
-										boolean createIndex      = key.isIndexed() || key.isIndexedWhenEmpty();
+									createIndex &= !NonIndexed.class.isAssignableFrom(type);
+									createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
 
-										createIndex &= !NonIndexed.class.isAssignableFrom(type);
-										createIndex &= NodeInterface.class.equals(type) || !GraphObject.id.equals(key);
-
-										final String indexName = ":" + typeName + "(" + key.dbName() + ")";
-
-										if (createIndex) {
-
-											if (!alreadySet) {
-
-												try {
-
-													// create index
-													app.cypher("CREATE INDEX ON " + indexName, params);
-
-												} catch (Throwable t) {
-													logger.warn("Unable to create index for {}: {}", indexName, t.getMessage());
-												}
-
-												// store the information that we already created this index
-												app.setGlobalSetting(indexKey, "true");
-											}
-
-										} else if (alreadySet) {
-
-											try {
-
-												// drop index
-												app.cypher("DROP INDEX ON " + indexName, params);
-
-											} catch (Throwable t) {
-												logger.warn("Unable to drop index for {}: {}", indexName, t.getMessage());
-											}
-
-											// remove entry from config file
-											app.setGlobalSetting(indexKey, null);
-										}
-
-										tx.success();
-
-									} catch (Throwable ignore) {
-										logger.warn("", ignore);
-									}
+									typeConfig.put(key.dbName(), createIndex);
 								}
 							}
 						}
 
-						// drop indices for all indexed properties of removed classes
 						for (final Entry<String, Map<String, PropertyKey>> entry : removedClasses.entrySet()) {
 
 							final String typeName = StringUtils.substringAfterLast(entry.getKey(), ".");
 
+							final Map<String, Boolean> typeConfig = new HashMap();
+							removedClassesConfig.put(typeName, typeConfig);
+
 							for (final PropertyKey key : entry.getValue().values()) {
 
-								try {
+								final boolean wasIndexed = key.isIndexed() || key.isIndexedWhenEmpty();
+								final boolean wasIdIndex = GraphObject.id.equals(key);
+								final boolean dropIndex  = wasIndexed && !wasIdIndex;
 
-									final String indexKey = "index." + typeName + "." + key.dbName();
-									final String value    = app.getGlobalSetting(indexKey, null);
-									final boolean exists  = "true".equals(value);
-									boolean dropIndex     = key.isIndexed() || key.isIndexedWhenEmpty();
-
-									dropIndex &= !GraphObject.id.equals(key);
-
-									if (dropIndex && exists) {
-
-										try (final Tx tx = app.tx()) {
-
-											// drop index
-											app.cypher("DROP INDEX ON :" + typeName + "(" + key.dbName() + ")", params);
-
-											tx.success();
-
-										} catch (Throwable t) {
-											logger.warn("", t);
-										}
-
-										// remove entry from config file
-										app.setGlobalSetting(indexKey, null);
-									}
-
-								} catch (FrameworkException ignore) {}
+								typeConfig.put(key.dbName(), dropIndex);
 							}
 						}
+
+						graphDb.updateIndexConfiguration(schemaIndexConfig, removedClassesConfig);
 
 					} finally {
 
@@ -609,6 +551,7 @@ public class SchemaService implements Service {
 			}
 		});
 
+		indexUpdater.setName("indexUpdater");
 		indexUpdater.setDaemon(true);
 		indexUpdater.start();
 	}

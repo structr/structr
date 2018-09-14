@@ -64,6 +64,7 @@ public interface DatabaseService {
 	// ----- index -----
 	Index<Node> nodeIndex();
 	Index<Relationship> relationshipIndex();
+	void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses);
 
 
 	NativeResult execute(final String nativeQuery, final Map<String, Object> parameters);
