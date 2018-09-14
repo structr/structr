@@ -18,7 +18,10 @@
  */
 package org.structr.pdf.function;
 
+import com.github.jhonnymertz.wkhtmltopdf.wrapper.PDFExportException;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
+import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig;
+import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -29,6 +32,8 @@ import org.structr.schema.action.Function;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PDFFunction extends Function<Object, Object> {
 
@@ -42,13 +47,13 @@ public class PDFFunction extends Function<Object, Object> {
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 		String baseUrl = null;
-		String params = null;
+		String userParamter = null;
 
 		final String page = sources[0].toString();
 
 		if (sources.length == 2) {
 
-			params = sources[1].toString();
+			userParamter = sources[1].toString();
 		}
 
 		if (sources.length == 3) {
@@ -63,31 +68,53 @@ public class PDFFunction extends Function<Object, Object> {
 
 		logger.warn("Converting page {}{} to pdf.", baseUrl, page);
 
-		Pdf pdf = new Pdf();
-		pdf.addPageFromUrl(baseUrl + page);
 		Principal currentUser = ctx.getSecurityContext().getUser(false);
 
-		if (currentUser instanceof SuperUser) {
+		List<Param> parameterList = new ArrayList<Param>();
 
-			pdf.addParam(new Param("--custom-header X-User superadmin --custom-header X-Password " + Settings.SuperUserPassword.getValue()), new Param("--custom-header-propagation"));
+		if (currentUser instanceof SuperUser) {
+			parameterList.add(new Param("--custom-header X-User superadmin --custom-header X-Password " + Settings.SuperUserPassword.getValue()));
+			parameterList.add(new Param("--custom-header-propagation"));
 
 		} else {
-
-			pdf.addParam(new Param("--cookie JSESSIONID " + ctx.getSecurityContext().getSessionId()));
+			parameterList.add(new Param("--cookie JSESSIONID " + ctx.getSecurityContext().getSessionId()));
 
 		}
 
-		if (params != null) {
-			pdf.addParam(new Param(params));
+		if (userParamter != null) {
+			parameterList.add(new Param(userParamter));
 		}
 
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
+			Pdf pdf = new Pdf();
+			pdf.addPageFromUrl(baseUrl + page);
+			addParametersToPdf(pdf, parameterList);
 
-			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			return convertPageToPdf(pdf, baos);
+
+		} catch (PDFExportException e) {
+			logger.warn("Could not convert page {}{} to pdf... retrying with xvfb...", baseUrl, page);
+
+			XvfbConfig xc = new XvfbConfig();
+			xc.addParams(new Param("--auto-servernum"), new Param("--server-num=1"));
+
+			WrapperConfig wc = new WrapperConfig();
+			wc.setXvfbConfig(xc);
+
+			Pdf pdf = new Pdf(wc);
+			pdf.addPageFromUrl(baseUrl + page);
+			addParametersToPdf(pdf, parameterList);
+
+
+			return convertPageToPdf(pdf, baos);
+		}
+	}
+
+	private String convertPageToPdf (Pdf pdf, ByteArrayOutputStream baos) {
+		try {
 			baos.write(pdf.getPDF());
-
 			return baos.toString("ISO-8859-1");
-
 		} catch (IOException e) {
 
 			logger.warn("pdf(): IOException", e);
@@ -97,8 +124,13 @@ public class PDFFunction extends Function<Object, Object> {
 			logger.warn("pdf(): InterruptedException", e);
 
 		}
-
 		return "";
+	}
+
+	private void addParametersToPdf (Pdf pdf, List<Param> paramList) {
+		for (Param param : paramList) {
+			pdf.addParam(param);
+		}
 	}
 
 	@Override
