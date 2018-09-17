@@ -34,9 +34,9 @@ import com.github.javaparser.ast.nodeTypes.NodeWithOptionalBlockStmt;
 import com.github.javaparser.ast.nodeTypes.NodeWithSimpleName;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedValueDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
-import com.github.javaparser.symbolsolver.javaparsermodel.UnsolvedSymbolException;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
@@ -99,29 +99,29 @@ import org.xml.sax.SAXException;
 public class JavaParserModule implements StructrModule {
 
 	protected static final Logger logger = LoggerFactory.getLogger(JavaParserModule.class.getName());
-	
+
 	private final StructrJavaTypeSolver structrTypeSolver;
 	private JavaParserFacade            facade;
 	private App                         app;
-	
+
 	private boolean ignoreTests = true;
-	
+
 	public JavaParserModule() {
 		structrTypeSolver = StructrJavaTypeSolver.getInstance();
 	}
-	
+
 	public JavaParserModule(final App app) {
 		this.app = app;
 		structrTypeSolver = StructrJavaTypeSolver.getInstance();
 	}
-	
+
 	@Override
 	public void onLoad(final LicenseManager licenseManager) {
 
 //		final boolean basicEdition         = licenseManager == null || licenseManager.isEdition(LicenseManager.Basic);
 //		final boolean smallBusinessEdition = licenseManager == null || licenseManager.isEdition(LicenseManager.SmallBusiness);
 		final boolean enterpriseEdition    = licenseManager == null || licenseManager.isEdition(LicenseManager.Enterprise);
-		
+
 		// Enterprise only
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "index_source_tree",               new IndexSourceTreeFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "parse_source_tree",               new ParseSourceTreeFunction());
@@ -130,131 +130,131 @@ public class JavaParserModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "analyze_java",                    new AnalyzeJavaFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "add_jars_to_index",               new AddJarsToIndexFunction());
 	}
-	
+
 	/**
 	 * Create an index containing all compilation units of Java files from
 	 * the source tree under the given root folder.
-	 * 
-	 * @param rootFolder 
+	 *
+	 * @param rootFolder
 	 */
 	public void indexSourceTree(final Folder rootFolder) {
-		
+
 		logger.info("Starting indexing of source tree " + rootFolder.getPath());
-		
+
 		final SecurityContext securityContext = rootFolder.getSecurityContext();
 		app = StructrApp.getInstance(securityContext);
 
 		structrTypeSolver.parseRoot(rootFolder);
-		
+
 		final CombinedTypeSolver typeSolver = new CombinedTypeSolver();
 		typeSolver.add(new ReflectionTypeSolver());
 		typeSolver.add(structrTypeSolver);
-				
+
 		facade = JavaParserFacade.get(typeSolver);
-		
+
 		logger.info("Done with indexing of source tree " + rootFolder.getPath());
 	}
 
 	/**
 	 * Add compilation units of all jar files found in the given folder to the index.
-	 * 
-	 * @param folderPath 
+	 *
+	 * @param folderPath
 	 */
 	public void addJarsToIndex(final String folderPath) {
-		
+
 		logger.info("Starting adding jar files in " + folderPath);
-		
+
 		final CombinedTypeSolver typeSolver = new CombinedTypeSolver();
 		typeSolver.add(new ReflectionTypeSolver());
-		
+
 		final AtomicLong count = new AtomicLong(0);
-		
+
 		try {
 			Files.newDirectoryStream(Paths.get(folderPath), path -> path.toString().endsWith(".jar")).forEach((file) -> {
 				try {
 					typeSolver.add(new JarTypeSolver(new FileInputStream(file.toFile())));
 					count.addAndGet(1L);
-					
+
 				} catch (IOException ex) {}
 			});
-			
+
 		} catch (IOException ex) {}
-		
+
 		logger.info("Added " + count.toString() + " jar files to the type solver");
-		
+
 		typeSolver.add(structrTypeSolver);
-				
+
 		facade = JavaParserFacade.get(typeSolver);
-		
+
 		logger.info("Done with adding jar files in " + folderPath);
 	}
-	
-	
+
+
 	/**
 	 * Analyze the source tree under the given root folder.
-	 * 
-	 * @param rootFolder 
+	 *
+	 * @param rootFolder
 	 */
 	public void analyzeSourceTree(final Folder rootFolder) {
-		
+
 		logger.info("Starting analysis of source tree " + rootFolder.getPath());
-		
+
 		final SecurityContext securityContext = rootFolder.getSecurityContext();
 		app = StructrApp.getInstance(securityContext);
-		
+
 		final CombinedTypeSolver typeSolver = new CombinedTypeSolver();
 		typeSolver.add(new ReflectionTypeSolver());
 		typeSolver.add(structrTypeSolver);
 		facade = JavaParserFacade.get(typeSolver);
-		
+
 		analyzeFolder(rootFolder, 0, null);
-		
+
 		logger.info("Done with analysis of source tree " + rootFolder.getPath());
 	}
-	
+
 	/**
 	 * Parse the source tree under the given root folder.
-	 * 
-	 * @param rootFolder 
+	 *
+	 * @param rootFolder
 	 */
 	public void parseSourceTree(final Folder rootFolder) {
-		
+
 		logger.info("Starting parsing of source tree " + rootFolder.getPath());
-		
+
 		final SecurityContext securityContext = rootFolder.getSecurityContext();
 		app = StructrApp.getInstance(securityContext);
-		
+
 		final CombinedTypeSolver typeSolver = new CombinedTypeSolver();
 		typeSolver.add(new ReflectionTypeSolver());
 		typeSolver.add(structrTypeSolver);
 		facade = JavaParserFacade.get(typeSolver);
-		
+
 		parseFolder(rootFolder, 0, null);
-		
+
 		logger.info("Done with parsing of source tree " + rootFolder.getPath());
-	}	
+	}
 
 	public JsonResult parse(final String javaCode) {
 		return toJson(JavaParser.parse(javaCode));
 	}
-	
+
 	public JsonResult parse(final InputStream javaCode) {
 		return toJson(JavaParser.parse(javaCode));
 	}
 
 	/**
 	 * Get or create on object with given properties.
-	 * 
+	 *
 	 * Try to find an object of given type matching all of the given identifying properties.
 	 * If none found, create one with all given properties.
-	 * 
+	 *
 	 * @param type
 	 * @param identifyingProperties
 	 * @param allProperties
-	 * @return 
+	 * @return
 	 */
 	private GraphObject getOrCreate(final Class type, final PropertyMap identifyingProperties, final PropertyMap allProperties) {
-		
+
 		try {
 			final GraphObject obj = app.nodeQuery(type).disableSorting().pageSize(1).and(identifyingProperties).getFirst();
 			if (obj != null) {
@@ -265,11 +265,11 @@ public class JavaParserModule implements StructrModule {
 
 			// create new object
 			return app.create(type, allProperties);
-			
+
 		} catch (FrameworkException ex) {
 			logger.error("Unable to create new graph object", type, allProperties, ex);
 		}
-		
+
 		return null;
 	}
 
@@ -277,21 +277,21 @@ public class JavaParserModule implements StructrModule {
 
 		final PropertyMap identifyingProperties  = new PropertyMap();
 		identifyingProperties.put(Module.name,   moduleName);
-		
+
 		final PropertyMap allProperties  = new PropertyMap();
 		allProperties.putAll(identifyingProperties);
 		allProperties.put(Module.folder, moduleFolder);
-		
+
 		return (Module) getOrCreate(Module.class, identifyingProperties, allProperties);
 	}
 
 	private void parseFolder(final Folder folder, final int depth, final Folder parentFolder) {
 
 		logger.info("Parsing folder " + folder.getName() + ", depth " + depth);
-		
+
 		// Handle folder itself
 		readPomAndPackageInfoFile(folder, parentFolder);
-		
+
 		// Handle all direct file children of this folder
 		parseJavaFilesAndSolveTypes(folder);
 
@@ -300,14 +300,14 @@ public class JavaParserModule implements StructrModule {
 			parseFolder(subfolder, depth+1, folder);
 		}
 	}
-	
+
 	private void analyzeFolder(final Folder folder, final int depth, final Folder parentFolder) {
 
 		logger.info("Analyzing folder " + folder.getName() + ", depth " + depth);
-		
+
 		// Handle folder itself
 		//handleAnalyzeFolder(folder, parentFolder);
-		
+
 		// Handle all direct file children of this folder
 		analyzeMethodsInJavaFiles(folder);
 
@@ -318,12 +318,12 @@ public class JavaParserModule implements StructrModule {
 	}
 
 	private void readPomAndPackageInfoFile(final Folder folder, final Folder parentFolder) {
-	
+
 		try {
-		
+
 			final File pomFile = app.nodeQuery(File.class).andName("pom.xml").and(StructrApp.key(File.class, "parent"), folder).getFirst();
 			if (pomFile != null) {
-				
+
 				handlePomFile(pomFile, folder, parentFolder);
 			}
 
@@ -332,32 +332,32 @@ public class JavaParserModule implements StructrModule {
 
 				handlePackageFolder(folder, parentFolder);
 			}
-			
+
 		} catch (FrameworkException ex) {
 			logger.error("Error in node query", ex);
 		}
 	}
-	
+
 	private void parseJavaFilesAndSolveTypes(final Folder folder) {
 
 		if (ignoreTests && "test".equals(folder.getName())) {
 			return;
 		}
-		
+
 		for (final File file : folder.getFiles()) {
-		
+
 			if (file.getContentType().equals("text/x-java")) {
 
 				final String javaFileName = file.getName();
-				
+
 				if (javaFileName.equals("package-info.java") || javaFileName.equals("testPackage-info.java")) {
-				
+
 				} else {
 
 					final String javaContent = file.getFavoriteContent();
 
 					ClassOrInterface clsOrIface = null;
-					
+
 					CompilationUnit cu = null;
 					try {
 						cu = JavaParser.parse(javaContent);
@@ -372,13 +372,13 @@ public class JavaParserModule implements StructrModule {
 								if (cu.getPackageDeclaration().isPresent()) {
 
 									pkg = handlePackage(cu.getPackageDeclaration().get());
-								}									
+								}
 
 								clsOrIface = handleClassOrInterface(type, pkg);
 
 							}
 						}
-						
+
 						for (final BodyDeclaration t : cu.findAll(BodyDeclaration.class)) {
 
 //								if (t instanceof FieldDeclaration) {
@@ -488,26 +488,26 @@ public class JavaParserModule implements StructrModule {
 	//							});
 
 							}
-						}						
+						}
 					} catch (Throwable ignore) {}
 				}
 			}
-		
+
 		}
 	}
-	
+
 	public void analyzeMethodsInJavaFile(final String code, String clsName) {
 
 		try {
 			final CompilationUnit cu = JavaParser.parse(code);
-			
+
 			final Map<String, Object> params = new HashMap<>();
 
 			if (facade == null) {
 				final CombinedTypeSolver typeSolver = new CombinedTypeSolver();
 				typeSolver.add(new ReflectionTypeSolver());
 				typeSolver.add(structrTypeSolver);
-				facade = JavaParserFacade.get(typeSolver);		
+				facade = JavaParserFacade.get(typeSolver);
 			}
 
 			if (clsName == null) {
@@ -525,25 +525,25 @@ public class JavaParserModule implements StructrModule {
 			adapter.visit(cu, params);
 		} catch (Throwable ignore) {}
 	}
-	
+
 	public void analyzeMethodsInJavaFile(final String code) {
 		analyzeMethodsInJavaFile(code, null);
 	}
 
 	private void analyzeMethodsInJavaFiles(final Folder folder) {
-	
+
 		if (ignoreTests && "test".equals(folder.getName())) {
 			return;
 		}
-		
+
 		for (final File file : folder.getFiles()) {
-		
+
 			if (file.getContentType().equals("text/x-java")) {
 
 				final String javaFileName = file.getName();
 
 				if (!(javaFileName.equals("package-info.java") || javaFileName.equals("testPackage-info.java"))) {
-					
+
 					final String clsName     = StringUtils.substringBeforeLast(javaFileName, ".java");
 					final String javaContent = file.getFavoriteContent();
 
@@ -554,7 +554,7 @@ public class JavaParserModule implements StructrModule {
 	}
 
 	private void handlePomFile(final File file, final Folder folder, final Folder parentFolder) {
-		
+
 		final XPath xpath = XPathFactory.newInstance().newXPath();
 		QName returnType  = XPathConstants.STRING;
 
@@ -594,22 +594,22 @@ public class JavaParserModule implements StructrModule {
 
 		} catch (ParserConfigurationException | SAXException | IOException | XPathExpressionException | FrameworkException ex) {
 			logger.warn("Exception exception occured", ex);
-		}		
+		}
 	}
-	
+
 	private ClassOrInterface handleClassOrInterface(final TypeDeclaration type, final org.structr.javaparser.entity.Package pkg) {
 
 		final String name = (pkg != null ? pkg.getName() + "." : "") + type.getNameAsString();
-		
+
 		logger.info("Parsing class or interface " + name);
-		
+
 		final PropertyMap identifyingProperties = new PropertyMap();
 
 		identifyingProperties.put(ClassOrInterface.name, name);
 		if (pkg != null) {
 			identifyingProperties.put(ClassOrInterface.packageProp, pkg);
 		}
-		
+
 		ClassOrInterface clsOrIface = null;
 
 		boolean isInterface = type.asClassOrInterfaceDeclaration().isInterface();
@@ -627,7 +627,7 @@ public class JavaParserModule implements StructrModule {
 
 			logger.info("Created (or found) class " + clsOrIface.getName());
 		}
-		
+
 		return clsOrIface;
 	}
 
@@ -654,9 +654,9 @@ public class JavaParserModule implements StructrModule {
 
 		return clsPackage;
 	}
-	
+
 	private void handlePackageFolder(final Folder folder, final Folder parentFolder) {
-		
+
 		// Folder contains a package-info.java so it must be a package
 		String[] parts = folder.getPath().split("src/main/java/");
 
@@ -708,21 +708,21 @@ public class JavaParserModule implements StructrModule {
 			}
 
 			getOrCreate(Package.class, identifyingProperties, allProperties);
-			
+
 			logger.info("Created or found package '" + path + "' in folder " + folder.getPath());
-		}		
+		}
 	}
-	
+
 
 	private JsonResult toJson(final CompilationUnit cu) {
-		
+
 		final JsonResult              jsonResult = new JsonResult();
 		final NodeList<TypeDeclaration<?>> types = cu.getTypes();
-		
+
 		if (types.isEmpty()) {
 			return jsonResult;
 		}
-		
+
 		final TypeDeclaration<?>            type = types.get(0);
 
 		jsonResult.addName(type);
@@ -736,7 +736,7 @@ public class JavaParserModule implements StructrModule {
 
 		final List<BodyDeclaration<?>> members = type.getMembers();
 		final List<JsonResult>     membersList = new ArrayList<>();
-		
+
 		members.forEach((t) -> {
 
 			final JsonResult member = new JsonResult();
@@ -769,7 +769,7 @@ public class JavaParserModule implements StructrModule {
 					member.isMethod();
 					member.addReturnType(md.getType());
 					member.addModifiers(md);
-					
+
 					member.addBody(md);
 				}
 
@@ -796,9 +796,9 @@ public class JavaParserModule implements StructrModule {
 
 		jsonResult.addMembers(membersList);
 
-		return jsonResult;		
+		return jsonResult;
 	}
-	
+
 	@Override
 	public String getName() {
 		return "java-parser";
@@ -830,8 +830,8 @@ public class JavaParserModule implements StructrModule {
 	@Override
 	public void insertSaveAction(final AbstractSchemaNode schemaNode, final StringBuilder buf, final Actions.Type type) {
 	}
-	
-	
+
+
 	public class JsonResult {
 
 		private JsonObject obj = new JsonObject();
@@ -855,11 +855,11 @@ public class JavaParserModule implements StructrModule {
 		private void isConstructor() {
 			obj.add("type", new JsonPrimitive("constructor"));
 		}
-		
+
 		private void isMethod() {
 			obj.add("type", new JsonPrimitive("method"));
 		}
-		
+
 		private void addBody(final NodeWithOptionalBlockStmt node) {
 			Optional<BlockStmt> block = node.getBody();
 			if (block.isPresent()) {
@@ -873,11 +873,11 @@ public class JavaParserModule implements StructrModule {
 
 			type.getModifiers().forEach((m) -> {
 				modifiers.add(new JsonPrimitive(m.asString()));
-			});		
+			});
 
 			obj.add("modifiers", modifiers);
 		}
-		
+
 		private void addMembers(final List<JsonResult> list) {
 			final JsonArray members = new JsonArray();
 			list.forEach((m) -> {
@@ -885,7 +885,7 @@ public class JavaParserModule implements StructrModule {
 			});
 			obj.add("members", members);
 		}
-		
+
 		private void addParameters(final List<JsonResult> list) {
 			final JsonArray parameters = new JsonArray();
 			list.forEach((m) -> {
@@ -897,7 +897,7 @@ public class JavaParserModule implements StructrModule {
 		private void add(final JsonResult obj) {
 			obj.add(obj);
 		}
-		
+
 		public JsonObject get() {
 			return obj;
 		}
@@ -907,7 +907,7 @@ public class JavaParserModule implements StructrModule {
 		final String[] parts = StringUtils.split(rawName, " ");
 		return StringUtils.strip(StringUtils.remove(parts[parts.length-1], ";"));
 	}
-	
+
 	private Document parseXml(final String xml) throws ParserConfigurationException, SAXException, IOException {
 
 		final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -918,7 +918,7 @@ public class JavaParserModule implements StructrModule {
 
 			return builder.parse(src);
 		}
-		
+
 		return null;
 	}
 }
