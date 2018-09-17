@@ -257,13 +257,17 @@ export class QueryGroup {
                         <button class="query-group-button-not ${this.model.op === 'not' ? "active" : ''}">NOT</button>                      
                     </div>
                     <div class="query-button-group query-button-group-control">
-                        <button class="query-group-button-add-operation">Add Operation</button>
-                        <button class="query-group-button-add-group">Add Group</button>
-                        <button class="query-group-button-add-sort">Add Sort</button>
-                        <button class="query-group-button-delete">X</button>
+                        <button class="query-group-button-delete"><i class="sprite sprite-delete"></i></button>
                     </div>
                 </div>
                 <div class="query-group-operations"></div>
+		<div class="query-controls">			
+			<div class="query-button-group query-button-group-control">
+				<button class="query-group-button-add-operation"><i class="sprite sprite-add"></i> Attribute</button>
+				<button class="query-group-button-add-group"><i class="sprite sprite-add"></i> Group</button>
+				<button class="query-group-button-add-sort"><i class="sprite sprite-add"></i> Sort</button>
+			</div>
+		</div>
             </div>
         `;
     }

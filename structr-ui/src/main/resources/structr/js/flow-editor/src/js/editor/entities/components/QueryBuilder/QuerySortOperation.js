@@ -135,10 +135,10 @@ export class QuerySortOperation {
             <div class="query-operation query-sort">
                 <select class="query-key-select"><option>N/A</option></select>
                 <select class="query-order-select">
-                    <option value="asc">Asc</option>
-                    <option value="desc">Desc</option>
+                    <option value="asc">ASC</option>
+                    <option value="desc">DESC</option>
                 </select>
-                <button class="query-operation-delete">X</button>
+                <button class="query-operation-delete"><i class="sprite sprite-delete"></i></button>
             </div>
         `;
     }
