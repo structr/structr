@@ -149,14 +149,28 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		this.gson         = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
 	}
 
+	// ----- protected methods -----
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+		final String method = req.getMethod();
+
+	        if ("PATCH".equals(method)) {
+
+			doPatch(req, resp);
+			return;
+		}
+
+		super.service(req, resp);
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
 		return "rest";
 	}
 
-
-	// <editor-fold defaultstate="collapsed" desc="DELETE">
+	// ----- HTTP methods -----
 	@Override
 	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
@@ -260,8 +274,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	// </editor-fold>
-
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
@@ -278,7 +290,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		doGetOrHead(request, response, returnContent);
 	}
 
-	// <editor-fold defaultstate="collapsed" desc="OPTIONS">
 	@Override
 	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -383,9 +394,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	// </editor-fold>
-
-	// <editor-fold defaultstate="collapsed" desc="POST">
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -568,9 +576,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	// </editor-fold>
-
-	// <editor-fold defaultstate="collapsed" desc="PUT">
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
@@ -693,13 +698,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		}
 	}
 
-	// </editor-fold>
-
-	// <editor-fold defaultstate="collapsed" desc="TRACE">
 	@Override
 	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-//		logRequest("TRACE", request);
 		response.setContentType("application/json; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 
@@ -709,10 +710,188 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		response.getWriter().append(RestMethodResult.jsonError(code, "TRACE method not allowed"));
 	}
 
-	// </editor-fold>
+	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-	// <editor-fold defaultstate="collapsed" desc="private methods">
+		final List<RestMethodResult> results = new LinkedList<>();
+		final SecurityContext securityContext;
+		final Authenticator authenticator;
+		final Resource resource;
 
+		try {
+
+			assertInitialized();
+
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			// get reader before initalizing security context
+			final String input = IOUtils.toString(request.getReader());
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = config.getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
+
+			final App app              = StructrApp.getInstance(securityContext);
+			final IJsonInput jsonInput = cleanAndParseJsonString(app, input);
+
+			if (securityContext != null) {
+
+				propertyView.set(securityContext, config.getDefaultPropertyView());
+
+				// isolate resource authentication
+				try (final Tx tx = app.tx()) {
+
+					resource = ResourceHelper.applyViewTransformation(request, securityContext, ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView), propertyView);
+					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					tx.success();
+				}
+
+				// isolate doPost
+				boolean retry = true;
+				while (retry) {
+
+					if (resource.createPostTransaction()) {
+
+						try (final Tx tx = app.tx()) {
+
+							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+								results.add(resource.doPatch(convertPropertySetToMap(propertySet)));
+							}
+
+							tx.success();
+							retry = false;
+
+						} catch (RetryException ddex) {
+							retry = true;
+						}
+
+					} else {
+
+						try {
+
+							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+
+								results.add(resource.doPatch(convertPropertySetToMap(propertySet)));
+							}
+
+							retry = false;
+
+						} catch (RetryException ddex) {
+							retry = true;
+						}
+					}
+				}
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+
+					if (!results.isEmpty()) {
+
+						final RestMethodResult result = results.get(0);
+						final int resultCount         = results.size();
+
+						if (result != null) {
+
+							if (resultCount > 1) {
+
+								for (final RestMethodResult r : results) {
+
+									final GraphObject objectCreated = r.getContent().get(0);
+									if (!result.getContent().contains(objectCreated)) {
+
+										result.addContent(objectCreated);
+									}
+
+								}
+
+								// remove Location header if more than one object was
+								// written because it may only contain a single URL
+								result.addHeader("Location", null);
+							}
+
+							result.commitResponse(gson.get(), response);
+						}
+
+					}
+
+					tx.success();
+				}
+
+			} else {
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+
+					new RestMethodResult(HttpServletResponse.SC_FORBIDDEN).commitResponse(gson.get(), response);
+					tx.success();
+				}
+
+			}
+
+		} catch (FrameworkException frameworkException) {
+
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.get().toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
+
+		} catch (JsonSyntaxException jsex) {
+
+			logger.warn("POST: Invalid JSON syntax", jsex.getMessage());
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + jsex.getMessage()));
+
+		} catch (JsonParseException jpex) {
+
+			logger.warn("Unable to parse JSON string", jpex.getMessage());
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonParseException in POST: " + jpex.getMessage()));
+
+		} catch (UnsupportedOperationException uoe) {
+
+			logger.warn("POST not supported");
+
+			int code = HttpServletResponse.SC_BAD_REQUEST;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "POST not supported: " + uoe.getMessage()));
+
+		} catch (Throwable t) {
+
+			logger.warn("Exception in POST", t);
+
+			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "JsonSyntaxException in POST: " + t.getMessage()));
+
+		} finally {
+
+			try {
+				//response.getWriter().flush();
+				response.getWriter().close();
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
+			}
+
+		}
+	}
+
+	// ----- private methods -----
 	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
 
 		IJsonInput jsonInput = null;
@@ -966,9 +1145,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
 		}
 	}
-	// </editor-fold>
 
-	// <editor-fold defaultstate="collapsed" desc="nested classes">
+	// ----- nested classes -----
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
 
 		@Override
@@ -986,6 +1164,4 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			return get();
 		}
 	}
-
-	// </editor-fold>
 }

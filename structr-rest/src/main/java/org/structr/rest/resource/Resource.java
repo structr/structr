@@ -79,6 +79,7 @@ public abstract class Resource {
 
 	public abstract Result doGet(PropertyKey sortKey, boolean sortDescending, int pageSize, int page) throws FrameworkException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
+	public abstract RestMethodResult doPatch(final Map<String, Object> propertySet) throws FrameworkException;
 
 	@Override
 	public String toString() {
