@@ -212,20 +212,20 @@ export class QueryOperation {
 
     _getTemplate() {
         return `
-            <div class="query-operation">
-                <select class="query-key-select"><option>N/A</option></select>
-                <select class="query-operation-select">
-                    <option value="eq">Equal</option>
-                    <option value="neq">Not Equal</option>
-                    <option value="gt">Greater</option>
-                    <option value="gteq">Greater/Equal</option>
-                    <option value="ls">Less</option>
-                    <option value="lseq">Less/Equal</option>
-                    <option value="null">Null</option>
-                    <option value="notNull">NotNull</option>
-                </select>
-                <button class="query-operation-delete">X</button>
-            </div>
+	<div class="query-operation">
+		<select class="query-key-select"><option>N/A</option></select>
+		<select class="query-operation-select">
+			<option value="eq">Equal</option>
+			<option value="neq">Not Equal</option>
+			<option value="gt">Greater</option>
+			<option value="gteq">Greater/Equal</option>
+			<option value="ls">Less</option>
+			<option value="lseq">Less/Equal</option>
+			<option value="null">Null</option>
+			<option value="notNull">NotNull</option>
+		</select>
+		<button class="query-operation-delete"><i class="sprite sprite-delete"></i></button>
+	</div>
         `;
     }
 
