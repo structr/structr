@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.DatabaseService;
@@ -52,6 +54,8 @@ import org.structr.schema.SchemaHelper;
  * Creates a new node in the database with the given properties.
  */
 public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceCommand {
+
+	private static final Logger logger = LoggerFactory.getLogger(CreateNodeCommand.class);
 
 	public T execute(final Collection<NodeAttribute<?>> attributes) throws FrameworkException {
 
@@ -263,7 +267,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			parameters.put("userId",             user.getId());
 			parameters.put("ownsProperties",     ownsProperties);
 			parameters.put("securityProperties", securityProperties);
-			parameters.put("nodeProperties", properties);
+			parameters.put("nodeProperties",     properties);
 
 			final NativeResult result = graphDb.execute(buf.toString(), parameters);
 			try {
@@ -279,15 +283,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					securityRel.setModified();
 					ownsRel.setModified();
 
-					final Security securityRelationship = new RelationshipFactory<Security>(securityContext).instantiate(securityRel);
-					if (securityRelationship != null) {
-						TransactionCommand.relationshipCreated(user, securityRelationship);
-					}
-
-					final PrincipalOwnsNode ownsRelationship = new RelationshipFactory<PrincipalOwnsNode>(securityContext).instantiate(ownsRel);
-					if (ownsRelationship != null) {
-						TransactionCommand.relationshipCreated(user, ownsRelationship);
-					}
+					notifySecurityRelCreation(user, securityRel);
+					notifyOwnsRelCreation(user, ownsRel);
 
 					return newNode;
 				}
@@ -362,5 +359,83 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 		}
 
 		return defaultValue;
+	}
+
+	private void notifySecurityRelCreation(final Principal user, final RelationshipWrapper rel) {
+
+		final RelationshipFactory<Security> factory = new RelationshipFactory<>(securityContext);
+
+		try {
+
+			final Security securityRelationship = factory.instantiate(rel);
+			if (securityRelationship != null) {
+
+				TransactionCommand.relationshipCreated(user, securityRelationship);
+			}
+
+		} catch (ClassCastException cce) {
+
+			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
+				rel.getId(),
+				rel.getType(),
+				rel.getStartNode().getId(),
+				rel.getEndNode().getId()
+			);
+
+			// try to refresh relationship
+			rel.stale();
+
+			try {
+				// try again
+				final Security securityRelationship = factory.instantiate(rel);
+				if (securityRelationship != null) {
+
+					TransactionCommand.relationshipCreated(user, securityRelationship);
+				}
+
+			} catch (ClassCastException cce2) {
+				logger.warn("ClassCastException still exists, giving up.");
+			}
+
+		}
+	}
+
+	private void notifyOwnsRelCreation(final Principal user, final RelationshipWrapper rel) {
+
+		final RelationshipFactory<PrincipalOwnsNode> factory = new RelationshipFactory<>(securityContext);
+
+		try {
+
+			final PrincipalOwnsNode ownsRelationship = factory.instantiate(rel);
+			if (ownsRelationship != null) {
+
+				TransactionCommand.relationshipCreated(user, ownsRelationship);
+			}
+
+		} catch (ClassCastException cce) {
+
+			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
+				rel.getId(),
+				rel.getType(),
+				rel.getStartNode().getId(),
+				rel.getEndNode().getId()
+			);
+
+			// try to refresh relationship
+			rel.stale();
+
+			try {
+				// try again
+				final PrincipalOwnsNode ownsRelationship = factory.instantiate(rel);
+				if (ownsRelationship != null) {
+
+					TransactionCommand.relationshipCreated(user, ownsRelationship);
+				}
+
+			} catch (ClassCastException cce2) {
+				logger.warn("ClassCastException still exists, giving up.");
+			}
+
+		}
 	}
 }
