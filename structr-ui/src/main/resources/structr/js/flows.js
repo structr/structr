@@ -150,9 +150,7 @@ var _Flows = {
             sort : function(a, b) {
                 let a1 = this.get_node(a);
                 let b1 = this.get_node(b);
-
-                console.log(a1.id + ' VS ' + b1.id);
-
+                
 				if (a1.id.startsWith('/')) {
 					return -1;
 				} else if (b1.id.startsWith('/')) {
