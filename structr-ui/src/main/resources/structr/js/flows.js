@@ -26,9 +26,9 @@ import { Component }           from "./lib/structr/Component.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
 let editor, flowId;
-var methodPageSize = 10000, methodPage = 1;
-var flowsResizerLeftKey = 'structrFlowsResizerLeftKey_' + port;
-var activeFlowsTabPrefix = 'activeFlowsTabPrefix' + port;
+const methodPageSize = 10000, methodPage = 1;
+const flowsResizerLeftKey = 'structrFlowsResizerLeftKey_' + port;
+const activeFlowsTabPrefix = 'activeFlowsTabPrefix' + port;
 
 document.addEventListener("DOMContentLoaded", function() {
     Structr.registerModule(_Flows);
@@ -46,10 +46,10 @@ var _Flows = {
 	},
 	resize: function() {
 
-		var windowHeight = window.innerHeight;
-		var headerOffsetHeight = 100;
+        const windowHeight = window.innerHeight;
+        const headerOffsetHeight = 100;
 
-		if (flowsTree) {
+        if (flowsTree) {
 			flowsTree.style.height = windowHeight - headerOffsetHeight + 5 + 'px';
 		}
 
@@ -137,7 +137,7 @@ var _Flows = {
 		Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), flowsResizerLeftKey, 204, _Flows.moveResizer);
 
         $(flowsTree).jstree({
-            plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort"],
             contextmenu: {items: _Flows.createFlowsTreeContextMenuItems},
             core: {
                 animation: 0,
@@ -146,6 +146,18 @@ var _Flows = {
                 },
                 async: true,
                 data: _Flows.treeInitFunction
+            },
+            sort : function(a, b) {
+                let a1 = this.get_node(a);
+                let b1 = this.get_node(b);
+                
+				if (a1.id.startsWith('/')) {
+					return -1;
+				} else if (b1.id.startsWith('/')) {
+					return 1;
+				} else {
+					return (a1.text > b1.text) ? 1 : -1;
+				}
             }
         });
 
@@ -160,12 +172,13 @@ var _Flows = {
 		Structr.adaptUiToAvailableFeatures();
 		
 		$(flowsTree).on('select_node.jstree', function(a, b) {
-			if (b.event && b.event.type === "contextmenu") {
+
+            if (b.event && b.event.type === "contextmenu") {
 				return;
 			}
 
 			let id = $(flowsTree).jstree('get_selected')[0];
-			if (id && b.node.data.type === "FlowContainer") {
+			if (id && b.node.data !== null && b.node.data.type === "FlowContainer") {
 				_Flows.initFlow(id);
 			}
 		});
@@ -192,29 +205,29 @@ var _Flows = {
 
 			case '#':
 
-				var defaultEntries = [
-					{
-						id: 'globals',
-						text: 'Favorites',
-						children: true,
-						icon: _Icons.star_icon,
-						data: {type: "favorite"}
-					},
-					{
-						id: 'root',
-						text: 'Flows',
-						children: true,
-						icon: _Icons.structr_logo_small,
-						path: '/',
-						state: {
-							opened: true,
-							selected: true
-						},
+                let defaultEntries = [
+                    {
+                        id: 'globals',
+                        text: 'Favorites',
+                        children: true,
+                        icon: _Icons.star_icon,
+                        data: {type: "favorite"}
+                    },
+                    {
+                        id: 'root',
+                        text: 'Flows',
+                        children: true,
+                        icon: _Icons.structr_logo_small,
+                        path: '/',
+                        state: {
+                            opened: true,
+                            selected: true
+                        },
                         data: {type: "root"}
-					}
-				];
+                    }
+                ];
 
-				callback(defaultEntries);
+                callback(defaultEntries);
 				break;
 
 			case 'root':
@@ -233,35 +246,68 @@ var _Flows = {
 	},
 	load: function(id, callback) {
 
-		var displayFunction = function(result) {
+		let createFlowEntry = function(d) {
 
-			var list = [];
-                        
-			result.forEach(function(d) {
+            return {
+                id: d.id,
+                text: d.name ? d.name.split('.').pop() : '[unnamed]',
+                children: false,
+                icon: 'fa fa-circle-o blue',
+                data: {
+                    type: d.type
+                }
+            };
+		};
 
-				var icon = 'fa-file-code-o gray';
-				switch (d.type) {
-					case "FlowContainer":
-						switch (d.codeType) {
-							case 'java':
-								icon = 'fa-dot-circle-o red';
-								break;
-							default:
-								icon = 'fa-circle-o blue';
-								break;
-						}
+		let createFolder = function(path, list) {
+			// Consume path to navigate to logical root in list
+			let listRoot = list;
+			let traversedPath = [];
+			for (let p of path) {
+				traversedPath.push(p);
+				let currentFolder = listRoot.filter( r => r.id === ('/' + traversedPath.join('/')) );
+				if (currentFolder.length >= 1) {
+					listRoot = currentFolder[0].children;
+				} else {
+					let newFolder = {
+                        id: ('/' + traversedPath.join('/')),
+                        text: p,
+                        children: []
+                    };
+					listRoot.push(newFolder);
+					listRoot = newFolder.children;
 				}
 
-				list.push({
-					id: d.id,
-					text:  d.name ? d.name : '[unnamed]',
-					children: false,
-					icon: 'fa ' + icon,
-					data: {
-						type: d.type
-					}
-				});
-			});
+			}
+
+			return listRoot;
+
+		};
+
+
+		let displayFunction = function(result) {
+
+			let list = [];
+
+			for (const d of result) {
+
+				const nameComponents = d.name.split('.');
+
+				if (nameComponents.length > 1) {
+					// Multi-component names must be abstracted through folders/packages
+					let folders = nameComponents;
+					// Pop the method name from the end of the folder list
+					folders.pop();
+
+					let folder = createFolder(folders, list);
+					folder.push(createFlowEntry(d));
+
+				} else {
+					list.push(createFlowEntry(d));
+				}
+            }
+
+            $(flowsTree).jstree(true).sort(list, true);
 
 			callback(list);
 		};
@@ -285,8 +331,8 @@ var _Flows = {
         Structr.dialog("Edit " + flowNodeType, function() {}, function() {});
 
         dialogText.append('<div class="editor"></div>');
-		var contentBox = $('.editor', dialogText);
-		var lineWrapping = LSWrapper.getItem(lineWrappingKey);
+		let contentBox = $('.editor', dialogText);
+		let lineWrapping = LSWrapper.getItem(lineWrappingKey);
 		editor = CodeMirror(contentBox.get(0), {
 			value: element.value,
 			mode: "application/javascript",
