@@ -438,7 +438,7 @@ public abstract class StreamingWriter {
 
 			} catch(Throwable t) {
 
-				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", new Object[] {
+				logger.warn("Exception while serializing property {} ({}) declared in {} with valuetype {} (value = {}) : {}", new Object[] {
 					key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
