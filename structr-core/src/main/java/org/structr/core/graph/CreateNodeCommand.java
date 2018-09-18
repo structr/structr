@@ -378,8 +378,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
 				rel.getId(),
 				rel.getType(),
-				rel.getStartNode().getId(),
-				rel.getEndNode().getId()
+				rel.getStartNode() != null ? rel.getStartNode().getId() : "null",
+				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);
 
 			// try to refresh relationship
@@ -417,8 +417,8 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			logger.warn("Encountered ClassCastException which is likely caused by faulty cache invalidation. Relationship ID {} of type {}, start and end node IDs: {}, {}",
 				rel.getId(),
 				rel.getType(),
-				rel.getStartNode().getId(),
-				rel.getEndNode().getId()
+				rel.getStartNode() != null ? rel.getStartNode().getId() : "null",
+				rel.getEndNode()   != null ? rel.getEndNode().getId()   : "null"
 			);
 
 			// try to refresh relationship
