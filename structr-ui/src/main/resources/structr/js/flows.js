@@ -37,11 +37,12 @@ document.addEventListener("DOMContentLoaded", function() {
 var _Flows = {
 	_moduleName: 'flows',
 	init: function() {
-
+		
 		_Logger.log(_LogType.FLOWS, '_Flows.init');
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
+		Structr.adaptUiToAvailableModules()
 		
 	},
 	resize: function() {
