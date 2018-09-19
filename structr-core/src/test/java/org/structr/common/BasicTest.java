@@ -2184,6 +2184,145 @@ public class BasicTest extends StructrTest {
 
 	}
 
+	@Test
+	public void testRelationshipCreationAfterRollback() {
+
+		cleanDatabaseAndSchema();
+
+		try {
+			Thread.sleep(1000L);
+		} catch (InterruptedException ex) {
+			logger.error("Thread sleep was interrupted", ex);
+		}
+
+		// setup: create dynamic type with onCreate() method
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode source = app.create(SchemaNode.class, "Source");
+			final SchemaNode target = app.create(SchemaNode.class, "Target");
+
+			final SchemaRelationshipNode rel = app.create(SchemaRelationshipNode.class,
+				new NodeAttribute(SchemaRelationshipNode.relationshipType, "LINK"),
+				new NodeAttribute(SchemaRelationshipNode.sourceNode, source),
+				new NodeAttribute(SchemaRelationshipNode.targetNode, target),
+				new NodeAttribute(SchemaRelationshipNode.sourceMultiplicity, "1"),
+				new NodeAttribute(SchemaRelationshipNode.targetMultiplicity, "1")
+			);
+
+			rel.setProperty(new StringProperty("___onCreate"), "{ return Structr.error('name', 'relationship can not be created!'); }");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+
+		Principal user = null;
+
+		// create user
+		try (final Tx tx = app.tx()) {
+
+			user = app.create(Principal.class, "tester");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		final SecurityContext ctx = SecurityContext.getInstance(user, AccessMode.Backend);
+		final App userApp         = StructrApp.getInstance(ctx);
+
+
+		NodeInterface sourceNode = null;
+		NodeInterface targetNode = null;
+
+		try (final Tx tx = userApp.tx()) {
+
+			Class sourceType = StructrApp.getConfiguration().getNodeEntityClass("Source");
+			Class targetType = StructrApp.getConfiguration().getNodeEntityClass("Target");
+
+			sourceNode = userApp.create(sourceType, "source node");
+			targetNode = userApp.create(targetType, "target node");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+
+		}
+
+		assertNotNull(sourceNode);
+		assertNotNull(targetNode);
+
+		long maxId = 0;
+
+		try (final Tx tx = userApp.tx()) {
+
+			final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), "LINK", targetNode.getType());
+
+			userApp.create(sourceNode, targetNode, relClass);
+
+			for (RelationshipInterface r : targetNode.getIncomingRelationships()) {
+				System.out.println(r.getRelType().name() + ": " + r.getId());
+				maxId = Long.max(maxId, r.getId());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			// expected error
+			assertEquals("LINK.name relationship can not be created!", fex.toString());
+
+		}
+
+		maxId = Long.max(maxId, 100);
+
+		/**
+		 * Sleep for some time - in the hopes that the database will re-use the previously deleted relationship ids
+		 */
+		try {
+			logger.info("Waiting for 20 seconds...");
+			Thread.sleep(20000L);
+		} catch (InterruptedException ex) {
+			logger.error("Thread sleep was interrupted", ex);
+		}
+
+		try (final Tx tx = userApp.tx()) {
+
+			Class goodType = StructrApp.getConfiguration().getNodeEntityClass("Source");
+
+			for (int cnt = 0; cnt < (maxId); cnt++) {
+				userApp.create(goodType, "Surce node " + cnt);
+			}
+
+			tx.success();
+
+		} catch (ClassCastException cce) {
+
+			logger.warn("", cce);
+			fail("ClassCastException occurred - this happens because a relationship cache entry was not set to stale after a rollback!");
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			if (fex.getStatus() == 403) {
+				fail("Previously existing relationship (which was deleted) but not set stale has been re-used in the cache... which is why the user is not allowed to modify his own node");
+			}
+
+			fail("Unexpected exception.");
+		}
+
+	}
+
+
 	// ----- private methods -----
 	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {
 

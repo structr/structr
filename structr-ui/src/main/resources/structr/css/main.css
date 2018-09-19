@@ -2789,8 +2789,9 @@ input.bitmask {
 	margin: 36px 12px 12px 12px;
 	padding: 2px 12px 6px 12px;
 	position: relative;
-	min-width: 360px;
-	min-height: 235px;
+	width: calc(50% - 50px);
+	min-width: 486px;
+	min-height: 246px;
 	float: left;
 	font-size: 1.2em;
 }

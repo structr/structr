@@ -72,8 +72,7 @@
 }
 .node-editor .node.selected {
     background: #e0e0e0 ! important;
-    border: 2px solid rgba(0,0,0,.250);
-
+    border-color: #81ce25 ! important;
 }
 .node-editor .node .startNode {
 	background-color: #81ce25;
@@ -498,7 +497,7 @@
 }
 .node-editor select, .node-editor input {
 	width: 60px;
-	padding: 2px 6px;
+	padding: 3px 6px;
 	font-size: 14px;
 	border-radius: 0;
 	color: #222;
@@ -721,35 +720,70 @@ span.close:focus {
 	stroke-dasharray: 5, 5;
 }
 
+.query-builder-container {
+	background-color: #f5f5f5;
+}
+
 .query-operation {
 	position: relative;
-	background: #f1f1f1; }
+	background-color: #f5f5f5;
+}
 .query-operation.query-sort {
-	padding-top: 25px;
-	background: #f1f1f1; }
+	margin-top: 12px;
+}
 .query-operation.query-sort .query-key-select {
-	min-width: 50%; }
+	min-width: 50%;
+}
 .query-operation.query-sort .query-order-select {
-	min-width: 20%; }
+	min-width: 20%;
+}
 .query-operation select, .query-operation input {
-	min-width: 27%; }
+	min-width: 27%;
+}
 .query-operation .query-operation-delete {
-	float: right; }
-
+	border: 1px solid transparent;
+}
+.query-group-button-delete {
+	position: absolute;
+	z-index: 1;
+	top: 0px;
+	right: -12px;
+	border: 1px solid transparent;
+}
 .query-group {
 	min-width: 400px;
 	position: relative;
-	padding: 0 0 0 15px;
-	background: #b3b3b3; }
+	padding: 0 12px 0 12px;
+	border: 1px solid rgba(0,0,0,.125) ! important;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
 .query-group .query-controls {
-	background: #f1f1f1; }
+	margin-left: 0;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
 .query-group .query-group-operations {
-	position: relative; }
+	position: relative;
+}
 .query-group .query-controls .query-button-group {
-	display: inline-block; }
+	/*display: inline-block;*/
+}
 .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not {
-	background-color: #f1f1f1; }
-.query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not.active {
-	background-color: #81ce25; }
+	background-color: #f1f1f1;
+	margin-right: -4px ! important;
+	margin-left: 0 ! important;
+}
 .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not:hover {
-	background-color: #e7e7e7; }
+	background-color: #fff;
+	margin-right: -4px ! important;
+	margin-left: 0 ! important;
+}
+.query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not.active {
+	background-color: #81ce25;
+	margin-right: -4px ! important;
+	margin-left: 0 ! important;
+}
+.query-button-group button.hidden {
+	display: none ! important;
+}

@@ -92,7 +92,8 @@ public class FlowFunction extends Function<Object, Object> {
 
 				} else {
 
-					logger.warn("FlowContainer {} does not exist", name);
+					logger.error("FlowContainer {} does not exist", name);
+					throw new FrameworkException(422, "FlowContainer " + name + " does not exist");
 				}
 			}
 

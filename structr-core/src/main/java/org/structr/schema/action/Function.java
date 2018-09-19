@@ -110,7 +110,6 @@ public abstract class Function<S, T> extends Hint {
 	 *
 	 * @param array
 	 * @param minLength
-	 * @return true if array has exact length and all elements are not null
 	 * @throws IllegalArgumentException in case of wrong number of parameters
 	 */
 	protected void assertArrayHasMinLengthAndAllElementsNotNull(final Object[] array, final Integer minLength) throws ArgumentCountException, ArgumentNullException  {

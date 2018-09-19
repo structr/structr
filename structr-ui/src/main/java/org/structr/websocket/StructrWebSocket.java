@@ -170,7 +170,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		if (type != null) {
 
-			try (final Tx tx = app.tx()) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				if (sessionIdFromMessage != null) {
 

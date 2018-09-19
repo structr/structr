@@ -33,7 +33,7 @@ export class FlowTypeQuery extends FlowNode {
                 const builder = new QueryBuilder();
 
                 // Add select box and render all SchemaTypes as dataType options
-                let dataType = new D3NE.Control('<select class="control-select"></select>', (element, control) =>{
+                let dataType = new D3NE.Control('<select class="control-select"><option>---- Select type ----</option></select>', (element, control) => {
 
                     let persistence = new Persistence();
                     persistence.getNodesByClass({type:"SchemaNode"},"ui").then(result => {
@@ -150,10 +150,7 @@ export class FlowTypeQuery extends FlowNode {
                 <!-- Controls-->
                 <content al-repeat="control in node.controls">
                     <column>
-                        <label class="control-title" for="{{control.id}}">{{control.name}}</label>
-                    </column>
-                    <column>
-                        <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
+                        <div class="control" id="{{control.id}}" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                     </column>
                 </content>
             </div>
