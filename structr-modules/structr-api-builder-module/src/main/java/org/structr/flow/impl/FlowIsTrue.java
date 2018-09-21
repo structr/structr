@@ -18,37 +18,39 @@
  */
 package org.structr.flow.impl;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNodes;
-import static org.structr.flow.impl.FlowAction.script;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowConditionCondition;
-import org.structr.module.api.DeployableEntity;
+import org.structr.flow.impl.rels.FlowDataInputs;
+import org.structr.flow.impl.rels.FlowDecisionCondition;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  */
-public abstract class FlowLogicCondition extends FlowCondition implements DataSource, DeployableEntity {
+public class FlowIsTrue extends FlowCondition {
 
-	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
+	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
+	public static final Property<FlowCondition> condition = new EndNode<>("condition", FlowConditionCondition.class);
+	public static final Property<List<FlowDecision>> decision = new EndNodes<>("decision", FlowDecisionCondition.class);
 
-	public static final View defaultView = new View(FlowAnd.class, PropertyView.Public, script, dataSources);
-	public static final View uiView      = new View(FlowAnd.class, PropertyView.Ui,     script, dataSources);
-
-	protected abstract Boolean combine(final Boolean result, final Boolean value);
+	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
+	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
 
 	@Override
 	public Object get(final Context context) throws FlowException {
 
-		final List<FlowCondition> _dataSources = getProperty(dataSources);
+		final List<DataSource> _dataSources = getProperty(FlowIsTrue.dataSources);
 		if (_dataSources.isEmpty()) {
 
 			return false;
@@ -56,12 +58,19 @@ public abstract class FlowLogicCondition extends FlowCondition implements DataSo
 
 		Boolean result = null;
 
-		for (final FlowCondition _dataSource : getProperty(dataSources)) {
+		for (final DataSource _dataSource : getProperty(FlowIsTrue.dataSources)) {
 
-			result = combine(result, getBoolean(context, _dataSource));
+			result = combine(result, FlowLogicCondition.getBoolean(context, _dataSource));
 		}
 
 		return result;
+	}
+
+	private Boolean combine(Boolean result, Boolean value) {
+		if (result == null) {
+			return value;
+		}
+		return result && value;
 	}
 
 	@Override
@@ -70,29 +79,7 @@ public abstract class FlowLogicCondition extends FlowCondition implements DataSo
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
-	}
-
-	// ----- protected methods -----
-	protected static boolean getBoolean(final Context context, final DataSource source) throws FlowException {
-
-		if (source != null) {
-
-			final Object value = source.get(context);
-			if (value instanceof Boolean) {
-
-				return (Boolean)value;
-			}
-
-			if (value instanceof String) {
-
-				return Boolean.valueOf((String)value);
-			}
-		}
-
-		return false;
 	}
 }
