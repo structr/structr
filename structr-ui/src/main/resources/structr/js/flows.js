@@ -138,15 +138,15 @@ var _Flows = {
 		Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), flowsResizerLeftKey, 204, _Flows.moveResizer);
 
         $(flowsTree).jstree({
-            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort"],
-            contextmenu: {items: _Flows.createFlowsTreeContextMenuItems},
+            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort","dnd"],
             core: {
+                check_callback: true,
                 animation: 0,
                 state: {
                     key: 'structr-ui-flows'
                 },
                 async: true,
-                data: _Flows.treeInitFunction
+                data: _Flows.treeInitFunction,
             },
             sort : function(a, b) {
                 let a1 = this.get_node(a);
@@ -171,7 +171,7 @@ var _Flows = {
 
 		_Flows.resize();
 		Structr.adaptUiToAvailableFeatures();
-		
+
 		$(flowsTree).on('select_node.jstree', function(a, b) {
 
             if (b.event && b.event.type === "contextmenu") {
@@ -292,7 +292,7 @@ var _Flows = {
 
 			for (const d of result) {
 
-				const nameComponents = d.name.split('.');
+				const nameComponents = d.effectiveName.split('.');
 
 				if (nameComponents.length > 1) {
 					// Multi-component names must be abstracted through folders/packages
@@ -315,7 +315,7 @@ var _Flows = {
 
 		if (!id) {
 
-			Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes', displayFunction);
+			Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName', displayFunction);
 
 		} else {
 

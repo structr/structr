@@ -37,35 +37,23 @@ import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowContainerBaseNode;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
 import org.structr.flow.impl.rels.FlowContainerPackageFlow;
+import org.structr.flow.impl.rels.FlowContainerPackagePackage;
 import org.structr.module.api.DeployableEntity;
-import org.structr.schema.action.Function;
 
 /**
  *
  */
-public class FlowContainer extends AbstractNode implements DeployableEntity {
+public class FlowContainerPackage extends AbstractNode implements DeployableEntity {
 
-	public static final Property<FlowContainerPackage> flowPackage		= new StartNode<>("flowPackage", FlowContainerPackageFlow.class);
-	public static final Property<List<FlowBaseNode>> flowNodes 			= new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
-	public static final Property<FlowNode> startNode           			= new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
-	public static final Property<String> name                  			= new StringProperty("name").notNull().indexed();
-	public static final Property<Object> effectiveName					= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").typeHint("String");
+	public static final Property<FlowContainerPackage> parent			= new StartNode<>("parent", FlowContainerPackagePackage.class);
+	public static final Property<List<FlowContainerPackage>> packages	= new EndNodes<>("packages", FlowContainerPackagePackage.class);
+	public static final Property<List<FlowContainer>> flows				= new EndNodes<>("flows", FlowContainerPackageFlow.class);
 
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName);
+	public static final Property<String> name 							= new StringProperty("name").notNull().indexed();
+	public static final Property<Object> effectiveName					= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.parent), this.name, concat(this.parent.effectiveName, \".\", this.name))").typeHint("String");
 
-	@Export
-	public Map<String, Object> evaluate(final Map<String, Object> parameters) {
-
-		final FlowEngine engine       = new FlowEngine(new Context(null, parameters));
-		final FlowResult result       = engine.execute(getProperty(startNode));
-		final Map<String, Object> map = new LinkedHashMap<>();
-
-		map.put("error",  result.getError());
-		map.put("result", result.getResult());
-
-		return map;
-	}
+	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, effectiveName, packages, flows, parent);
+	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, effectiveName, packages, flows, parent);
 
 	@Override
 	public Map<String, Object> exportData() {
@@ -86,6 +74,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		super.onCreation(securityContext, errorBuffer);
 
 		this.setProperty(visibleToAuthenticatedUsers, true);
-		this.setProperty(visibleToPublicUsers, true);
+		this.setProperty(visibleToPublicUsers, true);;
 	}
+
 }
