@@ -23,6 +23,8 @@ import { FlowConnectionTypes } from "./flow-editor/src/js/editor/FlowConnectionT
 import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
 
 import { Component }           from "./lib/structr/Component.js";
+import {StructrRest} from "./flow-editor/src/js/rest/StructrRest.js";
+import {Rest} from "./flow-editor/src/js/rest/Rest.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
 let editor, flowId;
@@ -138,9 +140,9 @@ var _Flows = {
 		Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), flowsResizerLeftKey, 204, _Flows.moveResizer);
 
         $(flowsTree).jstree({
-            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort","dnd"],
+            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort"],
             core: {
-                check_callback: true,
+				check_callback: true,
                 animation: 0,
                 state: {
                     key: 'structr-ui-flows'
@@ -179,10 +181,69 @@ var _Flows = {
 			}
 
 			let id = $(flowsTree).jstree('get_selected')[0];
-			if (id && b.node.data !== null && b.node.data.type === "FlowContainer") {
+			if (id && b.node.data !== null && b.node.data.type === 'FlowContainer') {
 				_Flows.initFlow(id);
 			}
 		});
+
+        $(flowsTree).on('move_node.jstree', function(event, data) {
+
+        	let handleParentChange = async function() {
+                let persistence = new Persistence();
+                let rest = new Rest();
+
+                let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
+                let parent = data.node.parent;
+                let id = type === "FlowContainer" ? data.node.id : null;
+
+                let persistNode = async function(node) {
+                    persistence._persistObject(node);
+                };
+
+                let getPackageByEffectiveName = async function(name) {
+                	let nameComponents = name.split("/");
+                	nameComponents = nameComponents.slice(1, nameComponents.length);
+                    let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
+                    return packages.result.length > 0 ? packages.result[0] : null;
+                };
+
+        		if (id === null && type === "FlowContainerPackage") {
+        			let p = await getPackageByEffectiveName(data.node.id);
+        			id = p.id;
+				}
+
+				let parentId = null;
+
+                if (parent !== "root") {
+                    let p = await getPackageByEffectiveName(parent);
+                    parentId = p.id;
+                }
+
+                let objectData = {
+                    type: type,
+                    id: id
+                };
+
+                let parentKey = null;
+                switch (type) {
+					case "FlowContainer":
+						parentKey = "flowPackage";
+						break;
+					case "FlowContainerPackage":
+						parentKey = "parent";
+						break;
+				}
+
+				if (parentKey != null) {
+                	objectData[parentKey] = parentId;
+                    await persistNode(objectData);
+                }
+
+			};
+
+        	handleParentChange();
+
+        });
 
 		document.addEventListener("floweditor.nodescriptclick", event => {
             _Flows.openCodemirror(event.detail.element, event.detail.nodeType);

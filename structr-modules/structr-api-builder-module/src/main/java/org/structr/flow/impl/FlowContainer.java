@@ -18,10 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -29,7 +25,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
@@ -38,7 +33,11 @@ import org.structr.flow.impl.rels.FlowContainerBaseNode;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
 import org.structr.flow.impl.rels.FlowContainerPackageFlow;
 import org.structr.module.api.DeployableEntity;
-import org.structr.schema.action.Function;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
