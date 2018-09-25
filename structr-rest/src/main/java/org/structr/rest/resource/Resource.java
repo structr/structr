@@ -95,7 +95,7 @@ public abstract class Resource {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
-	public RestMethodResult doPatch(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPatch(List<Map<String, Object>> propertySet) throws FrameworkException {
 		throw new IllegalMethodException("PATCH not allowed on " + getClass().getSimpleName());
 	}
 

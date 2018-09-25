@@ -712,7 +712,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		final List<RestMethodResult> results = new LinkedList<>();
+		final RestMethodResult result;
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final Resource resource;
@@ -751,73 +751,21 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 					tx.success();
 				}
 
-				// isolate doPost
-				boolean retry = true;
-				while (retry) {
+				final List<Map<String, Object>> inputs = new LinkedList<>();
 
-					if (resource.createPostTransaction()) {
+				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-						try (final Tx tx = app.tx()) {
-
-							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
-
-								results.add(resource.doPatch(convertPropertySetToMap(propertySet)));
-							}
-
-							tx.success();
-							retry = false;
-
-						} catch (RetryException ddex) {
-							retry = true;
-						}
-
-					} else {
-
-						try {
-
-							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
-
-								results.add(resource.doPatch(convertPropertySetToMap(propertySet)));
-							}
-
-							retry = false;
-
-						} catch (RetryException ddex) {
-							retry = true;
-						}
-					}
+					inputs.add(convertPropertySetToMap(propertySet));
 				}
+
+				result = resource.doPatch(inputs);
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					if (!results.isEmpty()) {
+					if (result != null) {
 
-						final RestMethodResult result = results.get(0);
-						final int resultCount         = results.size();
-
-						if (result != null) {
-
-							if (resultCount > 1) {
-
-								for (final RestMethodResult r : results) {
-
-									final GraphObject objectCreated = r.getContent().get(0);
-									if (!result.getContent().contains(objectCreated)) {
-
-										result.addContent(objectCreated);
-									}
-
-								}
-
-								// remove Location header if more than one object was
-								// written because it may only contain a single URL
-								result.addHeader("Location", null);
-							}
-
-							result.commitResponse(gson.get(), response);
-						}
-
+						result.commitResponse(gson.get(), response);
 					}
 
 					tx.success();

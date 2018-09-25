@@ -28,9 +28,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
-
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Deletes nodes in batches.
  */
