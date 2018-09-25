@@ -25,6 +25,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
@@ -49,9 +50,10 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	public static final Property<FlowNode> startNode           			= new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
 	public static final Property<String> name                  			= new StringProperty("name").notNull().indexed();
 	public static final Property<Object> effectiveName					= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").typeHint("String");
+	public static final Property<Boolean> scheduledForIndexing			= new BooleanProperty("scheduledForIndexing").defaultValue(false);
 
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName);
+	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
+	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
 
 	@Export
 	public Map<String, Object> evaluate(final Map<String, Object> parameters) {
@@ -87,4 +89,11 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		this.setProperty(visibleToAuthenticatedUsers, true);
 		this.setProperty(visibleToPublicUsers, true);
 	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		setProperty(scheduledForIndexing, false);
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
+
 }

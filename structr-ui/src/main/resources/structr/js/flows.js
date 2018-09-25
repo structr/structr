@@ -92,6 +92,7 @@ var _Flows = {
 		
 		document.querySelector('#flows-canvas-container').insertAdjacentHTML('afterbegin', markup);
 
+        let rest = new Rest();
 		let persistence = new Persistence();
 		
 		function createFlow(inputElement) {
@@ -116,6 +117,13 @@ var _Flows = {
 				}
 			}
 		}
+
+        async function getPackageByEffectiveName(name) {
+            let nameComponents = name.split("/");
+            nameComponents = nameComponents.slice(1, nameComponents.length);
+            let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
+            return packages.result.length > 0 ? packages.result[0] : null;
+        }
 			
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
 		document.querySelector('.reset_view_icon').onclick = () => editor.resetView();
@@ -187,11 +195,69 @@ var _Flows = {
                                 if(!sel.length) { return false; }
                                 sel = sel[0];
                                 if(sel) {
-                                    ref.delete_node(sel);
+                                    if (confirm("Delete recursively?")) {
+                                        ref.delete_node(sel);
+                                    }
                                 }
 							}
 						};
 					}
+
+                    if (node.data === null || node.id === "root") {
+
+                        menuItems.addFlow = {
+                            label: "Add Flow",
+                            action: async function (node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+
+                                let p = null;
+                                if (sel[0] !== "root") {
+                                    p = await getPackageByEffectiveName(sel[0]);
+                                }
+
+                                let newFlow = await persistence.createNode({
+                                    type: "FlowContainer",
+                                    flowPackage: p !== null ? p.id : null
+                                });
+                                newFlow.name = 'NewFlow-' + newFlow.id;
+
+                                newFlow = await persistence.getNodesById(newFlow.id, {type: "FlowContainer"});
+                                _Flows.refreshTree(() => {
+                                    $(flowsTree).jstree("deselect_all");
+                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
+                                });
+
+                            }
+                        };
+                        menuItems.addPackage = {
+                            label: "Add Package",
+                            action: async function (node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+
+                                let p = null;
+                                if (sel[0] !== "root") {
+                                    p = await getPackageByEffectiveName(sel[0]);
+                                }
+
+                                let newFlowPackage = await persistence.createNode({
+                                    type: "FlowContainerPackage",
+                                    parent: p !== null ? p.id : null
+                                });
+                                newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
+
+                                newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
+                                _Flows.refreshTree(() => {
+                                    $(flowsTree).jstree("deselect_all");
+                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
+                                });
+                            }
+                        };
+
+                    }
 
 					return menuItems;
 				}
@@ -222,16 +288,7 @@ var _Flows = {
 
         $(flowsTree).on('delete_node.jstree', function(event, data) {
 
-        	let handleRename = async function() {
-                let persistence = new Persistence();
-				let rest = new Rest();
-
-                let getPackageByEffectiveName = async function(name) {
-                    let nameComponents = name.split("/");
-                    nameComponents = nameComponents.slice(1, nameComponents.length);
-                    let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
-                    return packages.result.length > 0 ? packages.result[0] : null;
-                };
+        	let handleDeletion = async function() {
 
                 let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
                 let id = type === "FlowContainer" ? data.node.id : null;
@@ -248,24 +305,16 @@ var _Flows = {
 					})
                 }
 
+
             };
 
-        	handleRename();
+            handleDeletion();
 
         });
 
         $(flowsTree).on('rename_node.jstree', function(event, data) {
 
             let handleRename = async function() {
-                let persistence = new Persistence();
-                let rest = new Rest();
-
-                let getPackageByEffectiveName = async function(name) {
-                    let nameComponents = name.split("/");
-                    nameComponents = nameComponents.slice(1, nameComponents.length);
-                    let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
-                    return packages.result.length > 0 ? packages.result[0] : null;
-                };
 
                 let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
                 let id = type === "FlowContainer" ? data.node.id : null;
@@ -293,8 +342,6 @@ var _Flows = {
         $(flowsTree).on('move_node.jstree', function(event, data) {
 
         	let handleParentChange = async function() {
-                let persistence = new Persistence();
-                let rest = new Rest();
 
                 let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
                 let parent = data.node.parent;
@@ -302,13 +349,6 @@ var _Flows = {
 
                 let persistNode = async function(node) {
                     persistence._persistObject(node);
-                };
-
-                let getPackageByEffectiveName = async function(name) {
-                	let nameComponents = name.split("/");
-                	nameComponents = nameComponents.slice(1, nameComponents.length);
-                    let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
-                    return packages.result.length > 0 ? packages.result[0] : null;
                 };
 
         		if (id === null && type === "FlowContainerPackage") {
