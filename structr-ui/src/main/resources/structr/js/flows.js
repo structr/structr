@@ -195,7 +195,13 @@ var _Flows = {
                                 if(!sel.length) { return false; }
                                 sel = sel[0];
                                 if(sel) {
-                                    if (confirm("Delete recursively?")) {
+                                    let deleteMsg = null;
+                                    if (ref._model.data[sel].data !== null && ref._model.data[sel].data.type === "FlowContainer") {
+                                        deleteMsg = "Delete flow?";
+                                    }  else {
+                                        deleteMsg = "Delete recurively?";
+                                    }
+                                    if (confirm(deleteMsg)) {
                                         ref.delete_node(sel);
                                     }
                                 }
