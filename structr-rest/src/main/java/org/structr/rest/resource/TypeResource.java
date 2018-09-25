@@ -19,6 +19,7 @@
 package org.structr.rest.resource;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +43,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
@@ -54,15 +56,11 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.schema.SchemaHelper;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Represents a bulk type match. A TypeResource will always result in a
  * list of elements when it is the last element in an URI. A TypeResource
  * that is not the first element in an URI will try to find a pre-defined
  * relationship between preceding and the node type and follow that path.
- *
- *
  */
 public class TypeResource extends SortableResource {
 
@@ -265,6 +263,76 @@ public class TypeResource extends SortableResource {
 	@Override
 	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 		throw new IllegalPathException("PUT not allowed on " + rawType + " collection resource");
+	}
+
+	@Override
+	public RestMethodResult doPatch(final List<Map<String, Object>> propertySets) throws FrameworkException {
+
+		if (isNode) {
+
+			final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
+			final App app                                = StructrApp.getInstance(securityContext);
+			final Iterator<Map<String, Object>> iterator = propertySets.iterator();
+			final int batchSize                          = 1000;
+			int overallCount                             = 0;
+
+			while (iterator.hasNext()) {
+
+				try (final Tx tx = app.tx()) {
+
+					int count = 0;
+
+					while (iterator.hasNext() && count++ < batchSize) {
+
+						final Map<String, Object> propertySet = iterator.next();
+
+						overallCount++;
+
+						// virtual type?
+						if (virtualType != null) {
+							virtualType.transformInput(securityContext, entityClass, propertySet);
+						}
+
+						// find object by id, apply PATCH
+						final Object idSource = propertySet.get("id");
+
+						if (idSource != null && idSource instanceof String) {
+
+							final String id       = (String)idSource;
+							final GraphObject obj = app.get(entityClass, id);
+
+							if (obj != null) {
+
+								propertySet.remove("id");
+
+								final PropertyMap data = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+
+								obj.setProperties(securityContext, data);
+
+							} else {
+
+								throw new NotFoundException("Object with ID " + id + " not found.");
+							}
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid PATCH input, input object is missing id property.");
+						}
+					}
+
+					logger.info("Commiting PATCH transaction batch, {} objects processed.", overallCount - 1);
+
+					tx.success();
+				}
+			}
+
+			return result;
+
+		} else {
+
+			return new RestMethodResult(400, "PATCH can only be applied to node types.");
+		}
+
 	}
 
 	public NodeInterface createNode(final Map<String, Object> propertySet) throws FrameworkException {

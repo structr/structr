@@ -22,13 +22,16 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.specification.ResponseSpecification;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.common.StructrRestTest;
 import org.structr.rest.entity.TestOne;
@@ -107,7 +110,195 @@ public class RestVerbsTest extends StructrRestTest {
 		expectNotOk(200).body("result_count", Matchers.equalTo(70)).when().get("/TestOne");
 	}
 
+	@Test
+	public void test05PATCHSuccess() {
+
+		final List<Object> ids = new LinkedList<>();
+
+		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'ccc', anInt: 3, aLong: 6 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'ddd', anInt: 4, aLong: 8 }"));
+
+		// do PATCH
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(createPatchBody(ids))
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+
+				.patch("/TestOne");
+
+
+		// check result
+		RestAssured
+
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body(createPatchBody(ids))
+
+			.expect()
+				.statusCode(200)
+				.body("result_count",    Matchers.equalTo(4))
+				.body("result[0].id",    equalTo(ids.get(0)))
+				.body("result[0].anInt", equalTo(15))
+				.body("result[1].id",    equalTo(ids.get(1)))
+				.body("result[1].anInt", equalTo(16))
+				.body("result[2].id",    equalTo(ids.get(2)))
+				.body("result[2].anInt", equalTo(17))
+				.body("result[3].id",    equalTo(ids.get(3)))
+				.body("result[3].anInt", equalTo(18))
+
+			.when()
+
+				.get("/TestOne?sort=name");
+	}
+
+	@Test
+	public void test05PATCHFail404() {
+
+		final List<Object> ids = new LinkedList<>();
+
+		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
+
+		// add nonexisting UUID to test 404 failure
+		ids.add(NodeServiceCommand.getNextUuid());
+
+		ids.add(createEntity("/TestOne", "{ name: 'ccc', anInt: 3, aLong: 6 }"));
+
+		// do PATCH
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(createPatchBody(ids))
+
+			.expect()
+				.statusCode(404)
+
+			.when()
+
+				.patch("/TestOne");
+	}
+
+	@Test
+	public void test05PATCHFail422MissingId() {
+
+		final List<Object> ids = new LinkedList<>();
+
+		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
+
+		// add empty ID (causes id field to be missing in request body)
+		ids.add("");
+
+		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'ccc', anInt: 3, aLong: 6 }"));
+
+		// do PATCH
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(createPatchBody(ids))
+
+			.expect()
+				.statusCode(422)
+
+			.when()
+
+				.patch("/TestOne");
+	}
+
+	@Test
+	public void test05PATCHFail422WrongId() {
+
+		final List<Object> ids = new LinkedList<>();
+
+		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
+
+		// add empty ID (causes id field to be missing in request body)
+		ids.add(22);
+
+		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'ccc', anInt: 3, aLong: 6 }"));
+
+		// do PATCH
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(createPatchBody(ids))
+
+			.expect()
+				.statusCode(422)
+
+			.when()
+
+				.patch("/TestOne");
+	}
+
 	// ----- private methods -----
+	private String createPatchBody(final List<Object> ids) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		// open array
+		buf.append("[ ");
+
+		buf.append(createPatchObject(ids.get(0), "anInt: 15"));
+		buf.append(", ");
+		buf.append(createPatchObject(ids.get(1), "anInt: 16"));
+		buf.append(", ");
+		buf.append(createPatchObject(ids.get(2), "anInt: 17"));
+		buf.append(", ");
+		buf.append(createPatchObject(ids.get(3), "anInt: 18"));
+
+		// close array
+		buf.append(" ]");
+
+		return buf.toString();
+	}
+
+	private String createPatchObject(final Object id, final String body) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("{");
+
+		// for testing, only add id field if it is non-empty
+		if (StringUtils.isNotBlank(id.toString())) {
+
+			buf.append(" id: ");
+
+			// add quote for string values (to be able to test numerical values too)
+			if (id instanceof String) {
+				buf.append("'");
+			}
+
+			buf.append(id);
+
+			// add quote for string values
+			if (id instanceof String) {
+				buf.append("'");
+			}
+
+			buf.append(", ");
+		}
+
+		buf.append(body);
+		buf.append("}");
+
+		return buf.toString();
+
+	}
+
 	private ResponseSpecification expectOk(final int statusCode) {
 
 		return RestAssured

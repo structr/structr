@@ -47,6 +47,7 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.servlet.JsonRestServlet;
@@ -92,6 +93,10 @@ public abstract class Resource {
 
 	public RestMethodResult doOptions() throws FrameworkException {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
+	}
+
+	public RestMethodResult doPatch(List<Map<String, Object>> propertySet) throws FrameworkException {
+		throw new IllegalMethodException("PATCH not allowed on " + getClass().getSimpleName());
 	}
 
 	public RestMethodResult doDelete() throws FrameworkException {
