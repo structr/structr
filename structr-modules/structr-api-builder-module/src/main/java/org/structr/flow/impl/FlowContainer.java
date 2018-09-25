@@ -18,12 +18,16 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
@@ -54,6 +58,8 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
+
+	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 
 	@Export
 	public Map<String, Object> evaluate(final Map<String, Object> parameters) {
@@ -94,6 +100,27 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		setProperty(scheduledForIndexing, false);
 		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
+
+	@Override
+	public void onNodeDeletion() {
+		deleteChildren();
+	}
+
+	private void deleteChildren() {
+
+		List<FlowBaseNode> nodes = getProperty(flowNodes);
+
+		App app = StructrApp.getInstance();
+
+		try {
+			for (FlowBaseNode node: nodes) {
+				app.delete(node);
+			}
+		} catch (FrameworkException ex) {
+			logger.warn("Could not handle onDelete for FlowContainer: " + ex.getMessage());
+		}
+
 	}
 
 }
