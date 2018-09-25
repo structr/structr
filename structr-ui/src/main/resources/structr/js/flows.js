@@ -311,6 +311,14 @@ var _Flows = {
 					})
                 }
 
+                if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
+                    editor.cleanup();
+                    editor = undefined;
+                }
+
+                // display flow canvas
+                flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
+
 
             };
 
@@ -338,6 +346,11 @@ var _Flows = {
                         name: name
                     });
                 }
+
+                _Flows.refreshTree(() => {
+                    $(flowsTree).jstree("deselect_all");
+                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
+                });
 
             };
 
