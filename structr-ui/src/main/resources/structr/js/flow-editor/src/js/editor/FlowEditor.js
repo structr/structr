@@ -35,6 +35,7 @@ import {FlowTypeQuery} from "./entities/FlowTypeQuery.js";
 import {FlowIsTrue} from "./entities/FlowIsTrue.js";
 import {FlowLog} from "./entities/FlowLog.js";
 import {FlowFirst} from "./entities/FlowFirst.js";
+import {FlowNotEmpty} from "./entities/FlowNotEmpty.js";
 
 
 
@@ -398,7 +399,8 @@ export class FlowEditor {
             new FlowTypeQuery(),
             new FlowIsTrue(),
             new FlowLog(),
-            new FlowFirst()
+            new FlowFirst(),
+            new FlowNotEmpty()
         ];
     }
 
@@ -464,6 +466,7 @@ export class FlowEditor {
             'Logic Nodes': {
                 'Decision' : self._getNodeCreationFunction("FlowDecision"),
                 'NotNull' : self._getNodeCreationFunction("FlowNotNull"),
+                'NotEmpty' : self._getNodeCreationFunction("FlowNotEmpty"),
                 'Not' : self._getNodeCreationFunction("FlowNot"),
                 'Or' : self._getNodeCreationFunction("FlowOr"),
                 'And' : self._getNodeCreationFunction("FlowAnd"),
@@ -627,6 +630,9 @@ export class FlowEditor {
                 break;
             case 'FlowFirst':
                 fNode = new FlowFirst(node, this);
+                break;
+            case 'FlowNotEmpty':
+                fNode = new FlowNotEmpty(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

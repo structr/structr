@@ -174,6 +174,63 @@ var _Flows = {
             	items: function(node) {
 					let menuItems = {};
 
+                    if (node.data === null || node.id === "root") {
+
+                        menuItems.addFlow = {
+                            label: "Add Flow",
+                            action: async function (node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+
+                                let p = null;
+                                if (sel[0] !== "root") {
+                                    p = await getPackageByEffectiveName(sel[0]);
+                                }
+
+                                let newFlow = await persistence.createNode({
+                                    type: "FlowContainer",
+                                    flowPackage: p !== null ? p.id : null
+                                });
+                                newFlow.name = 'NewFlow-' + newFlow.id;
+
+                                newFlow = (await persistence.getNodesById(newFlow.id, {type: "FlowContainer"}))[0];
+                                _Flows.refreshTree(() => {
+                                    $(flowsTree).jstree("deselect_all");
+                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
+                                    _Flows.initFlow(newFlow.id);
+                                });
+
+                            }
+                        };
+                        menuItems.addPackage = {
+                            label: "Add Package",
+                            action: async function (node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+
+                                let p = null;
+                                if (sel[0] !== "root") {
+                                    p = await getPackageByEffectiveName(sel[0]);
+                                }
+
+                                let newFlowPackage = await persistence.createNode({
+                                    type: "FlowContainerPackage",
+                                    parent: p !== null ? p.id : null
+                                });
+                                newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
+
+                                newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
+                                _Flows.refreshTree(() => {
+                                    $(flowsTree).jstree("deselect_all");
+                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
+                                });
+                            }
+                        };
+
+                    }
+
             		if (node.id !== 'root' && node.id !== 'globals') {
 						menuItems.renameItem = {
 							label: "Rename",
@@ -208,62 +265,6 @@ var _Flows = {
 							}
 						};
 					}
-
-                    if (node.data === null || node.id === "root") {
-
-                        menuItems.addFlow = {
-                            label: "Add Flow",
-                            action: async function (node) {
-                                let ref = $.jstree.reference(node.reference);
-                                let sel = ref.get_selected();
-                                if(!sel.length) { return false; }
-
-                                let p = null;
-                                if (sel[0] !== "root") {
-                                    p = await getPackageByEffectiveName(sel[0]);
-                                }
-
-                                let newFlow = await persistence.createNode({
-                                    type: "FlowContainer",
-                                    flowPackage: p !== null ? p.id : null
-                                });
-                                newFlow.name = 'NewFlow-' + newFlow.id;
-
-                                newFlow = await persistence.getNodesById(newFlow.id, {type: "FlowContainer"});
-                                _Flows.refreshTree(() => {
-                                    $(flowsTree).jstree("deselect_all");
-                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
-                                });
-
-                            }
-                        };
-                        menuItems.addPackage = {
-                            label: "Add Package",
-                            action: async function (node) {
-                                let ref = $.jstree.reference(node.reference);
-                                let sel = ref.get_selected();
-                                if(!sel.length) { return false; }
-
-                                let p = null;
-                                if (sel[0] !== "root") {
-                                    p = await getPackageByEffectiveName(sel[0]);
-                                }
-
-                                let newFlowPackage = await persistence.createNode({
-                                    type: "FlowContainerPackage",
-                                    parent: p !== null ? p.id : null
-                                });
-                                newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
-
-                                newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
-                                _Flows.refreshTree(() => {
-                                    $(flowsTree).jstree("deselect_all");
-                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
-                                });
-                            }
-                        };
-
-                    }
 
 					return menuItems;
 				}
@@ -343,14 +344,10 @@ var _Flows = {
                     await persistence._persistObject({
                         type: type,
                         id: id,
-                        name: name
+                        name: name,
+                        scheduledForIndexing: true
                     });
                 }
-
-                _Flows.refreshTree(() => {
-                    $(flowsTree).jstree("deselect_all");
-                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
-                });
 
             };
 
