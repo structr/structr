@@ -73,7 +73,8 @@ public abstract class FlowDeploymentHandler {
 			FlowExceptionHandler.class,
 			FlowTypeQuery.class,
 			FlowIsTrue.class,
-			FlowContainerPackage.class
+			FlowContainerPackage.class,
+			FlowLog.class
 	};
 
 	private static final Class[] relsToExport = {

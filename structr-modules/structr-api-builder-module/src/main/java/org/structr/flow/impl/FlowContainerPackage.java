@@ -80,11 +80,11 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		super.onModification(securityContext, errorBuffer, modificationQueue);
 		if (modificationQueue.getModifiedProperties().contains(scheduledForIndexing)) {
 			scheduleIndexingForChildren();
 		}
 		setProperty(scheduledForIndexing, false);
-		super.onModification(securityContext, errorBuffer, modificationQueue);
 	}
 
 	@Override

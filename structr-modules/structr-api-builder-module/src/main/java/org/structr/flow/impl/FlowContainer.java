@@ -98,8 +98,8 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		setProperty(scheduledForIndexing, false);
 		super.onModification(securityContext, errorBuffer, modificationQueue);
+		setProperty(scheduledForIndexing, false);
 	}
 
 	@Override

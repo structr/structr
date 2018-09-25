@@ -33,6 +33,8 @@ import {ResultPanel} from "./utility/ResultPanel.js";
 import {AreaSelector} from "./utility/AreaSelector.js";
 import {FlowTypeQuery} from "./entities/FlowTypeQuery.js";
 import {FlowIsTrue} from "./entities/FlowIsTrue.js";
+import {FlowLog} from "./entities/FlowLog.js";
+import {FlowFirst} from "./entities/FlowFirst.js";
 
 
 
@@ -241,7 +243,8 @@ export class FlowEditor {
             'FlowForEach',
             'FlowReturn',
             'FlowStore',
-            'FlowAggregate'
+            'FlowAggregate',
+            'FlowLog'
         ];
     }
 
@@ -393,7 +396,9 @@ export class FlowEditor {
             new FlowCollectionDataSource(),
             new FlowExceptionHandler(),
             new FlowTypeQuery(),
-            new FlowIsTrue()
+            new FlowIsTrue(),
+            new FlowLog(),
+            new FlowFirst()
         ];
     }
 
@@ -439,7 +444,9 @@ export class FlowEditor {
                 'ForEach' : self._getNodeCreationFunction("FlowForEach"),
                 'Aggregate' : self._getNodeCreationFunction("FlowAggregate"),
                 'ExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
+                'Log' : self._getNodeCreationFunction("FlowLog"),
                 'Return' : self._getNodeCreationFunction("FlowReturn")
+
             },
             'Data Nodes': {
                 'DataSource' : self._getNodeCreationFunction("FlowDataSource"),
@@ -451,6 +458,7 @@ export class FlowEditor {
                 'ParameterDataSource' : self._getNodeCreationFunction("FlowParameterDataSource"),
                 'Store' : self._getNodeCreationFunction("FlowStore"),
                 'GetProperty': self._getNodeCreationFunction("FlowGetProperty"),
+                'First' : self._getNodeCreationFunction("FlowFirst"),
                 'TypeQuery': self._getNodeCreationFunction("FlowTypeQuery")
             },
             'Logic Nodes': {
@@ -613,6 +621,12 @@ export class FlowEditor {
                 break;
             case 'FlowIsTrue':
                 fNode = new FlowIsTrue(node, this);
+                break;
+            case 'FlowLog':
+                fNode = new FlowLog(node, this);
+                break;
+            case 'FlowFirst':
+                fNode = new FlowFirst(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);
