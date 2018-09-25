@@ -29,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.flow.impl.rels.FlowContainerPackageFlow;
 import org.structr.flow.impl.rels.FlowContainerPackagePackage;
@@ -117,7 +118,7 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 		List<FlowContainer> c = getProperty(flows);
 		App app = StructrApp.getInstance();
 
-		try {
+		try (Tx tx = app.tx()) {
 			for (FlowContainerPackage pack : p) {
 				app.delete(pack);
 			}

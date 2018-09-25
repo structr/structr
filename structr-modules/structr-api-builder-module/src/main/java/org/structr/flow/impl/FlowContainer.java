@@ -30,6 +30,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
@@ -113,7 +114,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 
 		App app = StructrApp.getInstance();
 
-		try {
+		try (Tx tx = app.tx()) {
 			for (FlowBaseNode node: nodes) {
 				app.delete(node);
 			}
