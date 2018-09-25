@@ -71,7 +71,9 @@ public abstract class FlowDeploymentHandler {
 			FlowContainerConfiguration.class,
 			FlowCollectionDataSource.class,
 			FlowExceptionHandler.class,
-			FlowTypeQuery.class
+			FlowTypeQuery.class,
+			FlowIsTrue.class,
+			FlowContainerPackage.class
 	};
 
 	private static final Class[] relsToExport = {
@@ -99,7 +101,9 @@ public abstract class FlowDeploymentHandler {
 			/* Do not export principal relation as the principal won't be available after an import into a clean database
 			FlowContainerConfigurationPrincipal.class,
 			*/
-			FlowExceptionHandlerNodes.class
+			FlowExceptionHandlerNodes.class,
+			FlowContainerPackageFlow.class,
+			FlowContainerPackagePackage.class
 	};
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {

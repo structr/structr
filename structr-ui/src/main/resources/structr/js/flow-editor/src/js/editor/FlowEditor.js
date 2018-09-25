@@ -32,6 +32,7 @@ import {FlowExceptionHandler} from "./entities/FlowExceptionHandler.js";
 import {ResultPanel} from "./utility/ResultPanel.js";
 import {AreaSelector} from "./utility/AreaSelector.js";
 import {FlowTypeQuery} from "./entities/FlowTypeQuery.js";
+import {FlowIsTrue} from "./entities/FlowIsTrue.js";
 
 
 
@@ -391,7 +392,8 @@ export class FlowEditor {
             new FlowGetProperty(),
             new FlowCollectionDataSource(),
             new FlowExceptionHandler(),
-            new FlowTypeQuery()
+            new FlowTypeQuery(),
+            new FlowIsTrue()
         ];
     }
 
@@ -457,6 +459,7 @@ export class FlowEditor {
                 'Not' : self._getNodeCreationFunction("FlowNot"),
                 'Or' : self._getNodeCreationFunction("FlowOr"),
                 'And' : self._getNodeCreationFunction("FlowAnd"),
+                'IsTrue' : self._getNodeCreationFunction("FlowIsTrue"),
                 'ScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition")
             },
             'Actions': {
@@ -607,6 +610,9 @@ export class FlowEditor {
                 break;
             case 'FlowTypeQuery':
                 fNode = new FlowTypeQuery(node, this);
+                break;
+            case 'FlowIsTrue':
+                fNode = new FlowIsTrue(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);
