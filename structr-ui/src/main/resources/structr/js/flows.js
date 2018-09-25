@@ -381,7 +381,8 @@ var _Flows = {
 
                 let objectData = {
                     type: type,
-                    id: id
+                    id: id,
+                    scheduledForIndexing: true
                 };
 
                 let parentKey = null;
