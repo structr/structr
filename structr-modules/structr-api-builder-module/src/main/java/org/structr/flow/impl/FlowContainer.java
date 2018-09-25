@@ -118,6 +118,8 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 			for (FlowBaseNode node: nodes) {
 				app.delete(node);
 			}
+
+			tx.success();
 		} catch (FrameworkException ex) {
 			logger.warn("Could not handle onDelete for FlowContainer: " + ex.getMessage());
 		}
