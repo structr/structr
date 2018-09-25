@@ -18,16 +18,16 @@
  */
 package org.structr.flow.impl;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.*;
@@ -38,7 +38,11 @@ import org.structr.flow.impl.rels.FlowContainerBaseNode;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
 import org.structr.flow.impl.rels.FlowContainerPackageFlow;
 import org.structr.module.api.DeployableEntity;
-import org.structr.schema.action.Function;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -50,9 +54,12 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	public static final Property<FlowNode> startNode           			= new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
 	public static final Property<String> name                  			= new StringProperty("name").notNull().indexed();
 	public static final Property<Object> effectiveName					= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").typeHint("String");
+	public static final Property<Boolean> scheduledForIndexing			= new BooleanProperty("scheduledForIndexing").defaultValue(false);
 
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName);
+	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
+	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
+
+	private static final Logger logger = LoggerFactory.getLogger(FlowContainer.class);
 
 	@Export
 	public Map<String, Object> evaluate(final Map<String, Object> parameters) {
@@ -88,4 +95,32 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 		this.setProperty(visibleToAuthenticatedUsers, true);
 		this.setProperty(visibleToPublicUsers, true);
 	}
+
+	@Override
+	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+		setProperty(scheduledForIndexing, false);
+		super.onModification(securityContext, errorBuffer, modificationQueue);
+	}
+
+	@Override
+	public void onNodeDeletion() {
+		deleteChildren();
+	}
+
+	private void deleteChildren() {
+
+		List<FlowBaseNode> nodes = getProperty(flowNodes);
+
+		App app = StructrApp.getInstance();
+
+		try {
+			for (FlowBaseNode node: nodes) {
+				app.delete(node);
+			}
+		} catch (FrameworkException ex) {
+			logger.warn("Could not handle onDelete for FlowContainer: " + ex.getMessage());
+		}
+
+	}
+
 }

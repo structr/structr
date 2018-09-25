@@ -23,6 +23,8 @@ import { FlowConnectionTypes } from "./flow-editor/src/js/editor/FlowConnectionT
 import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
 
 import { Component }           from "./lib/structr/Component.js";
+import {StructrRest} from "./flow-editor/src/js/rest/StructrRest.js";
+import {Rest} from "./flow-editor/src/js/rest/Rest.js";
 
 let main, flowsMain, flowsTree, flowsCanvas;
 let editor, flowId;
@@ -90,6 +92,7 @@ var _Flows = {
 		
 		document.querySelector('#flows-canvas-container').insertAdjacentHTML('afterbegin', markup);
 
+        let rest = new Rest();
 		let persistence = new Persistence();
 		
 		function createFlow(inputElement) {
@@ -114,6 +117,13 @@ var _Flows = {
 				}
 			}
 		}
+
+        async function getPackageByEffectiveName(name) {
+            let nameComponents = name.split("/");
+            nameComponents = nameComponents.slice(1, nameComponents.length);
+            let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
+            return packages.result.length > 0 ? packages.result[0] : null;
+        }
 			
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
 		document.querySelector('.reset_view_icon').onclick = () => editor.resetView();
@@ -138,9 +148,9 @@ var _Flows = {
 		Structr.initVerticalSlider(document.querySelector('#flows-main .column-resizer'), flowsResizerLeftKey, 204, _Flows.moveResizer);
 
         $(flowsTree).jstree({
-            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort","dnd"],
+            plugins: ["themes", "dnd", "search", "state", "types", "wholerow","sort", "contextmenu"],
             core: {
-                check_callback: true,
+				check_callback: true,
                 animation: 0,
                 state: {
                     key: 'structr-ui-flows'
@@ -148,7 +158,7 @@ var _Flows = {
                 async: true,
                 data: _Flows.treeInitFunction,
             },
-            sort : function(a, b) {
+            sort: function(a, b) {
                 let a1 = this.get_node(a);
                 let b1 = this.get_node(b);
                 
@@ -159,7 +169,105 @@ var _Flows = {
 				} else {
 					return (a1.text > b1.text) ? 1 : -1;
 				}
-            }
+            },
+			contextmenu: {
+            	items: function(node) {
+					let menuItems = {};
+
+            		if (node.id !== 'root' && node.id !== 'globals') {
+						menuItems.renameItem = {
+							label: "Rename",
+							action: function(node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+                                sel = sel[0];
+                                if(sel) {
+                                    ref.edit(sel);
+                                }
+							}
+						};
+						menuItems.deleteItem = {
+							label: "Delete",
+							action: function(node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+                                sel = sel[0];
+                                if(sel) {
+                                    let deleteMsg = null;
+                                    if (ref._model.data[sel].data !== null && ref._model.data[sel].data.type === "FlowContainer") {
+                                        deleteMsg = "Delete flow?";
+                                    }  else {
+                                        deleteMsg = "Delete recurively?";
+                                    }
+                                    if (confirm(deleteMsg)) {
+                                        ref.delete_node(sel);
+                                    }
+                                }
+							}
+						};
+					}
+
+                    if (node.data === null || node.id === "root") {
+
+                        menuItems.addFlow = {
+                            label: "Add Flow",
+                            action: async function (node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+
+                                let p = null;
+                                if (sel[0] !== "root") {
+                                    p = await getPackageByEffectiveName(sel[0]);
+                                }
+
+                                let newFlow = await persistence.createNode({
+                                    type: "FlowContainer",
+                                    flowPackage: p !== null ? p.id : null
+                                });
+                                newFlow.name = 'NewFlow-' + newFlow.id;
+
+                                newFlow = await persistence.getNodesById(newFlow.id, {type: "FlowContainer"});
+                                _Flows.refreshTree(() => {
+                                    $(flowsTree).jstree("deselect_all");
+                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
+                                });
+
+                            }
+                        };
+                        menuItems.addPackage = {
+                            label: "Add Package",
+                            action: async function (node) {
+                                let ref = $.jstree.reference(node.reference);
+                                let sel = ref.get_selected();
+                                if(!sel.length) { return false; }
+
+                                let p = null;
+                                if (sel[0] !== "root") {
+                                    p = await getPackageByEffectiveName(sel[0]);
+                                }
+
+                                let newFlowPackage = await persistence.createNode({
+                                    type: "FlowContainerPackage",
+                                    parent: p !== null ? p.id : null
+                                });
+                                newFlowPackage.name = 'NewFlowPackage-' + newFlowPackage.id;
+
+                                newFlowPackage = await persistence.getNodesById(newFlowPackage.id, {type: "FlowContainerPackage"});
+                                _Flows.refreshTree(() => {
+                                    $(flowsTree).jstree("deselect_all");
+                                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
+                                });
+                            }
+                        };
+
+                    }
+
+					return menuItems;
+				}
+			}
         });
 
 		window.removeEventListener('resize', resizeFunction);
@@ -179,10 +287,126 @@ var _Flows = {
 			}
 
 			let id = $(flowsTree).jstree('get_selected')[0];
-			if (id && b.node.data !== null && b.node.data.type === "FlowContainer") {
+			if (id && b.node.data !== null && b.node.data.type === 'FlowContainer') {
 				_Flows.initFlow(id);
 			}
 		});
+
+        $(flowsTree).on('delete_node.jstree', function(event, data) {
+
+        	let handleDeletion = async function() {
+
+                let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
+                let id = type === "FlowContainer" ? data.node.id : null;
+
+                if (id === null && type === "FlowContainerPackage") {
+					let p = await getPackageByEffectiveName(data.node.id);
+                    id = p.id;
+				}
+
+				if (id !== null) {
+                    persistence.deleteNode({
+						type: type,
+						id: id
+					})
+                }
+
+                if (editor !== undefined && editor !== null && editor.cleanup !== undefined) {
+                    editor.cleanup();
+                    editor = undefined;
+                }
+
+                // display flow canvas
+                flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
+
+
+            };
+
+            handleDeletion();
+
+        });
+
+        $(flowsTree).on('rename_node.jstree', function(event, data) {
+
+            let handleRename = async function() {
+
+                let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
+                let id = type === "FlowContainer" ? data.node.id : null;
+                let name = data.text;
+
+                if (id === null && type === "FlowContainerPackage") {
+                    let p = await getPackageByEffectiveName(data.node.id);
+                    id = p.id;
+                }
+
+                if (id !== null) {
+                    await persistence._persistObject({
+                        type: type,
+                        id: id,
+                        name: name
+                    });
+                }
+
+                _Flows.refreshTree(() => {
+                    $(flowsTree).jstree("deselect_all");
+                    $(flowsTree).jstree(true).select_node('li[id=\"' + newFlowPackage.id + '\"]');
+                });
+
+            };
+
+            handleRename();
+
+        });
+
+        $(flowsTree).on('move_node.jstree', function(event, data) {
+
+        	let handleParentChange = async function() {
+
+                let type = data.node.data !== null && data.node.data.type !== null ? data.node.data.type : "FlowContainerPackage";
+                let parent = data.node.parent;
+                let id = type === "FlowContainer" ? data.node.id : null;
+
+                let persistNode = async function(node) {
+                    persistence._persistObject(node);
+                };
+
+        		if (id === null && type === "FlowContainerPackage") {
+        			let p = await getPackageByEffectiveName(data.node.id);
+        			id = p.id;
+				}
+
+				let parentId = null;
+
+                if (parent !== "root") {
+                    let p = await getPackageByEffectiveName(parent);
+                    parentId = p.id;
+                }
+
+                let objectData = {
+                    type: type,
+                    id: id
+                };
+
+                let parentKey = null;
+                switch (type) {
+					case "FlowContainer":
+						parentKey = "flowPackage";
+						break;
+					case "FlowContainerPackage":
+						parentKey = "parent";
+						break;
+				}
+
+				if (parentKey != null) {
+                	objectData[parentKey] = parentId;
+                    await persistNode(objectData);
+                }
+
+			};
+
+        	handleParentChange();
+
+        });
 
 		document.addEventListener("floweditor.nodescriptclick", event => {
             _Flows.openCodemirror(event.detail.element, event.detail.nodeType);
@@ -247,6 +471,8 @@ var _Flows = {
 	},
 	load: function(id, callback) {
 
+        let list = [];
+
 		let createFlowEntry = function(d) {
 
             return {
@@ -273,7 +499,10 @@ var _Flows = {
 					let newFolder = {
                         id: ('/' + traversedPath.join('/')),
                         text: p,
-                        children: []
+                        children: [],
+                        state: {
+                            opened: true,
+                        }
                     };
 					listRoot.push(newFolder);
 					listRoot = newFolder.children;
@@ -286,26 +515,10 @@ var _Flows = {
 		};
 
 
-		let displayFunction = function(result) {
-
-			let list = [];
+		let displayFunctionPackage = function(result) {
 
 			for (const d of result) {
-
-				const nameComponents = d.effectiveName.split('.');
-
-				if (nameComponents.length > 1) {
-					// Multi-component names must be abstracted through folders/packages
-					let folders = nameComponents;
-					// Pop the method name from the end of the folder list
-					folders.pop();
-
-					let folder = createFolder(folders, list);
-					folder.push(createFlowEntry(d));
-
-				} else {
-					list.push(createFlowEntry(d));
-				}
+				createFolder(d.effectiveName.split('.'), list);
             }
 
             $(flowsTree).jstree(true).sort(list, true);
@@ -313,9 +526,35 @@ var _Flows = {
 			callback(list);
 		};
 
+        let displayFunction = function(result) {
+
+            for (const d of result) {
+
+                const nameComponents = d.effectiveName.split('.');
+
+                if (nameComponents.length > 1) {
+                    // Multi-component names must be abstracted through folders/packages
+                    let folders = nameComponents;
+                    // Pop the method name from the end of the folder list
+                    folders.pop();
+
+                    let folder = createFolder(folders, list);
+                    folder.push(createFlowEntry(d));
+
+                } else {
+                    list.push(createFlowEntry(d));
+                }
+            }
+
+            $(flowsTree).jstree(true).sort(list, true);
+
+            callback(list);
+        };
+
 		if (!id) {
 
-			Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName', displayFunction);
+            Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName', displayFunction);
+			Command.list('FlowContainerPackage', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName,flows', displayFunctionPackage);
 
 		} else {
 
