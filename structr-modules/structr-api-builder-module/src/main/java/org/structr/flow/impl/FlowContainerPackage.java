@@ -97,8 +97,9 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 
 		List<FlowContainerPackage> p = getProperty(packages);
 		List<FlowContainer> c = getProperty(flows);
+		App app = StructrApp.getInstance();
 
-		try {
+		try (Tx tx = app.tx()){
 			for (FlowContainerPackage pack : p) {
 				pack.setProperty(FlowContainerPackage.scheduledForIndexing, true);
 			}
@@ -106,6 +107,8 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 			for (FlowContainer cont : c) {
 				cont.setProperty(FlowContainer.scheduledForIndexing, true);
 			}
+
+			tx.success();
 		} catch (FrameworkException ex) {
 			logger.warn("Could not handle onDelete for FlowContainerPackage: " + ex.getMessage());
 		}
