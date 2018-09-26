@@ -186,6 +186,13 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
+	public List<Principal> getParentsPrivileged() {
+
+		return Collections.emptyList();
+
+	}
+
+	@Override
 	public String getUuid() {
 		return Principal.SUPERUSER_ID;
 
