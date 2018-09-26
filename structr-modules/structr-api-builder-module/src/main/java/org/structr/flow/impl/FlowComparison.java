@@ -67,15 +67,15 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 		Boolean result = true;
 
-		for (final DataSource _ds : getProperty(dataSources)) {
+		if (value != null) {
 
-			Object data = _ds.get(context);
+			for (final DataSource _ds : getProperty(dataSources)) {
 
-			if (data instanceof Comparable) {
+				Object data = _ds.get(context);
 
-				Comparable c = (Comparable)data;
+				if (data instanceof Comparable) {
 
-				if (c.getClass().equals(value.getClass())) {
+					Comparable c = (Comparable) data;
 
 					switch (op) {
 						case equal:
@@ -102,6 +102,9 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 			}
 
+		} else {
+			
+			return false;
 		}
 
 		return result;

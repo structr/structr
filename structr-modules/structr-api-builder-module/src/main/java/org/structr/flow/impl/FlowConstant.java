@@ -55,25 +55,27 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 
 				switch (cType) {
 					case String:
-						converter = new StringProperty(null).inputConverter(securityContext);
+						converter = new StringProperty("").inputConverter(securityContext);
 						break;
 					case Boolean:
-						converter = new BooleanProperty(null).inputConverter(securityContext);
+						converter = new BooleanProperty("").inputConverter(securityContext);
 						break;
 					case Integer:
-						converter = new IntProperty(null).inputConverter(securityContext);
+						converter = new IntProperty("").inputConverter(securityContext);
 						break;
 					case Double:
-						converter = new DoubleProperty(null).inputConverter(securityContext);
+						converter = new DoubleProperty("").inputConverter(securityContext);
 						break;
 					case Date:
-						converter = new DateProperty(null).inputConverter(securityContext);
+						DateProperty dateProperty = new DateProperty("");
+						dateProperty.setDeclaringClass(FlowConstant.class);
+						converter = dateProperty.inputConverter(securityContext);
 						break;
 					default:
-						converter = new StringProperty(null).inputConverter(securityContext);
+						converter = new StringProperty("").inputConverter(securityContext);
 				}
 
-				return converter.convert(val);
+				return converter != null ? converter.convert(val) : null;
 
 			} catch (FrameworkException ex) {
 				logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
