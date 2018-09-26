@@ -107,6 +107,18 @@ public class ViewFilterResource extends WrappingResource {
 		}
 	}
 
+	@Override
+	public boolean createPostTransaction() {
+
+		if (wrappedResource != null) {
+
+			return wrappedResource.createPostTransaction();
+
+		}
+
+		return true;
+	}
+
 	//~--- get methods ----------------------------------------------------
 
 	@Override
