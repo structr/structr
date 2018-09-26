@@ -66,6 +66,9 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 					case Double:
 						converter = new DoubleProperty(null).inputConverter(securityContext);
 						break;
+					case Date:
+						converter = new DateProperty(null).inputConverter(securityContext);
+						break;
 					default:
 						converter = new StringProperty(null).inputConverter(securityContext);
 				}
@@ -100,6 +103,7 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 		String,
 		Boolean,
 		Integer,
-		Double
+		Double,
+		Date
 	}
 }

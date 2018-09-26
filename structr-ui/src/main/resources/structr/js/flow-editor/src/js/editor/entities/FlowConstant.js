@@ -50,6 +50,7 @@ export class FlowConstant extends FlowNode {
                     '<option value="Boolean">Boolean</option>' +
                     '<option value="Integer">Integer</option>' +
                     '<option value="Double">Double</option>' +
+                    '<option value="Date">Date</option>' +
                     '</select>', (element, control) =>{
 
                     if(scopedDbNode !== undefined && scopedDbNode.constantType !== undefined && scopedDbNode.constantType !== null) {
