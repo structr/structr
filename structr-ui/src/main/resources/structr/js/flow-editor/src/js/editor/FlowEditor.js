@@ -37,6 +37,7 @@ import {FlowLog} from "./entities/FlowLog.js";
 import {FlowFirst} from "./entities/FlowFirst.js";
 import {FlowNotEmpty} from "./entities/FlowNotEmpty.js";
 import {FlowFilter} from "./entities/FlowFilter.js";
+import {FlowComparison} from "./entities/FlowComparison.js";
 
 
 
@@ -403,7 +404,8 @@ export class FlowEditor {
             new FlowLog(),
             new FlowFirst(),
             new FlowNotEmpty(),
-            new FlowFilter()
+            new FlowFilter(),
+            new FlowComparison()
         ];
     }
 
@@ -475,6 +477,7 @@ export class FlowEditor {
                 'Or' : self._getNodeCreationFunction("FlowOr"),
                 'And' : self._getNodeCreationFunction("FlowAnd"),
                 'IsTrue' : self._getNodeCreationFunction("FlowIsTrue"),
+                'Comparison' : self._getNodeCreationFunction("FlowComparison"),
                 'ScriptCondition' : self._getNodeCreationFunction("FlowScriptCondition")
             },
             'Actions': {
@@ -640,6 +643,9 @@ export class FlowEditor {
                 break;
             case 'FlowFilter':
                 fNode = new FlowFilter(node, this);
+                break;
+            case 'FlowComparison':
+                fNode = new FlowComparison(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);
