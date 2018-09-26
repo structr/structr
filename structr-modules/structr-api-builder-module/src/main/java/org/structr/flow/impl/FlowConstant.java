@@ -20,9 +20,9 @@ package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.*;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
@@ -35,14 +35,51 @@ import java.util.Map;
 public class FlowConstant extends FlowBaseNode implements DataSource, DeployableEntity {
 	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<String> value 					= new StringProperty("value");
+	public static final Property<ConstantType> constantType 	= new EnumProperty<>("constantType", ConstantType.class);
 
-	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, value, dataTarget);
-	public static final View uiView								= new View(FlowDataSource.class, PropertyView.Public, value, dataTarget);
+	public static final View defaultView 						= new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
+	public static final View uiView								= new View(FlowDataSource.class, PropertyView.Public, value, dataTarget, constantType);
 
 
 	@Override
 	public Object get(Context context) {
-		return getProperty(value);
+
+		ConstantType cType = getProperty(constantType);
+		Object val =  getProperty(value);
+
+		if (val != null) {
+
+			try {
+
+				PropertyConverter converter = null;
+
+				switch (cType) {
+					case String:
+						converter = new StringProperty(null).inputConverter(securityContext);
+						break;
+					case Boolean:
+						converter = new BooleanProperty(null).inputConverter(securityContext);
+						break;
+					case Integer:
+						converter = new IntProperty(null).inputConverter(securityContext);
+						break;
+					case Double:
+						converter = new DoubleProperty(null).inputConverter(securityContext);
+						break;
+					default:
+						converter = new StringProperty(null).inputConverter(securityContext);
+				}
+
+				return converter.convert(val);
+
+			} catch (FrameworkException ex) {
+				logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
+			}
+
+		}
+
+		return null;
+
 	}
 
 	@Override
@@ -52,9 +89,17 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
 		result.put("value", this.getProperty(value));
+		result.put("constantType", this.getProperty(constantType));
 		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
+	}
+
+	public enum ConstantType {
+		String,
+		Boolean,
+		Integer,
+		Double
 	}
 }

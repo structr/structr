@@ -75,25 +75,29 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 				Comparable c = (Comparable)data;
 
-				switch (op) {
-					case equal:
-						result = result && c.compareTo(value) == 0;
-						break;
-					case notEqual:
-						result = result && c.compareTo(value) != 0;
-						break;
-					case greater:
-						result = result && c.compareTo(value) > 0;
-						break;
-					case greaterOrEqual:
-						result = result && c.compareTo(value) >= 0;
-						break;
-					case less:
-						result = result && c.compareTo(value) < 0;
-						break;
-					case lessOrEqual:
-						result = result && c.compareTo(value) <= 0;
-						break;
+				if (c.getClass().equals(value.getClass())) {
+
+					switch (op) {
+						case equal:
+							result = result && c.compareTo(value) == 0;
+							break;
+						case notEqual:
+							result = result && c.compareTo(value) != 0;
+							break;
+						case greater:
+							result = result && c.compareTo(value) > 0;
+							break;
+						case greaterOrEqual:
+							result = result && c.compareTo(value) >= 0;
+							break;
+						case less:
+							result = result && c.compareTo(value) < 0;
+							break;
+						case lessOrEqual:
+							result = result && c.compareTo(value) <= 0;
+							break;
+					}
+
 				}
 
 			}

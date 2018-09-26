@@ -44,8 +44,45 @@ export class FlowConstant extends FlowNode {
                     });
                 });
 
+
+                let constantType = new D3NE.Control('<select class="control-select">' +
+                    '<option value="String">String</option>' +
+                    '<option value="Boolean">Boolean</option>' +
+                    '<option value="Integer">Integer</option>' +
+                    '<option value="Double">Double</option>' +
+                    '</select>', (element, control) =>{
+
+                    if(scopedDbNode !== undefined && scopedDbNode.constantType !== undefined && scopedDbNode.constantType !== null) {
+
+                        for (let option of element.getElementsByTagName("option")) {
+                            if (option.getAttribute("value") === scopedDbNode.constantType) {
+                                option.setAttribute("selected", "selected");
+                            }
+                        }
+
+                        if (scopedDbNode.constantType !== null && scopedDbNode.constantType !== undefined) {
+                            element.value = scopedDbNode.constantType;
+                            control.putData('constantType',element.value);
+                        }
+
+                    } else {
+                        // Otherwise set 'equal' as default operation
+                        scopedDbNode.constantType = 'String';
+                        control.putData('constantType','String');
+                    }
+
+                    control.id = "constantType";
+                    control.name = "Type";
+
+                    element.addEventListener('change', ()=>{
+                        control.putData('constantType',element.value);
+                        node.data.dbNode.constantType = element.value;
+                    });
+                });
+
                 return node
                     .addOutput(dataTarget)
+                    .addControl(constantType)
                     .addControl(value);
             },
             worker(node, inputs, outputs) {
@@ -76,7 +113,7 @@ export class FlowConstant extends FlowNode {
                     </column>
                 </content>
                     <!-- Controls-->
-                    <content al-repeat="control in node.controls" style="display:inline">
+                    <content al-repeat="control in node.controls">
                         <column>
                             <label class="control-title" for="{{control.id}}">{{control.name}}</label>
                         </column>
