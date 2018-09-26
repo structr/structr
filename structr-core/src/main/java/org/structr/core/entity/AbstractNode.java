@@ -961,7 +961,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			// Last: recursively check possible parent principals
-			for (Principal parent : accessingUser.getParents()) {
+			for (Principal parent : accessingUser.getParentsPrivileged()) {
 
 				if (isGranted(permission, parent, mask, level+1, alreadyTraversed, false, doLog, localIncomingSecurityRelationships)) {
 					return true;

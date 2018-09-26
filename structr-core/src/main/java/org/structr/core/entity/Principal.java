@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -131,10 +132,11 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("isAdmin",                         false, "return getProperty(isAdminProperty);");
 		principal.overrideMethod("isBlocked",                       false, "return getProperty(blockedProperty);");
 		principal.overrideMethod("getParents",                      false, "return " + Principal.class.getName() + ".getParents(this);");
+		principal.overrideMethod("getParentsPrivileged",            false, "return " + Principal.class.getName() + ".getParentsPrivileged(this);");
 		principal.overrideMethod("isValidPassword",                 false, "return " + Principal.class.getName() + ".isValidPassword(this, arg0);");
 		principal.overrideMethod("addSessionId",                    false, Principal.class.getName() + ".addSessionId(this, arg0);");
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
-		
+
 		// override getProperty
 		principal.addMethod("getProperty")
 			.setReturnType("<T> T")
@@ -142,7 +144,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 			.addParameter("arg1", Predicate.class.getName() + "<GraphObject>")
 			.setSource("if (arg0.equals(passwordProperty) || arg0.equals(saltProperty) || arg0.equals(twoFactorSecretProperty)) { return (T) Principal.HIDDEN; } else { return super.getProperty(arg0, arg1); }");
 
-		// override setProperty final PropertyKey<T> key, final T value) 
+		// override setProperty final PropertyKey<T> key, final T value)
 		principal.addMethod("setProperty")
 			.setReturnType("<T> java.lang.Object")
 			.addParameter("arg0", PropertyKey.class.getName() + "<T>")
@@ -163,6 +165,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	List<Favoritable> getFavorites();
 	List<Principal> getParents();
+	List<Principal> getParentsPrivileged();
 	List<Group> getGroups();
 
 	boolean isValidPassword(final String password);
@@ -188,6 +191,21 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 	public static List<Principal> getParents(final Principal principal) {
 		return principal.getProperty(StructrApp.key(Principal.class, "groups"));
+	}
+
+	public static List<Principal> getParentsPrivileged(final Principal principal) {
+
+		try {
+
+			return StructrApp.getInstance().nodeQuery(Principal.class).and(StructrApp.key(Group.class, "members"), Arrays.asList(principal)).getAsList();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Caught exception while fetching groups for user '{}' ({})", principal.getName(), principal.getUuid());
+			fex.printStackTrace();
+
+			return Collections.emptyList();
+		}
 	}
 
 	public static void addSessionId(final Principal principal, final String sessionId) {
