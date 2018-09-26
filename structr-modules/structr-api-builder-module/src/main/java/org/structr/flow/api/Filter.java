@@ -18,17 +18,15 @@
  */
 package org.structr.flow.api;
 
-/**
- *
- */
-public enum FlowType {
+import org.structr.flow.engine.Context;
+import org.structr.flow.engine.FlowException;
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation,
-	Exception,
-	Filter
+public interface Filter extends FlowElement {
+
+	void filter(final Context context) throws FlowException;
+
+	@Override
+	default FlowType getFlowType() {
+		return FlowType.Filter;
+	}
 }

@@ -109,6 +109,7 @@ public class FlowEngine {
 		handlers.put(FlowType.Store, 		new StoreHandler());
 		handlers.put(FlowType.Aggregation,  new AggregationHandler());
 		handlers.put(FlowType.Exception, 	new ExceptionHandler());
+		handlers.put(FlowType.Filter,		new FilterHandler());
 	}
 
 	private FlowResult handleException(final Context context, final FlowException exception, final FlowElement current) {

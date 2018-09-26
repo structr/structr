@@ -16,19 +16,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.impl.rels;
 
-/**
- *
- */
-public enum FlowType {
+import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.Relation;
+import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.impl.FlowCondition;
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation,
-	Exception,
-	Filter
+public class FlowConditionBaseNode extends OneToMany<FlowCondition, FlowBaseNode> {
+
+	@Override
+	public Class<FlowCondition> getSourceType() {
+		return FlowCondition.class;
+	}
+
+	@Override
+	public Class<FlowBaseNode> getTargetType() {
+		return FlowBaseNode.class;
+	}
+
+	@Override
+	public String name() {
+		return "CONDITION";
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
+	}
 }

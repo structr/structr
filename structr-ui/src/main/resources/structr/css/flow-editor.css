@@ -188,6 +188,15 @@
 .node-editor .node .socket.input.conditions:hover {
 	background-color: orange;
 }
+.node-editor .node .socket.input.condition_baseNode.used {
+	background-color: orange;
+}
+.node-editor .node .socket.input.condition_baseNode:not(.used) {
+	background-color: #664200;
+}
+.node-editor .node .socket.input.condition_baseNode:hover {
+	background-color: orange;
+}
 .node-editor .node .socket.input.keyValueSources.used {
 	background-color: #6666ff;
 }
@@ -472,6 +481,9 @@
 	stroke: orange;
 }
 .node-editor .connections .connection.output-result.input-conditions {
+	stroke: orange;
+}
+.node-editor .connections .connection.output-result.input-condition_basenode {
 	stroke: orange;
 }
 .node-editor .connections .connection.output-call.input-parameters {

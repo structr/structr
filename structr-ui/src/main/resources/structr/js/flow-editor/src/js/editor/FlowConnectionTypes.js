@@ -93,6 +93,12 @@ export class FlowConnectionTypes {
                 sourceAttribute: "exceptionHandler",
                 targetAttribute: "handledNodes",
                 type: "FlowExceptionHandlerNodes"
+            },
+            FlowConditionBaseNode: {
+                name: "CONDITION",
+                sourceAttribute: "result",
+                targetAttribute: "condition_baseNode",
+                type: "FlowConditionBaseNode"
             }
 
         };

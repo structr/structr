@@ -36,7 +36,7 @@ import org.structr.module.api.DeployableEntity;
 /**
  *
  */
-public abstract class FlowLogicCondition extends FlowCondition implements DataSource, DeployableEntity {
+public abstract class FlowLogicCondition extends FlowCondition implements DeployableEntity {
 
 	public static final Property<List<FlowCondition>> dataSources = new StartNodes<>("conditions", FlowConditionCondition.class);
 

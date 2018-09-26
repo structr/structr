@@ -76,7 +76,8 @@ public abstract class FlowDeploymentHandler {
 			FlowContainerPackage.class,
 			FlowLog.class,
 			FlowFirst.class,
-			FlowNotEmpty.class
+			FlowNotEmpty.class,
+			FlowFilter.class
 	};
 
 	private static final Class[] relsToExport = {
@@ -106,7 +107,8 @@ public abstract class FlowDeploymentHandler {
 			*/
 			FlowExceptionHandlerNodes.class,
 			FlowContainerPackageFlow.class,
-			FlowContainerPackagePackage.class
+			FlowContainerPackagePackage.class,
+			FlowConditionBaseNode.class
 	};
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
