@@ -16,19 +16,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.engine;
+
+import org.structr.flow.api.Filter;
+import org.structr.flow.api.FlowElement;
+import org.structr.flow.api.FlowHandler;
 
 /**
  *
  */
-public enum FlowType {
+public class FilterHandler implements FlowHandler<Filter> {
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation,
-	Exception,
-	Filter
+	@Override
+	public FlowElement handle(final Context context, final Filter flowElement) throws FlowException {
+
+		flowElement.filter(context);
+
+		return flowElement.next();
+	}
 }

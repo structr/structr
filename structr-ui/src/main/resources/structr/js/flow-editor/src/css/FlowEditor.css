@@ -155,6 +155,12 @@ html, body {
         background-color: #660000; }
       .node-editor .node .socket.input.handledNodes:hover {
         background-color: red; }
+      .node-editor .node .socket.input.condition_baseNode.used {
+        background-color: orange; }
+      .node-editor .node .socket.input.condition_baseNode:not(.used) {
+        background-color: #664200; }
+      .node-editor .node .socket.input.condition_baseNode:hover {
+        background-color: orange; }
       .node-editor .node .socket.output.used {
         background-color: white; }
       .node-editor .node .socket.output:not(.used) {
@@ -319,6 +325,8 @@ html, body {
       .node-editor .connections .connection.output-result.input-condition {
         stroke: orange; }
       .node-editor .connections .connection.output-result.input-conditions {
+        stroke: orange; }
+      .node-editor .connections .connection.output-result.input-condition_basenode {
         stroke: orange; }
       .node-editor .connections .connection.output-call.input-parameters {
         stroke: #6666ff; }

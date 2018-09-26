@@ -77,6 +77,11 @@ export class FlowSockets {
         this._sockets['exceptionHandler'] = exceptionHandler;
         this._sockets['handledNodes'] = handledNodes;
 
+        let condition_baseNode = new D3NE.Socket('condition_baseNode', 'Condition Node', 'Connected node provides arguments for this node.');
+        condition_Result.combineWith(condition_baseNode);
+        this._sockets['condition_BaseNode'] = condition_baseNode;
+        this._sockets['condition_Result'] = condition_Result;
+
     }
 
     static getInst() {

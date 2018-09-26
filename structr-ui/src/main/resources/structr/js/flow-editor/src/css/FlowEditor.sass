@@ -131,6 +131,8 @@ html, body
           +setSocketColor($data-flow-color)
         &.handledNodes
           +setSocketColor($exception-flow-color)
+        &.condition_baseNode
+          +setSocketColor($condition-flow-color)
       &.output
         +setSocketColor($socket-base-color)
         &.next
@@ -249,6 +251,8 @@ html, body
       &.output-result.input-condition
         stroke: $condition-flow-color
       &.output-result.input-conditions
+        stroke: $condition-flow-color
+      &.output-result.input-condition_basenode
         stroke: $condition-flow-color
       &.output-call.input-parameters
         stroke: $data-flow-color
