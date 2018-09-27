@@ -155,7 +155,7 @@ var _Entities = {
 
 		} else if (entity.type === 'Input' || entity.type === 'Select' || entity.type === 'Textarea') {
 			_Entities.appendRowWithInputField(entity, t, 'data-structr-name',             'Field name', typeInfo);
-
+			_Entities.appendRowWithInputField(entity, t, 'data-structr-format',           'Custom Format', typeInfo);
 		}
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
