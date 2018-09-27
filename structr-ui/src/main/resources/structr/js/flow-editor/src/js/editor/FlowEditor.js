@@ -450,6 +450,7 @@ export class FlowEditor {
                 'Call' : self._getNodeCreationFunction("FlowCall"),
                 'ForEach' : self._getNodeCreationFunction("FlowForEach"),
                 'Aggregate' : self._getNodeCreationFunction("FlowAggregate"),
+                'Filter' : self._getNodeCreationFunction("FlowFilter"),
                 'ExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
                 'Log' : self._getNodeCreationFunction("FlowLog"),
                 'Return' : self._getNodeCreationFunction("FlowReturn")
@@ -466,7 +467,6 @@ export class FlowEditor {
                 'Store' : self._getNodeCreationFunction("FlowStore"),
                 'GetProperty': self._getNodeCreationFunction("FlowGetProperty"),
                 'First' : self._getNodeCreationFunction("FlowFirst"),
-                'Filter' : self._getNodeCreationFunction("FlowFilter"),
                 'TypeQuery': self._getNodeCreationFunction("FlowTypeQuery")
             },
             'Logic Nodes': {
