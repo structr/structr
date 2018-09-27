@@ -37,7 +37,7 @@ public class FlowConditionBaseNode extends OneToMany<FlowCondition, FlowBaseNode
 
 	@Override
 	public String name() {
-		return "CONDITION";
+		return "CONDITION_FOR_BASENODE";
 	}
 
 	@Override
