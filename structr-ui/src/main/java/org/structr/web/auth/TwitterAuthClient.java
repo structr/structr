@@ -150,10 +150,13 @@ public class TwitterAuthClient extends StructrOAuthClient {
 		return null;
 	}
 
-
 	@Override
-	public ResponseFormat getResponseFormat() {
-		return ResponseFormat.json;
+	public String getUserResourceUri() {
+		return "";
+	}
+	
+	protected String getScope() {
+		return "";
 	}
 
 	@Override

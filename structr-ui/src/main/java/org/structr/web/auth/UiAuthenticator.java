@@ -399,21 +399,21 @@ public class UiAuthenticator implements Authenticator {
 			if (accessToken != null) {
 
 				logger.debug("Got access token {}", accessToken);
-				//securityContext.setAttribute("OAuthAccessToken", accessToken);
 
 				String value = oauthServer.getCredential(request);
 				logger.debug("Got credential value: {}", new Object[] { value });
 
 				if (value != null) {
 
-					PropertyKey credentialKey = oauthServer.getCredentialKey();
-
-					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
+					final PropertyKey credentialKey = oauthServer.getCredentialKey();
+					Principal user                  = AuthHelper.getPrincipalForCredential(credentialKey, value);
 
 					if (user == null && Settings.RestUserAutocreate.getValue()) {
 
 						user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
 
+						// let oauth implementation augment user info
+						oauthServer.initializeUser(user);
 					}
 
 					if (user != null) {
@@ -445,11 +445,9 @@ public class UiAuthenticator implements Authenticator {
 		} catch (IOException ex) {
 
 			logger.error("Could not redirect to {}: {}", new Object[]{ oauthServer.getReturnUri(), ex });
-
 		}
 
 		return null;
-
 	}
 
 	public static void writeUnauthorized(final HttpServletResponse response) throws IOException {

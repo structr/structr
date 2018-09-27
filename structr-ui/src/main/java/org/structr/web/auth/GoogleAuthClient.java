@@ -32,11 +32,6 @@ public class GoogleAuthClient extends StructrOAuthClient {
 	}
 
 	@Override
-	public ResponseFormat getResponseFormat() {
-		return ResponseFormat.json;
-	}
-
-	@Override
 	public String getUserResourceUri() {
 		return Settings.OAuthGoogleUserDetailsUri.getValue();
 	}
