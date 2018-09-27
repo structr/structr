@@ -544,7 +544,7 @@ export class FlowEditor {
             let input = target.editorNode.inputs.filter(i => i.socket.id === connectionType.targetAttribute)[0];
 
             try {
-                if (output !== undefined && output !== null && input !== undefined && input !== null) { 
+                if (output !== undefined && output !== null && input !== undefined && input !== null) {
                     this._editor.connect(output, input);
 
                     let connection = output.connections.filter(c => c.input === input)[0];

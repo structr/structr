@@ -53,24 +53,28 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 
 				PropertyConverter converter = null;
 
-				switch (cType) {
-					case String:
-						converter = new StringProperty("").inputConverter(securityContext);
-						break;
-					case Boolean:
-						converter = new BooleanProperty("").inputConverter(securityContext);
-						break;
-					case Integer:
-						converter = new IntProperty("").inputConverter(securityContext);
-						break;
-					case Double:
-						converter = new DoubleProperty("").inputConverter(securityContext);
-						break;
-					default:
-						converter = new StringProperty("").inputConverter(securityContext);
+				if (cType != null) {
+
+					switch (cType) {
+						case String:
+							converter = new StringProperty("").inputConverter(securityContext);
+							break;
+						case Boolean:
+							converter = new BooleanProperty("").inputConverter(securityContext);
+							break;
+						case Integer:
+							converter = new IntProperty("").inputConverter(securityContext);
+							break;
+						case Double:
+							converter = new DoubleProperty("").inputConverter(securityContext);
+							break;
+						default:
+							converter = new StringProperty("").inputConverter(securityContext);
+					}
+
 				}
 
-				return converter != null ? converter.convert(val) : null;
+				return converter != null ? converter.convert(val) : val;
 
 			} catch (FrameworkException ex) {
 				logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
