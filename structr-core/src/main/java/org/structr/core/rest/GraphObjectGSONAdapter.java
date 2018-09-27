@@ -292,7 +292,7 @@ public class GraphObjectGSONAdapter {
 				if (keys != null) {
 
 					// speciality for the Ui view: limit recursive rendering to (id, name)
-					if (compactNestedProperties && depth > 0 && (PropertyView.Ui.equals(localPropertyView) || PropertyView.All.equals(localPropertyView))) {
+					if (compactNestedProperties && depth > 0 && ((PropertyView.Ui.equals(localPropertyView) && !securityContext.isSuperUserSecurityContext()) || PropertyView.All.equals(localPropertyView))) {
 						keys = idTypeNameOnly;
 					}
 
