@@ -27,6 +27,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
@@ -42,24 +43,33 @@ public class FlowGetProperty extends FlowDataSource {
 
 	public static final Property<DataSource> nodeSource         = new StartNode<>("nodeSource",         FlowNodeDataSource.class);
 	public static final Property<DataSource> propertyNameSource = new StartNode<>("propertyNameSource", FlowNameDataSource.class);
+	public static final Property<String> propertyName			= new StringProperty("propertyName");
 
-	public static final View defaultView = new View(FlowGetProperty.class, PropertyView.Public, nodeSource, propertyNameSource);
-	public static final View uiView      = new View(FlowGetProperty.class, PropertyView.Ui,     nodeSource, propertyNameSource);
+	public static final View defaultView = new View(FlowGetProperty.class, PropertyView.Public, nodeSource, propertyNameSource, propertyName);
+	public static final View uiView      = new View(FlowGetProperty.class, PropertyView.Ui,     nodeSource, propertyNameSource, propertyName);
 
 	@Override
 	public Object get(final Context context) throws FlowException {
 
 		final DataSource _nodeSource = getProperty(nodeSource);
 		final DataSource _nameSource = getProperty(propertyNameSource);
+		final String _propertyName   = getProperty(propertyName);
 
-		if (_nodeSource != null && _nameSource != null) {
+		if (_nodeSource != null && (_nameSource != null || _propertyName != null) ) {
 
 			final Object node = _nodeSource.get(context);
 			if (node != null) {
 
 				if (node instanceof GraphObject) {
 
-					final Object name = _nameSource.get(context);
+					Object name;
+
+					if (_nameSource != null) {
+						name = _nameSource.get(context);
+					} else {
+						name = _propertyName;
+					}
+
 					if (name != null) {
 
 						if (name instanceof String) {

@@ -18,15 +18,14 @@
  */
 package org.structr.flow.impl.rels;
 
-import org.structr.core.entity.OneToOne;
+import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
 import org.structr.flow.api.DataSource;
-import org.structr.flow.impl.FlowDataSource;
 
 /**
  *
  */
-public class FlowNodeDataSource extends OneToOne<DataSource, DataSource> {
+public class FlowNodeDataSource extends OneToMany<DataSource, DataSource> {
 
 	@Override
 	public Class<DataSource> getSourceType() {

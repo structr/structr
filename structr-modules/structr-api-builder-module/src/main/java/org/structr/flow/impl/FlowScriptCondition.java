@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FlowScriptCondition extends FlowCondition implements DeployableEntity, ThrowingElement {
+public class FlowScriptCondition extends FlowCondition implements 	DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> scriptSource 					= new StartNode<>("scriptSource", FlowScriptConditionSource.class);
 	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);

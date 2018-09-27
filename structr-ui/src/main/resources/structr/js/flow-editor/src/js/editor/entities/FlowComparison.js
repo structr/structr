@@ -82,8 +82,6 @@ export class FlowComparison extends FlowNode {
                             <div class="input-title" al-if="!input.showControl()">{{input.title}}</div>
                             <div class="input-control" al-if="input.showControl()" al-control="input.control"></div>
                         </div>
-                        <!-- Controls-->
-                        <div class="control" al-repeat="control in node.controls" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
                     </column>
                     <column>
                         <!-- Outputs-->
@@ -94,6 +92,17 @@ export class FlowComparison extends FlowNode {
                         </div>
                     </column>
                 </content>
+                
+                <!-- Controls-->
+                <content al-repeat="control in node.controls" style="display:inline">
+                    <column>
+                        <label class="control-title" for="{{control.id}}">{{control.name}}</label>
+                    </column>
+                    <column>
+                        <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
+                    </column>
+                </content>
+                
             </div>
         `;
     }

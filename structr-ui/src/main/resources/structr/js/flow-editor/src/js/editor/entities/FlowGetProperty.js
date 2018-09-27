@@ -21,10 +21,31 @@ export class FlowGetProperty extends FlowNode {
 
                 node.data.dbNode = scopedDbNode;
 
+                let propertyName = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
+
+                    if(scopedDbNode !== undefined && scopedDbNode.propertyName !== undefined && scopedDbNode.propertyName !== null) {
+                        element.setAttribute("value",scopedDbNode.propertyName);
+                        control.putData('propertyName',element.value);
+                    }
+
+                    control.id = "propertyName";
+                    control.name = "PropertyName";
+
+                    element.addEventListener('mousedown', event => {
+                        event.stopPropagation();
+                    });
+
+                    element.addEventListener('change', ()=>{
+                        control.putData('propertyName',element.value);
+                        node.data['dbNode'].propertyName = element.value;
+                    });
+                });
+
                 return node
                     .addInput(nodeSource)
                     .addInput(propertyNameSource)
-                    .addOutput(dataTarget);
+                    .addOutput(dataTarget)
+                    .addControl(propertyName);
             },
             worker(node, inputs, outputs) {
             }
@@ -53,15 +74,17 @@ export class FlowGetProperty extends FlowNode {
                         </div>
                     </column>
                 </content>
-                    <!-- Controls-->
-                    <content al-repeat="control in node.controls" style="display:inline">
-                        <column>
-                            <label class="control-title" for="{{control.id}}">{{control.name}}</label>
-                        </column>
-                        <column>
-                            <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
-                        </column>
-                    </content>
+                    <div al-if="node.inputs[1].connections.length==0">
+                        <!-- Controls-->
+                        <content al-repeat="control in node.controls" style="display:inline">
+                            <column>
+                                <label class="control-title" for="{{control.id}}">{{control.name}}</label>
+                            </column>
+                            <column>
+                                <div class="control" id="{{control.id}}" style="text-align: center" :width="control.parent.width - 2 * control.margin" :height="control.height" al-control="control"></div>
+                            </column>
+                        </content>
+                    </div>
             </div>
         `;
     }
