@@ -18,40 +18,57 @@
  */
 package org.structr.web.auth;
 
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Principal;
 
 /**
  *
  *
  */
-public class FacebookAuthClient extends StructrOAuthClient {
+public class Auth0AuthClient extends StructrOAuthClient {
 
-	public FacebookAuthClient() {}
+	public Auth0AuthClient() {}
 
 	@Override
 	public String getScope() {
-		return "email";
+		return "openid profile email";
 	}
 
 	@Override
 	public String getUserResourceUri() {
-		return Settings.OAuthFacebookUserDetailsUri.getValue();
+		return Settings.OAuthAuth0UserDetailsUri.getValue();
 	}
 
 	@Override
 	public String getReturnUri() {
-		return Settings.OAuthFacebookReturnUri.getValue();
+		return Settings.OAuthAuth0ReturnUri.getValue();
 	}
 
 	@Override
 	public String getErrorUri() {
-		return Settings.OAuthFacebookErrorUri.getValue();
+		return Settings.OAuthAuth0ErrorUri.getValue();
 	}
 
 	@Override
-	public String getCredential(final HttpServletRequest request) {
-		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
+	public void initializeUser(final Principal user) throws FrameworkException {
+
+		// initialize user from user response
+		if (userInfo != null) {
+
+			String name = (String)userInfo.get("nickname");
+			
+			// fallback 1
+			if (name == null) {
+				name = (String)userInfo.get("name");
+			}
+
+			// fallback 2
+			if (name == null) {
+				name = (String)userInfo.get("email");
+			}
+			
+			user.setProperty(Principal.name, name);
+		}
 	}
 }

@@ -47,11 +47,6 @@ public class LinkedInAuthClient extends StructrOAuthClient {
 	}
 
 	@Override
-	public ResponseFormat getResponseFormat() {
-		return ResponseFormat.json;
-	}
-
-	@Override
 	public String getUserResourceUri() {
 		return Settings.OAuthLinkedInUserDetailsUri.getValue();
 	}
