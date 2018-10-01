@@ -40,8 +40,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.BulkDeleteCommand;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
@@ -49,7 +50,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.servlet.JsonRestServlet;
 
 /**
@@ -101,23 +101,51 @@ public abstract class Resource {
 
 	public RestMethodResult doDelete() throws FrameworkException {
 
-		final App app                 = StructrApp.getInstance(securityContext);
-		Iterable<GraphObject> results = null;
+		final App app      = StructrApp.getInstance(securityContext);
+		final int pageSize = 1000;
+		int count          = 0;
+		int chunk          = 0;
+		boolean hasMore    = true;
 
-		// catch 204, DELETE must return 200 if resource is empty
-		try (final Tx tx = app.tx(false, false, false)) {
+		while (hasMore) {
 
-			results = doGet(null, false, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE).getResults();
+			try (final Tx tx = app.tx(false, false, false)) {
 
-			tx.success();
+				chunk++;
 
-		} catch (final NoResultsException nre) {
-			results = null;
-		}
+				// always fetch the first page
+				final Result<GraphObject> result = doGet(null, false, pageSize, 1);
+				final List<GraphObject> list     = result.getResults();
 
-		if (results != null) {
+				// delete finished?
+				hasMore = !list.isEmpty();
 
-			app.command(BulkDeleteCommand.class).bulkDelete(results.iterator());
+				for (final GraphObject obj : list) {
+
+					if (obj.isNode()) {
+
+						app.delete((NodeInterface)obj);
+
+					} else {
+
+						app.delete((RelationshipInterface)obj);
+					}
+
+					count++;
+				}
+
+				tx.success();
+
+				logger.info("DeleteObjects: {} objects processed", count);
+
+			} catch (Throwable t) {
+
+				logger.warn("Exception in DELETE chunk #{}: {}", chunk, t.getMessage());
+
+				// we need to break here, otherwise the delete call will loop
+				// endlessly, trying to delete the erroneous objects.
+				break;
+			}
 		}
 
 		return new RestMethodResult(HttpServletResponse.SC_OK);

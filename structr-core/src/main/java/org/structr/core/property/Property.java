@@ -32,21 +32,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
-import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
 import org.structr.bolt.index.AbstractCypherIndex;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 
@@ -479,39 +472,24 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean cachingEnabled() { return cachingEnabled; }
 
-	/**
-	 * Default implementation of the existing index() method.
-	 *
-	 * Allows property classes to override the method and thus
-	 * to decide about the value to index.
-	 *
-	 * Default implementation
-	 *
-	 * @param obj
-	 */
-	@Override
-	public void index(final GraphObject obj) {
-		index(obj, obj.getProperty(this));
-	}
-
+	/*
 	@Override
 	public void index(final GraphObject entity, final Object value) {
 
-		if (entity instanceof AbstractNode) {
+		if (entity.isNode()) {
 
-			final NodeService nodeService = Services.getInstance().getService(NodeService.class);
-			final AbstractNode node       = (AbstractNode)entity;
-			final Node dbNode             = node.getNode();
-			final Index<Node> index       = nodeService.getNodeIndex();
+			final NodeService nodeService     = Services.getInstance().getService(NodeService.class);
+			final PropertyContainer container = entity.getPropertyContainer();
+			final Index<Node> index           = nodeService.getNodeIndex();
 
 			if (index != null) {
 
 				try {
 
-					index.remove(dbNode, dbName);
+					index.remove(container, dbName);
 
 					if (value != null || isIndexedWhenEmpty()) {
-						index.add(dbNode, dbName, value, valueType());
+						index.add(container, dbName, value, valueType());
 					}
 
 				} catch (Throwable t) {
@@ -523,19 +501,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		} else if (entity instanceof AbstractRelationship) {
 
-			final NodeService nodeService   = Services.getInstance().getService(NodeService.class);
-			final AbstractRelationship rel  = (AbstractRelationship)entity;
-			final Relationship dbRel        = rel.getRelationship();
-			final Index<Relationship> index = nodeService.getRelationshipIndex();
+			final NodeService nodeService     = Services.getInstance().getService(NodeService.class);
+			final PropertyContainer container = entity.getPropertyContainer();
+			final Index<Relationship> index   = nodeService.getRelationshipIndex();
 
 			if (index != null) {
 
 				try {
 
-					index.remove(dbRel, dbName);
+					index.remove(container, dbName);
 
 					if (value != null || isIndexedWhenEmpty()) {
-						index.add(dbRel, dbName, value, valueType());
+						index.add(container, dbName, value, valueType());
 					}
 
 				} catch (Throwable t) {
@@ -544,6 +521,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 				}
 			}
 		}
+	}
+	*/
+
+	@Override
+	public Object getIndexValue(final Object value) {
+		return value;
 	}
 
 	@Override

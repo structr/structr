@@ -228,17 +228,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				throw fex;
 			}
-
-			if (isIndexed()) {
-
-				// do indexing, needs to be done after
-				// setProperty to make spatial index
-				// work
-				if (!isPassivelyIndexed()) {
-
-					index(obj, convertedValue);
-				}
-			}
 		}
 
 		return null;

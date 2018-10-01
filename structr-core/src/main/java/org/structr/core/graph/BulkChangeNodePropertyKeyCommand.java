@@ -33,8 +33,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Change the property key from the old to the new value on all nodes matching the type.
  *
@@ -48,8 +46,6 @@ import org.structr.core.property.PropertyKey;
 public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkChangeNodePropertyKeyCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
@@ -106,11 +102,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 								dbNode.removeProperty(oldKey);
 
 							}
-
-							node.updateInIndex();
-
 						}
-
 					}
 
 					return true;

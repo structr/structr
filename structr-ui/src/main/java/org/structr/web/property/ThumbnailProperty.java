@@ -115,7 +115,12 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 	}
 
 	@Override
-	public void index(final GraphObject entity) {
-		// noop, don't index thumbnail properties
+	public boolean isIndexed() {
+		return false;
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return false;
 	}
 }

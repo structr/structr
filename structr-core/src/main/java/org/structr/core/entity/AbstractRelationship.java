@@ -34,7 +34,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.index.Index;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.GraphObjectComparator;
 import org.structr.common.PropertyView;
@@ -48,14 +47,12 @@ import org.structr.common.error.InternalSystemPropertyToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
@@ -203,9 +200,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	public final void removeProperty(final PropertyKey key) throws FrameworkException {
 
 		dbRelationship.removeProperty(key.dbName());
-
-		// remove from index
-		removeFromIndex(key);
 	}
 
 	@Override
@@ -601,38 +595,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 			internalSystemPropertiesUnlocked = false;
 			readOnlyPropertiesUnlocked       = false;
 
-		}
-	}
-
-	@Override
-	public final void updateInIndex() {
-
-		removeFromIndex();
-		addToIndex();
-	}
-
-	@Override
-	public final void removeFromIndex() {
-
-		final Index<Relationship> index = Services.getInstance().getService(NodeService.class).getRelationshipIndex();
-		index.remove(dbRelationship);
-	}
-
-	public final void removeFromIndex(final PropertyKey key) {
-
-		final Index<Relationship> index = Services.getInstance().getService(NodeService.class).getRelationshipIndex();
-		index.remove(dbRelationship, key.dbName());
-	}
-
-	@Override
-	public final void indexPassiveProperties() {
-
-		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-
-			if (key.isPassivelyIndexed()) {
-
-				key.index(this);
-			}
 		}
 	}
 

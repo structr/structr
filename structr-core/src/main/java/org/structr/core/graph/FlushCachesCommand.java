@@ -25,9 +25,9 @@ import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
+import org.structr.schema.action.Actions;
 
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -47,11 +47,11 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		ResourceAccess.clearCache();
 		NodeWrapper.clearCache();
 		RelationshipWrapper.clearCache();
+		Actions.clearCache();
+
 		AccessPathCache.invalidate();
 
-		App app = StructrApp.getInstance();
-
-		app.invalidateCache();
+		StructrApp.getInstance().invalidateCache();
 	}
 
 	@Override

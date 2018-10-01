@@ -2319,9 +2319,7 @@ public class BasicTest extends StructrTest {
 
 			fail("Unexpected exception.");
 		}
-
 	}
-
 
 	// ----- private methods -----
 	private AbstractRelationship cascadeRel(final Class type1, final Class type2, final int cascadeDeleteFlag) throws FrameworkException {

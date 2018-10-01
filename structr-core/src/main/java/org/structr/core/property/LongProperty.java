@@ -146,8 +146,8 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
-		super.index(entity, fixDatabaseProperty(value));
+	public Object getIndexValue(final Object value) {
+		return fixDatabaseProperty(value);
 	}
 
 	// ----- CMIS support -----

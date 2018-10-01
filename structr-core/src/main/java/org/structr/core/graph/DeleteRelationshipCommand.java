@@ -26,18 +26,13 @@ import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractRelationship;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Deletes the relationship supplied as a parameter.
- *
  *
  */
 public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteRelationshipCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	public Object execute(final Relationship rel) throws FrameworkException {
 
@@ -74,9 +69,6 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			// callback
 			finalRel.onRelationshipDeletion();
-
-			// remove object from index
-			finalRel.removeFromIndex();
 
 			// delete node in database
 			relToDelete.delete(true);

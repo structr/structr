@@ -47,9 +47,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 			for (final NodeInterface deleteMe : deletedNodes) {
 
-				// remove node from index
-				deleteMe.removeFromIndex();
-
 				// mark node as deleted in transaction
 				TransactionCommand.nodeDeleted(securityContext.getCachedUser(), deleteMe);
 
@@ -112,7 +109,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET)) {
 
 						// remove end node from index
-						endNode.removeFromIndex();
 						doDeleteNode(endNode);
 					}
 				}
@@ -136,7 +132,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 					if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
 
 						// remove start node from index
-						startNode.removeFromIndex();
 						doDeleteNode(startNode);
 					}
 				}
@@ -164,7 +159,6 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 				if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
 
 					// remove end node from index
-					nodeToCheck.removeFromIndex();
 					doDeleteNode(nodeToCheck);
 				}
 			}

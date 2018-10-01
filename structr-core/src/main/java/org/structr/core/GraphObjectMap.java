@@ -155,9 +155,9 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	public boolean isValid(final ErrorBuffer errorBuffer) {
 		return true;
 	}
-	
+
 	public static GraphObjectMap fromMap(final Map<String, Object> map) {
-		
+
 		final GraphObjectMap newGraphObjectMap = new GraphObjectMap();
 
 		for (final Map.Entry<String, Object> prop : map.entrySet()) {
@@ -237,14 +237,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public void addToIndex() {
-	}
-
-	@Override
-	public void updateInIndex() {
-	}
-
-	@Override
-	public void removeFromIndex() {
 	}
 
 	@Override

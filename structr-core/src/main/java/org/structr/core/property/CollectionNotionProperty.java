@@ -308,13 +308,18 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
-		// no direct indexing
+	public int getProcessingOrderPosition() {
+		return 1000;
 	}
 
 	@Override
-	public int getProcessingOrderPosition() {
-		return 1000;
+	public boolean isIndexed() {
+		return false;
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return false;
 	}
 
 	// ----- protected methods overridden from superclass -----

@@ -51,7 +51,6 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.index.Index;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.wrapper.NodeWrapper;
@@ -89,7 +88,6 @@ import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeRelationshipStatisticsCommand;
-import org.structr.core.graph.NodeService;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.FunctionProperty;
@@ -330,9 +328,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 
 			dbNode.removeProperty(key.dbName());
-
-			// remove from index
-			removeFromIndex(key);
 		}
 
 	}
@@ -1554,38 +1549,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 	}
 
-	@Override
-	public final void updateInIndex() {
-
-		removeFromIndex();
-		addToIndex();
-	}
-
-	@Override
-	public final void removeFromIndex() {
-
-		final Index<Node> index = Services.getInstance().getService(NodeService.class).getNodeIndex();
-		index.remove(dbNode);
-	}
-
-	public final void removeFromIndex(PropertyKey key) {
-
-		final Index<Node> index = Services.getInstance().getService(NodeService.class).getNodeIndex();
-		index.remove(dbNode, key.dbName());
-	}
-
-	@Override
-	public final void indexPassiveProperties() {
-
-		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All)) {
-
-			if (key.isPassivelyIndexed()) {
-
-				key.index(this);
-			}
-		}
-	}
-
 	public static void clearRelationshipTemplateInstanceCache() {
 		relationshipTemplateInstanceCache.clear();
 	}
@@ -1844,7 +1807,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				// otherwise be set in separate calls later in the transaction.
 				properties.put(Security.principalId,                    principal.getUuid());
 				properties.put(Security.accessControllableId,           getUuid());
-
+				properties.put(Security.allowed,                        new String[]{ permission.name() });
 
 				secRel = StructrApp.getInstance(securityContext).create(principal, (NodeInterface)this, Security.class, properties);
 
@@ -1853,10 +1816,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 				logger.error("Could not create security relationship!", ex);
 
 			}
-
 		}
 
-		// only access rel if it existss or was created successfully
+		// only access rel if it exists or was created successfully
 		if (secRel != null) {
 
 			secRel.addPermission(permission);

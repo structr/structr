@@ -97,34 +97,6 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 	public abstract String getQuerySuffix();
 
 	@Override
-	public void add(final PropertyContainer t, final String key, final Object value, final Class typeHint) {
-
-		Object indexValue = value;
-		if (value != null) {
-
-			final Class type = value.getClass();
-
-			if (type.isEnum()) {
-				indexValue = indexValue.toString();
-			}
-
-			if (!INDEXABLE.contains(type)) {
-				return;
-			}
-		}
-
-		t.setProperty(key, indexValue);
-	}
-
-	@Override
-	public void remove(final PropertyContainer t) {
-	}
-
-	@Override
-	public void remove(final PropertyContainer t, final String key) {
-	}
-
-	@Override
 	public QueryResult<T> query(final QueryContext context, final QueryPredicate predicate) {
 
 		final AdvancedCypherQuery query = new AdvancedCypherQuery(context, this);

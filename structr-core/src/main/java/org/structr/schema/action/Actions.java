@@ -21,6 +21,7 @@ package org.structr.schema.action;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -42,11 +43,11 @@ import org.structr.core.script.Scripting;
  */
 public class Actions {
 
-	private static final Logger logger = LoggerFactory.getLogger(Actions.class.getName());
+	private static final Logger logger                   = LoggerFactory.getLogger(Actions.class.getName());
+	private static final Map<String, String> methodCache = new ConcurrentHashMap<>();
 
 	public static final String NOTIFICATION_LOGIN  = "onStructrLogin";
 	public static final String NOTIFICATION_LOGOUT = "onStructrLogout";
-
 
 	public enum Type {
 
@@ -120,44 +121,62 @@ public class Actions {
 
 	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		String cachedSource = methodCache.get(key);
+		String name         = null;
 
-		// we might want to introduce caching here at some point in the future..
-		// Cache can be invalidated when the schema is rebuilt for example..
+		if (cachedSource == null) {
 
-		final List<SchemaMethod> methods = app.nodeQuery(SchemaMethod.class).andName(key).getAsList();
-		if (methods.isEmpty()) {
+			final App app = StructrApp.getInstance(securityContext);
 
-			if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
-				logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
-			}
+			// we might want to introduce caching here at some point in the future..
+			// Cache can be invalidated when the schema is rebuilt for example..
 
-		} else {
+			final List<SchemaMethod> methods = app.nodeQuery(SchemaMethod.class).andName(key).getAsList();
+			if (methods.isEmpty()) {
 
-			for (final SchemaMethod method : methods) {
+				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
+					logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
+				}
 
-				// only call methods that are NOT part of a schema node
-				final AbstractSchemaNode entity = method.getProperty(SchemaMethod.schemaNode);
-				if (entity == null) {
+			} else {
 
-					final String source = method.getProperty(SchemaMethod.source);
-					if (source != null) {
+				for (final SchemaMethod method : methods) {
 
-						return Actions.execute(securityContext, null, "${" + source + "}", parameters, method.getName());
+					// only call methods that are NOT part of a schema node
+					final AbstractSchemaNode entity = method.getProperty(SchemaMethod.schemaNode);
+					if (entity == null) {
+
+						final String source = method.getProperty(SchemaMethod.source);
+						if (source != null) {
+
+							cachedSource = source;
+							name         = method.getName();
+
+							// store in cache
+							methodCache.put(key, cachedSource);
+
+						} else {
+
+							logger.warn("Schema method {} has no source code, will NOT be executed.", key);
+						}
 
 					} else {
 
-						logger.warn("Schema method {} has no source code, will NOT be executed.", key);
+						logger.warn("Schema method {} is attached to an entity, will NOT be executed.", key);
 					}
-
-				} else {
-
-					logger.warn("Schema method {} is attached to an entity, will NOT be executed.", key);
 				}
 			}
+
+		}
+
+		if (cachedSource != null) {
+			return Actions.execute(securityContext, null, "${" + cachedSource + "}", parameters, name);
 		}
 
 		return null;
 	}
 
+	public static void clearCache() {
+		methodCache.clear();
+	}
 }

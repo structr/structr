@@ -319,16 +319,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void updateInIndex() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public void removeFromIndex() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
 	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

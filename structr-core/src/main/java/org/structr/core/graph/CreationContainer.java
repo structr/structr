@@ -42,11 +42,15 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
+	private boolean isNode                 = true;
 
-	public CreationContainer() {}
+	public CreationContainer(final boolean isNode) {
+		this.isNode = isNode;
+	}
 
 	public CreationContainer(final GraphObject obj) {
 		this.wrappedObj = obj;
+		this.isNode     = obj.isNode();
 	}
 
 	public GraphObject getWrappedObject() {
@@ -211,16 +215,6 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 	}
 
 	@Override
-	public void updateInIndex() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public void removeFromIndex() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
@@ -254,12 +248,12 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	@Override
 	public boolean isNode() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+		return isNode;
 	}
 
 	@Override
 	public boolean isRelationship() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+		return !isNode;
 	}
 
 	@Override

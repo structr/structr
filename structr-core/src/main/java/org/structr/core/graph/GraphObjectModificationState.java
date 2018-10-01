@@ -71,6 +71,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 	private int status                           = 0;
 	private String callbackId                    = null;
 
+	private long validationTime = 0;
+	private long indexingTime = 0;
+
 	@Override
 	public String getCallbackId() {
 		return this.callbackId;
@@ -351,14 +354,21 @@ public class GraphObjectModificationState implements ModificationEvent {
 			case 6: // created, modified => only creation callback will be called
 			case 4: // created => creation callback
 			case 2: // modified => modification callback
+
+				long t0 = System.currentTimeMillis();
+
 				if (doValidation) {
 					valid &= object.isValid(errorBuffer);
 				}
-				object.indexPassiveProperties();
-				break;
 
-			case 1: // deleted => deletion callback
-				object.removeFromIndex();
+				long t1 = System.currentTimeMillis();
+				validationTime += t1 - t0;
+
+				object.indexPassiveProperties();
+
+				long t2 = System.currentTimeMillis() - t1;
+				indexingTime += t2;
+
 				break;
 
 			default:
@@ -366,6 +376,14 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 
 		return valid;
+	}
+
+	public long getValdationTime() {
+		return validationTime;
+	}
+
+	public long getIndexingTime() {
+		return indexingTime;
 	}
 
 	/**

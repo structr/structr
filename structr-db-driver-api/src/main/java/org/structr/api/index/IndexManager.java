@@ -18,8 +18,10 @@
  */
 package org.structr.api.index;
 
+import org.structr.api.graph.PropertyContainer;
 
-public interface IndexManager<T> {
+
+public interface IndexManager<T extends PropertyContainer> {
 
 	Index<T> fulltext();
 	Index<T> exact();

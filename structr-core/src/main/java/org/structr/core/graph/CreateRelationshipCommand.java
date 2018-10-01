@@ -63,7 +63,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
 		final PropertyMap properties         = new PropertyMap(attributes);
 		final PropertyMap toNotify           = new PropertyMap();
-		final CreationContainer tmp          = new CreationContainer();
+		final CreationContainer tmp          = new CreationContainer(false);
 		final R template                     = instantiate(relType);
 		final Node startNode                 = fromNode.getNode();
 		final Node endNode                   = toNode.getNode();
@@ -130,6 +130,11 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 					TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)newRel, key, null, value);
 				}
 			}
+
+			properties.clear();
+
+			// ensure indexing of newly created node
+			newRel.addToIndex();
 
 			// notify relationship of its creation
 			newRel.onRelationshipCreation();

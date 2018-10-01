@@ -20,6 +20,8 @@ package org.structr.core;
 
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -159,6 +161,10 @@ public interface GraphObject {
 	 * @throws FrameworkException
 	 */
 	default void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+		setPropertiesInternal(securityContext, properties);
+	}
+
+	default void setPropertiesInternal(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
 		final CreationContainer container = new CreationContainer(this);
 
@@ -233,33 +239,64 @@ public interface GraphObject {
 		}
 	}
 
+	default void indexPassiveProperties() {
+
+		final Set<PropertyKey> passiveIndexingKeys = new LinkedHashSet<>();
+
+		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(getEntityType(), PropertyView.All)) {
+
+			if (key.isIndexed() && (key.isPassivelyIndexed() || key.isIndexedWhenEmpty())) {
+
+				passiveIndexingKeys.add(key);
+			}
+		}
+
+		addToIndex(passiveIndexingKeys);
+	}
+
 	default void addToIndex() {
+
+		final Set<PropertyKey> indexKeys = new LinkedHashSet<>();
 
 		for (PropertyKey key : StructrApp.getConfiguration().getPropertySet(getEntityType(), PropertyView.All)) {
 
 			if (key.isIndexed()) {
 
-				final PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
-				if (converter != null) {
-
-					try {
-
-						// index converted value
-						key.index(this, converter.convert(this.getProperty(key)));
-
-					} catch (FrameworkException ex) {
-
-						logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
-						logger.warn("Exception", ex);
-					}
-
-				} else {
-
-					// index unconverted value
-					key.index(this);
-				}
+				indexKeys.add(key);
 			}
 		}
+
+		addToIndex(indexKeys);
+	}
+
+	default void addToIndex(final Set<PropertyKey> indexKeys) {
+
+		final Map<String, Object> values = new LinkedHashMap<>();
+
+		for (PropertyKey key : indexKeys) {
+
+			final PropertyConverter converter = key.databaseConverter(getSecurityContext(), this);
+			if (converter != null) {
+
+				try {
+
+					values.put(key.dbName(), converter.convert(this.getProperty(key)));
+
+				} catch (FrameworkException ex) {
+
+					logger.warn("Unable to convert property {} of type {}: {}", key.dbName(), getClass().getSimpleName(), ex.getMessage());
+					logger.warn("Exception", ex);
+				}
+
+			} else {
+
+				// index unconverted value
+				values.put(key.dbName(), this.getProperty(key));
+			}
+		}
+
+		// use "internal" setProperty for "indexing"
+		getPropertyContainer().setProperties(values);
 	}
 
 	default void filterIndexableForCreation(final SecurityContext securityContext, final PropertyMap src, final CreationContainer indexable, final PropertyMap filtered) throws FrameworkException {
@@ -465,10 +502,6 @@ public interface GraphObject {
 	 * @param securityContext
 	 */
 	public void propagatedModification(final SecurityContext securityContext);
-
-	public void updateInIndex();
-	public void removeFromIndex();
-	public void indexPassiveProperties();
 
 	public String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue) throws FrameworkException;

@@ -180,8 +180,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
-		super.index(entity, fixDatabaseProperty(value));
+	public Object getIndexValue(final Object value) {
+		return fixDatabaseProperty(value);
 	}
 
 	// ----- CMIS support -----

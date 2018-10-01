@@ -94,7 +94,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			final Object typeObject          = properties.get(AbstractNode.type);
 			final Class nodeType             = getTypeOrGeneric(typeObject);
 			final Set<String> labels         = TypeProperty.getLabelsForType(nodeType);
-			final CreationContainer tmp      = new CreationContainer();
+			final CreationContainer tmp      = new CreationContainer(true);
 			final Date now                   = new Date();
 			final boolean isCreation         = true;
 

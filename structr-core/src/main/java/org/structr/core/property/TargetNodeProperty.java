@@ -119,4 +119,14 @@ public class TargetNodeProperty extends Property<NodeInterface> {
 	public PropertyConverter<?, NodeInterface> inputConverter(SecurityContext securityContext) {
 		return null;
 	}
+
+	@Override
+	public boolean isIndexed() {
+		return false;
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return false;
+	}
 }

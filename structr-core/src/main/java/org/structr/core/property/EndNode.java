@@ -173,8 +173,13 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
-		// no indexing
+	public boolean isIndexed() {
+		return false;
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return false;
 	}
 
 	// ----- interface RelationProperty -----

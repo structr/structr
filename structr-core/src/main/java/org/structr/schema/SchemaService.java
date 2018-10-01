@@ -122,7 +122,7 @@ public class SchemaService implements Service {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
-		boolean success = true;
+		boolean success                    = true;
 
 		// compiling must only be done once
 		if (compiling.compareAndSet(false, true)) {

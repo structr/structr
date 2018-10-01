@@ -203,8 +203,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 		return true;
 	}
 
-	//~--- set methods ----------------------------------------------------
-
 	public void setPassword(final String passwordValue) {
 
 		// not supported
@@ -229,14 +227,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public void addToIndex() {
-	}
-
-	@Override
-	public void updateInIndex() {
-	}
-
-	@Override
-	public void removeFromIndex() {
 	}
 
 	@Override

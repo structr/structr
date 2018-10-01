@@ -181,8 +181,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
-		super.index(entity, fixDatabaseProperty(value));
+	public Object getIndexValue(final Object value) {
+		return fixDatabaseProperty(value);
 	}
 
 	// ----- CMIS support -----

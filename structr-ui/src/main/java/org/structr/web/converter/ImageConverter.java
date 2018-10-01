@@ -31,8 +31,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Converts image data into an image node.
  *
@@ -41,7 +39,6 @@ import org.structr.web.entity.Image;
  *
  * If no {@link KeyAndClass} object is given, the image data will be set on
  * the image node itself.
- *
  *
  */
 public class ImageConverter extends PropertyConverter {
@@ -56,8 +53,6 @@ public class ImageConverter extends PropertyConverter {
 
 		this.keyAndClass = kc;
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public Object convert(final Object source) {
@@ -125,7 +120,8 @@ public class ImageConverter extends PropertyConverter {
 			if (img != null) {
 
 				// manual indexing of UUID needed here to avoid a 404 in the following setProperty call
-				img.updateInIndex();
+				img.addToIndex();
+				
 				currentObject.setProperties(securityContext, new PropertyMap(keyAndClass.getPropertyKey(), img));
 			}
 

@@ -34,19 +34,16 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Rebuild index for nodes or relationships of given type.
  *
  * Use 'type' argument for node type, and 'relType' for relationship type.
- *
  *
  */
 public class BulkRebuildIndexCommand extends NodeServiceCommand implements MaintenanceCommand, TransactionPostProcess {
 
 	private static final Logger logger = LoggerFactory.getLogger(BulkRebuildIndexCommand.class.getName());
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void execute(Map<String, Object> attributes) {
 
@@ -109,7 +106,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
 
-				node.updateInIndex();
+				node.addToIndex();
 
 				return true;
 			}
@@ -149,7 +146,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			@Override
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
-				rel.updateInIndex();
+				rel.addToIndex();
 
 				return true;
 			}

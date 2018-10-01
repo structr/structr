@@ -250,16 +250,6 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public void index(GraphObject entity) {
-		propertyKey.index(entity, entity.getProperty(propertyKey));
-	}
-
-	@Override
-	public void index(GraphObject entity, Object value) {
-		propertyKey.index(entity, value);
-	}
-
-	@Override
 	public void extractSearchableAttribute(SecurityContext securityContext, HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException {
 		propertyKey.extractSearchableAttribute(securityContext, request, exactMatch, query);
 	}
@@ -395,5 +385,10 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public PropertyKey<T> partOfBuiltInSchema() {
 		return propertyKey.partOfBuiltInSchema();
+	}
+
+	@Override
+	public Object getIndexValue(Object value) {
+		return propertyKey.getIndexValue(value);
 	}
 }

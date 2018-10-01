@@ -111,6 +111,9 @@ public class ModificationQueue {
 
 		long t0 = System.currentTimeMillis();
 
+		long validationTime = 0;
+		long indexingTime = 0;
+
 		// do validation and indexing
 		for (final GraphObjectModificationState state : getSortedModifications()) {
 
@@ -118,17 +121,22 @@ public class ModificationQueue {
 			if (container instanceof EntityWrapper && ((EntityWrapper) container).isStale()) {
 				continue;
 			}
-			
+
 			// do callback according to entry state
-			if (!state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation)) {
+			boolean res = state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation);
+
+			validationTime += state.getValdationTime();
+			indexingTime += state.getIndexingTime();
+
+			if (!res) {
 				return false;
 			}
 		}
 
 		long t = System.currentTimeMillis() - t0;
-		if (t > 3000) {
+		if (t > 200) {
 
-			logger.info("doValidation: {} ms ({} modifications)", t, modifications.size());
+			logger.info("doValidation: {} ms ({} modifications)   ({} ms validation - {} ms indexing)", t, modifications.size(), validationTime, indexingTime);
 		}
 
 		return true;

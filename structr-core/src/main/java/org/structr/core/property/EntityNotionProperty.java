@@ -237,8 +237,13 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public void index(GraphObject entity, Object value) {
-		// no direct indexing
+	public boolean isIndexed() {
+		return false;
+	}
+
+	@Override
+	public boolean isPassivelyIndexed() {
+		return false;
 	}
 
 	@Override
