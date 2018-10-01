@@ -16,17 +16,33 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.impl.rels;
 
-import org.structr.core.graph.NodeInterface;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
+import org.structr.core.entity.OneToMany;
+import org.structr.core.entity.Relation;
+import org.structr.flow.api.DataSource;
 import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
-public interface DataSource<T> extends NodeInterface {
+public class FlowCurrentDataInput extends OneToMany<DataSource, FlowBaseNode> {
 
-	T get(final Context context, final FlowBaseNode requestingEntity) throws FlowException;
+	@Override
+	public Class<DataSource> getSourceType() {
+		return DataSource.class;
+	}
+
+	@Override
+	public Class<FlowBaseNode> getTargetType() {
+		return FlowBaseNode.class;
+	}
+
+	@Override
+	public String name() {
+		return "CURRENT_DATA";
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
+	}
 }

@@ -27,6 +27,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
@@ -40,21 +41,25 @@ import java.util.Map;
  */
 public class FlowDataSource extends FlowBaseNode implements DataSource, DeployableEntity, ThrowingElement {
 
+	public static final Property<DataSource> currentDataSource 				= new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 	public static final Property<String> query             					= new StringProperty("query");
 
-	public static final View defaultView 									= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource);
-	public static final View uiView      									= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource);
+	public static final View defaultView 									= new View(FlowDataSource.class, PropertyView.Public, query, dataTarget, exceptionHandler, dataSource, currentDataSource);
+	public static final View uiView      									= new View(FlowDataSource.class, PropertyView.Ui,     query, dataTarget, exceptionHandler, dataSource, currentDataSource);
 
 	@Override
-	public Object get(final Context context) throws FlowException {
+	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
 
 		final DataSource _ds = getProperty(dataSource);
+		final DataSource _cds = getProperty(currentDataSource);
+
 		if (_ds != null) {
-			Object data = _ds.get(context);
-			context.setData(getUuid(), data);
+			context.setData(getUuid(), _ds.get(context, this));
+		} else if (_cds != null) {
+			context.setData(getUuid(), _cds.get(context, this));
 		}
 
 		final String _script = getProperty(query);

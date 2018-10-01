@@ -29,6 +29,7 @@ import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.ForEach;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowForEachBody;
 import org.structr.flow.impl.rels.FlowForEachDataInput;
@@ -43,17 +44,22 @@ import java.util.Map;
  */
 public class FlowForEach extends FlowNode implements ForEach, DataSource, DeployableEntity {
 
+	public static final Property<DataSource> currentDataSource 	= new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource   	    = new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowNode> loopBody         	= new EndNode<>("loopBody", FlowForEachBody.class);
 
-	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer);
+	public static final View defaultView = new View(FlowForEach.class, PropertyView.Public, dataSource, loopBody, isStartNodeOfContainer, currentDataSource);
+	public static final View uiView      = new View(FlowForEach.class, PropertyView.Ui,     dataSource, loopBody, isStartNodeOfContainer, currentDataSource);
 
 
 	@Override
 	public DataSource getDataSource() {
-		return getProperty(dataSource);
+		if (getProperty(dataSource) != null) {
+			return getProperty(dataSource);
+		} else {
+			return getProperty(currentDataSource);
+		}
 	}
 
 	@Override
@@ -62,7 +68,7 @@ public class FlowForEach extends FlowNode implements ForEach, DataSource, Deploy
 	}
 
 	@Override
-	public Object get(Context context) {
+	public Object get(Context context, FlowBaseNode requestingEntity) {
 		return context.getData(getUuid());
 	}
 

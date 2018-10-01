@@ -18,9 +18,7 @@
  */
 package org.structr.flow.impl;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
@@ -43,21 +41,38 @@ public class FlowNotNull extends FlowCondition implements DataSource, Deployable
 	public static final Property<FlowCondition> condition = new EndNode<>("condition", FlowConditionCondition.class);
 	public static final Property<List<FlowDecision>> decision = new EndNodes<>("decision", FlowDecisionCondition.class);
 
-	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision);
-	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision);
+	public static final View defaultView = new View(FlowNotNull.class, PropertyView.Public, dataSources, condition, decision, currentDataSource);
+	public static final View uiView      = new View(FlowNotNull.class, PropertyView.Ui,     dataSources, condition, decision, currentDataSource);
 
 	@Override
-	public Object get(final Context context) throws FlowException {
+	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
 
-		final List<DataSource> _dataSources = getProperty(dataSources);
-		if (_dataSources.isEmpty()) {
+		final List<DataSource> _dataSources = getProperty(FlowIsTrue.dataSources);
+		List<Object> data = new ArrayList<>();
+
+		if (!_dataSources.isEmpty()) {
+
+			for (final DataSource _dataSource : _dataSources) {
+				data.add(_dataSource.get(context, this));
+			}
+		} else {
+
+			// Alternatively use supplied current data e.g. in a FlowFilter context
+			DataSource _currentDataSource = getProperty(currentDataSource);
+			if (_currentDataSource != null) {
+				data.add(_currentDataSource.get(context, this));
+			}
+
+		}
+
+		if (data.isEmpty()) {
 
 			return false;
 		}
 
-		for (final DataSource _dataSource : getProperty(dataSources)) {
+		for (final Object currentData : data) {
 
-			if (_dataSource.get(context) == null) {
+			if (currentData == null) {
 				return false;
 			}
 		}

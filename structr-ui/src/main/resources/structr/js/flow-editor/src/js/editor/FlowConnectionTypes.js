@@ -99,6 +99,12 @@ export class FlowConnectionTypes {
                 sourceAttribute: "result",
                 targetAttribute: "condition_baseNode",
                 type: "FlowConditionBaseNode"
+            },
+            FlowCurrentDataInput: {
+                name: "CURRENT_DATA",
+                sourceAttribute: "currentData_dataTarget",
+                targetAttribute: "dataSource",
+                type: "FlowCurrentDataInput"
             }
 
         };

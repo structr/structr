@@ -45,13 +45,13 @@ public class FlowObjectDataSource extends FlowDataSource {
 	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui,     keyValueSources);
 
 	@Override
-	public Object get(final Context context) throws FlowException {
+	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
 
 		final Map<String, Object> result = new LinkedHashMap<>();
 
 		for (final FlowKeyValue _keySource : getProperty(keyValueSources)) {
 
-			final Object item = _keySource.get(context);
+			final Object item = _keySource.get(context, this);
 			if (item != null && item instanceof KeyValue) {
 
 				final KeyValue keyValue = (KeyValue)item;

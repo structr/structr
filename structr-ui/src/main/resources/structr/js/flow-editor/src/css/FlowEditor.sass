@@ -141,6 +141,8 @@ html, body
           +setSocketColor($execution-flow-color)
         &.falseElement
           +setSocketColor($execution-flow-color)
+        &.currentData_dataTarget
+          +setSocketColor($data-flow-color)
         &.dataTarget
           +setSocketColor($data-flow-color)
         &.result
@@ -243,6 +245,8 @@ html, body
       &.output-trueelement.input-prev
         stroke: $execution-flow-color
       &.output-datatarget.input-datasource
+        stroke: $data-flow-color
+      &.output-currentdata_datatarget.input-datasource
         stroke: $data-flow-color
       &.output-datatarget.input-datasources
         stroke: $data-flow-color

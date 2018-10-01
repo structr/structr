@@ -30,6 +30,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowKeySource;
 import org.structr.flow.impl.rels.FlowValueSource;
@@ -46,23 +47,28 @@ public class FlowKeyValue extends FlowBaseNode implements DataSource, Deployable
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValue.class);
 
+	public static final Property<DataSource> currentDataSource 	= new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource 		= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget = new EndNodes<>("dataTarget", FlowDataInput.class);
 
 	public static final Property<String> key             		= new StringProperty("key");
 
-	public static final View defaultView = new View(FlowKeyValue.class, PropertyView.Public, key, dataSource, dataTarget);
-	public static final View uiView      = new View(FlowKeyValue.class, PropertyView.Ui, key, dataSource, dataTarget);
+	public static final View defaultView = new View(FlowKeyValue.class, PropertyView.Public, key, dataSource, dataTarget, currentDataSource);
+	public static final View uiView      = new View(FlowKeyValue.class, PropertyView.Ui, key, dataSource, dataTarget, currentDataSource);
 
 	@Override
-	public Object get(final Context context) throws FlowException {
+	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
 
 		final String _key   = getProperty(key);
-		final DataSource _ds = getProperty(dataSource);
+		DataSource _ds = getProperty(dataSource);
+
+		if (_ds == null) {
+			_ds = getProperty(currentDataSource);
+		}
 
 		if (_key != null && _ds != null) {
 
-			final Object data = _ds.get(context);
+			final Object data = _ds.get(context, this);
 			if (_key.length() > 0) {
 
 				return new KeyValue(_key, data);

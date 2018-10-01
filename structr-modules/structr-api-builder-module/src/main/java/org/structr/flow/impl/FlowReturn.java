@@ -29,6 +29,7 @@ import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
@@ -45,16 +46,18 @@ import java.util.Map;
 public class FlowReturn extends FlowNode implements Return, DeployableEntity, ThrowingElement {
 
 	public static final Property<DataSource> dataSource = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<DataSource> currentDataSource = new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 	public static final Property<String> result = new StringProperty("result");
 
-	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource, exceptionHandler, isStartNodeOfContainer);
+	public static final View defaultView = new View(FlowReturn.class, PropertyView.Public, result, dataSource, exceptionHandler, isStartNodeOfContainer, currentDataSource);
+	public static final View uiView      = new View(FlowReturn.class, PropertyView.Ui,     result, dataSource, exceptionHandler, isStartNodeOfContainer, currentDataSource);
 
 	@Override
 	public Object getResult(final Context context) throws FlowException {
 
 		final DataSource ds = getProperty(dataSource);
+		final DataSource cds = getProperty(currentDataSource);
 		final String _script = getProperty(result);
 
 		String script = _script;
@@ -63,7 +66,9 @@ public class FlowReturn extends FlowNode implements Return, DeployableEntity, Th
 		}
 
 		if (ds != null) {
-			context.setData(getUuid(), ds.get(context));
+			context.setData(getUuid(), ds.get(context, this));
+		} else if (cds != null) {
+			context.setData(getUuid(), cds.get(context, this));
 		}
 
 		try {

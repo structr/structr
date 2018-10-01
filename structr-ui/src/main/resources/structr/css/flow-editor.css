@@ -129,227 +129,159 @@
 	border-color: transparent transparent transparent #555;
 }
 .node-editor .node .socket.multiple {
-	border-color: yellow;
-}
+	border-color: yellow; }
 .node-editor .node .socket:hover {
-	border: 2px solid white;
-}
+	border: 2px solid white; }
 .node-editor .node .socket.input.used {
-	background-color: white;
-}
+	background-color: white; }
 .node-editor .node .socket.input:not(.used) {
-	background-color: #b3b3b3;
-}
+	background-color: #b3b3b3; }
 .node-editor .node .socket.input:hover {
-	background-color: white;
-}
+	background-color: white; }
 .node-editor .node .socket.input.dataSource.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.dataSource:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.dataSource:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.dataSources.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.dataSources:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.dataSources:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.prev.used {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.input.prev:not(.used) {
-	background-color: #004d00;
-}
+	background-color: #004d00; }
 .node-editor .node .socket.input.prev:hover {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.input.condition.used {
-	background-color: orange;
-}
+	background-color: orange; }
 .node-editor .node .socket.input.condition:not(.used) {
-	background-color: #664200;
-}
+	background-color: #664200; }
 .node-editor .node .socket.input.condition:hover {
-	background-color: orange;
-}
+	background-color: orange; }
 .node-editor .node .socket.input.conditions.used {
-	background-color: orange;
-}
+	background-color: orange; }
 .node-editor .node .socket.input.conditions:not(.used) {
-	background-color: #664200;
-}
+	background-color: #664200; }
 .node-editor .node .socket.input.conditions:hover {
-	background-color: orange;
-}
-.node-editor .node .socket.input.condition_baseNode.used {
-	background-color: orange;
-}
-.node-editor .node .socket.input.condition_baseNode:not(.used) {
-	background-color: #664200;
-}
-.node-editor .node .socket.input.condition_baseNode:hover {
-	background-color: orange;
-}
+	background-color: orange; }
 .node-editor .node .socket.input.keyValueSources.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.keyValueSources:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.keyValueSources:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.parameters.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.parameters:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.parameters:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.startValue.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.startValue:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.startValue:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.scriptSource.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.scriptSource:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.scriptSource:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.nodeSource.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.nodeSource:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.nodeSource:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.propertyNameSource.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.propertyNameSource:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.input.propertyNameSource:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.input.handledNodes.used {
-	background-color: red;
-}
+	background-color: red; }
 .node-editor .node .socket.input.handledNodes:not(.used) {
-	background-color: #660000;
-}
+	background-color: #660000; }
 .node-editor .node .socket.input.handledNodes:hover {
-	background-color: red;
-}
+	background-color: red; }
+.node-editor .node .socket.input.condition_baseNode.used {
+	background-color: orange; }
+.node-editor .node .socket.input.condition_baseNode:not(.used) {
+	background-color: #664200; }
+.node-editor .node .socket.input.condition_baseNode:hover {
+	background-color: orange; }
 .node-editor .node .socket.output.used {
-	background-color: white;
-}
+	background-color: white; }
 .node-editor .node .socket.output:not(.used) {
-	background-color: #b3b3b3;
-}
+	background-color: #b3b3b3; }
 .node-editor .node .socket.output:hover {
-	background-color: white;
-}
+	background-color: white; }
 .node-editor .node .socket.output.next.used {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.output.next:not(.used) {
-	background-color: #004d00;
-}
+	background-color: #004d00; }
 .node-editor .node .socket.output.next:hover {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.output.trueElement.used {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.output.trueElement:not(.used) {
-	background-color: #004d00;
-}
+	background-color: #004d00; }
 .node-editor .node .socket.output.trueElement:hover {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.output.falseElement.used {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.output.falseElement:not(.used) {
-	background-color: #004d00;
-}
+	background-color: #004d00; }
 .node-editor .node .socket.output.falseElement:hover {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
+.node-editor .node .socket.output.currentData_dataTarget.used {
+	background-color: #6666ff; }
+.node-editor .node .socket.output.currentData_dataTarget:not(.used) {
+	background-color: #0000cc; }
+.node-editor .node .socket.output.currentData_dataTarget:hover {
+	background-color: #6666ff; }
 .node-editor .node .socket.output.dataTarget.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.output.dataTarget:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.output.dataTarget:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.output.result.used {
-	background-color: orange;
-}
+	background-color: orange; }
 .node-editor .node .socket.output.result:not(.used) {
-	background-color: #664200;
-}
+	background-color: #664200; }
 .node-editor .node .socket.output.result:hover {
-	background-color: orange;
-}
+	background-color: orange; }
 .node-editor .node .socket.output.objectDataTarget.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.output.objectDataTarget:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.output.objectDataTarget:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.output.loopBody.used {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.output.loopBody:not(.used) {
-	background-color: #004d00;
-}
+	background-color: #004d00; }
 .node-editor .node .socket.output.loopBody:hover {
-	background-color: #00e600;
-}
+	background-color: #00e600; }
 .node-editor .node .socket.output.call.used {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.output.call:not(.used) {
-	background-color: #0000cc;
-}
+	background-color: #0000cc; }
 .node-editor .node .socket.output.call:hover {
-	background-color: #6666ff;
-}
+	background-color: #6666ff; }
 .node-editor .node .socket.output.exceptionHandler.used {
-	background-color: red;
-}
+	background-color: red; }
 .node-editor .node .socket.output.exceptionHandler:not(.used) {
-	background-color: #660000;
-}
+	background-color: #660000; }
 .node-editor .node .socket.output.exceptionHandler:hover {
-	background-color: red;
-}
+	background-color: red; }
 .node-editor .node .input-title, .node-editor .node .output-title {
 	vertical-align: middle;
 	display: inline-block;
@@ -456,57 +388,52 @@
 	stroke-width: 2px;
 	pointer-events: none;
 }
+.node-editor .connections {
+	position: absolute;
+	overflow: visible;
+	pointer-events: none; }
+.node-editor .connections .connection {
+	fill: none;
+	stroke: #eee;
+	stroke-width: 2px;
+	pointer-events: none; }
 .node-editor .connections .connection.active {
-	stroke: #aaa;
-}
+	stroke: #aaa; }
 .node-editor .connections .connection.output-next.input-prev {
-	stroke: #00e600;
-}
+	stroke: #00e600; }
 .node-editor .connections .connection.output-falseelement.input-prev {
-	stroke: #00e600;
-}
+	stroke: #00e600; }
 .node-editor .connections .connection.output-trueelement.input-prev {
-	stroke: #00e600;
-}
+	stroke: #00e600; }
 .node-editor .connections .connection.output-datatarget.input-datasource {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
+.node-editor .connections .connection.output-currentdata_datatarget.input-datasource {
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-datatarget.input-datasources {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-objectdatatarget.input-keyvaluesources {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-result.input-condition {
-	stroke: orange;
-}
+	stroke: orange; }
 .node-editor .connections .connection.output-result.input-conditions {
-	stroke: orange;
-}
+	stroke: orange; }
 .node-editor .connections .connection.output-result.input-condition_basenode {
-	stroke: orange;
-}
+	stroke: orange; }
 .node-editor .connections .connection.output-call.input-parameters {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-loopbody.input-prev {
-	stroke: #00e600;
-}
+	stroke: #00e600; }
 .node-editor .connections .connection.output-datatarget.input-startvalue {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-datatarget.input-scriptsource {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-datatarget.input-nodesource {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-datatarget.input-propertynamesource {
-	stroke: #6666ff;
-}
+	stroke: #6666ff; }
 .node-editor .connections .connection.output-exceptionhandler.input-handlednodes {
-	stroke: red;
-}
+	stroke: red; }
+
 .node-editor select, .node-editor input {
 	width: 60px;
 	padding: 3px 6px;

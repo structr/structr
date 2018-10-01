@@ -17,12 +17,13 @@ export class FlowFilter extends FlowNode {
         return new D3NE.Component('Filter', {
             template: FlowFilter._nodeTemplate(),
             builder(node) {
-                let socket = FlowSockets.getInst();
-                let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
-                let next = new D3NE.Output('Next', socket.getSocket('next'));
-                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
-                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
-                let condition  = new D3NE.Input('Condition', socket.getSocket('condition_BaseNode'));
+                let socket                  = FlowSockets.getInst();
+                let prev                    = new D3NE.Input('Prev', socket.getSocket('prev'), true);
+                let next                    = new D3NE.Output('Next', socket.getSocket('next'));
+                let dataSource              = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
+                let dataTarget              = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
+                let currentData_dataTarget  = new D3NE.Output('CurrentDataTarget', socket.getSocket('currentData_dataTarget'), true);
+                let condition               = new D3NE.Input('Condition', socket.getSocket('condition_BaseNode'));
 
                 if (scopedDbNode !== undefined && scopedDbNode.isStartNodeOfContainer !== undefined && scopedDbNode.isStartNodeOfContainer !== null) {
                     node.isStartNode = true;
@@ -37,7 +38,8 @@ export class FlowFilter extends FlowNode {
                     .addOutput(next)
                     .addInput(dataSource)
                     .addOutput(dataTarget)
-                    .addInput(condition);
+                    .addInput(condition)
+                    .addOutput(currentData_dataTarget);
             },
             worker(node, inputs, outputs) {
             }

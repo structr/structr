@@ -35,7 +35,7 @@ public class Context {
 	private Map<String,Object> data  			= new HashMap<>();
 	private Map<String,Object> store 			= new HashMap<>();
 	private Map<String,Object> parameters 		= new HashMap<>();
-	private Map<String,Object> currentData = new HashMap<>();
+	private Map<String,Object> currentData 		= new HashMap<>();
 	private GraphObject thisObject   			= null;
 	private Object result            			= null;
 	private FlowError error          			= null;
@@ -109,9 +109,9 @@ public class Context {
 		return store.get(key);
 	}
 
-	public void setAggregation(final String key, final Object value) { this.currentData.put(key, value); }
+	public void setCurrentData(final String key, final Object value) { this.currentData.put(key, value); }
 
-	public Object getAggregation(final String key) { return this.currentData.get(key); }
+	public Object getCurrentData(final String key) { return this.currentData.get(key); }
 
 	public void putIntoStore(final String key, final Object value) { store.put(key,value); }
 
