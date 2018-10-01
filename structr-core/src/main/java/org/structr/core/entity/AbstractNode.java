@@ -655,35 +655,36 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
-		final R template = getRelationshipForType(type);
+		final R template                     = getRelationshipForType(type);
 
-		//return new IterableAdapter<>(new IdSorter<>(template.getTarget().getRawSource(securityContext, dbNode, null)), factory);
 		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode, null), factory);
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
-		//return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.INCOMING)), new RelationshipFactory<R>(securityContext));
-		return new IterableAdapter<>(dbNode.getRelationships(Direction.INCOMING), new RelationshipFactory<R>(securityContext));
+		return new IterableAdapter<>(dbNode.getRelationships(Direction.INCOMING), new RelationshipFactory<>(securityContext));
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
-		//return new IterableAdapter<>(new IdSorter<>(dbNode.getRelationships(Direction.OUTGOING)), new RelationshipFactory<R>(securityContext));
 		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<R>(securityContext));
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
-		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(SecurityContext.getSuperUserInstance()));
+		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<>(SecurityContext.getSuperUserInstance()));
 	}
 
 	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
+		return getIncomingRelationshipsAsSuperUser(type, null);
+	}
+
+	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type, final Predicate<GraphObject> predicate) {
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(SecurityContext.getSuperUserInstance());
-		final R template = getRelationshipForType(type);
+		final R template                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, null), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(SecurityContext.getSuperUserInstance(), dbNode, predicate), factory);
 	}
 
 	@Override
@@ -825,9 +826,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return isGranted(permission, accessingUser, mask, level, alreadyTraversed, resolvePermissions, doLog, null);
 	}
 
-	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final List<Security> incomingSecurityRelationships) {
+	private boolean isGranted(final Permission permission, final Principal accessingUser, final PermissionResolutionMask mask, final int level, final AlreadyTraversed alreadyTraversed, final boolean resolvePermissions, final boolean doLog, final Map<String, Security> incomingSecurityRelationships) {
 
-		final List<Security> localIncomingSecurityRelationships = (List<Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : Iterables.toList(getIncomingRelationshipsAsSuperUser(Security.class));
+		final Map<String, Security> localIncomingSecurityRelationships = (Map<String, Security>) incomingSecurityRelationships != null ? incomingSecurityRelationships : mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Security.class));
 
 		if (level > 100) {
 			logger.warn("Aborting recursive permission resolution because of recursion level > 100, this is quite likely an infinite loop.");
@@ -1248,51 +1249,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		}
 	}
 
-	private Security getSecurityRelationship(final Principal p, final Iterable<Security> incomingSecurityRelationships) {
+	private Security getSecurityRelationship(final Principal p, final Map<String, Security> securityRelationships) {
 
 		if (p == null) {
 
 			return null;
 		}
 
-		final long t0 = System.currentTimeMillis();
-
-		int relCount = 0;
-
-		for (final Security r : incomingSecurityRelationships) {
-
-			if (r != null) {
-
-				relCount++;
-
-				if (p.equals(r.getSourceNode())) {
-
-					final long t1 = System.currentTimeMillis();
-					final long dt= (t1 - t0);
-
-					if (dt > 20) {
-
-						logger.warn("AbstractNode.getSecurityRelationship took {} ms. Relationship found after {} rels: Principal {} - Relationship {}", dt, relCount, p.getUuid(), r.getUuid());
-					}
-
-
-					return r;
-
-				}
-			}
-		}
-
-		final long t1 = System.currentTimeMillis();
-		final long dt= (t1 - t0);
-
-		if (dt > 20) {
-
-			logger.warn("AbstractNode.getSecurityRelationship took {} ms. Nothing found after {} rels", dt, relCount);
-		}
-
-
-		return null;
-
+		return securityRelationships.get(p.getUuid());
 	}
 
 	/**
@@ -1304,7 +1268,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 */
 	@Override
 	public final Security getSecurityRelationship(final Principal p) {
-		return getSecurityRelationship(p, getIncomingRelationshipsAsSuperUser(Security.class));
+
+		if (p != null) {
+
+			// try filter predicate to speed up things
+			final Predicate<GraphObject> principalFilter = (GraphObject value) -> {
+				return (p.getUuid().equals(value.getUuid()));
+			};
+
+			return getSecurityRelationship(p, mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Security.class, principalFilter)));
+		}
+
+		return getSecurityRelationship(p, mapSecurityRelationshipsMapped(getIncomingRelationshipsAsSuperUser(Security.class)));
 	}
 
 	@Override
@@ -1834,6 +1809,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		return convertedObject;
 	}
 
+	private Map<String, Security> mapSecurityRelationshipsMapped(final Iterable<Security> src) {
+
+		final Map<String, Security> map = new HashMap<>();
+
+		for (final Security sec : src) {
+
+			map.put(sec.getSourceNodeId(), sec);
+		}
+
+		return map;
+	}
+
 	@Override
 	public final void grant(Permission permission, Principal principal) throws FrameworkException {
 
@@ -1850,9 +1837,16 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 				// ensureCardinality is not neccessary here
 				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+				final PropertyMap properties          = new PropertyMap();
 				securityContext.disableEnsureCardinality();
 
-				secRel = StructrApp.getInstance(securityContext).create(principal, (NodeInterface)this, Security.class);
+				// performance improvement for grant(): add properties to the CREATE call that would
+				// otherwise be set in separate calls later in the transaction.
+				properties.put(Security.principalId,                    principal.getUuid());
+				properties.put(Security.accessControllableId,           getUuid());
+
+
+				secRel = StructrApp.getInstance(securityContext).create(principal, (NodeInterface)this, Security.class, properties);
 
 			} catch (FrameworkException ex) {
 

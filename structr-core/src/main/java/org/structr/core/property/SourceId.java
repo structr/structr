@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.RelationshipInterface;
 
 /**
@@ -78,6 +79,10 @@ public class SourceId extends Property<String> {
 
 				logger.warn("", t);
 			}
+
+		} else if (obj instanceof CreationContainer) {
+
+			((CreationContainer)obj).setProperty(jsonName, value);
 		}
 
 		return null;

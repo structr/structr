@@ -19,11 +19,13 @@
 package org.structr.core.graph;
 
 import java.util.Date;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Transformation;
@@ -31,6 +33,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.property.AbstractPrimitiveProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 /**
@@ -58,6 +62,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final DatabaseService db             = (DatabaseService)this.getArgument("graphDb");
 		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
 		final PropertyMap properties         = new PropertyMap(attributes);
+		final PropertyMap toNotify           = new PropertyMap();
 		final CreationContainer tmp          = new CreationContainer();
 		final R template                     = instantiate(relType);
 		final Node startNode                 = fromNode.getNode();
@@ -86,15 +91,45 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			tmp.getData().put(AbstractRelationship.createdBy.jsonName(), user.getUuid());
 		}
 
+		// move properties to creation container that can be set directly on creation
+		tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
+
+		// collect default values and try to set them on creation
+		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(relType, PropertyView.All)) {
+
+			if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
+
+				final Object defaultValue = key.defaultValue();
+				if (defaultValue != null) {
+
+					key.setProperty(securityContext, tmp, defaultValue);
+				}
+			}
+		}
+
 		// create relationship including initial properties
 		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
 		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
-		if (newRel != null) {
 
-			newRel.setProperties(securityContext, properties);
+		if (newRel != null) {
 
 			// notify transaction handler
 			TransactionCommand.relationshipCreated(user, newRel);
+
+			securityContext.disableModificationOfAccessTime();
+			newRel.setProperties(securityContext, properties);
+			securityContext.enableModificationOfAccessTime();
+
+			// ensure modification callbacks are called (necessary for validation)
+			for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {
+
+				final PropertyKey key = entry.getKey();
+				final Object value    = entry.getValue();
+
+				if (!key.isUnvalidated()) {
+					TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)newRel, key, null, value);
+				}
+			}
 
 			// notify relationship of its creation
 			newRel.onRelationshipCreation();
