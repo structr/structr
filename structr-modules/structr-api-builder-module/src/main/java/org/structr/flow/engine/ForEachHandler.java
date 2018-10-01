@@ -41,7 +41,7 @@ public class ForEachHandler implements FlowHandler<FlowForEach> {
 
 			if (loopBody != null) {
 
-				final Object data = dataSource.get(context);
+				final Object data = dataSource.get(context, flowElement);
 
 				Context loopContext = new Context(context);
 

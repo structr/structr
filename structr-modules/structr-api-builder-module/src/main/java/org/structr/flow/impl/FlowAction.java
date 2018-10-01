@@ -27,6 +27,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
@@ -38,13 +39,14 @@ import java.util.Map;
 
 public class FlowAction extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 
+	public static final Property<DataSource> currentDataSource 				= new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget				= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 	public static final Property<String> script             				= new StringProperty("script");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer, currentDataSource);
+	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer, currentDataSource);
 
 	@Override
 	public void execute(final Context context) throws FlowException {
@@ -54,10 +56,13 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 			try {
 
 				final DataSource _dataSource = getProperty(FlowAction.dataSource);
+				final DataSource _currentDataSource = getProperty(FlowAction.currentDataSource);
 
 				// make data available to action if present
 				if (_dataSource != null) {
-					context.setData(getUuid(), _dataSource.get(context));
+					context.setData(getUuid(), _dataSource.get(context, this));
+				} else if (_currentDataSource != null) {
+					context.setData(getUuid(), _currentDataSource.get(context, this));
 				}
 
 				// Evaluate script and write result to context
@@ -73,7 +78,7 @@ public class FlowAction extends FlowActionNode implements DataSource, Deployable
 	}
 
 	@Override
-	public Object get(Context context) throws FlowException {
+	public Object get(Context context, FlowBaseNode requestingEntity) throws FlowException {
 		if (!context.hasData(getUuid())) {
 			this.execute(context);
 		}

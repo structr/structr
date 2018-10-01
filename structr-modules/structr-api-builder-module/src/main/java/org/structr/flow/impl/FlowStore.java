@@ -27,6 +27,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
@@ -43,13 +44,14 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 
 	private static final Logger logger 							= LoggerFactory.getLogger(FlowStore.class);
 
+	public static final Property<DataSource> currentDataSource = new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource			= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget		= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<Operation> operation			= new EnumProperty<>("operation", Operation.class);
 	public static final Property<String> key             		= new StringProperty("key");
 
-	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation, dataSource, dataTarget, isStartNodeOfContainer);
-	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget, isStartNodeOfContainer);
+	public static final View defaultView 						= new View(FlowAction.class, PropertyView.Public, key, operation, dataSource, dataTarget, isStartNodeOfContainer, currentDataSource);
+	public static final View uiView      						= new View(FlowAction.class, PropertyView.Ui,     key, operation, dataSource, dataTarget, isStartNodeOfContainer, currentDataSource);
 
 	@Override
 	public void handleStorage(Context context) throws FlowException {
@@ -57,13 +59,16 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 		Operation op = getProperty(operation);
 		String _key = getProperty(key);
 		DataSource ds = getProperty(dataSource);
+		DataSource cds = getProperty(currentDataSource);
 
 		if(op != null && _key != null ) {
 
 			switch (op) {
 				case store:
 					if (ds != null) {
-						context.putIntoStore(_key, ds.get(context));
+						context.putIntoStore(_key, ds.get(context, this));
+					} else if (cds != null) {
+						context.putIntoStore(_key, cds.get(context, this));
 					}
 					break;
 				case retrieve:
@@ -80,7 +85,7 @@ public class FlowStore extends FlowNode implements Store, DataSource, Deployable
 	}
 
 	@Override
-	public Object get(Context context) {
+	public Object get(Context context, FlowBaseNode requestingEntity) {
 		return context.getData(getUuid());
 	}
 

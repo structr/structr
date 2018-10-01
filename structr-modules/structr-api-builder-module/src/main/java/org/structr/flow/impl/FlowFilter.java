@@ -27,6 +27,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Filter;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowConditionBaseNode;
 import org.structr.module.api.DeployableEntity;
@@ -41,18 +42,26 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<FlowCondition> condition					= new StartNode<>("condition", FlowConditionBaseNode.class);
+	public static final Property<List<FlowBaseNode>> currentDataTarget		= new EndNodes<>("currentDataTarget", FlowCurrentDataInput.class);
 
-	public static final View defaultView 									= new View(FlowDataSource.class, PropertyView.Public, dataTarget, dataSource, condition);
-	public static final View uiView      									= new View(FlowDataSource.class, PropertyView.Ui, dataTarget, dataSource, condition);
+	public static final View defaultView 									= new View(FlowDataSource.class, PropertyView.Public, dataTarget, dataSource, condition, currentDataTarget);
+	public static final View uiView      									= new View(FlowDataSource.class, PropertyView.Ui, dataTarget, dataSource, condition, currentDataTarget);
 
 	@Override
-	public Object get(Context context) throws FlowException {
-		Object data = context.getData(getUuid());
-		if (data == null) {
-			filter(context);
-			data = context.getData(getUuid());
+	public Object get(Context context, FlowBaseNode requestingEntity) throws FlowException {
+
+		if (requestingEntity instanceof FlowCondition) {
+
+			return context.getCurrentData(getUuid());
+		} else {
+
+			Object data = context.getData(getUuid());
+			if (data == null) {
+				filter(context);
+				data = context.getData(getUuid());
+			}
+			return data;
 		}
-		return data;
 	}
 
 	@Override
@@ -61,7 +70,7 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 		FlowCondition condition = getProperty(FlowFilter.condition);
 
 		if (ds != null) {
-			Object data = ds.get(context);
+			Object data = ds.get(context, this);
 
 			if (data instanceof Collection) {
 
@@ -70,8 +79,8 @@ public class FlowFilter extends FlowNode implements DataSource, Filter, Deployab
 					data = ((Collection) data).stream().filter( el -> {
 
 						try {
-							context.setData(getUuid(), el);
-							return (Boolean)condition.get(context);
+							context.setCurrentData(getUuid(), el);
+							return (Boolean)condition.get(context, this);
 
 						} catch (FlowException ex) {
 							logger.warn("Exception in FlowFilter filter(): " + ex.getMessage());

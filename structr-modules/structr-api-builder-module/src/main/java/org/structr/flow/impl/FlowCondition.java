@@ -18,10 +18,15 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 
 /**
  *
  */
 public abstract class FlowCondition extends FlowBaseNode implements DataSource {
+	public static final Property<DataSource> currentDataSource = new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
+
 }

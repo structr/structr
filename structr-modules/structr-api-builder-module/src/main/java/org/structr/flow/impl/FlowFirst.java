@@ -30,6 +30,7 @@ import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowNodeDataSource;
 import org.structr.flow.impl.rels.FlowNameDataSource;
 
@@ -43,11 +44,12 @@ public class FlowFirst extends FlowDataSource {
 	private static final Logger logger = LoggerFactory.getLogger(FlowFirst.class);
 
 	@Override
-	public Object get(final Context context) throws FlowException {
+	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
 
 		final DataSource _dataSource = getProperty(dataSource);
+		final DataSource _currentDataSource = getProperty(currentDataSource);
 
-		if (_dataSource != null) {
+		if (_dataSource != null || _currentDataSource != null) {
 
 			Object currentData = context.getData(getUuid());
 
@@ -55,7 +57,11 @@ public class FlowFirst extends FlowDataSource {
 				return currentData;
 			}
 
-			Object dsData = _dataSource.get(context);
+			Object dsData = _dataSource.get(context, this);
+
+			if (dsData == null) {
+				dsData = _currentDataSource.get(context, this);
+			}
 
 			if (dsData != null && dsData instanceof Collection) {
 				Collection c = (Collection)dsData;

@@ -32,6 +32,7 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
@@ -41,12 +42,13 @@ import java.util.Map;
 
 public class FlowLog extends FlowActionNode implements DeployableEntity, ThrowingElement {
 
+	public static final Property<DataSource> currentDataSource 				= new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 	public static final Property<String> script             				= new StringProperty("script");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, exceptionHandler, isStartNodeOfContainer);
+	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, exceptionHandler, isStartNodeOfContainer, currentDataSource);
+	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, exceptionHandler, isStartNodeOfContainer, currentDataSource);
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowLog.class);
 
@@ -59,11 +61,13 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 
 		try {
 
-			final DataSource _dataSource = getProperty(FlowAction.dataSource);
-
+			final DataSource _dataSource = getProperty(dataSource);
+			final DataSource _currentDataSource = getProperty(currentDataSource);
 			// make data available to action if present
 			if (_dataSource != null) {
-				context.setData(getUuid(), _dataSource.get(context));
+				context.setData(getUuid(), _dataSource.get(context, this));
+			} else if (_currentDataSource != null) {
+				context.setData(getUuid(), _currentDataSource.get(context, this));
 			}
 
 			// Evaluate script and write result to context
