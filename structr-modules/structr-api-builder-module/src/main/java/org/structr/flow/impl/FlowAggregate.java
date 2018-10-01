@@ -30,7 +30,6 @@ import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowAggregateStartValue;
-import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
@@ -41,7 +40,6 @@ import java.util.Map;
 
 public class FlowAggregate extends FlowNode implements Aggregation, DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> currentDataSource				= new StartNode<>("currentDataSource", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
 	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
 	public static final Property<DataSource> startValueSource				= new StartNode<>("startValue", FlowAggregateStartValue.class);
@@ -49,8 +47,8 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 
 	public static final Property<String> script             				= new StringProperty("script");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer, currentDataSource);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer, currentDataSource);
+	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
+	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
 
 	@Override
 	public void aggregate(Context context) throws FlowException {
@@ -61,15 +59,13 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 			DataSource ds = getProperty(dataSource);
 			DataSource startValue = getProperty(startValueSource);
 
-			if (ds == null) {
-				ds = getProperty(currentDataSource);
-			}
-
 			if (_script != null && startValue != null && ds != null) {
 
 				if (context.getData(getUuid()) == null) {
-					context.setData(getUuid(), startValue.get(context, this));
+					context.setData(getUuid(), startValue.get(context));
 				}
+
+				context.setAggregation(getUuid(), ds.get(context));
 
 				Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script + "}", "FlowAggregate(" + getUuid() + ")");
 
@@ -85,7 +81,7 @@ public class FlowAggregate extends FlowNode implements Aggregation, DataSource, 
 	}
 
 	@Override
-	public Object get(Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(Context context) throws FlowException {
 
 		if (context.getData(getUuid()) == null) {
 			aggregate(context);

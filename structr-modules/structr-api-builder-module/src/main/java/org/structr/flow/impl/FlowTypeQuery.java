@@ -61,7 +61,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 
 
 	@Override
-	public Object get(Context context, FlowBaseNode requestingEntity) {
+	public Object get(Context context) {
 
 		App app = StructrApp.getInstance(securityContext);
 

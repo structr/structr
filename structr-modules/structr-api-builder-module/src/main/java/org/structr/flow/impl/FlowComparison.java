@@ -36,25 +36,25 @@ import org.structr.module.api.DeployableEntity;
  */
 public class FlowComparison extends FlowCondition implements DataSource, DeployableEntity {
 
-	public static final Property<DataSource> currentDataSource 			= new StartNode<>("currentDataSource", FlowCurrentDataInput.class);
-	public static final Property<List<DataSource>> dataSources 			= new StartNodes<>("dataSources", FlowDataInputs.class);
-	public static final Property<DataSource> dataSource					= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<FlowCondition> condition 				= new EndNode<>("condition", FlowConditionCondition.class);
-	public static final Property<List<FlowDecision>> decision 			= new EndNodes<>("decision", FlowDecisionCondition.class);
+	public static final Property<List<DataSource>> dataSources 	= new StartNodes<>("dataSources", FlowDataInputs.class);
+	public static final Property<DataSource> dataSource			= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<FlowCondition> condition 		= new EndNode<>("condition", FlowConditionCondition.class);
+	public static final Property<List<FlowDecision>> decision 	= new EndNodes<>("decision", FlowDecisionCondition.class);
 
-	public static final Property<Operation> operation 					= new EnumProperty<>("operation", Operation.class);
+	public static final Property<Operation> operation 			= new EnumProperty<>("operation", Operation.class);
 
-	public static final View defaultView 								= new View(FlowNotNull.class, PropertyView.Public, dataSources, dataSource, condition, decision, operation, currentDataSource);
-	public static final View uiView      								= new View(FlowNotNull.class, PropertyView.Ui,     dataSources, dataSource, condition, decision, operation, currentDataSource);
+	public static final View defaultView 						= new View(FlowNotNull.class, PropertyView.Public, dataSources, dataSource, condition, decision, operation);
+	public static final View uiView      						= new View(FlowNotNull.class, PropertyView.Ui,     dataSources, dataSource, condition, decision, operation);
 
 	@Override
-	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(final Context context) throws FlowException {
 
 		final List<DataSource> _dataSources = getProperty(dataSources);
 		if (_dataSources.isEmpty()) {
 
 			return false;
 		}
+
 
 		final DataSource _dataSource = getProperty(dataSource);
 		final Operation op = getProperty(operation);
@@ -63,14 +63,7 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 			return false;
 		}
 
-		Object value = _dataSource.get(context, this);
-
-		if (value == null) {
-			DataSource _currentDataSource = getProperty(currentDataSource);
-			if (_currentDataSource != null) {
-				value = _currentDataSource.get(context, this);
-			}
-		}
+		Object value = _dataSource.get(context);
 
 		Boolean result = true;
 
@@ -78,7 +71,7 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 
 			for (final DataSource _ds : getProperty(dataSources)) {
 
-				Object data = _ds.get(context, this);
+				Object data = _ds.get(context);
 
 				if (data instanceof Comparable) {
 

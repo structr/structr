@@ -45,23 +45,19 @@ public class FlowGetProperty extends FlowDataSource {
 	public static final Property<DataSource> propertyNameSource = new StartNode<>("propertyNameSource", FlowNameDataSource.class);
 	public static final Property<String> propertyName			= new StringProperty("propertyName");
 
-	public static final View defaultView = new View(FlowGetProperty.class, PropertyView.Public, nodeSource, propertyNameSource, propertyName, currentDataSource);
-	public static final View uiView      = new View(FlowGetProperty.class, PropertyView.Ui,     nodeSource, propertyNameSource, propertyName, currentDataSource);
+	public static final View defaultView = new View(FlowGetProperty.class, PropertyView.Public, nodeSource, propertyNameSource, propertyName);
+	public static final View uiView      = new View(FlowGetProperty.class, PropertyView.Ui,     nodeSource, propertyNameSource, propertyName);
 
 	@Override
-	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(final Context context) throws FlowException {
 
-		DataSource _nodeSource = getProperty(nodeSource);
+		final DataSource _nodeSource = getProperty(nodeSource);
 		final DataSource _nameSource = getProperty(propertyNameSource);
 		final String _propertyName   = getProperty(propertyName);
 
-		if (_nodeSource == null) {
-			_nodeSource = getProperty(currentDataSource);
-		}
-
 		if (_nodeSource != null && (_nameSource != null || _propertyName != null) ) {
 
-			final Object node = _nodeSource.get(context, this);
+			final Object node = _nodeSource.get(context);
 			if (node != null) {
 
 				if (node instanceof GraphObject) {
@@ -69,7 +65,7 @@ public class FlowGetProperty extends FlowDataSource {
 					Object name;
 
 					if (_nameSource != null) {
-						name = _nameSource.get(context, this);
+						name = _nameSource.get(context);
 					} else {
 						name = _propertyName;
 					}

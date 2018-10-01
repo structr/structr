@@ -22,18 +22,17 @@ import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.Decision;
-import org.structr.flow.impl.FlowDecision;
 
 /**
  *
  */
-public class DecisionHandler implements FlowHandler<FlowDecision> {
+public class DecisionHandler implements FlowHandler<Decision> {
 
 	@Override
-	public FlowElement handle(final Context context, final FlowDecision flowElement) throws FlowException {
+	public FlowElement handle(final Context context, final Decision flowElement) throws FlowException {
 
 		final DataSource condition = flowElement.getCondition();
-		final Object value         = condition.get(context, flowElement);
+		final Object value         = condition.get(context);
 
 		if (isTrue(value)) {
 

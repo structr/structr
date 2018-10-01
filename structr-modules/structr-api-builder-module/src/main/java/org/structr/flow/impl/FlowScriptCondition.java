@@ -45,25 +45,22 @@ public class FlowScriptCondition extends FlowCondition implements 	DeployableEnt
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
 	public static final Property<String> script 							= new StringProperty("script");
 
-	public static final View defaultView 									= new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget, exceptionHandler, currentDataSource);
-	public static final View uiView     									= new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget, exceptionHandler, currentDataSource);
+	public static final View defaultView 									= new View(FlowScriptCondition.class, PropertyView.Public, script, scriptSource, dataSource, dataTarget, exceptionHandler);
+	public static final View uiView     									= new View(FlowScriptCondition.class, PropertyView.Ui,     script, scriptSource, dataSource, dataTarget, exceptionHandler);
 
 	@Override
-	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(final Context context) throws FlowException {
 
-		final DataSource _ds 	= getProperty(dataSource);
-		final DataSource _sc 	= getProperty(scriptSource);
-		final DataSource _cds 	= getProperty(currentDataSource);
-		final String _script 	= getProperty(script);
-		final String _dynamicScript = _sc != null ? (String)_sc.get(context, this) : null;
+		final DataSource _ds = getProperty(dataSource);
+		final DataSource _sc = getProperty(scriptSource);
+		final String _script = getProperty(script);
+		final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
 
 
 		if (_script != null || _dynamicScript != null) {
 
 			if (_ds != null) {
-				context.setData(getUuid(), _ds.get(context, this));
-			} else if (_cds != null) {
-				context.setData(getUuid(), _cds.get(context, this));
+				context.setData(getUuid(), _ds.get(context));
 			}
 
 			final String finalScript = _dynamicScript != null ? _dynamicScript : _script;

@@ -43,7 +43,7 @@ public class FlowParameterDataSource extends FlowBaseNode implements DataSource,
     public static final View uiView      						    = new View(FlowDataSource.class, PropertyView.Ui, key, dataTarget);
 
     @Override
-    public Object get(Context context, FlowBaseNode requestingEntity) throws FlowException {
+    public Object get(Context context) throws FlowException {
         String _key = getProperty(key);
         if (_key != null) {
            return context.getParameter(_key);

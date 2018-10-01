@@ -62,7 +62,7 @@ public class FlowExceptionHandler extends FlowNode implements Exception, DataSou
 	}
 
 	@Override
-	public Object get(Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(Context context) throws FlowException {
 
 		Object data = context.getData(getUuid());
 

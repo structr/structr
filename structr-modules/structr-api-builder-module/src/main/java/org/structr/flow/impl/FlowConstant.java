@@ -42,7 +42,7 @@ public class FlowConstant extends FlowBaseNode implements DataSource, Deployable
 
 
 	@Override
-	public Object get(Context context, FlowBaseNode requestingEntity) {
+	public Object get(Context context) {
 
 		ConstantType cType = getProperty(constantType);
 		Object val =  getProperty(value);

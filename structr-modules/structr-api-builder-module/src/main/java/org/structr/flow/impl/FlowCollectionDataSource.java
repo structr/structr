@@ -21,12 +21,10 @@ package org.structr.flow.impl;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInputs;
 import org.structr.module.api.DeployableEntity;
 
@@ -37,31 +35,25 @@ import java.util.Map;
 
 public class FlowCollectionDataSource extends FlowDataSource implements DeployableEntity {
 
-	public static final Property<DataSource> currentDataSource = new StartNode<>("currentDataSource", FlowCurrentDataInput.class);
 	public static final Property<List<DataSource>> dataSources = new StartNodes<>("dataSources", FlowDataInputs.class);
 
-	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, dataSources, currentDataSource);
-	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui, dataSources, currentDataSource);
+	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, dataSources);
+	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui, dataSources);
 
 	@Override
-	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(final Context context) throws FlowException {
 
 		List<Object> result = new ArrayList<>();
 		List<DataSource> sources = getProperty(dataSources);
-		DataSource currentSource = getProperty(currentDataSource);
 
 		if (sources != null && sources.size() > 0) {
 
 			for (DataSource source : sources) {
 
-				result.add(source.get(context, this));
+				result.add(source.get(context));
 
 			}
 
-		}
-
-		if (currentSource != null) {
-			result.add(currentSource.get(context, this));
 		}
 
 		return result;

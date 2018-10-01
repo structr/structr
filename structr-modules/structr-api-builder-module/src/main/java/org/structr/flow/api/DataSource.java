@@ -21,12 +21,11 @@ package org.structr.flow.api;
 import org.structr.core.graph.NodeInterface;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.FlowBaseNode;
 
 /**
  *
  */
 public interface DataSource<T> extends NodeInterface {
 
-	T get(final Context context, final FlowBaseNode requestingEntity) throws FlowException;
+	T get(final Context context) throws FlowException;
 }

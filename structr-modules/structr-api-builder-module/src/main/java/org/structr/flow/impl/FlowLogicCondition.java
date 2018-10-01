@@ -18,7 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,36 +46,19 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 	protected abstract Boolean combine(final Boolean result, final Boolean value);
 
 	@Override
-	public Object get(final Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(final Context context) throws FlowException {
 
-		final List<DataSource> _dataSources = getProperty(FlowIsTrue.dataSources);
-		List<Object> data = new ArrayList<>();
-
-		if (!_dataSources.isEmpty()) {
-
-			for (final DataSource _dataSource : _dataSources) {
-				data.add(_dataSource.get(context, this));
-			}
-		} else {
-
-			// Alternatively use supplied current data e.g. in a FlowFilter context
-			DataSource _currentDataSource = getProperty(currentDataSource);
-			if (_currentDataSource != null) {
-				data.add(_currentDataSource.get(context, this));
-			}
-
-		}
-
-		if (data.isEmpty()) {
+		final List<FlowCondition> _dataSources = getProperty(dataSources);
+		if (_dataSources.isEmpty()) {
 
 			return false;
 		}
 
 		Boolean result = null;
 
-		for (final Object currentData : data) {
+		for (final FlowCondition _dataSource : getProperty(dataSources)) {
 
-			result = combine(result, getBoolean(currentData));
+			result = combine(result, getBoolean(context, _dataSource));
 		}
 
 		return result;
@@ -95,16 +77,20 @@ public abstract class FlowLogicCondition extends FlowCondition implements Deploy
 	}
 
 	// ----- protected methods -----
-	protected static boolean getBoolean(final Object value) {
+	protected static boolean getBoolean(final Context context, final DataSource source) throws FlowException {
 
-		if (value instanceof Boolean) {
+		if (source != null) {
 
-			return (Boolean)value;
-		}
+			final Object value = source.get(context);
+			if (value instanceof Boolean) {
 
-		if (value instanceof String) {
+				return (Boolean)value;
+			}
 
-			return Boolean.valueOf((String)value);
+			if (value instanceof String) {
+
+				return Boolean.valueOf((String)value);
+			}
 		}
 
 		return false;

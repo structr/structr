@@ -25,7 +25,6 @@ import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowCallParameter;
-import org.structr.flow.impl.rels.FlowCurrentDataInput;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
 
@@ -36,25 +35,20 @@ import java.util.Map;
 public class FlowParameterInput extends FlowBaseNode implements DeployableEntity {
 
 	public static final Property<List<FlowCall>> call 				= new EndNodes<>("call", FlowCallParameter.class);
-	public static final Property<DataSource> currentDataSource 		= new StartNode<>("currentDataTarget", FlowCurrentDataInput.class);
 	public static final Property<DataSource> dataSource 			= new StartNode<>("dataSource", FlowDataInput.class);
 
 	public static final Property<String> key             			= new StringProperty("key");
 
-	public static final View defaultView 							= new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource, currentDataSource);
-	public static final View uiView      							= new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource, currentDataSource);
+	public static final View defaultView 							= new View(FlowDataSource.class, PropertyView.Public, key, call, dataSource);
+	public static final View uiView      							= new View(FlowDataSource.class, PropertyView.Ui, key, call, dataSource);
 
 
 	public void process(final Context context, final Context functionContext) throws FlowException {
 		DataSource _ds = getProperty(dataSource);
 		String _key = getProperty(key);
 
-		if (_ds == null) {
-			_ds = getProperty(currentDataSource);
-		}
-
 		if(_ds != null && _key != null) {
-			Object data = _ds.get(context, this);
+			Object data = _ds.get(context);
 			functionContext.setParameter(_key, data);
 		}
 

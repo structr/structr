@@ -109,8 +109,7 @@ public abstract class FlowDeploymentHandler {
 			FlowExceptionHandlerNodes.class,
 			FlowContainerPackageFlow.class,
 			FlowContainerPackagePackage.class,
-			FlowConditionBaseNode.class,
-			FlowCurrentDataInput.class
+			FlowConditionBaseNode.class
 	};
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {

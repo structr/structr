@@ -90,7 +90,7 @@ public class FlowCall extends FlowActionNode implements DataSource, DeployableEn
 	}
 
 	@Override
-	public Object get(Context context, FlowBaseNode requestingEntity) throws FlowException {
+	public Object get(Context context) throws FlowException {
 		if (!context.hasData(getUuid())) {
 			this.execute(context);
 		}
