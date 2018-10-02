@@ -504,7 +504,14 @@ var _Entities = {
 
 				}
 
-				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, activeView, activeViewOverride, typeInfo);
+				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
+
+				_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+					_Entities.accessControlDialog(entity, c, typeInfo);
+				});
+
+				activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
+				$('#tab-' + activeView).click();
 
 				Structr.resize();
 
@@ -553,7 +560,7 @@ var _Entities = {
 		}
 		return content;
 	},
-	appendViews: function(entity, views, texts, tabsEl, contentEl, activeView, activeViewOverride, typeInfo) {
+	appendViews: function(entity, views, texts, tabsEl, contentEl, typeInfo) {
 
 		var ul = tabsEl.children('ul');
 
@@ -581,8 +588,6 @@ var _Entities = {
 				_Entities.listProperties(entity, view, tabView, typeInfo);
 			});
 		});
-		activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
-		$('#tab-' + activeView).click();
 
 	},
 	getNullIconForKey: function (key) {
@@ -1155,58 +1160,29 @@ var _Entities = {
 			_Entities.showAccessControlDialog(entity);
 		});
 	},
-	showAccessControlDialog: function(entity) {
-
+	accessControlDialog: function(entity, el, typeInfo) {
+		
 		var id = entity.id;
-
-		var initialObj;
-
-		Structr.dialog('Access Control and Visibility', function() {
-		}, function() {
-			if (Structr.isModuleActive(_Crud)) {
-
-				var handleGraphObject = function(entity) {
-					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
-						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
-					}
-
-					_Crud.refreshCell(id, "visibleToPublicUsers",        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
-					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
-				};
-
-				if (entity.targetId) {
-					Command.getRelationship(id, entity.targetId, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
-				} else {
-					Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
-				}
-			}
-		});
 
 		var handleGraphObject = function(entity) {
 
-			initialObj = {
-				ownerId: entity.owner ? entity.owner.id : null,
-				visibleToPublicUsers: entity.visibleToPublicUsers,
-				visibleToAuthenticatedUsers: entity.visibleToAuthenticatedUsers
-			};
-
 			var owner_select_id = 'owner_select_' + id;
-			dialogText.append('<span id="' + owner_select_id + '"></span>');
-			var owner_select = $('#' + owner_select_id, dialogText);
+			el.append('<span id="' + owner_select_id + '"></span>');
+			var owner_select = $('#' + owner_select_id, el);
 
-			dialogText.append('<h3>Visibility</h3>');
+			el.append('<h3>Visibility</h3>');
 
 			if (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent))) {
-				dialogText.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
+				el.append('<div>Apply visibility switches recursively? <input id="recursive" type="checkbox" name="recursive"></div><br>');
 			}
 
-			_Entities.appendBooleanSwitch(dialogText, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
-			_Entities.appendBooleanSwitch(dialogText, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
+			_Entities.appendBooleanSwitch(el, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
+			_Entities.appendBooleanSwitch(el, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
-			dialogText.append('<h3>Access Rights</h3>');
-			dialogText.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
+			el.append('<h3>Access Rights</h3>');
+			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th></tr></thead><tbody></tbody></table');
 
-			var tb = $('#principals tbody', dialogText);
+			var tb = $('#principals tbody', el);
 			tb.append('<tr id="new"><td><select style="width: 300px;z-index: 999" id="newPrincipal"><option>Select Group/User</option></select></td><td><input id="newRead" type="checkbox" disabled="disabled"></td><td><input id="newWrite" type="checkbox" disabled="disabled"></td><td><input id="newDelete" type="checkbox" disabled="disabled"></td><td><input id="newAccessControl" type="checkbox" disabled="disabled"></td></tr>');
 
 			$.ajax({
@@ -1258,7 +1234,7 @@ var _Entities = {
 			select.on('change', function() {
 				var sel = $(this);
 				var pId = sel[0].value;
-				var rec = $('#recursive', dialogText).is(':checked');
+				var rec = $('#recursive', el).is(':checked');
 				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 				$('#new', tb).selectedIndex = 0;
 
@@ -1272,7 +1248,41 @@ var _Entities = {
 			Command.getRelationship(id, entity.targetId, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
 		} else {
 			Command.get(id, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
-		}
+		}		
+	},
+	showAccessControlDialog: function(entity) {
+
+		var id = entity.id;
+
+		var initialObj = {
+			ownerId: entity.owner ? entity.owner.id : null,
+			visibleToPublicUsers: entity.visibleToPublicUsers,
+			visibleToAuthenticatedUsers: entity.visibleToAuthenticatedUsers
+		};
+
+		Structr.dialog('Access Control and Visibility', function() {
+		}, function() {
+			if (Structr.isModuleActive(_Crud)) {
+
+				var handleGraphObject = function(entity) {
+					if (!entity.owner || initialObj.ownerId !== entity.owner.id) {
+						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
+					}
+
+					_Crud.refreshCell(id, "visibleToPublicUsers",        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
+					_Crud.refreshCell(id, "visibleToAuthenticatedUsers", entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
+				};
+
+				if (entity.targetId) {
+					Command.getRelationship(id, entity.targetId, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
+				} else {
+					Command.get(id, "id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", handleGraphObject);
+				}
+			}
+		});
+
+		_Entities.accessControlDialog(entity, dialogText);
+
 	},
 	addPrincipal: function (entity, principal, permissions) {
 		$('#newPrincipal option[value="' + principal.id + '"]').remove();
