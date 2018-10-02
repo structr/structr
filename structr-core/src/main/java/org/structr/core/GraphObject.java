@@ -161,10 +161,6 @@ public interface GraphObject {
 	 * @throws FrameworkException
 	 */
 	default void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
-		setPropertiesInternal(securityContext, properties);
-	}
-
-	default void setPropertiesInternal(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
 
 		final CreationContainer container = new CreationContainer(this);
 
@@ -280,7 +276,11 @@ public interface GraphObject {
 
 				try {
 
-					values.put(key.dbName(), converter.convert(this.getProperty(key)));
+					final Object value = converter.convert(this.getProperty(key));
+					if (key.indexable(value)) {
+
+						values.put(key.dbName(), value);
+					}
 
 				} catch (FrameworkException ex) {
 
@@ -290,8 +290,12 @@ public interface GraphObject {
 
 			} else {
 
-				// index unconverted value
-				values.put(key.dbName(), this.getProperty(key));
+				final Object value = this.getProperty(key);
+				if (key.indexable(value)) {
+
+					// index unconverted value
+					values.put(key.dbName(), value);
+				}
 			}
 		}
 
