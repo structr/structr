@@ -134,7 +134,7 @@ public class ModificationQueue {
 		}
 
 		long t = System.currentTimeMillis() - t0;
-		if (t > 200) {
+		if (t > 1000) {
 
 			logger.info("doValidation: {} ms ({} modifications)   ({} ms validation - {} ms indexing)", t, modifications.size(), validationTime, indexingTime);
 		}
