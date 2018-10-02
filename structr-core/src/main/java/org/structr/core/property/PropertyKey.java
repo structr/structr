@@ -322,7 +322,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	}
 
 	public Object getIndexValue(final Object value);
-	public boolean indexable(final Object value);
+	public boolean isPropertyTypeIndexable();
+	public boolean isPropertyValueIndexable(final Object value);
 
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
 	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;

@@ -155,9 +155,9 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 
-		} catch(FrameworkException fex) {
+		} catch(Throwable t) {
 
-			logger.warn("", fex);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -192,9 +192,9 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 
-		} catch(FrameworkException fex) {
+		} catch(Throwable t) {
 
-			logger.warn("", fex);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -251,7 +251,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

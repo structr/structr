@@ -141,10 +141,10 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 			// update data
 			update(key, value);
-		}
 
-		// mark node as modified
-		setModified();
+			// mark node as modified
+			setModified();
+		}
 	}
 
 	@Override
@@ -152,21 +152,25 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
-		final Map<String, Object> map = new HashMap<>();
-		final SessionTransaction tx   = db.getCurrentTransaction();
-		final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties}";
+		// only update values if actually different from what is stored
+		if (needsUpdate(values)) {
 
-		// overwrite a potential "id" property
-		map.put("id", id);
-		map.put("properties", values);
+			final Map<String, Object> map = new HashMap<>();
+			final SessionTransaction tx   = db.getCurrentTransaction();
+			final String query            = getQueryPrefix() + " WHERE ID(n) = {id} SET n += {properties}";
 
-		// execute query
-		tx.set(query, map);
+			// overwrite a potential "id" property
+			map.put("id", id);
+			map.put("properties", values);
 
-		// update data
-		update(values);
+			// execute query
+			tx.set(query, map);
 
-		setModified();
+			// update data
+			update(values);
+
+			setModified();
+		}
 	}
 
 	@Override
@@ -290,6 +294,19 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 			data.remove(key);
 		}
+	}
+
+	private boolean needsUpdate(final Map<String, Object> data) {
+
+		for (final Entry<String, Object> entry : data.entrySet()) {
+
+			if (needsUpdate(entry.getKey(), entry.getValue())) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean needsUpdate(final String key, final Object newValue) {

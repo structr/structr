@@ -472,69 +472,45 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public boolean cachingEnabled() { return cachingEnabled; }
 
-	/*
-	@Override
-	public void index(final GraphObject entity, final Object value) {
-
-		if (entity.isNode()) {
-
-			final NodeService nodeService     = Services.getInstance().getService(NodeService.class);
-			final PropertyContainer container = entity.getPropertyContainer();
-			final Index<Node> index           = nodeService.getNodeIndex();
-
-			if (index != null) {
-
-				try {
-
-					index.remove(container, dbName);
-
-					if (value != null || isIndexedWhenEmpty()) {
-						index.add(container, dbName, value, valueType());
-					}
-
-				} catch (Throwable t) {
-
-					logger.info("Unable to index property with dbName {} and value {} of type {} on {}: {}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
-					logger.warn("", t);
-				}
-			}
-
-		} else if (entity instanceof AbstractRelationship) {
-
-			final NodeService nodeService     = Services.getInstance().getService(NodeService.class);
-			final PropertyContainer container = entity.getPropertyContainer();
-			final Index<Relationship> index   = nodeService.getRelationshipIndex();
-
-			if (index != null) {
-
-				try {
-
-					index.remove(container, dbName);
-
-					if (value != null || isIndexedWhenEmpty()) {
-						index.add(container, dbName, value, valueType());
-					}
-
-				} catch (Throwable t) {
-
-					logger.info("Unable to index property with dbName {} and value {} of type {} on {}: {}", new Object[] { dbName, value, this.getClass().getSimpleName(), entity, t } );
-				}
-			}
-		}
-	}
-	*/
-
 	@Override
 	public Object getIndexValue(final Object value) {
 		return value;
 	}
 
 	@Override
-	public boolean indexable(final Object value) {
+	public boolean isPropertyTypeIndexable() {
+
+		final Class valueType = valueType();
+		if (valueType != null) {
+
+			// indexable indicated by value type
+			if (AbstractCypherIndex.INDEXABLE.contains(valueType)) {
+
+				return true;
+			}
+
+			if (valueType.equals(Date.class)) {
+				return true;
+			}
+
+			if (valueType.isEnum()) {
+				return true;
+			}
+
+			if (valueType.isArray()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isPropertyValueIndexable(final Object value) {
 
 		if (value != null) {
 
-			final Class valueType = valueType();
+			final Class valueType = value.getClass();
 			if (valueType != null) {
 
 				// indexable indicated by value type
@@ -557,7 +533,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 			}
 		}
 
-		return false;
+		// index empty as well
+		return isIndexedWhenEmpty();
 	}
 
 	@Override

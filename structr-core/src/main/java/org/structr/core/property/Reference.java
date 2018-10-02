@@ -368,8 +368,13 @@ public class Reference<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean indexable(Object value) {
-		return propertyKey.indexable(value);
+	public boolean isPropertyTypeIndexable() {
+		return propertyKey.isPropertyTypeIndexable();
+	}
+
+	@Override
+	public boolean isPropertyValueIndexable(Object value) {
+		return propertyKey.isPropertyValueIndexable(value);
 	}
 
 	@Override

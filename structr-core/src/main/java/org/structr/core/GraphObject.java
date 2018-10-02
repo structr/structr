@@ -171,7 +171,7 @@ public interface GraphObject {
 			final PropertyKey key = attr.getKey();
 			final Object value    = attr.getValue();
 
-			if (key.indexable(value)) {
+			if (value != null && key.isPropertyTypeIndexable()) {
 
 				final Object oldValue = getProperty(key);
 				if ( !value.equals(oldValue) ) {
@@ -277,7 +277,7 @@ public interface GraphObject {
 				try {
 
 					final Object value = converter.convert(this.getProperty(key));
-					if (key.indexable(value)) {
+					if (key.isPropertyValueIndexable(value)) {
 
 						values.put(key.dbName(), value);
 					}
@@ -291,7 +291,7 @@ public interface GraphObject {
 			} else {
 
 				final Object value = this.getProperty(key);
-				if (key.indexable(value)) {
+				if (key.isPropertyValueIndexable(value)) {
 
 					// index unconverted value
 					values.put(key.dbName(), value);
@@ -311,7 +311,7 @@ public interface GraphObject {
 			final PropertyKey key                 = attr.getKey();
 			final Object value                    = attr.getValue();
 
-			if (key.indexable(value) && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
+			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
 
 				// value can be set directly, move to creation container
 				key.setProperty(securityContext, indexable, value);
