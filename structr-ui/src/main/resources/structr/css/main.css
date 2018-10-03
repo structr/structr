@@ -2094,6 +2094,10 @@ button.add_property {
 	height: 19px;
 }
 
+.ownerBox .chosen-container {
+	width: 400px ! important;
+}
+
 .chosen-container.sorting .chosen-drop {
 	display: none;
 }
