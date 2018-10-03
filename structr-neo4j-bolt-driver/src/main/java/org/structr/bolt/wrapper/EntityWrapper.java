@@ -21,6 +21,7 @@ package org.structr.bolt.wrapper;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -152,8 +153,11 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 		assertNotStale();
 
+		// remove properties that are already present
+		filter(values);
+
 		// only update values if actually different from what is stored
-		if (needsUpdate(values)) {
+		if (!values.isEmpty()) {
 
 			final Map<String, Object> map = new HashMap<>();
 			final SessionTransaction tx   = db.getCurrentTransaction();
@@ -296,17 +300,20 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 		}
 	}
 
-	private boolean needsUpdate(final Map<String, Object> data) {
+	private void filter(final Map<String, Object> data) {
 
-		for (final Entry<String, Object> entry : data.entrySet()) {
+		final Iterator<Entry<String, Object>> it = data.entrySet().iterator();
 
-			if (needsUpdate(entry.getKey(), entry.getValue())) {
+		while (it.hasNext()) {
 
-				return true;
+			final Entry<String, Object> entry = it.next();
+
+			// remove all keys that are already present
+			if (!needsUpdate(entry.getKey(), entry.getValue())) {
+
+				it.remove();
 			}
 		}
-
-		return false;
 	}
 
 	private boolean needsUpdate(final String key, final Object newValue) {
@@ -340,6 +347,15 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 			final List list2 = Arrays.asList((Object[])newValue);
 
 			return list1.equals(list2);
+		}
+
+		// special handling for the case that Neo4j always returns long values for both int and long
+		if ((existingValue instanceof Long && newValue instanceof Integer) || (existingValue instanceof Integer && newValue instanceof Long)) {
+
+			final long v1 = ((Number)existingValue).longValue();
+			final long v2 = ((Number)newValue).longValue();
+
+			return v1 == v2;
 		}
 
 		return existingValue.equals(newValue);

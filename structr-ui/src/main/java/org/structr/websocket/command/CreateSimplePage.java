@@ -28,12 +28,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- * Websocket command to create a simple HTML page
- *
- *
+ * Websocket command to create a simple HTML page.
  */
 public class CreateSimplePage extends AbstractCommand {
 
@@ -44,8 +40,6 @@ public class CreateSimplePage extends AbstractCommand {
 		StructrWebSocket.addCommand(CreateSimplePage.class);
 
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -68,13 +62,9 @@ public class CreateSimplePage extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 
 		return "CREATE_SIMPLE_PAGE";
-
 	}
-
 }
