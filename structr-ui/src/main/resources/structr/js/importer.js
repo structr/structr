@@ -38,6 +38,10 @@ var Importer = {
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
+	schemaTypeCache: {
+		nodeTypes: [],
+		relTypes: []
+	},
 
 	init: function() {
 		main = $('#main');
@@ -213,11 +217,15 @@ var Importer = {
 							$('#delimiter').val(config.delimiter);
 							$('#quote-char').val(config.quoteChar);
 							$('#record-separator').val(config.recordSeparator);
-							$('#target-type-select').val(config.targetType).trigger('change', [config]);
 							$('#commit-interval').val(config.commitInterval);
 							$('#strict-quotes').prop('checked', config.strictQuotes === true),
 							$('#ignore-invalid').prop('checked', config.ignoreInvalid === true),
 							$('#range').val(config.range);
+
+							var importType = config.importType || "node";
+							$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
+
+							$('#target-type-select').val(config.targetType).trigger('change', [config]);
 						}
 					});
 				}
@@ -257,6 +265,7 @@ var Importer = {
 						commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
 						strictQuotes: $('#strict-quotes').prop('checked'),
 						ignoreInvalid: $('#ignore-invalid').prop('checked'),
+						importType: $('input[name=import-type]:checked').val(),
 						range: $('#range').val(),
 						mappings: mappings,
 						transforms: transforms
@@ -281,33 +290,56 @@ var Importer = {
 				if (data && data.result) {
 
 					var results = Papa.parse(data.result.lines);
-					var delim = results.meta.delimiter;
-					var qc    = data.result.lines.substring(0,1);
+					var delim   = results.meta.delimiter;
+					var qc      = data.result.lines.substring(0,1);
 
-					Structr.fetchHtmlTemplate('importer/dialog.csv', { data: data, delim: delim, qc: qc }, function(html) {
+					Structr.fetchHtmlTemplate('importer/dialog.csv', { data: data, delim: delim, qc: qc, importType: "node" }, function(html) {
 
 						var container = $(html);
 						dialog.append(container);
 
 						var targetTypeSelector = $('#target-type-select', container);
 
-						$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+						$.get(rootUrl + 'AbstractSchemaNode?sort=name', function(data) {
 
 							if (data && data.result) {
 
-								data.result.forEach(function(r) {
+								data.result.forEach(function(res) {
 
-									targetTypeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
+									Importer.schemaTypeCache[((res.type === "SchemaRelationshipNode") ? "relTypes" : "nodeTypes")].push(res.name);
 								});
+
+								Importer.updateSchemaTypeSelector(targetTypeSelector);
 							}
 						});
 
 						targetTypeSelector.on('change', function(e, data) { Importer.updateMapping(file, data); });
 						$(".import-option", container).on('change', function(e, data) { Importer.updateMapping(file, data); });
+
+						$('input[name=import-type]', container).on('change', function() {
+							Importer.updateSchemaTypeSelector(targetTypeSelector);
+							$('#property-select').empty();
+							$('#start-import').off('click');
+						});
 					});
 				}
 			});
 
+		});
+
+	},
+	updateSchemaTypeSelector: function(typeSelect) {
+
+		var importType = $('input[name=import-type]:checked').val();
+
+		$('option[disabled!=disabled]', typeSelect).remove();
+		typeSelect.val("");
+
+		var data = Importer.schemaTypeCache[((importType === "rel") ? "relTypes" : "nodeTypes")];
+
+		data.forEach(function(name) {
+
+			typeSelect.append('<option value="' + name + '">' + name + '</option>');
 		});
 
 	},
@@ -359,8 +391,9 @@ var Importer = {
 
 					$('#start-import').on('click', function() {
 
-						var mappings   = {};
-						var transforms = {};
+						var allowImport = true;
+						var mappings    = {};
+						var transforms  = {};
 
 						$('select.attr-mapping').each(function(i, elem) {
 
@@ -370,7 +403,12 @@ var Importer = {
 
 							// property mappings need to be from source type to target name
 							if (value && value.length) {
-								mappings[value] = name;
+								if (!mappings[value]) {
+									mappings[value] = name;
+								} else {
+									new MessageBuilder().title("Import Configuration Error").error("Duplicate mapping found: <strong>" + value + "</strong>").show();
+									allowImport = false;
+								}
 							}
 
 							var transform = $('input#transform' + i).val();
@@ -379,17 +417,26 @@ var Importer = {
 							}
 						});
 
-						$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
-							targetType: type,
-							delimiter: $('#delimiter').val(),
-							quoteChar: $('#quote-char').val(),
-							commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
-							strictQuotes: $('#strict-quotes').prop('checked'),
-							ignoreInvalid: $('#ignore-invalid').prop('checked'),
-							range: $('#range').val(),
-							mappings: mappings,
-							transforms: transforms
-						}));
+						var importType = $('input[name=import-type]:checked').val();
+						if (importType === 'rel' && (!mappings.sourceId || !mappings.targetId) ) {
+							new MessageBuilder().title("Relationship Import Error").error("sourceId and targetId are required fields for relationship imports!").show();
+							allowImport = false;
+						}
+
+						if (allowImport) {
+
+							$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
+								targetType: type,
+								delimiter: $('#delimiter').val(),
+								quoteChar: $('#quote-char').val(),
+								commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+								strictQuotes: $('#strict-quotes').prop('checked'),
+								ignoreInvalid: $('#ignore-invalid').prop('checked'),
+								range: $('#range').val(),
+								mappings: mappings,
+								transforms: transforms
+							}));
+						}
 					});
 				});
 			}
@@ -398,10 +445,14 @@ var Importer = {
 	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) {
 
 		var blacklist = [
-			'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
+			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
 			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 		];
+
+		if ($('input[name=import-type]:checked').val() === 'rel') {
+			blacklist.push('id');
+		};
 
 		$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
