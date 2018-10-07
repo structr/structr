@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.structr.api.NotFoundException;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Label;
@@ -38,7 +39,6 @@ import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.PathRelationshipMapper;
-import org.structr.bolt.mapper.PrefetchingNodeMapper;
 
 /**
  *
@@ -422,26 +422,18 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				map.put("id", id);
 
-				final StringBuilder queryBuffer = new StringBuilder("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n");
-				final long degree               = tx.getLong("MATCH (n) WHERE ID(n) = {id} RETURN size((n)-[]-())", map);
-
-				if (degree > 10 && degree < 200) {
-					queryBuffer.append(", (n)-[]-() AS p");
-				}
-
-				final QueryResult<PrefetchingNodeMapper> result = tx.getNodesPrefetchable(queryBuffer.toString(), map);
-				final Iterator<PrefetchingNodeMapper> iterator  = result.iterator();
+				final QueryResult<org.neo4j.driver.v1.types.Node> result = tx.getNodes("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n", map);
+				final Iterator<org.neo4j.driver.v1.types.Node> iterator  = result.iterator();
 
 				if (iterator.hasNext()) {
 
-					final PrefetchingNodeMapper path = iterator.next();
-
-					wrapper = new NodeWrapper(db, path.getNode());
-
-					// load relationships and other nodes
-					path.prefetch(db, wrapper);
+					wrapper = NodeWrapper.newInstance(db, iterator.next());
 
 					nodeCache.put(id, wrapper);
+
+				} else {
+
+					throw new NotFoundException("Node with ID " + id + " not found.");
 				}
 			}
 

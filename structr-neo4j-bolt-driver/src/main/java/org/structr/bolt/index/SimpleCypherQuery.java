@@ -50,20 +50,12 @@ public class SimpleCypherQuery implements PageableQuery {
 	}
 
 	@Override
-	public String getStatement() {
-
-		final StringBuilder buf = new StringBuilder(base);
-
-		buf.append(" SKIP ");
-		buf.append(page * pageSize);
-		buf.append(" LIMIT ");
-		buf.append(pageSize);
-
-		return buf.toString();
+	public String getSortKey() {
+		return null;
 	}
 
 	@Override
-	public String getCountStatement() {
+	public String getStatement() {
 
 		final StringBuilder buf = new StringBuilder(base);
 
@@ -86,6 +78,7 @@ public class SimpleCypherQuery implements PageableQuery {
 	}
 
 	@Override
-	public void enablePrefetching() {
+	public boolean idsOnly() {
+		return false;
 	}
 }

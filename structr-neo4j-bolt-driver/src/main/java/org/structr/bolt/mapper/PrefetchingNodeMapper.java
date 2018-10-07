@@ -20,7 +20,6 @@ package org.structr.bolt.mapper;
 
 import java.util.List;
 import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Path;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.wrapper.NodeWrapper;
@@ -33,21 +32,21 @@ import org.structr.bolt.wrapper.RelationshipWrapper;
 public class PrefetchingNodeMapper {
 
 	private List<Path> paths = null;
-	private Node node       = null;
+	private long nodeId      = -1L;
 
 	public PrefetchingNodeMapper(final Record record) {
 
-		this.node = record.get(0).asNode();
+		this.nodeId = record.get(0).asLong();
 
 		// if the record contains additional results, we can use them for prefetching
-		if (record.size() == 2) {
+		if (record.size() > 2) {
 
-			this.paths = (List)record.get(1).asList();
+			this.paths = (List)record.get("p").asList();
 		}
 	}
 
-	public Node getNode() {
-		return this.node;
+	public long getNode() {
+		return this.nodeId;
 	}
 
 	public void prefetch(final BoltDatabaseService db, final NodeWrapper node) {

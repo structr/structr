@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +37,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
-import org.structr.bolt.mapper.PrefetchingNodeMapper;
 import org.structr.bolt.mapper.PrefetchingRelationshipMapper;
 
 
@@ -279,23 +277,12 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 
 				queryBuffer.append("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n");
 
-				// prefetch relationships?
-				if (tx.getLong("MATCH (n) WHERE ID(n) = {id} RETURN size((n)-[]-())", map) < 100) {
-					queryBuffer.append(", (n)-[]-() AS p");
-				}
-
-				final QueryResult<PrefetchingNodeMapper> result = tx.getNodesPrefetchable(queryBuffer.toString(), map);
-				final Iterator<PrefetchingNodeMapper> iterator  = result.iterator();
+				final QueryResult<org.neo4j.driver.v1.types.Node> result = tx.getNodes(queryBuffer.toString(), map);
+				final Iterator<org.neo4j.driver.v1.types.Node> iterator  = result.iterator();
 
 				if (iterator.hasNext()) {
 
-					final PrefetchingNodeMapper path = iterator.next();
-					final Node node                  = path.getNode();
-
-					// load relationships and other nodes
-					path.prefetch(db, null);
-
-					update(node.asMap());
+					update(iterator.next().asMap());
 
 				} else {
 

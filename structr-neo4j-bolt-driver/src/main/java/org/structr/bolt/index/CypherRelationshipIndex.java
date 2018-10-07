@@ -76,13 +76,21 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public String getQuerySuffix(final boolean doPrefetching) {
-		return " RETURN DISTINCT n, s, t";
-	}
+	public String getQuerySuffix(final PageableQuery query) {
 
-	@Override
-	public String getCountQuerySuffix() {
-		return null;
+		final StringBuilder buf = new StringBuilder();
+		final String sortKey    = query.getSortKey();
+
+		buf.append(" RETURN DISTINCT n, s, t");
+
+		if (sortKey != null) {
+
+			buf.append(", n.`");
+			buf.append(sortKey);
+			buf.append("` AS sortKey");
+		}
+
+		return buf.toString();
 	}
 
 	@Override

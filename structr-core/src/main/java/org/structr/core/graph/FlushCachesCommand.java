@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.bolt.index.AdvancedCypherQuery;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
 import org.structr.common.AccessPathCache;
@@ -44,10 +45,12 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	}
 
 	public static void flushAll() {
+
 		ResourceAccess.clearCache();
 		NodeWrapper.clearCache();
 		RelationshipWrapper.clearCache();
 		Actions.clearCache();
+		AdvancedCypherQuery.flushCaches();
 
 		AccessPathCache.invalidate();
 

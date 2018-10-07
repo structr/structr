@@ -25,10 +25,11 @@ public interface PageableQuery {
 
 	int pageSize();
 	void nextPage();
-	void enablePrefetching();
+	String getSortKey();
 	String getStatement();
-	String getCountStatement();
 	Map<String, Object> getParameters();
 
 	QueryContext getQueryContext();
+
+	boolean idsOnly();
 }

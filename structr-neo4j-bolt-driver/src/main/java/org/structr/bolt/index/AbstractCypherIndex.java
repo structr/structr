@@ -94,8 +94,7 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 
 	public abstract QueryResult<T> getResult(final PageableQuery query);
 	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel);
-	public abstract String getCountQuerySuffix();
-	public abstract String getQuerySuffix(final boolean doPrefetching);
+	public abstract String getQuerySuffix(final PageableQuery query);
 
 	@Override
 	public QueryResult<T> query(final QueryContext context, final QueryPredicate predicate) {

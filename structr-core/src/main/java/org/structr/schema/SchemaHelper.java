@@ -361,6 +361,9 @@ public class SchemaHelper {
 
 			final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
 
+			// initialize cache
+			app.nodeQuery(ResourceAccess.class).getAsList();
+
 			cleanUnusedDynamicGrants(existingSchemaNodes);
 
 			for (final SchemaNode schemaNode : existingSchemaNodes) {

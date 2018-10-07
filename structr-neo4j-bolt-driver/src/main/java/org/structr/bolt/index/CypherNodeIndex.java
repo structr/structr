@@ -18,13 +18,11 @@
  */
 package org.structr.bolt.index;
 
-import java.util.Map;
-import org.structr.api.NativeResult;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.NodeNodeMapper;
 import org.structr.bolt.mapper.PathNodeMapper;
 
 /**
@@ -68,45 +66,40 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQuerySuffix(final boolean doPrefetching) {
+	public String getQuerySuffix(final PageableQuery query) {
 
-		if (doPrefetching) {
+		final StringBuilder buf = new StringBuilder();
+		final String sortKey    = query.getSortKey();
 
-			return " RETURN n, (n)-[]-() AS p";
+		if (query.idsOnly()) {
+
+			buf.append(" RETURN DISTINCT id(n)");
+
+		} else {
+
+			buf.append(" RETURN DISTINCT n");
 		}
 
-		return " RETURN DISTINCT n";
-	}
+		if (sortKey != null) {
 
-	@Override
-	public String getCountQuerySuffix() {
-		return " WITH n RETURN { n: n.id, count: size((n)-[]-()) } AS count";
+			buf.append(", n.`");
+			buf.append(sortKey);
+			buf.append("` AS sortKey");
+		}
+
+		return buf.toString();
 	}
 
 	@Override
 	public QueryResult<Node> getResult(final PageableQuery query) {
 
-		final String countStatement = query.getCountStatement();
-		final SessionTransaction tx = db.getCurrentTransaction();
-		final NativeResult result   = tx.run(countStatement, query.getParameters());
-		long maxDegree                    = 0;
+		if (query.idsOnly()) {
 
-		while (result.hasNext()) {
+			return QueryUtils.map(new PathNodeMapper(db), new PrefetchNodeResultStream(db, query));
 
-			final Map<String, Object> map   = result.next();
-			final Map<String, Object> count = (Map<String, Object>)map.get("count");
-			final String uuid               = (String)count.get("id");
-			final Long num                  = (Long)count.get("count");
+		} else {
 
-			if (num > maxDegree) {
-				maxDegree = num;
-			}
+			return QueryUtils.map(new NodeNodeMapper(db), new NodeResultStream(db, query));
 		}
-
-		if (maxDegree > 10 && maxDegree < 200) {
-			query.enablePrefetching();
-		}
-
-		return QueryUtils.map(new PathNodeMapper(db), new PrefetchNodeResultStream(db, query));
 	}
 }

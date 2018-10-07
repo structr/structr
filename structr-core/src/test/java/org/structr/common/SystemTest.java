@@ -751,6 +751,21 @@ public class SystemTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testFetchByIdCache() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.nodeQuery(Group.class).getAsList();
+			app.nodeQuery(Group.class).andName("test").getAsList();
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail("Error creating schema node");
+		}
+	}
+
 	private static class TestRunner implements Runnable {
 
 		private boolean success = true;

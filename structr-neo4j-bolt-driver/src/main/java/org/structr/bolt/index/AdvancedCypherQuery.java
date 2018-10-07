@@ -19,11 +19,12 @@
 package org.structr.bolt.index;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortType;
 
@@ -32,20 +33,20 @@ import org.structr.api.search.SortType;
  */
 public class AdvancedCypherQuery implements PageableQuery {
 
-	private final Map<String, Object> parameters = new HashMap<>();
-	private final List<String> typeLabels        = new LinkedList<>();
-	private final StringBuilder buffer           = new StringBuilder();
-	private String sourceTypeLabel               = null;
-	private String targetTypeLabel               = null;
-	private AbstractCypherIndex<?> index         = null;
-	private boolean doPrefetching                = false;
-	private boolean sortDescending               = false;
-	private SortType sortType                    = null;
-	private String sortKey                       = null;
-	private int page                             = 0;
-	private int pageSize                         = 0;
-	private int count                            = 0;
-	private QueryContext queryContext            = null;
+	private static final Set<Integer> alreadyLoaded = new HashSet<>();
+	private final Map<String, Object> parameters    = new HashMap<>();
+	private final List<String> typeLabels           = new LinkedList<>();
+	private final StringBuilder buffer              = new StringBuilder();
+	private String sourceTypeLabel                  = null;
+	private String targetTypeLabel                  = null;
+	private AbstractCypherIndex<?> index            = null;
+	private boolean sortDescending                  = false;
+	private SortType sortType                       = null;
+	private String sortKey                          = null;
+	private int page                                = 0;
+	private int pageSize                            = 0;
+	private int count                               = 0;
+	private QueryContext queryContext               = null;
 
 	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index) {
 		this.queryContext = queryContext;
@@ -58,33 +59,23 @@ public class AdvancedCypherQuery implements PageableQuery {
 		return getStatement();
 	}
 
-	public int getHashCode() {
-
-		int hashCode = 23;
-
-		hashCode += 27 * typeLabels.hashCode();
-		hashCode += 37 * getStatement().hashCode();
-		hashCode += 47 * deepHashCode(parameters);
-
-		if (sortKey != null) {
-			hashCode += 57 * sortKey.hashCode();
-		}
-
-		if (sortDescending) {
-			hashCode += 1;
-		}
-
-		return hashCode;
-	}
-
 	@Override
 	public void nextPage() {
+
+		// store hash BEFORE incrementing the page..
+		alreadyLoaded.add(semanticHashCode(true));
+
 		page++;
 	}
 
 	@Override
 	public int pageSize() {
 		return this.pageSize;
+	}
+
+	@Override
+	public String getSortKey() {
+		return sortKey;
 	}
 
 	@Override
@@ -104,7 +95,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 					buf.append(buffer);
 				}
 
-				buf.append(index.getQuerySuffix(doPrefetching));
+				buf.append(index.getQuerySuffix(this));
 				break;
 
 			case 1:
@@ -116,7 +107,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 					buf.append(buffer);
 				}
 
-				buf.append(index.getQuerySuffix(doPrefetching));
+				buf.append(index.getQuerySuffix(this));
 				break;
 
 			default:
@@ -131,7 +122,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 						buf.append(buffer);
 					}
 
-					buf.append(index.getQuerySuffix(doPrefetching));
+					buf.append(index.getQuerySuffix(this));
 
 					if (it.hasNext()) {
 						buf.append(" UNION ");
@@ -147,17 +138,13 @@ public class AdvancedCypherQuery implements PageableQuery {
 				case Default:
 					// default is "String"
 					// no COALESCE needed => much faster
-					buf.append(" ORDER BY n.`");
-					buf.append(sortKey);
-					buf.append("` ");
+					buf.append(" ORDER BY sortKey");
 
 					break;
 
 				default:
 					// other types are numeric
-					buf.append(" ORDER BY COALESCE(n.`");
-					buf.append(sortKey);
-					buf.append("`, ");
+					buf.append(" ORDER BY COALESCE(sortKey, ");
 
 					// COALESCE needs a correctly typed minimum value,
 					// so we need to supply a value based on the sort
@@ -170,78 +157,6 @@ public class AdvancedCypherQuery implements PageableQuery {
 			if (sortDescending) {
 				buf.append(" DESC");
 			}
-		}
-
-		if (queryContext.isSliced()) {
-
-			buf.append(" SKIP ");
-			buf.append(queryContext.getSkip());
-			buf.append(" LIMIT ");
-			buf.append(queryContext.getLimit());
-
-		} else {
-
-			buf.append(" SKIP ");
-			buf.append(page * pageSize);
-			buf.append(" LIMIT ");
-			buf.append(pageSize);
-
-		}
-
-		return buf.toString();
-	}
-
-	@Override
-	public String getCountStatement() {
-
-		final StringBuilder buf = new StringBuilder();
-		final int typeCount     = typeLabels.size();
-
-		switch (typeCount) {
-
-			case 0:
-
-				buf.append(index.getQueryPrefix(null, sourceTypeLabel, targetTypeLabel));
-
-				if (buffer.length() > 0) {
-					buf.append(" WHERE ");
-					buf.append(buffer);
-				}
-
-				buf.append(index.getCountQuerySuffix());
-				break;
-
-			case 1:
-
-				buf.append(index.getQueryPrefix(typeLabels.get(0), sourceTypeLabel, targetTypeLabel));
-
-				if (buffer.length() > 0) {
-					buf.append(" WHERE ");
-					buf.append(buffer);
-				}
-
-				buf.append(index.getCountQuerySuffix());
-				break;
-
-			default:
-
-				// create UNION query
-				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
-
-					buf.append(index.getQueryPrefix(it.next(), sourceTypeLabel, targetTypeLabel));
-
-					if (buffer.length() > 0) {
-						buf.append(" WHERE ");
-						buf.append(buffer);
-					}
-
-					buf.append(index.getCountQuerySuffix());
-
-					if (it.hasNext()) {
-						buf.append(" UNION ");
-					}
-				}
-				break;
 		}
 
 		if (queryContext.isSliced()) {
@@ -428,28 +343,51 @@ public class AdvancedCypherQuery implements PageableQuery {
 		this.targetTypeLabel = targetTypeLabel;
 	}
 
-	private int deepHashCode(final Map<String, Object> map) {
-
-		final StringBuilder buf = new StringBuilder();
-
-		for (final Entry<String, Object> entry : map.entrySet()) {
-
-			buf.append("|");
-			buf.append(entry.getKey());
-			buf.append("|");
-			buf.append(entry.getValue());
-		}
-
-		return buf.toString().hashCode();
-	}
-
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
 	}
 
 	@Override
-	public void enablePrefetching() {
-		this.doPrefetching = true;
+	public boolean idsOnly() {
+
+		if (!parameters.isEmpty()) {
+
+			// if this query contains parameters, but we can see that there was already
+			// a query without parameters for the same type, we can assume that the
+			// previous query returned all the existing results and we can query for
+			// IDs only..
+			if (alreadyLoaded.contains(semanticHashCode(false))) {
+
+				return true;
+			}
+		}
+
+		return alreadyLoaded.contains(semanticHashCode(true));
+	}
+
+	// ----- private methods -----
+	private int semanticHashCode(final boolean includeParameters) {
+
+		int hashCode = 3427;
+
+		hashCode += 271 * typeLabels.hashCode();
+		hashCode += 634 * pageSize;
+		hashCode += 975 * page;
+
+		if (includeParameters) {
+			hashCode += 2536 * parameters.hashCode();
+		}
+
+		return hashCode;
+
+	}
+
+	// ----- public static methods -----
+	public static void flushCaches() {
+
+		synchronized (alreadyLoaded) {
+			alreadyLoaded.clear();
+		}
 	}
 }
