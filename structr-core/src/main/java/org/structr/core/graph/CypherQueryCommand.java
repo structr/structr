@@ -48,10 +48,6 @@ public class CypherQueryCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CypherQueryCommand.class.getName());
 
-	//protected static final ThreadLocalExecutionEngine engine = new ThreadLocalExecutionEngine();
-
-	//~--- methods --------------------------------------------------------
-
 	public List<GraphObject> execute(String query) throws FrameworkException {
 		return execute(query, null);
 	}
@@ -77,7 +73,7 @@ public class CypherQueryCommand extends NodeServiceCommand {
 			try (final NativeResult result = graphDb.execute(query, parameters != null ? parameters : Collections.emptyMap())) {
 
 				final List<Map<String, Object>> rows = new ArrayList<>();
-				
+
 				while (result.hasNext()) {
 
 					final Map<String, Object> row = result.next();
@@ -85,9 +81,9 @@ public class CypherQueryCommand extends NodeServiceCommand {
 				}
 
 				result.close();
-				
+
 				for (final Map<String, Object> row : rows) {
-					
+
 					for (Entry<String, Object> entry : row.entrySet()) {
 
 						String key   = entry.getKey();

@@ -20,6 +20,7 @@ package org.structr.bolt.wrapper;
 
 import java.util.Iterator;
 import org.neo4j.driver.v1.types.Path.Segment;
+import org.neo4j.driver.v1.types.Relationship;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
@@ -52,7 +53,7 @@ public class PathWrapper implements Path {
 
 			@Override
 			public boolean hasNext() {
-				return it.hasNext() || state < 2;
+				return state < 3;
 			}
 
 			@Override
@@ -60,14 +61,7 @@ public class PathWrapper implements Path {
 
 				if (current == null) {
 
-					// first step, current is uninitialized
 					current = it.next();
-
-				} else if (state == 2) {
-
-					// any other step, skip start
-					current = it.next();
-					state   = 1;
 				}
 
 				switch (state) {
@@ -77,11 +71,20 @@ public class PathWrapper implements Path {
 						return NodeWrapper.newInstance(db, current.start());
 
 					case 1:
-						state = 2;
-						return RelationshipWrapper.newInstance(db, current.relationship());
+						final Relationship rel = current.relationship();
+						if (it.hasNext()) {
+
+							state = 0;
+							current = null;
+
+						} else {
+
+							state = 2;
+						}
+						return RelationshipWrapper.newInstance(db, rel);
 
 					case 2:
-						state = 0;
+						state = 3;
 						return NodeWrapper.newInstance(db, current.end());
 				}
 

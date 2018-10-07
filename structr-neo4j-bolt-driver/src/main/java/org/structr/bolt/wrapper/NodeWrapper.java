@@ -20,11 +20,14 @@ package org.structr.bolt.wrapper;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import org.structr.api.QueryResult;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
@@ -34,16 +37,17 @@ import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
-import org.structr.bolt.mapper.RelationshipRelationshipMapper;
+import org.structr.bolt.mapper.PathRelationshipMapper;
+import org.structr.bolt.mapper.PrefetchingNodeMapper;
 
 /**
  *
  */
 public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> implements Node {
 
-	private final Map<String, Map<String, List<Relationship>>> relationshipCache = new HashMap<>();
-	private static FixedSizeCache<Long, NodeWrapper> nodeCache                   = null;
-	private boolean dontUseCache                                                 = false;
+	private final Map<String, Map<String, Set<Relationship>>> relationshipCache = new HashMap<>();
+	private static FixedSizeCache<Long, NodeWrapper> nodeCache                  = null;
+	private boolean dontUseCache                                                = false;
 
 	private NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.v1.types.Node node) {
 		super(db, node);
@@ -232,9 +236,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
-		final SessionTransaction tx                 = db.getCurrentTransaction();
-		List<Relationship> list                     = getList(null, null);
+		final PathRelationshipMapper mapper = new PathRelationshipMapper(db);
+		final SessionTransaction tx         = db.getCurrentTransaction();
+		Set<Relationship> list              = getRelationshipCache(null, null);
 
 		if (list == null || dontUseCache) {
 
@@ -243,10 +247,10 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			map.put("id", id);
 
-			list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+			list = toSet(Iterables.map(mapper, tx.getRelationshipsPrefetchable("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-(o) WHERE ID(n) = {id} RETURN DISTINCT r, o", map)));
 
 			// store in cache
-			setList(null, null, list);
+			setRelationshipCache(null, null, list);
 		}
 
 		return list;
@@ -257,9 +261,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
-		final SessionTransaction tx                 = db.getCurrentTransaction();
-		List<Relationship> list                     = getList(direction, null);
+		final PathRelationshipMapper mapper = new PathRelationshipMapper(db);
+		final SessionTransaction tx         = db.getCurrentTransaction();
+		Set<Relationship> list              = getRelationshipCache(direction, null);
 
 		if (list == null || dontUseCache) {
 
@@ -274,15 +278,15 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					return getRelationships();
 
 				case OUTGOING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toSet(Iterables.map(mapper, tx.getRelationshipsPrefetchable("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->(t) WHERE ID(n) = {id} RETURN DISTINCT r, t", map)));
 					break;
 
 				case INCOMING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toSet(Iterables.map(mapper, tx.getRelationshipsPrefetchable("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-(s) WHERE ID(n) = {id} RETURN DISTINCT r, s", map)));
 					break;
 			}
 
-			setList(direction, null, list);
+			setRelationshipCache(direction, null, list);
 
 		}
 
@@ -294,9 +298,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		assertNotStale();
 
-		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
-		final SessionTransaction tx                 = db.getCurrentTransaction();
-		List<Relationship> list                     = getList(direction, relationshipType);
+		final PathRelationshipMapper mapper = new PathRelationshipMapper(db);
+		final SessionTransaction tx         = db.getCurrentTransaction();
+		Set<Relationship> list              = getRelationshipCache(direction, relationshipType);
 
 		if (list == null || dontUseCache) {
 
@@ -308,19 +312,19 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			switch (direction) {
 
 				case BOTH:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toSet(Iterables.map(mapper, tx.getRelationshipsPrefetchable("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-(o) WHERE ID(n) = {id} RETURN DISTINCT r, o", map)));
 					break;
 
 				case OUTGOING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toSet(Iterables.map(mapper, tx.getRelationshipsPrefetchable("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->(t) WHERE ID(n) = {id} RETURN DISTINCT r, t", map)));
 					break;
 
 				case INCOMING:
-					list = toList(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					list = toSet(Iterables.map(mapper, tx.getRelationshipsPrefetchable("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-(s) WHERE ID(n) = {id} RETURN DISTINCT r, s", map)));
 					break;
 			}
 
-			setList(direction, relationshipType, list);
+			setRelationshipCache(direction, relationshipType, list);
 		}
 
 		return list;
@@ -355,11 +359,26 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return result;
 	}
 
+	public void addToCache(final RelationshipWrapper rel) {
+
+		final Direction direction   = rel.getDirectionForNode(this);
+		final RelationshipType type = rel.getType();
+		Set<Relationship> list      = getRelationshipCache(direction, type);
+
+		if (list == null) {
+
+			list = new TreeSet<>();
+			setRelationshipCache(direction, type, list, true);
+		}
+
+		list.add(rel);
+	}
+
+	// ----- public static methods -----
 	public static FixedSizeCache<Long, NodeWrapper> getCache() {
 		return nodeCache;
 	}
 
-	// ----- public static methods -----
 	public static void expunge(final Set<Long> toRemove) {
 
 		synchronized (nodeCache) {
@@ -403,20 +422,44 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				map.put("id", id);
 
-				wrapper = new NodeWrapper(db, tx.getNode("MATCH (n) WHERE ID(n) = {id} RETURN n", map));
+				final StringBuilder queryBuffer = new StringBuilder("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n");
+				final long degree               = tx.getLong("MATCH (n) WHERE ID(n) = {id} RETURN size((n)-[]-())", map);
 
-				nodeCache.put(id, wrapper);
+				if (degree > 10 && degree < 200) {
+					queryBuffer.append(", (n)-[]-() AS p");
+				}
+
+				final QueryResult<PrefetchingNodeMapper> result = tx.getNodesPrefetchable(queryBuffer.toString(), map);
+				final Iterator<PrefetchingNodeMapper> iterator  = result.iterator();
+
+				if (iterator.hasNext()) {
+
+					final PrefetchingNodeMapper path = iterator.next();
+
+					wrapper = new NodeWrapper(db, path.getNode());
+
+					// load relationships and other nodes
+					path.prefetch(db, wrapper);
+
+					nodeCache.put(id, wrapper);
+				}
 			}
 
 			return wrapper;
 		}
 	}
 
-	// ----- private methods -----
-	private Map<String, List<Relationship>> getCache(final Direction direction) {
+	// ----- protected methods -----
+	@Override
+	protected boolean isNode() {
+		return true;
+	}
 
-		final String directionKey             = direction != null ? direction.name() : "*";
-		Map<String, List<Relationship>> cache = relationshipCache.get(directionKey);
+	// ----- private methods -----
+	private Map<String, Set<Relationship>> getCache(final Direction direction) {
+
+		final String directionKey            = direction != null ? direction.name() : "*";
+		Map<String, Set<Relationship>> cache = relationshipCache.get(directionKey);
 
 		if (cache == null) {
 
@@ -427,52 +470,36 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		return cache;
 	}
 
-	private List<Relationship> getList(final Direction direction, final RelationshipType relType) {
+	private Set<Relationship> getRelationshipCache(final Direction direction, final RelationshipType relType) {
 
-		final String relTypeKey                            = relType != null ? relType.name() : "*";
-		final Map<String, List<Relationship>> cache = getCache(direction);
+		final String relTypeKey                    = relType != null ? relType.name() : "*";
+		final Map<String, Set<Relationship>> cache = getCache(direction);
 
 		return cache.get(relTypeKey);
 	}
 
-	private void setList(final Direction direction, final RelationshipType relType, final List<Relationship> list) {
+	private void setRelationshipCache(final Direction direction, final RelationshipType relType, final Set<Relationship> list) {
+		setRelationshipCache(direction, relType, list, false);
+	}
 
-		if (dontUseCache) {
+	private void setRelationshipCache(final Direction direction, final RelationshipType relType, final Set<Relationship> list, final boolean force) {
+
+		if (dontUseCache && !force) {
 			return;
 		}
 
-		final String key                            = relType != null ? relType.name() : "*";
-		final Map<String, List<Relationship>> cache = getCache(direction);
+		final String key                           = relType != null ? relType.name() : "*";
+		final Map<String, Set<Relationship>> cache = getCache(direction);
 
 		cache.put(key, list);
 	}
 
-	private List toList(final Iterable<Relationship> source) {
+	private Set toSet(final Iterable<Relationship> source) {
 
 		final List<Relationship> sorted = Iterables.toList(source);
-		final String key                = "internalTimestamp";
 
-		Collections.sort(sorted, (a, b) -> {
+		Collections.sort(sorted, (o1, o2) -> { return compare("internalTimestamp", o1, o2); });
 
-			if (!a.hasProperty(key) && b.hasProperty(key)) {
-				return -1;
-			}
-
-			if (a.hasProperty(key) && !b.hasProperty(key)) {
-				return 1;
-			}
-
-			if (a.hasProperty(key) && b.hasProperty(key)) {
-
-				final String t1 = (String)a.getProperty(key);
-				final String t2 = (String)b.getProperty(key);
-
-				return t1.compareTo(t2);
-			}
-
-			return 0;
-		});
-
-		return sorted;
+		return new TreeSet<>(sorted);
 	}
 }

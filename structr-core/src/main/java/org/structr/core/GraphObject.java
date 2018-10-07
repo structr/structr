@@ -152,15 +152,15 @@ public interface GraphObject {
 	 * @throws FrameworkException
 	 */
 	public <T> Object setProperty(final PropertyKey<T> key, T value) throws FrameworkException;
+	public <T> Object setProperty(final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException;
+
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException;
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException;
 
 	/**
 	 * Sets the given properties.
-	 *
-	 * @param securityContext
-	 * @param properties
-	 * @throws FrameworkException
 	 */
-	default void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+	default void setPropertiesInternal(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
 		final CreationContainer container = new CreationContainer(this);
 
@@ -171,10 +171,10 @@ public interface GraphObject {
 			final PropertyKey key = attr.getKey();
 			final Object value    = attr.getValue();
 
-			if (value != null && key.isPropertyTypeIndexable()) {
+			if (value != null && key.isPropertyTypeIndexable() && key.relatedType() == null) {
 
 				final Object oldValue = getProperty(key);
-				if ( !value.equals(oldValue) ) {
+				if (!value.equals(oldValue)) {
 
 					atLeastOnePropertyChanged = true;
 
@@ -185,7 +185,7 @@ public interface GraphObject {
 
 						if (!key.isUnvalidated()) {
 
-							TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)this, key, getProperty(key), value);
+							TransactionCommand.nodeModified(securityContext.getCachedUser(), (AbstractNode)this, key, oldValue, value);
 						}
 
 						if (key instanceof TypeProperty) {
@@ -202,7 +202,7 @@ public interface GraphObject {
 
 						if (!key.isUnvalidated()) {
 
-							TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)this, key, getProperty(key), value);
+							TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)this, key, oldValue, value);
 						}
 
 						if (key instanceof TypeProperty) {
@@ -224,7 +224,7 @@ public interface GraphObject {
 					unlockSystemPropertiesOnce();
 				}
 
-				setProperty(key, value);
+				setProperty(key, value, isCreation);
 			}
 		}
 

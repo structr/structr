@@ -219,12 +219,27 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 
 	@Override
 	public <T> T getProperty(PropertyKey<T> propertyKey, Predicate<GraphObject> filter) {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported by this container.");
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

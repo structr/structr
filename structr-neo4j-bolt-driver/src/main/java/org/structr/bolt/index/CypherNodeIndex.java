@@ -18,11 +18,14 @@
  */
 package org.structr.bolt.index;
 
+import java.util.Map;
+import org.structr.api.NativeResult;
 import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.mapper.NodeNodeMapper;
+import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.PathNodeMapper;
 
 /**
  *
@@ -65,12 +68,45 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQuerySuffix() {
+	public String getQuerySuffix(final boolean doPrefetching) {
+
+		if (doPrefetching) {
+
+			return " RETURN n, (n)-[]-() AS p";
+		}
+
 		return " RETURN DISTINCT n";
 	}
 
 	@Override
+	public String getCountQuerySuffix() {
+		return " WITH n RETURN { n: n.id, count: size((n)-[]-()) } AS count";
+	}
+
+	@Override
 	public QueryResult<Node> getResult(final PageableQuery query) {
-		return QueryUtils.map(new NodeNodeMapper(db), new NodeResultStream(db, query));
+
+		final String countStatement = query.getCountStatement();
+		final SessionTransaction tx = db.getCurrentTransaction();
+		final NativeResult result   = tx.run(countStatement, query.getParameters());
+		long maxDegree                    = 0;
+
+		while (result.hasNext()) {
+
+			final Map<String, Object> map   = result.next();
+			final Map<String, Object> count = (Map<String, Object>)map.get("count");
+			final String uuid               = (String)count.get("id");
+			final Long num                  = (Long)count.get("count");
+
+			if (num > maxDegree) {
+				maxDegree = num;
+			}
+		}
+
+		if (maxDegree > 10 && maxDegree < 200) {
+			query.enablePrefetching();
+		}
+
+		return QueryUtils.map(new PathNodeMapper(db), new PrefetchNodeResultStream(db, query));
 	}
 }

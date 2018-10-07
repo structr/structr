@@ -326,11 +326,9 @@ public class GraphObjectGSONAdapter {
 			if (depth > outputNestingDepth) {
 
 				return null;
-
 			}
 
-			JsonArray array = new JsonArray();
-
+			final JsonArray array = new JsonArray();
 			for (Object o : value) {
 
 				array.add(serializeRoot(o, localPropertyView, depth));

@@ -103,6 +103,11 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	@Override
 	public <T> Object setProperty(PropertyKey<T> key, T value) throws FrameworkException {
+		return setProperty(key, value, false);
+	}
+
+	@Override
+	public <T> Object setProperty(PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
 
 		data.put(key.dbName(), value);
 
@@ -111,6 +116,11 @@ public class CreationContainer implements GraphObject, PropertyContainer {
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

@@ -16,22 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.graph;
+package org.structr.bolt.mapper;
+
+import java.util.function.Function;
+import org.neo4j.driver.v1.Record;
 
 /**
  *
  */
-public interface Relationship extends PropertyContainer, Comparable<Relationship> {
-
-	Node getStartNode();
-	Node getEndNode();
-	Node getOtherNode(final Node node);
-
-	RelationshipType getType();
+public class RecordPrefetchingNodeMapper implements Function<Record, PrefetchingNodeMapper> {
 
 	@Override
-	default int compareTo(final Relationship o) {
-
-		return compare("internalTimestamp", this, o);
+	public PrefetchingNodeMapper apply(final Record t) {
+		return new PrefetchingNodeMapper(t);
 	}
 }

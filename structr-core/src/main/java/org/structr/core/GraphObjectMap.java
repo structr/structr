@@ -74,6 +74,11 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public Object setProperty(final PropertyKey key, final Object value) throws FrameworkException {
+		return setProperty(key, value, false);
+	}
+
+	@Override
+	public Object setProperty(final PropertyKey key, final Object value, final boolean isCreation) throws FrameworkException {
 		properties.put(key, value);
 		return null;
 	}
@@ -81,6 +86,16 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public <T> T getProperty(final PropertyKey<T> propertyKey) {
 		return (T)properties.get(propertyKey);
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+		setProperties(securityContext, properties, false);
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+		properties.putAll(properties);
 	}
 
 	@Override

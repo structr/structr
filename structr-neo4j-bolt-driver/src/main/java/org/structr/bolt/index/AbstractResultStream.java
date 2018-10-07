@@ -27,10 +27,10 @@ import org.structr.bolt.BoltDatabaseService;
  */
 public abstract class AbstractResultStream<T> implements QueryResult<T> {
 
-	private QueryResult<T> result             = null;
-	private PageableQuery query               = null;
-	private Iterator<T> current               = null;
-	private BoltDatabaseService db            = null;
+	private QueryResult<T> result   = null;
+	private PageableQuery query     = null;
+	private Iterator<T> current     = null;
+	private BoltDatabaseService db  = null;
 
 	protected abstract QueryResult<T> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data);
 

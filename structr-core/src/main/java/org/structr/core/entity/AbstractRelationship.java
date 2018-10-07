@@ -525,6 +525,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+		setProperties(securityContext, properties, false);
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
 		for (final PropertyKey key : properties.keySet()) {
 
@@ -534,27 +539,30 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
 					throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key));
-
 				}
 
 				// check for read-only properties
 				if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
 					throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key));
-
 				}
-
 			}
 		}
 
-		RelationshipInterface.super.setProperties(securityContext, properties);
+		RelationshipInterface.super.setPropertiesInternal(securityContext, properties, isCreation);
 	}
 
 	@Override
 	public final <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+		return setProperty(key, value, false);
+	}
+
+	@Override
+	public final <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
 		// clear function property cache in security context since we are about to invalidate past results
 		if (securityContext != null) {
+
 			securityContext.getContextStore().clearFunctionPropertyCache();
 		}
 

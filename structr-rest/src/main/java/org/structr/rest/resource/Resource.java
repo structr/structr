@@ -102,7 +102,7 @@ public abstract class Resource {
 	public RestMethodResult doDelete() throws FrameworkException {
 
 		final App app      = StructrApp.getInstance(securityContext);
-		final int pageSize = 1000;
+		final int pageSize = 500;
 		int count          = 0;
 		int chunk          = 0;
 		boolean hasMore    = true;
@@ -112,6 +112,9 @@ public abstract class Resource {
 			try (final Tx tx = app.tx(false, false, false)) {
 
 				chunk++;
+
+				// don't count all the nodes, just fetch the page
+				securityContext.ignoreResultCount(true);
 
 				// always fetch the first page
 				final Result<GraphObject> result = doGet(null, false, pageSize, 1);

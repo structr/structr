@@ -1422,6 +1422,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 */
 	@Override
 	public <T> Object setProperty(final PropertyKey<T> key, final T value) throws FrameworkException {
+		return setProperty(key, value, false);
+	}
+
+	@Override
+	public <T> Object setProperty(final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
 
 		// clear function property cache in security context since we are about to invalidate past results
 		if (securityContext != null) {
@@ -1449,24 +1454,33 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 		}
 
-		T oldValue = getProperty(key);
+		try {
 
-		// no old value exists  OR  old value exists and is NOT equal => set property
-		if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
+			// no need to check previous value when creating a node
+			T oldValue = isCreation ? null : getProperty(key);
 
-			return setPropertyInternal(key, value);
+			// no old value exists  OR  old value exists and is NOT equal => set property
+			if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
 
+				return setPropertyInternal(key, value);
+			}
+
+		} finally {
+
+			internalSystemPropertiesUnlocked = false;
+			readOnlyPropertiesUnlocked       = false;
 		}
-
-		internalSystemPropertiesUnlocked = false;
-		readOnlyPropertiesUnlocked       = false;
 
 		return null;
 	}
 
-
 	@Override
 	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+		setProperties(securityContext, properties, false);
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
 		if (!isGranted(Permission.write, securityContext)) {
 
@@ -1477,8 +1491,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			String user =  null;
 
 			if (currentUser == null) {
+
 				user = securityContext.isSuperUser() ? "superuser" : "anonymous";
+
 			} else {
+
 				user = currentUser.getProperty(AbstractNode.id);
 			}
 
@@ -1487,11 +1504,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 
 		for (final PropertyKey key : properties.keySet()) {
 
+			final Object oldValue = isCreation ? null : getProperty(key);
 			final Object value    = properties.get(key);
-			final Object oldValue = getProperty(key);
 
 			// no old value exists  OR  old value exists and is NOT equal => set property
-			if ( ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
+			if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
 
 				if (!key.equals(GraphObject.id)) {
 
@@ -1510,7 +1527,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 			}
 		}
 
-		NodeInterface.super.setProperties(securityContext, properties);
+		NodeInterface.super.setPropertiesInternal(securityContext, properties, isCreation);
 	}
 
 	private <T> Object setPropertyInternal(final PropertyKey<T> key, final T value) throws FrameworkException {

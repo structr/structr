@@ -16,22 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.graph;
+package org.structr.bolt.mapper;
+
+import java.util.function.Function;
+import org.structr.api.graph.Node;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.wrapper.NodeWrapper;
 
 /**
  *
  */
-public interface Relationship extends PropertyContainer, Comparable<Relationship> {
+public class PathNodeMapper implements Function<PrefetchingNodeMapper, Node> {
 
-	Node getStartNode();
-	Node getEndNode();
-	Node getOtherNode(final Node node);
+	private BoltDatabaseService db = null;
 
-	RelationshipType getType();
+	public PathNodeMapper(final BoltDatabaseService db) {
+		this.db            = db;
+	}
 
 	@Override
-	default int compareTo(final Relationship o) {
+	public Node apply(final PrefetchingNodeMapper t) {
 
-		return compare("internalTimestamp", this, o);
+		final NodeWrapper node = NodeWrapper.newInstance(db, t.getNode());
+
+		t.prefetch(db, node);
+
+		// user of this mapper is only interested in nodes
+		return node;
 	}
 }

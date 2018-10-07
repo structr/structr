@@ -168,7 +168,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 				TransactionCommand.nodeCreated(user, node);
 
 				securityContext.disableModificationOfAccessTime();
-				node.setProperties(securityContext, properties);
+				node.setProperties(securityContext, properties, true);
 				securityContext.enableModificationOfAccessTime();
 
 				// ensure modification callbacks are called (necessary for validation)

@@ -143,7 +143,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public Set<PropertyKey> getPropertyKeys(String propertyView) {
 
 		return null;
-
 	}
 
 	@Override
@@ -156,6 +155,14 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public <T> T getProperty(PropertyKey<T> key, Predicate<GraphObject> predicate) {
 		return null;
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties) throws FrameworkException {
+	}
+
+	@Override
+	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 	}
 
 	@Override
@@ -217,6 +224,11 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public Object setProperty(PropertyKey key, Object value) throws FrameworkException {
+		return null;
+	}
+
+	@Override
+	public Object setProperty(PropertyKey key, Object value, final boolean isCreation) throws FrameworkException {
 		return null;
 	}
 

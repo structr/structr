@@ -19,14 +19,18 @@
 package org.structr.bolt.wrapper;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import org.structr.api.QueryResult;
+import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.PrefetchingRelationshipMapper;
 
 /**
  *
@@ -58,10 +62,10 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		final String tenantIdentifier = db.getTenantIdentifier();
 		if (tenantIdentifier != null) {
 
-			return "MATCH (:" + tenantIdentifier + ")-[n]->(:" + tenantIdentifier + ")";
+			return "MATCH (s:" + tenantIdentifier + ")-[n]->(t:" + tenantIdentifier + ")";
 		}
 
-		return "MATCH ()-[n]-()";
+		return "MATCH (s)-[n]->(t)";
 	}
 
 	@Override
@@ -164,11 +168,26 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 		tx.deleted(this);
 	}
 
+	public Direction getDirectionForNode(final NodeWrapper node) {
+
+		if (node.getId() == sourceNodeId) {
+			return Direction.OUTGOING;
+		}
+
+		return Direction.INCOMING;
+	}
+
+	// ----- protected methods -----
+	@Override
+	protected boolean isNode() {
+		return false;
+	}
+
+	// ----- public static methods -----
 	public static FixedSizeCache<Long, RelationshipWrapper> getCache() {
 		return relationshipCache;
 	}
 
-	// ----- public static methods -----
 	public static void clearCache() {
 		relationshipCache.clear();
 	}
@@ -202,24 +221,35 @@ public class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.v1.types
 
 				map.put("id", id);
 
-				buf.append("MATCH (");
+				buf.append("MATCH (s");
+				if (tenantIdentifier != null) {
+					buf.append(":");
+					buf.append(tenantIdentifier);
+				}
+
+				buf.append(")-[n]->(t");
 
 				if (tenantIdentifier != null) {
 					buf.append(":");
 					buf.append(tenantIdentifier);
 				}
 
-				buf.append(")-[n]-(");
+				buf.append(") WHERE ID(n) = {id} RETURN n, s, t");
 
-				if (tenantIdentifier != null) {
-					buf.append(":");
-					buf.append(tenantIdentifier);
+				final QueryResult<PrefetchingRelationshipMapper> result = tx.getRelationshipsPrefetchable(buf.toString(), map);
+				final Iterator<PrefetchingRelationshipMapper> iterator  = result.iterator();
+
+				if (iterator.hasNext()) {
+
+					final PrefetchingRelationshipMapper mapper = iterator.next();
+
+					wrapper = new RelationshipWrapper(db, mapper.getRelationship());
+
+					// load other nodes
+					mapper.prefetch(db);
+
+					relationshipCache.put(id, wrapper);
 				}
-
-				buf.append(") WHERE ID(n) = {id} RETURN n");
-
-				wrapper = new RelationshipWrapper(db, tx.getRelationship(buf.toString(), map));
-				relationshipCache.put(id, wrapper);
 			}
 
 			return wrapper;

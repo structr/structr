@@ -40,4 +40,27 @@ public interface PropertyContainer {
 	void delete(final boolean deleteRelationships) throws NotInTransactionException;
 
 	boolean isSpatialEntity();
+
+	default int compare(final String key, final PropertyContainer a, final PropertyContainer b) {
+
+		if (!a.hasProperty(key) && b.hasProperty(key)) {
+			return -1;
+		}
+
+		if (a.hasProperty(key) && !b.hasProperty(key)) {
+			return 1;
+		}
+
+		if (a.hasProperty(key) && b.hasProperty(key)) {
+
+			final String t1 = (String)a.getProperty(key);
+			final String t2 = (String)b.getProperty(key);
+
+			return t1.compareTo(t2);
+		}
+
+		// do not return 0 since that would cause objects without the
+		// above property to be considered equal which is not wanted.
+		return Long.valueOf(a.getId()).compareTo(b.getId());
+	}
 }

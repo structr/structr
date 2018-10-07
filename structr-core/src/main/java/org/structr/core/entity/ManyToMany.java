@@ -70,7 +70,10 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 
 		if (securityContext.doEnsureCardinality() && targetNode != null && sourceNode.hasRelationshipTo(this, targetNode)) {
 
-			throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(getClass().getSimpleName(), "Relationship already exists from " + sourceNode.getUuid()+ " to " + targetNode.getUuid()));
+			throw new FrameworkException(422, "Relationship already exists", new DuplicateRelationshipToken(
+				getClass().getSimpleName(),
+				"Relationship already exists from " + sourceNode.getType() + "(" + sourceNode.getUuid() + ") " + sourceNode.getName() + " to " + targetNode.getType() + " (" + targetNode.getUuid() + ") " + targetNode.getName()
+			));
 		}
 	}
 

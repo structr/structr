@@ -590,6 +590,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -609,6 +610,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -666,10 +668,13 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
 		final Class type = StructrApp.getConfiguration().getNodeEntityClass("GrantTest");
+
+		Settings.CypherDebugLogging.setValue(true);
 
 		try (final Tx tx = app.tx()) {
 
@@ -684,6 +689,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

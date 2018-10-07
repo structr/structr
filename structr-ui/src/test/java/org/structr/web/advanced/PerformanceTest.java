@@ -42,11 +42,14 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.BulkDeleteCommand;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.web.StructrUiTest;
+import org.structr.web.entity.TestFive;
 import org.structr.web.entity.TestOne;
+import org.structr.web.entity.TestTwo;
 import org.structr.web.entity.User;
 
 /**
@@ -173,7 +176,6 @@ public class PerformanceTest extends StructrUiTest {
 			fail("Unexpected exception");
 
 		}
-
 	}
 
 	/**
@@ -194,11 +196,19 @@ public class PerformanceTest extends StructrUiTest {
 
 			final App app = StructrApp.getInstance(setup());
 			int number    = 1000;
-			int loop      = 1000;
+			int loop      = 300;
+
+			logger.info("Creating {} nodes..", number);
 
 			createNodes(app, TestOne.class, number);
 
-			long t0                   = System.nanoTime();
+			long t0 = System.nanoTime();
+
+			logger.info("Flushing caches..");
+
+			FlushCachesCommand.flushAll();
+
+			logger.info("Reading {} x {} nodes..", loop, number);
 
 			for (int i=0; i<loop; i++) {
 
@@ -215,7 +225,7 @@ public class PerformanceTest extends StructrUiTest {
 				}
 			}
 
-			long t1                   = System.nanoTime();
+			long t1 = System.nanoTime();
 
 
 			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -224,6 +234,83 @@ public class PerformanceTest extends StructrUiTest {
 
 			logger.info("Read {}x {} nodes in {} seconds ({} per s)", new Object[] { loop, number, decimalFormat.format(time), decimalFormat.format(rate) });
 			assertTrue("Invalid read performance result", rate > 50000);
+
+		} catch (FrameworkException ex) {
+
+			logger.error(ex.toString());
+			fail("Unexpected exception");
+
+		}
+	}
+
+	/**
+	 * Tests basic throughput of reading node properties.
+	 *
+	 * Note that this is just a very rought test as performance is heavily
+	 * depending on hardware and setup (cache parameters etc.)
+	 *
+	 * The assumed rate is low so if this test fails, there may be issues
+	 * with the test setup.
+	 *
+	 * If the test passes, one can expect structr to read nodes with typical performance.
+	 */
+	@Test
+	public void testReadPerformanceWithPrefetching() {
+
+		try {
+
+			final App app = StructrApp.getInstance(setup());
+			int number    = 1000;
+			int loop      = 10;
+
+			try (final Tx tx = app.tx()) {
+
+				for (int i=0; i<number; i++) {
+
+					app.create(TestFive.class,
+						new NodeAttribute<>(TestFive.name, "TestFive" + i),
+						new NodeAttribute<>(TestFive.testTwo, app.create(TestTwo.class, "TestTwo" + i))
+					);
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+
+			long t0 = System.nanoTime();
+
+			// flush caches
+			FlushCachesCommand.flushAll();
+
+			for (int i=0; i<loop; i++) {
+
+				try (final Tx tx = app.tx()) {
+
+					for (final TestTwo t : app.nodeQuery(TestTwo.class).getAsList()) {
+
+						t.getName();
+
+						for (final TestFive f : t.getProperty(TestTwo.testFives)) {
+
+							f.getName();
+						}
+					}
+
+					tx.success();
+				}
+			}
+
+			long t1                   = System.nanoTime();
+
+
+			DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+			double time                 = (t1 - t0) / 1000000000.0;
+			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
+
+			logger.info("Read {}x {} nodes with relationship in {} seconds ({} per s)", new Object[] { loop, number, decimalFormat.format(time), decimalFormat.format(rate) });
+			assertTrue("Invalid read performance result", rate > 10000);
 
 		} catch (FrameworkException ex) {
 

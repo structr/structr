@@ -38,6 +38,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 	private String sourceTypeLabel               = null;
 	private String targetTypeLabel               = null;
 	private AbstractCypherIndex<?> index         = null;
+	private boolean doPrefetching                = false;
 	private boolean sortDescending               = false;
 	private SortType sortType                    = null;
 	private String sortKey                       = null;
@@ -103,7 +104,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 					buf.append(buffer);
 				}
 
-				buf.append(index.getQuerySuffix());
+				buf.append(index.getQuerySuffix(doPrefetching));
 				break;
 
 			case 1:
@@ -115,7 +116,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 					buf.append(buffer);
 				}
 
-				buf.append(index.getQuerySuffix());
+				buf.append(index.getQuerySuffix(doPrefetching));
 				break;
 
 			default:
@@ -130,7 +131,7 @@ public class AdvancedCypherQuery implements PageableQuery {
 						buf.append(buffer);
 					}
 
-					buf.append(index.getQuerySuffix());
+					buf.append(index.getQuerySuffix(doPrefetching));
 
 					if (it.hasNext()) {
 						buf.append(" UNION ");
@@ -169,6 +170,78 @@ public class AdvancedCypherQuery implements PageableQuery {
 			if (sortDescending) {
 				buf.append(" DESC");
 			}
+		}
+
+		if (queryContext.isSliced()) {
+
+			buf.append(" SKIP ");
+			buf.append(queryContext.getSkip());
+			buf.append(" LIMIT ");
+			buf.append(queryContext.getLimit());
+
+		} else {
+
+			buf.append(" SKIP ");
+			buf.append(page * pageSize);
+			buf.append(" LIMIT ");
+			buf.append(pageSize);
+
+		}
+
+		return buf.toString();
+	}
+
+	@Override
+	public String getCountStatement() {
+
+		final StringBuilder buf = new StringBuilder();
+		final int typeCount     = typeLabels.size();
+
+		switch (typeCount) {
+
+			case 0:
+
+				buf.append(index.getQueryPrefix(null, sourceTypeLabel, targetTypeLabel));
+
+				if (buffer.length() > 0) {
+					buf.append(" WHERE ");
+					buf.append(buffer);
+				}
+
+				buf.append(index.getCountQuerySuffix());
+				break;
+
+			case 1:
+
+				buf.append(index.getQueryPrefix(typeLabels.get(0), sourceTypeLabel, targetTypeLabel));
+
+				if (buffer.length() > 0) {
+					buf.append(" WHERE ");
+					buf.append(buffer);
+				}
+
+				buf.append(index.getCountQuerySuffix());
+				break;
+
+			default:
+
+				// create UNION query
+				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
+
+					buf.append(index.getQueryPrefix(it.next(), sourceTypeLabel, targetTypeLabel));
+
+					if (buffer.length() > 0) {
+						buf.append(" WHERE ");
+						buf.append(buffer);
+					}
+
+					buf.append(index.getCountQuerySuffix());
+
+					if (it.hasNext()) {
+						buf.append(" UNION ");
+					}
+				}
+				break;
 		}
 
 		if (queryContext.isSliced()) {
@@ -373,5 +446,10 @@ public class AdvancedCypherQuery implements PageableQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
+	}
+
+	@Override
+	public void enablePrefetching() {
+		this.doPrefetching = true;
 	}
 }

@@ -131,9 +131,6 @@ public abstract class StructrUiTest {
 		Settings.DatabasePath.setValue(basePath + "/db");
 		Settings.FilesPath.setValue(basePath + "/files");
 
-		Settings.RelationshipCacheSize.setValue(1000);
-		Settings.NodeCacheSize.setValue(1000);
-
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
@@ -143,8 +140,8 @@ public abstract class StructrUiTest {
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet GraphQLServlet");
 
-		Settings.NodeCacheSize.setValue(10000);
-		Settings.RelationshipCacheSize.setValue(10000);
+		Settings.NodeCacheSize.setValue(100000);
+		Settings.RelationshipCacheSize.setValue(100000);
 
 		//Settings.LogSchemaOutput.setValue(true);
 

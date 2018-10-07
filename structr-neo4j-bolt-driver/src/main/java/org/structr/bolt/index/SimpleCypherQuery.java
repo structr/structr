@@ -63,6 +63,19 @@ public class SimpleCypherQuery implements PageableQuery {
 	}
 
 	@Override
+	public String getCountStatement() {
+
+		final StringBuilder buf = new StringBuilder(base);
+
+		buf.append(" SKIP ");
+		buf.append(page * pageSize);
+		buf.append(" LIMIT ");
+		buf.append(pageSize);
+
+		return buf.toString();
+	}
+
+	@Override
 	public Map<String, Object> getParameters() {
 		return params;
 	}
@@ -70,5 +83,9 @@ public class SimpleCypherQuery implements PageableQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
+	}
+
+	@Override
+	public void enablePrefetching() {
 	}
 }

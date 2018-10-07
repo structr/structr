@@ -19,14 +19,12 @@
 package org.structr.bolt.index.factory;
 
 import org.structr.api.search.GroupQuery;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.TypeQuery;
 import org.structr.bolt.index.AdvancedCypherQuery;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**

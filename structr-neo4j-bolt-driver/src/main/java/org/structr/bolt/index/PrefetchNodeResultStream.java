@@ -16,22 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.graph;
+package org.structr.bolt.index;
+
+import java.util.Map;
+import org.structr.api.QueryResult;
+import org.structr.bolt.BoltDatabaseService;
+import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.PrefetchingNodeMapper;
 
 /**
- *
  */
-public interface Relationship extends PropertyContainer, Comparable<Relationship> {
+public class PrefetchNodeResultStream extends AbstractResultStream<PrefetchingNodeMapper> {
 
-	Node getStartNode();
-	Node getEndNode();
-	Node getOtherNode(final Node node);
-
-	RelationshipType getType();
+	public PrefetchNodeResultStream(final BoltDatabaseService db, final PageableQuery query) {
+		super(db, query);
+	}
 
 	@Override
-	default int compareTo(final Relationship o) {
+	protected QueryResult<PrefetchingNodeMapper> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
 
-		return compare("internalTimestamp", this, o);
+		final SessionTransaction tx = db.getCurrentTransaction();
+		return tx.getNodesPrefetchable(statement, data);
 	}
 }
