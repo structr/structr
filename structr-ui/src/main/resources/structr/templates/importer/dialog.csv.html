@@ -48,6 +48,16 @@
 					<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
 				</td>
 			</tr>
+			<tr id="options-row3">
+				<td>
+					<label>Import type:</label><input type="radio" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
+					<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship
+				</td>
+				<td>
+				</td>
+				<td>
+				</td>
+			</tr>
 		</tbody>
 	</table>
 	<h3>Select target type</h3>
