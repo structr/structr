@@ -69,12 +69,8 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Implements the structr REST API.
- *
- *
  */
 public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
@@ -120,8 +116,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	private Value<String> propertyView       = null;
 	private ThreadLocalGson gson             = null;
 	private boolean indentJson               = true;
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {

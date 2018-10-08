@@ -369,4 +369,9 @@ public class StructrConfigHtmlWriter implements RestWriter {
 
 		return this;
 	}
+
+	@Override
+	public void raw(final String data) throws Exception {
+		throw new UnsupportedOperationException("Not supported.");
+	}
 }

@@ -62,7 +62,7 @@ public class SecurityContext {
 	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
 	private boolean ensureCardinality                    = true;
-	private boolean doPassiveIndexing                    = true;
+	private boolean isReadOnlyTransaction                 = false;
 	private int serializationDepth                       = -1;
 
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -128,10 +128,6 @@ public class SecurityContext {
 
 			if ("enabled".equals(request.getHeader("Structr-Force-Merge-Of-Nested-Properties"))) {
 				this.forceMergeOfNestedProperties = true;
-			}
-
-			if ("disabled".equals(request.getHeader("Structr-Passive-Indexing"))) {
-				this.doPassiveIndexing = false;
 			}
 
 			if (request.getParameter("ignoreResultCount") != null) {
@@ -881,6 +877,14 @@ public class SecurityContext {
 
 	public void setContextStore(ContextStore contextStore) {
 		this.contextStore = contextStore;
+	}
+
+	public void setReadOnlyTransaction() {
+		this.isReadOnlyTransaction = true;
+	}
+
+	public boolean isReadOnlyTransaction() {
+		return isReadOnlyTransaction;
 	}
 
 	// ----- nested classes -----

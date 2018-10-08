@@ -19,18 +19,24 @@
 package org.structr.rest.serialization;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -45,6 +51,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -65,6 +72,7 @@ public abstract class StreamingWriter {
 		idTypeNameOnly.add(AbstractNode.name);
 	}
 
+	private final ExecutorService threadPool              = Executors.newCachedThreadPool();
 	private final Map<String, Serializer> serializerCache = new LinkedHashMap<>();
 	private final Map<String, Serializer> serializers     = new LinkedHashMap<>();
 	private final Serializer<GraphObject> root            = new RootSerializer();
@@ -307,6 +315,8 @@ public abstract class StreamingWriter {
 		// finished
 		writer.endObject();
 		writer.endDocument();
+
+		threadPool.shutdown();
 	}
 
 	public void setResultKeyName(final String resultKeyName) {
@@ -533,9 +543,75 @@ public abstract class StreamingWriter {
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
 
-				for (Object o : value) {
+				if (value instanceof List && ((List)value).size() > 100) {
 
-					serializeRoot(writer, o, localPropertyView, depth);
+					final List list                    = (List)value;
+					final int numberOfPartitions       = (int)Math.log(list.size());
+					final List<List> partitions        = ListUtils.partition(list, numberOfPartitions);
+					final List<Future<String>> futures = new LinkedList<>();
+
+					System.out.println("Using " + numberOfPartitions + " threads for parallel serialization..");
+
+					for (final List partition : partitions) {
+
+						futures.add(threadPool.submit(() -> {
+
+							final SecurityContext securityContext = writer.getSecurityContext();
+							final StringWriter buffer             = new StringWriter();
+
+							// avoid deadlocks by preventing writes in this transaction
+							securityContext.setReadOnlyTransaction();
+
+							try (final Tx tx = StructrApp.getInstance(securityContext).tx(false, false, false)) {
+
+								final RestWriter bufferingRestWriter = getRestWriter(securityContext, buffer);
+
+								bufferingRestWriter.beginArray();
+
+								for (final Object o : partition) {
+
+									serializeRoot(bufferingRestWriter, o, localPropertyView, depth);
+								}
+
+								bufferingRestWriter.endArray();
+
+								tx.success();
+							}
+
+							final String data = buffer.toString();
+
+							return data.substring(1, data.length() - 1);
+
+						}));
+					}
+
+					for (final Iterator<Future<String>> it = futures.iterator(); it.hasNext();) {
+
+						try {
+
+							final Future<String> future = it.next();
+							final String raw            = future.get();
+
+							writer.raw(raw);
+
+							if (it.hasNext()) {
+								writer.raw(",");
+							}
+
+							writer.raw("\n");
+
+						} catch (Throwable t) {
+
+							t.printStackTrace();
+						}
+					}
+
+				} else {
+
+					for (Object o : value) {
+
+						serializeRoot(writer, o, localPropertyView, depth);
+					}
 				}
 			}
 

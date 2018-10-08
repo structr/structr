@@ -57,6 +57,11 @@ public class ThumbnailProperty extends AbstractReadOnlyProperty<Image> {
 			return null;
 		}
 
+		if (securityContext.isReadOnlyTransaction()) {
+			return null;
+		}
+
+
 		return ((Image)obj).getScaledImage(width, height, crop);
 	}
 
