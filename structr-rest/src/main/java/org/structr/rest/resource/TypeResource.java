@@ -273,7 +273,7 @@ public class TypeResource extends SortableResource {
 			final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 			final App app                                = StructrApp.getInstance(securityContext);
 			final Iterator<Map<String, Object>> iterator = propertySets.iterator();
-			final int batchSize                          = 1000;
+			final int batchSize                          = intOrDefault(request.getParameter("batchSize"), 1000);
 			int overallCount                             = 0;
 
 			while (iterator.hasNext()) {
@@ -320,7 +320,7 @@ public class TypeResource extends SortableResource {
 						}
 					}
 
-					logger.info("Commiting PATCH transaction batch, {} objects processed.", overallCount - 1);
+					logger.info("Commiting PATCH transaction batch, {} objects processed.", overallCount);
 
 					tx.success();
 				}
@@ -500,5 +500,20 @@ public class TypeResource extends SortableResource {
 				}
 			}
 		}
+	}
+
+	private int intOrDefault(final String source, final int defaultValue) {
+
+		if (source != null) {
+
+			try {
+
+				return Integer.parseInt(source);
+
+			} catch (Throwable t) {}
+
+		}
+
+		return defaultValue;
 	}
 }
