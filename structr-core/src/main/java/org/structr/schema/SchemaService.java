@@ -509,8 +509,12 @@ public class SchemaService implements Service {
 
 								final String typeName = type.getSimpleName();
 
-								final Map<String, Boolean> typeConfig = new HashMap();
-								schemaIndexConfig.put(typeName, typeConfig);
+								final Boolean alreadySeenType = schemaIndexConfig.containsKey(typeName);
+								final Map<String, Boolean> typeConfig = (alreadySeenType ? schemaIndexConfig.get(typeName) : new HashMap());
+
+								if (!alreadySeenType) {
+									schemaIndexConfig.put(typeName, typeConfig);
+								}
 
 								for (final PropertyKey key : entry.getValue().values()) {
 
