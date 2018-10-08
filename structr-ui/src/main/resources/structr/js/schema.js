@@ -447,7 +447,7 @@ var _Schema = {
 	},
 	onload: function() {
 		main.append(
-			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div>Search: <input type="text" id="search-classes"><div id="inheritance-tree-container" class="ver-scrollable"></div></div>'
+			'<div id="inheritance-tree" class="slideOut slideOutLeft"><div class="compTab" id="inheritanceTab">Inheritance Tree</div>Search: <input type="text" id="search-classes"><div id="inheritance-tree-container" class="ver-scrollable hidden"></div></div>'
 			+ '<div id="schema-container"></div>'
 		);
 		schemaContainer = $('#schema-container');
@@ -464,7 +464,7 @@ var _Schema = {
 		};
 
 		$('#inheritanceTab').on('click', function() {
-			_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Schema.schemaActiveTabLeftKey, updateCanvasTranslation, updateCanvasTranslation);
+			_Pages.leftSlideoutTrigger(this, inheritanceSlideout, [], _Schema.schemaActiveTabLeftKey, function() { inheritanceTree.show(); updateCanvasTranslation(); }, function() { updateCanvasTranslation(); inheritanceTree.hide(); });
 		});
 
 		_Schema.init();
@@ -598,7 +598,7 @@ var _Schema = {
 					if (ins === 0 && outs === 0) {
 
 						// no rels => push down
-						level += 100;
+						//level += 100;
 
 					} else {
 
@@ -614,7 +614,7 @@ var _Schema = {
 					}
 
 					if (!hierarchy[level]) { hierarchy[level] = []; }
-					hierarchy[level].push(entity);
+					hierarchy[level].push(entity); console.log(entity.name, level)
 				});
 
 				Object.keys(hierarchy).forEach(function(key) {
