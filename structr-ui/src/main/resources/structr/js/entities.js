@@ -1466,7 +1466,7 @@ var _Entities = {
 
 			var displayName = getElementDisplayName(entity);
 
-			typeIcon.removeClass('typeIcon-nochildren').after('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
+			typeIcon.removeClass('typeIcon-nochildren').before('<i title="Expand ' + displayName + '" class="expand_icon ' + _Icons.getFullSpriteClass(icon) + '" />');
 
 			$(el).on('click', function(e) {
 				e.stopPropagation();

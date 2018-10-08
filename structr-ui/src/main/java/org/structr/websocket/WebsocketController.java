@@ -41,6 +41,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.TransactionSource;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -342,9 +343,9 @@ public class WebsocketController implements StructrTransactionListener {
 							message.setNodeData("refId", ((AbstractNode) refNode).getUuid());
 						}
 
-					} else if (endNode instanceof User) {
+					} else if (endNode instanceof User || endNode instanceof Group) {
 
-						message.setCommand("APPEND_USER");
+						message.setCommand("APPEND_MEMBER");
 						message.setNodeData("refId", startNode.getUuid());
 
 					} else if (endNode instanceof AbstractFile) {

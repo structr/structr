@@ -314,7 +314,7 @@ img.disabled {
 	padding: 6px;
 }
 
-#users .node.user, #groups .node.group {
+#users > .node.user, #groups > .node.group {
 	margin-left: 0;
 }
 
@@ -431,8 +431,8 @@ img.disabled {
 
 #localizationsTab {
 	right: -61px;
-	width: 77px;
-	top: 394px;
+	width: 78px;
+	top: 400px;
 }
 
 #widgetsTab {
@@ -506,6 +506,7 @@ img.disabled {
 
 #inheritance-tree.slideOut {
 	top: 101px;
+	min-height: inherit;
 }
 
 #inheritance-tree .icon {
@@ -538,7 +539,7 @@ img.disabled {
 }
 
 .ver-scrollable > .node, #widgets > .node, #remoteWidgets > .node {
-	width: 360px;
+	width: 374px;
 }
 
 .slideOutRight {
@@ -1036,14 +1037,15 @@ span.id {
 }
 
 .typeIcon-nochildren {
-	margin-right: 11px ! important;
+	margin-left: 16px ! important;
 }
 
 .expand_icon {
 	width: 8px;
 	height: 8px;
 	margin-top: 5px;
-	margin-right: 3px ! important;
+	margin-left: 4px ! important;
+	margin-right: 4px ! important;
 }
 
 .edit_ui_properties_icon, .edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon, .edit_props_icon, .edit_file_icon, .clone_icon, .view_icon, .minify_file_icon, .link_icon, .add_form_icon, .data_icon, .unarchive_icon, .push_icon, .show_active_icon, .collapse_children_icon, .add_child_icon, .remove_favorite_icon, .import_icon
@@ -1167,14 +1169,18 @@ i.button {
 
 .slideOut .node {
 	border: none;
-	padding: 2px 0px 2px 4px;
+	padding: 2px 0px 2px 2px;
 	margin: 0 0 0 11px;
 }
 
 .slideOut .node.page {
 	border: none;
-	padding: 2px 0px 2px 12px;
-	margin: 0 0 0 11px;
+	padding: 2px 0px 2px 2px;
+	margin: 0 0 0 20px;
+}
+
+#componentsArea > .node {
+	margin-left: 0;
 }
 
 .slideOut .node.widget {
@@ -1183,8 +1189,9 @@ i.button {
 }
 
 #pages .node.nodeHover {
-	margin: -1px -1px -1px 10px ! important;
-	border: 1px solid rgba(0,0,0,.125) ! important;
+	/*margin: -1px -1px -1px 10px ! important;*/
+	/*border: 1px solid rgba(0,0,0,.125) ! important;*/
+	/*border: 1px solid transparent;*/
 }
 
 .node.nodeSelectedFromContextMenu {

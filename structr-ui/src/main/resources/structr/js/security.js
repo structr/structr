@@ -107,7 +107,7 @@ var _UsersAndGroups = {
 		var userName = user.name ? user.name : user.eMail ? '[' + user.eMail + ']' : '[unnamed]';
 
 		var userElement = $('<div class="node user userid_' + user.id + '">'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.user_icon) + '" />'
+				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.user_icon) + ' typeIcon-nochildren" />'
 				+ ' <b title="' + userName + '" class="name_">' + userName + '</b> <span class="id">' + user.id + '</span>'
 				+ '</div>'
 		);
@@ -140,6 +140,8 @@ var _UsersAndGroups = {
 		}
 
 		var userDiv = _UsersAndGroups.createUserElement(user);
+		$('.typeIcon', userDiv).removeClass('typeIcon-nochildren');
+		
 		_Security.users.append(userDiv);
 
 		userDiv.draggable({
@@ -237,7 +239,7 @@ var _UsersAndGroups = {
 	},
 	createGroupElement: function (group) {
 		var groupElement = $('<div class="node group groupid_' + group.id + '">'
-				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.group_icon) + '" />'
+				+ '<i class="typeIcon ' + _Icons.getFullSpriteClass(_Icons.group_icon) + ' typeIcon-nochildren" />'
 				+ ' <b title="' + group.name + '" class="name_">' + group.name + '</b> <span class="id">' + group.id + '</span>'
 				+ '<i title="Delete Group ' + group.id + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />'
 				+ '</div>'
@@ -258,6 +260,7 @@ var _UsersAndGroups = {
 		_Logger.log(_LogType.SECURTIY, 'appendGroupElement', group, hasChildren);
 
 		var groupDiv = _UsersAndGroups.createGroupElement(group);
+		//$('.typeIcon', groupDiv).removeClass('typeIcon-nochildren');
 		element.append(groupDiv);
 
 		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id));
@@ -271,7 +274,7 @@ var _UsersAndGroups = {
 			tolerance: 'pointer',
 			drop: function(event, ui) {
 				var nodeId;
-
+				
 				if (ui.draggable.hasClass('user')) {
 					nodeId = Structr.getUserId(ui.draggable);
 				} else if (ui.draggable.hasClass('group')) {
@@ -280,7 +283,7 @@ var _UsersAndGroups = {
 
 				if (nodeId) {
 					if (nodeId !== group.id) {
-						Command.appendUser(nodeId, group.id);
+						Command.appendMember(nodeId, group.id);
 					} else {
 						new MessageBuilder()
 								.title("Warning")

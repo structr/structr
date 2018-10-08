@@ -471,7 +471,7 @@ var _LogType = {
 		ADD:                        "WS.ADD",
 		APPEND_CHILD:               "WS.APPEND_CHILD",
 		APPEND_FILE:                "WS.APPEND_FILE",
-		APPEND_USER:                "WS.APPEND_USER",
+		APPEND_MEMBER:              "WS.APPEND_MEMBER",
 		APPEND_WIDGET:              "WS.APPEND_WIDGET",
 		AUTOCOMPLETE:               "WS.AUTOCOMPLETE",
 		CHILDREN:                   "WS.CHILDREN",

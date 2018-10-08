@@ -30,16 +30,15 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 /**
- *
- *
+ * Apppend a member (user or group) to a group.
  */
-public class AppendUserCommand extends AbstractCommand {
+public class AppendMemberCommand extends AbstractCommand {
 
-	private static final Logger logger     = LoggerFactory.getLogger(AppendUserCommand.class.getName());
+	private static final Logger logger     = LoggerFactory.getLogger(AppendMemberCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(AppendUserCommand.class);
+		StructrWebSocket.addCommand(AppendMemberCommand.class);
 	}
 
 	@Override
@@ -84,15 +83,15 @@ public class AppendUserCommand extends AbstractCommand {
 
 			Group group = (Group) parentNode;
 
-			Principal user = (Principal) getNode(id);
-			if (user != null) {
+			Principal principal = (Principal) getNode(id);
+			if (principal != null) {
 				
 				try {
-					group.addMember(user);
+					group.addMember(principal);
 				} catch (final FrameworkException ex) {
 					
 					if (ex.getStatus() == 403) {
-						getWebSocket().send(MessageBuilder.status().code(403).message("Client is not allowed to add user " + user.getName() + " to group " + group.getName()).build(), true);
+						getWebSocket().send(MessageBuilder.status().code(403).message("Client is not allowed to add member " + principal.getName() + " to group " + group.getName()).build(), true);
 					}
 					
 				}
@@ -101,7 +100,7 @@ public class AppendUserCommand extends AbstractCommand {
 		} else {
 
 			// send exception
-			getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is not instance of Folder").build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is not instance of Group").build(), true);
 		}
 
 	}
@@ -109,7 +108,7 @@ public class AppendUserCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 
-		return "APPEND_USER";
+		return "APPEND_MEMBER";
 
 	}
 

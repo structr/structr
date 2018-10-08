@@ -544,21 +544,21 @@ var Command = {
 		return sendObj(obj, callback);
 	},
 	/**
-	 * Send an APPEND_USER command to the server.
+	 * Send an APPEND_MEMBER command to the server.
 	 *
-	 * The server will append the user node with the given id
+	 * The server will append the user or group node with the given id
 	 * as child of the parent group node with the given group id.
 	 *
 	 */
-	appendUser: function(id, groupId) {
+	appendMember: function(id, groupId) {
 		var obj = {
-			command: 'APPEND_USER',
+			command: 'APPEND_MEMBER',
 			id: id,
 			data: {
 				parentId: groupId
 			}
 		};
-		_Logger.log(_LogType.WS[obj.command], 'appendUser()', obj);
+		_Logger.log(_LogType.WS[obj.command], 'appendMember()', obj);
 		return sendObj(obj);
 	},
 	/**

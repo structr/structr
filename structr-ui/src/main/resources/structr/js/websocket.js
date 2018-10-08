@@ -415,7 +415,7 @@ function wsConnect() {
 
 				StructrModel.del(data.id);
 
-			} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_USER') {
+			} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_MEMBER') {
 
 				StructrModel.create(result[0], data.data.refId);
 
