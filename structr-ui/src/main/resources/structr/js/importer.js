@@ -214,6 +214,30 @@ var Importer = {
 
 							var config = JSON.parse(result.value);
 
+							if (!config.version) {
+								// initial version, no reversal needed
+
+							} else if (config.version === 2) {
+
+								var reversedTransforms = {};
+								Object.keys(config.transforms).forEach(function(k) {
+									reversedTransforms[config.mappings[k]] = config.transforms[k];
+								});
+
+								config.transforms = reversedTransforms;
+
+								// New version - reverse mappings/transforms so we can display them
+								var reversedMappings = {};
+
+								Object.keys(config.mappings).forEach(function(k) {
+									reversedMappings[config.mappings[k]] = k;
+								});
+
+								config.mappings = reversedMappings;
+
+
+							}
+
 							$('#delimiter').val(config.delimiter);
 							$('#quote-char').val(config.quoteChar);
 							$('#record-separator').val(config.recordSeparator);
@@ -236,40 +260,20 @@ var Importer = {
 				var name = $('#csv-config-name').val();
 				if (name && name.length) {
 
-					// collect mappings and transforms
-					var mappings   = {};
-					var transforms = {};
+					var configInfo = Importer.collectCSVImportConfigurationInfo();
+					var allowImport = (configInfo.errors.length === 0);
 
-					$('select.attr-mapping').each(function(i, elem) {
+					if (!allowImport) {
 
-						var e     = $(elem);
-						var name  = e.prop('name');
-						var value = e.val();
+						configInfo.errors.forEach(function(e) {
+							new MessageBuilder().title(e.title).error(e.message).show();
+						});
 
-						if (value && value.length) {
-							mappings[name] = value;
-						}
+					} else {
 
-						var transform = $('input#transform' + i).val();
-						if (transform && transform.length) {
-							transforms[name] = transform;
-						}
-					});
+						Command.appData('add', Importer.appDataCSVKey, name, JSON.stringify(configInfo.config));
+					}
 
-					// mode, category, name, value, callback
-					Command.appData('add', Importer.appDataCSVKey, name, JSON.stringify({
-						delimiter: $('#delimiter').val(),
-						quoteChar: $('#quote-char').val(),
-						recordSeparator: $('#record-separator').val(),
-						targetType: $('#target-type-select').val(),
-						commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
-						strictQuotes: $('#strict-quotes').prop('checked'),
-						ignoreInvalid: $('#ignore-invalid').prop('checked'),
-						importType: $('input[name=import-type]:checked').val(),
-						range: $('#range').val(),
-						mappings: mappings,
-						transforms: transforms
-					}));
 				}
 			});
 
@@ -391,56 +395,81 @@ var Importer = {
 
 					$('#start-import').on('click', function() {
 
-						var allowImport = true;
-						var mappings    = {};
-						var transforms  = {};
+						var configInfo = Importer.collectCSVImportConfigurationInfo();
+						var allowImport = (configInfo.errors.length === 0);
 
-						$('select.attr-mapping').each(function(i, elem) {
+						if (!allowImport) {
 
-							var e     = $(elem);
-							var name  = names[i];
-							var value = e.val();
+							configInfo.errors.forEach(function(e) {
+								new MessageBuilder().title(e.title).error(e.message).show();
+							});
 
-							// property mappings need to be from source type to target name
-							if (value && value.length) {
-								if (!mappings[value]) {
-									mappings[value] = name;
-								} else {
-									new MessageBuilder().title("Import Configuration Error").error("Duplicate mapping found: <strong>" + value + "</strong>").show();
-									allowImport = false;
-								}
-							}
+						} else {
 
-							var transform = $('input#transform' + i).val();
-							if (transform && transform.length) {
-								transforms[value] = transform;
-							}
-						});
-
-						var importType = $('input[name=import-type]:checked').val();
-						if (importType === 'rel' && (!mappings.sourceId || !mappings.targetId) ) {
-							new MessageBuilder().title("Relationship Import Error").error("sourceId and targetId are required fields for relationship imports!").show();
-							allowImport = false;
-						}
-
-						if (allowImport) {
-
-							$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify({
-								targetType: type,
-								delimiter: $('#delimiter').val(),
-								quoteChar: $('#quote-char').val(),
-								commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
-								strictQuotes: $('#strict-quotes').prop('checked'),
-								ignoreInvalid: $('#ignore-invalid').prop('checked'),
-								range: $('#range').val(),
-								mappings: mappings,
-								transforms: transforms
-							}));
+							$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
 						}
 					});
 				});
 			}
 		});
+	},
+	collectCSVImportConfigurationInfo: function () {
+
+		var info = {
+			errors: []
+		};
+
+		// collect mappings and transforms
+		var mappings   = {};
+		var transforms = {};
+
+		$('select.attr-mapping').each(function(i, elem) {
+
+			var e     = $(elem);
+			var name  = e.prop('name');
+			var value = e.val();
+
+			if (value && value.length) {
+				if (!mappings[value]) {
+					mappings[value] = name;
+				} else {
+					info.errors.push({
+						title: "Import Configuration Error",
+						message: "Duplicate mapping found: <strong>" + value + "</strong>"
+					});
+				}
+
+				var transform = $('input#transform' + i).val();
+				if (transform && transform.length) {
+					transforms[value] = transform;
+				}
+			}
+		});
+
+		var importType = $('input[name=import-type]:checked').val();
+		if (importType === 'rel' && (!mappings.sourceId || !mappings.targetId) ) {
+			info.errors.push({
+				title: "Relationship Import Error",
+				message: "sourceId and targetId are required fields for relationship imports!"
+			});
+		}
+
+		info.config = {
+			targetType: $('#target-type-select').val(),
+			delimiter: $('#delimiter').val(),
+			quoteChar: $('#quote-char').val(),
+			recordSeparator: $('#record-separator').val(),
+			commitInterval: $('#commit-interval').val() || $('#commit-interval').attr('placeholder'),
+			strictQuotes: $('#strict-quotes').prop('checked'),
+			ignoreInvalid: $('#ignore-invalid').prop('checked'),
+			range: $('#range').val(),
+			importType: importType,
+			mappings: mappings,
+			transforms: transforms,
+			version: 2
+		};
+
+		return info;
 	},
 	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) {
 
