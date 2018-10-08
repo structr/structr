@@ -490,8 +490,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final List<Relationship> sorted = Iterables.toList(source);
 
-		Collections.sort(sorted, (o1, o2) -> { return compare("internalTimestamp", o1, o2); });
-
-		return new TreeSet<>(sorted);
+		final TreeSet<Relationship> set = new TreeSet<>((o1, o2) -> { return compare("internalTimestamp", o1, o2); });
+		set.addAll(sorted);
+		
+		return set;
 	}
 }

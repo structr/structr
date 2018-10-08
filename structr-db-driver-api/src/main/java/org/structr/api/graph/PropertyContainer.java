@@ -55,8 +55,12 @@ public interface PropertyContainer {
 
 			final String t1 = (String)a.getProperty(key);
 			final String t2 = (String)b.getProperty(key);
-
-			return t1.compareTo(t2);
+			
+			int result =  t1.compareTo(t2);
+			
+			if (result != 0) {
+				return result;
+			}
 		}
 
 		// do not return 0 since that would cause objects without the
