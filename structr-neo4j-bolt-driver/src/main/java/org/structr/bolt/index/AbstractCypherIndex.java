@@ -19,11 +19,9 @@
 package org.structr.bolt.index;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -32,7 +30,6 @@ import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.*;
-import org.structr.api.util.Iterables;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.index.converter.BooleanTypeConverter;
 import org.structr.bolt.index.converter.ByteTypeConverter;
@@ -131,37 +128,5 @@ public abstract class AbstractCypherIndex<T extends PropertyContainer> implement
 		}
 
 		return false;
-	}
-
-	// ----- nested classes -----
-	protected class CachedQueryResult implements QueryResult<T> {
-
-		private Collection<T> result = null;
-
-		public CachedQueryResult(final Iterable<T> source) {
-
-			if (source instanceof Collection) {
-
-				this.result = (Collection)source;
-
-			} else {
-
-				this.result = Iterables.toList(source);
-
-			}
-		}
-
-		@Override
-		public void close() {
-		}
-
-		@Override
-		public Iterator<T> iterator() {
-			return result.iterator();
-		}
-
-		public boolean isEmpty() {
-			return result.isEmpty();
-		}
 	}
 }

@@ -161,6 +161,56 @@ public class RestVerbsTest extends StructrRestTest {
 	}
 
 	@Test
+	public void testPATCHBatchSize() {
+
+		final List<Object> ids = new LinkedList<>();
+
+		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'ccc', anInt: 3, aLong: 6 }"));
+		ids.add(createEntity("/TestOne", "{ name: 'ddd', anInt: 4, aLong: 8 }"));
+
+		// do PATCH
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(createPatchBody(ids))
+
+			.expect()
+				.statusCode(200)
+
+			.when()
+
+				.patch("/TestOne?batchSize=3");
+
+
+		// check result
+		RestAssured
+
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body(createPatchBody(ids))
+
+			.expect()
+				.statusCode(200)
+				.body("result_count",    Matchers.equalTo(4))
+				.body("result[0].id",    equalTo(ids.get(0)))
+				.body("result[0].anInt", equalTo(15))
+				.body("result[1].id",    equalTo(ids.get(1)))
+				.body("result[1].anInt", equalTo(16))
+				.body("result[2].id",    equalTo(ids.get(2)))
+				.body("result[2].anInt", equalTo(17))
+				.body("result[3].id",    equalTo(ids.get(3)))
+				.body("result[3].anInt", equalTo(18))
+
+			.when()
+
+				.get("/TestOne?sort=name");
+	}
+
+	@Test
 	public void test05PATCHFail404() {
 
 		final List<Object> ids = new LinkedList<>();
