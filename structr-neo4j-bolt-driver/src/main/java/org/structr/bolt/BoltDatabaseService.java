@@ -432,7 +432,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, Boolean>> schemaIndexConfig, final Map<String, Map<String, Boolean>> removedClasses) {
 
-		final Map<String, Boolean> existingDbIndexes = new HashMap<>();
+		final Map<String, String> existingDbIndexes = new HashMap<>();
 
 		try (final Transaction tx = beginTx()) {
 
@@ -462,7 +462,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 						final Map<String, String> valueMap = (Map<String, String>)value;
 
-						existingDbIndexes.put(valueMap.get("description"), "ONLINE".equals(valueMap.get("state")));
+						existingDbIndexes.put(valueMap.get("description"), valueMap.get("state"));
 					}
 				}
 			}
@@ -482,12 +482,28 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 			for (final Map.Entry<String, Boolean> propertyIndexConfig : entry.getValue().entrySet()) {
 
+				final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
+				final String state            = existingDbIndexes.get(indexDescription);
+				final boolean alreadySet      = Boolean.TRUE.equals("ONLINE".equals(state));
+				final boolean createIndex     = propertyIndexConfig.getValue();
+
+				if ("FAILED".equals(state)) {
+
+					logger.warn("Index is in FAILED state - dropping the index before handling it further! {}", indexDescription);
+
+					try (final Transaction tx = beginTx()) {
+
+						execute("DROP " + indexDescription);
+
+						tx.success();
+
+					} catch (Throwable t) {
+						logger.warn("", t);
+					}
+				}
+
+
 				try (final Transaction tx = beginTx()) {
-
-					final String indexDescription = "INDEX ON :" + typeName + "(" + propertyIndexConfig.getKey() + ")";
-
-					final boolean alreadySet  = Boolean.TRUE.equals(existingDbIndexes.get(indexDescription));
-					final boolean createIndex = propertyIndexConfig.getValue();
 
 					if (createIndex) {
 
@@ -495,7 +511,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 							try {
 
-								// create index
 								execute("CREATE " + indexDescription);
 								createdIndexes++;
 
@@ -508,7 +523,6 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 						try {
 
-							// drop index
 							execute("DROP " + indexDescription);
 							droppedIndexes++;
 
@@ -519,8 +533,8 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 					tx.success();
 
-				} catch (Throwable ignore) {
-					logger.warn("", ignore);
+				} catch (Throwable t) {
+					logger.warn("", t);
 				}
 			}
 		}
