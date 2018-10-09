@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 
 //~--- classes ----------------------------------------------------------------
@@ -47,16 +46,16 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		super(securityContext);
 	}
 
-	public RelationshipFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
-		super(securityContext, includeDeletedAndHidden, publicOnly);
+	public RelationshipFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly) {
+		super(securityContext, includeHidden, publicOnly);
 	}
 
 	public RelationshipFactory(final SecurityContext securityContext, final int pageSize, final int page) {
 		super(securityContext, pageSize, page);
 	}
 
-	public RelationshipFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
-		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page);
+	public RelationshipFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
+		super(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override
@@ -70,7 +69,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		if (relationship == null || TransactionCommand.isDeleted(relationship)) {
 			return null;
 		}
-		
+
 		final Class relationshipType = factoryDefinition.determineRelationshipType(relationship);
 		if (relationshipType == null) {
 			return null;
@@ -118,9 +117,9 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 	}
 
 	@Override
-	public T instantiate(final Relationship obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
+	public T instantiate(final Relationship obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
 
-		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
+		factoryProfile.setIncludeHidden(includeHidden);
 		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(obj);

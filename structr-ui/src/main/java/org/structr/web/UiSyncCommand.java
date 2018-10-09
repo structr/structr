@@ -140,7 +140,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		// import done, now the ShadowDocument needs some special care. :(
 		try (final Tx tx = app.tx()) {
 
-			final List<ShadowDocument> shadowDocuments = app.nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getAsList();
+			final List<ShadowDocument> shadowDocuments = app.nodeQuery(ShadowDocument.class).includeHidden().getAsList();
 			if (shadowDocuments.size() > 1) {
 
 				final PropertyKey<List<DOMNode>> elementsKey = StructrApp.key(Page.class, "elements");

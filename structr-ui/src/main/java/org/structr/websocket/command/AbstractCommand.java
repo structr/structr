@@ -296,7 +296,7 @@ public abstract class AbstractCommand {
 
 		final App app = StructrApp.getInstance();
 
-		ShadowDocument doc = app.nodeQuery(ShadowDocument.class).includeDeletedAndHidden().getFirst();
+		ShadowDocument doc = app.nodeQuery(ShadowDocument.class).includeHidden().getFirst();
 		if (doc == null) {
 
 			final PropertyMap properties = new PropertyMap();
