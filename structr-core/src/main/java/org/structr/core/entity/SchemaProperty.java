@@ -90,7 +90,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<Boolean>            isPartOfBuiltInSchema = new BooleanProperty("isPartOfBuiltInSchema");
 	public static final Property<Boolean>            isDefaultInUi         = new BooleanProperty("isDefaultInUi");
 	public static final Property<Boolean>            isDefaultInPublic     = new BooleanProperty("isDefaultInPublic");
-	public static final Property<Boolean> 			 isCachingEnabled 	   = new BooleanProperty("isCachingEnabled").defaultValue(false);
+	public static final Property<Boolean>            isCachingEnabled      = new BooleanProperty("isCachingEnabled").defaultValue(false);
 	public static final Property<String>             contentHash           = new StringProperty("contentHash");
 	public static final Property<String>             readFunction          = new StringProperty("readFunction");
 	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
