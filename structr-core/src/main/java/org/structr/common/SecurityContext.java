@@ -262,7 +262,7 @@ public class SecurityContext {
 
 				readableByUser = n.isGranted(Permission.read, this);
 
-				if (!(readableByUser && (includeDeletedAndHidden || !n.isDeleted()) && (n.isVisibleToPublicUsers() || !publicOnly))) {
+				if (!(readableByUser && includeDeletedAndHidden && (n.isVisibleToPublicUsers() || !publicOnly))) {
 
 					it.remove();
 				}
@@ -482,7 +482,7 @@ public class SecurityContext {
 		 * performance reasons.
 		 */
 		// deleted and hidden nodes will only be returned if we are told to do so
-		if ((node.isDeleted() || node.isHidden()) && !includeDeletedAndHidden) {
+		if (node.isHidden() && !includeDeletedAndHidden) {
 
 			return false;
 		}

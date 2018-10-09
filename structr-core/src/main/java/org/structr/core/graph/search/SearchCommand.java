@@ -129,7 +129,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (!includeDeletedAndHidden && !isRelationshipSearch()) {
 
 			rootGroup.add(new PropertySearchAttribute(NodeInterface.hidden,  true, Occurrence.FORBIDDEN, true));
-			rootGroup.add(new PropertySearchAttribute(NodeInterface.deleted, true, Occurrence.FORBIDDEN, true));
 		}
 
 		// At this point, all search attributes are ready

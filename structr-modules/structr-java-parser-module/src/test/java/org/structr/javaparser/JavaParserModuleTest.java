@@ -272,7 +272,6 @@ public class JavaParserModuleTest{
 
 			properties.put(NodeInterface.visibleToAuthenticatedUsers, false);
 			properties.put(NodeInterface.visibleToPublicUsers, false);
-			properties.put(NodeInterface.deleted, false);
 			properties.put(NodeInterface.hidden, false);
 
 			for (int i = 0; i < number; i++) {

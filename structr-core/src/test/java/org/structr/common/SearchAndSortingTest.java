@@ -19,7 +19,6 @@
 package org.structr.common;
 
 import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -37,11 +36,11 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.SixOneManyToMany;
 import org.structr.core.entity.TestOne;
 import org.structr.core.entity.TestSeven;
 import org.structr.core.entity.TestSix;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.relationship.NodeHasLocation;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -401,17 +400,17 @@ public class SearchAndSortingTest extends StructrTest {
 				Result<? extends GraphObject> result = app.nodeQuery(NodeInterface.class).getResult();
 
 				countBefore = result.size();
-				
+
 				tx.success();
 
 			} catch (FrameworkException ex) {
 				logger.error(ex.toString());
 				fail("Unexpected exception");
 			}
-			
+
 			final int expectedNumber        = countBefore + numberToCreate;
 			final List<NodeInterface> nodes = this.createTestNodes(type, numberToCreate);
-			
+
 			Collections.shuffle(nodes, new Random(System.nanoTime()));
 
 			try (final Tx tx = app.tx()) {
@@ -1936,10 +1935,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 			test1.setProperty(AbstractNode.hidden, true);
 
-			test2.setProperty(AbstractNode.deleted, true);
-
 			test3.setProperty(AbstractNode.hidden, true);
-			test3.setProperty(AbstractNode.deleted, true);
 
 			tx.success();
 
@@ -1951,8 +1947,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 			final Result<TestOne> result = app.nodeQuery(TestOne.class).includeDeletedAndHidden(false).getResult();
 
-			assertEquals("Result count should not include deleted or hidden nodes", 7, (int)result.getRawResultCount());
-			assertEquals("Actual result size should be equal to result count", 7, (int)result.getResults().size());
+			assertEquals("Result count should not include hidden nodes", 8, (int)result.getRawResultCount());
+			assertEquals("Actual result size should be equal to result count", 8, (int)result.getResults().size());
 
 
 			tx.success();

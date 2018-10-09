@@ -19,8 +19,14 @@
 package org.structr.messaging;
 
 import com.jayway.restassured.RestAssured;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.*;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
@@ -37,19 +43,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.*;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import org.structr.core.graph.FlushCachesCommand;
 import org.structr.schema.SchemaService;
 
 
@@ -260,7 +258,6 @@ public class StructrMessagingEngineModuleTest {
 
 			properties.put(NodeInterface.visibleToAuthenticatedUsers, false);
 			properties.put(NodeInterface.visibleToPublicUsers, false);
-			properties.put(NodeInterface.deleted, false);
 			properties.put(NodeInterface.hidden, false);
 
 			for (int i = 0; i < number; i++) {

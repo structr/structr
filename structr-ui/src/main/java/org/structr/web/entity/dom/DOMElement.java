@@ -346,7 +346,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static void renderContent(final DOMElement thisElement, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		if (thisElement.isDeleted() || thisElement.isHidden() || !thisElement.displayForLocale(renderContext) || !thisElement.displayForConditions(renderContext)) {
+		if (thisElement.isHidden() || !thisElement.displayForLocale(renderContext) || !thisElement.displayForConditions(renderContext)) {
 			return;
 		}
 

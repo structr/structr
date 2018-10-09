@@ -114,11 +114,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public boolean isDeleted() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
 	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}

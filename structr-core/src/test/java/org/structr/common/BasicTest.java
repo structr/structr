@@ -1163,7 +1163,6 @@ public class BasicTest extends StructrTest {
 				assertEquals(GenericNode.class.getSimpleName(), node.getProperty(AbstractNode.type));
 				assertTrue(node.getProperty(AbstractNode.name).equals(name));
 				assertTrue(!node.getProperty(AbstractNode.hidden));
-				assertTrue(!node.getProperty(AbstractNode.deleted));
 				assertTrue(!node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 				assertTrue(!node.getProperty(AbstractNode.visibleToPublicUsers));
 			}
@@ -1175,7 +1174,6 @@ public class BasicTest extends StructrTest {
 				// Modify values
 				node.setProperty(AbstractNode.name, name2);
 				node.setProperty(AbstractNode.hidden, true);
-				node.setProperty(AbstractNode.deleted, true);
 				node.setProperty(AbstractNode.visibleToAuthenticatedUsers, true);
 				node.setProperty(AbstractNode.visibleToPublicUsers, true);
 
@@ -1186,7 +1184,6 @@ public class BasicTest extends StructrTest {
 
 				assertTrue(node.getProperty(AbstractNode.name).equals(name2));
 				assertTrue(node.getProperty(AbstractNode.hidden));
-				assertTrue(node.getProperty(AbstractNode.deleted));
 				assertTrue(node.getProperty(AbstractNode.visibleToAuthenticatedUsers));
 				assertTrue(node.getProperty(AbstractNode.visibleToPublicUsers));
 			}
@@ -1920,7 +1917,6 @@ public class BasicTest extends StructrTest {
 				new NodeAttribute<>(AbstractNode.name, "test"),
 				new NodeAttribute<>(GraphObject.visibleToPublicUsers, true),
 				new NodeAttribute<>(GraphObject.visibleToAuthenticatedUsers, true),
-				new NodeAttribute<>(AbstractNode.deleted, true),
 				new NodeAttribute<>(AbstractNode.hidden, true)
 			);
 
@@ -1937,7 +1933,6 @@ public class BasicTest extends StructrTest {
 			assertEquals("Invalid create node result", "test", test.getProperty(AbstractNode.name));
 			assertEquals("Invalid create node result", true, test.getProperty(GraphObject.visibleToPublicUsers));
 			assertEquals("Invalid create node result", true, test.getProperty(GraphObject.visibleToAuthenticatedUsers));
-			assertEquals("Invalid create node result", true, test.getProperty(AbstractNode.deleted));
 			assertEquals("Invalid create node result", true, test.getProperty(AbstractNode.hidden));
 
 			tx.success();
