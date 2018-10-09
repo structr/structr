@@ -267,7 +267,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				return;
 			}
 
-			if (thisNode.isDeleted() || thisNode.isHidden() || !thisNode.displayForLocale(renderContext) || !thisNode.displayForConditions(renderContext)) {
+			if (thisNode.isHidden() || !thisNode.displayForLocale(renderContext) || !thisNode.displayForConditions(renderContext)) {
 				return;
 			}
 

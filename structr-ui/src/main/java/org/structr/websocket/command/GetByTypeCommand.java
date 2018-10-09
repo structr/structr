@@ -57,7 +57,7 @@ public class GetByTypeCommand extends AbstractCommand {
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 		final String rawType                   = (String) webSocketData.getNodeData().get("type");
 		final String properties                = (String) webSocketData.getNodeData().get("properties");
-		final boolean includeDeletedAndHidden  = (Boolean) webSocketData.getNodeData().get("includeDeletedAndHidden");
+		final boolean includeHidden            = (Boolean) webSocketData.getNodeData().get("includeHidden");
 		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {
@@ -75,7 +75,7 @@ public class GetByTypeCommand extends AbstractCommand {
 		final int page           = webSocketData.getPage();
 
 
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeDeletedAndHidden(includeDeletedAndHidden);
+		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden(includeHidden);
 
 		if (sortKey != null) {
 

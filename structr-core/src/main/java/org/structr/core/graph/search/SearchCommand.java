@@ -92,7 +92,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private Comparator<T> comparator             = null;
 	private PropertyKey sortKey                  = null;
 	private boolean publicOnly                   = false;
-	private boolean includeDeletedAndHidden      = true;
+	private boolean includeHidden                = true;
 	private boolean sortDescending               = false;
 	private boolean doNotSort                    = false;
 	private Class type                           = null;
@@ -100,7 +100,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	private int page                             = 1;
 	private QueryContext queryContext            = new QueryContext();
 
-	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page);
+	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page);
 	public abstract boolean isRelationshipSearch();
 	public abstract Index<S> getIndex();
 
@@ -111,7 +111,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			return Result.EMPTY_RESULT;
 		}
 
-		final Factory<S, T> factory  = getFactory(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page);
+		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 		boolean hasGraphSources      = false;
 		boolean hasSpatialSource     = false;
 
@@ -126,10 +126,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		}
 
 		// special handling of deleted and hidden flags
-		if (!includeDeletedAndHidden && !isRelationshipSearch()) {
+		if (!includeHidden && !isRelationshipSearch()) {
 
 			rootGroup.add(new PropertySearchAttribute(NodeInterface.hidden,  true, Occurrence.FORBIDDEN, true));
-			rootGroup.add(new PropertySearchAttribute(NodeInterface.deleted, true, Occurrence.FORBIDDEN, true));
 		}
 
 		// At this point, all search attributes are ready
@@ -445,14 +444,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> includeDeletedAndHidden() {
-		this.includeDeletedAndHidden = true;
+	public org.structr.core.app.Query<T> includeHidden() {
+		this.includeHidden = true;
 		return this;
 	}
 
 	@Override
-	public org.structr.core.app.Query<T> includeDeletedAndHidden(final boolean includeDeletedAndHidden) {
-		this.includeDeletedAndHidden = includeDeletedAndHidden;
+	public org.structr.core.app.Query<T> includeHidden(final boolean includeHidden) {
+		this.includeHidden = includeHidden;
 		return this;
 	}
 

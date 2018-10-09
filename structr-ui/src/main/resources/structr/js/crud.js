@@ -1079,6 +1079,16 @@ var _Crud = {
 
 		$('#startImport', dialogBtn).on('click', function() {
 
+			var maxImportCharacters = 100000;
+			var importLength        = importArea.val().length;
+
+			if (importLength > maxImportCharacters) {
+				var importTooBig = 'Not starting import because it contains too many characters (' + importLength + '). The limit is ' + maxImportCharacters + '.<br> Consider uploading the CSV file to the Structr filesystem and using the file-based CSV import which is more powerful than this import.<br><br>';
+
+				new MessageBuilder().error(importTooBig).title('Too much import data').requiresConfirmation().show();
+				return;
+			}
+
 			$.ajax({
 				url: url,
 				dataType: 'json',

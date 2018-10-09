@@ -248,7 +248,7 @@ public class SecurityContext {
 
 	}
 
-	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
 
@@ -262,7 +262,7 @@ public class SecurityContext {
 
 				readableByUser = n.isGranted(Permission.read, this);
 
-				if (!(readableByUser && (includeDeletedAndHidden || !n.isDeleted()) && (n.isVisibleToPublicUsers() || !publicOnly))) {
+				if (!(readableByUser && includeHidden && (n.isVisibleToPublicUsers() || !publicOnly))) {
 
 					it.remove();
 				}
@@ -475,14 +475,14 @@ public class SecurityContext {
 
 	}
 
-	public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+	public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
 
 		/**
 		 * The if-clauses in the following lines have been split for
 		 * performance reasons.
 		 */
 		// deleted and hidden nodes will only be returned if we are told to do so
-		if ((node.isDeleted() || node.isHidden()) && !includeDeletedAndHidden) {
+		if (node.isHidden() && !includeHidden) {
 
 			return false;
 		}
@@ -927,7 +927,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isReadable(final NodeInterface node, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+		public boolean isReadable(final NodeInterface node, final boolean includeHidden, final boolean publicOnly) {
 
 			return true;
 		}

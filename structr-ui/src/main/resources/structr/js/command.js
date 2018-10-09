@@ -127,12 +127,12 @@ var Command = {
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
-	getByType: function(type, pageSize, page, sort, order, properties, includeDeletedAndHidden, callback) {
+	getByType: function(type, pageSize, page, sort, order, properties, includeHidden, callback) {
 		var obj = {
 			command: 'GET_BY_TYPE',
 			data: {
 				type: type,
-				includeDeletedAndHidden: includeDeletedAndHidden
+				includeHidden: includeHidden
 			}
 		};
 		if (pageSize) obj.pageSize = pageSize;

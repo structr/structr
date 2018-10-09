@@ -18,7 +18,6 @@
  */
 package org.structr.web.basic;
 
-import org.structr.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.text.SimpleDateFormat;
@@ -28,6 +27,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import org.junit.Test;
+import org.structr.web.StructrUiTest;
 import org.structr.web.entity.TestOne;
 
 /**
@@ -364,7 +364,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.body("result[0].visibilityStartDate",         nullValue())
 				.body("result[0].visibilityEndDate",           nullValue())
 				.body("result[0].createdBy",                   equalTo(userId))
-				.body("result[0].deleted",                     equalTo(false))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       notNullValue())
 				.body("result[0].ownerId",                     equalTo(userId))

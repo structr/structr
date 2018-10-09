@@ -79,7 +79,7 @@ public class ListCommand extends AbstractCommand {
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
 		final PropertyKey sortProperty = StructrApp.key(type, sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type)/*.includeDeletedAndHidden()*/.sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
+		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type)/*.includeHidden()*/.sort(sortProperty).order("desc".equals(sortOrder)).page(page).pageSize(pageSize);
 
 		if (File.class.isAssignableFrom(type)) {
 
