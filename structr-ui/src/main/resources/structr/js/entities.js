@@ -506,9 +506,11 @@ var _Entities = {
 
 				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
-				_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
-					_Entities.accessControlDialog(entity, c, typeInfo);
-				});
+				if (!entity.hasOwnProperty('relType')) {
+					_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+						_Entities.accessControlDialog(entity, c, typeInfo);
+					});
+				}
 
 				activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
 				$('#tab-' + activeView).click();
