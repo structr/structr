@@ -210,8 +210,6 @@ public class NestedResourcesTest extends StructrRestTest {
 		buf.append(createEntity("/test_one", "{ }"));
 		buf.append("\"");
 
-		System.out.println(buf.toString());
-
 		createEntity("/test_two","{ testOnes: [ " + buf.toString() + " ] }");
 
 		RestAssured

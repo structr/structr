@@ -123,9 +123,7 @@ public abstract class StreamingWriter {
 		final RestWriter writer = getRestWriter(securityContext, output);
 		final String view       = propertyView.get(securityContext);
 
-		if (indent) {
-			writer.setIndent("	");
-		}
+		configureWriter(writer);
 
 		writer.beginDocument(null, view);
 		root.serialize(writer, obj, view, 0);
@@ -203,40 +201,93 @@ public abstract class StreamingWriter {
 					writer.beginArray();
 				}
 
-				for (final Object object : results) {
+				final List list                    = results;
+				final int numberOfPartitions       = (int)Math.rint(Math.log(list.size())) + 1;
+				final List<List> partitions        = ListUtils.partition(list, numberOfPartitions);
+				final List<Future<String>> futures = new LinkedList<>();
 
-					if (object != null) {
+				for (final List partition : partitions) {
 
-						if (object instanceof GraphObject) {
+					futures.add(threadPool.submit(() -> {
 
-							// keep track of serialization time
-							final long startTime              = System.currentTimeMillis();
-							final String localPropertyView    = propertyView.get(null);
-							final GraphObject obj             = (GraphObject)object;
-							final Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
+						final StringWriter buffer = new StringWriter();
 
-							while (keyIt.hasNext()) {
+						// avoid deadlocks by preventing writes in this transaction
+						securityContext.setReadOnlyTransaction();
 
-								PropertyKey k = keyIt.next();
-								Object value  = obj.getProperty(k);
+						try (final Tx tx = StructrApp.getInstance(securityContext).tx(false, false, false)) {
 
-								root.serializeProperty(writer, k, value, localPropertyView, 0);
+							final RestWriter bufferingRestWriter = getRestWriter(securityContext, buffer);
+							configureWriter(bufferingRestWriter);
 
+							bufferingRestWriter.beginArray();
+
+							for (final Object object : partition) {
+
+								if (object != null) {
+
+									if (object instanceof GraphObject) {
+
+										// keep track of serialization time
+										final long startTime              = System.currentTimeMillis();
+										final String localPropertyView    = propertyView.get(null);
+										final GraphObject obj             = (GraphObject)object;
+										final Iterator<PropertyKey> keyIt = obj.getPropertyKeys(localPropertyView).iterator();
+
+										while (keyIt.hasNext()) {
+
+											PropertyKey k = keyIt.next();
+											Object value  = obj.getProperty(k);
+
+											root.serializeProperty(writer, k, value, localPropertyView, 0);
+
+										}
+
+										// check for timeout
+										if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+
+											logger.error("JSON serialization of {} with {} results took more than {} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getCompoundRequestURI(), results.size(), MAX_SERIALIZATION_TIME } );
+
+											// TODO: create some output indicating that streaming was interrupted
+											break;
+										}
+
+									} else {
+
+										writer.value(object.toString());
+									}
+								}
 							}
 
-							// check for timeout
-							if (System.currentTimeMillis() > startTime + MAX_SERIALIZATION_TIME) {
+							bufferingRestWriter.endArray();
+							bufferingRestWriter.flush();
 
-								logger.error("JSON serialization of {} with {} results took more than {} ms, aborted. Please review output view size or adjust timeout.", new Object[] { securityContext.getCompoundRequestURI(), results.size(), MAX_SERIALIZATION_TIME } );
-
-								// TODO: create some output indicating that streaming was interrupted
-								break;
-							}
-
-						} else {
-
-							writer.value(object.toString());
+							tx.success();
 						}
+
+						final String data = buffer.toString();
+						final String sub  = data.substring(1, data.length() - 1);
+
+						return sub;
+					}));
+				}
+
+				for (final Iterator<Future<String>> it = futures.iterator(); it.hasNext();) {
+
+					try {
+
+						final Future<String> future = it.next();
+						final String raw            = future.get();
+
+						writer.raw(raw);
+
+						if (it.hasNext()) {
+							writer.raw(",");
+						}
+
+					} catch (Throwable t) {
+
+						t.printStackTrace();
 					}
 				}
 
@@ -406,6 +457,14 @@ public abstract class StreamingWriter {
 		}
 	}
 
+	private void configureWriter(final RestWriter writer) {
+
+		if (indent) {
+			writer.setIndent("	");
+		}
+	}
+
+	// ----- nested classes -----
 	public abstract class Serializer<T> {
 
 		public abstract void serialize(RestWriter writer, T value, String localPropertyView, int depth) throws IOException;
@@ -511,7 +570,7 @@ public abstract class StreamingWriter {
 							final Object value = source.getProperty(localKey, range);
 							if (value != null) {
 
-								if (!(reduceRedundancy && visitedObjects.contains(value.hashCode()))) {
+								if (!(reduceRedundancy && value instanceof GraphObject && visitedObjects.contains(value.hashCode()))) {
 
 									writer.name(key.jsonName());
 									serializeProperty(writer, localKey, value, localPropertyView, depth+1);
@@ -543,14 +602,12 @@ public abstract class StreamingWriter {
 			// prevent endless recursion by pruning at depth n
 			if (depth <= outputNestingDepth) {
 
-				if (value instanceof List && ((List)value).size() > 100) {
+				if (value instanceof List && ((List)value).size() > 1) {
 
 					final List list                    = (List)value;
-					final int numberOfPartitions       = (int)Math.log(list.size());
+					final int numberOfPartitions       = (int)Math.rint(Math.log(list.size())) + 1;
 					final List<List> partitions        = ListUtils.partition(list, numberOfPartitions);
 					final List<Future<String>> futures = new LinkedList<>();
-
-					System.out.println("Using " + numberOfPartitions + " threads for parallel serialization..");
 
 					for (final List partition : partitions) {
 
@@ -565,6 +622,7 @@ public abstract class StreamingWriter {
 							try (final Tx tx = StructrApp.getInstance(securityContext).tx(false, false, false)) {
 
 								final RestWriter bufferingRestWriter = getRestWriter(securityContext, buffer);
+								configureWriter(bufferingRestWriter);
 
 								bufferingRestWriter.beginArray();
 
@@ -574,13 +632,15 @@ public abstract class StreamingWriter {
 								}
 
 								bufferingRestWriter.endArray();
+								bufferingRestWriter.flush();
 
 								tx.success();
 							}
 
 							final String data = buffer.toString();
+							final String sub  = data.substring(1, data.length() - 1);
 
-							return data.substring(1, data.length() - 1);
+						return sub;
 
 						}));
 					}
@@ -597,8 +657,6 @@ public abstract class StreamingWriter {
 							if (it.hasNext()) {
 								writer.raw(",");
 							}
-
-							writer.raw("\n");
 
 						} catch (Throwable t) {
 

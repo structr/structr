@@ -374,4 +374,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	public void raw(final String data) throws Exception {
 		throw new UnsupportedOperationException("Not supported.");
 	}
+
+	@Override
+	public void flush() throws IOException {
+	}
 }

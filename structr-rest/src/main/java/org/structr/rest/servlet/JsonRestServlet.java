@@ -115,7 +115,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	// non-final fields
 	private Value<String> propertyView       = null;
 	private ThreadLocalGson gson             = null;
-	private boolean indentJson               = true;
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -139,7 +138,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		// initialize variables
 		this.propertyView = new ThreadLocalPropertyView();
-		this.indentJson   = Settings.JsonIndentation.getValue();
 		this.gson         = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
 	}
 
@@ -989,7 +987,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				String accept = request.getHeader("Accept");
+				final boolean indentJson = Settings.JsonIndentation.getValue();
+				final String accept      = request.getHeader("Accept");
 
 				if (accept != null && accept.contains("text/html")) {
 

@@ -36,10 +36,12 @@ public class StructrJsonWriter implements RestWriter {
 	private Writer rawWriter                = null;
 
 	public StructrJsonWriter(final SecurityContext securityContext, final Writer writer) {
+
 		this.securityContext = securityContext;
-		this.writer = new JsonWriter(writer);
+		this.writer          = new JsonWriter(writer);
+		this.rawWriter       = writer;
+
 		this.writer.setLenient(Settings.JsonLenient.getValue());
-		this.rawWriter = writer;
 	}
 
 	@Override
@@ -145,5 +147,10 @@ public class StructrJsonWriter implements RestWriter {
 		writer.flush();
 		rawWriter.append(data);
 		rawWriter.flush();
+	}
+
+	@Override
+	public void flush() throws IOException {
+		writer.flush();
 	}
 }
