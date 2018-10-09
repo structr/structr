@@ -1557,6 +1557,7 @@ public class SchemaHelper {
 		map.put("dynamic", property.isDynamic());
 		map.put("hint", property.hint());
 		map.put("category", property.category());
+		map.put("builtin", property.isPartOfBuiltInSchema());
 
 		final Class<? extends GraphObject> relatedType = property.relatedType();
 		if (relatedType != null) {
