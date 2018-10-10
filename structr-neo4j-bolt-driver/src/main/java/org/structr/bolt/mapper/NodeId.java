@@ -21,61 +21,22 @@ package org.structr.bolt.mapper;
 import java.util.List;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.types.Path;
-import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.wrapper.NodeWrapper;
-import org.structr.bolt.wrapper.RelationshipWrapper;
 
 /**
  * A mapper that converts a stream of Records to a stream of Nodes,
  * with the ability to pre-fetch additional data from the Record.
  */
-public class PrefetchingNodeMapper {
+public class NodeId {
 
 	private List<Path> paths = null;
 	private long nodeId      = -1L;
 
-	public PrefetchingNodeMapper(final Record record) {
+	public NodeId(final Record record) {
 
 		this.nodeId = record.get(0).asLong();
-
-		// if the record contains additional results, we can use them for prefetching
-		if (record.size() > 2) {
-
-			this.paths = (List)record.get("p").asList();
-		}
 	}
 
 	public long getNode() {
 		return this.nodeId;
-	}
-
-	public void prefetch(final BoltDatabaseService db, final NodeWrapper node) {
-
-		if (paths != null) {
-
-			for (final Path path : paths) {
-
-				// pre-load all the nodes in this path
-				for (final org.neo4j.driver.v1.types.Node n : path.nodes()) {
-
-					// load other nodes only
-					if (node != null && n.id() != node.getId()) {
-
-						NodeWrapper.newInstance(db, n);
-					}
-				}
-
-				// pre-load all the relationships in this path
-				for (final org.neo4j.driver.v1.types.Relationship r : path.relationships()) {
-
-					final RelationshipWrapper rel = RelationshipWrapper.newInstance(db, r);
-
-					if (node != null) {
-
-						node.addToCache(rel);
-					}
-				}
-			}
-		}
 	}
 }

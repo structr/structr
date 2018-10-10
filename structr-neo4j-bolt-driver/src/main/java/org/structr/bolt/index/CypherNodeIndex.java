@@ -23,7 +23,7 @@ import org.structr.api.graph.Node;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.mapper.NodeNodeMapper;
-import org.structr.bolt.mapper.PathNodeMapper;
+import org.structr.bolt.mapper.NodeIdNodeMapper;
 
 /**
  *
@@ -95,7 +95,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		if (query.idsOnly()) {
 
-			return QueryUtils.map(new PathNodeMapper(db), new PrefetchNodeResultStream(db, query));
+			return QueryUtils.map(new NodeIdNodeMapper(db), new NodeIdResultStream(db, query));
 
 		} else {
 

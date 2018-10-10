@@ -48,11 +48,9 @@ import org.structr.api.QueryResult;
 import org.structr.api.RetryException;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.mapper.RecordNodeMapper;
-import org.structr.bolt.mapper.RecordPrefetchingNodeMapper;
+import org.structr.bolt.mapper.RecordNodeIdMapper;
 import org.structr.bolt.mapper.RecordRelationshipMapper;
-import org.structr.bolt.mapper.PrefetchingNodeMapper;
-import org.structr.bolt.mapper.PrefetchingRelationshipMapper;
-import org.structr.bolt.mapper.RecordPrefetchingRelationshipMapper;
+import org.structr.bolt.mapper.NodeId;
 import org.structr.bolt.wrapper.EntityWrapper;
 import org.structr.bolt.wrapper.NodeWrapper;
 import org.structr.bolt.wrapper.RelationshipWrapper;
@@ -366,33 +364,13 @@ public class SessionTransaction implements org.structr.api.Transaction {
 		}
 	}
 
-	public QueryResult<PrefetchingNodeMapper> getNodesPrefetchable(final String statement, final Map<String, Object> map) {
+	public QueryResult<NodeId> getNodeIds(final String statement, final Map<String, Object> map) {
 
 		final long t0 = System.currentTimeMillis();
 
 		try {
 
-			return QueryUtils.map(new RecordPrefetchingNodeMapper(), new StatementIterable(tx.run(statement, map)));
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} finally {
-			logQuery(statement, map, t0);
-		}
-	}
-
-	public QueryResult<PrefetchingRelationshipMapper> getRelationshipsPrefetchable(final String statement, final Map<String, Object> map) {
-
-		final long t0 = System.currentTimeMillis();
-
-		try {
-
-			return QueryUtils.map(new RecordPrefetchingRelationshipMapper(), new StatementIterable(tx.run(statement, map)));
+			return QueryUtils.map(new RecordNodeIdMapper(), new StatementIterable(tx.run(statement, map)));
 
 		} catch (TransientException tex) {
 			closed = true;

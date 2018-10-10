@@ -16,32 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.bolt.mapper;
+package org.structr.bolt.index;
 
-import java.util.function.Function;
-import org.structr.api.graph.Node;
+import java.util.Map;
+import org.structr.api.QueryResult;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.wrapper.NodeWrapper;
+import org.structr.bolt.SessionTransaction;
+import org.structr.bolt.mapper.NodeId;
 
 /**
- *
  */
-public class PathNodeMapper implements Function<PrefetchingNodeMapper, Node> {
+public class NodeIdResultStream extends AbstractResultStream<NodeId> {
 
-	private BoltDatabaseService db = null;
-
-	public PathNodeMapper(final BoltDatabaseService db) {
-		this.db            = db;
+	public NodeIdResultStream(final BoltDatabaseService db, final PageableQuery query) {
+		super(db, query);
 	}
 
 	@Override
-	public Node apply(final PrefetchingNodeMapper t) {
+	protected QueryResult<NodeId> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
 
-		final NodeWrapper node = NodeWrapper.newInstance(db, t.getNode());
-
-		t.prefetch(db, node);
-
-		// user of this mapper is only interested in nodes
-		return node;
+		final SessionTransaction tx = db.getCurrentTransaction();
+		return tx.getNodeIds(statement, data);
 	}
 }
