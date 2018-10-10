@@ -36,6 +36,11 @@ public class NodeIdResultStream extends AbstractResultStream<NodeId> {
 	protected QueryResult<NodeId> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
+<<<<<<< Updated upstream:structr-neo4j-bolt-driver/src/main/java/org/structr/bolt/index/NodeIdResultStream.java
 		return tx.getNodeIds(statement, data);
+=======
+		tx.setIsPing(getQuery().getQueryContext().isPing());
+		return tx.getNodesPrefetchable(statement, data);
+>>>>>>> Stashed changes:structr-neo4j-bolt-driver/src/main/java/org/structr/bolt/index/PrefetchNodeResultStream.java
 	}
 }
