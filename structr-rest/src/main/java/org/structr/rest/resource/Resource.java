@@ -121,7 +121,7 @@ public abstract class Resource {
 				final List<GraphObject> list     = result.getResults();
 
 				// delete finished?
-				hasMore = !list.isEmpty();
+				hasMore = list.size() == pageSize;
 
 				for (final GraphObject obj : list) {
 

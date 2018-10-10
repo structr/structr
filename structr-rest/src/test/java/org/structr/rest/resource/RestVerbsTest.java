@@ -110,7 +110,7 @@ public class RestVerbsTest extends StructrRestTest {
 		expectNotOk(200).body("result_count", Matchers.equalTo(70)).when().get("/TestOne");
 
 		// delete 18 elements
-		expectOk(200).when().delete("/" + nodes.get(0));
+		expectOk(200).when().delete("/" + nodes.get(0).getUuid());
 		expectNotOk(200).body("result_count", Matchers.equalTo(69)).when().get("/TestOne");
 	}
 
