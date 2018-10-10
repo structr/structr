@@ -141,7 +141,7 @@ public class SchemaHelper {
 	private static final Set<String> basePropertyNames                                = new LinkedHashSet<>(Arrays.asList(
 		"base", "type", "id", "createdDate", "createdBy", "lastModifiedDate", "lastModifiedBy", "visibleToPublicUsers", "visibleToAuthenticatedUsers", "structrChangeLog",		// from GraphObject
 		"cascadeDelete", "relType", "sourceNode", "targetNode", "sourceId", "targetId", "sourceNodeProperty", "targetNodeProperty",							// from AbstractRelationship
-		"name", "deleted", "hidden", "owner", "ownerId", "grantees"															// from NodeInterface
+		"name", "hidden", "owner", "ownerId", "grantees"															// from NodeInterface
 	));
 
 	static {
@@ -638,9 +638,9 @@ public class SchemaHelper {
 			src.append(outRel.getPropertySource(propertyName, true));
 
 			// built-in schema views are controlled manually, but all user-generated
-			// schema changes are expected to be added to "ui" view.
+			// schema changes are expected to be added to "custom" view.
 			if (!outRel.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema)) {
-				addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+				addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
 			relationshipPropertyNames.add(propertyName);
@@ -661,9 +661,9 @@ public class SchemaHelper {
 			src.append(inRel.getPropertySource(propertyName, false));
 
 			// built-in schema views are controlled manually, but all user-generated
-			// schema changes are expected to be added to "ui" view.
+			// schema changes are expected to be added to "custom" view.
 			if (!inRel.getProperty(SchemaRelationshipNode.isPartOfBuiltInSchema)) {
-				SchemaHelper.addPropertyToView(PropertyView.Ui, propertyName, viewProperties);
+				SchemaHelper.addPropertyToView(PropertyView.Custom, propertyName, viewProperties);
 			}
 
 			relationshipPropertyNames.add(propertyName);
@@ -828,7 +828,7 @@ public class SchemaHelper {
 						if (!schemaProperty.isPartOfBuiltInSchema()) {
 
 							// register property in default view
-							addPropertyToView(PropertyView.Ui, propertyName, views);
+							addPropertyToView(PropertyView.Custom, propertyName, views);
 						}
 					}
 				}
@@ -1557,6 +1557,7 @@ public class SchemaHelper {
 		map.put("dynamic", property.isDynamic());
 		map.put("hint", property.hint());
 		map.put("category", property.category());
+		map.put("builtin", property.isPartOfBuiltInSchema());
 
 		final Class<? extends GraphObject> relatedType = property.relatedType();
 		if (relatedType != null) {

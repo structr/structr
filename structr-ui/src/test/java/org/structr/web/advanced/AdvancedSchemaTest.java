@@ -63,8 +63,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSchemaTest.class.getName());
 
-	private final int count1 = 34;
-	private final int count2 = 44;
+	private final int count1 = 33;
+	private final int count2 = 43;
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {

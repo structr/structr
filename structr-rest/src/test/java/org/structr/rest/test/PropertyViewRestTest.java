@@ -202,7 +202,6 @@ public class PropertyViewRestTest {
 				.body("result[0].visibilityStartDate",         nullValue())
 				.body("result[0].visibilityEndDate",           nullValue())
 				.body("result[0].createdBy",                   nullValue())
-				.body("result[0].deleted",                     equalTo(false))
 				.body("result[0].hidden",                      equalTo(false))
 				.body("result[0].owner",                       nullValue())
 				.body("result[0].ownerId",                     nullValue())

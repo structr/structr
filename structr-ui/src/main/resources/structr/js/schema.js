@@ -614,7 +614,7 @@ var _Schema = {
 					}
 
 					if (!hierarchy[level]) { hierarchy[level] = []; }
-					hierarchy[level].push(entity); console.log(entity.name, level)
+					hierarchy[level].push(entity);
 				});
 
 				Object.keys(hierarchy).forEach(function(key) {
@@ -1347,7 +1347,7 @@ var _Schema = {
 			var appendProperty = function(prop) {
 				var name       = prop.name;
 				var isSelected = prop.isSelected ? ' selected="selected"' : '';
-				var isDisabled = (view.name === 'ui' || prop.isDisabled) ? ' disabled="disabled"' : '';
+				var isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
 
 				viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
 			};

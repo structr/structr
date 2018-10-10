@@ -281,11 +281,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public boolean isDeleted() {
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
 	public boolean hasRelationshipTo(final RelationshipType relType, final NodeInterface targetNode) {
 		throw new UnsupportedOperationException("Not supported.");
 	}

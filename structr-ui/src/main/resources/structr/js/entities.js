@@ -451,7 +451,7 @@ var _Entities = {
 
 		var handleGraphObject = function(entity) {
 
-			var views = ['ui'];
+			var views = ['ui', 'custom' ];
 			var activeView = 'ui';
 			var tabTexts = [];
 
@@ -480,7 +480,8 @@ var _Entities = {
 					}
 
 					tabTexts._html_ = 'HTML Attributes';
-					tabTexts.ui = 'Node Properties';
+					tabTexts.ui = 'Built-in Properties';
+					tabTexts.custom = 'Custom Properties';
 
 					dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
 
@@ -506,9 +507,11 @@ var _Entities = {
 
 				_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
-				_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
-					_Entities.accessControlDialog(entity, c, typeInfo);
-				});
+				if (!entity.hasOwnProperty('relType')) {
+					_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Access Control and Visibility', false, function(c) {
+						_Entities.accessControlDialog(entity, c, typeInfo);
+					});
+				}
 
 				activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
 				$('#tab-' + activeView).click();
@@ -1289,7 +1292,7 @@ var _Entities = {
 		$('#newPrincipal').trigger('chosen:updated');
 		$('#new').after('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '" /> <span class="name">' + principal.name + '</span></td><tr>');
 
-		var row = $('._' + principal.id, dialogText);
+		var row = $('#principals ._' + principal.id, dialogText);
 
 		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
 

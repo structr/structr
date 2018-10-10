@@ -32,7 +32,7 @@ if (browser) {
 	$(document).ready(function() {
 
 		defaultType = 'Page';
-		defaultView = 'ui';
+		defaultView = 'all';
 		defaultSort = '';
 		defaultOrder = '';
 
@@ -89,7 +89,7 @@ var _Crud = {
 	keys: {},
 	crudCache: new AsyncObjectCache(function (id) {
 		$.ajax({
-			url: rootUrl + id + '/ui',
+			url: rootUrl + id + '/' + defaultView,
 			type: 'GET',
 			dataType: 'json',
 			contentType: 'application/json; charset=utf-8;',
@@ -111,8 +111,8 @@ var _Crud = {
 		if (type === null) {
 			return;
 		}
-
-		var url = rootUrl + '_schema/' + type + '/ui';
+		
+		var url = rootUrl + '_schema/' + type + '/' + defaultView;
 		$.ajax({
 			url: url,
 			dataType: 'json',
@@ -133,6 +133,15 @@ var _Crud = {
 						});
 
 						_Crud.keys[type] = properties;
+						
+						var filteredKeys = JSON.parse(LSWrapper.getItem(crudHiddenColumnsKey + type));
+						if (filteredKeys) {
+							Object.keys(filteredKeys).forEach(function(key) {
+								if (key !== 'id' && key !== 'type') {
+									delete _Crud.keys[type][key];
+								}
+							});
+						}
 
 						if (callback) {
 							callback(type, properties);
@@ -911,7 +920,7 @@ var _Crud = {
 	},
 	activateList: function(type, properties) {
 		properties = properties || _Crud.keys[type];
-		var url = rootUrl + type + '/ui' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = rootUrl + type + '/' + defaultView + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 		_Crud.list(type, properties, url);
 	},
 	clearList: function(type) {
@@ -924,7 +933,8 @@ var _Crud = {
 
 		$.ajax({
 			headers: {
-				Range: _Crud.ranges(type)
+				Range: _Crud.ranges(type),
+				Accept: 'application/json; charset=utf-8; properties=' + Object.keys(properties).join(',')
 			},
 			url: url,
 			dataType: 'json',
@@ -1078,6 +1088,16 @@ var _Crud = {
 		dialogBtn.append('<button class="action" id="startImport">Start Import</button>');
 
 		$('#startImport', dialogBtn).on('click', function() {
+
+			var maxImportCharacters = 100000;
+			var importLength        = importArea.val().length;
+
+			if (importLength > maxImportCharacters) {
+				var importTooBig = 'Not starting import because it contains too many characters (' + importLength + '). The limit is ' + maxImportCharacters + '.<br> Consider uploading the CSV file to the Structr filesystem and using the file-based CSV import which is more powerful than this import.<br><br>';
+
+				new MessageBuilder().error(importTooBig).title('Too much import data').requiresConfirmation().show();
+				return;
+			}
 
 			$.ajax({
 				url: url,
@@ -2622,7 +2642,11 @@ var _Crud = {
 				t.remove();
 			});
 		}
-
+		
+		Object.keys(filteredKeys).forEach(function(key) {
+			delete _Crud.keys[type][key];
+		});
+		
 		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 
 	},

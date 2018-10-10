@@ -55,9 +55,9 @@ public interface Query<T extends GraphObject> extends Iterable<T> {
 	public Query<T> pageSize(final int pageSize);
 	public Query<T> page(final int page);
 	public Query<T> publicOnly();
-	public Query<T> includeDeletedAndHidden();
+	public Query<T> includeHidden();
 	public Query<T> publicOnly(final boolean publicOnly);
-	public Query<T> includeDeletedAndHidden(final boolean includeDeletedAndHidden);
+	public Query<T> includeHidden(final boolean includeHidden);
 	public Query<T> uuid(final String uuid);
 	public Query<T> andType(final Class<T> type);
 	public Query<T> orType(final Class<T> type);

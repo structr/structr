@@ -489,7 +489,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 				if ("FAILED".equals(state)) {
 
-					logger.warn("Index is in FAILED state - dropping the index before handling it further! {}", indexDescription);
+					logger.warn("Index is in FAILED state - dropping the index before handling it further. {}. If this error is recurring, please verify that the data in the concerned property is indexable by Neo4j", indexDescription);
 
 					try (final Transaction tx = beginTx()) {
 

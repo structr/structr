@@ -117,7 +117,7 @@ public class TypeResource extends SortableResource {
 	@Override
 	public Result doGet(final PropertyKey sortKey, final boolean sortDescending, final int pageSize, final int page) throws FrameworkException {
 
-		boolean includeDeletedAndHidden        = true;
+		boolean includeHidden                  = true;
 		boolean publicOnly                     = false;
 		PropertyKey actualSortKey              = sortKey;
 		boolean actualSortOrder                = sortDescending;
@@ -158,7 +158,7 @@ public class TypeResource extends SortableResource {
 			if (virtualType != null) {
 
 				final Result untransformedResult = query
-					.includeDeletedAndHidden(includeDeletedAndHidden)
+					.includeHidden(includeHidden)
 					.publicOnly(publicOnly)
 					.sort(actualSortKey)
 					.order(actualSortOrder)
@@ -171,7 +171,7 @@ public class TypeResource extends SortableResource {
 			} else {
 
 				return query
-					.includeDeletedAndHidden(includeDeletedAndHidden)
+					.includeHidden(includeHidden)
 					.publicOnly(publicOnly)
 					.sort(actualSortKey)
 					.order(actualSortOrder)

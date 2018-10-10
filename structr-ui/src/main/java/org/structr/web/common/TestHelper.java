@@ -53,7 +53,7 @@ public class TestHelper {
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
 		boolean fail                                         = false;
 
-		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "deleted", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
+		baseMap.put("ui",     Arrays.asList("id", "type", "name", "owner", "createdBy", "hidden", "createdDate", "lastModifiedDate", "visibleToPublicUsers", "visibleToAuthenticatedUsers"));
 		baseMap.put("_html_", Arrays.asList("_html_data", "_html_is", "_html_properties"));
 		baseMap.put("public", Arrays.asList("id", "type"));
 

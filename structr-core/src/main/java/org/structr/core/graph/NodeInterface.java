@@ -52,7 +52,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	// properties
 	public static final Property<String>          name               = new StringProperty("name").indexed().partOfBuiltInSchema();
-	public static final Property<Boolean>         deleted            = new BooleanProperty("deleted").indexed().partOfBuiltInSchema();
 	public static final Property<Boolean>         hidden             = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
 
 	public static final Property<Principal>       owner              = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
@@ -74,8 +73,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	Node getNode();
 
 	String getName();
-
-	boolean isDeleted();
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 

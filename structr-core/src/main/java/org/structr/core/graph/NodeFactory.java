@@ -45,16 +45,16 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		super(securityContext);
 	}
 
-	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
-		super(securityContext, includeDeletedAndHidden, publicOnly);
+	public NodeFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly) {
+		super(securityContext, includeHidden, publicOnly);
 	}
 
 	public NodeFactory(final SecurityContext securityContext, final int pageSize, final int page) {
 		super(securityContext, pageSize, page);
 	}
 
-	public NodeFactory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
-		super(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page);
+	public NodeFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
+		super(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		newNode.onNodeInstantiation(isCreation);
 
 		// check access
-		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeDeletedAndHidden(), factoryProfile.publicOnly())) {
+		if (isCreation || securityContext.isReadable(newNode, factoryProfile.includeHidden(), factoryProfile.publicOnly())) {
 
 			return newNode;
 		}
@@ -112,9 +112,9 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 	}
 
 	@Override
-	public T instantiate(final Node node, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException {
+	public T instantiate(final Node node, final boolean includeHidden, final boolean publicOnly) throws FrameworkException {
 
-		factoryProfile.setIncludeDeletedAndHidden(includeDeletedAndHidden);
+		factoryProfile.setIncludeHidden(includeHidden);
 		factoryProfile.setPublicOnly(publicOnly);
 
 		return instantiate(node);

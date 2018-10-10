@@ -43,10 +43,10 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
-import org.structr.api.config.Settings;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
@@ -245,7 +245,6 @@ public class StructrTest {
 
 			properties.put(NodeInterface.visibleToAuthenticatedUsers, false);
 			properties.put(NodeInterface.visibleToPublicUsers, false);
-			properties.put(NodeInterface.deleted, false);
 			properties.put(NodeInterface.hidden, false);
 
 			for (int i = 0; i < number; i++) {
