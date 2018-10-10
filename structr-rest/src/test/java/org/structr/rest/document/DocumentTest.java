@@ -1423,7 +1423,7 @@ public class DocumentTest extends StructrRestTest {
 			.body("result[0].worker[1].name",   equalTo("Worker2"))
 
 			.when()
-			.get("/Task/ui");
+			.get("/Task/custom");
 	}
 
 	@Test

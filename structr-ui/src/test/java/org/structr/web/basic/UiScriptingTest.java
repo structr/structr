@@ -343,7 +343,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("result.folders",      Matchers.hasSize(10))
 				.body("result.testFunction", Matchers.hasSize(10))
 			.when()
-				.get("/Folder/" + uuid + "/ui");
+				.get("/Folder/" + uuid + "/all");
 	}
 
 	@Test

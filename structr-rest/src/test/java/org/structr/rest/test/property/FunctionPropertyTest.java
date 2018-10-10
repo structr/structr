@@ -185,6 +185,6 @@ public class FunctionPropertyTest extends StructrRestTest {
 			.body("result[0].test" + typeName, equalTo(value))
 			.body("result",                    hasSize(1))
 		.when()
-			.get("/TestType/ui?test" + typeName + "=" + value);
+			.get("/TestType/all?test" + typeName + "=" + value);
 	}
 }

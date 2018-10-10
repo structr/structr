@@ -63,8 +63,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSchemaTest.class.getName());
 
-	private final int count1 = 33;
-	private final int count2 = 43;
+	private final int count1 = 1;
+	private final int count2 = 1;
 
 	@Test
 	public void test01InheritanceOfFileAttributesToImage() {
@@ -121,7 +121,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 
 				.when()
-					.get("/_schema/File/ui");
+					.get("/_schema/File/custom");
 
 			tx.success();
 
@@ -152,7 +152,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"), hasEntry("declaringClass", "File"))))
 
 				.when()
-					.get("/_schema/Image/ui");
+					.get("/_schema/Image/custom");
 
 			tx.success();
 
@@ -245,7 +245,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
 				.when()
-					.get("/_schema/SubFile/ui");
+					.get("/_schema/SubFile/custom");
 
 			tx.success();
 
@@ -339,7 +339,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
 				.when()
-					.get("/_schema/SubFile/ui");
+					.get("/_schema/SubFile/custom");
 
 			tx.success();
 

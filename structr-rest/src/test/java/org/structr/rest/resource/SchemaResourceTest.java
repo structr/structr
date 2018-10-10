@@ -52,14 +52,14 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].type", equalTo("String"))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].declaringClass", equalTo("TestType0"))
 
 			.when()
-				.get("/_schema/TestType0/ui");
+				.get("/_schema/TestType0/custom");
 
 	}
 
@@ -84,15 +84,15 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].type", equalTo("String"))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
 				.body("result[-1].declaringClass", equalTo("TestType1"))
 
 			.when()
-				.get("/_schema/TestType1/ui");
+				.get("/_schema/TestType1/custom");
 
 	}
 
@@ -117,14 +117,14 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].type", equalTo("String"))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType2/ui");
+				.get("/_schema/TestType2/custom");
 
 	}
 
@@ -149,13 +149,13 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].unique", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType3/ui");
+				.get("/_schema/TestType3/custom");
 
 	}
 
@@ -180,14 +180,14 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].unique", equalTo(true))
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType4/ui");
+				.get("/_schema/TestType4/custom");
 
 	}
 
@@ -212,12 +212,12 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].format", equalTo("bar"))
 
 			.when()
-				.get("/_schema/TestType5/ui");
+				.get("/_schema/TestType5/custom");
 
 	}
 
@@ -242,14 +242,14 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].unique", equalTo(true))
 				.body("result[-1].format", equalTo("bar"))
 
 			.when()
-				.get("/_schema/TestType6/ui");
+				.get("/_schema/TestType6/custom");
 
 	}
 
@@ -274,13 +274,13 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 
 			.when()
-				.get("/_schema/TestType7/ui");
+				.get("/_schema/TestType7/custom");
 
 	}
 
@@ -305,14 +305,14 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].unique", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType8/ui");
+				.get("/_schema/TestType8/custom");
 
 	}
 
@@ -337,14 +337,14 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType9/ui");
+				.get("/_schema/TestType9/custom");
 
 	}
 
@@ -370,14 +370,14 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType10/ui");
+				.get("/_schema/TestType10/custom");
 
 	}
 
@@ -402,8 +402,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -411,7 +411,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].defaultValue", equalTo("xyz"))
 
 			.when()
-				.get("/_schema/TestType11/ui");
+				.get("/_schema/TestType11/custom");
 
 	}
 
@@ -436,15 +436,15 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].type", equalTo("Date"))
 				.body("result[-1].notNull", equalTo(true))
 				.body("result[-1].format", equalTo("yyyy-MM-dd"))
 
 			.when()
-				.get("/_schema/TestType12/ui");
+				.get("/_schema/TestType12/custom");
 
 	}
 
@@ -469,8 +469,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
 				.body("result[-1].contentType", equalTo("text/html"))
@@ -479,7 +479,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].defaultValue", equalTo("xyz"))
 
 			.when()
-				.get("/_schema/TestType13/ui");
+				.get("/_schema/TestType13/custom");
 
 	}
 
@@ -504,8 +504,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
 				.body("result[-1].contentType", equalTo("text/html"))
@@ -514,7 +514,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].defaultValue", equalTo("xyz"))
 
 			.when()
-				.get("/_schema/TestType14/ui");
+				.get("/_schema/TestType14/custom");
 
 	}
 
@@ -539,8 +539,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("fooDb"))
 				.body("result[-1].contentType", equalTo("text/html"))
@@ -549,7 +549,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].defaultValue", equalTo("xyz"))
 
 			.when()
-				.get("/_schema/TestType15/ui");
+				.get("/_schema/TestType15/custom");
 
 	}
 
@@ -575,8 +575,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -584,7 +584,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].defaultValue", equalTo("xyz"))
 
 			.when()
-				.get("/_schema/TestType16/ui");
+				.get("/_schema/TestType16/custom");
 
 	}
 
@@ -609,8 +609,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].contentType", equalTo("text/html"))
 				.body("result[-1].notNull", equalTo(true))
@@ -618,7 +618,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].defaultValue", equalTo("xyz"))
 
 			.when()
-				.get("/_schema/TestType17/ui");
+				.get("/_schema/TestType17/custom");
 
 	}
 
@@ -643,15 +643,15 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Date"))
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType18/ui");
+				.get("/_schema/TestType18/custom");
 
 	}
 
@@ -676,8 +676,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Date"))
@@ -685,7 +685,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].format", equalTo("yyyy-MM-dd"))
 
 			.when()
-				.get("/_schema/TestType19/ui");
+				.get("/_schema/TestType19/custom");
 
 	}
 
@@ -710,15 +710,15 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Boolean"))
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType20/ui");
+				.get("/_schema/TestType20/custom");
 
 	}
 
@@ -743,15 +743,15 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Double"))
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType21/ui");
+				.get("/_schema/TestType21/custom");
 
 	}
 
@@ -776,8 +776,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("foo"))
 				.body("result[-1].type", equalTo("Enum"))
@@ -785,7 +785,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType22/ui");
+				.get("/_schema/TestType22/custom");
 
 	}
 
@@ -810,8 +810,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Enum"))
@@ -819,7 +819,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType23/ui");
+				.get("/_schema/TestType23/custom");
 
 	}
 
@@ -844,8 +844,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Enum"))
@@ -854,7 +854,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType24/ui");
+				.get("/_schema/TestType24/custom");
 
 	}
 
@@ -879,8 +879,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Boolean"))
@@ -888,7 +888,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType25/ui");
+				.get("/_schema/TestType25/custom");
 
 	}
 
@@ -913,8 +913,8 @@ public class SchemaResourceTest extends StructrRestTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(11))
-				.body("result_count", equalTo(11))
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
 				.body("result[-1].jsonName", equalTo("foo"))
 				.body("result[-1].dbName", equalTo("Foo"))
 				.body("result[-1].type", equalTo("Double"))
@@ -922,7 +922,7 @@ public class SchemaResourceTest extends StructrRestTest {
 				.body("result[-1].notNull", equalTo(true))
 
 			.when()
-				.get("/_schema/TestType26/ui");
+				.get("/_schema/TestType26/custom");
 
 	}
 
