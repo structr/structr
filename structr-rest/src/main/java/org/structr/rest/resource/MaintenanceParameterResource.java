@@ -29,7 +29,6 @@ import org.structr.core.Result;
 import org.structr.core.graph.BulkChangeNodePropertyKeyCommand;
 import org.structr.core.graph.BulkCopyRelationshipPropertyCommand;
 import org.structr.core.graph.BulkCreateLabelsCommand;
-import org.structr.core.graph.BulkDeleteSoftDeletedNodesCommand;
 import org.structr.core.graph.BulkFixNodePropertiesCommand;
 import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.BulkSetNodePropertiesCommand;
@@ -67,7 +66,6 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("changeNodePropertyKey", BulkChangeNodePropertyKeyCommand.class);
 		maintenanceCommandMap.put("setRelationshipProperties", BulkSetRelationshipPropertiesCommand.class);
 		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
-		maintenanceCommandMap.put("deleteSoftDeletedNodes", BulkDeleteSoftDeletedNodesCommand.class);
 		maintenanceCommandMap.put("createLicense", StructrLicenseManager.CreateLicenseCommand.class);
 		maintenanceCommandMap.put("setUuid", BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync", SyncCommand.class);

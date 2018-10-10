@@ -415,7 +415,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 		while (subNode != null) {
 
-			if (!subNode.isDeleted() && renderContext.getSecurityContext().isVisible(subNode)) {
+			if (renderContext.getSecurityContext().isVisible(subNode)) {
 
 				subNode.render(renderContext, depth);
 			}

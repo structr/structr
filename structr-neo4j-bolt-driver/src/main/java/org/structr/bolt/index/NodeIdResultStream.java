@@ -22,20 +22,21 @@ import java.util.Map;
 import org.structr.api.QueryResult;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
-import org.structr.bolt.mapper.PrefetchingNodeMapper;
+import org.structr.bolt.mapper.NodeId;
 
 /**
  */
-public class PrefetchNodeResultStream extends AbstractResultStream<PrefetchingNodeMapper> {
+public class NodeIdResultStream extends AbstractResultStream<NodeId> {
 
-	public PrefetchNodeResultStream(final BoltDatabaseService db, final PageableQuery query) {
+	public NodeIdResultStream(final BoltDatabaseService db, final PageableQuery query) {
 		super(db, query);
 	}
 
 	@Override
-	protected QueryResult<PrefetchingNodeMapper> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
+	protected QueryResult<NodeId> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
-		return tx.getNodesPrefetchable(statement, data);
+		tx.setIsPing(getQuery().getQueryContext().isPing());
+		return tx.getNodeIds(statement, data);
 	}
 }

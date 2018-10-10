@@ -111,7 +111,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
-		id, name, owner, type, createdBy, deleted, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers
+		id, name, owner, type, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers
 	);
 
 	private final Map<AbstractNode, Map<String, Object>> tmpStorageContainer = new WeakHashMap<>(2);
@@ -419,15 +419,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	 */
 	public final boolean getHidden() {
 		return getProperty(hidden);
-	}
-
-	/**
-	 * Indicates whether this node is deleted.
-	 *
-	 * @return whether this node is deleted
-	 */
-	public final boolean getDeleted() {
-		return getProperty(deleted);
 	}
 
 	/**
@@ -1381,19 +1372,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	// ----- end interface AccessControllable -----
-	public final boolean isNotDeleted() {
-
-		return !getDeleted();
-
-	}
-
-	@Override
-	public final boolean isDeleted() {
-
-		return getDeleted();
-
-	}
-
 	/**
 	 * Return true if node is the root node
 	 *

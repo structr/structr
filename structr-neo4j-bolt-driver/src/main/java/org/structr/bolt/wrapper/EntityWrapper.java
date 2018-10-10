@@ -26,18 +26,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
 import org.neo4j.driver.v1.types.Entity;
-import org.neo4j.driver.v1.types.Relationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
 import org.structr.api.NotInTransactionException;
-import org.structr.api.QueryResult;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
-import org.structr.bolt.mapper.PrefetchingRelationshipMapper;
 
 
 public abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {
@@ -263,67 +261,20 @@ public abstract class EntityWrapper<T extends Entity> implements PropertyContain
 			// if a node/rel was deleted in a previous transaction but the caller keeps a
 			// reference to this entity, we need to make sure that the reference is fresh.
 
-			final StringBuilder queryBuffer = new StringBuilder();
-			final SessionTransaction tx     = db.getCurrentTransaction();
-			final String tenantIdentifier   = db.getTenantIdentifier();
-			final Map<String, Object> map   = new HashMap<>();
+			final SessionTransaction tx   = db.getCurrentTransaction();
+			final Map<String, Object> map = new HashMap<>();
 
 			map.put("id", id);
 
-			// update data
 			data.clear();
 
-			if (isNode()) {
+			try {
 
-				queryBuffer.append("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n");
+				// update data
+				update(tx.getEntity(getQueryPrefix() + " WHERE ID(n) = {id} RETURN n", map).asMap());
 
-				final QueryResult<org.neo4j.driver.v1.types.Node> result = tx.getNodes(queryBuffer.toString(), map);
-				final Iterator<org.neo4j.driver.v1.types.Node> iterator  = result.iterator();
-
-				if (iterator.hasNext()) {
-
-					update(iterator.next().asMap());
-
-				} else {
-
-					throw new NotFoundException("Node with ID " + id + " not found.");
-				}
-
-			} else {
-
-				queryBuffer.append("MATCH (s");
-
-				if (tenantIdentifier != null) {
-					queryBuffer.append(":");
-					queryBuffer.append(tenantIdentifier);
-				}
-
-				queryBuffer.append(")-[n]->(t");
-
-				if (tenantIdentifier != null) {
-					queryBuffer.append(":");
-					queryBuffer.append(tenantIdentifier);
-				}
-
-				queryBuffer.append(") WHERE ID(n) = {id} RETURN n");
-
-				final QueryResult<PrefetchingRelationshipMapper> result = tx.getRelationshipsPrefetchable(queryBuffer.toString(), map);
-				final Iterator<PrefetchingRelationshipMapper> iterator  = result.iterator();
-
-				if (iterator.hasNext()) {
-
-					final PrefetchingRelationshipMapper mapper = iterator.next();
-					final Relationship relationship            = mapper.getRelationship();
-
-					// load relationships and other nodes
-					mapper.prefetch(db);
-
-					update(relationship.asMap());
-
-				} else {
-
-					throw new NotFoundException("Relationship with ID " + id + " not found.");
-				}
+			} catch (NoSuchRecordException nex) {
+				throw new NotFoundException(nex);
 			}
 
 			stale  = false;

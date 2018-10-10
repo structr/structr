@@ -26,22 +26,16 @@ import org.structr.bolt.wrapper.NodeWrapper;
 /**
  *
  */
-public class PathNodeMapper implements Function<PrefetchingNodeMapper, Node> {
+public class NodeIdNodeMapper implements Function<NodeId, Node> {
 
 	private BoltDatabaseService db = null;
 
-	public PathNodeMapper(final BoltDatabaseService db) {
+	public NodeIdNodeMapper(final BoltDatabaseService db) {
 		this.db            = db;
 	}
 
 	@Override
-	public Node apply(final PrefetchingNodeMapper t) {
-
-		final NodeWrapper node = NodeWrapper.newInstance(db, t.getNode());
-
-		t.prefetch(db, node);
-
-		// user of this mapper is only interested in nodes
-		return node;
+	public Node apply(final NodeId t) {
+		return NodeWrapper.newInstance(db, t.getNode());
 	}
 }

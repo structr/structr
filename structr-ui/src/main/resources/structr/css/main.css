@@ -617,6 +617,8 @@ img.disabled {
 	border-collapse: collapse;
 	margin-bottom: 12px;
 	font-size: 8pt;
+	border: 1px solid rgba(0,0,0,.125) ! important;
+	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 }
 
 #users .props {
@@ -1168,18 +1170,16 @@ i.button {
 }
 
 .slideOut .node {
-	border: none;
 	padding: 2px 0px 2px 2px;
 	margin: 0 0 0 11px;
 }
 
 .slideOut .node.page {
-	border: none;
 	padding: 2px 0px 2px 2px;
 	margin: 0 0 0 20px;
 }
 
-#componentsArea > .node {
+#componentsArea > .node, #elementsArea > .node {
 	margin-left: 0;
 }
 
@@ -1189,9 +1189,7 @@ i.button {
 }
 
 #pages .node.nodeHover {
-	/*margin: -1px -1px -1px 10px ! important;*/
-	/*border: 1px solid rgba(0,0,0,.125) ! important;*/
-	/*border: 1px solid transparent;*/
+	border: 1px solid rgba(0,0,0,.125) ! important;
 }
 
 .node.nodeSelectedFromContextMenu {
@@ -2762,7 +2760,6 @@ table.push {
 	display: none;
 	font-size: 9pt;
 	padding: 0;
-	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 	background: #fff ! important;
 	box-shadow: 0px 0px 36px rgba(127,127,127,.1);
 	border: 1px solid rgba(0,0,0,.125);
@@ -4403,6 +4400,10 @@ span.context-help-text {
 	font-weight: normal;
 	text-align: left;
 	z-index: 1012;
+}
+
+input.newKey {
+	width: calc(100% - 32px);
 }
 
 /**

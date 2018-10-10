@@ -54,6 +54,7 @@ public class NodeService implements SingletonService {
 	private Index<Relationship> relIndex = null;
 	private String filesPath             = null;
 	private boolean isInitialized        = false;
+	private CountResult initialCount     = null;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -120,6 +121,7 @@ public class NodeService implements SingletonService {
 			basePath = ".";
 		}
 
+		checkCacheSizes();
 		importSeedFile(basePath);
 	}
 
@@ -167,7 +169,7 @@ public class NodeService implements SingletonService {
 	public int getRetryCount() {
 		return Settings.NodeServiceStartRetries.getValue();
 	}
-	
+
 	@Override
 	public boolean waitAndRetry() {
 		return true;
@@ -181,11 +183,49 @@ public class NodeService implements SingletonService {
 		return relIndex;
 	}
 
+	public CountResult getInitialCounts() {
+
+		if (initialCount == null) {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				initialCount = new CountResult();
+				tx.success();
+
+			} catch (Throwable t) {
+				logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
+			}
+		}
+
+		return initialCount;
+	}
+
+	public CountResult getCurrentCounts() {
+		return new CountResult();
+	}
+
+	// ----- private methods -----
+	private void checkCacheSizes() {
+
+		final CountResult counts = getInitialCounts();
+		final long nodeCacheSize = Settings.NodeCacheSize.getValue();
+		final long relCacheSize  = Settings.RelationshipCacheSize.getValue();
+
+		logger.info("Database contains {} nodes, {} relationships.", counts.abstractNodeCount, counts.relationshipCount);
+
+		if (nodeCacheSize < counts.abstractNodeCount) {
+			logger.warn("Insufficient node cache size detected, please set application.cache.node.size to at least {} for best performance.", counts.abstractNodeCount);
+		}
+
+		if (relCacheSize < counts.relationshipCount) {
+			logger.warn("Insufficient relationship cache size detected, please set application.cache.relationship.size to at least {} for best performance.", counts.relationshipCount);
+		}
+
+	}
+
 	private void importSeedFile(final String basePath) {
 
-		final File seedFile           = new File(Settings.trim(basePath) + "/" + INITIAL_SEED_FILE);
-		final String tenantIdentifier = graphDb.getTenantIdentifier();
-
+		final File seedFile = new File(Settings.trim(basePath) + "/" + INITIAL_SEED_FILE);
 		if (seedFile.exists()) {
 
 			boolean hasApplicationNodes = false;
@@ -194,9 +234,11 @@ public class NodeService implements SingletonService {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
+				final CountResult count = getInitialCounts();
+
 				// do two very quick count queries to determine the number of Structr nodes in the database
-				final int abstractNodeCount  = getCount("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ":AbstractNode) RETURN count(n) AS count", "count");
-				final int nodeInterfaceCount = getCount("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ":NodeInterface) RETURN count(n) AS count", "count");
+				final long abstractNodeCount  = count.abstractNodeCount;
+				final long nodeInterfaceCount = count.nodeInterfaceCount;
 
 				hasApplicationNodes = abstractNodeCount == nodeInterfaceCount && abstractNodeCount > 0;
 
@@ -246,5 +288,24 @@ public class NodeService implements SingletonService {
 	@Override
 	public String getModuleName() {
 		return "core";
+	}
+
+	// ----- nested classes -----
+	public class CountResult {
+
+		private long abstractNodeCount  = 0L;
+		private long relationshipCount  = 0L;
+		private long nodeInterfaceCount = 0L;
+
+		public CountResult() {
+
+			final String tenantIdentifier = graphDb.getTenantIdentifier();
+			final String part             = tenantIdentifier != null ? ":" + tenantIdentifier : "";
+
+			// do some very quick count queries to determine the number of Structr nodes and rels in the database
+			this.abstractNodeCount  = getCount("MATCH (n" + part + ":AbstractNode) RETURN count(n) AS count", "count");
+			this.nodeInterfaceCount = getCount("MATCH (n" + part + ":NodeInterface) RETURN count(n) AS count", "count");
+			this.relationshipCount  = getCount("MATCH (n" + part + ":NodeInterface)-[r]->() RETURN count(DISTINCT r) AS count", "count");
+		}
 	}
 }

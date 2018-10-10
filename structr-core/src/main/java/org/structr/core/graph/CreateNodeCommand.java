@@ -124,7 +124,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			AbstractNode.visibleToPublicUsers.setProperty(securityContext, tmp,        getOrDefault(properties, AbstractNode.visibleToPublicUsers, false));
 			AbstractNode.visibleToAuthenticatedUsers.setProperty(securityContext, tmp, getOrDefault(properties, AbstractNode.visibleToAuthenticatedUsers, false));
 			AbstractNode.hidden.setProperty(securityContext, tmp,                      getOrDefault(properties, AbstractNode.hidden, false));
-			AbstractNode.deleted.setProperty(securityContext, tmp,                     getOrDefault(properties, AbstractNode.deleted, false));
 
 			if (user != null) {
 
@@ -140,7 +139,6 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 			properties.remove(AbstractNode.visibleToPublicUsers);
 			properties.remove(AbstractNode.visibleToAuthenticatedUsers);
 			properties.remove(AbstractNode.hidden);
-			properties.remove(AbstractNode.deleted);
 			properties.remove(AbstractNode.lastModifiedDate);
 			properties.remove(AbstractNode.lastModifiedBy);
 			properties.remove(AbstractNode.createdDate);

@@ -62,9 +62,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		factoryProfile = new FactoryProfile(securityContext);
 	}
 
-	public Factory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+	public Factory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly) {
 
-		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly);
+		factoryProfile = new FactoryProfile(securityContext, includeHidden, publicOnly);
 	}
 
 	public Factory(final SecurityContext securityContext, final int pageSize, final int page) {
@@ -75,14 +75,14 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		factoryProfile.setPage(page);
 	}
 
-	public Factory(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
-		factoryProfile = new FactoryProfile(securityContext, includeDeletedAndHidden, publicOnly, pageSize, page);
+	public Factory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
+		factoryProfile = new FactoryProfile(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 
 	public abstract T instantiate(final S obj);
 	public abstract T instantiate(final S obj, final Relationship pathSegment);
 	public abstract T instantiateWithType(final S obj, final Class<T> type, final Relationship pathSegment, boolean isCreation) throws FrameworkException;
-	public abstract T instantiate(final S obj, final boolean includeDeletedAndHidden, final boolean publicOnly) throws FrameworkException;
+	public abstract T instantiate(final S obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException;
 	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
 
 	/**
@@ -104,7 +104,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 * Create structr nodes from the underlying database nodes
 	 *
 	 * Include only nodes which are readable in the given security context.
-	 * If includeDeletedAndHidden is true, include nodes with 'deleted' flag
+	 * If includeHidden is true, include nodes with 'deleted' flag
 	 * If publicOnly is true, filter by 'visibleToPublicUsers' flag
 	 *
 	 * @param input
@@ -252,7 +252,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	// ----- nested classes -----
 	protected class FactoryProfile {
 
-		private boolean includeDeletedAndHidden = true;
+		private boolean includeHidden           = true;
 		private boolean publicOnly              = false;
 		private int pageSize                    = DEFAULT_PAGE_SIZE;
 		private int page                        = DEFAULT_PAGE;
@@ -266,18 +266,18 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 		}
 
-		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly) {
+		public FactoryProfile(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly) {
 
 			this.securityContext         = securityContext;
-			this.includeDeletedAndHidden = includeDeletedAndHidden;
+			this.includeHidden           = includeHidden;
 			this.publicOnly              = publicOnly;
 
 		}
 
-		public FactoryProfile(final SecurityContext securityContext, final boolean includeDeletedAndHidden, final boolean publicOnly, final int pageSize, final int page) {
+		public FactoryProfile(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
 
 			this.securityContext         = securityContext;
-			this.includeDeletedAndHidden = includeDeletedAndHidden;
+			this.includeHidden           = includeHidden;
 			this.publicOnly              = publicOnly;
 			this.pageSize                = pageSize;
 			this.page                    = page;
@@ -287,11 +287,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		//~--- methods ------------------------------------------------
 
 		/**
-		 * @return the includeDeletedAndHidden
+		 * @return the includeHidden
 		 */
-		public boolean includeDeletedAndHidden() {
+		public boolean includeHidden() {
 
-			return includeDeletedAndHidden;
+			return includeHidden;
 
 		}
 
@@ -336,11 +336,11 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		//~--- set methods --------------------------------------------
 
 		/**
-		 * @param includeDeletedAndHidden the includeDeletedAndHidden to set
+		 * @param includeHidden the includeHidden to set
 		 */
-		public void setIncludeDeletedAndHidden(boolean includeDeletedAndHidden) {
+		public void setIncludeHidden(boolean includeHidden) {
 
-			this.includeDeletedAndHidden = includeDeletedAndHidden;
+			this.includeHidden = includeHidden;
 
 		}
 

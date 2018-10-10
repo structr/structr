@@ -38,6 +38,11 @@ public interface PropertyView {
 	public static final String Public =	"public";
 	
 	/**
+	 * The "custom" view, this is the default view for custom attributes.
+	 */
+	public static final String Custom =	"custom";
+
+	/**
 	 * The "protected" view, free to use.
 	 */
 	public static final String Protected =	"protected";

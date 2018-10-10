@@ -22,7 +22,7 @@ import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
-import org.structr.bolt.mapper.PathRelationshipMapper;
+import org.structr.bolt.mapper.RelationshipRelationshipMapper;
 
 /**
  *
@@ -39,7 +39,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 		final StringBuilder buf       = new StringBuilder();
 		final String tenantIdentifier = db.getTenantIdentifier();
 
-		buf.append("MATCH (s");
+		buf.append("MATCH (");
 
 		if (tenantIdentifier != null) {
 			buf.append(":");
@@ -58,7 +58,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			buf.append(typeLabel);
 		}
 
-		buf.append("]->(t");
+		buf.append("]->(");
 
 		if (tenantIdentifier != null) {
 			buf.append(":");
@@ -81,7 +81,7 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 		final StringBuilder buf = new StringBuilder();
 		final String sortKey    = query.getSortKey();
 
-		buf.append(" RETURN DISTINCT n, s, t");
+		buf.append(" RETURN DISTINCT n");
 
 		if (sortKey != null) {
 
@@ -95,6 +95,6 @@ public class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 
 	@Override
 	public QueryResult<Relationship> getResult(final PageableQuery query) {
-		return QueryUtils.map(new PathRelationshipMapper(db), new PrefetchRelationshipResultStream(db, query));
+		return QueryUtils.map(new RelationshipRelationshipMapper(db), new RelationshipResultStream(db, query));
 	}
 }

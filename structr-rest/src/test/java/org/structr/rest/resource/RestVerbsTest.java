@@ -95,7 +95,7 @@ public class RestVerbsTest extends StructrRestTest {
 	@Test
 	public void test04DELETE() {
 
-		createNodes(100);
+		final List<TestOne> nodes = createNodes(100);
 
 		// delete exactly one element by name
 		expectOk(200).when().delete("/TestOne?name=node055");
@@ -108,6 +108,10 @@ public class RestVerbsTest extends StructrRestTest {
 		// delete 18 elements
 		expectOk(200).when().delete("/TestOne?name=7&loose=1");
 		expectNotOk(200).body("result_count", Matchers.equalTo(70)).when().get("/TestOne");
+
+		// delete 18 elements
+		expectOk(200).when().delete("/" + nodes.get(0).getUuid());
+		expectNotOk(200).body("result_count", Matchers.equalTo(69)).when().get("/TestOne");
 	}
 
 	@Test
