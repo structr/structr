@@ -95,6 +95,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(REQUEST_PARAMTER_OUTPUT_DEPTH);
 		commonRequestParameters.add("debugLoggingEnabled");
 		commonRequestParameters.add("ignoreResultCount");
+		commonRequestParameters.add("useMultiThreading");
 
 		// cross reference here, but these need to be added as well..
 		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
@@ -1021,7 +1022,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						final Writer writer = response.getWriter();
 
 						jsonStreamer.stream(securityContext, writer, result, baseUrl);
-						writer.append("\n");    // useful newline
+						writer.write(10);    // useful newline
+						writer.flush();
 
 						tx.success();
 					}

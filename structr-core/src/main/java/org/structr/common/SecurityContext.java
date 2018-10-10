@@ -62,7 +62,8 @@ public class SecurityContext {
 	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
 	private boolean ensureCardinality                    = true;
-	private boolean isReadOnlyTransaction                 = false;
+	private boolean isReadOnlyTransaction                = false;
+	private boolean doMultiThreadedJsonOutput            = false;
 	private int serializationDepth                       = -1;
 
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -132,6 +133,10 @@ public class SecurityContext {
 
 			if (request.getParameter("ignoreResultCount") != null) {
 				this.ignoreResultCount = true;
+			}
+
+			if (request.getParameter("useMultiThreading") != null) {
+				this.doMultiThreadedJsonOutput = true;
 			}
 		}
 	}
@@ -885,6 +890,10 @@ public class SecurityContext {
 
 	public boolean isReadOnlyTransaction() {
 		return isReadOnlyTransaction;
+	}
+
+	public boolean doMultiThreadedJsonOutput() {
+		return doMultiThreadedJsonOutput;
 	}
 
 	// ----- nested classes -----
