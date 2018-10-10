@@ -268,13 +268,20 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		super.onCreation(securityContext, errorBuffer);
 
-		// automatically add new property to the ui view..
+		// automatically add new property to the Ui or Custom view
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
-		if (parent != null && getProperty(isBuiltinProperty)) {
+		if (parent != null) {
+			
+			final String viewToAddTo;
+			if (getProperty(isBuiltinProperty)) {
+				viewToAddTo = PropertyView.Ui;
+			} else {
+				viewToAddTo = PropertyView.Custom;
+			}
 
 			for (final SchemaView view : parent.getProperty(AbstractSchemaNode.schemaViews)) {
 
-				if (PropertyView.Ui.equals(view.getName())) {
+				if (viewToAddTo.equals(view.getName())) {
 
 					final Set<SchemaProperty> properties = new LinkedHashSet<>(view.getProperty(SchemaView.schemaProperties));
 
