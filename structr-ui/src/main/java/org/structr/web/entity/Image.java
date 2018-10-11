@@ -127,6 +127,9 @@ public interface Image extends File {
 
 		image.relate(image, "THUMBNAIL",  Cardinality.OneToMany, "originalImage", "thumbnails").setCascadingDelete(Cascade.sourceToTarget);
 		image.relate(user,  "PICTURE_OF", Cardinality.OneToOne,  "img", "user");
+
+		// view configuration
+		image.addViewProperty(PropertyView.Public, "parent");
 	}}
 
 	void setIsCreatingThumb(final boolean isCreatingThumb) throws FrameworkException;
