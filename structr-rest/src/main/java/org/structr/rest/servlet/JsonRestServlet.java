@@ -69,12 +69,8 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Implements the structr REST API.
- *
- *
  */
 public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
@@ -110,6 +106,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(SearchCommand.CITY_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.STATE_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.COUNTRY_SEARCH_KEYWORD);
+
+		// misc
+		commonRequestParameters.add(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME);
 	}
 
 	// final fields
@@ -119,9 +118,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	// non-final fields
 	private Value<String> propertyView       = null;
 	private ThreadLocalGson gson             = null;
-	private boolean indentJson               = true;
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -145,7 +141,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 		// initialize variables
 		this.propertyView = new ThreadLocalPropertyView();
-		this.indentJson   = Settings.JsonIndentation.getValue();
 		this.gson         = new ThreadLocalGson(propertyView, config.getOutputNestingDepth());
 	}
 
@@ -995,7 +990,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				String accept = request.getHeader("Accept");
+				final boolean indentJson = Settings.JsonIndentation.getValue();
+				final String accept      = request.getHeader("Accept");
 
 				if (accept != null && accept.contains("text/html")) {
 
@@ -1028,7 +1024,8 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 						final Writer writer = response.getWriter();
 
 						jsonStreamer.stream(securityContext, writer, result, baseUrl);
-						writer.append("\n");    // useful newline
+						writer.write(10);    // useful newline
+						writer.flush();
 
 						tx.success();
 					}

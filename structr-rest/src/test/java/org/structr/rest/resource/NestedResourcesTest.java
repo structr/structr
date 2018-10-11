@@ -19,6 +19,7 @@
 package org.structr.rest.resource;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
@@ -188,6 +189,40 @@ public class NestedResourcesTest extends StructrRestTest {
 				.body("result[0].id",       equalTo(testOne))
 			.when()
 				.get("/test_two/" + testTwo + "/testOnes");
+	}
+
+	@Test
+	public void testSimpleOneToMany() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append("\"");
+		buf.append(createEntity("/test_one", "{ }"));
+		buf.append("\", \"");
+		buf.append(createEntity("/test_one", "{ }"));
+		buf.append("\",\"");
+		buf.append(createEntity("/test_one", "{ }"));
+		buf.append("\",\"");
+		buf.append(createEntity("/test_one", "{ }"));
+		buf.append("\",\"");
+		buf.append(createEntity("/test_one", "{ }"));
+		buf.append("\",\"");
+		buf.append(createEntity("/test_one", "{ }"));
+		buf.append("\"");
+
+		createEntity("/test_two","{ }");
+		createEntity("/test_two","{ }");
+		createEntity("/test_two","{ testOnes: [ " + buf.toString() + " ] }");
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+				.statusCode(200)
+			.when()
+				.get("/test_two");
 
 
 	}
