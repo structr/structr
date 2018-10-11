@@ -39,6 +39,7 @@ import {FlowNotEmpty} from "./entities/FlowNotEmpty.js";
 import {FlowFilter} from "./entities/FlowFilter.js";
 import {FlowComparison} from "./entities/FlowComparison.js";
 import {FlowFork} from "./entities/FlowFork.js";
+import {FlowForkJoin} from "./entities/FlowForkJoin.js";
 
 
 
@@ -408,7 +409,8 @@ export class FlowEditor {
             new FlowNotEmpty(),
             new FlowFilter(),
             new FlowComparison(),
-            new FlowFork()
+            new FlowFork(),
+            new FlowForkJoin()
         ];
     }
 
@@ -455,6 +457,7 @@ export class FlowEditor {
                 'Aggregate' : self._getNodeCreationFunction("FlowAggregate"),
                 'Filter' : self._getNodeCreationFunction("FlowFilter"),
                 'Fork': self._getNodeCreationFunction("FlowFork"),
+                'ForkJoin': self._getNodeCreationFunction("FlowForkJoin"),
                 'ExceptionHandler': self._getNodeCreationFunction("FlowExceptionHandler"),
                 'Log' : self._getNodeCreationFunction("FlowLog"),
                 'Return' : self._getNodeCreationFunction("FlowReturn")
@@ -653,6 +656,9 @@ export class FlowEditor {
                 break;
             case 'FlowFork':
                 fNode = new FlowFork(node, this);
+                break;
+            case 'FlowForkJoin':
+                fNode = new FlowForkJoin(node, this);
                 break;
             default:
                 console.log('FlowEditor: renderNode() -> Used default FlowNode class. Implement custom class for proper handling! Given node type: ' + node.type);

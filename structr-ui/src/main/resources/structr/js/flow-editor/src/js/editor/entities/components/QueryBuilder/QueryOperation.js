@@ -98,7 +98,7 @@ export class QueryOperation {
 
             const structrRest = new StructrRest();
             await structrRest.get("_schema/" + queryType).then((res) => {
-                const properties = res.result[0].views.ui;
+                const properties = res.result[0].views.all;
                 for (let [key,prop] of Object.entries(properties)) {
                     const option = document.createElement("option");
                     option.value = prop.jsonName;

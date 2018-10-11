@@ -20,7 +20,11 @@ package org.structr.flow.engine;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -35,7 +39,8 @@ public class Context {
 	private Map<String,Object> data  			= new HashMap<>();
 	private Map<String,Object> store 			= new HashMap<>();
 	private Map<String,Object> parameters 		= new HashMap<>();
-	private Map<String,Object> currentData = new HashMap<>();
+	private Map<String,Object> currentData 		= new HashMap<>();
+	private Queue<Future> forkPromises			= new ConcurrentLinkedQueue<>();
 	private GraphObject thisObject   			= null;
 	private Object result            			= null;
 	private FlowError error          			= null;
@@ -117,6 +122,14 @@ public class Context {
 
 	public Set<String> getStoreKeySet() {
 		return this.store.keySet();
+	}
+
+	public void queueForkFuture(final Future forkFuture) {
+		this.forkPromises.add(forkFuture);
+	}
+
+	public Queue<Future> getForkFutures() {
+		return this.forkPromises;
 	}
 
 	public ActionContext getActionContext(final SecurityContext securityContext, final FlowBaseNode node) {
