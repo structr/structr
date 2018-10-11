@@ -408,6 +408,11 @@ public interface Image extends File {
 
 		}
 
+		// do not create thumbnails if this transaction is set to read-only
+		if (securityContext.isReadOnlyTransaction()) {
+			return null;
+		}
+
 		if (originalImage.getIsCreatingThumb()) {
 
 			logger.debug("Another thumbnail is being created - waiting....");

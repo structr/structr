@@ -50,7 +50,9 @@ import org.structr.schema.SchemaHelper;
  */
 public class SecurityContext {
 
-	public static final String LOCALE_KEY = "locale";
+
+	public static final String JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME = "parallelizeJsonOutput";
+	public static final String LOCALE_KEY                                  = "locale";
 
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
@@ -62,7 +64,8 @@ public class SecurityContext {
 	private boolean modifyAccessTime                     = true;
 	private boolean ignoreResultCount                    = false;
 	private boolean ensureCardinality                    = true;
-	private boolean doPassiveIndexing                    = true;
+	private boolean isReadOnlyTransaction                = false;
+	private boolean doMultiThreadedJsonOutput            = false;
 	private int serializationDepth                       = -1;
 
 	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
@@ -130,12 +133,12 @@ public class SecurityContext {
 				this.forceMergeOfNestedProperties = true;
 			}
 
-			if ("disabled".equals(request.getHeader("Structr-Passive-Indexing"))) {
-				this.doPassiveIndexing = false;
-			}
-
 			if (request.getParameter("ignoreResultCount") != null) {
 				this.ignoreResultCount = true;
+			}
+
+			if (request.getParameter(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME) != null) {
+				this.doMultiThreadedJsonOutput = true;
 			}
 		}
 	}
@@ -881,6 +884,18 @@ public class SecurityContext {
 
 	public void setContextStore(ContextStore contextStore) {
 		this.contextStore = contextStore;
+	}
+
+	public void setReadOnlyTransaction() {
+		this.isReadOnlyTransaction = true;
+	}
+
+	public boolean isReadOnlyTransaction() {
+		return isReadOnlyTransaction;
+	}
+
+	public boolean doMultiThreadedJsonOutput() {
+		return doMultiThreadedJsonOutput;
 	}
 
 	// ----- nested classes -----

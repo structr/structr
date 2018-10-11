@@ -18,9 +18,6 @@
  */
 package org.structr.core.rest;
 
-
-//~--- JDK imports ------------------------------------------------------------
-
 import com.google.gson.*;
 import com.google.gson.stream.JsonWriter;
 import java.util.LinkedHashMap;
@@ -40,13 +37,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Controls serialization and deserialization of graph objects (nodes
  * and relationships).
- *
- *
  */
 public class GraphObjectGSONAdapter {
 
@@ -70,8 +63,6 @@ public class GraphObjectGSONAdapter {
 	private Value<String> propertyView                    = null;
 	private JsonWriter writer                             = null;
 	protected boolean compactNestedProperties             = true;
-
-	//~--- constructors ---------------------------------------------------
 
 	public GraphObjectGSONAdapter(Value<String> propertyView, final int outputNestingDepth) {
 

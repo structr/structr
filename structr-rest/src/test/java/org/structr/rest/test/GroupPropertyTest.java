@@ -19,6 +19,7 @@
 package org.structr.rest.test;
 
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import static org.hamcrest.Matchers.*;
 import org.junit.Test;
 import org.structr.rest.common.StructrRestTest;
@@ -45,7 +46,7 @@ public class GroupPropertyTest extends StructrRestTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-//				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)
@@ -63,7 +64,7 @@ public class GroupPropertyTest extends StructrRestTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-//				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -82,7 +83,7 @@ public class GroupPropertyTest extends StructrRestTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-//				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -100,7 +101,7 @@ public class GroupPropertyTest extends StructrRestTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)

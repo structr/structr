@@ -156,10 +156,11 @@ public class Settings {
 	public static final Setting<Boolean> SmtpTesting          = new BooleanSetting(smtpGroup, "hidden",        "smtp.testing.only", false);
 
 	// advanced settings
-	public static final Setting<String> ForeignTypeName          = new StringSetting(advancedGroup,  "hidden", "foreign.type.key",          "");
-	public static final Setting<Boolean> JsonRedundancyReduction = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyReduction",  true);
-	public static final Setting<Boolean> JsonLenient             = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",              false);
-	public static final Setting<Boolean> ForceArrays             = new BooleanSetting(advancedGroup, "JSON",   "json.output.forceArrays",   false);
+	public static final Setting<String> ForeignTypeName               = new StringSetting(advancedGroup,  "hidden", "foreign.type.key",               "");
+	public static final Setting<Boolean> JsonRedundancyReduction      = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyReduction",       true);
+	public static final Setting<Integer> JsonParallelizationThreshold = new IntegerSetting(advancedGroup, "JSON",   "json.parallelization.threshold", 100);
+	public static final Setting<Boolean> JsonLenient                  = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",                   false);
+	public static final Setting<Boolean> ForceArrays                  = new BooleanSetting(advancedGroup, "JSON",   "json.output.forceArrays",        false);
 
 	public static final Setting<String> GeocodingProvider        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider");
 	public static final Setting<String> GeocodingLanguage        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.language",            "de");
