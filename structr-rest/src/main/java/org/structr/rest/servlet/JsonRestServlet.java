@@ -95,7 +95,6 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(REQUEST_PARAMTER_OUTPUT_DEPTH);
 		commonRequestParameters.add("debugLoggingEnabled");
 		commonRequestParameters.add("ignoreResultCount");
-		commonRequestParameters.add("useMultiThreading");
 
 		// cross reference here, but these need to be added as well..
 		commonRequestParameters.add(SearchCommand.DISTANCE_SEARCH_KEYWORD);
@@ -107,6 +106,9 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		commonRequestParameters.add(SearchCommand.CITY_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.STATE_SEARCH_KEYWORD);
 		commonRequestParameters.add(SearchCommand.COUNTRY_SEARCH_KEYWORD);
+
+		// misc
+		commonRequestParameters.add(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME);
 	}
 
 	// final fields

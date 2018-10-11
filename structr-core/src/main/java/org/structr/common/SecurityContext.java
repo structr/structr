@@ -50,7 +50,9 @@ import org.structr.schema.SchemaHelper;
  */
 public class SecurityContext {
 
-	public static final String LOCALE_KEY = "locale";
+
+	public static final String JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME = "parallelizeJsonOutput";
+	public static final String LOCALE_KEY                                  = "locale";
 
 	private static final Logger logger                   = LoggerFactory.getLogger(SecurityContext.class.getName());
 	private static final Map<String, Long> resourceFlags = new ConcurrentHashMap<>();
@@ -135,7 +137,7 @@ public class SecurityContext {
 				this.ignoreResultCount = true;
 			}
 
-			if (request.getParameter("useMultiThreading") != null) {
+			if (request.getParameter(SecurityContext.JSON_PARALLELIZATION_REQUEST_PARAMETER_NAME) != null) {
 				this.doMultiThreadedJsonOutput = true;
 			}
 		}
