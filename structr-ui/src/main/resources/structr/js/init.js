@@ -1378,7 +1378,9 @@ var Structr = {
 		return Structr.expanded;
 	},
 	showAndHideInfoBoxMessage: function (msg, msgClass, delayTime, fadeTime) {
-		dialogMsg.html('<div class="infoBox ' + msgClass + '">' + msg + '</div>');
+		var newDiv = $('<div class="infoBox ' + msgClass + '"></div>');
+		newDiv.text(msg);
+		dialogMsg.html(newDiv);
 		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
 	},
 	initVerticalSlider: function (sliderEl, localstorageKey, minWidth, dragCallback) {
