@@ -79,7 +79,8 @@ public abstract class FlowDeploymentHandler {
 			FlowNotEmpty.class,
 			FlowFilter.class,
 			FlowComparison.class,
-			FlowFork.class
+			FlowFork.class,
+			FlowForkJoin.class
 	};
 
 	private static final Class[] relsToExport = {
