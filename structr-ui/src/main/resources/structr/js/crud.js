@@ -694,12 +694,6 @@ var _Crud = {
 
 					// append header row
 					table.append('<tr><th>Column Key</th><th>Visible</th></tr>');
-					var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
-					var filteredKeys = {};
-					if (filterSource) {
-
-						filteredKeys = JSON.parse(filterSource);
-					}
 
 					var url = rootUrl + '_schema/' + type + '/' + defaultView;
 					$.ajax({
@@ -712,7 +706,7 @@ var _Crud = {
 								// no schema entry found?
 								if (!data || !data.result || data.result_count === 0) {
 
-									new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
+									new MessageBuilder().warning('Unable to find schema information for type \'' + type + '\'. There might be database nodes with no type information or a type unknown to Structr in the database.').show();
 
 								} else {
 
@@ -720,11 +714,13 @@ var _Crud = {
 									data.result.forEach(function(prop) {
 										properties[prop.jsonName] = prop;
 									});
+									
+									var hiddenKeys = _Crud.getHiddenKeys(type);
 
 									Object.keys(properties).forEach(function(key) {
 
 										var checkboxKey = 'column-' + type + '-' + key + '-visible';
-										var hidden = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
+										var hidden = hiddenKeys.includes(key);
 
 										table.append(
 												'<tr>'
@@ -948,10 +944,13 @@ var _Crud = {
 
 		_Crud.showLoadingMessageAfterDelay('Loading data for type <b>' + type + '</b>', 100);
 
+		var hiddenKeys             = _Crud.getHiddenKeys(type);
+		var acceptHeaderProperties = Object.keys(properties).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
+
 		$.ajax({
 			headers: {
 				Range: _Crud.ranges(type),
-				Accept: 'application/json; charset=utf-8; properties=' + Object.keys(properties).join(',')
+				Accept: 'application/json; charset=utf-8; properties=' + acceptHeaderProperties
 			},
 			url: url,
 			dataType: 'json',
@@ -1021,7 +1020,7 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/ui' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
@@ -1047,7 +1046,15 @@ var _Crud = {
 			$('#copyToClipboard', dialogBtn).remove();
 		});
 
+
+		var hiddenKeys             = _Crud.getHiddenKeys(type);
+		var acceptHeaderProperties = Object.keys(_Crud.keys[type]).filter(function(key) { return !hiddenKeys.includes(key); }).join(',');
+
 		$.ajax({
+			headers: {
+				Range: _Crud.ranges(type),
+				Accept: 'properties=' + acceptHeaderProperties
+			},
 			url: url,
 			success: function(data) {
 				exportArea.text(data);
@@ -2609,49 +2616,104 @@ var _Crud = {
 		}
 
 	},
+	getHiddenKeys: function(type) {
+		var hiddenKeysSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
+		var hiddenKeys = [];
+		if (hiddenKeysSource) {
+			
+			hiddenKeys = JSON.parse(hiddenKeysSource);
+			
+			if (!Array.isArray(hiddenKeys)) {
+				// migrate old format
+				var newKeys = [];
+				Object.keys(hiddenKeys).forEach(function(key) {
+					newKeys.push(key);
+				});
+				hiddenKeys = newKeys;
+			}
+			
+		} else {
+			// Default: Hide some large fields
+			Object.keys(_Crud.keys[type]).forEach(function(key) {
+				switch (type) {
+					case 'User':
+						switch (key) {
+							case 'isUser':
+							case 'isAdmin':
+							case 'createdBy':
+							case 'sessionIds':
+							case 'publicKeys':
+							case 'sessionData':
+							case 'password':
+							case 'passwordChangeDate':
+							case 'salt':
+							case 'internalEntityContextPath':
+							case 'twoFactorSecret':
+							case 'twoFactorToken':
+							case 'isTwoFactorUser':
+							case 'twoFactorConfirmed':
+							case 'ownedNodes':
+							case 'localStorage':
+							case 'customPermissionQueryAccessControl':
+							case 'customPermissionQueryDelete':
+							case 'customPermissionQueryRead':
+							case 'customPermissionQueryWrite':
+								hiddenKeys.push(key);
+								break;
+							default:
+						}
+						break;
+					case 'File':
+						switch (key) {
+							case 'base64Data':
+							case 'favoriteContent':
+							case 'favoriteContext':
+							case 'favoriteUsers':
+							case 'internalEntityContextPath':
+							case 'resultDocumentForExporter':
+							case 'documentTemplateForExporter':
+							case 'isFile':
+							case 'position':
+							case 'extractedContent':
+							case 'indexedWords':
+							case 'minificationTargets':
+							case 'fileModificationDate':
+								hiddenKeys.push(key);
+								break;
+							default:
+						}
+						break;
+					default:
+				}
+			});				
+		}
+		return hiddenKeys;
+	},
 	filterKeys: function(type, sourceArray) {
+
+		var hiddenKeys = _Crud.getHiddenKeys(type);
 
 		if (!sourceArray) {
 			return;
 		}
 
-		var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
-		var filteredKeys = {};
-		if (filterSource) {
-			filteredKeys = JSON.parse(filterSource);
-		} else {
-			// default
-			filteredKeys = { createdBy: 0, deleted: 0, hidden: 0, visibilityStartDate: 0, visibilityEndDate: 0};
-			if (type === 'User') {
-				filteredKeys.password = 0;
-				filteredKeys.sessionIds = 0;
-			}
-			LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
-		}
-		var result = sourceArray.filter(function(key) {
-			return !(filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0);
+		return sourceArray.filter(function(key) {
+			return !(hiddenKeys.includes(key));
 		});
-		return result;
 	},
 	toggleColumn: function(type, key) {
 
-		var table = $('#crud-right table');
-		var filterSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
-		var filteredKeys = {};
-		if (filterSource) {
+		var hiddenKeys = _Crud.getHiddenKeys(type);
 
-			filteredKeys = JSON.parse(filterSource);
-		}
+		if (hiddenKeys.includes(key)) {
 
-		var hidden = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
-
-		if (hidden) {
-
-			filteredKeys[key] = 1;
+			hiddenKeys.splice(hiddenKeys.indexOf(key), 1);
 
 		} else {
 
-			filteredKeys[key] = 0;
+			hiddenKeys.push(key);
+
+			var table = $('#crud-right table');
 
 			// remove column(s) from table
 			$('th.___' + key, table).remove();
@@ -2659,13 +2721,8 @@ var _Crud = {
 				t.remove();
 			});
 		}
-		
-//		Object.keys(filteredKeys).forEach(function(key) {
-//			delete _Crud.keys[type][key];
-//		});
-		
-		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 
+		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
 	},
 	serializeObject: function(obj) {
 		var o = {};
