@@ -78,7 +78,8 @@ public abstract class FlowDeploymentHandler {
 			FlowFirst.class,
 			FlowNotEmpty.class,
 			FlowFilter.class,
-			FlowComparison.class
+			FlowComparison.class,
+			FlowFork.class
 	};
 
 	private static final Class[] relsToExport = {
@@ -109,7 +110,8 @@ public abstract class FlowDeploymentHandler {
 			FlowExceptionHandlerNodes.class,
 			FlowContainerPackageFlow.class,
 			FlowContainerPackagePackage.class,
-			FlowConditionBaseNode.class
+			FlowConditionBaseNode.class,
+			FlowForkBody.class
 	};
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {

@@ -82,6 +82,10 @@ export class FlowSockets {
         this._sockets['condition_BaseNode'] = condition_baseNode;
         this._sockets['condition_Result'] = condition_Result;
 
+        let forkBody = new D3NE.Socket('forkBody', 'ForkBody', 'Connected nodes will be executed in a new forked thread.');
+        forkBody.combineWith(this._sockets['prev']);
+        this._sockets['forkBody'] = forkBody;
+
     }
 
     static getInst() {

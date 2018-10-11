@@ -149,6 +149,8 @@ html, body
           +setSocketColor($data-flow-color)
         &.loopBody
           +setSocketColor($execution-flow-color)
+        &.forkBody
+          +setSocketColor($execution-flow-color)
         &.call
           +setSocketColor($data-flow-color)
         &.exceptionHandler
@@ -257,6 +259,8 @@ html, body
       &.output-call.input-parameters
         stroke: $data-flow-color
       &.output-loopbody.input-prev
+        stroke: $execution-flow-color
+      &.output-forkbody.input-prev
         stroke: $execution-flow-color
       &.output-datatarget.input-startvalue
         stroke: $data-flow-color

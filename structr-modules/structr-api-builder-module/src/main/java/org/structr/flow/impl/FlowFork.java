@@ -18,67 +18,31 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
-import org.structr.core.script.Scripting;
-import org.structr.flow.api.DataSource;
+import org.structr.flow.api.Fork;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.flow.impl.rels.FlowForkBody;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class FlowLog extends FlowActionNode implements DeployableEntity, ThrowingElement {
+public class FlowFork extends FlowNode implements Fork, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<FlowNode> forkBody         				= new EndNode<>("loopBody", FlowForkBody.class);
 	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-	public static final Property<String> script             				= new StringProperty("script");
 
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, exceptionHandler, isStartNodeOfContainer);
-
-	private static final Logger logger = LoggerFactory.getLogger(FlowLog.class);
-
-	@Override
-	public void execute(final Context context) throws FlowException {
-		String _script = getProperty(script);
-		if (_script == null) {
-			_script = "data";
-		}
-
-		try {
-
-			final DataSource _dataSource = getProperty(dataSource);
-
-			// make data available to action if present
-			if (_dataSource != null) {
-				context.setData(getUuid(), _dataSource.get(context));
-			}
-
-			// Evaluate script and write result to context
-			Object result = Scripting.evaluate(context.getActionContext(securityContext, this), this, "${" + _script + "}", "FlowAction(" + getUuid() + ")");
-
-			FlowContainer container = getProperty(flowContainer);
-
-			logger.info( (container.getName() != null ? ("[" + container.getProperty(FlowContainer.effectiveName) + "]") : "") + ("(" + getUuid() + "): ") + result	);
-
-		} catch (FrameworkException fex) {
-
-			throw new FlowException(fex);
-		}
-
-	}
+	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer, forkBody);
+	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer, forkBody);
 
 	@Override
 	public FlowExceptionHandler getExceptionHandler(Context context) {
@@ -91,12 +55,27 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
-		result.put("script", this.getProperty(script));
 
 		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
 		return result;
+	}
+
+	@Override
+	public FlowNode getForkBody() {
+		return getProperty(forkBody);
+	}
+
+	@Override
+	public Tx createTransaction() throws FlowException {
+
+		try {
+			return StructrApp.getInstance(securityContext).tx();
+		} catch (FrameworkException ex) {
+			throw new FlowException(ex);
+		}
+
 	}
 
 }

@@ -18,18 +18,21 @@
  */
 package org.structr.flow.api;
 
+import org.structr.core.graph.Tx;
+import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowNode;
+
 /**
  *
  */
-public enum FlowType {
+public interface Fork extends FlowElement {
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation,
-	Exception,
-	Filter,
-	Fork
+	FlowNode getForkBody();
+
+	Tx createTransaction() throws FlowException;
+
+	@Override
+	default FlowType getFlowType() {
+		return FlowType.Fork;
+	}
 }

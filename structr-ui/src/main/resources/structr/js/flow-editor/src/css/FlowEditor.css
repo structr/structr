@@ -209,6 +209,12 @@ html, body {
         background-color: #004d00; }
       .node-editor .node .socket.output.loopBody:hover {
         background-color: #00e600; }
+      .node-editor .node .socket.output.forkBody.used {
+        background-color: #00e600; }
+      .node-editor .node .socket.output.forkBody:not(.used) {
+        background-color: #004d00; }
+      .node-editor .node .socket.output.forkBody:hover {
+        background-color: #00e600; }
       .node-editor .node .socket.output.call.used {
         background-color: #6666ff; }
       .node-editor .node .socket.output.call:not(.used) {
@@ -331,6 +337,8 @@ html, body {
       .node-editor .connections .connection.output-call.input-parameters {
         stroke: #6666ff; }
       .node-editor .connections .connection.output-loopbody.input-prev {
+        stroke: #00e600; }
+      .node-editor .connections .connection.output-forkbody.input-prev {
         stroke: #00e600; }
       .node-editor .connections .connection.output-datatarget.input-startvalue {
         stroke: #6666ff; }

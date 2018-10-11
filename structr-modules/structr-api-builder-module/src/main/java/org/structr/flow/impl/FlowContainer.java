@@ -36,6 +36,7 @@ import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.impl.rels.FlowContainerBaseNode;
+import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
 import org.structr.flow.impl.rels.FlowContainerPackageFlow;
 import org.structr.module.api.DeployableEntity;
@@ -50,12 +51,13 @@ import java.util.Map;
  */
 public class FlowContainer extends AbstractNode implements DeployableEntity {
 
-	public static final Property<FlowContainerPackage> flowPackage		= new StartNode<>("flowPackage", FlowContainerPackageFlow.class);
-	public static final Property<List<FlowBaseNode>> flowNodes 			= new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
-	public static final Property<FlowNode> startNode           			= new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
-	public static final Property<String> name                  			= new StringProperty("name").notNull().indexed();
-	public static final Property<Object> effectiveName					= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").typeHint("String");
-	public static final Property<Boolean> scheduledForIndexing			= new BooleanProperty("scheduledForIndexing").defaultValue(false);
+	public static final Property<FlowContainerPackage> flowPackage						= new StartNode<>("flowPackage", FlowContainerPackageFlow.class);
+	public static final Property<List<FlowBaseNode>> flowNodes 							= new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
+	public static final Property<List<FlowContainerConfiguration>> flowConfigurations 	= new StartNodes<>("flowConfigurations", FlowContainerConfigurationFlow.class);
+	public static final Property<FlowNode> startNode           							= new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
+	public static final Property<String> name                  							= new StringProperty("name").notNull().indexed();
+	public static final Property<Object> effectiveName									= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").typeHint("String");
+	public static final Property<Boolean> scheduledForIndexing							= new BooleanProperty("scheduledForIndexing").defaultValue(false);
 
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing);
@@ -111,12 +113,17 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	private void deleteChildren() {
 
 		List<FlowBaseNode> nodes = getProperty(flowNodes);
+		List<FlowContainerConfiguration> configs = getProperty(flowConfigurations);
 
 		App app = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()) {
 			for (FlowBaseNode node: nodes) {
 				app.delete(node);
+			}
+
+			for (FlowContainerConfiguration conf: configs) {
+				app.delete(conf);
 			}
 
 			tx.success();

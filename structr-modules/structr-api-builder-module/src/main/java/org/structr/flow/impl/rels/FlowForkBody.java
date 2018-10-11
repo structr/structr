@@ -16,20 +16,35 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.api;
+package org.structr.flow.impl.rels;
+
+import org.structr.core.entity.OneToOne;
+import org.structr.core.entity.Relation;
+import org.structr.flow.impl.FlowFork;
+import org.structr.flow.impl.FlowNode;
 
 /**
  *
  */
-public enum FlowType {
+public class FlowForkBody extends OneToOne<FlowFork, FlowNode> {
 
-	Action,
-	Decision,
-	Return,
-	ForEach,
-	Store,
-	Aggregation,
-	Exception,
-	Filter,
-	Fork
+	@Override
+	public Class<FlowFork> getSourceType() {
+		return FlowFork.class;
+	}
+
+	@Override
+	public Class<FlowNode> getTargetType() {
+		return FlowNode.class;
+	}
+
+	@Override
+	public String name() {
+		return "FORK_BODY";
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
+	}
 }

@@ -99,8 +99,13 @@ export class FlowConnectionTypes {
                 sourceAttribute: "result",
                 targetAttribute: "condition_baseNode",
                 type: "FlowConditionBaseNode"
+            },
+            FlowForkBody: {
+                name: "FORK_BODY",
+                sourceAttribute: "forkBody",
+                targetAttribute: "prev",
+                type: "FlowForkBody"
             }
-
         };
 
 
