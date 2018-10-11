@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,16 +52,16 @@ public class ListCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final Map<String, Object> nodeData    = webSocketData.getNodeData();
-		final String rawType                  = (String) nodeData.get("type");
-		final String properties               = (String) webSocketData.getNodeData().get("properties");
+		
+		final String rawType                  = webSocketData.getNodeDataStringValue("type");
+		final String properties               = webSocketData.getNodeDataStringValue("properties");
+		final boolean rootOnly                = webSocketData.getNodeDataBooleanValue("rootOnly");
 
-		final boolean rootOnly = Boolean.TRUE.equals((Boolean) nodeData.get("rootOnly"));
 		Class type = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {

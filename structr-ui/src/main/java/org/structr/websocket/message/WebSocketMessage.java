@@ -24,6 +24,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.BooleanUtils;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -206,6 +208,80 @@ public class WebSocketMessage {
 		return jsonErrorObject;
 	}
 
+	public String getRelDataStringValue(final String key) {
+		return (String) getRelDataValue(key);
+	}
+
+	public Object getRelDataValue(final String key) {
+		return getRelData().get(key);
+	}
+
+	public Object getNodeDataValue(final String key) {
+		return getNodeData().get(key);
+	}
+
+	public boolean getNodeDataBooleanValue(final String key) throws FrameworkException {
+		final Object value = getNodeDataValue(key);
+		return BooleanUtils.isTrue((Boolean) value);
+	}
+	
+	public String getNodeDataStringValue(final String key) {
+		return (String) getNodeDataValue(key);
+	}
+
+	public String getNodeDataStringValueTrimmedOrDefault(final String key, final String defaultValue) {
+		final String value = getNodeDataStringValueTrimmed(key);
+		
+		if (value != null) {
+			return value;
+		}
+		
+		return defaultValue;
+	}
+
+	public String getNodeDataStringValueTrimmed(final String key) {
+
+		final String value = getNodeDataStringValue(key);
+		
+		if (value != null) {
+			return value.trim();
+		}
+
+		return "";
+	}
+
+	public Long getNodeDataLongValue(final String key) {
+		final Object value = getNodeDataValue(key);
+		
+		if (value instanceof Number) {
+			return ((Number)value).longValue();
+		}
+
+		if (value instanceof String) {
+			try { return Long.parseLong(value.toString()); } catch (Throwable t) {}
+		}
+		
+		return null;
+	}
+	
+	public Integer getNodeDataIntegerValue(final String key) {
+		final Object value = getNodeDataValue(key);
+		
+		if (value instanceof Number) {
+			return ((Number)value).intValue();
+		}
+
+		if (value instanceof String) {
+			try { return Integer.parseInt(value.toString()); } catch (Throwable t) {}
+		}
+		
+		return -1;
+	}
+
+	public List<String> getNodeDataStringList(final String key) {
+		return (List<String>) getNodeDataValue(key);
+	}
+	
 	//~--- set methods ----------------------------------------------------
 
 	public void setCommand(final String command) {

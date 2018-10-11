@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -41,15 +40,14 @@ public class AppendWidgetCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
 		final String pageId                   = webSocketData.getPageId();
-		final Map<String, Object> nodeData    = webSocketData.getNodeData();
-		final String parentId                 = (String) nodeData.get("parentId");
-		final String baseUrl                  = (String) nodeData.get("widgetHostBaseUrl");
-		final boolean processDeploymentInfo   = (Boolean) nodeData.get("processDeploymentInfo");
+		final String parentId                 = webSocketData.getNodeDataStringValue("parentId");
+		final String baseUrl                  = webSocketData.getNodeDataStringValue("widgetHostBaseUrl");
+		final boolean processDeploymentInfo   = webSocketData.getNodeDataBooleanValue("processDeploymentInfo");
 
 		// check for parent ID
 		if (parentId == null) {
@@ -86,7 +84,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 			if (page != null) {
 
 				try {
-					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, baseUrl, nodeData, processDeploymentInfo);
+					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
 
 				} catch (FrameworkException fex) {
 

@@ -42,14 +42,14 @@ public class DeleteNodesCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
-		final Boolean      recursive = (Boolean)      webSocketData.getNodeData().get("recursive");
-		final List<String> nodeIds   = (List<String>) webSocketData.getNodeData().get("nodeIds");
+		final Boolean      recursive = webSocketData.getNodeDataBooleanValue("recursive");
+		final List<String> nodeIds   = webSocketData.getNodeDataStringList("nodeIds");
 
 		if (nodeIds != null) {
 

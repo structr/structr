@@ -47,8 +47,7 @@ public class AppendMemberCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		String id                    = webSocketData.getId();
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
+		String parentId              = webSocketData.getNodeDataStringValue("parentId");
 
 		// check node to append
 		if (id == null) {

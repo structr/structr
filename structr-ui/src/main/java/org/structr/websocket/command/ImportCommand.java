@@ -40,19 +40,18 @@ public class ImportCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final Map<String, Object> properties  = webSocketData.getNodeData();
-		final String code                     = (String) properties.get("code");
-		final String address                  = (String) properties.get("address");
-		final String name                     = (String) properties.get("name");
-		final boolean publicVisible           = (Boolean) properties.get("publicVisible");
-		final boolean authVisible             = (Boolean) properties.get("authVisible");
-		final boolean includeInExport         = (Boolean) properties.get("includeInExport");
-		final boolean processDeploymentInfo   = (Boolean) properties.get("processDeploymentInfo");
+		final String code                     = webSocketData.getNodeDataStringValue("code");
+		final String address                  = webSocketData.getNodeDataStringValue("address");
+		final String name                     = webSocketData.getNodeDataStringValue("name");
+		final boolean publicVisible           = webSocketData.getNodeDataBooleanValue("publicVisible");
+		final boolean authVisible             = webSocketData.getNodeDataBooleanValue("authVisible");
+		final boolean includeInExport         = webSocketData.getNodeDataBooleanValue("includeInExport");
+		final boolean processDeploymentInfo   = webSocketData.getNodeDataBooleanValue("processDeploymentInfo");
 
 		try {
 

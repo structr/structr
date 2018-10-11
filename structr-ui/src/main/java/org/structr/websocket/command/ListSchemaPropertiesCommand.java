@@ -58,7 +58,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final String view              = (String)webSocketData.getNodeData().get("view");
+		final String view              = webSocketData.getNodeDataStringValue("view");
 		final String id                = webSocketData.getId();
 		final List<GraphObject> result = new LinkedList();
 

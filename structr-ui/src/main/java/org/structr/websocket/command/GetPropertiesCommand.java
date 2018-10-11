@@ -51,7 +51,7 @@ public class GetPropertiesCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		final String properties                = (String) webSocketData.getNodeData().get("properties");
+		final String properties                = webSocketData.getNodeDataStringValue("properties");
 
 		if (properties != null) {
 			securityContext.setCustomView(StringUtils.split(properties, ","));

@@ -52,7 +52,7 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 
 		try {
 
-			final String type = (String) webSocketData.getNodeData().get("type");
+			final String type = webSocketData.getNodeDataStringValue("type");
 
 			if (type != null) {
 

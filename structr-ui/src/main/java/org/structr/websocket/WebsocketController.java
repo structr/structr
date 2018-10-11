@@ -90,7 +90,7 @@ public class WebsocketController implements StructrTransactionListener {
 		// session must be valid to be received by the client
 		webSocketData.setSessionValid(true);
 
-		final String pagePath                        = (String) webSocketData.getNodeData().get("pagePath");
+		final String pagePath                        = webSocketData.getNodeDataStringValue("pagePath");
 		final String encodedPath                     = URIUtil.encodePath(pagePath);
 		final List<StructrWebSocket> clientsToRemove = new LinkedList<>();
 		final List<? extends GraphObject> result     = webSocketData.getResult();

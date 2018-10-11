@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -57,9 +56,8 @@ public class FileImportCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final Map<String, Object> properties  = webSocketData.getNodeData();
-		final String mode                     = (String) properties.get("mode");		// default: list    start | pause | resume | cancel | abort
-		final Long jobId                      = (Long) properties.get("jobId");
+		final String mode                     = webSocketData.getNodeDataStringValue("mode");		// default: list    start | pause | resume | cancel | abort
+		final Long jobId                      = webSocketData.getNodeDataLongValue("jobId");
 
 		final JobQueueManager mgr = JobQueueManager.getInstance();
 

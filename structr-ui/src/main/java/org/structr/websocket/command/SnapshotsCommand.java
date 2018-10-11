@@ -25,7 +25,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,10 +64,10 @@ public class SnapshotsCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final Map<String, Object> data        = webSocketData.getNodeData();
-		final String mode                     = (String)data.get("mode");
-		final String name                     = (String)data.get("name");
-		final String typesString              = (String) data.get("types");
+
+		final String mode                     = webSocketData.getNodeDataStringValue("mode");
+		final String name                     = webSocketData.getNodeDataStringValue("name");
+		final String typesString              = webSocketData.getNodeDataStringValue("types");
 
 		final List<String> types;
 		if (typesString != null) {

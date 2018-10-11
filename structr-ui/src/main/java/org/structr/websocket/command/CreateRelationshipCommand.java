@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import java.util.Arrays;
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -49,10 +48,9 @@ public class CreateRelationshipCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final Map<String, Object> properties = webSocketData.getRelData();
-		final String sourceId                = (String) properties.get("sourceId");
-		final String targetId                = (String) properties.get("targetId");
-		final String relType                 = (String) properties.get("relType");
+		final String sourceId                = webSocketData.getRelDataStringValue("sourceId");
+		final String targetId                = webSocketData.getRelDataStringValue("targetId");
+		final String relType                 = webSocketData.getRelDataStringValue("relType");
 		final AbstractNode sourceNode        = getNode(sourceId);
 		final AbstractNode targetNode        = getNode(targetId);
 

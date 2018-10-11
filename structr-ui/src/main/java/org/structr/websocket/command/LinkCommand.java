@@ -42,8 +42,7 @@ public class LinkCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final String sourceId                 = webSocketData.getId();
-		final Map<String, Object> properties  = webSocketData.getNodeData();
-		final String targetId                 = (String) properties.get("targetId");
+		final String targetId                 = webSocketData.getNodeDataStringValue("targetId");
 		final LinkSource sourceNode           = (LinkSource) getNode(sourceId);
 		final Linkable targetNode             = (Linkable) getNode(targetId);
 

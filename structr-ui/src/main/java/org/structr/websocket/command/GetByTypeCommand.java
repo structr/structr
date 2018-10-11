@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,10 @@ public class GetByTypeCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetByTypeCommand.class.getName());
 
+	private static final String INCLUDE_HIDDEN_KEY       = "includeHidden";
+	private static final String PROPERTIES_KEY           = "properties";
+	private static final String TYPE_KEY                 = "type";
+
 	static {
 
 		StructrWebSocket.addCommand(GetByTypeCommand.class);
@@ -54,44 +59,44 @@ public class GetByTypeCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		final String rawType                   = (String) webSocketData.getNodeData().get("type");
-		final String properties                = (String) webSocketData.getNodeData().get("properties");
-		final boolean includeHidden            = (Boolean) webSocketData.getNodeData().get("includeHidden");
-		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
-
-		if (type == null) {
-			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
-			return;
-		}
-
-		if (properties != null) {
-			securityContext.setCustomView(StringUtils.split(properties, ","));
-		}
-
-		final String sortOrder   = webSocketData.getSortOrder();
-		final String sortKey     = webSocketData.getSortKey();
-		final int pageSize       = webSocketData.getPageSize();
-		final int page           = webSocketData.getPage();
-
-
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden(includeHidden);
-
-		if (sortKey != null) {
-
-			final PropertyKey sortProperty = StructrApp.key(type, sortKey);
-			if (sortProperty != null) {
-
-				query.sort(sortProperty).order("desc".equals(sortOrder));
-			}
-		}
-
-		// for image lists, suppress thumbnails
-		if (type.equals(Image.class)) {
-			query.and(StructrApp.key(Image.class, "isThumbnail"), false);
-		}
-
 		try {
+
+			final SecurityContext securityContext  = getWebSocket().getSecurityContext();
+			final String rawType                   = webSocketData.getNodeDataStringValue(TYPE_KEY);
+			final String properties                = webSocketData.getNodeDataStringValue(PROPERTIES_KEY);
+			final boolean includeHidden            = webSocketData.getNodeDataBooleanValue(INCLUDE_HIDDEN_KEY);
+			final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
+
+			if (type == null) {
+				getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
+				return;
+			}
+
+			if (properties != null) {
+				securityContext.setCustomView(StringUtils.split(properties, ","));
+			}
+
+			final String sortOrder   = webSocketData.getSortOrder();
+			final String sortKey     = webSocketData.getSortKey();
+			final int pageSize       = webSocketData.getPageSize();
+			final int page           = webSocketData.getPage();
+
+
+			final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden(includeHidden);
+
+			if (sortKey != null) {
+
+				final PropertyKey sortProperty = StructrApp.key(type, sortKey);
+				if (sortProperty != null) {
+
+					query.sort(sortProperty).order("desc".equals(sortOrder));
+				}
+			}
+
+			// for image lists, suppress thumbnails
+			if (type.equals(Image.class)) {
+				query.and(StructrApp.key(Image.class, "isThumbnail"), false);
+			}
 
 			// do search
 			Result result = query.getResult();

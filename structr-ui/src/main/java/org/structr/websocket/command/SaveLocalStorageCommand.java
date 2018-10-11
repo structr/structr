@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,15 +45,15 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		final String localStorageString = (String) nodeData.get("localStorageString");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+
+		final String localStorageString = webSocketData.getNodeDataStringValue("localStorageString");
 
 		if (StringUtils.isNotBlank(localStorageString)) {
 
 			try {
 
-				final User me = (User)securityContext.getUser(false);
+				final User me = (User) securityContext.getUser(false);
 				me.setLocalStorage(localStorageString);
 
 				TransactionCommand.registerNodeCallback(me, callback);

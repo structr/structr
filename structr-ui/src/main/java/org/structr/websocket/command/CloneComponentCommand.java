@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyMap;
@@ -50,9 +49,8 @@ public class CloneComponentCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		String id				= webSocketData.getId();
-		Map<String, Object> nodeData		= webSocketData.getNodeData();
-		String parentId				= (String) nodeData.get("parentId");
+		String id				      = webSocketData.getId();
+		String parentId				  = webSocketData.getNodeDataStringValue("parentId");
 
 		// check node to append
 		if (id == null) {

@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -52,10 +51,11 @@ public class SaveNodeCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String nodeId = webSocketData.getId();
-		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		final String modifiedHtml = (String) nodeData.get("source");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+
+		final String nodeId       = webSocketData.getId();
+		final String modifiedHtml = webSocketData.getNodeDataStringValue("source");
+		
 		final App app = StructrApp.getInstance(securityContext);
 
 		Page modifiedNode = null;

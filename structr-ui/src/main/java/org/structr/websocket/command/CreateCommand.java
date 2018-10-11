@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -61,11 +60,9 @@ public class CreateCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-
 		try {
 
-			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, nodeData);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData());
 			Class type                   = SchemaHelper.getEntityClassForRawType(properties.get(AbstractNode.type));
 			final NodeInterface newNode  = app.create(type, properties);
 

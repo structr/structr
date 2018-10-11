@@ -56,7 +56,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String keyString  = (String) webSocketData.getNodeData().get("key");
+		final String keyString  = webSocketData.getNodeDataStringValue("key");
 		if (keyString == null) {
 
 			logger.error("Unable to remove given object from collection: key is null");
@@ -64,7 +64,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 		}
 
-		final String idToRemove = (String) webSocketData.getNodeData().get("idToRemove");
+		final String idToRemove = webSocketData.getNodeDataStringValue("idToRemove");
 		if (idToRemove == null) {
 
 			logger.error("Unable to remove given object from collection: idToRemove is null");

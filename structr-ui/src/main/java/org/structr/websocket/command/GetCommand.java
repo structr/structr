@@ -52,8 +52,8 @@ public class GetCommand extends AbstractCommand {
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
 
-		final String nodeId                    = (String) webSocketData.getNodeData().get("nodeId");
-		final String properties                = (String) webSocketData.getNodeData().get("properties");
+		final String nodeId                    = webSocketData.getNodeDataStringValue("nodeId");
+		final String properties                = webSocketData.getNodeDataStringValue("properties");
 
 		if (properties != null) {
 			securityContext.setCustomView(StringUtils.split(properties, ","));

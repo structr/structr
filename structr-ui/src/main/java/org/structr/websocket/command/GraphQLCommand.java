@@ -65,7 +65,7 @@ public class GraphQLCommand extends AbstractCommand {
 		
 		final SecurityContext securityContext  = socket.getSecurityContext();
 		final List<GraphObject> result         = new LinkedList<>();
-		final String query                     = (String) webSocketData.getNodeData().get("query");
+		final String query                     = webSocketData.getNodeDataStringValue("query");
 
 		if (query != null) {
 			

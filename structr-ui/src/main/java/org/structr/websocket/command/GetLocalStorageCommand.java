@@ -33,6 +33,8 @@ public class GetLocalStorageCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetLocalStorageCommand.class.getName());
 
+	private static final String LOCAL_STORAGE_STRING_KEY = "localStorageString";
+
 	static {
 
 		StructrWebSocket.addCommand(GetLocalStorageCommand.class);
@@ -46,7 +48,7 @@ public class GetLocalStorageCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 
 		try {
-			webSocketData.setNodeData("localStorageString", ((User)securityContext.getUser(false)).getLocalStorage());
+			webSocketData.setNodeData(LOCAL_STORAGE_STRING_KEY, ((User)securityContext.getUser(false)).getLocalStorage());
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

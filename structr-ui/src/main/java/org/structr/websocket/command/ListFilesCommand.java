@@ -56,7 +56,7 @@ public class ListFilesCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		final String rawType                   = (String) webSocketData.getNodeData().get("type");
+		final String rawType                   = webSocketData.getNodeDataStringValue("type");
 		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
 		final String sortOrder                 = webSocketData.getSortOrder();
 		final String sortKey                   = webSocketData.getSortKey();

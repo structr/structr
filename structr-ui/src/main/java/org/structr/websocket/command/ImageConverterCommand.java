@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import java.io.IOException;
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
@@ -44,14 +43,13 @@ public class ImageConverterCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final String originalImageId          = webSocketData.getId();
-		final Map<String, Object> properties  = webSocketData.getNodeData();
 		final Image originalImage             = (Image) getNode(originalImageId);
 
-		final String format = (String) properties.get("format");
-		final int width     = (int) (long) properties.get("width");
-		final int height    = (int) (long) properties.get("height");
-		final int offsetX   = (int) (long) properties.get("offsetX");
-		final int offsetY   = (int) (long) properties.get("offsetY");
+		final String format = webSocketData.getNodeDataStringValue("format");
+		final int width     = webSocketData.getNodeDataIntegerValue("width");
+		final int height    = webSocketData.getNodeDataIntegerValue("height");
+		final int offsetX   = webSocketData.getNodeDataIntegerValue("offsetX");
+		final int offsetY   = webSocketData.getNodeDataIntegerValue("offsetY");
 
 		if (originalImage != null) {
 

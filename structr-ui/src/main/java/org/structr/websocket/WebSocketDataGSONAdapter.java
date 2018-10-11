@@ -31,10 +31,8 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import graphql.language.Document;
 import graphql.parser.Parser;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,8 +52,6 @@ import org.structr.core.rest.GraphObjectGSONAdapter;
 import org.structr.core.rest.JsonInputGSONAdapter;
 import static org.structr.core.rest.JsonInputGSONAdapter.fromPrimitive;
 import org.structr.rest.serialization.GraphQLWriter;
-import org.structr.rest.serialization.RestWriter;
-import org.structr.rest.serialization.StructrJsonWriter;
 import org.structr.websocket.message.WebSocketMessage;
 
 //~--- classes ----------------------------------------------------------------

@@ -67,10 +67,9 @@ public class WebappDataCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final Map<String, Object> data        = webSocketData.getNodeData();
-		final String category                 = (String)data.get("category");
-		final String mode                     = (String)data.get("mode");
-		final String name                     = (String)data.get("name");
+		final String category                 = webSocketData.getNodeDataStringValue("category");
+		final String mode                     = webSocketData.getNodeDataStringValue("mode");
+		final String name                     = webSocketData.getNodeDataStringValue("name");
 
 		if (mode != null) {
 
@@ -114,7 +113,7 @@ public class WebappDataCommand extends AbstractCommand {
 
 				case "add":
 
-					final String positions = (String)data.get("value");
+					final String positions = webSocketData.getNodeDataStringValue("value");
 
 					try {
 

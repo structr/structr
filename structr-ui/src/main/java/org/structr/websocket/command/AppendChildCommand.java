@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.structr.core.entity.AbstractNode;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
@@ -42,8 +41,7 @@ public class AppendChildCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		String id                    = webSocketData.getId();
-		Map<String, Object> nodeData = webSocketData.getNodeData();
-		String parentId              = (String) nodeData.get("parentId");
+		String parentId              = webSocketData.getNodeDataStringValue("parentId");
 
 		// check node to append
 		if (id == null) {

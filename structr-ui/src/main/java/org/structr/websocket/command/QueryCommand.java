@@ -58,15 +58,15 @@ public class QueryCommand extends AbstractCommand {
 	}
 
 	@Override
-	public void processMessage(final WebSocketMessage webSocketData) {
+	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final Map<String, Object> nodeData    = webSocketData.getNodeData();
-		final String rawType                  = (String)nodeData.get("type");
-		final String properties               = (String)nodeData.get("properties");
-		final Boolean exact                   = (Boolean)nodeData.get("exact");
+
+		final String rawType                  = webSocketData.getNodeDataStringValue("type");
+		final String properties               = webSocketData.getNodeDataStringValue("properties");
+		final Boolean exact                   = webSocketData.getNodeDataBooleanValue("exact");
 		final Class type                      = SchemaHelper.getEntityClassForRawType(rawType);
 
 		if (type == null) {

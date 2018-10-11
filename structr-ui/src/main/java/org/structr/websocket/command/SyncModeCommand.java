@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -47,9 +46,10 @@ public class SyncModeCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final String sourceId                 = webSocketData.getId();
-		final Map<String, Object> properties  = webSocketData.getNodeData();
-		final String targetId                 = (String) properties.get("targetId");
-		final String syncMode                 = (String) properties.get("syncMode");
+
+		final String targetId                 = webSocketData.getNodeDataStringValue("targetId");
+		final String syncMode                 = webSocketData.getNodeDataStringValue("syncMode");
+
 		final DOMNode sourceNode              = (DOMNode) getNode(sourceId);
 		final DOMNode targetNode              = (DOMNode) getNode(targetId);
 		final App app                         = StructrApp.getInstance(securityContext);

@@ -46,7 +46,7 @@ public class GetProperty extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final GraphObject obj = getGraphObject(webSocketData.getId());
-		String key = (String) webSocketData.getNodeData().get("key");
+		String key = webSocketData.getNodeDataStringValue("key");
 
 		if (obj != null) {
 

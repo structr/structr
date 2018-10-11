@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.App;
@@ -52,9 +51,8 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 		final App app                      = StructrApp.getInstance(getWebSocket().getSecurityContext());
 		final String id	                   = webSocketData.getId();
-		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		final String source                = (String) nodeData.get("source");
-		final String name                  = (String) nodeData.get("name");
+		final String source                = webSocketData.getNodeDataStringValue("source");
+		final String name                  = webSocketData.getNodeDataStringValue("name");
 
 		// check for ID
 		if (id == null) {

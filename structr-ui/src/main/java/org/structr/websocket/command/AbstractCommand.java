@@ -47,7 +47,7 @@ import org.structr.websocket.message.WebSocketMessage;
 public abstract class AbstractCommand {
 
 	public static final String COMMAND_KEY = "command";
-	public static final String ID_KEY      = "id";
+	public static final String ID_KEY      = "id";	
 	private static final Logger logger     = LoggerFactory.getLogger(AbstractCommand.class.getName());
 
 	protected Session session              = null;

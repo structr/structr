@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 
 import java.util.LinkedList;
-import java.util.Map;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch;
 import org.bitbucket.cowwoc.diffmatchpatch.DiffMatchPatch.Patch;
 import org.slf4j.Logger;
@@ -53,8 +52,7 @@ public class PatchCommand extends AbstractCommand {
 
 		final PropertyKey<String> contentKey = StructrApp.key(Content.class, "content");
 		final AbstractNode node              = getNode(webSocketData.getId());
-		Map<String, Object> properties       = webSocketData.getNodeData();
-		String patch                         = (String) properties.get("patch");
+		final String patch                   = webSocketData.getNodeDataStringValue("patch");
 
 		if (node != null) {
 

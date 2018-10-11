@@ -48,7 +48,7 @@ public class GetRelationshipCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final String nodeId            = (String) webSocketData.getNodeData().get("nodeId");
+		final String nodeId            = webSocketData.getNodeDataStringValue("nodeId");
 		final AbstractRelationship rel = getRelationship(webSocketData.getId(), nodeId);
 
 

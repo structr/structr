@@ -51,7 +51,7 @@ public class GetTypeInfoCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final String type = (String) webSocketData.getNodeData().get("type");
+		final String type = webSocketData.getNodeDataStringValue("type");
 
 		if (type == null) {
 			logger.warn("Node type given not found");

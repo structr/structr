@@ -54,15 +54,21 @@ public class DeleteNodeCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		setDoTransactionNotifications(true);
+		
+		try {
+			
+			final Boolean recursive = webSocketData.getNodeDataBooleanValue("recursive");
+			final NodeInterface obj = getNode(webSocketData.getId());
 
-		final Boolean recursive = (Boolean) webSocketData.getNodeData().get("recursive");
-		final NodeInterface obj = getNode(webSocketData.getId());
+			if (obj != null) {
 
-		if (obj != null) {
+				TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
 
-			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
-
-			deleteNode(getWebSocket(), obj, recursive);
+				deleteNode(getWebSocket(), obj, recursive);
+			}
+		} catch (FrameworkException ex) {
+			logger.warn("Exception occured", ex);
+			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).build(), true);
 		}
 	}
 

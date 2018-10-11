@@ -70,10 +70,10 @@ public class LoginCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
-			final String username       = (String) webSocketData.getNodeData().get("username");
-			final String password       = (String) webSocketData.getNodeData().get("password");
-			final String twoFactorToken = (String) webSocketData.getNodeData().get("twoFactorToken");
-			final String twoFactorCode  = (String) webSocketData.getNodeData().get("twoFactorCode");
+			final String username       = webSocketData.getNodeDataStringValue("username");
+			final String password       = webSocketData.getNodeDataStringValue("password");
+			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
+			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
 			Principal user = null;
 
 			try {

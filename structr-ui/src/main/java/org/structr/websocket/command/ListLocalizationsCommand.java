@@ -55,8 +55,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
 		final String id                       = webSocketData.getId();
-		final Map<String, Object> nodeData    = webSocketData.getNodeData();
-		final String locale                   = (String) nodeData.get("locale");
+		final String locale                   = webSocketData.getNodeDataStringValue("locale");
 
 		try (final Tx tx = app.tx(true, true, false)) {
 

@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,9 +58,8 @@ public class LayoutsCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final Map<String, Object> data        = webSocketData.getNodeData();
-		final String mode                     = (String)data.get("mode");
-		final String name                     = (String)data.get("name");
+		final String mode                     = webSocketData.getNodeDataStringValue("mode");
+		final String name                     = webSocketData.getNodeDataStringValue("name");
 
 		if (mode != null) {
 
@@ -105,7 +103,7 @@ public class LayoutsCommand extends AbstractCommand {
 
 				case "add":
 
-					final String positions = (String)data.get("schemaLayout");
+					final String positions = webSocketData.getNodeDataStringValue("schemaLayout");
 
 					try {
 

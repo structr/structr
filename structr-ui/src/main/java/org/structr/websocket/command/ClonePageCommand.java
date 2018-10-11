@@ -49,7 +49,8 @@ public class ClonePageCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final String nodeId = webSocketData.getId();
+		
+		final String nodeId            = webSocketData.getId();
 		final AbstractNode nodeToClone = getNode(nodeId);
 
 		if (nodeToClone != null) {

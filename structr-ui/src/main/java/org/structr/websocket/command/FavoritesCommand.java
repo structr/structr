@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -50,9 +49,8 @@ public class FavoritesCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final Map<String, Object> data        = webSocketData.getNodeData();
-		final String mode                     = (String)data.get("mode");
-		final String favoritableId            = (String)data.get("id");
+		final String mode                     = webSocketData.getNodeDataStringValue("mode");
+		final String favoritableId            = webSocketData.getNodeDataStringValue("id");
 		final Principal currentUser           = webSocket.getCurrentUser();
 
 		if (mode == null) {

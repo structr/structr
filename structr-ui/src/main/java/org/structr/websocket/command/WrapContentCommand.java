@@ -45,11 +45,10 @@ public class WrapContentCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final Map<String, Object> nodeData = webSocketData.getNodeData();
-		final String parentId              = (String) nodeData.get("parentId");
+		final String parentId              = webSocketData.getNodeDataStringValue("parentId");
 		final String pageId                = webSocketData.getPageId();
 
-		nodeData.remove("parentId");
+		webSocketData.getNodeData().remove("parentId");
 
 		if (pageId != null) {
 
@@ -71,8 +70,8 @@ public class WrapContentCommand extends AbstractCommand {
 			final Document document = getPage(pageId);
 			if (document != null) {
 
-				final String tagName  = (String) nodeData.get("tagName");
-				nodeData.remove("tagName");
+				final String tagName  = webSocketData.getNodeDataStringValue("tagName");
+				webSocketData.getNodeData().remove("tagName");
 
 				final DOMNode parentNode = (DOMNode) contentNode.getParentNode();
 

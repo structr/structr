@@ -46,8 +46,7 @@ public class InsertCommand extends AbstractCommand {
 		final App app                         = StructrApp.getInstance(securityContext);
 
 		// new node properties
-		final Map<String, Object> properties = webSocketData.getNodeData();
-		String parentId                      = (String) properties.get("id");
+		String parentId                      = webSocketData.getNodeDataStringValue("id");
 		final Map<String, Object> relData    = webSocketData.getRelData();
 
 		if (parentId != null) {
@@ -57,7 +56,7 @@ public class InsertCommand extends AbstractCommand {
 
 			try {
 
-				PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, properties);
+				PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData() );
 
 				nodeToInsert = app.create(DOMNode.class, nodeProperties);
 
