@@ -47,6 +47,7 @@ public class ForkHandler implements FlowHandler<Fork> {
 
 			// Could be written into context for future additions like a FlowJoin element
 			Future<Object> future = threadExecutor.submit(task);
+			context.queueForkFuture(future);
 
 		}
 

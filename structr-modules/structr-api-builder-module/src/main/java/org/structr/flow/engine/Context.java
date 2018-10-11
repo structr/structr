@@ -53,6 +53,7 @@ public class Context {
 		this.store = deepCopyMap(context.store);
 		this.parameters = deepCopyMap(context.parameters);
 		this.currentData = deepCopyMap(context.currentData);
+		this.forkPromises = deepCopyQueue(context.forkPromises);
 	}
 
 	public Context(final GraphObject thisObject) {
@@ -154,6 +155,15 @@ public class Context {
 		this.currentData = deepCopyMap(context.currentData);
 		this.result = context.result;
 		this.error = context.error;
+		this.forkPromises = deepCopyQueue(context.forkPromises);
+	}
+
+	private <Q> Queue<Q> deepCopyQueue(Queue<Q> q) {
+		Queue<Q> newQ = new ConcurrentLinkedQueue<>();
+		for (Q o : q) {
+			newQ.add(o);
+		}
+		return newQ;
 	}
 
 	private Map<String, Object> deepCopyMap(Map<String,Object> map) {
