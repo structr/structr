@@ -150,7 +150,7 @@ public class SecurityContext {
 
 			try {
 				final String acceptedContentType = request.getHeader("Accept");
-				if (acceptedContentType != null && acceptedContentType.startsWith("application/json")) {
+				//if (acceptedContentType != null && acceptedContentType.startsWith("application/json")) {
 
 					final Matcher matcher = customViewPattern.matcher(acceptedContentType);
 					if (matcher.matches()) {
@@ -168,7 +168,7 @@ public class SecurityContext {
 							}
 						}
 					}
-				}
+				//}
 
 			} catch (Throwable ignore) {
 			}
