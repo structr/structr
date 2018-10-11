@@ -22,16 +22,20 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.ScriptRuntime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -73,17 +77,18 @@ public class ChangelogFunction extends Function<Object, Object> {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (!Settings.ChangelogEnabled.getValue()) {
+		try {
 
-			logger.warn("changelog function used even though the changelog is disabled - please check your configuration. (This function might still return results if the changelog was enabled earlier.)");
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-		}
+			if (!Settings.ChangelogEnabled.getValue()) {
 
-		if (sources.length >= 1) {
+				throw new IllegalArgumentException("changelog function used even though the changelog is disabled - please check your configuration. (This function might still return results if the changelog was enabled earlier.)");
+			}
 
 			if (sources[0] instanceof GraphObject) {
 
-				final String changelog = ((GraphObject) sources[0]).getProperty(GraphObject.structrChangeLog);
+				final String changelog = getChangelogForGraphObject((GraphObject) sources[0]);
 
 				if (changelog != null && !("".equals(changelog))) {
 
@@ -128,9 +133,24 @@ public class ChangelogFunction extends Function<Object, Object> {
 				return usage(ctx.isJavaScriptContext());
 			}
 
-		} else {
+		} catch (IOException ioex) {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			logger.error("Unable to create changelog file: {}", ioex.getMessage());
+			return usage(ctx.isJavaScriptContext());
+
+		} catch (ArgumentNullException pe) {
+
+			// silently ignore null arguments
+			return null;
+
+		} catch (ArgumentCountException pe) {
+
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+
+		} catch (IllegalArgumentException iae) {
+
+			logger.warn(iae.getMessage());
 			return usage(ctx.isJavaScriptContext());
 		}
 	}
@@ -143,6 +163,55 @@ public class ChangelogFunction extends Function<Object, Object> {
 	@Override
 	public String shortDescription() {
 		return "Returns the changelog object";
+	}
+
+	private String getChangelogForGraphObject (final GraphObject obj) throws IOException {
+
+		final String typeFolderName = obj.isNode() ? "n" : "r";
+
+		java.io.File file = getChangeLogFileOnDisk(typeFolderName, obj.getUuid(), false);
+
+		if (file.exists()) {
+
+			return FileUtils.readFileToString(file, "utf-8");
+
+		} else {
+
+			return "";
+		}
+	}
+
+	public static java.io.File getChangeLogFileOnDisk(final String typeFolderName, final String uuid, final boolean create) {
+
+		final String changelogPath = Settings.ChangelogPath.getValue();
+		final String uuidPath      = getDirectoryPath(uuid);
+		final java.io.File file    = new java.io.File(changelogPath + "/" + typeFolderName + "/" + uuidPath + "/" + uuid);
+
+		// create parent directory tree
+		file.getParentFile().mkdirs();
+
+		// create file only if requested
+		if (!file.exists() && create) {
+
+			try {
+
+				file.createNewFile();
+
+			} catch (IOException ioex) {
+
+				logger.error("Unable to create changelog file {}: {}", file, ioex.getMessage());
+			}
+		}
+
+		return file;
+	}
+
+	static String getDirectoryPath(final String uuid) {
+
+		return (uuid != null)
+			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			: null;
+
 	}
 
 	private class ChangelogFilter {

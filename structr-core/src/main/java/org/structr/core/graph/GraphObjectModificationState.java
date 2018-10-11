@@ -46,7 +46,7 @@ import org.structr.core.property.PropertyMap;
  */
 public class GraphObjectModificationState implements ModificationEvent {
 
-	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "type", "sessionIds", "localStorage", "salt", "password" } ));
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "type", "sessionIds", "localStorage", "salt", "password", "twoFactorSecret" } ));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
@@ -508,6 +508,26 @@ public class GraphObjectModificationState implements ModificationEvent {
 		}
 	}
 
+	public void updateChangeLog(final Principal user, final Verb verb, final String linkType, final String linkId, final String sourceUuid, final String targetUuid) {
+
+		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
+
+			final JsonObject obj = new JsonObject();
+
+			obj.add("time", toElement(System.currentTimeMillis()));
+			obj.add("userId", toElement(user.getUuid()));
+			obj.add("userName", toElement(user.getName()));
+			obj.add("verb", toElement(verb));
+			obj.add("rel", toElement(linkType));
+			obj.add("relId", toElement(linkId));
+			obj.add("source", toElement(sourceUuid));
+			obj.add("target", toElement(targetUuid));
+
+			changeLog.append(obj.toString());
+			changeLog.append("\n");
+		}
+	}
+
 	public void updateChangeLog(final Principal user, final Verb verb, final String object) {
 
 		if (Settings.ChangelogEnabled.getValue() && changeLog != null) {
@@ -527,8 +547,15 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("verb", toElement(verb));
 			obj.add("target", toElement(object));
 
-			changeLog.append(obj.toString());
-			changeLog.append("\n");
+
+			if (changeLog.length() > 0 && verb.equals(Verb.create)) {
+				// ensure that node creation appears first in the log
+				changeLog.insert(0, "\n");
+				changeLog.insert(0, obj.toString());
+			} else {
+				changeLog.append(obj.toString());
+				changeLog.append("\n");
+			}
 		}
 	}
 

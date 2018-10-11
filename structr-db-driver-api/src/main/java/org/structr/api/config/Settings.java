@@ -62,6 +62,7 @@ public class Settings {
 	public static final Setting<String> TmpPath               = new StringSetting(generalGroup,   "Paths",       "tmp.path",                   "/tmp");
 	public static final Setting<String> DatabasePath          = new StringSetting(generalGroup,   "Paths",       "database.path",              "db");
 	public static final Setting<String> FilesPath             = new StringSetting(generalGroup,   "Paths",       "files.path",                 System.getProperty("user.dir").concat(File.separator + "files"));
+	public static final Setting<String> ChangelogPath         = new StringSetting(generalGroup,   "Paths",       "changelog.path",             System.getProperty("user.dir").concat(File.separator + "changelog"));
 	public static final Setting<String> DataExchangePath      = new StringSetting(generalGroup,   "Paths",       "data.exchange.path",         "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> SnapshotsPath         = new StringSetting(generalGroup,   "Paths",       "snapshot.path",              "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,   "Paths",       "layouts.path",               "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");

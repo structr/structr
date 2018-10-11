@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -44,6 +46,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
+import org.structr.core.function.ChangelogFunction;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -182,23 +185,25 @@ public class ModificationQueue {
 
 			for (final ModificationEvent ev: modificationEvents) {
 
-				if (!ev.isDeleted()) {
+				try {
 
-					try {
-						final GraphObject obj = ev.getGraphObject();
-						if (obj != null) {
+					final GraphObject obj = ev.getGraphObject();
+					final String newLog   = ev.getChangeLog();
 
-							final String existingLog = obj.getProperty(GraphObject.structrChangeLog);
-							final String newLog      = ev.getChangeLog();
-							final String newValue    = existingLog != null ? existingLog + newLog : newLog;
+					if (obj != null) {
 
-							obj.unlockSystemPropertiesOnce();
-							obj.setProperty(GraphObject.structrChangeLog, newValue);
-						}
+						final String uuid           = ev.isDeleted() ? ev.getUuid() : obj.getUuid();
+						final String typeFolderName = obj.isNode() ? "n" : "r";
 
-					} catch (Throwable t) {
-						logger.warn("", t);
+						java.io.File file = ChangelogFunction.getChangeLogFileOnDisk(typeFolderName, uuid, true);
+
+						FileUtils.write(file, newLog, "utf-8", true);
 					}
+
+				} catch (IOException ioex) {
+					logger.error("Unable to write changelog to file: {}", ioex.getMessage());
+				} catch (Throwable t) {
+					logger.warn("", t);
 				}
 			}
 		}
@@ -218,11 +223,8 @@ public class ModificationQueue {
 
 		if (Settings.ChangelogEnabled.getValue()) {
 
-			// record deletion of objects in audit log of the creating user, if enabled
-			if (user != null) {
-
-				getState(user).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
-			}
+//			getState(user).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
+			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.create, node.getUuid());
 		}
 
 	}
@@ -238,8 +240,14 @@ public class ModificationQueue {
 
 			modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
 
-			getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), relationship.getUuid(), targetNode.getUuid(), GraphObjectModificationState.Direction.out);
-			getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), GraphObjectModificationState.Direction.in);
+			if (Settings.ChangelogEnabled.getValue()) {
+
+				getState(relationship).updateChangeLog(user, GraphObjectModificationState.Verb.create, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), targetNode.getUuid());
+
+				getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), relationship.getUuid(), targetNode.getUuid(), GraphObjectModificationState.Direction.out);
+				getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.link, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), GraphObjectModificationState.Direction.in);
+
+			}
 		}
 	}
 
@@ -292,16 +300,7 @@ public class ModificationQueue {
 
 		if (Settings.ChangelogEnabled.getValue()) {
 
-			// record deletion of objects in audit log of the delting user, if enabled
-			final SecurityContext securityContext = node.getSecurityContext();
-			if (securityContext != null) {
-
-				final Principal principal = securityContext.getCachedUser();
-				if (principal != null) {
-
-					getState(principal).updateChangeLog(user, GraphObjectModificationState.Verb.delete, node.getUuid());
-				}
-			}
+			getState(node).updateChangeLog(user, GraphObjectModificationState.Verb.delete, node.getUuid());
 		}
 	}
 
@@ -314,9 +313,13 @@ public class ModificationQueue {
 
 		modifyEndNodes(user, sourceNode, targetNode, relationship.getRelType());
 
-		getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), targetNode.getUuid(), GraphObjectModificationState.Direction.out);
-		getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), GraphObjectModificationState.Direction.in);
+		if (Settings.ChangelogEnabled.getValue()) {
 
+			getState(relationship).updateChangeLog(user, GraphObjectModificationState.Verb.delete, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), targetNode.getUuid());
+
+			getState(sourceNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), targetNode.getUuid(), GraphObjectModificationState.Direction.out);
+			getState(targetNode).updateChangeLog(user, GraphObjectModificationState.Verb.unlink, relationship.getType(), relationship.getUuid(), sourceNode.getUuid(), GraphObjectModificationState.Direction.in);
+		}
 	}
 
 	public Collection<ModificationEvent> getModificationEvents() {
