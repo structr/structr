@@ -134,15 +134,6 @@ var _Crud = {
 
 						_Crud.keys[type] = properties;
 						
-						var filteredKeys = JSON.parse(LSWrapper.getItem(crudHiddenColumnsKey + type));
-						if (filteredKeys) {
-							Object.keys(filteredKeys).forEach(function(key) {
-								if (key !== 'id' && key !== 'type') {
-									delete _Crud.keys[type][key];
-								}
-							});
-						}
-
 						if (callback) {
 							callback(type, properties);
 						}
@@ -710,26 +701,52 @@ var _Crud = {
 						filteredKeys = JSON.parse(filterSource);
 					}
 
-					Object.keys(_Crud.keys[type]).forEach(function(key) {
+					var url = rootUrl + '_schema/' + type + '/' + defaultView;
+					$.ajax({
+						url: url,
+						dataType: 'json',
+						contentType: 'application/json; charset=utf-8',
+						statusCode: {
+							200: function(data) {
 
-						var checkboxKey = 'column-' + type + '-' + key + '-visible';
-						var hidden = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
+								// no schema entry found?
+								if (!data || !data.result || data.result_count === 0) {
 
-						table.append(
-								'<tr>'
-								+ '<td><b>' + key + '</b></td>'
-								+ '<td><input type="checkbox" id="' + checkboxKey + '" ' + (hidden ? '' : 'checked="checked"') + '></td>'
-								+ '</tr>'
-								);
+									new MessageBuilder().warning("Unable to find schema information for type '" + type + "'. There might be database nodes with no type information or a type unknown to Structr in the database.").show();
 
-						$('#' + checkboxKey).on('click', function() {
-							_Crud.toggleColumn(type, key);
-						});
-					});
+								} else {
 
-					dialogCloseButton = $('.closeButton', $('#dialogBox'));
-					dialogCloseButton.on('click', function() {
-						location.reload();
+									var properties = {};
+									data.result.forEach(function(prop) {
+										properties[prop.jsonName] = prop;
+									});
+
+									Object.keys(properties).forEach(function(key) {
+
+										var checkboxKey = 'column-' + type + '-' + key + '-visible';
+										var hidden = filteredKeys.hasOwnProperty(key) && filteredKeys[key] === 0;
+
+										table.append(
+												'<tr>'
+												+ '<td><b>' + key + '</b></td>'
+												+ '<td><input type="checkbox" id="' + checkboxKey + '" ' + (hidden ? '' : 'checked="checked"') + '></td>'
+												+ '</tr>'
+												);
+
+										$('#' + checkboxKey).on('click', function() {
+											_Crud.toggleColumn(type, key);
+										});
+									});
+
+									dialogCloseButton = $('.closeButton', $('#dialogBox'));
+									dialogCloseButton.on('click', function() {
+										location.reload();
+									});
+									
+								}
+								
+							}
+						}
 					});
 
 				});
@@ -2643,9 +2660,9 @@ var _Crud = {
 			});
 		}
 		
-		Object.keys(filteredKeys).forEach(function(key) {
-			delete _Crud.keys[type][key];
-		});
+//		Object.keys(filteredKeys).forEach(function(key) {
+//			delete _Crud.keys[type][key];
+//		});
 		
 		LSWrapper.setItem(crudHiddenColumnsKey + type, JSON.stringify(filteredKeys));
 
