@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -61,12 +62,17 @@ public abstract class StreamingWriter {
 
 	private static final Logger logger                   = LoggerFactory.getLogger(StreamingWriter.class.getName());
 	private static final Set<PropertyKey> idTypeNameOnly = new LinkedHashSet<>();
+	private static final Set<String> restrictedViews     = new HashSet<>();
 
 	static {
 
 		idTypeNameOnly.add(GraphObject.id);
 		idTypeNameOnly.add(AbstractNode.type);
 		idTypeNameOnly.add(AbstractNode.name);
+		
+		restrictedViews.add(PropertyView.All);
+		restrictedViews.add(PropertyView.Ui);
+		restrictedViews.add(PropertyView.Custom);
 	}
 
 	private final ExecutorService threadPool              = Executors.newWorkStealingPool();
@@ -465,8 +471,8 @@ public abstract class StreamingWriter {
 					Iterable<PropertyKey> keys = source.getPropertyKeys(localPropertyView);
 					if (keys != null) {
 
-						// speciality for the Ui view: limit recursive rendering to (id, name)
-						if (compactNestedProperties && depth > 0 && (PropertyView.Ui.equals(localPropertyView) || PropertyView.All.equals(localPropertyView))) {
+						// speciality for all, custom and ui view: limit recursive rendering to (id, name)
+						if (compactNestedProperties && depth > 0 && restrictedViews.contains(localPropertyView)) {
 							keys = idTypeNameOnly;
 						}
 
