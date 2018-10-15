@@ -223,6 +223,9 @@ export class QueryOperation {
 			<option value="lseq">Less/Equal</option>
 			<option value="null">Null</option>
 			<option value="notNull">NotNull</option>
+			<option value="startsWith">StartsWith</option>
+			<option value="endsWith">EndsWith</option>
+			<option value="contains">Contains</option>
 		</select>
 		<button class="query-operation-delete"><i class="sprite sprite-delete"></i></button>
 	</div>

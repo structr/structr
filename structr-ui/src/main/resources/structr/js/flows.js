@@ -349,6 +349,8 @@ var _Flows = {
                     });
                 }
 
+                _Flows.refreshTree(() => {});
+
             };
 
             handleRename();

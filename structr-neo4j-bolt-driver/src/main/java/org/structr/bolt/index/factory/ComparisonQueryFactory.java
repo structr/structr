@@ -65,12 +65,18 @@ public class ComparisonQueryFactory extends AbstractQueryFactory {
 				case isNotNull:
 					query.addSimpleParameter(name, "IS NOT", null);
 					return true;
+				case startsWith:
+					operationString = "STARTS WITH";
+					break;
+				case endsWith:
+					operationString = "ENDS WITH";
+					break;
+				case contains:
+					operationString = "CONTAINS";
+					break;
 			}
 
-			if (operationString != null) {
-				query.addSimpleParameter(name, operationString, value);
-			}
-
+			query.addSimpleParameter(name, operationString, value);
 		}
 
 		return true;

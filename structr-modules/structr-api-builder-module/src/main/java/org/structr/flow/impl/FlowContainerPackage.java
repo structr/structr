@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import com.sun.tools.javac.comp.Flow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -83,7 +84,7 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		super.onModification(securityContext, errorBuffer, modificationQueue);
 		if (modificationQueue.getModifiedProperties().contains(scheduledForIndexing)) {
-			scheduleIndexingForChildren();
+			scheduleIndexingForRelatedEntities();
 		}
 		setProperty(scheduledForIndexing, false);
 	}
@@ -93,19 +94,28 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 		deleteChildren();
 	}
 
-	private void scheduleIndexingForChildren() {
+	private void scheduleIndexingForRelatedEntities() {
 
 		List<FlowContainerPackage> p = getProperty(packages);
 		List<FlowContainer> c = getProperty(flows);
+		FlowContainerPackage parent = getProperty(FlowContainerPackage.parent);
 		App app = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()){
 			for (FlowContainerPackage pack : p) {
-				pack.setProperty(FlowContainerPackage.scheduledForIndexing, true);
+				if (!pack.getProperty(FlowContainerPackage.scheduledForIndexing)) {
+					pack.setProperty(FlowContainerPackage.scheduledForIndexing, true);
+				}
 			}
 
 			for (FlowContainer cont : c) {
-				cont.setProperty(FlowContainer.scheduledForIndexing, true);
+				if (!cont.getProperty(FlowContainer.scheduledForIndexing)) {
+					cont.setProperty(FlowContainer.scheduledForIndexing, true);
+				}
+			}
+
+			if (parent != null && !parent.getProperty(FlowContainerPackage.scheduledForIndexing)) {
+				parent.setProperty(scheduledForIndexing, true);
 			}
 
 			tx.success();

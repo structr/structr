@@ -39,10 +39,12 @@ import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
+import org.structr.schema.action.ActionContext;
 
 import java.sql.Struct;
 import java.util.ArrayList;
@@ -179,7 +181,7 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 	private Query resolveOperation(final JSONObject object, final Query query) {
 		final String key = object.getString("key");
 		final String op = object.getString("op");
-		final Object value = object.get("value");
+		Object value = object.get("value");
 
 		PropertyKey propKey = null;
 
@@ -192,6 +194,15 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 				propKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(queryTypeClass, key);
 			}
 
+		}
+
+		if (value != null) {
+			ActionContext actionContext = new ActionContext(securityContext);
+			try {
+				value = Scripting.replaceVariables(actionContext, null, value.toString());
+			} catch (FrameworkException ex) {
+				logger.warn("FlowTypeQuery: Could not evaluate given operation." + ex.getMessage());
+			}
 		}
 
 		if (propKey != null) {
@@ -222,6 +233,15 @@ public class FlowTypeQuery extends FlowBaseNode implements DataSource, Deployabl
 					break;
 				case "notNull":
 					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.isNotNull, value, Occurrence.REQUIRED));
+					break;
+				case "startsWith":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.startsWith, value, Occurrence.REQUIRED));
+					break;
+				case "endsWith":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.endsWith, value, Occurrence.REQUIRED));
+					break;
+				case "contains":
+					attributes.add(new ComparisonSearchAttribute(propKey, ComparisonQuery.Operation.contains, value, Occurrence.REQUIRED));
 					break;
 			}
 
