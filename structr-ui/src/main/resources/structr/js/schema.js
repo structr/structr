@@ -1634,7 +1634,7 @@ var _Schema = {
 			deactivate();
 		});
 
-		$('.remove-action', tr).on('click', function() {
+		$('.remove-action', tr).off('click').on('click', function() {
 			_Schema.confirmRemoveSchemaEntity(method, 'Delete method', function() {
 				_Schema.openEditDialog(method.schemaNode.id, 'methods', function() {
 					$('li#tab-methods').click();
@@ -2081,7 +2081,7 @@ var _Schema = {
 		}).prop('disabled', protected).val(property.defaultValue);
 
 		if (!protected) {
-			$('.' + key + ' .remove-property', el).on('click', function() {
+			$('.' + key + ' .remove-property', el).off('click').on('click', function() {
 				_Schema.confirmRemoveSchemaEntity(property, 'Delete property', function() { _Schema.openEditDialog(property.schemaNode.id, 'local'); }, 'Property values will not be removed from data nodes.');
 			}).prop('disabled', null);
 		} else {
