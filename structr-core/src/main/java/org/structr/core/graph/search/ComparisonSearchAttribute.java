@@ -98,6 +98,14 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 						return a.compareTo(b) < 0;
 					case lessOrEqual:
 						return a.compareTo(b) <= 0;
+					// FixMe: The following operations need special handling, which isn't included in the Comparable interface.
+					case startsWith:
+						return true;
+					case endsWith:
+						return true;
+					case contains:
+						return true;
+
 				}
 
 			}
