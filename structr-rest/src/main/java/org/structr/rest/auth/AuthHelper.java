@@ -452,7 +452,7 @@ public class AuthHelper {
 							principal.setProperty(twoFactorConfirmedKey, true);   // user has verified two factor use
 							principal.setProperty(isTwoFactorUserKey,    true);
 
-							logger.info ("Succesful two factor authentication ({})", principal.getName());
+							logger.info("Successful two factor authentication ({})", principal.getName());
 
 							return true;
 
@@ -466,7 +466,7 @@ public class AuthHelper {
 
 					} catch (GeneralSecurityException ex) {
 
-						logger.warn("Two factor authentication key could not be generated - login impossible!");
+						logger.warn("Two factor authentication key could not be generated - login not possible");
 
 						return false;
 					}
