@@ -36,6 +36,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
@@ -48,6 +49,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
+import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.DoubleArrayPropertyParser;
@@ -271,7 +273,15 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		// automatically add new property to the Ui or Custom view
 		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
 		if (parent != null) {
-			
+
+			// register property (so we have a chance to backup an existing builtin property)
+			final ConfigurationProvider conf = StructrApp.getConfiguration();
+			final Class type = conf.getNodeEntityClass(parent.getName());
+
+			if (type != null) {
+				conf.registerProperty(type, conf.getPropertyKeyForJSONName(type, getPropertyName()));
+			}
+
 			final String viewToAddTo;
 			if (getProperty(isBuiltinProperty)) {
 				viewToAddTo = PropertyView.Ui;
@@ -303,6 +313,23 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 		// prevent modification of properties using a content hash value
 		if (getProperty(isBuiltinProperty) && !getContentHash().equals(getProperty(contentHash))) {
 			throw new FrameworkException(403, "Modification of built-in properties not permitted.");
+		}
+	}
+
+	@Override
+	public void onNodeDeletion() {
+
+		super.onNodeDeletion();
+
+		final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
+
+		if (parent != null) {
+			final ConfigurationProvider conf = StructrApp.getConfiguration();
+			final Class type = conf.getNodeEntityClass(parent.getName());
+
+			if (type != null) {
+				conf.unregisterProperty(type, conf.getPropertyKeyForJSONName(type, getPropertyName()));
+			}
 		}
 	}
 

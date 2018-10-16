@@ -103,7 +103,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private final Map<String, Map<String, Set<PropertyKey>>> globalPropertyViewMap                 = new ConcurrentHashMap<>(2000);
 	private final Map<String, Map<PropertyKey, Set<PropertyValidator>>> globalValidatorMap         = new ConcurrentHashMap<>(100);
 	private final Map<String, Map<String, PropertyKey>> globalClassDBNamePropertyMap               = new ConcurrentHashMap<>(2000);
+	private final Map<String, Map<String, PropertyKey>> globalBuiltinClassDBNamePropertyMap        = new ConcurrentHashMap<>(2000);
 	private final Map<String, Map<String, PropertyKey>> globalClassJSNamePropertyMap               = new ConcurrentHashMap<>(2000);
+	private final Map<String, Map<String, PropertyKey>> globalBuiltinClassJSNamePropertyMap        = new ConcurrentHashMap<>(2000);
 	private final Map<String, Map<String, PropertyGroup>> globalAggregatedPropertyGroupMap         = new ConcurrentHashMap<>(100);
 	private final Map<String, Map<String, PropertyGroup>> globalPropertyGroupMap                   = new ConcurrentHashMap<>(100);
 	private final Map<String, Map<String, ViewTransformation>> viewTransformations                 = new ConcurrentHashMap<>(100);
@@ -963,13 +965,53 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public void registerProperty(Class type, PropertyKey propertyKey) {
 
-		getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), propertyKey);
-		getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), propertyKey);
+		final Map<String, PropertyKey> dbNamePropertyMap = getClassDBNamePropertyMapForType(type);
+
+		// backup key (if present and either not dynamic or part of builtin schema)
+		final PropertyKey existingDBNamePropertyKey = dbNamePropertyMap.get(propertyKey.dbName());
+
+		if (existingDBNamePropertyKey != null && (!existingDBNamePropertyKey.isDynamic() || existingDBNamePropertyKey.isPartOfBuiltInSchema())) {
+			getBuiltinClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), existingDBNamePropertyKey);
+		}
+
+		dbNamePropertyMap.put(propertyKey.dbName(), propertyKey);
+
+
+		final Map<String, PropertyKey> jsonNamePropertyMap = getClassJSNamePropertyMapForType(type);
+
+		// backup key (if present and either not dynamic or part of builtin schema)
+		final PropertyKey existingJSONNamePropertyKey = jsonNamePropertyMap.get(propertyKey.jsonName());
+
+		if (existingJSONNamePropertyKey != null && (!existingJSONNamePropertyKey.isDynamic() || existingJSONNamePropertyKey.isPartOfBuiltInSchema())) {
+			getBuiltinClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), existingJSONNamePropertyKey);
+		}
+
+		jsonNamePropertyMap.put(propertyKey.jsonName(), propertyKey);
 
 		registerPropertySet(type, PropertyView.All, propertyKey);
 
 		// inform property key of its registration
 		propertyKey.registrationCallback(type);
+	}
+
+	@Override
+	public void unregisterProperty(Class type, PropertyKey propertyKey) {
+
+		getClassDBNamePropertyMapForType(type).remove(propertyKey.dbName());
+
+		Map<String, PropertyKey> backupdbNamePropertyMap = getBuiltinClassDBNamePropertyMapForType(type);
+		if (backupdbNamePropertyMap.containsKey(propertyKey.dbName())) {
+			// restore builtin property
+			getClassDBNamePropertyMapForType(type).put(propertyKey.dbName(), backupdbNamePropertyMap.get(propertyKey.dbName()));
+		}
+
+		getClassJSNamePropertyMapForType(type).remove(propertyKey.jsonName());
+
+		Map<String, PropertyKey> backupjsonNamePropertyMap = getBuiltinClassDBNamePropertyMapForType(type);
+		if (backupjsonNamePropertyMap.containsKey(propertyKey.jsonName())) {
+			// restore builtin property
+			getClassJSNamePropertyMapForType(type).put(propertyKey.jsonName(), backupjsonNamePropertyMap.get(propertyKey.jsonName()));
+		}
 	}
 
 	@Override
@@ -1397,6 +1439,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return classDBNamePropertyMap;
 	}
 
+	private Map<String, PropertyKey> getBuiltinClassDBNamePropertyMapForType(final Class type) {
+
+		Map<String, PropertyKey> classDBNamePropertyMap = globalBuiltinClassDBNamePropertyMap.get(type.getName());
+		if (classDBNamePropertyMap == null) {
+
+			classDBNamePropertyMap = new LinkedHashMap<>();
+
+			globalBuiltinClassDBNamePropertyMap.put(type.getName(), classDBNamePropertyMap);
+
+		}
+
+		return classDBNamePropertyMap;
+	}
+
 	private Map<String, PropertyKey> getClassJSNamePropertyMapForType(final Class type) {
 
 		Map<String, PropertyKey> classJSNamePropertyMap = globalClassJSNamePropertyMap.get(type.getName());
@@ -1405,6 +1461,20 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			classJSNamePropertyMap = new LinkedHashMap<>();
 
 			globalClassJSNamePropertyMap.put(type.getName(), classJSNamePropertyMap);
+
+		}
+
+		return classJSNamePropertyMap;
+	}
+
+	private Map<String, PropertyKey> getBuiltinClassJSNamePropertyMapForType(final Class type) {
+
+		Map<String, PropertyKey> classJSNamePropertyMap = globalBuiltinClassJSNamePropertyMap.get(type.getName());
+		if (classJSNamePropertyMap == null) {
+
+			classJSNamePropertyMap = new LinkedHashMap<>();
+
+			globalBuiltinClassJSNamePropertyMap.put(type.getName(), classJSNamePropertyMap);
 
 		}
 
