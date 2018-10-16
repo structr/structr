@@ -39,6 +39,7 @@ import org.structr.module.api.DeployableEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -80,14 +81,18 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 		this.setProperty(visibleToPublicUsers, true);;
 	}
 
+
 	@Override
 	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 		super.onModification(securityContext, errorBuffer, modificationQueue);
-		if (modificationQueue.getModifiedProperties().contains(scheduledForIndexing)) {
+		Set<PropertyKey> props = modificationQueue.getModifiedProperties();
+
+		if (props.contains(scheduledForIndexing) || props.contains(name) || props.contains(packages) || props.contains(flows)) {
 			scheduleIndexingForRelatedEntities();
 		}
 		setProperty(scheduledForIndexing, false);
 	}
+
 
 	@Override
 	public void onNodeDeletion() {
@@ -98,24 +103,16 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 
 		List<FlowContainerPackage> p = getProperty(packages);
 		List<FlowContainer> c = getProperty(flows);
-		FlowContainerPackage parent = getProperty(FlowContainerPackage.parent);
+
 		App app = StructrApp.getInstance();
 
 		try (Tx tx = app.tx()){
 			for (FlowContainerPackage pack : p) {
-				if (!pack.getProperty(FlowContainerPackage.scheduledForIndexing)) {
-					pack.setProperty(FlowContainerPackage.scheduledForIndexing, true);
-				}
+				pack.setProperty(FlowContainerPackage.scheduledForIndexing, true);
 			}
 
 			for (FlowContainer cont : c) {
-				if (!cont.getProperty(FlowContainer.scheduledForIndexing)) {
-					cont.setProperty(FlowContainer.scheduledForIndexing, true);
-				}
-			}
-
-			if (parent != null && !parent.getProperty(FlowContainerPackage.scheduledForIndexing)) {
-				parent.setProperty(scheduledForIndexing, true);
+				cont.setProperty(FlowContainer.scheduledForIndexing, true);
 			}
 
 			tx.success();

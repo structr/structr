@@ -337,7 +337,9 @@ var _Flows = {
 
                 if (id === null && type === "FlowContainerPackage") {
                     let p = await getPackageByEffectiveName(data.node.id);
-                    id = p.id;
+                    if (p !== null) {
+                        id = p.id;
+                    }
                 }
 
                 if (id !== null) {
@@ -347,9 +349,9 @@ var _Flows = {
                         name: name,
                         scheduledForIndexing: true
                     });
-                }
 
-                _Flows.refreshTree(() => {});
+                    _Flows.refreshTree(() => {});
+                }
 
             };
 
