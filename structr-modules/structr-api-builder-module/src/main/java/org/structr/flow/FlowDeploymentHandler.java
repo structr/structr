@@ -33,6 +33,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -68,7 +69,6 @@ public abstract class FlowDeploymentHandler {
 			FlowStore.class,
 			FlowAggregate.class,
 			FlowConstant.class,
-			FlowContainerConfiguration.class,
 			FlowCollectionDataSource.class,
 			FlowExceptionHandler.class,
 			FlowTypeQuery.class,
@@ -104,7 +104,6 @@ public abstract class FlowDeploymentHandler {
 			FlowValueSource.class,
 			FlowAggregateStartValue.class,
 			FlowScriptConditionSource.class,
-			FlowContainerConfigurationFlow.class,
 			/* Do not export principal relation as the principal won't be available after an import into a clean database
 			FlowContainerConfigurationPrincipal.class,
 			*/
@@ -117,10 +116,10 @@ public abstract class FlowDeploymentHandler {
 
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
 
-		final App app                                = StructrApp.getInstance();
-		final Path flowEngineFile					 = target.resolve("flow-engine.json");
-		final List<Map<String, ?>> flowElements = new LinkedList<>();
-
+		final App app                                		= StructrApp.getInstance();
+		final Path flowEngineFile							= target.resolve("flow-engine.json");
+		final List<Map<String, ?>> flowElements 			= new LinkedList<>();
+		final List<Map<String, String>> flowRelationships 	= new LinkedList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -135,7 +134,26 @@ public abstract class FlowDeploymentHandler {
 				}
 			}
 
-			final List<Map<String, String>> flowRelationships = new LinkedList<>();
+			// Special handling for FlowContainerConfiguration: Only export last modified layout
+
+			for (final FlowContainer cont: app.nodeQuery(FlowContainer.class).sort(StructrApp.key(NodeInterface.class, "id")).getAsList()) {
+
+				final FlowContainerConfiguration conf = app.nodeQuery(FlowContainerConfiguration.class).and(FlowContainerConfiguration.flow, cont).sortDescending(StructrApp.key(NodeInterface.class,"lastModifiedDate")).getFirst();
+
+				if (conf != null) {
+
+					flowElements.add(conf.exportData());
+
+					// Export Rel
+					Map<String, String> attrs = new TreeMap<>();
+					attrs.put("type", FlowContainerConfigurationFlow.class.getSimpleName());
+					attrs.put("relType", "CONTAINS_CONFIGURATION_FOR");
+					attrs.put("sourceId", conf.getUuid());
+					attrs.put("targetId", cont.getUuid());
+					flowRelationships.add(attrs);
+				}
+
+			}
 
 			for (Class c : relsToExport) {
 
@@ -201,6 +219,13 @@ public abstract class FlowDeploymentHandler {
 						}
 					}
 
+					// Special handling for FlowContainerConfiguration
+					for (final FlowContainerConfiguration toDelete : app.nodeQuery(FlowContainerConfiguration.class).getAsList()) {
+
+							app.delete(toDelete);
+					}
+
+
 					for (Class c : relsToExport) {
 
 						for (final Object toDelete : app.relationshipQuery(c).getAsList()) {
@@ -209,6 +234,12 @@ public abstract class FlowDeploymentHandler {
 								app.delete((RelationshipInterface) toDelete);
 							}
 						}
+					}
+
+					// Special handling for FlowContainerConfigurationFlow
+					for (final FlowContainerConfigurationFlow toDelete : app.relationshipQuery(FlowContainerConfigurationFlow.class).getAsList()) {
+
+						app.delete(toDelete);
 					}
 
 					for (final Map<String, Object> entry : flowElements) {
