@@ -162,9 +162,9 @@ var _Flows = {
                 let a1 = this.get_node(a);
                 let b1 = this.get_node(b);
                 
-				if (a1.id.startsWith('/')) {
+				if (a1.id.startsWith('/') && !b1.id.startsWith('/')) {
 					return -1;
-				} else if (b1.id.startsWith('/')) {
+				} else if (b1.id.startsWith('/') && !a1.id.startsWith('/')) {
 					return 1;
 				} else {
 					return (a1.text > b1.text) ? 1 : -1;
@@ -337,7 +337,9 @@ var _Flows = {
 
                 if (id === null && type === "FlowContainerPackage") {
                     let p = await getPackageByEffectiveName(data.node.id);
-                    id = p.id;
+                    if (p !== null) {
+                        id = p.id;
+                    }
                 }
 
                 if (id !== null) {
@@ -347,9 +349,9 @@ var _Flows = {
                         name: name,
                         scheduledForIndexing: true
                     });
-                }
 
-                _Flows.refreshTree(() => {});
+                    _Flows.refreshTree(() => {});
+                }
 
             };
 

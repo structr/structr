@@ -115,6 +115,14 @@ public interface ConfigurationProvider {
 	public void registerProperty(final Class type, final PropertyKey propertyKey);
 
 	/**
+	 * Unregisters the given property with the given type.
+	 *
+	 * @param type
+	 * @param propertyKey
+	 */
+	public void unregisterProperty(final Class type, final PropertyKey propertyKey);
+
+	/**
 	 * Registers the given property with the given type AND ALL SUPERTYPES.
 	 *
 	 * @param type

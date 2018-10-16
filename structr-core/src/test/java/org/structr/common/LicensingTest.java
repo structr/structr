@@ -42,11 +42,11 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.api.config.Settings;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.Principal;
@@ -150,6 +150,17 @@ public class LicensingTest {
 	public static void stopSystem() {
 
 		Services.getInstance().shutdown();
+
+		try {
+			File testConf = new File("structr.conf");
+			if (testConf.isFile()) {
+				testConf.delete();
+			}
+
+		} catch (Throwable t) {
+			logger.warn("", t);
+		}
+
 
 		try {
 			File testDir = new File(basePath);
