@@ -5175,3 +5175,7 @@ table.refactoring-helper td input {
 	width: 100%;
 	box-sizing: border-box;
 }
+
+.blockPage .select2-results__options {
+	text-align: left;
+}

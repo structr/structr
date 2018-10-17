@@ -1164,14 +1164,52 @@ var _Entities = {
 		});
 	},
 	accessControlDialog: function(entity, el, typeInfo) {
-		
+
 		var id = entity.id;
 
 		var handleGraphObject = function(entity) {
 
 			var owner_select_id = 'owner_select_' + id;
-			el.append('<span id="' + owner_select_id + '"></span>');
+			el.append('<h3>Owner</h3><div><select id="' + owner_select_id + '"></select></div>');
 			var owner_select = $('#' + owner_select_id, el);
+
+			if (entity.owner) {
+				owner_select.append('<option value="' + entity.owner.id + '" selected="selected">' + entity.owner.name + '</option>');
+			}
+
+			owner_select.select2({
+				placeholder: 'Search user',
+				minimumInputLength: 2,
+				width: '300px',
+				style:"text-align:left;",
+				ajax: {
+					url: '/structr/rest/User',
+					dataType: 'json',
+					data: function (params) {
+						console.log(params);
+						return {
+							name: params.term,
+							loose: 1
+						};
+					},
+					processResults: function (data) {
+						return {
+							results: data.result.map(function(item) {
+								return {
+									id: item.id,
+									text: item.name
+								};
+							})
+						};
+					}
+				},
+				dropdownParent: $('.blockPage')
+			}).on('select2:select', function (e) {
+				var data = e.params.data;
+				Command.setProperty(id, 'owner', data.id, false, function() {
+					blinkGreen(owner_select.parent());
+				});
+			});
 
 			el.append('<h3>Visibility</h3>');
 
@@ -1212,34 +1250,41 @@ var _Entities = {
 					});
 				}
 			});
+
 			var select = $('#newPrincipal');
-			select.chosen({width: '90%'});
-			var n = 10000;
-			Command.getByType('Group', n, 1, 'name', 'asc', 'id,name', false, function(groups) {
-				groups.forEach(function(group) {
-					select.append('<option value="' + group.id + '">' + group.name + '</option>');
-				});
-				select.trigger("chosen:updated");
-			});
-			var al2 = Structr.loaderIcon(select.parent(), {'float':'right'});
-			Command.getByType('User', n, 1, 'name', 'asc', 'id,name', false, function(users) {
 
-				_Entities.appendSimpleSelection(owner_select, entity, 'users', 'Owner', 'owner.id', users);
-
-				users.forEach(function(user) {
-					select.append('<option value="' + user.id + '">' + user.name + '</option>');
-				});
-				select.trigger("chosen:updated");
-				if (al2.length) {
-					al2.remove();
-				}
-			});
-			select.on('change', function() {
-				var sel = $(this);
-				var pId = sel[0].value;
+			select.select2({
+				placeholder: 'Search user',
+				minimumInputLength: 2,
+				width: '90%',
+				style:"text-align:left;",
+				ajax: {
+					url: '/structr/rest/Principal',
+					dataType: 'json',
+					data: function (params) {
+						console.log(params);
+						return {
+							name: params.term,
+							loose: 1
+						};
+					},
+					processResults: function (data) {
+						return {
+							results: data.result.map(function(item) {
+								return {
+									id: item.id,
+									text: item.name
+								};
+							})
+						};
+					}
+				},
+				dropdownParent: $('.blockPage')
+			}).on('select2:select', function (e) {
+				var data = e.params.data;
+				var pId = data.id;
 				var rec = $('#recursive', el).is(':checked');
 				Command.setPermission(entity.id, pId, 'grant', 'read', rec);
-				$('#new', tb).selectedIndex = 0;
 
 				Command.get(pId, "id,name,isGroup", function(p) {
 					_Entities.addPrincipal(entity, p, {'read': true});
@@ -1248,10 +1293,10 @@ var _Entities = {
 		};
 
 		if (entity.targetId) {
-			Command.getRelationship(id, entity.targetId, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+			Command.getRelationship(id, entity.targetId, "id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
 		} else {
-			Command.get(id, "id,type,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
-		}		
+			Command.get(id, "id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers", function(entity) { handleGraphObject(entity); });
+		}
 	},
 	showAccessControlDialog: function(entity) {
 
@@ -1357,56 +1402,6 @@ var _Entities = {
 				_Entities.changeBooleanAttribute(sw, obj[key], label[0], label[1]);
 				blinkGreen(sw);
 				return true;
-			});
-		});
-	},
-	appendSimpleSelection: function(el, entity, type, title, key, prefetchedData) {
-		var subKey;
-		if (key.contains('.')) {
-			subKey = key.substring(key.indexOf('.') + 1, key.length);
-			key = key.substring(0, key.indexOf('.'));
-		}
-
-		el.append('<h3>' + title + '</h3><p class="' + key + 'Box"></p>');
-		var element = $('.' + key + 'Box', el);
-		element.append('<span class="' + entity.id + '_"><select class="' + key + '_ ' + key + 'Select"></select></span>');
-		var selectElement = $('.' + key + 'Select');
-		selectElement.append('<option></option>');
-		selectElement.css({'width': '400px'}).chosen();
-
-		var id = (subKey && entity[key] ? entity[key][subKey] : entity[key]);
-		var al = Structr.loaderIcon(el, {position: 'absolute', left: '416px', top: '32px'});
-
-		var populateSelect = function (results) {
-			results.forEach(function(result) {
-				var selected = (id === result.id ? 'selected' : '');
-				selectElement.append('<option ' + selected + ' value="' + result.id + '">' + result.name + '</option>');
-			});
-			selectElement.trigger("chosen:updated");
-			if (al.length) {
-				al.remove();
-			}
-		};
-
-		if (prefetchedData === undefined || prefetchedData.length === 0) {
-			var n = 10000;
-			Command.getByType(type, n, 1, 'name', 'asc', 'id,name', false, populateSelect);
-		} else {
-			populateSelect(prefetchedData);
-		}
-
-		selectElement.on('change', function() {
-
-			var value = selectElement.val();
-			if (subKey) {
-				if (!entity[key]) {
-					entity[key] = {};
-				}
-				entity[key][subKey] = value;
-			}
-
-			Command.setProperty(entity.id, key, value, false, function() {
-				blinkGreen(el);
 			});
 		});
 	},
