@@ -111,7 +111,7 @@ var _Crud = {
 		if (type === null) {
 			return;
 		}
-		
+
 		var url = rootUrl + '_schema/' + type + '/' + defaultView;
 		$.ajax({
 			url: url,
@@ -133,7 +133,7 @@ var _Crud = {
 						});
 
 						_Crud.keys[type] = properties;
-						
+
 						if (callback) {
 							callback(type, properties);
 						}
@@ -196,19 +196,23 @@ var _Crud = {
 			'<div><input type="checkbox" id="crudTypeToggleCustom"><label for="crudTypeToggleCustom"> Custom Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleCore"><label for="crudTypeToggleCore"> Core Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleHtml"><label for="crudTypeToggleHtml"> HTML Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleFile"><label for="crudTypeToggleFile"> File Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleUi"><label for="crudTypeToggleUi"> UI Types</label></div>' +
+			'<div><input type="checkbox" id="crudTypeToggleFlow"><label for="crudTypeToggleFlow"> Flow Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleLog"><label for="crudTypeToggleLog"> Log Types</label></div>' +
 			'<div><input type="checkbox" id="crudTypeToggleOther"><label for="crudTypeToggleOther"> Other Types</label></div>'
 		);
 
 		var savedTypeVisibility = LSWrapper.getItem(_Crud.displayTypeConfigKey) || {};
-		$('#crudTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
+		$('#crudTypeToggleRels').prop('checked',   (savedTypeVisibility.rels   === undefined ? false : savedTypeVisibility.rels));
 		$('#crudTypeToggleCustom').prop('checked', (savedTypeVisibility.custom === undefined ? true : savedTypeVisibility.custom));
-		$('#crudTypeToggleCore').prop('checked', (savedTypeVisibility.core === undefined ? true : savedTypeVisibility.core));
-		$('#crudTypeToggleHtml').prop('checked', (savedTypeVisibility.html === undefined ? true : savedTypeVisibility.html));
-		$('#crudTypeToggleUi').prop('checked', (savedTypeVisibility.ui === undefined ? true : savedTypeVisibility.ui));
-		$('#crudTypeToggleLog').prop('checked', (savedTypeVisibility.log === undefined ? true : savedTypeVisibility.log));
-		$('#crudTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
+		$('#crudTypeToggleCore').prop('checked',   (savedTypeVisibility.core   === undefined ? false : savedTypeVisibility.core));
+		$('#crudTypeToggleHtml').prop('checked',   (savedTypeVisibility.html   === undefined ? false : savedTypeVisibility.html));
+		$('#crudTypeToggleFile').prop('checked',   (savedTypeVisibility.file   === undefined ? false : savedTypeVisibility.file));
+		$('#crudTypeToggleUi').prop('checked',     (savedTypeVisibility.ui     === undefined ? true : savedTypeVisibility.ui));
+		$('#crudTypeToggleFlow').prop('checked',   (savedTypeVisibility.flow   === undefined ? false : savedTypeVisibility.flow));
+		$('#crudTypeToggleLog').prop('checked',    (savedTypeVisibility.log    === undefined ? false : savedTypeVisibility.log));
+		$('#crudTypeToggleOther').prop('checked',  (savedTypeVisibility.other  === undefined ? true : savedTypeVisibility.other));
 
 		$('#crudTypesSearch').keyup(function (e) {
 			if (e.keyCode === 27) {
@@ -318,20 +322,34 @@ var _Crud = {
 
 		var typeVisibility = _Crud.getTypeVisibilityConfig();
 
+		var extendsHtmlType = function (extendsClass) {
+			return (['org.structr.dynamic.DOMElement', 'org.structr.dynamic.DOMNode', 'org.structr.dynamic.LinkSource', 'org.structr.dynamic.Content'].indexOf(extendsClass) !== -1);
+		};
+
+		var extendsFileType = function (extendsClass) {
+			return (['org.structr.dynamic.File', 'org.structr.dynamic.AbstractFile', 'org.structr.dynamic.Folder', 'org.structr.dynamic.Image'].indexOf(extendsClass) !== -1);
+		};
+
+		var isPrincipalType = function (type) {
+			return type.className === 'org.structr.dynamic.Principal' || type.extendsClass === 'org.structr.dynamic.Principal';
+		};
+
 		Object.keys(_Crud.types).sort().forEach(function(typeName) {
 
 			var type = _Crud.types[typeName];
 
 			var isRelType     = type.isRel;
-			var isDynamicType = !isRelType && type.className.startsWith('org.structr.dynamic');
+			var isDynamicType = !isRelType && (type.className.startsWith('org.structr.dynamic') && !extendsHtmlType(type.extendsClass) && !extendsFileType(type.extendsClass) && !isPrincipalType(type));
 			var isCoreType    = !isRelType && type.className.startsWith('org.structr.core.entity');
-			var isHtmlType    = !isRelType && type.className.startsWith('org.structr.web.entity.html');
-			var isUiType      = !isRelType && type.className.startsWith('org.structr.web.entity') && !type.className.startsWith('org.structr.web.entity.html');
+			var isHtmlType    = !isRelType && extendsHtmlType(type.extendsClass);
+			var isFileType    = !isRelType && extendsFileType(type.extendsClass);
+			var isUiType      = !isRelType && isPrincipalType(type);
+			var isFlowType    = !isRelType && type.className.startsWith('org.structr.flow');
 			var isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
-			var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+			var isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isFileType || isUiType || isFlowType || isLogType);
 
 			var hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
-						(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
+						(!typeVisibility.file && isFileType) || (!typeVisibility.ui && isUiType) || (!typeVisibility.flow && isFlowType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
 			if (!hide) {
 				$typesList.append('<li class="crud-type" data-type="' + typeName + '">' + typeName + '</li>');
@@ -420,7 +438,9 @@ var _Crud = {
 			custom: $('#crudTypeToggleCustom').prop('checked'),
 			core:   $('#crudTypeToggleCore').prop('checked'),
 			html:   $('#crudTypeToggleHtml').prop('checked'),
+			file:   $('#crudTypeToggleFile').prop('checked'),
 			ui:     $('#crudTypeToggleUi').prop('checked'),
+			flow:   $('#crudTypeToggleFlow').prop('checked'),
 			log:    $('#crudTypeToggleLog').prop('checked'),
 			other:  $('#crudTypeToggleOther').prop('checked')
 		};
@@ -714,7 +734,7 @@ var _Crud = {
 									data.result.forEach(function(prop) {
 										properties[prop.jsonName] = prop;
 									});
-									
+
 									var hiddenKeys = _Crud.getHiddenKeys(type);
 
 									Object.keys(properties).forEach(function(key) {
@@ -738,9 +758,9 @@ var _Crud = {
 									dialogCloseButton.on('click', function() {
 										location.reload();
 									});
-									
+
 								}
-								
+
 							}
 						}
 					});
@@ -2620,9 +2640,9 @@ var _Crud = {
 		var hiddenKeysSource = LSWrapper.getItem(crudHiddenColumnsKey + type);
 		var hiddenKeys = [];
 		if (hiddenKeysSource) {
-			
+
 			hiddenKeys = JSON.parse(hiddenKeysSource);
-			
+
 			if (!Array.isArray(hiddenKeys)) {
 				// migrate old format
 				var newKeys = [];
@@ -2631,7 +2651,7 @@ var _Crud = {
 				});
 				hiddenKeys = newKeys;
 			}
-			
+
 		} else {
 			// Default: Hide some large fields
 			Object.keys(_Crud.keys[type]).forEach(function(key) {
@@ -2685,7 +2705,7 @@ var _Crud = {
 						break;
 					default:
 				}
-			});				
+			});
 		}
 		return hiddenKeys;
 	},
