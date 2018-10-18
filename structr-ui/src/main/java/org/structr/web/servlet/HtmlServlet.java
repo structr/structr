@@ -1421,7 +1421,7 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 
 		response.setHeader("Date", httpDateFormat.format(new Date()));
 
-		final Integer seconds = node instanceof Page ? ((Page)node).getCacheForSeconds() : null;
+		final Integer seconds = node instanceof Page ? ((Page)node).getCacheForSeconds() : (node instanceof File ? ((File)node).getCacheForSeconds() : null);
 		final Calendar cal    = new GregorianCalendar();
 
 		if (!dontCache && seconds != null) {
