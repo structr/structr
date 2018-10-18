@@ -1223,6 +1223,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final File file = (File)abstractFile;
 
 			if (file.isTemplate())                     { putIf(config, "isTemplate", true); }
+
+			final boolean dontCache = abstractFile.getProperty(StructrApp.key(File.class, "dontCache"));
+			if (dontCache) {
+				putIf(config, "dontCache", dontCache);
+			}
 		}
 
 		putIf(config, "type",                        abstractFile.getProperty(File.type));

@@ -106,6 +106,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addLongProperty("fileModificationDate", PropertyView.Public);
 
 		type.addIntegerProperty("cacheForSeconds", PropertyView.Ui);
+		type.addBooleanProperty("dontCache",       PropertyView.Public, PropertyView.Ui).setDefaultValue("false");
 		type.addIntegerProperty("version",         PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("checksum",           PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("md5",              PropertyView.Ui);
