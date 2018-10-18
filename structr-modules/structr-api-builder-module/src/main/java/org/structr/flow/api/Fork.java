@@ -19,6 +19,7 @@
 package org.structr.flow.api;
 
 import org.structr.core.graph.Tx;
+import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowNode;
 
@@ -26,6 +27,8 @@ import org.structr.flow.impl.FlowNode;
  *
  */
 public interface Fork extends FlowElement {
+
+	void handle(Context context) throws FlowException;
 
 	FlowNode getForkBody();
 
