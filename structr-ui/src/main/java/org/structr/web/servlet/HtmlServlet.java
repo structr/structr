@@ -1502,7 +1502,9 @@ public class HtmlServlet extends HttpServlet implements HttpServiceServlet {
 			callbackMap.put("requestedFileName", downloadAsFilename);
 		}
 
-		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, false)) {
+		boolean dontCache = file.getProperty(StructrApp.key(File.class, "dontCache"));
+
+		if (!EditMode.WIDGET.equals(edit) && notModifiedSince(request, response, file, dontCache)) {
 
 			out.flush();
 			out.close();
