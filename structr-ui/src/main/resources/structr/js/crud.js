@@ -825,7 +825,7 @@ var _Crud = {
 	},
 	updateCellPager: function(el, id, type, key, page, pageSize) {
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/ui?page=' + page + '&pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/all?page=' + page + '&pageSize=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -862,7 +862,7 @@ var _Crud = {
 		var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
 
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/ui?pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/all?pageSize=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -2135,7 +2135,7 @@ var _Crud = {
 				url = rootUrl + type + '/' + searchString;
 			} else {
 				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&loose=1';
-				url = rootUrl + type + '/ui' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
+				url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
 			searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="' + _Icons.getSpinnerImageAsData() + '">Searching for "' + searchString + '" in ' + type + '</div>');
@@ -2294,7 +2294,7 @@ var _Crud = {
 	},
 	removeRelatedObject: function(obj, key, relatedObj, callback) {
 		var type = obj.type;
-		var url = rootUrl + type + '/' + obj.id + '/ui';
+		var url = rootUrl + type + '/' + obj.id + '/all';
 		if (_Crud.isCollection(key, type)) {
 			$.ajax({
 				url: url,
@@ -2317,7 +2317,7 @@ var _Crud = {
 		}
 	},
 	addRelatedObject: function(type, id, key, relatedObj, callback) {
-		var url = rootUrl + type + '/' + id + '/ui';
+		var url = rootUrl + type + '/' + id + '/all';
 		if (_Crud.isCollection(key, type)) {
 			$.ajax({
 				url: url,
@@ -2358,7 +2358,7 @@ var _Crud = {
 		});
 	},
 	removeStringFromArray: function(type, id, key, obj, pos, callback) {
-		var url = rootUrl + '/' + id + '/ui';
+		var url = rootUrl + '/' + id + '/all';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2397,7 +2397,7 @@ var _Crud = {
 		});
 	},
 	addStringToArray: function(type, id, key, obj, callback) {
-		var url = rootUrl + '/' + id + '/ui';
+		var url = rootUrl + '/' + id + '/all';
 		$.ajax({
 			url: url,
 			type: 'GET',
