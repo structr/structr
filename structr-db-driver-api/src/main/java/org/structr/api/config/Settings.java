@@ -76,7 +76,7 @@ public class Settings {
 	public static final Setting<Integer> ServicesStartTimeout = new IntegerSetting(generalGroup,  "Services",    "services.start.timeout",     30);
 	public static final Setting<Integer> ServicesStartRetries = new IntegerSetting(generalGroup,  "Services",    "services.start.retries",     10);
 
-	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.timeout",     600);
+	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.timeout",     30);
 	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.retries",     3);
 
 	// server settings
