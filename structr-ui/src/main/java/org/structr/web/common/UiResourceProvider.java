@@ -66,6 +66,7 @@ public class UiResourceProvider implements ResourceProvider {
 		resourceMap.put(Pattern.compile("ids"), ViewFilterResource.class);                    // "ids only" view
 		resourceMap.put(Pattern.compile(PropertyView.Ui), ViewFilterResource.class);          // ui view
 		resourceMap.put(Pattern.compile(PropertyView.Html), ViewFilterResource.class);        // html attributes view
+		resourceMap.put(Pattern.compile(PropertyView.Custom), ViewFilterResource.class);      // custom view
 
 		resourceMap.put(Pattern.compile("log"), LogResource.class);                           // log resource
 		resourceMap.put(Pattern.compile("resolver"), EntityResolverResource.class);		// resolves [] of UUIDs to complete result
