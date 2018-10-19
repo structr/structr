@@ -335,6 +335,8 @@ public class SchemaService implements Service {
 
 				if (!success) {
 
+					FlushCachesCommand.flushAll();
+
 					logger.error("Errors encountered during compilation:");
 					for (ErrorToken token : errorBuffer.getErrorTokens()) {
 						logger.error(" - {}", token.toString());
