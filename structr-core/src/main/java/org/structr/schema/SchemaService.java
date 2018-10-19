@@ -335,7 +335,14 @@ public class SchemaService implements Service {
 
 				if (!success) {
 
+					logger.error("Errors encountered during compilation:");
+					for (ErrorToken token : errorBuffer.getErrorTokens()) {
+						logger.error(" - {}", token.toString());
+					}
+
 					if (Settings.SchemAutoMigration.getValue()) {
+
+						logger.info("Attempting auto-migration...");
 
 						// handle migration in separate transaction
 						try (final Tx tx = app.tx()) {
