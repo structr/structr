@@ -401,7 +401,7 @@ public class SchemaService implements Service {
 
 			StructrSchema.extendDatabaseSchema(app, dynamicSchema);
 
-		} catch (URISyntaxException ex) {
+		} catch (Exception ex) {
 
 			ex.printStackTrace();
 		}

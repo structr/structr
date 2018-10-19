@@ -25,9 +25,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.web.common.GraphDataSource;
+import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMNode;
 
 /**
  *
@@ -42,8 +43,10 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<Iterab
 	}
 
 	@Override
-	public Iterable<GraphObject> getData(final RenderContext renderContext, final DOMNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
+		final RenderContext renderContext = (RenderContext) actionContext;
+		
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		if (securityContext != null && securityContext.getRequest() != null) {
 

@@ -986,10 +986,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final String typeName   = type.getPath();
 					final String parameters = type.getQuery();
 
-					final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
-					if (internal != null) {
+					if (StringUtils.isNotBlank(typeName)) {
+						final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+						if (internal != null) {
 
-						nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
+							nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
+						}
 					}
 				}
 			}

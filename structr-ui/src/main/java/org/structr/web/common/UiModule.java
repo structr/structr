@@ -20,10 +20,16 @@ package org.structr.web.common;
 
 import java.util.Set;
 import org.structr.api.service.LicenseManager;
+import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.schema.action.Actions;
+import org.structr.web.datasource.CypherGraphDataSource;
+import org.structr.web.datasource.FunctionDataSource;
+import org.structr.web.datasource.IdRequestParameterGraphDataSource;
+import org.structr.web.datasource.RestDataSource;
+import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.function.AddHeaderFunction;
 import org.structr.web.function.AppendContentFunction;
 import org.structr.web.function.BarcodeFunction;
@@ -85,6 +91,13 @@ public class UiModule implements StructrModule {
 		Functions.put(true, LicenseManager.Community, "set_details_object",       new SetDetailsObjectFunction());
 		Functions.put(true, LicenseManager.Community, "confirmation_key",         new ConfirmationKeyFunction());
 
+		DataSources.put(true, LicenseManager.Community, "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
+		DataSources.put(true, LicenseManager.Community, "restDataSource",               new RestDataSource());
+		DataSources.put(true, LicenseManager.Community, "cypherDataSource",             new CypherGraphDataSource());
+		DataSources.put(true, LicenseManager.Community, "functionDataSource",           new FunctionDataSource());
+		DataSources.put(true, LicenseManager.Community, "xpathDataSource",              new XPathGraphDataSource());
+		
+
 		// Basic Edition and up
 		Functions.put(basicEdition, LicenseManager.Basic, "send_html_mail",           new SendHtmlMailFunction());
 		Functions.put(basicEdition, LicenseManager.Basic, "send_plaintext_mail",      new SendPlaintextMailFunction());
@@ -115,6 +128,7 @@ public class UiModule implements StructrModule {
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "schedule",                 new ScheduleFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "maintenance",              new MaintenanceFunction());
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "barcode",                  new BarcodeFunction());
+		
 	}
 
 	@Override

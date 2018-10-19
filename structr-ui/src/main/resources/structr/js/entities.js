@@ -215,67 +215,138 @@ var _Entities = {
 			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
+		
+		if (Structr.isModulePresent('api-builder')) {
+			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
+		}
 
 		var queryTypeButtonsContainer = $('<div class="query-type-buttons"></div>');
 		el.append('<h3>Repeater Configuration</h3>').append(queryTypeButtonsContainer);
 
 		var queryHeading = $('<h4 class="query-type-heading"></h4>').appendTo(el);
-		var textArea = $('<textarea class="query-text"></textarea>').appendTo(el);
+		
+		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
+		var flowSelector = $('#flow-selector');
+		
+		var initRepeaterInputs = function() {
 
-		queryTypes.forEach(function(queryType) {
+			var saveBtn = $('<button class="action">Save</button>');
+			el.append(saveBtn);
 
-			var btn = $('<button>' + queryType.title + '</button>');
-			btn.addClass(queryType.propertyName);
-			queryTypeButtonsContainer.append(btn);
+			queryTypes.forEach(function(queryType) {
 
-			if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
-				btn.addClass('active');
-				textArea.text(textArea.text() + entity[queryType.propertyName]);
-				queryHeading.text(btn.text());
-			}
-		});
+				var btn = $('<button data-query-type="' + queryType.propertyName + '">' + queryType.title + '</button>');
+				btn.addClass(queryType.propertyName);
+				queryTypeButtonsContainer.append(btn);
 
-		var allButtons = $('.query-type-buttons button');
-		allButtons.on('click', function () {
-			allButtons.removeClass('active');
-			var btn = $(this);
-			btn.addClass('active');
-			queryHeading.text(btn.text());
-		});
+				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
+					btn.addClass('active');
+					btn.click();
+					var flow = entity[queryType.propertyName];
+					saveBtn.hide();
+					textArea.hide();
+					flowSelector.show();
+					if (flow) {
+						//var flowName = flow.effectiveName;
+						//$('option', flowSelector).filter(function () { console.log($(this).text()); return $(this).text() === flowName; }).attr('selected', 'selected');
+						flowSelector.val(flow.id);
+					}
 
-		if ($('button.active', queryTypeButtonsContainer).length === 0) {
-			$('.query-type-buttons button:first', el).click();
-		}
+				} else {
 
-		var saveBtn = $('<button class="action">Save</button>');
-		el.append(saveBtn);
-
-		saveBtn.on('click', function() {
-
-			if ($('button.active', queryTypeButtonsContainer).length > 1) {
-				return new MessageBuilder().error('Please select only one query type!').show();
-			}
-
-			var data = {};
-			queryTypes.forEach(function (queryType) {
-				var val = null;
-				if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
-					val = textArea.val();
+					if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
+						btn.addClass('active');
+						saveBtn.show();
+						textArea.show();
+						flowSelector.hide();
+						$('button.flow').removeClass('active');
+						textArea.text(textArea.text() + entity[queryType.propertyName]);
+						queryHeading.text(btn.text());
+					}
 				}
-				data[queryType.propertyName] = val;
 			});
 
-			Command.setProperties(entity.id, data, function(obj) {
-				blinkGreen(saveBtn);
-				_Pages.reloadPreviews();
+			var allButtons = $('.query-type-buttons button');
+			allButtons.on('click', function () {
+				allButtons.removeClass('active');
+				var btn = $(this);
+				btn.addClass('active');
+				var queryType = btn.data('query-type');
+				queryHeading.text(btn.text());
+
+				if (queryType === 'flow') {
+					saveBtn.hide();
+					textArea.hide();
+					flowSelector.show();
+
+				} else {
+					saveBtn.show();
+					textArea.show();
+					flowSelector.hide();
+				}
 			});
-		});
 
-		_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
-			'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+			if ($('button.active', queryTypeButtonsContainer).length === 0) {
+				$('.query-type-buttons button:first', el).click();
+			}
 
-		_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
 
+			flowSelector.on('change', function() {
+				saveBtn.click();
+			});
+
+			saveBtn.on('click', function() {
+
+				if ($('button.active', queryTypeButtonsContainer).length > 1) {
+					return new MessageBuilder().error('Please select only one query type!').show();
+				}
+
+				var data = {};
+				queryTypes.forEach(function(queryType) {
+					var val = null;
+					if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
+						if (queryType.propertyName === 'flow') {
+							
+							val = flowSelector.val();
+							
+						} else {
+							val = textArea.val();
+							data.flow = null;
+							flowSelector.val('--- Select Flow ---');
+						}
+					}
+					data[queryType.propertyName] = val;
+				});
+
+				Command.setProperties(entity.id, data, function(obj) {
+					blinkGreen(saveBtn);
+					
+					_Pages.reloadPreviews();
+				});
+			});
+
+			_Entities.appendInput(el, entity, 'dataKey', 'Data Key', 'The data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br>' +
+				'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
+
+			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
+		};		
+		
+		if (Structr.isModulePresent('api-builder') && !flowSelector.length) {
+			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
+
+			flowSelector.append('<option>--- Select Flow ---</option>');
+			// (type, pageSize, page, sort, order, properties, includeHidden, callback) 
+			Command.getByType('FlowContainer', 1000, 1, 'name', 'asc', null, false, function(flows) {
+
+				flows.forEach(function(flow) {
+					flowSelector.append('<option value="' + flow.id + '">' + flow.name + '</option>');
+				});
+				
+				initRepeaterInputs();
+			});
+		} else {
+			initRepeaterInputs();
+		}
 	},
 	activateTabs: function(nodeId, elId, activeId, activeTabPrefix) {
 		activeTabPrefix = activeTabPrefix || _Entities.activeQueryTabPrefix;
@@ -1186,7 +1257,7 @@ var _Entities = {
 					url: '/structr/rest/User',
 					dataType: 'json',
 					data: function (params) {
-						console.log(params);
+						//console.log(params);
 						return {
 							name: params.term,
 							loose: 1
@@ -1262,7 +1333,7 @@ var _Entities = {
 					url: '/structr/rest/Principal',
 					dataType: 'json',
 					data: function (params) {
-						console.log(params);
+						//console.log(params);
 						return {
 							name: params.term,
 							loose: 1

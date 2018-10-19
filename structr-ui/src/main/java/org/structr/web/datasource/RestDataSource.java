@@ -48,7 +48,9 @@ import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
-import org.structr.web.common.GraphDataSource;
+import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
@@ -65,8 +67,10 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 	private static final Logger logger = LoggerFactory.getLogger(RestDataSource.class.getName());
 
 	@Override
-	public Iterable<GraphObject> getData(final RenderContext renderContext, DOMNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final ActionContext actionContext, NodeInterface referenceNode) throws FrameworkException {
 
+		final RenderContext renderContext = (RenderContext) actionContext;
+		
 		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
 		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
 

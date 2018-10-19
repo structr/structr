@@ -41,12 +41,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.flow.FlowDeploymentHandler;
+import org.structr.flow.datasource.FlowContainerDataSource;
 import org.structr.flow.impl.FlowFunction;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
@@ -66,6 +68,9 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		// Enterprise only
 		Functions.put(enterpriseEdition, LicenseManager.Enterprise, "flow", new FlowFunction());
+		
+		DataSources.put(enterpriseEdition, LicenseManager.Enterprise, "flowDataSource", new FlowContainerDataSource());
+
 	}
 
 	@Override

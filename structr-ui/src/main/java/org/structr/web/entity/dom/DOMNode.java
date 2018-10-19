@@ -21,6 +21,7 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,6 +32,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.CaseHelper;
 import org.structr.common.ConstantBooleanTrue;
@@ -44,8 +46,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.DataSources;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
@@ -65,15 +69,10 @@ import org.structr.schema.json.JsonObjectType;
 import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
-import org.structr.web.common.GraphDataSource;
+import org.structr.core.datasources.GraphDataSource;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.datasource.CypherGraphDataSource;
-import org.structr.web.datasource.FunctionDataSource;
-import org.structr.web.datasource.IdRequestParameterGraphDataSource;
-import org.structr.web.datasource.RestDataSource;
-import org.structr.web.datasource.XPathGraphDataSource;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Renderable;
@@ -90,6 +89,8 @@ import org.w3c.dom.Text;
  */
 public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode>, ContextAwareEntity {
 
+	//public static final Property<DataSourceInterface> flow				= new EndNode<>("flow", DOMNodeFLOWDataSourceInterface.class);
+	
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
@@ -249,28 +250,39 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			.addException(FrameworkException.class.getName())
 			.addParameter("sharedComponent", "org.structr.web.entity.dom.DOMNode");
 
-		final JsonReferenceType siblings = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
-		final JsonReferenceType parent   = type.relate(type, "CONTAINS",              Cardinality.OneToMany, "parent",          "children");
-		final JsonReferenceType synced   = type.relate(type, "SYNC",                  Cardinality.OneToMany, "sharedComponent", "syncedNodes");
-		final JsonReferenceType owner    = type.relate(page, "PAGE",                  Cardinality.ManyToOne, "elements",        "ownerDocument");
-
+		final JsonReferenceType sibling  = type.relate(type,                                                   "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling",  "nextSibling");
+		final JsonReferenceType parent   = type.relate(type,                                                   "CONTAINS",              Cardinality.OneToMany, "parent",           "children");
+		final JsonReferenceType synced   = type.relate(type,                                                   "SYNC",                  Cardinality.OneToMany, "sharedComponent",  "syncedNodes");
+		final JsonReferenceType owner    = type.relate(page,                                                   "PAGE",                  Cardinality.ManyToOne, "elements",         "ownerDocument");
+		
 		type.addIdReferenceProperty("parentId",          parent.getSourceProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("childrenIds",       parent.getTargetProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("pageId",            owner.getTargetProperty()).setCategory(PAGE_CATEGORY);
-		type.addIdReferenceProperty("nextSiblingId",     siblings.getTargetProperty()).setCategory(PAGE_CATEGORY);
+		type.addIdReferenceProperty("nextSiblingId",     sibling.getTargetProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("sharedComponentId", synced.getSourceProperty());
 		type.addIdReferenceProperty("syncedNodesIds",    synced.getTargetProperty());
-
+		
 		// sort position of children in page
 		parent.addIntegerProperty("position");
 
 		// category and hints
-		siblings.getSourceProperty().setCategory(PAGE_CATEGORY);
-		siblings.getTargetProperty().setCategory(PAGE_CATEGORY);
+		sibling.getSourceProperty().setCategory(PAGE_CATEGORY);
+		sibling.getTargetProperty().setCategory(PAGE_CATEGORY);
 		parent.getSourceProperty().setCategory(PAGE_CATEGORY);
 		parent.getTargetProperty().setCategory(PAGE_CATEGORY);
 		synced.getSourceProperty().setCategory(PAGE_CATEGORY);
 		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
+
+		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise)) {
+		
+			final JsonObjectType flowType = (JsonObjectType) schema.getType("FlowContainer");
+			flowType.setExtends(URI.create("https://structr.org/v1.1/definitions/FlowContainer"));
+
+			final JsonReferenceType flow = type.relate(flowType, "FLOW", Cardinality.ManyToOne, "repeaterElements", "flow");
+
+			flow.getSourceProperty().setCategory(QUERY_CATEGORY);
+			flow.getTargetProperty().setCategory(QUERY_CATEGORY);
+		}
 	}}
 
 	static final String PAGE_CATEGORY              = "Page Structure";
@@ -293,20 +305,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC     = "Document nodes cannot be adopted by another document.";
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
-	public static final List<GraphDataSource<Iterable<GraphObject>>> listSources = new LinkedList<>(Arrays.asList(
-		new IdRequestParameterGraphDataSource("nodeId"),
-		new RestDataSource(),
-		new FunctionDataSource(),
-		new CypherGraphDataSource(),
-		new XPathGraphDataSource()
-	));
+	public static final Collection<GraphDataSource> listSources = DataSources.getDataSources();
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path"
 	}));
 
 	public static final String[] rawProps = new String[] {
-		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
+		"dataKey", "restQuery", "cypherQuery", "xpathQuery", "functionQuery", "flow", "hideOnIndex", "hideOnDetail", "showForLocales", "hideForLocales", "showConditions", "hideConditions"
 	};
 
 	boolean isSynced();
