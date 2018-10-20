@@ -1371,17 +1371,22 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			for (final String p : rawProps) {
 
 				String htmlName = "data-structr-meta-" + CaseHelper.toUnderscore(p, false).replaceAll("_", "-");
-				Object value    = thisNode.getProperty(p);
+				Object value = null;
+				try {
+					value    = thisNode.getProperty(p);
 
-				if (value != null) {
+					if (value != null) {
 
-					final PropertyKey key    = StructrApp.key(DOMNode.class, p);
-					final boolean isBoolean  = key instanceof BooleanProperty;
-					final String stringValue = value.toString();
+						final PropertyKey key    = StructrApp.key(DOMNode.class, p);
+						final boolean isBoolean  = key instanceof BooleanProperty;
+						final String stringValue = value.toString();
 
-					if ((isBoolean && "true".equals(stringValue)) || (!isBoolean && StringUtils.isNotBlank(stringValue))) {
-						out.append(" ").append(htmlName).append("=\"").append(escapeForHtmlAttributes(stringValue)).append("\"");
+						if ((isBoolean && "true".equals(stringValue)) || (!isBoolean && StringUtils.isNotBlank(stringValue))) {
+							out.append(" ").append(htmlName).append("=\"").append(escapeForHtmlAttributes(stringValue)).append("\"");
+						}
 					}
+				} catch (IllegalArgumentException ex) {
+					logger.warn("Unable to find property for " + p, ex);
 				}
 			}
 		}
