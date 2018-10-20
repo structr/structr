@@ -144,11 +144,13 @@ public class ConsoleTest extends StructrUiTest {
 
 	@Test
 	public void testRebuildCommand() {
+		
+		cleanDatabaseAndSchema();
 
 		Settings.CypherDebugLogging.setValue(true);
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount   = 2107;
+		final int nodeCount   = 2106;
 		final int relCount    = 1909;
 
 		final String fullIndexRebuildOutput =
