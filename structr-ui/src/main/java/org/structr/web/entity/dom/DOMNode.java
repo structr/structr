@@ -21,7 +21,6 @@ package org.structr.web.entity.dom;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -304,8 +303,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC    = "Document nodes cannot be imported into another document.";
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC     = "Document nodes cannot be adopted by another document.";
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
-
-	public static final Collection<GraphDataSource> listSources = DataSources.getDataSources();
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
 		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path"
@@ -1573,7 +1570,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static Iterable<GraphObject> checkListSources(final DOMNode thisNode, final SecurityContext securityContext, final RenderContext renderContext) {
 
 		// try registered data sources first
-		for (GraphDataSource<Iterable<GraphObject>> source : listSources) {
+		for (GraphDataSource<Iterable<GraphObject>> source : DataSources.getDataSources()) {
 
 			try {
 

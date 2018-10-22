@@ -21,7 +21,6 @@ package org.structr.core.datasources;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -54,6 +53,6 @@ public class DataSources {
 	}
 
 	public static Collection<GraphDataSource> getDataSources() {
-		return new LinkedList<>(dataSources.values());
+		return dataSources.values();
 	}
 }
