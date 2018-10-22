@@ -1036,6 +1036,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 						logger.warn("Unable to resolve built-in type {} against Structr schema", implementedInterface);
 
+						SchemaService.blacklist(name);
+
 						StructrApp.resolveSchemaId(implementedInterface);
 					}
 				}
