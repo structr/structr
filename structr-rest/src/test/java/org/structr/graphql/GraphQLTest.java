@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -2070,6 +2071,151 @@ public class GraphQLTest extends StructrGraphQLTest {
 		assertCount("{ Root(                                    oneToMany: " + ct("oneToMany06") + ",manyToOne: " + ct("manyToOne6") + ",manyToMany: " + ct("manyToMany0") + ") " + body + "}", "Root.#", 0);
 		assertCount("{ Root(oneToOne:   " + ct("oneToOne7") + ",oneToMany: " + ct("oneToMany07") + ",manyToOne: " + ct("manyToOne7") + ",manyToMany: " + ct("manyToMany1") + ") " + body + "}", "Root.#", 0);
 
+	}
+
+	@Test
+	public void testFunctionPropertyIndexing() {
+
+		Settings.LogSchemaOutput.setValue(true);
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "TASK", Relation.Cardinality.OneToMany, "project", "tasks");
+
+			// add function property that extracts the project ID
+			final JsonFunctionProperty projectId = task.addFunctionProperty("projectId");
+
+			projectId.setIndexed(true);
+			projectId.setReadFunction("this.project.id");
+			projectId.setTypeHint("String");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (URISyntaxException|FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final Class project          = StructrApp.getConfiguration().getNodeEntityClass("Project");
+		final Class task             = StructrApp.getConfiguration().getNodeEntityClass("Task");
+		final PropertyKey projectKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "project");
+		final PropertyKey tasksKey   = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
+
+		String project1Id            = null;
+		String project2Id            = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> tasks1 = new LinkedList<>();
+			final List<NodeInterface> tasks2 = new LinkedList<>();
+
+			final NodeInterface project1     = app.create(project, "Project1");
+			final NodeInterface project2     = app.create(project, "Project2");
+
+			project1Id = project1.getUuid();
+			project2Id = project2.getUuid();
+
+			tasks1.add(app.create(task, "Task1.1"));
+			tasks1.add(app.create(task, "Task1.2"));
+			tasks1.add(app.create(task, "Task1.3"));
+			tasks1.add(app.create(task, "Task1.4"));
+			tasks1.add(app.create(task, "Task1.5"));
+			tasks1.add(app.create(task, "Task1.6"));
+			tasks1.add(app.create(task, "Task1.7"));
+
+			tasks2.add(app.create(task, "Task2.1"));
+			tasks2.add(app.create(task, "Task2.2"));
+			tasks2.add(app.create(task, "Task2.3"));
+			tasks2.add(app.create(task, "Task2.4"));
+			tasks2.add(app.create(task, "Task2.5"));
+			tasks2.add(app.create(task, "Task2.6"));
+			tasks2.add(app.create(task, "Task2.7"));
+
+			project1.setProperty(tasksKey, tasks1);
+			project2.setProperty(tasksKey, tasks2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		RestAssured.basePath = "/structr/graphql";
+
+		// verify that all tasks are found
+		assertCount("{ Task { id }}", "Task.#", 14);
+
+		// verify that all tasks with a given project ID are found
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project1Id + "\"}) { name }}");
+			assertMapPathValueIs(result, "Task.#",                   7);
+			assertMapPathValueIs(result, "Task.0.name",             "Task1.1");
+			assertMapPathValueIs(result, "Task.1.name",             "Task1.2");
+			assertMapPathValueIs(result, "Task.2.name",             "Task1.3");
+			assertMapPathValueIs(result, "Task.3.name",             "Task1.4");
+			assertMapPathValueIs(result, "Task.4.name",             "Task1.5");
+			assertMapPathValueIs(result, "Task.5.name",             "Task1.6");
+			assertMapPathValueIs(result, "Task.6.name",             "Task1.7");
+		}
+
+		// verify that all tasks with a given project ID are found
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project2Id + "\"}) { name }}");
+			assertMapPathValueIs(result, "Task.#",                  7);
+			assertMapPathValueIs(result, "Task.0.name",             "Task2.1");
+			assertMapPathValueIs(result, "Task.1.name",             "Task2.2");
+			assertMapPathValueIs(result, "Task.2.name",             "Task2.3");
+			assertMapPathValueIs(result, "Task.3.name",             "Task2.4");
+			assertMapPathValueIs(result, "Task.4.name",             "Task2.5");
+			assertMapPathValueIs(result, "Task.5.name",             "Task2.6");
+			assertMapPathValueIs(result, "Task.6.name",             "Task2.7");
+		}
+
+		// modify data, remove some tasks from projects
+		try (final Tx tx = app.tx()) {
+
+			app.nodeQuery(task).andName("Task1.3").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).andName("Task1.4").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).andName("Task1.5").getFirst().setProperty(projectKey, null);
+
+			app.nodeQuery(task).andName("Task2.1").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).andName("Task2.2").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).andName("Task2.3").getFirst().setProperty(projectKey, null);
+			app.nodeQuery(task).andName("Task2.7").getFirst().setProperty(projectKey, null);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		// verify that all tasks are found
+		assertCount("{ Task { id }}", "Task.#", 14);
+
+		// verify that only tasks with the given project ID are found
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project1Id + "\"}) { name }}");
+			assertMapPathValueIs(result, "Task.#",                   4);
+			assertMapPathValueIs(result, "Task.0.name",             "Task1.1");
+			assertMapPathValueIs(result, "Task.1.name",             "Task1.2");
+			assertMapPathValueIs(result, "Task.2.name",             "Task1.6");
+			assertMapPathValueIs(result, "Task.3.name",             "Task1.7");
+		}
+
+		// verify that only tasks with the given project ID are found
+		{
+			final Map<String, Object> result = fetchGraphQL("{ Task( projectId: { _equals: \"" + project2Id + "\"}) { name }}");
+			assertMapPathValueIs(result, "Task.#",                  3);
+			assertMapPathValueIs(result, "Task.0.name",             "Task2.4");
+			assertMapPathValueIs(result, "Task.1.name",             "Task2.5");
+			assertMapPathValueIs(result, "Task.2.name",             "Task2.6");
+		}
 	}
 
 	// ----- private methods -----

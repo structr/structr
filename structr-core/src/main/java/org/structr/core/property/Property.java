@@ -534,7 +534,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		}
 
 		// index empty as well
-		return isIndexedWhenEmpty();
+		return isIndexedWhenEmpty() || isPassivelyIndexed();
 	}
 
 	@Override

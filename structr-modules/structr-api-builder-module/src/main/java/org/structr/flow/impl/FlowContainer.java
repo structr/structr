@@ -49,16 +49,16 @@ import org.structr.web.entity.dom.DOMNode;
  */
 public class FlowContainer extends AbstractNode implements DeployableEntity {
 
-	public static final Property<FlowContainerPackage> flowPackage						= new StartNode<>("flowPackage", FlowContainerPackageFlow.class);
-	public static final Property<List<FlowBaseNode>> flowNodes 							= new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
-	public static final Property<List<FlowContainerConfiguration>> flowConfigurations 	= new StartNodes<>("flowConfigurations", FlowContainerConfigurationFlow.class);
-	public static final Property<FlowNode> startNode           							= new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
-	public static final Property<String> name                  							= new StringProperty("name").notNull().indexed();
-	public static final Property<Object> effectiveName									= new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").typeHint("String");
-	public static final Property<Boolean> scheduledForIndexing							= new BooleanProperty("scheduledForIndexing").defaultValue(false);
-	public static final Property<List<DOMNode>> repeaterNodes                           = new StartNodes<>("repeaterNodes", DOMNodeFLOWFlowContainer.class);
+	public static final Property<FlowContainerPackage> flowPackage                    = new StartNode<>("flowPackage", FlowContainerPackageFlow.class);
+	public static final Property<List<FlowBaseNode>> flowNodes                        = new EndNodes<>("flowNodes", FlowContainerBaseNode.class);
+	public static final Property<List<FlowContainerConfiguration>> flowConfigurations = new StartNodes<>("flowConfigurations", FlowContainerConfigurationFlow.class);
+	public static final Property<FlowNode> startNode                                  = new EndNode<>("startNode", FlowContainerFlowNode.class).indexed();
+	public static final Property<String> name                                         = new StringProperty("name").notNull().indexed();
+	public static final Property<Object> effectiveName                                = new FunctionProperty<>("effectiveName").indexed().unique().notNull().readFunction("if(empty(this.flowPackage), this.name, concat(this.flowPackage.effectiveName, \".\", this.name))").typeHint("String");
+	public static final Property<Boolean> scheduledForIndexing                        = new BooleanProperty("scheduledForIndexing").defaultValue(false);
+	public static final Property<List<DOMNode>> repeaterNodes                         = new StartNodes<>("repeaterNodes", DOMNodeFLOWFlowContainer.class);
 
-	
+
 	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public, name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes);
 	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui,     name, flowNodes, startNode, flowPackage, effectiveName, scheduledForIndexing, repeaterNodes);
 

@@ -90,7 +90,7 @@ import org.w3c.dom.Text;
 public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, DOMImportable, LinkedTreeNode<DOMNode>, ContextAwareEntity {
 
 	//public static final Property<DataSourceInterface> flow				= new EndNode<>("flow", DOMNodeFLOWDataSourceInterface.class);
-	
+
 	static class Impl { static {
 
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
@@ -236,7 +236,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.overrideMethod("getPagePath",                         false, "return " + DOMNode.class.getName() + ".getPagePath(this);");
 		type.overrideMethod("getDataPropertyKeys",                 false, "return " + DOMNode.class.getName() + ".getDataPropertyKeys(this);");
 		type.overrideMethod("getAllChildNodes",                    false, "return " + DOMNode.class.getName() + ".getAllChildNodes(this);");
-		
+
 		// ContextAwareEntity
 		type.overrideMethod("getEntityContextPath",                false, "return getPagePath();");
 
@@ -254,14 +254,14 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final JsonReferenceType parent   = type.relate(type,                                                   "CONTAINS",              Cardinality.OneToMany, "parent",           "children");
 		final JsonReferenceType synced   = type.relate(type,                                                   "SYNC",                  Cardinality.OneToMany, "sharedComponent",  "syncedNodes");
 		final JsonReferenceType owner    = type.relate(page,                                                   "PAGE",                  Cardinality.ManyToOne, "elements",         "ownerDocument");
-		
+
 		type.addIdReferenceProperty("parentId",          parent.getSourceProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("childrenIds",       parent.getTargetProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("pageId",            owner.getTargetProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("nextSiblingId",     sibling.getTargetProperty()).setCategory(PAGE_CATEGORY);
 		type.addIdReferenceProperty("sharedComponentId", synced.getSourceProperty());
 		type.addIdReferenceProperty("syncedNodesIds",    synced.getTargetProperty());
-		
+
 		// sort position of children in page
 		parent.addIntegerProperty("position");
 
@@ -273,8 +273,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		synced.getSourceProperty().setCategory(PAGE_CATEGORY);
 		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
 
-		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise)) {
-		
+		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise) || Services.isTesting()) {
+
 			final JsonObjectType flowType = (JsonObjectType) schema.getType("FlowContainer");
 			flowType.setExtends(URI.create("https://structr.org/v1.1/definitions/FlowContainer"));
 
