@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.UrlUtils;
 import org.slf4j.Logger;
@@ -987,7 +988,25 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final String parameters = type.getQuery();
 
 					if (StringUtils.isNotBlank(typeName)) {
-						final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+						boolean resolveFromConfig = true;
+						
+						Class internal = null;
+						
+						if (typeName.contains(".")) {
+							
+							try {
+								internal = Class.forName(typeName);
+								resolveFromConfig = false;
+								
+							} catch (ClassNotFoundException ex) {
+								resolveFromConfig = true;
+							}
+						}
+						
+						if (resolveFromConfig) {
+							internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+						}
+						
 						if (internal != null) {
 
 							nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));

@@ -275,7 +275,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise) || Services.isTesting()) {
 
 			final JsonObjectType flowType = (JsonObjectType) schema.getType("FlowContainer");
-			flowType.setExtends(URI.create("https://structr.org/v1.1/definitions/FlowContainer"));
+			flowType.setExtends(URI.create("https://structr.org/v1.1/definitions/org.structr.flow.impl.FlowContainer"));
 
 			final JsonReferenceType flow = type.relate(flowType, "FLOW", Cardinality.ManyToOne, "repeaterElements", "flow");
 
