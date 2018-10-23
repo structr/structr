@@ -103,7 +103,7 @@ public class CloneNodeCommand extends AbstractCommand {
 
 				DOMNode nextSibling = node.getNextSibling();
 				
-				if (parent != null && ownerPage.equals(node.getOwnerDocument())) {
+				if (parent != null && ownerPage.equals(node.getOwnerDocument()) && !parent.equals(nextSibling)) {
 					
 					parent.insertBefore(clonedNode, nextSibling);
 					
