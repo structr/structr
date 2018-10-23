@@ -20,16 +20,29 @@ package org.structr.bolt.mapper;
 
 import java.util.function.Function;
 import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.exceptions.value.Uncoercible;
 import org.neo4j.driver.v1.types.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  */
 public class RecordNodeMapper implements Function<Record, Node> {
 
+	private static final Logger logger = LoggerFactory.getLogger(RecordNodeMapper.class);
+
 	@Override
 	public Node apply(final Record t) {
-		return t.get(0).asNode();
-	}
 
+		try {
+			return t.get(0).asNode();
+
+		} catch (Uncoercible ex) {
+
+			logger.warn("Unable to map Neo4j Record {} to Structr Node: {}", t.asMap(), ex.getMessage());
+		}
+
+		return null;
+	}
 }
