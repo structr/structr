@@ -45,7 +45,8 @@ public class ForkHandler implements FlowHandler<Fork> {
 
 		if (forkBody != null) {
 
-			ForkTask task = new ForkTask(context, forkBody, flowElement);
+			Context forkContext = new Context(context);
+			ForkTask task = new ForkTask(forkContext, forkBody, flowElement);
 
 			// Could be written into context for future additions like a FlowJoin element
 			Future<Object> future = threadExecutor.submit(task);
@@ -80,13 +81,11 @@ public class ForkHandler implements FlowHandler<Fork> {
 
 				try (final Tx tx = this.fork.createTransaction()) {
 
-					Context forkContext = new Context(context);
+					fork.handle(context);
 
-					fork.handle(forkContext);
+					final FlowEngine engine = new FlowEngine(context);
 
-					final FlowEngine engine = new FlowEngine(forkContext);
-
-					result = engine.execute(forkContext, startNode);
+					result = engine.execute(context, startNode);
 
 					tx.success();
 				}

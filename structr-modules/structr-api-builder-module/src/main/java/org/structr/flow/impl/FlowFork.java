@@ -79,10 +79,9 @@ public class FlowFork extends FlowNode implements Fork, DataSource, DeployableEn
 		DataSource _ds = getProperty(dataSource);
 
 		if (_ds != null) {
-			context.setData(_ds.getUuid(), null);
+			context.setData(getUuid(), _ds.get(context));
 		}
 
-		get(context);
 	}
 
 	@Override

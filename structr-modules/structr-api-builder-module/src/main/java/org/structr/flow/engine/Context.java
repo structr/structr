@@ -18,13 +18,11 @@
  */
 package org.structr.flow.engine;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
@@ -168,9 +166,11 @@ public class Context {
 
 	private Map<String, Object> deepCopyMap(Map<String,Object> map) {
 		Map<String,Object> result = new HashMap<>();
+
 		for(Map.Entry<String, Object> entry : map.entrySet()) {
-			result.put(entry.getKey(),entry.getValue());
+			result.put(entry.getKey(), entry.getValue());
 		}
+
 		return result;
 	}
 

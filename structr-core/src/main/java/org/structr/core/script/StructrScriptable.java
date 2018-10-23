@@ -865,7 +865,7 @@ public class StructrScriptable extends ScriptableObject {
 
 	}
 
-	public class MapWrapper extends ScriptableObject implements Map {
+	public class MapWrapper extends ScriptableObject implements Map<String, Object> {
 
 		private Map<String, Object> map = null;
 
@@ -899,6 +899,16 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		@Override
+		public int size() {
+			return map.size();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return map.isEmpty();
+		}
+
+		@Override
 		public boolean containsKey(Object key) {
 			return map.containsKey(key);
 		}
@@ -909,8 +919,13 @@ public class StructrScriptable extends ScriptableObject {
 		}
 
 		@Override
-		public Object put(Object key, Object value) {
-			return map.put(null, value);
+		public Object get(Object key) {
+			return map.get(key);
+		}
+
+		@Override
+		public Object put(String key, Object value) {
+			return map.put(key, value);
 		}
 
 		@Override
