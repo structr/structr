@@ -29,8 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.web.common.GraphDataSource;
-import org.structr.web.common.RenderContext;
+import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -45,9 +46,9 @@ public class XPathGraphDataSource implements GraphDataSource<Iterable<GraphObjec
 	private static final Logger logger = LoggerFactory.getLogger(XPathGraphDataSource.class.getName());
 
 	@Override
-	public Iterable<GraphObject> getData(final RenderContext renderContext, final DOMNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final ActionContext renderContext, final NodeInterface referenceNode) throws FrameworkException {
 
-		final String xpathQuery = referenceNode.getXpathQuery();
+		final String xpathQuery = ((DOMNode) referenceNode).getXpathQuery();
 		if (StringUtils.isBlank(xpathQuery)) {
 
 			return null;

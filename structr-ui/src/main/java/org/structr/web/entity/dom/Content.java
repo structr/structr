@@ -148,6 +148,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 		type.addViewProperty(PropertyView.Ui, "xpathQuery");
 		type.addViewProperty(PropertyView.Ui, "restQuery");
 		type.addViewProperty(PropertyView.Ui, "functionQuery");
+		type.addViewProperty(PropertyView.Ui, "flow");
 	}}
 
 	String getContentType();

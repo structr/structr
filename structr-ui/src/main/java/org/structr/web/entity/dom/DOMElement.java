@@ -25,11 +25,13 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Result;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.RelationshipInterface;
@@ -151,14 +153,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
-		type.addStringProperty("_html_class", PropertyView.Html, PropertyView.Ui);
+		type.addStringProperty("_html_class", PropertyView.Html);
 		type.addStringProperty("_html_contenteditable", PropertyView.Html);
 		type.addStringProperty("_html_contextmenu", PropertyView.Html);
 		type.addStringProperty("_html_dir", PropertyView.Html);
 		type.addStringProperty("_html_draggable", PropertyView.Html);
 		type.addStringProperty("_html_dropzone", PropertyView.Html);
 		type.addStringProperty("_html_hidden", PropertyView.Html);
-		type.addStringProperty("_html_id", PropertyView.Html, PropertyView.Ui);
+		type.addStringProperty("_html_id", PropertyView.Html);
 		type.addStringProperty("_html_lang", PropertyView.Html);
 		type.addStringProperty("_html_spellcheck", PropertyView.Html);
 		type.addStringProperty("_html_style", PropertyView.Html);
@@ -262,6 +264,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty(PropertyView.Ui, "xpathQuery");
 		type.addViewProperty(PropertyView.Ui, "restQuery");
 		type.addViewProperty(PropertyView.Ui, "functionQuery");
+
+		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise)) {
+			type.addViewProperty(PropertyView.Public, "flow");
+			type.addViewProperty(PropertyView.Ui, "flow");
+		}
 
 	}}
 

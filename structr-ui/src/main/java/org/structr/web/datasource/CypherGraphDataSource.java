@@ -24,8 +24,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.CypherQueryCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.common.GraphDataSource;
-import org.structr.web.common.RenderContext;
+import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 
 /**
@@ -35,16 +36,16 @@ import org.structr.web.entity.dom.DOMNode;
 public class CypherGraphDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	@Override
-	public Iterable<GraphObject> getData(final RenderContext renderContext, final DOMNode referenceNode) throws FrameworkException {
+	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final PropertyKey<String> cypherQueryKey = StructrApp.key(DOMNode.class, "cypherQuery");
-		final String cypherQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, cypherQueryKey);
+		final String cypherQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(actionContext, cypherQueryKey);
 
 		if (StringUtils.isBlank(cypherQuery)) {
 
 			return null;
 		}
 
-		return StructrApp.getInstance(renderContext.getSecurityContext()).command(CypherQueryCommand.class).execute(cypherQuery);
+		return StructrApp.getInstance(actionContext.getSecurityContext()).command(CypherQueryCommand.class).execute(cypherQuery);
 	}
 }

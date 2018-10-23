@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.common.util.UrlUtils;
 import org.slf4j.Logger;
@@ -986,10 +987,30 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final String typeName   = type.getPath();
 					final String parameters = type.getQuery();
 
-					final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
-					if (internal != null) {
+					if (StringUtils.isNotBlank(typeName)) {
+						boolean resolveFromConfig = true;
+						
+						Class internal = null;
+						
+						if (typeName.contains(".")) {
+							
+							try {
+								internal = Class.forName(typeName);
+								resolveFromConfig = false;
+								
+							} catch (ClassNotFoundException ex) {
+								resolveFromConfig = true;
+							}
+						}
+						
+						if (resolveFromConfig) {
+							internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
+						}
+						
+						if (internal != null) {
 
-						nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
+							nodeProperties.put(SchemaNode.extendsClass, getParameterizedType(internal, parameters));
+						}
 					}
 				}
 			}
@@ -1033,6 +1054,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					} else {
 
 						logger.warn("Unable to resolve built-in type {} against Structr schema", implementedInterface);
+
+						SchemaService.blacklist(name);
 
 						StructrApp.resolveSchemaId(implementedInterface);
 					}

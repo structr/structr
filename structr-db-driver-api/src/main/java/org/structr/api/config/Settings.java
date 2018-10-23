@@ -76,7 +76,7 @@ public class Settings {
 	public static final Setting<Integer> ServicesStartTimeout = new IntegerSetting(generalGroup,  "Services",    "services.start.timeout",     30);
 	public static final Setting<Integer> ServicesStartRetries = new IntegerSetting(generalGroup,  "Services",    "services.start.retries",     10);
 
-	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.timeout",     600);
+	public static final Setting<Integer> NodeServiceStartTimeout = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.timeout",     30);
 	public static final Setting<Integer> NodeServiceStartRetries = new IntegerSetting(generalGroup,  "Services",    "NodeService.start.retries",     3);
 
 	// server settings
@@ -121,9 +121,9 @@ public class Settings {
 	public static final Setting<String> ConnectionUser          = new StringSetting(databaseGroup,  "Database Connection", "database.connection.username",     "neo4j");
 	public static final Setting<String> ConnectionPassword      = new StringSetting(databaseGroup,  "Database Connection", "database.connection.password",     "neo4j");
 	public static final Setting<String> TenantIdentifier        = new StringSetting(databaseGroup,  "Database Connection", "database.tenant.identifier",       "");
-	public static final Setting<Integer> RelationshipCacheSize  = new IntegerSetting(databaseGroup, "Caching",             "database.cache.relationship.size", 100000);
+	public static final Setting<Integer> RelationshipCacheSize  = new IntegerSetting(databaseGroup, "Caching",             "database.cache.relationship.size", 500000);
 	public static final Setting<Integer> NodeCacheSize          = new IntegerSetting(databaseGroup, "Caching",             "database.cache.node.size",         100000);
-	public static final Setting<Integer> UuidCacheSize          = new IntegerSetting(databaseGroup, "Caching",             "database.cache.uuid.size",         100000);
+	public static final Setting<Integer> UuidCacheSize          = new IntegerSetting(databaseGroup, "Caching",             "database.cache.uuid.size",         1000000);
 	public static final Setting<Integer> QueryCacheSize         = new IntegerSetting(databaseGroup, "Caching",             "database.cache.query.size",        1000);
 	public static final Setting<Boolean> CypherDebugLogging     = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
 	public static final Setting<Boolean> CypherDebugLoggingPing = new BooleanSetting(databaseGroup, "Debugging",           "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");

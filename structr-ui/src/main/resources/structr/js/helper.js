@@ -747,7 +747,6 @@ var _Console = new (function() {
 
 							var line = 'Console.setMode("' + mode + '")';
 							term.consoleMode = mode;
-							console.log('consoleMode set to', mode);
 							LSWrapper.setItem(consoleModeKey, mode);
 
 							_runCommand(line, mode, term);

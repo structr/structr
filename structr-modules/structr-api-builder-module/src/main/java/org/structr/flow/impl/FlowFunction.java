@@ -27,7 +27,6 @@ import org.structr.flow.engine.FlowEngine;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class FlowFunction extends Function<Object, Object> {
@@ -44,9 +43,9 @@ public class FlowFunction extends Function<Object, Object> {
 
 			if (sources[0] instanceof String) {
 
-				final String name                = (String)sources[0];
-				final FlowContainer container    = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, name).getFirst();
-				Map<String, Object> parameters   = null;
+				final String name                                     = (String)sources[0];
+				final FlowContainer container = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, name).getFirst();
+				Map<String, Object> parameters                        = null;
 
 				if (sources.length > 1 && sources[1] instanceof Map) {
 					parameters = (Map)sources[1];

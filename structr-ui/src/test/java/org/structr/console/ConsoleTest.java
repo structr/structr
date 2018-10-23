@@ -144,16 +144,19 @@ public class ConsoleTest extends StructrUiTest {
 
 	@Test
 	public void testRebuildCommand() {
+		
+		cleanDatabaseAndSchema();
 
 		Settings.CypherDebugLogging.setValue(true);
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount   = 1568;
-		final int relCount    = 1908;
+		final int nodeCount   = 2106;
+		final int relCount    = 1909;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
+			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
@@ -166,6 +169,7 @@ public class ConsoleTest extends StructrUiTest {
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
+			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n";
@@ -190,6 +194,7 @@ public class ConsoleTest extends StructrUiTest {
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
 			"SetNodeUuid: 1000 objects processed\r\n" +
+			"SetNodeUuid: 2000 objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"Done with setting UUID on " + nodeCount + " nodes\r\n";
