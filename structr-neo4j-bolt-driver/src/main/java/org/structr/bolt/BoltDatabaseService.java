@@ -222,6 +222,19 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		return session;
 	}
 
+	public static void closeThreadTx() {
+		SessionTransaction session = sessions.get();
+
+		if (session != null) {
+
+			if (!session.isClosed()) {
+				session.close();
+			}
+
+			sessions.remove();
+		}
+	}
+
 	@Override
 	public Node createNode(final Set<String> labels, final Map<String, Object> properties) {
 
@@ -600,7 +613,8 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final SessionTransaction tx = sessions.get();
 		if (tx == null || tx.isClosed()) {
 
-			throw new NotInTransactionException("Not in transaction");
+			return (SessionTransaction)beginTx();
+			//throw new NotInTransactionException("Not in transaction");
 		}
 
 		return tx;

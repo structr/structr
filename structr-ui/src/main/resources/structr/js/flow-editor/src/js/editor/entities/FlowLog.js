@@ -40,7 +40,7 @@ export class FlowLog extends FlowNode {
 
                     element.addEventListener('focus', ()=> {
                         document.dispatchEvent(new CustomEvent('floweditor.internal.openeditor', {detail: {element: element}}));
-                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Action"}}));
+                        document.dispatchEvent(new CustomEvent('floweditor.nodescriptclick', {detail: {element: element, nodeType: "Log"}}));
                     });
 
                     element.addEventListener('mousedown', event => {

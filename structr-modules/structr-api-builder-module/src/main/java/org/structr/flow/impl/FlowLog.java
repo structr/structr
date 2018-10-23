@@ -48,14 +48,14 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, dataSource, exceptionHandler, isStartNodeOfContainer);
 	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, dataSource, exceptionHandler, isStartNodeOfContainer);
 
-	private static final Logger logger = LoggerFactory.getLogger(FlowLog.class);
-
 	@Override
 	public void execute(final Context context) throws FlowException {
 		String _script = getProperty(script);
 		if (_script == null) {
 			_script = "data";
 		}
+
+		final Logger logger = LoggerFactory.getLogger(FlowLog.class);
 
 		try {
 
@@ -71,7 +71,7 @@ public class FlowLog extends FlowActionNode implements DeployableEntity, Throwin
 
 			FlowContainer container = getProperty(flowContainer);
 
-			logger.info( (container.getName() != null ? ("[" + container.getProperty(FlowContainer.effectiveName) + "]") : "") + ("(" + getUuid() + "): ") + result	);
+			logger.info( (container.getName() != null ? ("[" + container.getProperty(FlowContainer.effectiveName) + "]") : "") + ("([" + getType() + "]" + getUuid() + "): ") + result	);
 
 		} catch (FrameworkException fex) {
 
