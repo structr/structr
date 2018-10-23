@@ -285,7 +285,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				} else {
 
 					try {
-						propertyView.set(null, PropertyView.All);
+						propertyView.set(null, PropertyView.Ui);
 
 					} catch (FrameworkException fex) {
 
