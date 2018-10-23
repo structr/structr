@@ -18,6 +18,8 @@
  */
 package org.structr.flow.engine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.flow.api.*;
 
 import java.util.EnumMap;
@@ -157,7 +159,8 @@ public class FlowEngine {
 		}
 
 		// In case no handler is present at all, print the stack trace and return the intermediate result
-		exception.printStackTrace();
+		final Logger logger = LoggerFactory.getLogger(FlowEngine.class);
+		logger.warn(exception.getMessage());
 		context.error(new FlowError(exception.getMessage()));
 		return new FlowResult(context);
 	}

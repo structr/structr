@@ -18,10 +18,12 @@
  */
 package org.structr.flow.engine;
 
+import org.structr.bolt.BoltDatabaseService;
 import org.structr.core.graph.Tx;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.Fork;
+import org.structr.flow.impl.FlowFork;
 import org.structr.flow.impl.FlowNode;
 
 import java.util.concurrent.Callable;
@@ -34,6 +36,8 @@ import java.util.concurrent.Future;
  */
 public class ForkHandler implements FlowHandler<Fork> {
 
+	private static final ExecutorService threadExecutor = Executors.newFixedThreadPool(10);
+
 	@Override
 	public FlowElement handle(Context context, Fork flowElement) throws FlowException {
 
@@ -41,9 +45,8 @@ public class ForkHandler implements FlowHandler<Fork> {
 
 		if (forkBody != null) {
 
-			ExecutorService threadExecutor = Executors.newSingleThreadExecutor();
-
-			ForkTask task = new ForkTask(context, forkBody, flowElement);
+			Context forkContext = new Context(context);
+			ForkTask task = new ForkTask(forkContext, forkBody, flowElement);
 
 			// Could be written into context for future additions like a FlowJoin element
 			Future<Object> future = threadExecutor.submit(task);
@@ -73,15 +76,22 @@ public class ForkHandler implements FlowHandler<Fork> {
 
 				Object result = null;
 
+				// Clean up any potentially existing tx when using a recycled thread
+				BoltDatabaseService.closeThreadTx();
+
 				try (final Tx tx = this.fork.createTransaction()) {
 
-					Context forkContext = new Context(context);
-					final FlowEngine engine = new FlowEngine(forkContext);
+					fork.handle(context);
 
-					result = engine.execute(forkContext, startNode);
+					final FlowEngine engine = new FlowEngine(context);
+
+					result = engine.execute(context, startNode);
 
 					tx.success();
 				}
+
+				// Clean up session
+				BoltDatabaseService.closeThreadTx();
 
 				return result;
 

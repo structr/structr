@@ -20,6 +20,8 @@ export class FlowFork extends FlowNode {
                 let socket = FlowSockets.getInst();
                 let prev = new D3NE.Input('Prev', socket.getSocket('prev'), true);
                 let next = new D3NE.Output('Next', socket.getSocket('next'));
+                let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
+                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('dataTarget'), true);
                 let forkBody = new D3NE.Output('ForkBody', socket.getSocket('forkBody'));
                 let exceptionHandler = new D3NE.Output('ExceptionHandler', socket.getSocket('exceptionHandler'));
 
@@ -34,7 +36,9 @@ export class FlowFork extends FlowNode {
 
                 return node
                     .addInput(prev)
+                    .addInput(dataSource)
                     .addOutput(next)
+                    .addOutput(dataTarget)
                     .addOutput(forkBody)
                     .addOutput(exceptionHandler);
             },
