@@ -64,7 +64,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		}
 
-		webSocketData.setView(PropertyView.Ui);
+		webSocketData.setView(PropertyView.All);
 		webSocketData.setResult(result);
 
 		// send only over local connection
