@@ -613,8 +613,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 		final SessionTransaction tx = sessions.get();
 		if (tx == null || tx.isClosed()) {
 
-			return (SessionTransaction)beginTx();
-			//throw new NotInTransactionException("Not in transaction");
+			throw new NotInTransactionException("Not in transaction");
 		}
 
 		return tx;
