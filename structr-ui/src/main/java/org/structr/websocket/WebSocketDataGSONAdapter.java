@@ -239,13 +239,13 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 		// serialize result list
 		if (src.getResult() != null) {
-			
+
 			if ("GRAPHQL".equals(src.getCommand())) {
-				
+
 				try {
-				
+
 					if (src.getResult() != null && !src.getResult().isEmpty()) {
-					
+
 						final GraphObject firstResultObject = src.getResult().get(0);
 						final SecurityContext securityContext = firstResultObject.getSecurityContext();
 
@@ -259,17 +259,17 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 						JsonElement graphQLResult = new JsonParser().parse(output.toString());
 						root.add("result", graphQLResult);
-						
+
 					} else {
-						
+
 						root.add("result", new JsonArray());
 					}
-					
+
 				} catch (IOException | FrameworkException ex) {
 
 					logger.warn("Unable to set process GraphQL query", ex);
 				}
-				
+
 			} else {
 
 				if (src.getView() != null) {
@@ -285,7 +285,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				} else {
 
 					try {
-						propertyView.set(null, PropertyView.Ui);
+						propertyView.set(null, PropertyView.All);
 
 					} catch (FrameworkException fex) {
 
@@ -302,7 +302,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 				}
 
 				root.add("result", result);
-			
+
 			}
 			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
 
@@ -416,10 +416,10 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			if (nodeData != null) {
 
 				JsonInputGSONAdapter adapter = new JsonInputGSONAdapter();
-				
+
 
 				for (Entry<String, JsonElement> entry : nodeData.entrySet()) {
-					
+
 					final JsonElement obj = entry.getValue();
 					Object value          = null;
 
