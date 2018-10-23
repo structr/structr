@@ -56,6 +56,16 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	private Class<T> destType                                         = null;
 
 	/**
+	 * Constructs an entity property with the given name.
+	 *
+	 * @param name
+	 * @param fqcn
+	 */
+	public EndNode(final String name, final String fqcn) {
+		this(name, getClass(fqcn), new ObjectNotion());
+	}
+
+	/**
 	 * Constructs an entity property with the given name, the given destination type,
 	 * the given relationship type, the given direction and the given cascade delete
 	 * flag.
@@ -291,5 +301,19 @@ public class EndNode<S extends NodeInterface, T extends NodeInterface> extends P
 	@Override
 	public String getDirectionKey() {
 		return "out";
+	}
+
+	// ----- private methods -----
+	private static Class getClass(final String fqcn) {
+
+		try {
+
+			return Class.forName(fqcn);
+
+		} catch (Throwable t) {
+
+		}
+
+		return null;
 	}
 }

@@ -69,6 +69,7 @@ import org.structr.schema.json.JsonReferenceType;
 import org.structr.schema.json.JsonSchema;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.property.EndNode;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
@@ -272,15 +273,9 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		synced.getSourceProperty().setCategory(PAGE_CATEGORY);
 		synced.getTargetProperty().setCategory(PAGE_CATEGORY);
 
-		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise) || Services.isTesting()) {
+		if (Services.getInstance().getLicenseManager().isEdition(LicenseManager.Enterprise)) {
 
-			final JsonObjectType flowType = (JsonObjectType) schema.getType("FlowContainer");
-			flowType.setExtends(URI.create("https://structr.org/v1.1/definitions/org.structr.flow.impl.FlowContainer"));
-
-			final JsonReferenceType flow = type.relate(flowType, "FLOW", Cardinality.ManyToOne, "repeaterElements", "flow");
-
-			flow.getSourceProperty().setCategory(QUERY_CATEGORY);
-			flow.getTargetProperty().setCategory(QUERY_CATEGORY);
+			type.addCustomProperty("flow", EndNode.class.getName()).setFormat("org.structr.flow.impl.rels.DOMNodeFLOWFlowContainer");
 		}
 	}}
 
