@@ -20,6 +20,8 @@ package org.structr.schema.parser;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
@@ -32,6 +34,8 @@ import org.structr.schema.SchemaHelper.Type;
  */
 public class CustomPropertyParser extends PropertySourceGenerator {
 
+	private static final Logger logger = LoggerFactory.getLogger(CustomPropertyParser.class);
+
 	private String propertyType         = null;
 	private String valueType            = null;
 	private String unqualifiedValueType = null;
@@ -43,27 +47,56 @@ public class CustomPropertyParser extends PropertySourceGenerator {
 		final String fqcn = params.getFqcn();
 		if (fqcn != null) {
 
-			// instantiate class and initialize values
+			boolean initialized = false;
+
 			try {
 
+				// instantiate class and initialize values
 				final Class<Property> type = (Class<Property>)Class.forName(fqcn);
 				if (type != null) {
 
-					final Constructor<Property> constr = type.getConstructor(String.class);
-					if (constr != null) {
+					try {
 
-						final Property property = constr.newInstance(params.getPropertyName());
-						if (property != null) {
+						final Constructor<Property> constr = type.getConstructor(String.class);
+						if (constr != null) {
 
-							this.propertyType         = type.getSimpleName();
-							this.valueType            = property.valueType().getName();
-							this.unqualifiedValueType = type.getSimpleName();
+							final Property property = constr.newInstance(params.getPropertyName());
+							if (property != null) {
+
+								this.propertyType         = type.getSimpleName();
+								this.valueType            = property.valueType().getName();
+								this.unqualifiedValueType = type.getSimpleName();
+
+								initialized = true;
+							}
 						}
+
+					} catch (Throwable ignore) {}
+
+					if (!initialized) {
+
+						try {
+
+							final Constructor<Property> specialConstructor = type.getConstructor(String.class, String.class);
+							if (specialConstructor != null) {
+
+								final Property property = specialConstructor.newInstance(params.getPropertyName(), params.getFormat());
+								if (property != null) {
+
+									this.propertyType         = type.getSimpleName();
+									this.valueType            = property.valueType().getName();
+									this.unqualifiedValueType = type.getSimpleName();
+									this.propertyParameters   = ", " + params.getFormat() + ".class";
+								}
+							}
+
+						} catch (Throwable ignore) {}
 					}
 				}
 
-			} catch (Throwable t) {
-				t.printStackTrace();
+			} catch (Throwable ignore) {
+
+				logger.warn("Unable to instantiate {}: {}", fqcn, ignore.getMessage());
 			}
 		}
 	}
