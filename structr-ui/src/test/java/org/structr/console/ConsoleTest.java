@@ -144,14 +144,14 @@ public class ConsoleTest extends StructrUiTest {
 
 	@Test
 	public void testRebuildCommand() {
-		
+
 		cleanDatabaseAndSchema();
 
 		Settings.CypherDebugLogging.setValue(true);
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 		final int nodeCount   = 2106;
-		final int relCount    = 1909;
+		final int relCount    = 1911;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
