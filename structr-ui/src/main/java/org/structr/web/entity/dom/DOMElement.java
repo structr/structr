@@ -153,14 +153,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// Core attributes
 		type.addStringProperty("_html_accesskey", PropertyView.Html);
-		type.addStringProperty("_html_class", PropertyView.Html);
+		type.addStringProperty("_html_class", PropertyView.Html, PropertyView.Ui);
 		type.addStringProperty("_html_contenteditable", PropertyView.Html);
 		type.addStringProperty("_html_contextmenu", PropertyView.Html);
 		type.addStringProperty("_html_dir", PropertyView.Html);
 		type.addStringProperty("_html_draggable", PropertyView.Html);
 		type.addStringProperty("_html_dropzone", PropertyView.Html);
 		type.addStringProperty("_html_hidden", PropertyView.Html);
-		type.addStringProperty("_html_id", PropertyView.Html);
+		type.addStringProperty("_html_id", PropertyView.Html, PropertyView.Ui);
 		type.addStringProperty("_html_lang", PropertyView.Html);
 		type.addStringProperty("_html_spellcheck", PropertyView.Html);
 		type.addStringProperty("_html_style", PropertyView.Html);
