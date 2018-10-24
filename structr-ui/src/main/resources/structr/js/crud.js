@@ -825,7 +825,7 @@ var _Crud = {
 	},
 	updateCellPager: function(el, id, type, key, page, pageSize) {
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/all?page=' + page + '&pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/public?page=' + page + '&pageSize=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -861,8 +861,9 @@ var _Crud = {
 
 		var pageSize = _Crud.getCollectionPageSize(type, key) || defaultCollectionPageSize;
 
+		// use public view for cell pager - we should not need more information than this!
 		$.ajax({
-			url: rootUrl + type + '/' + id + '/' + key + '/all?pageSize=' + pageSize,
+			url: rootUrl + type + '/' + id + '/' + key + '/public?pageSize=' + pageSize,
 			contentType: 'application/json; charset=UTF-8',
 			dataType: 'json',
 			statusCode: {
@@ -1040,7 +1041,7 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/public' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
@@ -2135,7 +2136,7 @@ var _Crud = {
 				url = rootUrl + type + '/' + searchString;
 			} else {
 				searchPart = searchString === '*' || searchString === '' ? '' : '&' + attr + '=' + encodeURIComponent(searchString) + '&loose=1';
-				url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
+				url = rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
 			searchResults.append('<div id="placeholderFor' + type + '" class="searchResultGroup resourceBox"><img class="loader" src="' + _Icons.getSpinnerImageAsData() + '">Searching for "' + searchString + '" in ' + type + '</div>');
@@ -2358,7 +2359,7 @@ var _Crud = {
 		});
 	},
 	removeStringFromArray: function(type, id, key, obj, pos, callback) {
-		var url = rootUrl + '/' + id + '/all';
+		var url = rootUrl + '/' + id + '/public';
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -2397,7 +2398,7 @@ var _Crud = {
 		});
 	},
 	addStringToArray: function(type, id, key, obj, callback) {
-		var url = rootUrl + '/' + id + '/all';
+		var url = rootUrl + '/' + id + '/public';
 		$.ajax({
 			url: url,
 			type: 'GET',
