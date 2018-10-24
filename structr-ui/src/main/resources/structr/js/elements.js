@@ -112,53 +112,53 @@ var _Elements = {
 	mostUsedAttrs: [
 		{
 			elements: ['input', 'textarea'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style'],
 			focus: 'type'
 		},
 		{
 			elements: ['button'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style']
 		},
 		{
 			elements: ['select', 'option'],
-			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder']
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style']
 		},
 		{
 			elements: ['optgroup'],
-			attrs: ['label', 'disabled'],
+			attrs: ['label', 'disabled', 'style'],
 			focus: 'label'
 		},
 		{
 			elements: ['form'],
-			attrs: ['action', 'method']
+			attrs: ['action', 'method', 'style']
 		},
 		{
 			elements: ['img'],
-			attrs: ['alt', 'title', 'src'],
+			attrs: ['alt', 'title', 'src', 'style'],
 			focus: 'src'
 		},
 		{
 			elements: ['script', 'img', 'object'],
-			attrs: ['type', 'rel', 'href', 'media', 'src'],
+			attrs: ['type', 'rel', 'href', 'media', 'src', 'style'],
 			focus: 'src'
 		},
 		{
 			elements: ['link'],
-			attrs: ['type', 'rel', 'href'],
+			attrs: ['type', 'rel', 'href', 'style'],
 			focus: 'href'
 		},
 		{
 			elements: ['a'],
-			attrs: ['type', 'rel', 'href', 'target'],
+			attrs: ['type', 'rel', 'href', 'target', 'style'],
 			focus: 'href'
 		},
 		{
 			elements: ['td', 'th'],
-			attrs: ['colspan', 'rowspan']
+			attrs: ['colspan', 'rowspan', 'style']
 		},
 		{
 			elements: ['label'],
-			attrs: ['for', 'form'],
+			attrs: ['for', 'form', 'style'],
 			focus: 'for'
 		},
 		{
@@ -168,7 +168,7 @@ var _Elements = {
 		},
 		{
 			elements: ['iframe'],
-			attrs: ['src', 'width', 'height'],
+			attrs: ['src', 'width', 'height', 'style'],
 			focus: 'src'
 		},
 		{
@@ -741,7 +741,7 @@ var _Elements = {
 						Command.setProperty(entityToLinkTo.id, '_html_src', '${link.path}', null);
 					}
 				});
-				
+
 				Command.link(entityToLinkTo.id, linkableObject.id);
 			}
 
