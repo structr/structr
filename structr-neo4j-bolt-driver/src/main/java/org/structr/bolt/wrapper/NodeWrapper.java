@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.structr.api.NotFoundException;
-import org.structr.api.QueryResult;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
@@ -237,15 +236,18 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 		final SessionTransaction tx                 = db.getCurrentTransaction();
-		Set<Relationship> list                      = getRelationshipCache(null, null);
+		//Set<Relationship> list                      = getRelationshipCache(null, null);
 
-		if (list == null || dontUseCache) {
+		//if (list == null || dontUseCache) {
 
 			final Map<String, Object> map = new HashMap<>();
 			final String tenantIdentifier = db.getTenantIdentifier();
 
 			map.put("id", id);
 
+			return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-(o) WHERE ID(n) = {id} RETURN r, o", map));
+
+			/*
 			list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
 
 			// store in cache
@@ -253,6 +255,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 		}
 
 		return list;
+		*/
 	}
 
 	@Override
@@ -262,9 +265,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 		final SessionTransaction tx                 = db.getCurrentTransaction();
-		Set<Relationship> list                      = getRelationshipCache(direction, null);
+		//Set<Relationship> list                      = getRelationshipCache(direction, null);
 
-		if (list == null || dontUseCache) {
+		//if (list == null || dontUseCache) {
 
 			final Map<String, Object> map = new HashMap<>();
 			final String tenantIdentifier = db.getTenantIdentifier();
@@ -277,19 +280,25 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 					return getRelationships();
 
 				case OUTGOING:
-					list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					break;
+					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->(t) WHERE ID(n) = {id} RETURN r, t", map));
+					//break;
 
 				case INCOMING:
-					list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					break;
+					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-(s) WHERE ID(n) = {id} RETURN r, s", map));
+					//break;
 			}
 
+			return null;
+
+			/*
 			setRelationshipCache(direction, null, list);
 
 		}
 
 		return list;
+		*/
 	}
 
 	@Override
@@ -299,9 +308,9 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 		final RelationshipRelationshipMapper mapper = new RelationshipRelationshipMapper(db);
 		final SessionTransaction tx                 = db.getCurrentTransaction();
-		Set<Relationship> list                      = getRelationshipCache(direction, relationshipType);
+		//Set<Relationship> list                      = getRelationshipCache(direction, relationshipType);
 
-		if (list == null || dontUseCache) {
+		//if (list == null || dontUseCache) {
 
 			final Map<String, Object> map = new HashMap<>();
 			final String tenantIdentifier = db.getTenantIdentifier();
@@ -311,22 +320,29 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 			switch (direction) {
 
 				case BOTH:
-					list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-(o WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					break;
+					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-(o WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-(o) WHERE ID(n) = {id} RETURN r, o", map));
+					//break;
 
 				case OUTGOING:
-					list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					break;
+					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->(t) WHERE ID(n) = {id} RETURN r, t", map));
+					//break;
 
 				case INCOMING:
-					list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					break;
+					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-(s) WHERE ID(n) = {id} RETURN DISTINCT r, s", map));
+					//break;
 			}
 
+			return null;
+
+		/*
 			setRelationshipCache(direction, relationshipType, list);
 		}
 
 		return list;
+		*/
 	}
 
 	@Override
@@ -421,8 +437,8 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				map.put("id", id);
 
-				final QueryResult<org.neo4j.driver.v1.types.Node> result = tx.getNodes("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n", map);
-				final Iterator<org.neo4j.driver.v1.types.Node> iterator  = result.iterator();
+				final Iterable<org.neo4j.driver.v1.types.Node> result   = tx.getNodes("MATCH (n) WHERE ID(n) = {id} RETURN DISTINCT n", map);
+				final Iterator<org.neo4j.driver.v1.types.Node> iterator = result.iterator();
 
 				if (iterator.hasNext()) {
 

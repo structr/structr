@@ -18,7 +18,6 @@
  */
 package org.structr.bolt.index;
 
-import org.structr.api.QueryResult;
 import org.structr.api.graph.Node;
 import org.structr.api.util.QueryUtils;
 import org.structr.bolt.BoltDatabaseService;
@@ -91,7 +90,7 @@ public class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public QueryResult<Node> getResult(final PageableQuery query) {
+	public Iterable<Node> getResult(final PageableQuery query) {
 
 		if (query.idsOnly()) {
 

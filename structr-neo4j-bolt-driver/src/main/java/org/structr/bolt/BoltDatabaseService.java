@@ -52,7 +52,6 @@ import org.structr.api.DatabaseService;
 import org.structr.api.NativeResult;
 import org.structr.api.NetworkException;
 import org.structr.api.NotInTransactionException;
-import org.structr.api.QueryResult;
 import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
@@ -298,7 +297,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public QueryResult<Node> getAllNodes() {
+	public Iterable<Node> getAllNodes() {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -315,7 +314,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public QueryResult<Node> getNodesByLabel(final String type) {
+	public Iterable<Node> getNodesByLabel(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -338,7 +337,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public QueryResult<Node> getNodesByTypeProperty(final String type) {
+	public Iterable<Node> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -364,7 +363,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public QueryResult<Relationship> getAllRelationships() {
+	public Iterable<Relationship> getAllRelationships() {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -388,7 +387,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 	}
 
 	@Override
-	public QueryResult<Relationship> getRelationshipsByType(final String type) {
+	public Iterable<Relationship> getRelationshipsByType(final String type) {
 
 		if (type == null) {
 			return getAllRelationships();

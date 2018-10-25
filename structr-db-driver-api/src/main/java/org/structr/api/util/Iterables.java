@@ -33,6 +33,7 @@ public class Iterables {
 	public static <T, C extends Collection<T>> C addAll(C collection, Iterable<? extends T> iterable) {
 
 		final Iterator<? extends T> iterator = iterable.iterator();
+		int count                            = 0;
 
 		try {
 			while (iterator.hasNext()) {
@@ -41,6 +42,10 @@ public class Iterables {
 				if (next != null) {
 
 					collection.add(next);
+				}
+
+				if (++count % 100000 == 0) {
+					System.out.println(count);
 				}
 			}
 

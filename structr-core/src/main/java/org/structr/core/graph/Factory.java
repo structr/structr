@@ -28,7 +28,6 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NetworkException;
-import org.structr.api.QueryResult;
 import org.structr.api.graph.Relationship;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
@@ -111,7 +110,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	 * @return result
 	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public Result instantiate(final QueryResult<S> input) throws FrameworkException {
+	public Result instantiate(final Iterable<S> input) throws FrameworkException {
 
 		if (input != null) {
 
@@ -209,7 +208,7 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 
 	}
 
-	protected Result page(final QueryResult<S> input, final int offset, final int pageSize) throws FrameworkException {
+	protected Result page(final Iterable<S> input, final int offset, final int pageSize) throws FrameworkException {
 
 		final SecurityContext securityContext = factoryProfile.getSecurityContext();
 		final boolean dontCheckCount          = securityContext.ignoreResultCount();
@@ -218,9 +217,9 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 		int position                          = 0;
 		int count                             = 0;
 
-		try (final QueryResult<S> tmp = input) {
+		try {
 
-			for (final S item : tmp) {
+			for (final S item : input) {
 
 				final T n = instantiate(item);
 				if (n != null) {

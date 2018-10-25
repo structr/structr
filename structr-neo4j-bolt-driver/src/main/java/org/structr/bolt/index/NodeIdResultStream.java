@@ -19,7 +19,6 @@
 package org.structr.bolt.index;
 
 import java.util.Map;
-import org.structr.api.QueryResult;
 import org.structr.bolt.BoltDatabaseService;
 import org.structr.bolt.SessionTransaction;
 import org.structr.bolt.mapper.NodeId;
@@ -33,7 +32,7 @@ public class NodeIdResultStream extends AbstractResultStream<NodeId> {
 	}
 
 	@Override
-	protected QueryResult<NodeId> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
+	protected Iterable<NodeId> fetchData(final BoltDatabaseService db, final String statement, final Map<String, Object> data) {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
 		tx.setIsPing(getQuery().getQueryContext().isPing());
