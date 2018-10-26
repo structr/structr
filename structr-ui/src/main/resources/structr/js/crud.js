@@ -954,7 +954,7 @@ var _Crud = {
 	},
 	activateList: function(type, properties) {
 		properties = properties || _Crud.keys[type];
-		var url = rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 		_Crud.list(type, properties, url);
 	},
 	clearList: function(type) {
