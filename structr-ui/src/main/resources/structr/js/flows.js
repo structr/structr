@@ -39,13 +39,13 @@ document.addEventListener("DOMContentLoaded", function() {
 var _Flows = {
 	_moduleName: 'flows',
 	init: function() {
-		
+
 		_Logger.log(_LogType.FLOWS, '_Flows.init');
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-		Structr.adaptUiToAvailableModules()
-		
+		Structr.adaptUiToAvailableModules();
+
 	},
 	resize: function() {
 
@@ -75,12 +75,14 @@ var _Flows = {
 	onload: function() {
 
 		_Flows.init();
-		
+
+		Structr.updateMainHelpLink('https://support.structr.com/article/527');
+
 		main = document.querySelector('#main');
 
 		main.innerHTML = '<div id="flows-main"><div class="column-resizer"></div><div class="fit-to-height" id="flows-tree-container"><div id="flows-tree"></div></div><div class="fit-to-height" id="flows-canvas-container"><div id="flows-canvas"></div></div>';
 		flowsMain = document.querySelector('#flows-main');
-		
+
 		let markup = `
 			<div class="input-and-button"><input id="name-input" type="text" size="12" placeholder="Enter flow name"><button id="create-new-flow" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add</button></div>
 			<!--button class="add-flow-node"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)}"></i> Add node</button-->
@@ -89,12 +91,12 @@ var _Flows = {
 			<button class="reset_view_icon button"><i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view</button>
 			<button class="layout_icon button disabled"><i title="Layout" class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Layout</button>
 		`;
-		
+
 		document.querySelector('#flows-canvas-container').insertAdjacentHTML('afterbegin', markup);
 
         let rest = new Rest();
 		let persistence = new Persistence();
-		
+
 		function createFlow(inputElement) {
             let name = inputElement.value;
             inputElement.value = "";
@@ -107,7 +109,7 @@ var _Flows = {
                }
             });
         }
-		
+
 		function deleteFlow(id) {
 			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
 				if (confirm('Really delete flow ' + id + '?')) {
@@ -124,10 +126,10 @@ var _Flows = {
             let packages = await rest.get('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
             return packages.result.length > 0 ? packages.result[0] : null;
         }
-			
+
 		document.querySelector('#create-new-flow').onclick = () => createFlow(document.getElementById('name-input'));
 		document.querySelector('.reset_view_icon').onclick = () => editor.resetView();
-		
+
 		document.querySelector('.delete_flow_icon').onclick = () => deleteFlow(flowId);
 		document.querySelector('.layout_icon').onclick = function() {
 			if (!this.getAttribute('class').includes('disabled')) {
@@ -161,7 +163,7 @@ var _Flows = {
             sort: function(a, b) {
                 let a1 = this.get_node(a);
                 let b1 = this.get_node(b);
-                
+
 				if (a1.id.startsWith('/') && !b1.id.startsWith('/')) {
 					return -1;
 				} else if (b1.id.startsWith('/') && !a1.id.startsWith('/')) {
@@ -427,7 +429,7 @@ var _Flows = {
 
 	},
 	treeInitFunction: function(obj, callback) {
-		
+
 		switch (obj.id) {
 
 			case '#':
@@ -465,7 +467,7 @@ var _Flows = {
 				_Flows.load(obj.id, callback);
 				break;
 		}
-		
+
 	},
 	unload: function() {
 		fastRemoveAllChildren(document.querySelector('#main .searchBox'));
@@ -643,7 +645,7 @@ var _Flows = {
 
 		// display flow canvas
 		flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
-		
+
 		flowId = id;
         let persistence = new Persistence();
 
@@ -685,7 +687,7 @@ var _Flows = {
                     editor.applySavedLayout();
                     editor._editor.view.update();
 					editor.resetView();
-					
+
 					// activate buttons
 					document.querySelector('.run_flow_icon').classList.remove('disabled');
 					document.querySelector('.delete_flow_icon').classList.remove('disabled');
@@ -695,6 +697,6 @@ var _Flows = {
 
             });
 
-        });		
+        });
 	}
 };
