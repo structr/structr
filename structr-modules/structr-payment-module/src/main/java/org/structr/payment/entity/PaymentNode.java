@@ -24,7 +24,6 @@
 package org.structr.payment.entity;
 
 import java.net.URI;
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -86,7 +85,7 @@ public interface PaymentNode extends NodeInterface, Payment {
 		type.addStringProperty("payer",                  PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("payerBusiness",          PropertyView.Public, PropertyView.Ui);
 
-		type.addPropertyGetter("items",                  List.class);
+		type.addPropertyGetter("items",                  Iterable.class);
 		type.addPropertyGetter("description",            String.class);
 		type.addPropertyGetter("currency",               String.class);
 		type.addPropertyGetter("token",                  String.class);

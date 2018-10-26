@@ -33,7 +33,6 @@ import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import java.lang.reflect.Modifier;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -52,6 +51,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.api.service.Service;
 import org.structr.api.service.StructrServices;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -452,8 +452,8 @@ public class SchemaService implements Service {
 			// calc hierarchy
 			for (final SchemaNode schemaNode : schemaNodes.values()) {
 
-				final int relCount = schemaNode.getProperty(SchemaNode.relatedFrom).size() + schemaNode.getProperty(SchemaNode.relatedTo).size();
-				final int level    = recursiveGetHierarchyLevel(schemaNodes, alreadyCalculated, schemaNode, 0);
+				final int relCount = Iterables.count(schemaNode.getProperty(SchemaNode.relatedFrom)) + Iterables.count(schemaNode.getProperty(SchemaNode.relatedTo));
+				final int level     = recursiveGetHierarchyLevel(schemaNodes, alreadyCalculated, schemaNode, 0);
 
 				schemaNode.setProperty(SchemaNode.hierarchyLevel, level);
 				schemaNode.setProperty(SchemaNode.relCount, relCount);

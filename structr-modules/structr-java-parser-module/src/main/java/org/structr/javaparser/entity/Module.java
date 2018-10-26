@@ -18,7 +18,6 @@
  */
 package org.structr.javaparser.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.LinkedTreeNodeImpl;
@@ -39,16 +38,16 @@ import org.structr.web.property.PathProperty;
  *
  */
 public class Module extends LinkedTreeNodeImpl<Module> {
-	
+
 	/*static class Impl { static {
 
 		final JsonSchema schema          = SchemaService.getDynamicSchema();
 		final JsonObjectType type        = schema.addType("Module");
 		final JsonObjectType folder      = (JsonObjectType) schema.addType("Folder");
 		final JsonObjectType javaPackage = (JsonObjectType) schema.addType("Package");
-	
+
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Module"));
-		
+
 		type.addStringProperty("path", PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true);
 
 		final JsonReferenceType contains = type.relate(type, "CONTAINS", Cardinality.OneToMany, "parent",   "children");
@@ -59,19 +58,19 @@ public class Module extends LinkedTreeNodeImpl<Module> {
 		type.addViewProperty(PropertyView.Ui, contains.getTargetPropertyName());
 		type.addViewProperty(PropertyView.Ui, moduleFolder.getSourcePropertyName());
 		type.addViewProperty(PropertyView.Ui, "packages");
-		
+
 		type.overrideMethod("getSiblingLinkType",          false, "return ModuleCONTAINS_NEXT_SIBLINGModule.class;");
 		type.overrideMethod("getChildLinkType",            false, "return ModuleCONTAINSModule.class;");
-	}}*/	
-	
+	}}*/
+
 	public static final Property<Integer> position                 = new IntProperty("position").indexed().readOnly();
 	public static final Property<String> path                      = new PathProperty("path").indexed().readOnly();
 	public static final Property<Module> parent                    = new StartNode<>("parent", ModuleChildren.class);
-	public static final Property<List<Module>> children            = new EndNodes<>("children", ModuleChildren.class);
-	
+	public static final Property<Iterable<Module>> children            = new EndNodes<>("children", ModuleChildren.class);
+
 	public static final Property<Folder> folder                    = new EndNode<>("folder", ModuleFolder.class);
-	public static final Property<List<org.structr.javaparser.entity.Package>> packages           = new EndNodes<>("packages", ModulePackages.class);
-	
+	public static final Property<Iterable<org.structr.javaparser.entity.Package>> packages           = new EndNodes<>("packages", ModulePackages.class);
+
 	public static final View defaultView = new View(Module.class, PropertyView.Public, name, path, parent);
 	public static final View uiView      = new View(Module.class, PropertyView.Ui,     name, path, parent, children, packages);
 

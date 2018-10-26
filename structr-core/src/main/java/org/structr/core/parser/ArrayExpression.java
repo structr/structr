@@ -20,6 +20,7 @@ package org.structr.core.parser;
 
 import java.util.Collection;
 import org.apache.commons.collections.CollectionUtils;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -93,6 +94,14 @@ public class ArrayExpression extends Expression {
 
 					// silently ignore array index errors
 					return CollectionUtils.get(value, index);
+
+				} catch (Throwable t) {}
+
+			} else if (value instanceof Iterable) {
+
+				try {
+
+					return Iterables.nth((Iterable)value, index);
 
 				} catch (Throwable t) {}
 

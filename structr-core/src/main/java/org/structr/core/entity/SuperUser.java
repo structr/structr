@@ -506,7 +506,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setFavorites(List<Favoritable> favorites) throws FrameworkException {
+	public void setFavorites(final Iterable<Favoritable> favorites) throws FrameworkException {
 	}
 
 	@Override

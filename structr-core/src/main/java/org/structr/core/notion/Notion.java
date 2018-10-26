@@ -18,12 +18,10 @@
  */
 package org.structr.core.notion;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
@@ -31,8 +29,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * Combines a serialization strategy and a deserialization strategy to form a
@@ -56,15 +52,11 @@ public abstract class Notion<S extends NodeInterface, T> {
 	protected String idProperty                                     = null;
 	protected Class<S> type                                         = null;
 
-	//~--- constructors ---------------------------------------------------
-
 	public Notion(SerializationStrategy serializationStrategy, DeserializationStrategy deserializationStrategy) {
 
 		this.serializationStrategy   = serializationStrategy;
 		this.deserializationStrategy = deserializationStrategy;
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	/**
 	 * Returns the property key that will be used to de-serialize objects
@@ -100,7 +92,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 			@Override
 			public S adapt(T s) throws FrameworkException {
 
-				if (s instanceof Collection) {
+				if (s instanceof Iterable) {
 					throw new ClassCastException("Invalid source type.");
 				}
 
@@ -109,45 +101,52 @@ public abstract class Notion<S extends NodeInterface, T> {
 		};
 	}
 
-	public Adapter<List<S>, List<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
+	public Adapter<Iterable<S>, Iterable<T>> getCollectionAdapterForGetter(final SecurityContext securityContext) {
 
-		return new NotionAdapter<List<S>, List<T>>() {
+		return new NotionAdapter<Iterable<S>, Iterable<T>>() {
 
 			@Override
-			public List<T> adapt(List<S> s) throws FrameworkException {
+			public Iterable<T> adapt(Iterable<S> s) throws FrameworkException {
 
-				List<T> list = new LinkedList<>();
+				return Iterables.map(o -> {
 
-				for (S o : s) {
+					try {
 
-					list.add(serializationStrategy.serialize(securityContext, type, o));
+						return serializationStrategy.serialize(securityContext, type, o);
 
-				}
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+					}
 
-				return list;
+					return null;
+				}, s);
 			}
 		};
 	}
 
-	public Adapter<List<T>, List<S>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
+	public Adapter<Iterable<T>, Iterable<S>> getCollectionAdapterForSetter(final SecurityContext securityContext) {
 
-		return new NotionAdapter<List<T>, List<S>>() {
+		return new NotionAdapter<Iterable<T>, Iterable<S>>() {
 
 			@Override
-			public List<S> adapt(List<T> s) throws FrameworkException {
+			public Iterable<S> adapt(Iterable<T> s) throws FrameworkException {
 
 				if (s == null) {
 					return Collections.EMPTY_LIST;
 				}
 
-				List<S> list = new LinkedList<>();
-				for (T t : s) {
+				return Iterables.map(t -> {
 
-					list.add(deserializationStrategy.deserialize(securityContext, type, t, context));
+					try {
 
-				}
+						return deserializationStrategy.deserialize(securityContext, type, t, context);
 
-				return list;
+					} catch (FrameworkException fex) {
+						fex.printStackTrace();
+					}
+
+					return null;
+				}, s);
 			}
 		};
 	}
@@ -177,23 +176,23 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	}
 
-	public PropertyConverter<List<T>, List<S>> getCollectionConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<T>, Iterable<S>> getCollectionConverter(SecurityContext securityContext) {
 
-		return new PropertyConverter<List<T>, List<S>>(securityContext, null) {
+		return new PropertyConverter<Iterable<T>, Iterable<S>>(securityContext, null) {
 
 			@Override
-			public List<T> revert(List<S> source) throws FrameworkException {
+			public Iterable<T> revert(Iterable<S> source) throws FrameworkException {
 
-				final NotionAdapter<List<S>, List<T>> adapter = (NotionAdapter)getCollectionAdapterForGetter(securityContext);
+				final NotionAdapter<Iterable<S>, Iterable<T>> adapter = (NotionAdapter)getCollectionAdapterForGetter(securityContext);
 				adapter.setContext(context);
 
 				return adapter.adapt(source);
 			}
 
 			@Override
-			public List<S> convert(List<T> source) throws FrameworkException {
+			public Iterable<S> convert(Iterable<T> source) throws FrameworkException {
 
-				final NotionAdapter<List<T>, List<S>> adapter = (NotionAdapter)getCollectionAdapterForSetter(securityContext);
+				final NotionAdapter<Iterable<T>, Iterable<S>> adapter = (NotionAdapter)getCollectionAdapterForSetter(securityContext);
 				adapter.setContext(context);
 
 				return adapter.adapt(source);
@@ -208,22 +207,6 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 	public void setIdProperty(String idProperty) {
 		this.idProperty = idProperty;
-	}
-
-	public static <S, T> List<T> convertList(List<S> source, Adapter<S, T> adapter) {
-
-		List<T> result = new LinkedList<>();
-		for(S s : source) {
-
-			try {
-				result.add(adapter.adapt(s));
-
-			} catch(FrameworkException fex) {
-				logger.warn("Error in iterable adapter", fex);
-			}
-	}
-
-		return result;
 	}
 
 	// ----- nested classes -----

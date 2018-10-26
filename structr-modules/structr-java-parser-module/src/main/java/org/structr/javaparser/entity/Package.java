@@ -18,7 +18,6 @@
  */
 package org.structr.javaparser.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.LinkedTreeNodeImpl;
@@ -40,7 +39,7 @@ import org.structr.web.property.PathProperty;
  *
  */
 public class Package extends LinkedTreeNodeImpl<org.structr.javaparser.entity.Package> {
-	
+
 	/*static class Impl { static {
 
 		final JsonSchema schema        = SchemaService.getDynamicSchema();
@@ -48,9 +47,9 @@ public class Package extends LinkedTreeNodeImpl<org.structr.javaparser.entity.Pa
 		final JsonObjectType module    = (JsonObjectType) schema.addType("Module");
 		final JsonObjectType folder    = (JsonObjectType) schema.addType("Folder");
 		final JsonObjectType javaClass = (JsonObjectType) schema.addType("JavaClass");
-	
+
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Package"));
-		
+
 		type.addStringProperty("path", PropertyView.Public, PropertyView.Ui).setIndexed(true).setReadOnly(true);
 
 		final JsonReferenceType contains = type.relate(type, "CONTAINS", Cardinality.OneToMany, "parent",   "children");
@@ -58,7 +57,7 @@ public class Package extends LinkedTreeNodeImpl<org.structr.javaparser.entity.Pa
 		final JsonReferenceType modulePackages = type.relate(module,    "MODULE_PACKAGE", Cardinality.OneToMany, "module", "packages");
 		final JsonReferenceType packageFolder  = type.relate(folder,    "PACKAGE_FOLDER", Cardinality.OneToOne, "folder", "package");
 		final JsonReferenceType packageClass   = type.relate(javaClass, "PACKAGE_CLASS",  Cardinality.OneToMany, "classes", "package");
-		
+
 		type.addViewProperty(PropertyView.Ui, contains.getSourcePropertyName());
 		type.addViewProperty(PropertyView.Ui, contains.getTargetPropertyName());
 		type.addViewProperty(PropertyView.Ui, modulePackages.getSourcePropertyName());
@@ -71,17 +70,17 @@ public class Package extends LinkedTreeNodeImpl<org.structr.javaparser.entity.Pa
 
 	public static final Property<Integer>                                     position = new IntProperty("position").indexed().readOnly();
 	public static final Property<String>                                      path     = new PathProperty("path").indexed().readOnly();
-	
+
 	public static final Property<org.structr.javaparser.entity.Package>       parent   = new StartNode<>("parent", PackageChildren.class);
-	public static final Property<List<org.structr.javaparser.entity.Package>> children = new EndNodes<>("children", PackageChildren.class);
-	
+	public static final Property<Iterable<org.structr.javaparser.entity.Package>> children = new EndNodes<>("children", PackageChildren.class);
+
 	public static final Property<Module> module                    = new StartNode<>("module", ModulePackages.class);
 	public static final Property<Folder> folder                    = new EndNode<>("folder", PackageFolder.class);
-	public static final Property<List<JavaClass>> classes          = new EndNodes<>("classes", PackageClasses.class);
-	
+	public static final Property<Iterable<JavaClass>> classes          = new EndNodes<>("classes", PackageClasses.class);
+
 	public static final View defaultView = new View(org.structr.javaparser.entity.Package.class, PropertyView.Public, name, path, parent);
 	public static final View uiView      = new View(org.structr.javaparser.entity.Package.class, PropertyView.Ui,     name, path, parent, children, classes);
-	
+
 	@Override
 	public java.lang.Class<PackageChildren> getChildLinkType() {
 		return PackageChildren.class;

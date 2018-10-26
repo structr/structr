@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
-import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
@@ -111,7 +111,7 @@ public class CacheTest extends StructrUiTest {
 
 			try (final Tx tx = app.tx()) {
 
-				final List<TestFive> testFives = obj.getProperty(TestTwo.testFives);
+				final List<TestFive> testFives = Iterables.toList(obj.getProperty(TestTwo.testFives));
 				final int size                 = testFives.size();
 
 				if (size != count) {

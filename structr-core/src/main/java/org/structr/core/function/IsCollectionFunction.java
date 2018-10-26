@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -41,7 +40,7 @@ public class IsCollectionFunction extends Function<Object, Object> {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return (sources[0] instanceof Collection);
+			return (sources[0] instanceof Iterable);
 
 		} catch (ArgumentNullException pe) {
 

@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.Collection;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.EmptyQuery;
 import org.structr.api.search.Occurrence;
@@ -117,9 +117,9 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 		// both can be lists..
 		if (nodeValue != null && searchValue == null) {
 
-			if (nodeValue instanceof Collection) {
+			if (nodeValue instanceof Iterable) {
 
-				return isEmptyOrValue((Collection)nodeValue);
+				return isEmptyOrValue((Iterable)nodeValue);
 
 			} else {
 
@@ -129,20 +129,23 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 		}
 
 		// both non-null, compare empty collections
-		if (nodeValue instanceof Collection && searchValue instanceof Collection) {
+		if (nodeValue instanceof Iterable && searchValue instanceof Iterable) {
 
-			Collection nodeCollection   = (Collection)nodeValue;
-			Collection searchCollection = (Collection)searchValue;
+			Iterable nodeCollection   = (Iterable)nodeValue;
+			Iterable searchCollection = (Iterable)searchValue;
 
-			if (nodeCollection.isEmpty() && searchCollection.isEmpty()) {
+			final Iterator nodeIterator   = nodeCollection.iterator();
+			final Iterator searchIterator = searchCollection.iterator();
+
+			if (!nodeIterator.hasNext() && !searchIterator.hasNext()) {
 				return true;
 			}
 
-			if (isEmptyOrValue(nodeCollection) && searchCollection.isEmpty()) {
+			if (isEmptyOrValue(nodeCollection) && !searchIterator.hasNext()) {
 				return true;
 			}
 
-			if (nodeCollection.isEmpty() && isEmptyOrValue(searchCollection)) {
+			if (!nodeIterator.hasNext() && isEmptyOrValue(searchCollection)) {
 				return true;
 			}
 		}
@@ -150,13 +153,9 @@ public class EmptySearchAttribute<T> extends PropertySearchAttribute<T> {
 		return false;
 	}
 
-	private boolean isEmptyOrValue(Collection<T> collection) {
+	private boolean isEmptyOrValue(Iterable<T> collection) {
 
 		if (collection == null) {
-			return true;
-		}
-
-		if (collection.isEmpty()) {
 			return true;
 		}
 

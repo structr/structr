@@ -245,7 +245,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			map.put("id", id);
 
-			return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-(o) WHERE ID(n) = {id} RETURN r, o", map));
+			return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-(o) WHERE ID(n) = {id} RETURN r, o ORDER BY r.internalTimestamp", map));
 
 			/*
 			list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
@@ -281,12 +281,12 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				case OUTGOING:
 					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->(t) WHERE ID(n) = {id} RETURN r, t", map));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r]->(t) WHERE ID(n) = {id} RETURN r, t ORDER BY r.internalTimestamp", map));
 					//break;
 
 				case INCOMING:
 					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-(s) WHERE ID(n) = {id} RETURN r, s", map));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r]-(s) WHERE ID(n) = {id} RETURN r, s ORDER BY r.internalTimestamp", map));
 					//break;
 			}
 
@@ -321,17 +321,17 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 				case BOTH:
 					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-(o WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-(o) WHERE ID(n) = {id} RETURN r, o", map));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]-(o) WHERE ID(n) = {id} RETURN r, o ORDER BY r.internalTimestamp", map));
 					//break;
 
 				case OUTGOING:
 					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->(t) WHERE ID(n) = {id} RETURN r, t", map));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")-[r:" + relationshipType.name() + "]->(t) WHERE ID(n) = {id} RETURN r, t ORDER BY r.internalTimestamp", map));
 					//break;
 
 				case INCOMING:
 					//list = toSet(Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-() WHERE ID(n) = {id} RETURN DISTINCT r", map)));
-					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-(s) WHERE ID(n) = {id} RETURN DISTINCT r, s", map));
+					return Iterables.map(mapper, tx.getRelationships("MATCH (n" + (tenantIdentifier != null ? ":" + tenantIdentifier : "") + ")<-[r:" + relationshipType.name() + "]-(s) WHERE ID(n) = {id} RETURN DISTINCT r, s ORDER BY r.internalTimestamp", map));
 					//break;
 			}
 

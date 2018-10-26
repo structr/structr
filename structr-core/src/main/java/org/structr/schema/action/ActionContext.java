@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
@@ -239,6 +240,9 @@ public class ActionContext {
 							if (data instanceof Collection) {
 								return ((Collection)data).size();
 							}
+							if (data instanceof Iterable) {
+								return Iterables.count((Iterable)data);
+							}
 							if (data.getClass().isArray()) {
 								return ((Object[])data).length;
 							}
@@ -354,13 +358,13 @@ public class ActionContext {
 	}
 
 	public String getBaseUrl () {
-		
+
 		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
-		
+
 		if (StringUtils.isNotEmpty(baseUrlOverride)) {
 			return baseUrlOverride;
 		}
-		
+
 		final StringBuilder sb = new StringBuilder("http");
 
 		final Boolean httpsEnabled = Settings.HttpsEnabled.getValue();

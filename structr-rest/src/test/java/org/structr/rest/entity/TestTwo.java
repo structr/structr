@@ -19,7 +19,6 @@
 package org.structr.rest.entity;
 
 import java.util.Date;
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
@@ -40,8 +39,8 @@ public class TestTwo extends AbstractNode {
 	public static final Property<Long>          aLong    = new LongProperty("aLong").indexed();
 	public static final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
 
-	public static final Property<List<TestOne>> testOnes = new EndNodes<>("test_ones", TwoOneOneToMany.class);
-	public static final Property<List<TestOne>> testOnesAlt = new EndNodes<>("testOnes", TwoOneOneToMany.class);
+	public static final Property<Iterable<TestOne>> testOnes = new EndNodes<>("test_ones", TwoOneOneToMany.class);
+	public static final Property<Iterable<TestOne>> testOnesAlt = new EndNodes<>("testOnes", TwoOneOneToMany.class);
 
 	public static final View publicView = new View(TestTwo.class, PropertyView.Public,
 		name, anInt, aLong, aDate, testOnes, testOnesAlt

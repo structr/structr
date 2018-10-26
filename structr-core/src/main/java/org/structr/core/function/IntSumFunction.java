@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -43,9 +42,9 @@ public class IntSumFunction extends Function<Object, Object> {
 
 			int result = 0;
 
-			if (sources[0] instanceof Collection) {
+			if (sources[0] instanceof Iterable) {
 
-				for (final Number num : (Collection<Number>)sources[0]) {
+				for (final Number num : (Iterable<Number>)sources[0]) {
 
 					result += num.intValue();
 				}

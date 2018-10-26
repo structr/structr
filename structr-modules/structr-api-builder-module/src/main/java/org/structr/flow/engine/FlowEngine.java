@@ -25,6 +25,7 @@ import org.structr.flow.api.*;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
@@ -79,7 +80,7 @@ public class FlowEngine {
 					if (next.equals(current)) {
 
 						context.error(new FlowError("FlowElement is connected to itself. Cancelling execution to prevent unlimited recursion."));
-						
+
 					}
 
 				}
@@ -133,17 +134,16 @@ public class FlowEngine {
 		// No linked FlowExceptionHandler was found, try to find an eligible global one
 		FlowContainer container = current.getFlowContainer();
 
-		List<FlowBaseNode> flowNodes = container.getProperty(FlowContainer.flowNodes);
+		Iterable<FlowBaseNode> flowNodes = container.getProperty(FlowContainer.flowNodes);
 
-		if (flowNodes != null && flowNodes.size() > 0) {
+		if (flowNodes != null) {
 
 			for (FlowBaseNode node : flowNodes) {
 
 				if (node instanceof FlowExceptionHandler) {
 
-					FlowExceptionHandler exceptionHandler = (FlowExceptionHandler)node;
-
-					List<FlowBaseNode> handledNodes = exceptionHandler.getProperty(FlowExceptionHandler.handledNodes);
+					final FlowExceptionHandler exceptionHandler = (FlowExceptionHandler)node;
+					final List<FlowBaseNode> handledNodes       = Iterables.toList(exceptionHandler.getProperty(FlowExceptionHandler.handledNodes));
 
 					if (handledNodes == null || handledNodes.size() == 0) {
 

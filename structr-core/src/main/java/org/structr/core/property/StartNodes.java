@@ -51,7 +51,7 @@ import org.structr.core.notion.ObjectNotion;
  *
  *
  */
-public class StartNodes<S extends NodeInterface, T extends NodeInterface> extends Property<List<S>> implements RelationProperty<S> {
+public class StartNodes<S extends NodeInterface, T extends NodeInterface> extends Property<Iterable<S>> implements RelationProperty<S> {
 
 	private static final Logger logger = LoggerFactory.getLogger(StartNodes.class.getName());
 
@@ -134,42 +134,42 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public PropertyConverter<List<S>, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Iterable<S>, ?> databaseConverter(SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<List<S>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Iterable<S>, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, List<S>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<S>> inputConverter(SecurityContext securityContext) {
 		return getNotion().getCollectionConverter(securityContext);
 	}
 
 	@Override
-	public List<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public List<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<S> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		ManyStartpoint<S> startpoint = relation.getSource();
 
 		if (predicate != null) {
 
-			return Iterables.toList(Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, new TruePredicate(predicate.comparator())))));
+			return Iterables.filter(predicate, Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, new TruePredicate(predicate.comparator()))));
 
 		} else {
 
-			return Iterables.toList(Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, null)));
+			return Iterables.filter(new NotNullPredicate(), startpoint.get(securityContext, (NodeInterface)obj, null));
 		}
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, List<S> collection) throws FrameworkException {
+	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<S> collection) throws FrameworkException {
 
 		ManyStartpoint<S> startpoint = relation.getSource();
 
@@ -187,12 +187,12 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public Property<List<S>> indexed() {
+	public Property<Iterable<S>> indexed() {
 		return this;
 	}
 
 	@Override
-	public Property<List<S>> passivelyIndexed() {
+	public Property<Iterable<S>> passivelyIndexed() {
 		return this;
 	}
 
@@ -220,7 +220,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	@Override
 	public void addSingleElement(final SecurityContext securityContext, final GraphObject obj, final S s) throws FrameworkException {
 
-		List<S> list = getProperty(securityContext, obj, false);
+		List<S> list = Iterables.toList(getProperty(securityContext, obj, false));
 		list.add(s);
 
 		setProperty(securityContext, obj, list);
@@ -232,7 +232,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 	}
 
 	@Override
-	public List<S> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
+	public Iterable<S> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
@@ -245,19 +245,19 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 				}
 			}
 
-			return (List<S>)inputConverter.convert(sources);
+			return (Iterable<S>)inputConverter.convert(sources);
 		}
 
 		return null;
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, List<S> searchValue, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<S> searchValue, boolean exactMatch, final Query query) {
 
 		final Predicate<GraphObject> predicate    = query != null ? query.toPredicate() : null;
 		final SourceSearchAttribute attr          = new SourceSearchAttribute(occur);
 
-		if (searchValue != null && !searchValue.isEmpty()) {
+		if (searchValue != null && searchValue.iterator().hasNext()) {
 
 			if (!Occurrence.FORBIDDEN.equals(occur)) {
 

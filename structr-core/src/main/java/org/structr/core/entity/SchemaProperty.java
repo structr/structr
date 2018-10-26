@@ -31,6 +31,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -70,7 +71,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	private static final Logger logger = LoggerFactory.getLogger(SchemaProperty.class.getName());
 
 	public static final Property<AbstractSchemaNode> schemaNode            = new StartNode<>("schemaNode", SchemaNodeProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
-	public static final Property<List<SchemaView>>   schemaViews           = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
+	public static final Property<Iterable<SchemaView>>   schemaViews       = new StartNodes<>("schemaViews", SchemaViewProperty.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name));
 
 	public static final Property<String>             declaringClass        = new StringProperty("declaringClass");
 	public static final Property<String>             defaultValue          = new StringProperty("defaultValue");
@@ -293,7 +294,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 				if (viewToAddTo.equals(view.getName())) {
 
-					final Set<SchemaProperty> properties = new LinkedHashSet<>(view.getProperty(SchemaView.schemaProperties));
+					final Set<SchemaProperty> properties = Iterables.toLinkedHashSet(view.getProperty(SchemaView.schemaProperties));
 
 					properties.add(this);
 

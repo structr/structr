@@ -18,6 +18,7 @@
  */
 package org.structr.javaparser;
 
+import com.drew.lang.Iterables;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.PackageDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -41,9 +42,9 @@ public class MethodVisitorAdapter extends VoidVisitorAdapter<Object> {
 
 	@Override
 	public void visit(final MethodCallExpr methodCall, final Object arg) {
-		
+
 		final Map<String, Object> params = (HashMap) arg;
-		
+
 		final String          clsName = (String)           params.get("clsName");
 		final JavaParserFacade facade = (JavaParserFacade) params.get("facade");
 		final App                 app = (App)              params.get("app");
@@ -111,7 +112,7 @@ public class MethodVisitorAdapter extends VoidVisitorAdapter<Object> {
 
 												logger.info("Found calling method in graph: " + method.getName());
 
-												final List<Method> methodsCalled = method.getProperty(Method.methodsCalled);
+												final List<Method> methodsCalled = Iterables.toList(method.getProperty(Method.methodsCalled));
 												methodsCalled.add(calledMethod);
 
 												method.setProperty(Method.methodsCalled, methodsCalled);

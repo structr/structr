@@ -19,25 +19,14 @@
 package org.structr.messaging.engine.entities;
 
 import org.apache.cxf.common.util.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
-import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
@@ -46,16 +35,16 @@ import org.structr.schema.json.JsonSchema;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public interface MessageSubscriber extends NodeInterface {
 
-    class Impl {
+	class Impl {
+
 		static {
 
-			final JsonSchema schema     = SchemaService.getDynamicSchema();
-			final JsonObjectType type   = schema.addType("MessageSubscriber");
+			final JsonSchema schema = SchemaService.getDynamicSchema();
+			final JsonObjectType type = schema.addType("MessageSubscriber");
 
 			type.setImplements(URI.create("https://structr.org/v1.1/definitions/MessageSubscriber"));
 
@@ -64,37 +53,35 @@ public interface MessageSubscriber extends NodeInterface {
 
 			type.addPropertyGetter("topic", String.class);
 			type.addPropertyGetter("callback", String.class);
-			type.addPropertyGetter("clients", List.class);
-			
-			type.overrideMethod("onCreation",     true, MessageSubscriber.class.getName() + ".onCreation(this, arg0, arg1);");
+			type.addPropertyGetter("clients", Iterable.class);
+
+			type.overrideMethod("onCreation", true, MessageSubscriber.class.getName() + ".onCreation(this, arg0, arg1);");
 			type.overrideMethod("onModification", true, MessageSubscriber.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 
 			type.addMethod("onMessage")
-					.setReturnType(RestMethodResult.class.getName())
-					.addParameter("topic", String.class.getName())
-					.addParameter("message", String.class.getName())
-					.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, securityContext);")
-					.addException(FrameworkException.class.getName())
-					.setDoExport(true);
-
+				.setReturnType(RestMethodResult.class.getName())
+				.addParameter("topic", String.class.getName())
+				.addParameter("message", String.class.getName())
+				.setSource("return " + MessageSubscriber.class.getName() + ".onMessage(this, topic, message, securityContext);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 			type.addViewProperty(PropertyView.Public, "clients");
-			type.addViewProperty(PropertyView.Ui,     "clients");
+			type.addViewProperty(PropertyView.Ui, "clients");
 		}
 	}
 
-
 	String getTopic();
-    String getCallback();
-    List<MessageClient> getClients();
+	String getCallback();
+	Iterable<MessageClient> getClients();
 
-    static void subscribeOnAllClients(MessageSubscriber thisSubscriber) {
+	static void subscribeOnAllClients(MessageSubscriber thisSubscriber) {
 
-		if(!StringUtils.isEmpty(thisSubscriber.getTopic()) && (thisSubscriber.getTopic() != null)) {
-			Map<String,Object> params = new HashMap<>();
+		if (!StringUtils.isEmpty(thisSubscriber.getTopic()) && (thisSubscriber.getTopic() != null)) {
+			Map<String, Object> params = new HashMap<>();
 			params.put("topic", thisSubscriber.getTopic());
 
-			List<MessageClient> clientsList = thisSubscriber.getClients();
+			Iterable<MessageClient> clientsList = thisSubscriber.getClients();
 			clientsList.forEach(client -> {
 				try {
 					client.invokeMethod("subscribeTopic", params, false);
@@ -105,42 +92,39 @@ public interface MessageSubscriber extends NodeInterface {
 		}
 	}
 
+	static void onCreation(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-    static void onCreation(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-    	if(thisSubscriber.getProperty(StructrApp.key(MessageSubscriber.class,"topic")) != null) {
+		if (thisSubscriber.getProperty(StructrApp.key(MessageSubscriber.class, "topic")) != null) {
 			subscribeOnAllClients(thisSubscriber);
-    	}
+		}
 
-    }
-
+	}
 
 	static void onModification(MessageSubscriber thisSubscriber, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-        if(modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class,"topic")) || modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class,"topic"))) {
+		if (modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic")) || modificationQueue.isPropertyModified(thisSubscriber, StructrApp.key(MessageSubscriber.class, "topic"))) {
 			subscribeOnAllClients(thisSubscriber);
-        }
+		}
 
-    }
-
+	}
 
 	static RestMethodResult onMessage(MessageSubscriber thisSubscriber, final String topic, final String message, SecurityContext securityContext) throws FrameworkException {
 
-        if (!StringUtils.isEmpty(thisSubscriber.getCallback())) {
+		if (!StringUtils.isEmpty(thisSubscriber.getCallback())) {
 
-            String script = "${" + thisSubscriber.getCallback() + "}";
+			String script = "${" + thisSubscriber.getCallback() + "}";
 
-            Map<String, Object> params = new HashMap<>();
-            params.put("topic", topic);
-            params.put("message", message);
+			Map<String, Object> params = new HashMap<>();
+			params.put("topic", topic);
+			params.put("message", message);
 
-            ActionContext ac = new ActionContext(securityContext, params);
-            ac.setConstant("topic", topic);
-            ac.setConstant("message", message);
-            Scripting.replaceVariables(ac, thisSubscriber, script);
-        }
+			ActionContext ac = new ActionContext(securityContext, params);
+			ac.setConstant("topic", topic);
+			ac.setConstant("message", message);
+			Scripting.replaceVariables(ac, thisSubscriber, script);
+		}
 
-        return new RestMethodResult(200);
-    }
+		return new RestMethodResult(200);
+	}
 
 }

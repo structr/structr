@@ -1993,15 +1993,15 @@ public class SearchAndSortingTest extends StructrTest {
 
 			// search for a group with empty list of parents
 			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new LinkedList<>()).getAsList();
-			assertEquals("Invalid search result for ", 1, result1.size());
+			assertEquals("Invalid search result", 1, result1.size());
 
 			// search for a group with group2 as a parent
 			final List<Group> result2 = app.nodeQuery(Group.class).and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
-			assertEquals("Invalid search result for ", 2, result2.size());
+			assertEquals("Invalid search result", 2, result2.size());
 
 			// search for a group with group2 as a parent and a given name
 			final List<Group> result3 = app.nodeQuery(Group.class).andName("Group3").and(groupsKey, Arrays.asList(groups.get(1))).getAsList();
-			assertEquals("Invalid search result for ", 1, result3.size());
+			assertEquals("Invalid search result", 1, result3.size());
 
 			tx.success();
 

@@ -35,17 +35,15 @@ import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FlowAggregate extends FlowNode implements Aggregation, DataSource, DeployableEntity, ThrowingElement {
 
-	public static final Property<DataSource> dataSource 					= new StartNode<>("dataSource", FlowDataInput.class);
-	public static final Property<List<FlowBaseNode>> dataTarget 			= new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<DataSource> startValueSource				= new StartNode<>("startValue", FlowAggregateStartValue.class);
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-
-	public static final Property<String> script             				= new StringProperty("script");
+	public static final Property<DataSource> dataSource                 = new StartNode<>("dataSource", FlowDataInput.class);
+	public static final Property<Iterable<FlowBaseNode>> dataTarget     = new EndNodes<>("dataTarget", FlowDataInput.class);
+	public static final Property<DataSource> startValueSource           = new StartNode<>("startValue", FlowAggregateStartValue.class);
+	public static final Property<FlowExceptionHandler> exceptionHandler = new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
+	public static final Property<String> script                         = new StringProperty("script");
 
 	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);
 	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui,     script, startValueSource, dataSource, dataTarget, exceptionHandler, isStartNodeOfContainer);

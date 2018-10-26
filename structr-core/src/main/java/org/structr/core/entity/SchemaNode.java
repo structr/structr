@@ -80,8 +80,8 @@ public class SchemaNode extends AbstractSchemaNode {
 		"Relation"
 	}));
 
-	public static final Property<List<SchemaRelationshipNode>> relatedTo            = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
-	public static final Property<List<SchemaRelationshipNode>> relatedFrom          = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
+	public static final Property<Iterable<SchemaRelationshipNode>> relatedTo        = new EndNodes<>("relatedTo", SchemaRelationshipSourceNode.class);
+	public static final Property<Iterable<SchemaRelationshipNode>> relatedFrom      = new StartNodes<>("relatedFrom", SchemaRelationshipTargetNode.class);
 	public static final Property<String>                       extendsClass         = new StringProperty("extendsClass").indexed();
 	public static final Property<String>                       implementsInterfaces = new StringProperty("implementsInterfaces").indexed();
 	public static final Property<String>                       defaultSortKey       = new StringProperty("defaultSortKey");

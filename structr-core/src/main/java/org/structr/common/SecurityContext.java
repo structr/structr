@@ -35,6 +35,7 @@ import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.core.GraphObject;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
@@ -582,7 +583,7 @@ public class SecurityContext {
 			final Principal owner = node.getOwnerNode();
 
 			// owner is always allowed to do anything with its nodes
-			if (user.equals(node) || user.equals(owner) || user.getParents().contains(owner)) {
+			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
 
 				return true;
 			}

@@ -18,7 +18,6 @@
  */
 package org.structr.javaparser.entity;
 
-import java.util.List;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
@@ -32,10 +31,10 @@ import org.structr.javaparser.entity.relation.PackageClasses;
  *
  */
 public class ClassOrInterface extends AbstractNode {
-	
+
 	public static final Property<org.structr.javaparser.entity.Package> packageProp     = new StartNode<>("package", PackageClasses.class);
-	public static final Property<List<Method>>                          methods         = new EndNodes<>("methods",  ClassMethods.class);
-	
+	public static final Property<Iterable<Method>>                          methods     = new EndNodes<>("methods",  ClassMethods.class);
+
 	public static final View defaultView = new View(ClassOrInterface.class, PropertyView.Public, name, packageProp, methods);
 	public static final View uiView      = new View(ClassOrInterface.class, PropertyView.Ui,     name, packageProp, methods);
 }
