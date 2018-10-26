@@ -215,7 +215,7 @@ var _Entities = {
 			{ title: 'XPath Query',    propertyName: 'xpathQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
-		
+
 		if (Structr.isModulePresent('api-builder')) {
 			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
 		}
@@ -224,14 +224,14 @@ var _Entities = {
 		el.append('<h3>Repeater Configuration</h3>').append(queryTypeButtonsContainer);
 
 		var queryHeading = $('<h4 class="query-type-heading"></h4>').appendTo(el);
-		
+
 		var textArea = $('<textarea class="hidden query-text"></textarea>').appendTo(el);
 		var flowSelector = $('#flow-selector');
-		
+
 		var initRepeaterInputs = function() {
 
 			var saveBtn = $('<button class="action">Save</button>');
-			el.append(saveBtn);
+			el.append('<br>').append(saveBtn);
 
 			queryTypes.forEach(function(queryType) {
 
@@ -306,9 +306,9 @@ var _Entities = {
 					var val = null;
 					if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
 						if (queryType.propertyName === 'flow') {
-							
+
 							val = flowSelector.val();
-							
+
 						} else {
 							val = textArea.val();
 							data.flow = null;
@@ -320,7 +320,7 @@ var _Entities = {
 
 				Command.setProperties(entity.id, data, function(obj) {
 					blinkGreen(saveBtn);
-					
+
 					_Pages.reloadPreviews();
 				});
 			});
@@ -329,19 +329,19 @@ var _Entities = {
 				'You can access result objects or the objects of the collection using ${<i>&lt;dataKey&gt;.&lt;propertyKey&gt;</i>}');
 
 			_Entities.activateTabs(entity.id, '#data-tabs', '#content-tab-rest');
-		};		
-		
+		};
+
 		if (Structr.isModulePresent('api-builder') && !flowSelector.length) {
 			flowSelector = $('<select class="hidden" id="flow-selector"></select>').insertBefore(textArea);
 
 			flowSelector.append('<option>--- Select Flow ---</option>');
-			// (type, pageSize, page, sort, order, properties, includeHidden, callback) 
+			// (type, pageSize, page, sort, order, properties, includeHidden, callback)
 			Command.getByType('FlowContainer', 1000, 1, 'name', 'asc', null, false, function(flows) {
 
 				flows.forEach(function(flow) {
 					flowSelector.append('<option value="' + flow.id + '">' + flow.name + '</option>');
 				});
-				
+
 				initRepeaterInputs();
 			});
 		} else {
