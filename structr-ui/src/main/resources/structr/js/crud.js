@@ -2670,7 +2670,6 @@ var _Crud = {
 						case 'password':
 						case 'passwordChangeDate':
 						case 'salt':
-						case 'internalEntityContextPath':
 						case 'twoFactorSecret':
 						case 'twoFactorToken':
 						case 'isTwoFactorUser':
@@ -2696,7 +2695,6 @@ var _Crud = {
 						case 'favoriteContent':
 						case 'favoriteContext':
 						case 'favoriteUsers':
-						case 'internalEntityContextPath':
 						case 'resultDocumentForExporter':
 						case 'documentTemplateForExporter':
 						case 'isFile':
@@ -2719,7 +2717,6 @@ var _Crud = {
 						case 'favoriteContent':
 						case 'favoriteContext':
 						case 'favoriteUsers':
-						case 'internalEntityContextPath':
 						case 'resultDocumentForExporter':
 						case 'documentTemplateForExporter':
 						case 'isFile':
@@ -2734,6 +2731,13 @@ var _Crud = {
 				});
 			}
 		}
+
+		['internalEntityContextPath', 'grantees'].forEach(function (alwaysHiddenProperty) {
+			if (hiddenKeys.indexOf(alwaysHiddenProperty) === -1) {
+				hiddenKeys.push(alwaysHiddenProperty);
+			}
+		});
+
 		return hiddenKeys;
 	},
 	isPrincipalType: function (typeDef) {
