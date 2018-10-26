@@ -1041,7 +1041,7 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/public' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
