@@ -2612,4 +2612,42 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 	}
+
+	@Test
+	public void testConversionError() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			schema.addType("Test").addBooleanProperty("boolTest").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final String script =  "${{ var test = Structr.create('Test'); test.boolTest = true; }}\n";
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx  = new ActionContext(securityContext, null);
+
+			// just run without an error, that's enough for this test
+			Scripting.evaluate(ctx, null, script, "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
 }

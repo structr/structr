@@ -258,8 +258,6 @@ public class PerformanceTest extends StructrUiTest {
 	@Test
 	public void testReadPerformanceWithPrefetching() {
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		try {
 
 			final App app = StructrApp.getInstance(setup());
@@ -286,6 +284,8 @@ public class PerformanceTest extends StructrUiTest {
 
 			// flush caches
 			FlushCachesCommand.flushAll();
+
+			Settings.CypherDebugLogging.setValue(true);
 
 			for (int i=0; i<loop; i++) {
 
