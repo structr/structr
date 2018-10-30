@@ -1033,7 +1033,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final Result result, final Integer outputDepth) throws ServletException, IOException {
 
 		final App app                  = StructrApp.getInstance(securityContext);
-		final int depth                = outputDepth != null && outputDepth > 0 ? outputDepth : config.getOutputNestingDepth();
+		final int depth                = outputDepth != null && outputDepth >= 0 ? outputDepth : config.getOutputNestingDepth();
 		final String baseUrl           = request.getRequestURI();
 
 		final boolean indentJson = Settings.JsonIndentation.getValue();
