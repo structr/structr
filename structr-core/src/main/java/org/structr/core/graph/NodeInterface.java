@@ -21,7 +21,6 @@ package org.structr.core.graph;
 import java.util.List;
 import java.util.Map;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
@@ -95,8 +94,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type);
 	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
 
-	void setRawPathSegment(final Relationship pathSegment);
-	Relationship getRawPathSegment();
+	void setRawPathSegmentId(final long pathSegmentId);
 
 	List<Security> getSecurityRelationships();
 

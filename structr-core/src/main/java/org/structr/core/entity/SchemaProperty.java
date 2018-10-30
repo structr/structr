@@ -294,7 +294,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 				if (viewToAddTo.equals(view.getName())) {
 
-					final Set<SchemaProperty> properties = Iterables.toLinkedHashSet(view.getProperty(SchemaView.schemaProperties));
+					final Set<SchemaProperty> properties = Iterables.toSet(view.getProperty(SchemaView.schemaProperties));
 
 					properties.add(this);
 

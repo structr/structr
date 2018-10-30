@@ -1818,8 +1818,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			page.increaseVersion();
 
 		}
-
 	}
+
 	public static String getPagePath(final DOMNode thisNode) {
 
 		String cachedPagePath = (String)thisNode.getTemporaryStorage().get("cachedPagePath");

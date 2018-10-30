@@ -267,33 +267,7 @@ public class BoltDatabaseService implements DatabaseService, GraphProperties {
 
 	@Override
 	public Relationship getRelationshipById(final long id) {
-
-		final StringBuilder buf       = new StringBuilder();
-		final SessionTransaction tx   = getCurrentTransaction();
-		final Map<String, Object> map = new HashMap<>();
-
-		map.put("id", id);
-
-		buf.append("MATCH (");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(")-[r]->(");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(") WHERE ID(r) = {id} RETURN r");
-
-		final org.neo4j.driver.v1.types.Relationship rel = tx.getRelationship(buf.toString(), map);
-
-		return RelationshipWrapper.newInstance(this, rel);
-
+		return RelationshipWrapper.newInstance(this, id);
 	}
 
 	@Override

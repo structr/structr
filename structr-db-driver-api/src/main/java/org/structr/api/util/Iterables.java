@@ -20,7 +20,6 @@ package org.structr.api.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,6 +36,7 @@ public class Iterables {
 		int count                            = 0;
 
 		try {
+
 			while (iterator.hasNext()) {
 
 				final T next = iterator.next();
@@ -50,9 +50,6 @@ public class Iterables {
 				}
 			}
 
-		} catch (Throwable t) {
-
-			t.printStackTrace();
 
 		} finally {
 
@@ -150,7 +147,7 @@ public class Iterables {
 			return (List<T>)iterable;
 		}
 
-		return addAll(new ArrayList<T>(), iterable);
+		return addAll(new ArrayList<>(), iterable);
 	}
 
 	public static <T> List<T> toList(Iterator<T> iterator) {
@@ -169,10 +166,6 @@ public class Iterables {
 	}
 
 	public static <T> Set<T> toSet(Iterable<T> iterable) {
-		return addAll(new HashSet<T>(), iterable);
-	}
-
-	public static <T> Set<T> toLinkedHashSet(Iterable<T> iterable) {
 		return addAll(new LinkedHashSet<T>(), iterable);
 	}
 

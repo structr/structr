@@ -27,7 +27,6 @@ import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
@@ -441,12 +440,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void setRawPathSegment(final Relationship rawSegment) {
-	}
-
-	@Override
-	public Relationship getRawPathSegment() {
-		return null;
+	public void setRawPathSegmentId(final long rawSegmentID) {
 	}
 
 	@Override

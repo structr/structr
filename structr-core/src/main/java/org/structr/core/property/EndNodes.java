@@ -168,7 +168,20 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 
 		ManyEndpoint<T> endpoint = relation.getTarget();
 
-		return endpoint.set(securityContext, (NodeInterface)obj, collection);
+		try {
+
+			return endpoint.set(securityContext, (NodeInterface)obj, collection);
+
+		} catch (RuntimeException r) {
+
+			final Throwable cause = r.getCause();
+			if (cause instanceof FrameworkException) {
+
+				throw (FrameworkException)cause;
+			}
+		}
+
+		return null;
 	}
 
 	@Override

@@ -28,7 +28,6 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NetworkException;
-import org.structr.api.graph.Relationship;
 import org.structr.common.FactoryDefinition;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -79,8 +78,8 @@ public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>
 	}
 
 	public abstract T instantiate(final S obj);
-	public abstract T instantiate(final S obj, final Relationship pathSegment);
-	public abstract T instantiateWithType(final S obj, final Class<T> type, final Relationship pathSegment, boolean isCreation) throws FrameworkException;
+	public abstract T instantiate(final S obj, final long pathSegmentId);
+	public abstract T instantiateWithType(final S obj, final Class<T> type, final long pathSegmentId, boolean isCreation) throws FrameworkException;
 	public abstract T instantiate(final S obj, final boolean includeHidden, final boolean publicOnly) throws FrameworkException;
 	public abstract T instantiateDummy(final S entity, final String entityType) throws FrameworkException;
 

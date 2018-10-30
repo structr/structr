@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -235,7 +236,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]->(t)"), "(n)-[]->()", "RETURN r, t ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]->(s)"), "(n)<-[]-()", "RETURN r, s ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]-(s)"), "(n)<-[]-()", "RETURN r, s ORDER BY r.internalTimestamp");
 		}
 
 		return null;
@@ -481,7 +482,11 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 				// else: return cached result
 				if (set == null) {
 
-					set = Iterables.toSet(Iterables.map(mapper, tx.getRelationships(concat("MATCH ", match, whereStatement, returnStatement), map)));
+					// create sorted set (important if nodes are added later on)
+					set = new TreeSet<>((o1, o2) -> { return compare("internalTimestamp", o1, o2); });
+
+					// add elements
+					set.addAll(Iterables.toList(Iterables.map(mapper, tx.getRelationships(concat("MATCH ", match, whereStatement, returnStatement), map))));
 				}
 
 				return set;

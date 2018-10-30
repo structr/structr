@@ -19,6 +19,8 @@
 package org.structr.core.notion;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -114,11 +116,9 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 						return serializationStrategy.serialize(securityContext, type, o);
 
-					} catch (FrameworkException fex) {
-						fex.printStackTrace();
+					} catch (FrameworkException ex) {
+						throw new RuntimeException(ex);
 					}
-
-					return null;
 				}, s);
 			}
 		};
@@ -135,18 +135,15 @@ public abstract class Notion<S extends NodeInterface, T> {
 					return Collections.EMPTY_LIST;
 				}
 
-				return Iterables.map(t -> {
+				// do not use lazy evaluation here as it would move the creation of
+				// related nodes via notions to a different point in time
+				final List<S> list = new LinkedList<>();
+				for (final T t : s) {
 
-					try {
+					list.add(deserializationStrategy.deserialize(securityContext, type, t, context));
+				}
 
-						return deserializationStrategy.deserialize(securityContext, type, t, context);
-
-					} catch (FrameworkException fex) {
-						fex.printStackTrace();
-					}
-
-					return null;
-				}, s);
+				return list;
 			}
 		};
 	}
@@ -173,7 +170,6 @@ public abstract class Notion<S extends NodeInterface, T> {
 				return adapter.adapt(source);
 			}
 		};
-
 	}
 
 	public PropertyConverter<Iterable<T>, Iterable<S>> getCollectionConverter(SecurityContext securityContext) {
