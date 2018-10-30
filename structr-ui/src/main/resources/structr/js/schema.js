@@ -1852,7 +1852,17 @@ var _Schema = {
 				}
 
 			}, function(data) {
-				Structr.errorFromResponse(data.responseJSON);
+
+				var additionalInformation = {
+					requiresConfirmation: true
+				};
+
+				if (obj.propertyType === 'Enum') {
+					additionalInformation.title = 'Schema compilation failed';
+					additionalInformation.overrideText = 'Error while making changes to an Enum property. See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
+				}
+
+				Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
 
 				blinkRed(tr);
 
@@ -2390,10 +2400,11 @@ var _Schema = {
 
 			}, function(data) {
 
-				var additionalInformation = {};
+				var additionalInformation = {
+					requiresConfirmation: true
+				};
 
 				if (obj.propertyType === 'Enum') {
-					additionalInformation.requiresConfirmation = true;
 					additionalInformation.title = 'Schema compilation failed';
 					additionalInformation.overrideText = 'Error while making changes to an Enum property. See the <a href="https://support.structr.com/article/329">support article on enum properties</a> for possible explanations.';
 				}

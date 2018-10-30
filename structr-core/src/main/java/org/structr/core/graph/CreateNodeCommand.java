@@ -288,6 +288,7 @@ public class CreateNodeCommand<T extends NodeInterface> extends NodeServiceComma
 					newNode.setModified();
 					securityRel.setModified();
 					ownsRel.setModified();
+					((NodeWrapper)ownsRel.getStartNode()).setModified();
 
 					notifySecurityRelCreation(user, securityRel);
 					notifyOwnsRelCreation(user, ownsRel);

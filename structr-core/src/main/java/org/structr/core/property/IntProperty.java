@@ -42,6 +42,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		super(name);
 	}
 
+	public IntProperty(final String jsonName, final String dbName) {
+		super(jsonName, dbName);
+	}
+
 	@Override
 	public String typeName() {
 		return "Integer";

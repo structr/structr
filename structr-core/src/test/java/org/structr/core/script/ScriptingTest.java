@@ -2614,6 +2614,89 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testFindNewlyCreatedObjectByOwner () {
+
+		this.cleanDatabaseAndSchema();
+
+		String userObjects        = "[";
+
+		try (final Tx tx = app.tx()) {
+
+			createTestNode(Principal.class, "testuser");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// Create first object
+		try (final Tx tx = app.tx()) {
+
+			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
+
+			userObjects += Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// find() it - this works because the cache is empty
+		try (final Tx tx = app.tx()) {
+
+			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
+
+			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// create second object
+		try (final Tx tx = app.tx()) {
+
+			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
+
+			userObjects += ", " + Scripting.replaceVariables(ctx, null, "${ create('TestOne') }");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// find() it - this does not work because there is a cache entry already and it was not invalidated after creating the last relationship to it
+		try (final Tx tx = app.tx()) {
+
+			final Principal testUser = StructrApp.getInstance().nodeQuery(Principal.class).and(AbstractNode.name, "testuser").getFirst();
+			final ActionContext ctx = new ActionContext(SecurityContext.getInstance(testUser, AccessMode.Frontend));
+
+			assertEquals("User should be able to find newly created object!", userObjects + "]", Scripting.replaceVariables(ctx, null, "${ find('TestOne', 'owner', me.id) }"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testConversionError() {
 
 		// setup
@@ -2641,7 +2724,6 @@ public class ScriptingTest extends StructrTest {
 
 			// just run without an error, that's enough for this test
 			Scripting.evaluate(ctx, null, script, "test");
-
 			tx.success();
 
 		} catch (FrameworkException fex) {

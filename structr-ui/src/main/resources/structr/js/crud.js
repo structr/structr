@@ -954,7 +954,7 @@ var _Crud = {
 	},
 	activateList: function(type, properties) {
 		properties = properties || _Crud.keys[type];
-		var url = rootUrl + type + '/' + defaultView + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 		_Crud.list(type, properties, url);
 	},
 	clearList: function(type) {
@@ -1041,7 +1041,7 @@ var _Crud = {
 		}
 	},
 	crudExport: function(type) {
-		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/public' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
+		var url = csvRootUrl + '/' + $('#crud-right').data('url') + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type]);
 
 		_Crud.dialog('Export ' + type + ' list as CSV', function() {}, function() {});
 
@@ -2654,61 +2654,120 @@ var _Crud = {
 			}
 
 		} else {
+
 			// Default: Hide some large fields
-			Object.keys(_Crud.keys[type]).forEach(function(key) {
-				switch (type) {
-					case 'User':
-						switch (key) {
-							case 'isUser':
-							case 'isAdmin':
-							case 'createdBy':
-							case 'sessionIds':
-							case 'publicKeys':
-							case 'sessionData':
-							case 'password':
-							case 'passwordChangeDate':
-							case 'salt':
-							case 'internalEntityContextPath':
-							case 'twoFactorSecret':
-							case 'twoFactorToken':
-							case 'isTwoFactorUser':
-							case 'twoFactorConfirmed':
-							case 'ownedNodes':
-							case 'localStorage':
-							case 'customPermissionQueryAccessControl':
-							case 'customPermissionQueryDelete':
-							case 'customPermissionQueryRead':
-							case 'customPermissionQueryWrite':
-								hiddenKeys.push(key);
-								break;
-							default:
-						}
-						break;
-					case 'File':
-						switch (key) {
-							case 'base64Data':
-							case 'favoriteContent':
-							case 'favoriteContext':
-							case 'favoriteUsers':
-							case 'internalEntityContextPath':
-							case 'resultDocumentForExporter':
-							case 'documentTemplateForExporter':
-							case 'isFile':
-							case 'position':
-							case 'extractedContent':
-							case 'indexedWords':
-							case 'minificationTargets':
-							case 'fileModificationDate':
-								hiddenKeys.push(key);
-								break;
-							default:
-						}
-						break;
-					default:
-				}
-			});
+			if (_Crud.isPrincipalType(_Crud.types[type])) {
+
+				// hidden keys for Principal types
+				Object.keys(_Crud.keys[type]).forEach(function(key) {
+					switch (key) {
+						case 'isUser':
+						case 'isAdmin':
+						case 'createdBy':
+						case 'sessionIds':
+						case 'publicKeys':
+						case 'sessionData':
+						case 'password':
+						case 'passwordChangeDate':
+						case 'salt':
+						case 'twoFactorSecret':
+						case 'twoFactorToken':
+						case 'isTwoFactorUser':
+						case 'twoFactorConfirmed':
+						case 'ownedNodes':
+						case 'localStorage':
+						case 'customPermissionQueryAccessControl':
+						case 'customPermissionQueryDelete':
+						case 'customPermissionQueryRead':
+						case 'customPermissionQueryWrite':
+							hiddenKeys.push(key);
+							break;
+					}
+				});
+
+			} else if (_Crud.isImageType(_Crud.types[type])) {
+
+				// hidden keys for Image types
+				Object.keys(_Crud.keys[type]).forEach(function(key) {
+					switch (key) {
+						case 'base64Data':
+						case 'image64Data':
+						case 'favoriteContent':
+						case 'favoriteContext':
+						case 'favoriteUsers':
+						case 'resultDocumentForExporter':
+						case 'documentTemplateForExporter':
+						case 'isFile':
+						case 'position':
+						case 'extractedContent':
+						case 'indexedWords':
+						case 'minificationTargets':
+						case 'fileModificationDate':
+							hiddenKeys.push(key);
+							break;
+					}
+				});
+
+			} else if (_Crud.isFileType(_Crud.types[type])) {
+
+				// hidden keys for File types
+				Object.keys(_Crud.keys[type]).forEach(function(key) {
+					switch (key) {
+						case 'base64Data':
+						case 'favoriteContent':
+						case 'favoriteContext':
+						case 'favoriteUsers':
+						case 'resultDocumentForExporter':
+						case 'documentTemplateForExporter':
+						case 'isFile':
+						case 'position':
+						case 'extractedContent':
+						case 'indexedWords':
+						case 'minificationTargets':
+						case 'fileModificationDate':
+							hiddenKeys.push(key);
+							break;
+					}
+				});
+			}
 		}
+
+		['internalEntityContextPath', 'grantees'].forEach(function (alwaysHiddenProperty) {
+			if (hiddenKeys.indexOf(alwaysHiddenProperty) === -1) {
+				hiddenKeys.push(alwaysHiddenProperty);
+			}
+		});
+
 		return hiddenKeys;
+	},
+	isPrincipalType: function (typeDef) {
+		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.Principal');
+	},
+	isFileType: function (typeDef) {
+		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.AbstractFile');
+	},
+	isImageType: function (typeDef) {
+		return _Crud.inheritsFromAncestorType(typeDef, 'org.structr.dynamic.Image');
+	},
+	inheritsFromAncestorType: function (typeDef, ancestorFQCN) {
+
+		if (typeDef.extendsClass === ancestorFQCN) {
+
+			return true;
+
+		} else {
+
+			// search parent type
+			var parentType = Object.values(_Crud.types).filter(function(t) {
+				return (t.className === typeDef.extendsClass);
+			});
+
+			if (parentType.length === 1) {
+				return _Crud.inheritsFromAncestorType(parentType[0], ancestorFQCN);
+			}
+		}
+
+		return false;
 	},
 	filterKeys: function(type, sourceArray) {
 
