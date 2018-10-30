@@ -20,6 +20,8 @@ package org.structr.rest.servlet;
 
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
+
+import java.awt.*;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
@@ -55,6 +57,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
@@ -65,6 +68,7 @@ import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.StaticRelationshipResource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
+import org.structr.rest.serialization.StreamingWriter;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
@@ -112,12 +116,12 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 	}
 
 	// final fields
-	private final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
+	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
+	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 
 	// non-final fields
-	private Value<String> propertyView       = null;
-	private ThreadLocalGson gson             = null;
+	protected Value<String> propertyView       = null;
+	protected ThreadLocalGson gson             = null;
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -878,7 +882,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 		return new LinkedHashMap<>();
 	}
 
-	private void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
+	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
@@ -925,7 +929,7 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			int pageSize             = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 			int page                 = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 			int depth                = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-			String baseUrl           = request.getRequestURI();
+
 			PropertyKey sortKey      = null;
 
 			// set sort key
@@ -990,47 +994,77 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 
 				}
 
-				final boolean indentJson = Settings.JsonIndentation.getValue();
-				final String accept      = request.getHeader("Accept");
+				processResult(securityContext, request, response, result, depth);
+			}
 
-				if (accept != null && accept.contains("text/html")) {
+			response.setStatus(HttpServletResponse.SC_OK);
 
-					final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, depth);
+		} catch (FrameworkException frameworkException) {
 
-					// isolate write output
-					try (final Tx tx = app.tx()) {
+			// set status & write JSON output
+			response.setStatus(frameworkException.getStatus());
+			gson.get().toJson(frameworkException, response.getWriter());
+			response.getWriter().println();
 
-						// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
-						response.setContentType("text/html; charset=utf-8");
+		} catch (Throwable t) {
 
-						final Writer writer = response.getWriter();
+			logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+			logger.warn(" => Error thrown: ", t);
 
-						htmlStreamer.stream(securityContext, writer, result, baseUrl);
-						writer.append("\n");    // useful newline
+			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
-						tx.success();
-					}
+			response.setStatus(code);
+			response.getWriter().append(RestMethodResult.jsonError(code, "Exception in GET: " + t.getMessage()));
 
-				} else {
+		} finally {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, depth);
+			try {
+				//response.getWriter().flush();
+				response.getWriter().close();
 
-					// isolate write output
-					try (final Tx tx = app.tx()) {
+			} catch (Throwable t) {
 
-						// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
-						response.setContentType("application/json; charset=utf-8");
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
+			}
 
-						final Writer writer = response.getWriter();
+		}
+	}
 
-						jsonStreamer.stream(securityContext, writer, result, baseUrl);
-						writer.write(10);    // useful newline
-						writer.flush();
+	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final Result result, final Integer outputDepth) throws ServletException, IOException {
 
-						tx.success();
-					}
+		final App app                  = StructrApp.getInstance(securityContext);
+		final int depth                = outputDepth != null && outputDepth > 0 ? outputDepth : config.getOutputNestingDepth();
+		final String baseUrl           = request.getRequestURI();
 
+		final boolean indentJson = Settings.JsonIndentation.getValue();
+
+		try {
+
+			final String accept      = request.getHeader("Accept");
+
+			if (accept != null && accept.contains("text/html")) {
+
+				writeHtml(securityContext, response, result, baseUrl, indentJson, depth);
+
+			} else {
+
+				final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, depth);
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+
+					// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
+					response.setContentType("application/json; charset=utf-8");
+
+					final Writer writer = response.getWriter();
+
+					jsonStreamer.stream(securityContext, writer, result, baseUrl);
+					writer.write(10);    // useful newline
+					writer.flush();
+
+					tx.success();
 				}
+
 			}
 
 			response.setStatus(HttpServletResponse.SC_OK);
@@ -1082,9 +1116,30 @@ public class JsonRestServlet extends HttpServlet implements HttpServiceServlet {
 			}
 
 		}
+
 	}
 
-	private void assertInitialized() throws FrameworkException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final Result result, final String baseUrl, final boolean indentJson, final int depth) throws FrameworkException, IOException {
+		final App app                          = StructrApp.getInstance(securityContext);
+		final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, depth);
+		// isolate write output
+		try (final Tx tx = app.tx()) {
+
+			// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
+			response.setContentType("text/html; charset=utf-8");
+
+			final Writer writer = response.getWriter();
+
+			htmlStreamer.stream(securityContext, writer, result, baseUrl);
+			writer.append("\n");    // useful newline
+
+			tx.success();
+
+		}
+	}
+
+
+	protected void assertInitialized() throws FrameworkException {
 
 		if (!Services.getInstance().isInitialized()) {
 			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "System is not initialized yet");
