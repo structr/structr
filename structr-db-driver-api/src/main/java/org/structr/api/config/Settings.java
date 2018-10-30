@@ -68,6 +68,7 @@ public class Settings {
 	public static final Setting<String> LayoutsPath           = new StringSetting(generalGroup,   "Paths",       "layouts.path",               "layouts" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<String> WebDataPath           = new StringSetting(generalGroup,   "Paths",       "data.webapp.path",           "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 	public static final Setting<Boolean> LogSchemaOutput      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log",           false);
+	public static final Setting<Boolean> LogSchemaErrors      = new BooleanSetting(generalGroup,  "Logging",     "NodeExtender.log.errors",    false);
 	public static final Setting<Boolean> RequestLogging       = new BooleanSetting(generalGroup,  "Logging",     "log.requests",               false);
 	public static final Setting<String> LogPrefix             = new StringSetting(generalGroup,   "Logging",     "log.prefix",                 "structr");
 	public static final Setting<String> LogName               = new StringSetting(generalGroup,   "Logging",     "log.name",                   "structr-yyyy_mm_dd.request.log");
