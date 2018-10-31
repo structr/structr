@@ -105,6 +105,7 @@ import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.PageImportVisitor;
 import org.structr.web.maintenance.deploy.SchemaImportVisitor;
 import org.structr.web.maintenance.deploy.TemplateImportVisitor;
+import org.structr.websocket.command.CreateComponentCommand;
 
 /**
  *
@@ -467,6 +468,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 		}
 
+		// make sure shadow document is created in any case
+		CreateComponentCommand.getOrCreateHiddenDocument();
+		
 		// import components, must be done before pages so the shared components exist
 		if (Files.exists(components)) {
 

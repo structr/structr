@@ -1739,7 +1739,6 @@ button.disabled {
 
 .input-and-button input[type=text] {
 	margin: 0;
-	margin-top: -2px;
 	height: 20px;
 	padding: 1px 4px;
 	font-size: 14px;
@@ -2777,7 +2776,7 @@ input.bitmask {
 }
 
 #resource-signature {
-	height: 19px;
+	height: 18px;
 	padding: 2px 4px;
 	margin: 0 4px;
 }
@@ -2885,6 +2884,11 @@ input.bitmask {
 	width: 47.5%;
 	margin-left: 2.5%;
 	vertical-align: top;
+}
+
+#deployment-source-input, #deployment-url-input, #deployment-target-input {
+	height: 14px;
+	margin: 0 4px 12px 0;
 }
 
 /*
