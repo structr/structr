@@ -108,7 +108,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                 = new FixedSizeCache<>(1000);
 	private static final Map<Long, Map<Long, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 
-	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type);
+	public static final View defaultView = new View(AbstractNode.class, PropertyView.Public, id, type, name);
 
 	public static final View uiView = new View(AbstractNode.class, PropertyView.Ui,
 		id, name, owner, type, createdBy, hidden, createdDate, lastModifiedDate, visibleToPublicUsers, visibleToAuthenticatedUsers
