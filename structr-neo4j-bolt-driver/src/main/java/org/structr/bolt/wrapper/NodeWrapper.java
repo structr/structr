@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotFoundException;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Label;
 import org.structr.api.graph.Node;
@@ -441,8 +442,6 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 	private class RelationshipResult {
 
 		private Set<Relationship> set = null;
-		private Long count            = null;
-		private final int threshold   = 1000;
 
 		public void add(final Relationship rel) {
 
@@ -461,18 +460,7 @@ public class NodeWrapper extends EntityWrapper<org.neo4j.driver.v1.types.Node> i
 
 			map.put("id", id);
 
-			if (count == null) {
-
-				// do count query
-				count = tx.getLong(concat("MATCH (n)", whereStatement, "RETURN SIZE(", pattern, ")"), map);
-			}
-
-			if (count > threshold || dontUseCache) {
-
-				if (count > threshold) {
-
-					logger.info("Using explicit result streaming for collection of {} relationships.", count);
-				}
+			if (Settings.ForceResultStreaming.getValue() || dontUseCache) {
 
 				// return streaming result
 				return Iterables.map(mapper, tx.getRelationships(concat("MATCH ", match, whereStatement, returnStatement), map));

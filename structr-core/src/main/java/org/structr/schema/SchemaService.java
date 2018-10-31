@@ -210,7 +210,7 @@ public class SchemaService implements Service {
 
 								if (Settings.SchemAutoMigration.getValue()) {
 
-									logger.info("Attempting auto-migration...");
+									logger.info("Attempting auto-migration of built-in schema..");
 
 									// try to handle certain errors automatically
 									handleAutomaticMigration(errorBuffer);
